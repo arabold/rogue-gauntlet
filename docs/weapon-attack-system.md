@@ -2,6 +2,8 @@
 
 Players and monsters share an attack executor for melee contact, projectiles and spell casts. [Combat actions and defense](combat-system.md) owns action conflicts and damage outcomes; [monster authoring](monster-authoring-design.md) owns AI requests. Authored Resources and scenes remain the source of tuning values.
 
+The selected [off-hand weapons and hand-based HUD plan](specs/off-hand-weapons-plan.md) extends this system with paired melee attacks, independently cooling either-hand wands and two held-item HUD previews. Those changes are pending; this document describes the implemented single-main-weapon behavior.
+
 ## Authoring attacks
 
 A weapon supplies stats, timing, an explicit attack style, grip and optional custom attack definition. `AttackDefinition` describes delivery, projectile pattern, targeting and effects without depending on quality, a particular actor rig or session state. Its impact fields cover poise damage, knockback, forced pushback, a hyper-armor interval and hit-stop (see [poise](combat-system.md#poise-and-hit-reactions)); the `BreaksGuard` defense trait makes it [Heavy](combat-system.md#threat-tiers-and-telegraphs). Its tracking fields cover facing lock lead and wind-up turn rate. Preparation and monster validation share the same rules: they reject negative or non-finite values, a reversed armor interval, and a lead that is ranged or longer than the wind-up. Runtime attacks snapshot definitions rather than mutate shared Resources.

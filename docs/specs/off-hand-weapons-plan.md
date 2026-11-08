@@ -1,203 +1,155 @@
-# Off-hand weapons
+# Off-hand weapons and hand-based HUD
 
-**Proposed: two alternative designs.** Only the [hand-local weapon damage](../stats-and-itemization.md#attributes-and-modifiers) groundwork is implemented. Both designs let the player wear a one-handed weapon in the off hand.
+**Selected design; not implemented.** Keep the main hand's quick and strong attacks on J/K. A second melee weapon contributes bonus damage to those attacks and selects paired animations; a wand in either hand casts its own spell with its own cooldown. The HUD shows the two held items, rather than a separate item preview for each attack. Hand-local weapon stats are already implemented; the gameplay, equipment and HUD changes below remain.
 
-- **Design A, passive off-hand bonus:** recommended first. The off-hand weapon adds part of its damage to main-hand attacks and never attacks itself. It needs no new animation or input, so the game stays simpler.
-- **Design B, active dual-wield:** blocked on animation. The off-hand weapon strikes on its own input, which replaces the guard input.
+Current behavior belongs to [weapon attacks](../weapon-attack-system.md), [combat and defense](../combat-system.md), and [stats and itemization](../stats-and-itemization.md). [Action design](../actor-actions-and-interactions.md) owns intended controls, and the [magic rework](magic-rework-plan.md) owns the existing spell roster, mana and wand/staff progression. Follow [project architecture](../../ARCHITECTURE.md) and [AGENTS.md](../../AGENTS.md); this plan adds no autoload or generic gameplay registry.
 
-Either design changes rules described in [actions and controls](../actor-actions-and-interactions.md#player-controls-and-four-item-quick-action-slots), [guard sourcing](../combat-system.md#dodge-guard-and-parry), [weapon attacks](../weapon-attack-system.md) and [stats](../stats-and-itemization.md). Project constraints are in [AGENTS.md](../../AGENTS.md) and [architecture](../../ARCHITECTURE.md).
+## Equipment and controls
 
-## Comparison
+| Main hand | Off hand | J: primary | K: secondary | L: off-hand action |
+| --- | --- | --- | --- | --- |
+| One-handed melee | Shield | Quick attack | Strong/weapon technique | Shield guard/parry |
+| One-handed melee | Eligible melee weapon | Quick paired attack | Strong paired attack | Unavailable; no guard/parry |
+| One-handed melee | Wand | Quick attack | Strong/weapon technique | Off-hand wand's bound spell |
+| Wand A | Wand B | A's free missiles only | A's bound spell | B's bound spell |
+| Wand | Shield | Free missiles | Bound spell | Shield guard/parry |
+| Two-handed staff | Occupied by staff | Staff's free missiles | Staff's bound spell | Unavailable |
+| Two-handed melee | Occupied by weapon | Existing primary | Existing secondary | Existing weapon/innate guard, when supported |
 
-| | A: passive off-hand bonus | B: active dual-wield |
-| --- | --- | --- |
-| Off-hand weapon | Adds a share of its attack stats to every main-hand attack | Strikes on the off-hand input with its own stats |
-| New animation | None; main-hand clips play with the weapon held in the left hand | A left-hand strike (blocker below) |
-| Inputs | Unchanged | Guard input becomes the off-hand action |
-| Guard while holding an off-hand weapon | The main weapon's guard | None |
-| Shield versus off-hand weapon | Better guard versus more damage | Guard versus a second attack |
-| Moving to the other design | Later upgrade path: B reuses all shared work | — |
+J retains hold-to-repeat and the primary combo; K and a wand's L cast once per new press. Shield guard retains press/hold/release and its opening parry window. Dodge remains a separate action. Equipping an off-hand melee weapon or wand removes fallback weapon/innate guard: pressing L cannot silently guard when that item has no available cast. A melee pair has no third attack.
 
-## Shared groundwork
+An empty hand or portable light keeps the current weapon/innate guard rules. Availability comes from the resolved capability, not from whether a preview is empty: a valid fallback guard may have an enabled L with no off-hand item. Empty-main-hand attacks remain the existing unarmed actions; equipping something only in the off hand never promotes it to the main hand.
 
-### Hand-local weapon damage (implemented)
+- **Eligibility:** one-handed wands can occupy either hand. Start melee off-hand content with daggers; additional one-handed melee families are an authoring decision. Two-handed weapons and other ranged weapons cannot occupy the off hand.
+- **Automatic equip:** weapons default to the main hand, replacing its occupant. A better weapon must not unexpectedly fill an empty off hand. The context menu offers an explicit off-hand choice for eligible items; lights retain their existing preference.
+- **Displacement:** retain two-handed conflicts and atomic curse checks. Displaced items stay in the backpack. Both hands and their grips must be valid before an equip commits.
+- **Mixed pairs:** the damage bonus and paired animations require two one-handed melee weapons. An off-hand dagger beside a wand or empty main hand supplies no attack of its own and no bonus to missiles or unarmed attacks; L remains unavailable. A sword plus wand retains the sword's ordinary J/K animations and damage.
 
-Weapons register through `PlayerStats.AddWeaponModifiers`, and `PlayerAttackController.StartPreparedWeaponAttack` resolves `PlayerStats.ResolveAttack(weapon)` for the weapon making the attack. A weapon's damage therefore never adds to another weapon's by accident. Design A adds the off-hand weapon back as one explicit, scaled contribution; design B passes the off-hand weapon to its own strike.
+Keep the serialized `EquipmentSlot.WeaponHand` and `ShieldHand` names. UI labels can say Main hand and Off hand. Rename the input action `guard` to `offhand_action` and migrate its readers and prompts together. Keyboard J/K/L stays unchanged; this work does not select a new gamepad layout. Existing gamepad binding conflicts are a separate controls task.
 
-### Eligibility and equipping
+## Paired melee attacks
 
-- **Authored eligibility.** A one-handed melee weapon becomes off-hand-capable by including `ShieldHand` in `ValidSlots` (768). Two-handed and ranged weapons never do. Initial content: daggers. Further one-handed families are an authoring and balance decision.
-- **Automatic equip.** `Inventory.Equip(itemSlot)` always puts a weapon in `WeaponHand`, replacing the current one. Today it would pick an empty `ShieldHand` for an off-hand-capable weapon, so a better sword would land in the off hand.
-- **Explicit choice.** `InventoryItemContextMenu` gives off-hand-capable weapons the two-button choice lights already have: Equip (right hand) and Equip in left hand.
-- **Displacement.** The existing rules hold: a two-handed weapon clears the off hand, and an off-hand item clears a two-handed main weapon. Curse checks keep transfers atomic. The main hand is never filled from the off hand automatically.
-- **Guard source.** `PlayerInventoryController.RefreshEffectiveGuard` takes the shield-hand guard only from non-weapon items. Today an off-hand dagger, which authors `weapon_guard`, would take the shield's place.
-- **Persistence.** Hand assignment is already saved and modifiers are rebuilt from equipment on load, so no save schema changes. No existing save can hold an off-hand weapon, so `SaveGame.CurrentVersion` stays.
-- `EquipmentSlot.ShieldHand` keeps its name; renaming it is optional cleanup outside this plan.
+Each J/K attack resolves one combined hit: the main weapon's attack plus a configured fraction of the off-hand weapon's damage contribution. Include damage modifiers from quality, affixes and curses, without adding character-wide stats a second time. Keep the main attack's critical chance and one critical roll; the off-hand weapon does not create another hit, on-hit event or independent attack cooldown. Its non-attack modifiers retain the existing character-wide rules.
 
-### Presentation
+Apply the combined damage before the existing secondary and combo damage multipliers. The main weapon still supplies the attack definition, reach/contact profile, timing, cooldown and combo structure. Removing either weapon removes the pair's bonus and animations; changing either participating item during an attack cancels that execution. Quick stats and comparison tooltips must use the same combined damage rule and explain the off-hand contribution without revealing unidentified stats. The contribution coefficient remains tuning work; this plan chooses no new damage or timing values.
 
-`BoneAttachmentManager.GetAttachmentType` returns `OffhandWeapon` for a weapon in `ShieldHand`, as it already does for lights, and uses the weapon's `OffhandGrip`. Left-hand grip axes are the main risk: per-bone conventions have broken grips before, so verify each family in hand on the rig, not in a floating preview.
+### Animation support
+
+The player model `assets/kaykit-adventurers/Barbarian.glb` already contains `Dualwield_Melee_Attack_Chop`, `Dualwield_Melee_Attack_Slice` and `Dualwield_Melee_Attack_Stab`. The medium rig's source clips use the corresponding `Melee_Dualwield_Attack_*` names. They animate both arms and are suitable for combined J/K attacks. A left-hand-only melee strike is unnecessary for this design.
+
+Add semantic `dualwield.chop`, `dualwield.slice` and `dualwield.stab` bindings to the player's animation profile. Select the paired style after resolving the normal definition/secondary/combo-step style, so a combo override cannot restore a one-handed clip. A proposed `AttackAnimationBinding.DualWieldStyle` maps a normal style to its paired binding; missing or invalid mappings reject preparation before any cost or cooldown. Never mutate shared attack definitions or animation resources during playback. Measure contact windows against the paired clips and verify equipped grips on the actual player rigs.
+
+An off-hand wand also needs a verified left-hand casting pose for sword/wand and wand/wand combinations. Reusing or mirroring an existing casting clip is a visual investigation at the start of that slice, not a claim that the existing right-hand pose already works.
+
+## Two independent spell weapons
+
+The main wand alone supplies J's free missiles. The off-hand wand never fires missiles, adds another volley, or contributes its hand-local damage/crit modifiers to the main wand or a sword. Each cast captures the casting wand's own resolved hit and tier. Existing character-wide attribute modifiers still apply once through the normal stat system.
+
+Each wand owns an independent spell cooldown, including two wands with the same spell. The duration comes from its bound `SpellDefinition.Cooldown`; reuse the attack cooldown mechanism. Do not add a shared spell cooldown or new tuning values. Mana remains one shared actor pool, and all existing authored spell costs, attack durations and cooldown durations stay unchanged.
+
+Required sequence: cast with L, then cast with K as soon as the first spell releases, while the off-hand spell effect and cooldown continue. K must not wait for L's cooldown or an additional shared recovery lockout. The reverse K-to-L sequence works too. Retain one animation/execution owner: before release, normal wind-up commitment applies; after release, a validated opposite-wand cast may take over the remaining casting pose/recovery. A handoff never cancels the released spell's world effects or resets either wand's cooldown. It must not enable general martial-secondary recovery cancelling or bypass the same wand's own cooldown.
+
+The current `SpellCaster` owns only one focus, `SpellCastAction` accepts only the main-hand focus, and the action gate blocks a second cast through recovery. All three seams must change together. Bind a spell node per equipped focus, resolve casts by that focus and hand, and release only that focus's effects on unequip. Retain the existing one-active-ward policy; equipping two spell weapons does not introduce ward stacking. An off-hand protection spell and a main-hand offensive spell must coexist.
+
+### Cooldown and save ownership
+
+Cooldown state follows the runtime item's stable `Item.InstanceId`, not its hand, HUD box or spell definition path. Keep it on the actor while the item is owned: reassigning a slot, moving a wand between hands or unequipping/re-equipping it cannot refresh that wand. A different wand remains independent. Preserve committed mana and cooldowns on interruption; a rejected request changes neither.
+
+Reuse `ActionSlot` for requests and cooldown feedback, with the actor's `ActionManager` retaining wand cooldown state across slot reassignments. `SpellCastAction.CooldownKey` must identify the casting item rather than just `Spell.ResourcePath`. Store remaining wand cooldowns by item ID in `PlayerActionSaveData` and restore after inventory identity/hand assignment is validated. A spell cast starts its cooldown once on acceptance; a handoff cannot discard the old slot's timer.
+
+The current ward save stores capacity but assumes the main-hand focus. Save the active ward's source item ID with its capacity so an off-hand ward restores on the correct equipped wand. Missing/invalid ownership is rejected before mutating the player. Restore neutral actions and remaining timers, not a half-finished cast. Bump `SaveGame.CurrentVersion` with these schema changes during implementation, reject incompatible saves clearly, and add no migration or legacy fields.
+
+## HUD: two held items
+
+Replace the two weapon-action previews with two hand panels, in the existing positions. Keep the four consumable quick slots separate.
+
+| Panel | Item preview | Input glyphs | Cost/cooldown feedback |
+| --- | --- | --- | --- |
+| Main/right hand | Actual main-hand item | J and K on the same panel | Independent J/K indicators; K's spell mana cost when applicable |
+| Off/left hand | Actual off-hand item, or empty | L | L's guard/cast state and that wand's spell mana cost/cooldown |
+| Two-handed equipment | The same two-handed item in both panels | J/K on main, L on off | L follows that weapon's actual guard capability; a staff has no L action |
+
+“The same weapon in both icons” means a two-handed weapon occupying both hands. Two distinct melee weapons show their respective items, as do two wands. A second preview does not duplicate the underlying item or grant another action.
+
+- Keep an off-hand dagger visible while dimming both its preview and L because it has no L action. Its passive J/K contribution still applies. Use the existing inventory/disabled-preview treatment.
+- When L has no supported action, darken that panel and disable its glyph. When an action is temporarily unavailable through its cooldown or insufficient mana, show the corresponding state and retain the actual item preview. Re-enable when usable.
+- Main-hand J and K report availability independently: cooling or unaffordable K dims K and its own indicator, without darkening a still-usable J or the entire main-hand item. Place small cooldown indicators with their input glyphs; one full-panel cooldown mask cannot represent both actions accurately.
+- Keep the spell mana cost at the lower right of its hand panel: K's cost on the main panel, L's cost on the off panel. Do not add the two costs together.
+- An empty hand has no item model; an enabled fallback guard can still show L. Resolve availability from gameplay rather than equating an empty preview with a disabled action.
+- Use the existing identification-aware item appearance and remappable input prompts. Equipment changes, player respawn/load, in-place item changes and mana/cooldown updates must refresh the appropriate panel.
+
+## Code shape
+
+Names below are proposed changes, not implemented APIs. Keep existing single-weapon calls valid and migrate replaced singleton-focus consumers directly, without compatibility aliases.
 
 ```csharp
-// Weapon (proposed, both designs)
-[Export] public WeaponGrip OffhandGrip { get; set; }  // required when ValidSlots includes ShieldHand
-// _GetConfigurationWarnings: a missing OffhandGrip on an off-hand-capable weapon; ShieldHand on a two-handed or ranged weapon
-```
+// Weapon: authored eligibility still uses ValidSlots.
+[Export] public WeaponGrip OffhandGrip { get; set; }
+[Export(PropertyHint.Range, "0,1,0.05")] public float OffhandDamageScale { get; set; }
 
-## Design A: passive off-hand bonus
+// AttackAnimationBinding: normal effective style -> paired semantic style on this rig.
+[Export] public StringName DualWieldStyle { get; set; }
 
-- **Rule.** Every main-hand attack adds `OffhandDamageScale` × each of the off-hand weapon's attack-stat modifiers: its damage range, crit chance, and rolled or cursed damage and crit affixes. Primary and special attacks, the combo steps and an unarmed attack with an empty main hand all count. They join the same sums as the character's and the main weapon's modifiers. The off-hand weapon's other modifiers, such as attribute affixes, already apply character-wide.
-- **Balance.** The default of 0.5 keeps a dagger (1–4) from adding about 50% to a sword (3–8). It also keeps a sword in each hand from beating a two-handed weapon.
-- **Guard.** The off-hand input still guards, with the main weapon's guard as for an empty off hand (see [guard source](#eligibility-and-equipping)).
-- **Display.** `QuickStatsPanel` shows `ResolveAttack(main, offhand)`. `ItemDetailsView` adds an "In off hand: adds N% of its damage" line for off-hand-capable weapons.
-
-```csharp
-// Weapon (proposed)
-/// <summary>Share of this weapon's attack stats added to main-hand attacks while it is worn in the off hand.</summary>
-[Export(PropertyHint.Range, "0,1,0.05")] public float OffhandDamageScale { get; set; } = 0.5f;
-
-// PlayerStats (proposed change)
-/// <summary>As today, plus offhand's attack-stat modifiers scaled by its OffhandDamageScale.</summary>
+// PlayerStats: only an eligible melee pair uses the optional contribution.
 public AttackStats ResolveAttack(Weapon weapon, Weapon offhand = null);
+
+// ActionManager: third combat action, separate from the four item slots.
+[Export] public ActionSlot OffhandActionSlot { get; set; }
+public void AssignOffhand(ICombatAttackAction action, PackedScene previewScene);
+public bool TryPerformOffhand();
+
+// SpellCastAction: validate and retain the selected focus's actual hand.
+public SpellCastAction(MagicStaff focus, EquipmentSlot hand = EquipmentSlot.WeaponHand);
+
+// SpellCaster: replace Current with focus-specific lookup; Bind/Release retain their names.
+public bool TryGetSpell(GodotObject focus, out ICombatSpell spell);
+
+// HandActionPanel: new hand presentation; existing ActionContainer stays for quick items.
+[Export] public EquipmentSlot Hand { get; set; }
+[Export] public Preview Preview { get; set; }
+[Export] public KeyBinding FirstActionKey { get; set; }
+[Export] public KeyBinding SecondActionKey { get; set; } // optional for off hand
 ```
 
-`PlayerAttackController.StartPreparedWeaponAttack` passes the `ShieldHand` weapon as `offhand`. Nothing else in the attack path changes.
+`PlayerInventoryController.RefreshEffectiveGuard` becomes the single equipment resolution path for guard and the off-hand spell slot. A shield installs its guard, a wand assigns a hand-bound `SpellCastAction` and removes guard, and a melee off hand clears both. Empty/light and two-handed cases retain the table's rules. Validate required left-hand grips and animation mappings in the Inspector. `BoneAttachmentManager` selects `OffhandWeapon` and `OffhandGrip` for weapons in `ShieldHand`.
 
-## Design B: active dual-wield
+`HandActionPanel` has explicit exported child references and authored `hand_action_panel.tscn` wiring. Its main instance observes both primary and secondary action slots; the off-hand instance observes the off-hand slot and resolved guard availability. Resolve previews from completed inventory state, including the two-handed projection used by the equipment screen. Subscribe through `SubscribeUntilExit` to the player's inventory, mana and existing `SignalBus` action/cooldown notifications. The shared preview must not use a single action's `PreviewScene` as a substitute for hand equipment.
 
-> **Blocker: no off-hand attack animation.** The KayKit player clips have no left-hand-only strike, which is why off-hand weapons were never added. The three `Melee_Dualwield_Attack_*` clips swing both blades at once (see [off-hand strike](#off-hand-strike)), so an off-hand action built on them looks like a two-weapon attack while dealing one weapon's damage. Do not start design B until a left-hand strike clip exists or that compromise is explicitly accepted.
+## Call order and invariants
 
-### Decisions
+```text
+Inventory.Equip(item, hand)
+└─ validate eligibility, grips, displacement and curses before mutation
+   └─ PlayerInventoryController: register stats and focus-specific spell binding
+      ├─ assign main J/K, then resolve L spell/guard/unavailable from both hands
+      ├─ BoneAttachmentManager: attach each item using its actual hand's grip
+      └─ completed equipment/action notifications → HandActionPanel refresh
+         invariant: previews and key availability describe the committed equipment
 
-- **Three hand-based inputs.** J/K/L become main-hand primary, main-hand special and off-hand action. No input is added; guard moves onto the off-hand action. A tap/hold split was rejected: it delays the most frequent action until release or a hold threshold (about 0.2 s against a 0.42 s one-handed swing), and hold already means repeat (primary), combo continuation and held guard.
-- **The off hand decides what the off-hand input does.** A shield guards, an off-hand weapon strikes and an empty hand or light falls back to today's weapon or innate guard (table below).
-- **Dual-wielding gives up guard.** An off-hand weapon replaces guard with an off-hand strike, so shield versus off-hand weapon is a defense/offense choice. Dodge remains.
+J/K melee → PlayerAttackController.TryPrepareWeaponAttack
+├─ resolve effective definition/secondary/combo style, then paired animation binding
+├─ capture main + scaled off-hand damage, both participating items and one contact execution
+└─ accept and execute through the existing ActionSlot/AttackController
+   invariant: invalid preparation spends nothing; a defender resolves one combined hit
 
-### Controls
+K/L wand → ActionManager → selected ActionSlot → SpellCastAction.TryPrepare
+├─ validate focus + hand, spell node, own cooldown, mana and cast animation
+├─ acquire idle action ownership or validated handoff from the released other-wand cast
+└─ start prepared cast, spend mana once and retain that wand's own cooldown
+   └─ release → focus-owned spell effects continue while the other wand can cast
+      invariant: pose handoff never releases the first focus or resets its cooldown
 
-| Intent | Keyboard | Gamepad (proposed) |
-| --- | --- | --- |
-| Main-hand primary (hold repeats, combos) | J | X |
-| Main-hand special | K | Y |
-| Off-hand action | L | B |
-| Dodge | Space | A |
-| Interact (hold) | E | RB |
-| Item quick slots 1–4 | 1–4 | LB + A/B/X/Y (existing proposal) |
-| Camera rotate / zoom | `,` `.` / `'` `/` | Right stick horizontal / vertical |
-
-Face buttons keep all combat actions under one thumb. Movement owns the left stick and nothing aims with the right stick, so the camera moves there. Rename the `guard` input action to `offhand_action`. All bindings stay remappable.
-
-### Off-hand action resolution
-
-| Main hand | Off hand | Off-hand input |
-| --- | --- | --- |
-| One-handed or empty | Shield | Shield guard and parry (unchanged) |
-| One-handed melee or empty | One-handed weapon | Off-hand strike; no guard |
-| One-handed melee | Empty or light | Weapon `Guard`, else innate guard (unchanged) |
-| Empty | Empty or light | Innate guard (unchanged) |
-| Ranged | Empty | Nothing (unchanged) |
-| Ranged | Light | Innate guard (unchanged) |
-| Two-handed | — | Weapon `Guard` or innate for melee, nothing for ranged (unchanged) |
-
-Guard keeps its press/hold/release semantics. The off-hand strike is one request per new buffered press; holding does not repeat it. With only an off-hand weapon, J punches.
-
-**Staff seam.** The planned staff redesign casts the staff's spell on the off-hand input and keeps the quick missile on primary. `ActionManager.OffhandActionSlot` (below) is that seam: a two-handed weapon may later assign its own off-hand action instead of a guard. This plan does not move the staff's current K secondary.
-
-### Off-hand strike
-
-- **Stats and contact.** Uses `PlayerStats.ResolveAttack(offhandWeapon)` and the off-hand weapon's `MeleeContact`, `CustomAttackDefinition` and cooldown. No off-hand damage multiplier initially; the off-hand weapon's own lower damage is the "weak hand". The cooldown key is its `OffhandAttackStyle`.
-- **Animation.** KayKit ships no left-hand-only attack. `Melee_Dualwield_Attack_Chop`, `_Slice` and `_Stab` in `Rig_Medium_CombatMelee.glb` swing both arms (upper arms rotate 60–93° on both sides; a one-handed stab moves the left upper arm 27°). Bind new styles `dualwield.chop`, `dualwield.slice` and `dualwield.stab` in `kaykit_player.tres`, with contact windows measured on `handslot.l` using `sample_attack_clip.gd`. Both blades swing visually, but each defender still resolves one contact per swing, using only the off-hand weapon's stats.
-- **Action ownership.** It is an attack on the player's one `AttackController`. Like guard today, it may replace main-hand attack recovery; a main-hand primary may replace its recovery. As "another action" it resets the main combo (existing rule). The active attack remembers its hand; unequipping that hand's weapon cancels it.
-
-```csharp
-// Weapon (proposed, design B)
-[Export] public StringName OffhandAttackStyle { get; set; }  // required when ValidSlots includes ShieldHand
+Save/load or floor travel → PlayerSaveCodec
+└─ validate inventory IDs, wand timers and ward source before applying
+   └─ restore equipment/foci, mana, independent timers and source-owned ward
+      invariant: no item reroll, free refill, timer reset or resumed partial cast
 ```
 
-### Call order
+## Delivery slices
 
-```
-PlayerInputController._PhysicsProcess
-├─ InputComponent.IsOffhandJustPressed() → _intents.Push(PlayerIntent.OffhandPress)   (renamed from GuardPress)
-├─ 1. Dodge (unchanged)
-├─ 2. Off-hand
-│  ├─ ActionManager.OffhandActionSlot holds an OffhandAttackAction                    [proposed]
-│  │  └─ ActionManager.TryPerformOffhand()                                              [proposed]
-│  │     └─ PlayerAttackController.TryPrepareWeaponAttack(weapon, hand: ShieldHand)
-│  │        └─ StartPreparedWeaponAttack(...) → PlayerStats.ResolveAttack(weapon) → StartAttack   (existing)
-│  │     invariant: a rejected request changes nothing; the intent is consumed only on acceptance
-│  └─ else: existing guard raise / hold / release through GuardComponent
-└─ 3. Secondary, then primary (unchanged)
+1. **Paired melee and equipment HUD.** Add off-hand dagger eligibility/grips, correct attachment and automatic-equip behavior, paired J/K mappings and damage, and removal of L guard for a melee off hand. Deliver the two hand panels together, showing current shields/lights and two-handed occupancy as well as the dagger. Keep other melee families main-hand-only until authored and verified. Exercise sword/shield, sword/dagger, empty/light and two-handed cases; verify primary combos, secondary damage, curse conflicts, tooltip/stats agreement and equip/save/load refresh.
+2. **Either-hand wands and independent casts.** Verify the left-hand casting pose first, then enable either-hand wand content with multi-focus binding, hand-aware requests/cancellation, per-wand cooldown retention, released-cast handoff and matching HUD feedback. Deliver save DTO/version changes in the same slice. Exercise sword/wand, wand/shield and two wands with different and identical spells, in both L-to-K and K-to-L order. Include an off-hand ward plus main-hand offense, unequipping either source, and timers/ward identity across hand changes, save/load and stairs.
 
-Inventory.Equip(itemSlot, ShieldHand)                       (existing ValidSlots and displacement checks)
-└─ ItemEquipped → PlayerInventoryController
-   ├─ item.OnEquipped(player) → PlayerStats.AddWeaponModifiers(weapon, weapon.StatModifiers)   (existing)
-   ├─ BoneAttachmentManager attaches as OffhandWeapon with OffhandGrip                  (shared)
-   ├─ ActionManager.AssignOffhand(new OffhandAttackAction(weapon), weapon.Scene)         [proposed]
-   └─ RefreshOffhandAction() → GuardComponent.ApplyGuardDefinition(null)                (renamed RefreshEffectiveGuard)
-```
+For C# slices run `dotnet build "Rogue Gauntlet.sln"`, targeted GdUnit4 logic/runtime suites with isolated `TMPDIR` and `GODOT_BIN`, and the `ExportRelease` build. Extend `InventoryEquipSlotTest`, `WeaponAttackStatsTest`, `AttackAnimationTest`, `SpellWandTest`, `ActorActionGateTest` and `PlayerSaveCodecTest`; add a focused hand-HUD runtime suite where existing coverage cannot exercise the new presentation. Tests must prove independent timers, no bonus missiles/damage from the second wand, one melee contact, preserved spent costs and cleanup of just the removed focus. Follow the project's resource-loading test helpers.
 
-## Gamepad binding conflicts (independent)
-
-The current input map has conflicts that need fixing under either design, or neither. The legacy `action_1`–`action_4` actions are bound to A/B/X/Y, so interact (A) and dodge (B) also fire quick items 1–2. `secondary_action` shares RB with `camera_rotate_right`. Design B's layout removes both. Without it, unbinding the legacy gamepad buttons and moving camera rotation off RB is enough.
-
-## Affected files
-
-```
-Shared
-~ scenes/player/Inventory.cs                       automatic equip keeps weapons in the main hand
-~ scenes/player/PlayerInventoryController.cs       shield-hand guard only from non-weapon items
-~ scenes/items/Weapon.cs                           OffhandGrip, configuration warnings
-~ scenes/components/BoneAttachmentManager.cs       off-hand weapon attachment
-~ scenes/ui/InventoryItemContextMenu.cs            left-hand choice for off-hand weapons
-~ scenes/items/weapons/**/dagger*.tres             ValidSlots 768, OffhandGrip
-+ scenes/items/grips/*_offhand.tres                left-hand grips, as verification requires
-~ tests/InventoryEquipSlotTest.cs
-
-Design A
-~ scenes/items/Weapon.cs                           OffhandDamageScale
-~ scenes/player/resources/PlayerStats.cs           ResolveAttack(weapon, offhand)
-~ scenes/player/PlayerAttackController.cs          pass the off-hand weapon
-~ scenes/ui/QuickStatsPanel.cs, ItemDetailsView.cs main + off-hand attack; off-hand line
-~ tests/WeaponAttackStatsTest.cs
-~ docs/stats-and-itemization.md
-
-Design B
-~ project.godot                                    guard → offhand_action; gamepad layout
-~ scenes/components/InputComponent.cs, scenes/player/InputIntentBuffer.cs   off-hand input names
-~ scenes/player/PlayerInputController.cs           route the off-hand press to strike or guard
-~ scenes/player/ActionManager.cs, action_manager.tscn   OffhandActionSlot, AssignOffhand, TryPerformOffhand
-+ scenes/player/actions/OffhandAttackAction.cs     like MartialTechniqueAction, bound to the off-hand weapon
-~ scenes/player/ActionSlot.cs                      equipped check per hand, not WeaponHand only
-~ scenes/player/PlayerAttackController.cs          hand-aware prepare/start/cancel
-~ scenes/items/Weapon.cs                           OffhandAttackStyle
-~ scenes/ui/ActionContainer.cs (+ scene), QuickStatsPanel.cs   off-hand button; off-hand damage line
-~ scenes/attacks/animation_profiles/kaykit_player.tres   dualwield.* bindings and windows
-+ tests/OffhandActionTest.cs
-~ docs/actor-actions-and-interactions.md, combat-system.md, weapon-attack-system.md
-```
-
-## Slices
-
-Hybrid delivery: the damage rule landed first because it removes the stacking hazard before any content can trigger it; the rest is vertical. The binding-conflict fix can land at any time.
-
-1. **Hand-local damage — done.** `AddWeaponModifiers`, `ResolveAttack`, the attack controller and the character dialog, covered by `WeaponAttackStatsTest`. Single-weapon damage is unchanged.
-2. **Off-hand equip and presentation (shared).** Eligible daggers, off-hand grips, attachment type, automatic-equip rule, context menu, guard source, save round trip. The off-hand weapon is held but does nothing yet, so the slice is coherent on its own. *Exercise:* sword + dagger, both visible in the correct hands, guard still the sword's; save/load keeps both. *Risk:* left-hand grip axes.
-3. **A: off-hand bonus.** `OffhandDamageScale`, `ResolveAttack(weapon, offhand)`, HUD and tooltip. *Tests:* half a dagger's damage and crit join every main-hand attack, primary, special and unarmed; character percent modifiers scale it; removing the dagger removes it. *Exercise:* the combat harness with and without the dagger.
-
-Design B replaces slice 3 once its blocker is resolved:
-
-- **B1: Controls.** Rename `guard` to `offhand_action` and apply the gamepad layout. *Exercise:* L and B still guard; X/Y/A/RB do what the table says.
-- **B2: Off-hand strike.** Dual-wield styles and contact windows, `OffhandAttackAction`, off-hand slot and HUD, input routing, guard removal while dual-wielding, hand-tracked cancellation, recovery cancels. If A shipped, remove its passive bonus. *Tests:* resolution table rows; strike uses off-hand stats; unequip mid-strike cancels. *Exercise:* the combat harness against a practice target and the Warden.
-
-Each slice runs `dotnet build "Rogue Gauntlet.sln"`, the GdUnit4 suite and the `ExportRelease` build per [AGENTS.md](../../AGENTS.md#testing).
-
-## Open questions
-
-- **A: scale owner.** One scale per weapon (proposed) or a `StatProfile` coefficient so a class such as the Rogue benefits more.
-- **A: eligible families.** Daggers only, or every one-handed melee weapon.
-- **B: fourth face button.** Proposed A = dodge; the alternative puts the off-hand on A and dodge on B. Decide in playtesting.
-- **B: weaving.** Whether alternating hands should keep the main combo chain instead of resetting it.
-- **B: weak hand.** Whether off-hand strikes need a damage or speed multiplier beyond the weapon's own stats.
-- **B: staff special.** What the main-hand special does for a staff once its spell moves to the off-hand input.
-- **Parrying daggers.** A later off-hand item or affix could grant a parry-only guard.
+Import and validate changed scenes/resources through the [Godot workflow](../../.agents/skills/godot-mcp/SKILL.md). Review in-game stills for sword/shield, sword/dagger, sword/wand, two distinct wands, a two-handed melee weapon and a staff. Record paired attacks and opposite-hand spell handoffs in motion on the playable character rigs. Confirm per-key cooldown/mana readability, darkened inactive off-hand items and all four quick-item slots. Balance coefficients, further melee eligibility and animation contact windows require authoring/playtesting; no illustrative spell cooldown numbers are part of this plan.

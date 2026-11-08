@@ -15,7 +15,7 @@
 
 **Dropped.** Spell learning, the point ledger, upgrading spells, one selected spell per element, the loadout-safety selection UI, class starter spell grants and the "know the spell and wield a matching staff" requirement. The per-element staves' authored primaries (fireball, frost spread, radial air burst, falling rock) and the plain melee staves give way to the missile. The XP counter is untouched: nothing in this plan spends it.
 
-**Out of scope.** A second wand in the off hand: the [off-hand plan](off-hand-weapons-plan.md) owns off-hand weapons, and under its dual-wield design a staff's spell could later move to the off-hand input through its staff seam; this plan keeps it on secondary. Also out of scope: mana potions and mana affixes, monster spellcasting through wands, and new item models for tiers that lack one.
+**Separate follow-up.** The selected [off-hand weapons and HUD plan](off-hand-weapons-plan.md) adds an off-hand wand's spell on L with an independent per-wand cooldown. Only the main wand fires free missiles, and a two-handed staff keeps its spell on K. Those changes are not implemented by this magic rework. Also out of scope here: mana potions and mana affixes, monster spellcasting through wands, and new item models for tiers that lack one.
 
 ## Spells and names
 
@@ -68,7 +68,7 @@ The pool, its Intelligence derivation, regeneration and persistence are implemen
 
 Costs are authored per spell and level, flat across levels, so a deeper wand is also more mana-efficient, and every level-1 cost fits the smallest pool so any class can cast any spell it finds: from 10 (Fireball, Lightning Orb, Ice Lance) to 40 (Meteor, Thunderstorm, Hailstorm).
 
-`SpellDefinition.Cooldown` is the secondary slot's cooldown, which a reassigned slot resets; no spell authors one yet. If a spell needs one, key it by spell so swapping between two wands of that spell cannot skip it.
+`SpellDefinition.Cooldown` currently supplies the secondary slot's cooldown, which a reassigned slot resets; no spell authors one yet. The selected [off-hand plan](off-hand-weapons-plan.md#cooldown-and-save-ownership) retains the authored duration and existing attack cooldown mechanism but makes each wand's timer independent, including duplicate spells, and preserves it through hand/slot changes and saves. Cooldown tuning is outside that work.
 
 ## Remaining changes
 
