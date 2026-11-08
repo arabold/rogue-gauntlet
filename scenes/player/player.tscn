@@ -127,9 +127,9 @@ HighlightHeight = 10.0
 
 [sub_resource type="Resource" id="PlayerLightProfile_dark"]
 script = ExtResource("player_light_profile")
-Energy = 0.12
+Energy = 0.7
 Range = 6.0
-Attenuation = 1.8
+Attenuation = 1.0
 Flicker = SubResource("FlickerProfile_dim")
 HighlightEnergy = 0.08
 HighlightRange = 6.0
@@ -459,6 +459,7 @@ Dark = SubResource("PlayerLightProfile_dark")
 
 [node name="Light" parent="Pivot/PlayerLight" unique_id=974580749 instance=ExtResource("3_3qxnv")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 2)
+light_specular = 0.0
 shadow_caster_mask = 4294966527
 omni_range = 25.0
 omni_attenuation = 0.25

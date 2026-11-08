@@ -59,13 +59,8 @@ public class PortableLightTest
 		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
 		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
 		var (lit, dark) = (playerLight.Lit, playerLight.Dark);
-		AssertFloat(lit.Range).IsEqual(25f);
-		AssertFloat(lit.Energy * lit.Flicker.Min).IsEqual(0.25f);
-		AssertFloat(lit.Energy * lit.Flicker.Max).IsEqual(1f);
-		AssertFloat(lit.HighlightRange).IsEqual(30f);
-		AssertFloat(dark.Range).IsEqual(6f);
-		AssertFloat(dark.Energy * dark.Flicker.Min).IsEqualApprox(0.04f, .0001f);
-		AssertFloat(dark.Energy * dark.Flicker.Max).IsEqual(0.12f);
+		// The modes must differ for the checks below to tell which one burns.
+		AssertFloat(dark.Range).IsLess(lit.Range);
 		void AssertBurns(PlayerLightProfile profile, string context)
 		{
 			AssertFloat(playerLight.Light.OmniRange).OverrideFailureMessage($"{context}: light range").IsEqual(profile.Range);

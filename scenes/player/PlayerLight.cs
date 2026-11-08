@@ -13,7 +13,8 @@ public partial class PlayerLight : Node3D
 {
 	/// <summary>Whose held lights relight a dark floor.</summary>
 	[Export] public Player Player { get; set; }
-	/// <summary>Authored at its spot ahead of the head.</summary>
+	/// <summary>Authored at its spot ahead of the head, without specular: riding just in front of walls, it would
+	/// streak them with highlights. Fixtures keep theirs for metal.</summary>
 	[Export] public FlickeringLight Light { get; set; }
 	[Export] public OmniLight3D Highlight { get; set; }
 
@@ -33,8 +34,9 @@ public partial class PlayerLight : Node3D
 
 	/// <summary>What the light stays in front of: walls, and doors on the props layer.</summary>
 	[Export(PropertyHint.Layers3DPhysics)] public uint BlockingLayers { get; set; } = 2 | 16;
-	/// <summary>Gap the light keeps from a blocking surface.</summary>
-	[Export(PropertyHint.Range, "0,1,0.01")] public float WallGap { get; set; } = 0.2f;
+	/// <summary>Gap the light keeps from a blocking surface. Closer, the wall face nearest to it blows out into a bright
+	/// streak; from about 0.4 the wall takes an even glow.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float WallGap { get; set; } = 0.4f;
 
 	private PlayerLightProfile _lit, _dark;
 	private Level _level;
