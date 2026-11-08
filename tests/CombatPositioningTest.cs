@@ -85,6 +85,146 @@ public class CombatPositioningTest
 		AssertFloat(DamageOf(minion, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(2 * staggered, .001);
 	}
 
+	/// <summary>Real enemies keep running MoveAndSlide while idle, so pass-through must suppress their recovery too.</summary>
+	[TestCase("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn", 6f)]
+	[TestCase("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn", 3f)]
+	[TestCase("res://scenes/enemies/skeleton/skeleton_minion.tscn", 6f)]
+	public async Task DodgeDoesNotDisplaceAnEnemyThatStillProcessesMovement(string scene, float distance)
+	{
+		var (runner, harness) = await Load();
+		using var cleanup = runner;
+		var player = harness.Player;
+		player.InputComponent.SetPhysicsProcess(false);
+		player.DodgeComponent.DodgeDef = (DodgeDefinition)player.DodgeComponent.DodgeDef.Duplicate();
+		player.DodgeComponent.DodgeDef.Distance = distance;
+		var existingException = new StaticBody3D();
+		runner.Scene().AddChild(existingException);
+		player.AddCollisionExceptionWith(existingException);
+		harness.Monsters = [TestFactories.Load<PackedScene>(scene)];
+		AssertBool(harness.ExecuteCommand("spawn", 1, Vector3.Zero)).IsTrue();
+		var enemy = harness.Monster;
+		enemy.EnemyBehaviorComponent.SetPhysicsProcess(false);
+		enemy.DefenseController?.SetPhysicsProcess(false);
+		enemy.MovementComponent.Stop();
+		// Keep the actual body shapes and movement, without floor settling obscuring horizontal displacement.
+		enemy.MovementComponent.Gravity = 0;
+		player.MovementComponent.Gravity = 0;
+		foreach (var direction in new[] { Vector3.Forward, Vector3.Back, Vector3.Left, Vector3.Right })
+		{
+			enemy.GlobalPosition = Vector3.Zero;
+			enemy.ResetPhysicsInterpolation();
+			player.GlobalPosition = -direction * 2.1f;
+			player.ResetPhysicsInterpolation();
+			player.MovementComponent.Stop();
+			player.DodgeComponent.RestoreCharges(2, 0, 0);
+			await runner.SimulateFrames(2, 20);
+			Vector3 enemyStart = enemy.GlobalPosition;
+			Vector3 playerStart = player.GlobalPosition;
+			uint mask = player.CollisionMask;
+			AssertBool(harness.RequestHeroDodge(direction)).IsTrue();
+			for (int frame = 0; frame < 40 && player.DodgeComponent.IsDodging; frame++)
+			{
+				await runner.SimulateFrames(1, 20);
+				AssertFloat(enemy.GlobalPosition.DistanceTo(enemyStart))
+					.OverrideFailureMessage($"{scene} was pushed while dodging {direction}: {enemy.GlobalPosition - enemyStart}")
+					.IsLess(.01f);
+			}
+			AssertBool(player.DodgeComponent.IsDodging).IsFalse();
+			AssertBool(player.CollisionMask == mask).IsTrue();
+			AssertInt(player.GetCollisionExceptions().Count).IsEqual(1);
+			AssertBool(player.GetCollisionExceptions().Contains(existingException)).IsTrue();
+			AssertFloat((player.GlobalPosition - playerStart).Dot(direction)).IsGreater(2f);
+		}
+	}
+
+	[TestCase]
+	public async Task DodgeQueriesEveryBodyInCrowdsLargerThanOneBatch()
+	{
+		var (runner, harness) = await Load();
+		using var cleanup = runner;
+		var player = harness.Player;
+		player.InputComponent.SetPhysicsProcess(false);
+		player.MovementComponent.Gravity = 0;
+		player.Position = Vector3.Zero;
+		harness.PracticeTarget.Position = Vector3.Right * 10;
+		const int crowdSize = 40;
+		for (int index = 0; index < crowdSize; index++)
+		{
+			var body = new StaticBody3D
+			{
+				CollisionLayer = EnemyLayer,
+				Position = new Vector3(0, .9f, -1f)
+			};
+			body.AddChild(new CollisionShape3D { Shape = new SphereShape3D { Radius = .15f } });
+			runner.Scene().AddChild(body);
+		}
+		await runner.SimulateFrames(2, 20);
+		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
+		await runner.SimulateFrames(1, 20);
+		AssertInt(player.GetCollisionExceptions().Count).IsEqual(crowdSize);
+		await runner.SimulateFrames(40, 20);
+		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
+		AssertInt(player.GetCollisionExceptions().Count).IsEqual(0);
+		AssertFloat(player.Position.Z).IsLess(-5f);
+	}
+
+	[TestCase("cancel")]
+	[TestCase("interrupt")]
+	[TestCase("exit")]
+	public async Task EndingADodgeRestoresOnlyItsOwnCollisionExceptions(string ending)
+	{
+		var (runner, harness) = await Load();
+		using var cleanup = runner;
+		var player = harness.Player;
+		player.InputComponent.SetPhysicsProcess(false);
+		player.MovementComponent.Gravity = 0;
+		player.Position = Vector3.Zero;
+		harness.PracticeTarget.Position = Vector3.Forward * 1.5f;
+		var existingException = new StaticBody3D();
+		runner.Scene().AddChild(existingException);
+		player.AddCollisionExceptionWith(existingException);
+		uint mask = player.CollisionMask;
+		await runner.SimulateFrames(2, 20);
+		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
+		await runner.SimulateFrames(1, 20);
+		AssertBool(player.GetCollisionExceptions().Contains((PhysicsBody3D)harness.PracticeTarget)).IsTrue();
+		switch (ending)
+		{
+			case "cancel": player.DodgeComponent.Cancel(ActionInterruptReason.Invalidated); break;
+			case "interrupt": player.ActionGate.CancelCurrent(ActionInterruptReason.Invalidated); break;
+			case "exit":
+				var dodge = player.DodgeComponent;
+				player.RemoveChild(dodge);
+				player.AddChild(dodge);
+				break;
+		}
+		AssertBool(player.CollisionMask == mask).IsTrue();
+		AssertInt(player.GetCollisionExceptions().Count).IsEqual(1);
+		AssertBool(player.GetCollisionExceptions().Contains(existingException)).IsTrue();
+	}
+
+	[TestCase]
+	public async Task PassThroughDodgeStillStopsAtWalls()
+	{
+		var (runner, harness) = await Load();
+		using var cleanup = runner;
+		var player = harness.Player;
+		player.InputComponent.SetPhysicsProcess(false);
+		player.MovementComponent.Gravity = 0;
+		player.Position = Vector3.Zero;
+		harness.PracticeTarget.Position = Vector3.Right * 10;
+		const float wallHalfDepth = .1f;
+		var wall = new StaticBody3D { CollisionLayer = 2, Position = new Vector3(0, 2, -2) };
+		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(10, 5, wallHalfDepth * 2) } });
+		runner.Scene().AddChild(wall);
+		await runner.SimulateFrames(2, 20);
+		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
+		await runner.SimulateFrames(40, 20);
+		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
+		AssertFloat(player.GlobalPosition.Z).IsGreater(wall.GlobalPosition.Z + wallHalfDepth);
+		AssertInt(player.GetCollisionExceptions().Count).IsEqual(0);
+	}
+
 	[TestCase(true)]
 	[TestCase(false)]
 	public async Task DodgePassesThroughEnemyBodiesAndComesOutTheFarSide(bool passThrough)
