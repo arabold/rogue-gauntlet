@@ -198,8 +198,9 @@ public static class WallFootprints
 	/// <summary>
 	/// World-space XZ footprints of every piece currently in a wall GridMap, from each
 	/// piece's actual mesh AABB + orientation; corners count as their two arms (see <see cref="PieceFootprints"/>).
+	/// <paramref name="solidOnly"/> skips visual-only pieces without collision, such as doorway frames.
 	/// </summary>
-	public static List<Aabb> Collect(GridMap wallGridMap)
+	public static List<Aabb> Collect(GridMap wallGridMap, bool solidOnly = false)
 	{
 		var boxes = new List<Aabb>();
 		MeshLibrary library = wallGridMap?.MeshLibrary;
@@ -217,7 +218,7 @@ public static class WallFootprints
 			}
 
 			Mesh mesh = library.GetItemMesh(tileIndex);
-			if (mesh == null)
+			if (mesh == null || (solidOnly && library.GetItemShapes(tileIndex).Count == 0))
 			{
 				continue;
 			}

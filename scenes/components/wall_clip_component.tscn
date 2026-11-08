@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/components/WallClipComponent.cs" id="1_script"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/wall_clipped.gdshader" id="2_shader"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/wall_clipped_alpha.gdshader" id="3_alpha"]
+
+[node name="WallClipComponent" type="Node"]
+script = ExtResource("1_script")
+Shader = ExtResource("2_shader")
+AlphaShader = ExtResource("3_alpha")

@@ -66,6 +66,9 @@ public sealed class GeneratedFloor
 	public IReadOnlyDictionary<string, (Door Door, DoorAccessSaveData Baseline)> DoorBaselines => _doorBaselines;
 	/// <summary>Authored and generated floor traps, collected when the floor freezes.</summary>
 	public IReadOnlyList<FloorTrap> Traps => _traps ?? [];
+	/// <summary>World XZ outlines of the solid wall pieces, from their mesh footprints rather than collision hulls: a corner
+	/// counts as its two arms, so a room's inner corner stays open. Set once the walls are final.</summary>
+	public IReadOnlyList<Vector2[]> SolidWalls { get; internal set; } = [];
 
 	/// <summary>Progression anchors and stairs that keep spawns at a distance; collected with the arrival once rooms are placed.</summary>
 	public IReadOnlyList<Vector3> SpawnAnchors { get; internal set; } = [];

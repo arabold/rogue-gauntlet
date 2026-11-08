@@ -9,7 +9,7 @@ uniform vec4 hit_flash_color : source_color = vec4(1.0);
 uniform float hit_flash_amount : hint_range(0.0,1.0) = 0.0;
 
 void fragment() {
-	if (source_is_culled(FRONT_FACING)) discard;
+	if (source_is_hidden(FRONT_FACING, VERTEX, INV_VIEW_MATRIX)) discard;
 	vec2 uv = source_uv(UV);
 	vec4 original = source_albedo(uv);
 	if (source_is_cutout(original.a)) discard;

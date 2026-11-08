@@ -26,7 +26,7 @@ public partial class MapGenerator
 
 	private WalkabilityGrid CreateWalkabilityGrid()
 	{
-		var grid = new WalkabilityGrid(FloorBounds(), RoomAssembler.ActorRadius);
+		var grid = new WalkabilityGrid(Map.WorldBounds, RoomAssembler.ActorRadius);
 		foreach (var (area, walkable) in TileAreas())
 		{
 			if (walkable) grid.AddFloor(area);
@@ -34,15 +34,6 @@ public partial class MapGenerator
 		}
 		foreach (var outline in SolidOutlines()) grid.AddObstacle(outline);
 		return grid;
-	}
-
-	/// <summary>The whole map in generator space, tile edges included.</summary>
-	private Rect2 FloorBounds()
-	{
-		var min = Map.TileToWorld(0, 0);
-		var max = Map.TileToWorld(Map.Width - 1, Map.Height - 1);
-		float half = Room.TileSize / 2f;
-		return new Rect2(min.X - half, min.Z - half, max.X - min.X + Room.TileSize, max.Z - min.Z + Room.TileSize);
 	}
 
 	/// <summary>
