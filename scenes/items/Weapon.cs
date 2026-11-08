@@ -31,10 +31,29 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// </summary>
 	[Export] public bool IsTwoHanded { get; protected set => SetValue(ref field, value); } = false;
 
+	/// <summary>Two-handed weapons are main-hand only; all single-handed weapons can be wielded in either hand.</summary>
+	public override ValidSlots ValidSlots
+	{
+		get
+		{
+			var slots = base.ValidSlots;
+			if (!IsTwoHanded)
+			{
+				return slots | ValidSlots.WeaponHand | ValidSlots.ShieldHand;
+			}
+			return slots == 0 ? ValidSlots.WeaponHand : slots;
+		}
+		set => base.ValidSlots = value;
+	}
+
 	/// <summary>Semantic motion requested from the wielder's animation profile.</summary>
 	[Export] public StringName AttackStyle { get; set => SetValue(ref field, value); } = "";
 	/// <summary>Rig adapter independent of handedness and the character's built-in prop meshes.</summary>
 	[Export] public WeaponGrip Grip { get; set => SetValue(ref field, value); }
+	/// <summary>Rig adapter when equipped in the off hand (ShieldHand).</summary>
+	[Export] public WeaponGrip OffhandGrip { get; set => SetValue(ref field, value); }
+	/// <summary>Fraction of this weapon's damage contributed to main-hand attacks when dual-wielded in the off hand.</summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float OffhandDamageScale { get; set => SetValue(ref field, value); } = 0.5f;
 	[Export] public MeleeAttackProfile MeleeContact { get; set => SetValue(ref field, value); }
 	/// <summary>Primary combo shared by the weapon family; null keeps a single repeated primary attack.</summary>
 	[Export] public AttackCombo PrimaryCombo { get; set => SetValue(ref field, value); }

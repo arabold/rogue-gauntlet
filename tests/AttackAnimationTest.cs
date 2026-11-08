@@ -43,6 +43,18 @@ public class AttackAnimationTest
 	}
 
 	[TestCase]
+	public void SingleHandMeleeBindingsMapToDualWieldStyles()
+	{
+		foreach (string style in new[] { "sword.1h.slash", "axe.1h.chop", "dagger.1h.thrust", "blunt.1h.chop" })
+		{
+			AssertBool(_profile.TryGetBinding(style, out var binding)).IsTrue();
+			AssertBool(string.IsNullOrEmpty(binding.DualWieldStyle)).IsFalse();
+			AssertBool(_profile.TryGetBinding(binding.DualWieldStyle, out var dualBinding)).IsTrue();
+			AssertBool(dualBinding.IsValid).IsTrue();
+		}
+	}
+
+	[TestCase]
 	public void EveryMonsterResolvesItsAuthoredAndEnabledAttackSlots()
 	{
 		var paths = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/enemies"), "*.tscn", SearchOption.AllDirectories);

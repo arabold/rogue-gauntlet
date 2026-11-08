@@ -9,21 +9,23 @@ Current behavior belongs to [weapon attacks](../weapon-attack-system.md), [comba
 | Main hand | Off hand | J: primary | K: secondary | L: off-hand action |
 | --- | --- | --- | --- | --- |
 | One-handed melee | Shield | Quick attack | Strong/weapon technique | Shield guard/parry |
-| One-handed melee | Eligible melee weapon | Quick paired attack | Strong paired attack | Unavailable; no guard/parry |
+| One-handed melee | One-handed melee | Quick paired attack | Strong paired attack | Unavailable; no guard/parry |
 | One-handed melee | Wand | Quick attack | Strong/weapon technique | Off-hand wand's bound spell |
+| One-handed melee | Portable light | Quick attack | Strong/weapon technique | Makeshift guard/parry |
 | Wand A | Wand B | A's free missiles only | A's bound spell | B's bound spell |
 | Wand | Shield | Free missiles | Bound spell | Shield guard/parry |
+| Wand | Portable light | Free missiles | Bound spell | Makeshift guard/parry |
 | Two-handed staff | Occupied by staff | Staff's free missiles | Staff's bound spell | Unavailable |
 | Two-handed melee | Occupied by weapon | Existing primary | Existing secondary | Existing weapon/innate guard, when supported |
 
-J retains hold-to-repeat and the primary combo; K and a wand's L cast once per new press. Shield guard retains press/hold/release and its opening parry window. Dodge remains a separate action. Equipping an off-hand melee weapon or wand removes fallback weapon/innate guard: pressing L cannot silently guard when that item has no available cast. A melee pair has no third attack.
+J retains hold-to-repeat and the primary combo; K and a wand's L cast once per new press. Shield and makeshift guard retain press/hold/release and the opening parry window. Dodge remains a separate action. Equipping an off-hand melee weapon or wand removes fallback weapon/innate guard: pressing L cannot silently guard when that item has no available cast. A melee pair has no third attack.
 
-An empty hand or portable light keeps the current weapon/innate guard rules. Availability comes from the resolved capability, not from whether a preview is empty: a valid fallback guard may have an enabled L with no off-hand item. Empty-main-hand attacks remain the existing unarmed actions; equipping something only in the off hand never promotes it to the main hand.
+An empty off-hand keeps the current weapon/innate guard rules. Portable lights are dedicated off-hand items providing a lightweight makeshift guard on L (e.g. 35% mitigation). Availability comes from the resolved capability, not from whether a preview is empty: a valid fallback guard may have an enabled L with no off-hand item. Empty-main-hand attacks remain the existing unarmed actions; equipping something only in the off hand never promotes it to the main hand.
 
-- **Eligibility:** one-handed wands can occupy either hand. Start melee off-hand content with daggers; additional one-handed melee families are an authoring decision. Two-handed weapons and other ranged weapons cannot occupy the off hand.
-- **Automatic equip:** weapons default to the main hand, replacing its occupant. A better weapon must not unexpectedly fill an empty off hand. The context menu offers an explicit off-hand choice for eligible items; lights retain their existing preference.
+- **Eligibility:** All one-handed weapons (swords, daggers, axes, maces, wands) can occupy either hand. Two-handed weapons (greatswords, polearms, crossbows, staves) are main-hand only. Shields and portable lights are off-hand only.
+- **Context menu & Equipping:** For hand-equippable items, the inventory context menu consistently presents "Equip in main hand" and "Equip in off hand", disabling options that the item or current slot cannot accept. Double-clicking or auto-equipping a weapon routes to the main hand by default; an off-hand placement is chosen explicitly via the context menu.
 - **Displacement:** retain two-handed conflicts and atomic curse checks. Displaced items stay in the backpack. Both hands and their grips must be valid before an equip commits.
-- **Mixed pairs:** the damage bonus and paired animations require two one-handed melee weapons. An off-hand dagger beside a wand or empty main hand supplies no attack of its own and no bonus to missiles or unarmed attacks; L remains unavailable. A sword plus wand retains the sword's ordinary J/K animations and damage.
+- **Mixed pairs:** the damage bonus and paired animations require two one-handed melee weapons. An off-hand melee weapon beside a wand or empty main hand supplies no attack of its own and no bonus to missiles or unarmed attacks; L remains unavailable. A sword plus wand retains the sword's ordinary J/K animations and damage.
 
 Keep the serialized `EquipmentSlot.WeaponHand` and `ShieldHand` names. UI labels can say Main hand and Off hand. Rename the input action `guard` to `offhand_action` and migrate its readers and prompts together. Keyboard J/K/L stays unchanged; this work does not select a new gamepad layout. Existing gamepad binding conflicts are a separate controls task.
 

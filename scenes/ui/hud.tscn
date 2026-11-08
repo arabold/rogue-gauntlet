@@ -1,8 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=9 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
 [ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="2_kicr4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_menu.tscn" id="3_debug_menu"]
+[ext_resource type="PackedScene" uid="uid://bvyqk5m278bce" path="res://scenes/ui/hand_action_panel.tscn" id="4_hand_panel"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_136eg"]
 content_margin_left = 50.0
@@ -81,15 +82,13 @@ layout_mode = 2
 size_flags_vertical = 8
 theme_override_constants/separation = 16
 
-[node name="PrimaryActionContainer" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="MainHandActionPanel" parent="HBoxContainer/HBoxContainer" instance=ExtResource("4_hand_panel")]
 layout_mode = 2
-Slot = -1
-ActionBinding = "primary_action"
+Hand = 256
 
-[node name="SecondaryActionContainer" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="OffHandActionPanel" parent="HBoxContainer/HBoxContainer" instance=ExtResource("4_hand_panel")]
 layout_mode = 2
-Slot = -2
-ActionBinding = "secondary_action"
+Hand = 512
 
 [node name="Spacer" type="Control" parent="HBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(16, 0)

@@ -40,9 +40,12 @@ public partial class BoneAttachmentManager : Node
 	/// mounting on the common hand bone shows shields on every class.
 	/// </summary>
 	[Export] public WeaponGrip ShieldGrip { get; set; }
+	/// <summary>Default rig adapter for one-handed melee weapons in the off hand (ShieldHand).</summary>
+	[Export] public WeaponGrip DefaultMeleeOffhandGrip { get; set; }
 
 	public override void _Ready()
 	{
+		DefaultMeleeOffhandGrip ??= GD.Load<WeaponGrip>("res://scenes/items/grips/kaykit_melee_offhand.tres");
 		if (ResetAttachmentsOnReady)
 		{
 			// Clean up the weapon and item attachment nodes
@@ -194,6 +197,7 @@ public partial class BoneAttachmentManager : Node
 		WeaponGrip grip = item switch
 		{
 			PortableLightItem light => light.GripFor(slot),
+			Weapon weapon when slot == EquipmentSlot.ShieldHand => weapon.OffhandGrip ?? DefaultMeleeOffhandGrip ?? weapon.Grip,
 			Weapon weapon => weapon.Grip,
 			_ => attachmentType == AttachmentType.Shield ? ShieldGrip : null,
 		};
@@ -261,6 +265,10 @@ public partial class BoneAttachmentManager : Node
 			if (weapon.IsTwoHanded)
 			{
 				attachmentType = AttachmentType.TwoHandedWeapon;
+			}
+			else if (slot == EquipmentSlot.ShieldHand)
+			{
+				attachmentType = AttachmentType.OffhandWeapon;
 			}
 			else
 			{

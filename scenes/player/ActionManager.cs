@@ -6,9 +6,11 @@ public partial class ActionManager : Node
 {
 	public const int PrimarySlotIndex = -1;
 	public const int SecondarySlotIndex = -2;
+	public const int OffhandSlotIndex = -3;
 
 	[Export] public ActionSlot PrimaryAttackSlot { get; set; }
 	[Export] public ActionSlot SecondaryTechniqueSlot { get; set; }
+	[Export] public ActionSlot OffhandActionSlot { get; set; }
 
 	public int ActionSlotCount => _quickItemSlots.Count;
 	/// <summary>
@@ -23,6 +25,7 @@ public partial class ActionManager : Node
 			if (_player?.ActionGate?.IsBusy == true) return true;
 			if (PrimaryAttackSlot?.IsDelayed == true || PrimaryAttackSlot?.IsPerformingAction == true) return true;
 			if (SecondaryTechniqueSlot?.IsDelayed == true || SecondaryTechniqueSlot?.IsPerformingAction == true) return true;
+			if (OffhandActionSlot?.IsDelayed == true || OffhandActionSlot?.IsPerformingAction == true) return true;
 			if (_quickItemSlots != null)
 			{
 				for (int i = 0; i < _quickItemSlots.Count; i++)
@@ -67,6 +70,17 @@ public partial class ActionManager : Node
 		SecondaryTechniqueSlot.SlotIndex = SecondarySlotIndex;
 		SecondaryTechniqueSlot.PerformAction += () => OnActionPerformed(SecondaryTechniqueSlot);
 		SecondaryTechniqueSlot.ActionPerformed += () => OnActionCompleted(SecondaryTechniqueSlot);
+
+		// Wire or create dedicated offhand action slot
+		OffhandActionSlot ??= GetNodeOrNull<ActionSlot>("OffhandActionSlot");
+		if (OffhandActionSlot == null)
+		{
+			OffhandActionSlot = new ActionSlot { Name = "OffhandActionSlot", ActionKind = ActorActionKind.None };
+			AddChild(OffhandActionSlot);
+		}
+		OffhandActionSlot.SlotIndex = OffhandSlotIndex;
+		OffhandActionSlot.PerformAction += () => OnActionPerformed(OffhandActionSlot);
+		OffhandActionSlot.ActionPerformed += () => OnActionCompleted(OffhandActionSlot);
 
 		// Default primary fallback is unarmed
 		AssignPrimary(UnarmedAttackAction.Instance, null);
@@ -115,6 +129,7 @@ public partial class ActionManager : Node
 	{
 		if (slotIndex == PrimarySlotIndex) return PrimaryAttackSlot;
 		if (slotIndex == SecondarySlotIndex) return SecondaryTechniqueSlot;
+		if (slotIndex == OffhandSlotIndex) return OffhandActionSlot;
 		if (slotIndex < 0 || slotIndex >= _quickItemSlots.Count) return null;
 		return _quickItemSlots[slotIndex];
 	}
@@ -150,6 +165,12 @@ public partial class ActionManager : Node
 		SignalBus.EmitPlayerActionSlotChanged(SecondarySlotIndex, SecondaryTechniqueSlot);
 	}
 
+	public void AssignOffhand(ICombatAttackAction action, PackedScene previewScene)
+	{
+		OffhandActionSlot?.AssignAction(OffhandSlotIndex, action as IPlayerAction, previewScene);
+		SignalBus.EmitPlayerActionSlotChanged(OffhandSlotIndex, OffhandActionSlot);
+	}
+
 	public bool TryPerformPrimary()
 	{
 		if (_player == null || _player.IsDead || _player.IsHit) return false;
@@ -167,6 +188,12 @@ public partial class ActionManager : Node
 	{
 		if (_player == null || _player.IsDead || _player.IsHit || SecondaryTechniqueSlot?.AssignedAction == null) return false;
 		return SecondaryTechniqueSlot.TryPerformAction(_player);
+	}
+
+	public bool TryPerformOffhand()
+	{
+		if (_player == null || _player.IsDead || _player.IsHit || OffhandActionSlot?.AssignedAction == null) return false;
+		return OffhandActionSlot.TryPerformAction(_player);
 	}
 
 	public void ClearActions()

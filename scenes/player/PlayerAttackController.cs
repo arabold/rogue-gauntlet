@@ -32,6 +32,7 @@ public partial class PlayerAttackController : AttackController
 	/// </summary>
 	private Node3D _aimAssistTarget;
 	private Weapon _activeWeapon;
+	private Weapon _activeOffhandWeapon;
 
 	/// <summary>Index of the last started step of the current primary combo; -1 when no combo is in progress.</summary>
 	public int ComboStep { get; private set; } = -1;
@@ -113,6 +114,32 @@ public partial class PlayerAttackController : AttackController
 			definition = (AttackDefinition)definition.Duplicate();
 			definition.AttackStyle = step.AttackStyle;
 		}
+		Weapon offhand = Player?.Inventory?.EquippedOffhandWeapon;
+		if (PlayerStats.IsEligibleMeleePair(weapon, offhand))
+		{
+			StringName baseStyle = !string.IsNullOrEmpty(definition?.AttackStyle) ? definition.AttackStyle : style;
+			if (AnimationComponent?.Profile == null
+				|| !AnimationComponent.Profile.TryGetBinding(baseStyle, out var binding)
+				|| string.IsNullOrEmpty(binding.DualWieldStyle)
+				|| !AnimationComponent.Profile.TryGetBinding(binding.DualWieldStyle, out _))
+			{
+				attack = null;
+				return false;
+			}
+			style = binding.DualWieldStyle;
+			if (!string.IsNullOrEmpty(definition?.AttackStyle))
+			{
+				if (!ReferenceEquals(definition, weapon?.PrimaryAttackDefinition) && !ReferenceEquals(definition, weapon?.SecondaryCustomAttackDefinition))
+				{
+					definition.AttackStyle = style;
+				}
+				else
+				{
+					definition = (AttackDefinition)definition.Duplicate();
+					definition.AttackStyle = style;
+				}
+			}
+		}
 		if (duration <= 0)
 		{
 			duration = isSpecial ? (weapon?.SecondaryPerformDuration ?? 0.6) : (weapon?.PerformDuration ?? 0.5);
@@ -136,10 +163,12 @@ public partial class PlayerAttackController : AttackController
 	public bool StartPreparedWeaponAttack(PreparedAttack attack, Weapon weapon = null, bool isSpecial = false, ActorActionLease lease = default)
 	{
 		if (Player.IsDead || Player.IsHit || IsAttacking) return false;
+		Weapon offhand = Player?.Inventory?.EquippedOffhandWeapon;
 		_activeWeapon = weapon;
+		_activeOffhandWeapon = PlayerStats.IsEligibleMeleePair(weapon, offhand) ? offhand : null;
 		_aimAssistTarget = FindMeleeAimAssistTarget();
 		float multiplier = (isSpecial ? (weapon?.SecondaryDamageMultiplier ?? 1.5f) : 1.0f) * (attack?.DamageScale ?? 1);
-		if (!StartAttack(attack, Player.Stats.ResolveAttack(weapon).Scaled(multiplier), 24, lease)) return false;
+		if (!StartAttack(attack, Player.Stats.ResolveAttack(weapon, _activeOffhandWeapon).Scaled(multiplier), 24, lease)) return false;
 		ResetCombo();
 		if (attack.ComboStep >= 0)
 		{
@@ -159,6 +188,7 @@ public partial class PlayerAttackController : AttackController
 	{
 		if (Player.IsDead || Player.IsHit || IsAttacking || attack?.Spell == null) return false;
 		_activeWeapon = focus;
+		_activeOffhandWeapon = null;
 		_aimAssistTarget = null;
 		if (!StartAttack(attack, attack.Spell.Power.Hit, 24, lease)) return false;
 		ResetCombo();
@@ -167,9 +197,16 @@ public partial class PlayerAttackController : AttackController
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (IsAttacking && _activeWeapon != null && !ReferenceEquals(Player.Inventory.EquippedWeapon, _activeWeapon))
+		if (IsAttacking)
 		{
-			CancelAttack();
+			if (_activeWeapon != null && !ReferenceEquals(Player.Inventory.EquippedWeapon, _activeWeapon))
+			{
+				CancelAttack();
+			}
+			else if (_activeOffhandWeapon != null && !ReferenceEquals(Player.Inventory?.EquippedOffhandWeapon, _activeOffhandWeapon))
+			{
+				CancelAttack();
+			}
 		}
 		if (IsAttacking) base._PhysicsProcess(delta);
 		UpdateChainWindow(delta);

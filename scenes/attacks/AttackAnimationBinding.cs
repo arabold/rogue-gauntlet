@@ -5,6 +5,8 @@ using Godot;
 public partial class AttackAnimationBinding : Resource
 {
 	[Export] public StringName Style { get; set; } = "";
+	/// <summary>Semantic dual-wield style on this rig when paired with an off-hand melee weapon.</summary>
+	[Export] public StringName DualWieldStyle { get; set; } = "";
 	[Export] public StringName Clip { get; set; } = "";
 	/// <summary>Optional preparation pose/clip played before contact; Clip then plays from release through recovery.</summary>
 	[Export] public StringName WindUpClip { get; set; } = "";

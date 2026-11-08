@@ -61,6 +61,10 @@ public partial class PlayerInventoryController : Node
 		RefreshEffectiveGuard();
 	}
 
+	public Weapon EquippedOffhandWeapon => Inventory?.EquippedItems != null
+		&& Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var slot)
+		? slot?.Item as Weapon : null;
+
 	public void RefreshEffectiveGuard()
 	{
 		if (Player?.GuardComponent == null) return;
@@ -71,13 +75,45 @@ public partial class PlayerInventoryController : Node
 			Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var shieldSlot);
 
 			Weapon weapon = Inventory.EquippedWeapon;
-			EquipableItem shield = shieldSlot?.Item as EquipableItem;
+			EquipableItem offhandItem = shieldSlot?.Item as EquipableItem;
 
 			bool isTwoHanded = weapon != null && weapon.IsTwoHanded;
 
-			if (!isTwoHanded && shield?.Guard != null)
+			if (isTwoHanded)
 			{
-				effectiveGuard = shield.Guard;
+				if (weapon is MagicStaff)
+				{
+					// Two-handed staff has no L action/guard
+					Player.GuardComponent.ApplyGuardDefinition(null);
+					return;
+				}
+				if (weapon.Guard != null)
+				{
+					effectiveGuard = weapon.Guard;
+				}
+				else if (weapon is not RangedWeapon)
+				{
+					effectiveGuard = Player?.Capabilities?.InnateGuard;
+				}
+				else
+				{
+					Player.GuardComponent.ApplyGuardDefinition(null);
+					return;
+				}
+			}
+			else if (offhandItem is Weapon)
+			{
+				// Off-hand weapon (melee dagger, or wand) removes guard
+				Player.GuardComponent.ApplyGuardDefinition(null);
+				return;
+			}
+			else if (offhandItem is PortableLightItem light)
+			{
+				effectiveGuard = light.EffectiveGuard;
+			}
+			else if (offhandItem?.Guard != null)
+			{
+				effectiveGuard = offhandItem.Guard;
 			}
 			else if (weapon?.Guard != null)
 			{
@@ -87,7 +123,7 @@ public partial class PlayerInventoryController : Node
 			{
 				effectiveGuard = Player?.Capabilities?.InnateGuard;
 			}
-			else if (weapon is RangedWeapon && shield == null)
+			else if (weapon is RangedWeapon && offhandItem == null)
 			{
 				// Ranged weapons without a shield cannot guard/parry
 				Player.GuardComponent.ApplyGuardDefinition(null);
