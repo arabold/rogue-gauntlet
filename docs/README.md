@@ -29,7 +29,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
 | [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, room-owned secret doors, discovery and saved access state |
-| [Level design](level-design.md) | Procedural layouts, assembled rooms with room-owned doorways, realm tags, inward-facing corridor styling, sunken water pools and basins, reachability, fog of war, encounters and light flicker |
+| [Level design](level-design.md) | Procedural layouts, assembled rooms with room-owned doorways, realm tags, inward-facing corridor styling, sunken water pools and basins, reachability, monster navigation, fog of war, encounters and light flicker |
 | [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
@@ -55,7 +55,6 @@ These documents explain code that exists today. Any proposed extension or future
 | [Off-hand weapons](specs/off-hand-weapons-plan.md) | Two alternatives for off-hand weapons: a passive off-hand damage bonus, or animated dual-wield with an off-hand action replacing the guard input (blocked on a left-hand attack clip) |
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
-| [Monster navigation](specs/monster-navigation-plan.md) | Implemented (all slices): clearance grid with shared chase/flee flow fields replacing the navmesh for monsters. Playtest acceptance and open tuning decisions (cell size, low obstacles, body sizes, boss leash) remain |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 

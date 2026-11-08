@@ -92,6 +92,15 @@ The level's `FloorNavigation` computes shared Dijkstra maps on the grid. A chase
 
 Every walkable floor tile collides as one flat box at a shared height (0.05); surface detail and the slightly higher dirt and rubble tiles are visual only, so bodies never snag on seams between tiles. The player's body is a 0.5-radius capsule matching its model, skeletons 0.6. On stairs, a body pushing into a step with open space one step up is lifted over it, so slim bodies climb the 0.5-unit steps.
 
+Fields are shared: every chaser of a similar body size follows one field per target, computed only as far out as its farthest chaser needs and refreshed when it goes stale or a door changes, so a crowd costs little more than a single monster. A monster makes progress only while its remaining route shrinks, so pacing in place counts as a stall.
+
+Known limitations:
+
+- **One plane:** the grid is 2D, so stairs and pits are not monster terrain; flying or swimming monsters would need their own traversal rule.
+- **Static apart from doors:** only doors change the grid at runtime. A destroyed nest keeps its cells blocked until the floor is rebuilt.
+- **Low obstacles:** anything rising into the actor height band (above 0.15) blocks every body, so curbs and pool rims stop rats as well.
+- **Room-bound Warden:** releasing the Warden is a data change, but its 1.0-radius body is wider than the 1.57 units an open door leaves clear, so it would still pass only doorless openings.
+
 ## Map occlusion and fog of war
 
 Permanent black caps hide void under the rotating isometric camera. Gameplay exploration uses bounded omnidirectional line of sight from the player, independent of room-entry events, facing, lighting and camera zoom. Walls, unsanctioned room/corridor edges and closed door thresholds block sight; open doorways reveal only their visible wedge. Exact diagonal corner crossings require both routes to be open. Furnishings do not block discovery in this first implementation. Editor previews expose generated space.
