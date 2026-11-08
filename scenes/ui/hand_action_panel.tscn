@@ -29,10 +29,17 @@ font_size = 24
 outline_size = 8
 outline_color = Color(0, 0, 0, 1)
 
-[node name="HandActionPanel" type="PanelContainer"]
+[node name="HandActionPanel" type="PanelContainer" node_paths=PackedStringArray("Preview", "ViewportContainer", "FirstActionKey", "SecondActionKey", "FirstActionCooldownBar", "SecondActionCooldownBar", "ManaCostLabel")]
 custom_minimum_size = Vector2(100, 100)
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 script = ExtResource("1_hand")
+Preview = NodePath("SubViewportContainer/Preview")
+ViewportContainer = NodePath("SubViewportContainer")
+FirstActionKey = NodePath("KeyOverlay/FirstActionKey")
+SecondActionKey = NodePath("KeyOverlay/SecondActionKey")
+FirstActionCooldownBar = NodePath("KeyOverlay/FirstActionCooldownBar")
+SecondActionCooldownBar = NodePath("KeyOverlay/SecondActionCooldownBar")
+ManaCostLabel = NodePath("ManaCostContainer/ManaCostLabel")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
 unique_name_in_owner = true

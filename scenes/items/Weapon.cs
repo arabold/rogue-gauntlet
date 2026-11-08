@@ -31,21 +31,6 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// </summary>
 	[Export] public bool IsTwoHanded { get; protected set => SetValue(ref field, value); } = false;
 
-	/// <summary>Two-handed weapons are main-hand only; all single-handed weapons can be wielded in either hand.</summary>
-	public override ValidSlots ValidSlots
-	{
-		get
-		{
-			var slots = base.ValidSlots;
-			if (!IsTwoHanded)
-			{
-				return slots | ValidSlots.WeaponHand | ValidSlots.ShieldHand;
-			}
-			return slots == 0 ? ValidSlots.WeaponHand : slots;
-		}
-		set => base.ValidSlots = value;
-	}
-
 	/// <summary>Semantic motion requested from the wielder's animation profile.</summary>
 	[Export] public StringName AttackStyle { get; set => SetValue(ref field, value); } = "";
 	/// <summary>Rig adapter independent of handedness and the character's built-in prop meshes.</summary>

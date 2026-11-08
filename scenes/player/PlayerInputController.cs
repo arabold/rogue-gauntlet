@@ -37,7 +37,7 @@ public partial class PlayerInputController : Node
 	private bool _guardIntent;
 	private bool _isFocused = true;
 	public void SetGuardIntent(bool held) => _guardIntent = held;
-	private bool IsGuardHeld => _guardIntent || InputComponent.IsGuardPressed();
+	private bool IsGuardHeld => _guardIntent || InputComponent.IsOffhandPressed();
 	public void RequireFreshDefenseInput()
 	{
 		_requireDefenseRelease = true;
@@ -202,7 +202,7 @@ public partial class PlayerInputController : Node
 	private void BufferFreshPresses()
 	{
 		if (InputComponent.IsDodgeJustPressed()) _intents.Push(PlayerIntent.Dodge, _clock);
-		if (InputComponent.IsGuardJustPressed()) _intents.Push(PlayerIntent.GuardPress, _clock);
+		if (InputComponent.IsOffhandJustPressed()) _intents.Push(PlayerIntent.GuardPress, _clock);
 		if (InputComponent.IsPrimaryActionJustPressed()) _intents.Push(PlayerIntent.Primary, _clock);
 		if (InputComponent.IsSecondaryActionJustPressed()) _intents.Push(PlayerIntent.Secondary, _clock);
 	}

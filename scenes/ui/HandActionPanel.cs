@@ -34,14 +34,6 @@ public partial class HandActionPanel : PanelContainer
 
 	public override void _Ready()
 	{
-		Preview ??= GetNodeOrNull<Preview>("%Preview");
-		ViewportContainer ??= GetNodeOrNull<SubViewportContainer>("%SubViewportContainer") ?? GetNodeOrNull<SubViewportContainer>("SubViewportContainer");
-		FirstActionKey ??= GetNodeOrNull<KeyBinding>("%FirstActionKey");
-		SecondActionKey ??= GetNodeOrNull<KeyBinding>("%SecondActionKey");
-		FirstActionCooldownBar ??= GetNodeOrNull<ProgressBar>("%FirstActionCooldownBar");
-		SecondActionCooldownBar ??= GetNodeOrNull<ProgressBar>("%SecondActionCooldownBar");
-		ManaCostLabel ??= GetNodeOrNull<Label>("%ManaCostLabel");
-
 		ConfigureHand();
 
 		this.SubscribeUntilExit(
@@ -90,25 +82,25 @@ public partial class HandActionPanel : PanelContainer
 	public void BindPlayer(Player player)
 	{
 		_unsubscribePlayer();
+		_unsubscribePlayer = () => { };
 		_player = player;
 		if (player?.Inventory != null)
 		{
 			var inv = player.Inventory;
 			var mana = player.ManaComponent;
+			var u1 = this.SubscribeUntilExit(inv, i => i.ItemEquipped += OnEquipmentChanged, i => i.ItemEquipped -= OnEquipmentChanged);
+			var u2 = this.SubscribeUntilExit(inv, i => i.ItemUnequipped += OnEquipmentChanged, i => i.ItemUnequipped -= OnEquipmentChanged);
+			var u3 = this.SubscribeUntilExit(inv, i => i.EquippedItemChanged += OnEquippedItemChanged, i => i.EquippedItemChanged -= OnEquippedItemChanged);
+			Action u4 = mana != null
+				? this.SubscribeUntilExit(mana, m => m.ManaChanged += OnManaChanged, m => m.ManaChanged -= OnManaChanged)
+				: () => { };
 			_unsubscribePlayer = () =>
 			{
-				inv.ItemEquipped -= OnEquipmentChanged;
-				inv.ItemUnequipped -= OnEquipmentChanged;
-				inv.EquippedItemChanged -= OnEquippedItemChanged;
-				if (mana != null) mana.ManaChanged -= OnManaChanged;
+				u1();
+				u2();
+				u3();
+				u4();
 			};
-			this.SubscribeUntilExit(inv, i => i.ItemEquipped += OnEquipmentChanged, i => i.ItemEquipped -= OnEquipmentChanged);
-			this.SubscribeUntilExit(inv, i => i.ItemUnequipped += OnEquipmentChanged, i => i.ItemUnequipped -= OnEquipmentChanged);
-			this.SubscribeUntilExit(inv, i => i.EquippedItemChanged += OnEquippedItemChanged, i => i.EquippedItemChanged -= OnEquippedItemChanged);
-			if (mana != null)
-			{
-				this.SubscribeUntilExit(mana, m => m.ManaChanged += OnManaChanged, m => m.ManaChanged -= OnManaChanged);
-			}
 		}
 		Refresh();
 	}
@@ -131,14 +123,15 @@ public partial class HandActionPanel : PanelContainer
 
 	private void OnCooldownUpdated(int slotIndex, float remainingTime, float totalTime)
 	{
-		float pct = totalTime > 0 ? 100f * remainingTime / totalTime : 0f;
 		if (Hand == EquipmentSlot.WeaponHand)
 		{
-			if (slotIndex == ActionManager.PrimarySlotIndex && FirstActionCooldownBar != null)
+			if (slotIndex != ActionManager.PrimarySlotIndex && slotIndex != ActionManager.SecondarySlotIndex) return;
+			float pct = totalTime > 0 ? 100f * remainingTime / totalTime : 0f;
+			if (slotIndex == ActionManager.PrimarySlotIndex)
 			{
-				FirstActionCooldownBar.Value = pct;
+				if (FirstActionCooldownBar != null) FirstActionCooldownBar.Value = pct;
 			}
-			else if (slotIndex == ActionManager.SecondarySlotIndex)
+			else
 			{
 				if (SecondActionCooldownBar != null) SecondActionCooldownBar.Value = pct;
 				bool wasCooldown = _secondaryOnCooldown;
@@ -148,13 +141,12 @@ public partial class HandActionPanel : PanelContainer
 		}
 		else if (Hand == EquipmentSlot.ShieldHand)
 		{
-			if (slotIndex == ActionManager.OffhandSlotIndex)
-			{
-				if (FirstActionCooldownBar != null) FirstActionCooldownBar.Value = pct;
-				bool wasCooldown = _offhandOnCooldown;
-				_offhandOnCooldown = remainingTime > 0;
-				if (wasCooldown != _offhandOnCooldown) Refresh();
-			}
+			if (slotIndex != ActionManager.OffhandSlotIndex) return;
+			float pct = totalTime > 0 ? 100f * remainingTime / totalTime : 0f;
+			if (FirstActionCooldownBar != null) FirstActionCooldownBar.Value = pct;
+			bool wasCooldown = _offhandOnCooldown;
+			_offhandOnCooldown = remainingTime > 0;
+			if (wasCooldown != _offhandOnCooldown) Refresh();
 		}
 	}
 
@@ -177,10 +169,9 @@ public partial class HandActionPanel : PanelContainer
 					// Two-handed equipment projected into off hand
 					displayedItem = weapon;
 				}
-				else
+				else if (_player.Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var shieldSlot))
 				{
-					displayedItem = _player.Inventory.EquippedOffhandWeapon
-						?? (_player.Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var s) ? s?.Item : null);
+					displayedItem = shieldSlot?.Item;
 				}
 			}
 		}
@@ -232,9 +223,6 @@ public partial class HandActionPanel : PanelContainer
 
 	private void RefreshOffHand(Item displayedItem)
 	{
-		Weapon twoHanded = _player?.Inventory?.EquippedWeapon is { IsTwoHanded: true } w ? w : null;
-		bool isStaff = twoHanded is MagicStaff;
-		bool isMeleeOffhand = displayedItem is Weapon { IsTwoHanded: false } && !ReferenceEquals(displayedItem, twoHanded);
 		bool hasGuard = _player?.GuardComponent?.HasGuard == true;
 
 		ActionSlot offhandSlot = _player?.ActionManager?.OffhandActionSlot;
@@ -245,19 +233,7 @@ public partial class HandActionPanel : PanelContainer
 		bool actionAvailable = false;
 		bool panelDimmed = false;
 
-		if (isStaff)
-		{
-			// Staff has no L action
-			actionAvailable = false;
-			panelDimmed = true;
-		}
-		else if (isMeleeOffhand)
-		{
-			// Paired melee off-hand dagger has no L action; dims preview and L
-			actionAvailable = false;
-			panelDimmed = true;
-		}
-		else if (offhandAction != null)
+		if (offhandAction != null)
 		{
 			// Off-hand spell action (e.g. wand in Slice 2)
 			actionAvailable = canAfford && !_offhandOnCooldown && (_player == null || !_player.IsDead);

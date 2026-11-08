@@ -12,7 +12,7 @@ public class HandActionPanelTest
 	[TestCase]
 	public async Task HandActionPanelLoadsAndWiresComponents()
 	{
-		ISceneRunner runner = TestFactories.LoadScene("res://scenes/ui/hand_action_panel.tscn");
+		using var runner = TestFactories.LoadScene("res://scenes/ui/hand_action_panel.tscn");
 		await runner.SimulateFrames(1);
 		var panel = (HandActionPanel)runner.Scene();
 

@@ -29,7 +29,6 @@ public partial class InputComponent : Node
 	private static readonly StringName ActionInteract = "interact";
 	private static readonly StringName ActionDodge = "dodge";
 	private static readonly StringName ActionOffhand = "offhand_action";
-	private static readonly StringName ActionGuard = "guard";
 	private static readonly StringName ActionWalk = "walk";
 	private static readonly StringName ActionMoveRight = "move_right";
 	private static readonly StringName ActionMoveLeft = "move_left";
@@ -99,17 +98,13 @@ public partial class InputComponent : Node
 
 	public bool IsOffhandPressed()
 	{
-		return DeviceEnabled && (Input.IsActionPressed(ActionOffhand) || Input.IsActionPressed(ActionGuard));
+		return DeviceEnabled && Input.IsActionPressed(ActionOffhand);
 	}
 
 	public bool IsOffhandJustPressed()
 	{
-		return DeviceEnabled && (Input.IsActionJustPressed(ActionOffhand) || Input.IsActionJustPressed(ActionGuard));
+		return DeviceEnabled && Input.IsActionJustPressed(ActionOffhand);
 	}
-
-	public bool IsGuardPressed() => IsOffhandPressed();
-
-	public bool IsGuardJustPressed() => IsOffhandJustPressed();
 
 	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Input; }
 

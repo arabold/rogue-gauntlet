@@ -162,26 +162,34 @@ public partial class PlayerStats : ObservableResource
 	}
 
 	/// <summary>
-	/// Resolves the local damage contributed by a weapon without folding in character-wide base attributes or global modifiers.
+	/// Resolves the local min/max damage contributed by a weapon in a single pass without folding in character-wide base attributes or global modifiers.
 	/// </summary>
-	private float ResolveWeaponContribution(StatType stat, Weapon weapon)
+	private void ResolveWeaponDamageContribution(Weapon weapon, out float min, out float max)
 	{
-		if (weapon == null) return 0f;
-		float flat = 0f;
-		float percent = 0f;
+		if (weapon == null)
+		{
+			min = 0f;
+			max = 0f;
+			return;
+		}
+		float minFlat = 0f, minPercent = 0f;
+		float maxFlat = 0f, maxPercent = 0f;
 		foreach ((object source, StatModifier modifier, bool _) in _modifiers)
 		{
-			if (!ReferenceEquals(source, weapon) || modifier.Stat != stat) continue;
-			if (modifier.Op == ModifierOp.Percent)
+			if (!ReferenceEquals(source, weapon)) continue;
+			if (modifier.Stat == StatType.MinDamage)
 			{
-				percent += modifier.Value;
+				if (modifier.Op == ModifierOp.Percent) minPercent += modifier.Value;
+				else minFlat += modifier.Value;
 			}
-			else
+			else if (modifier.Stat == StatType.MaxDamage)
 			{
-				flat += modifier.Value;
+				if (modifier.Op == ModifierOp.Percent) maxPercent += modifier.Value;
+				else maxFlat += modifier.Value;
 			}
 		}
-		return flat * (1f + percent);
+		min = minFlat * (1f + minPercent);
+		max = maxFlat * (1f + maxPercent);
 	}
 
 	/// <summary>
@@ -198,8 +206,9 @@ public partial class PlayerStats : ObservableResource
 		if (IsEligibleMeleePair(weapon, offhand))
 		{
 			float scale = offhand.OffhandDamageScale;
-			min += ResolveWeaponContribution(StatType.MinDamage, offhand) * scale;
-			max += ResolveWeaponContribution(StatType.MaxDamage, offhand) * scale;
+			ResolveWeaponDamageContribution(offhand, out float offMin, out float offMax);
+			min += offMin * scale;
+			max += offMax * scale;
 		}
 
 		return new AttackStats(min, max, crit);

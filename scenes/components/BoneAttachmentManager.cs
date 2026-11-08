@@ -45,7 +45,6 @@ public partial class BoneAttachmentManager : Node
 
 	public override void _Ready()
 	{
-		DefaultMeleeOffhandGrip ??= GD.Load<WeaponGrip>("res://scenes/items/grips/kaykit_melee_offhand.tres");
 		if (ResetAttachmentsOnReady)
 		{
 			// Clean up the weapon and item attachment nodes

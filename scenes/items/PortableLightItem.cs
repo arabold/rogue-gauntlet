@@ -12,12 +12,6 @@ public partial class PortableLightItem : EquipableItem
 	[Export] public WeaponGrip WeaponHandGrip { get; set; }
 	[Export] public WeaponGrip ShieldHandGrip { get; set; }
 
-	private static GuardDefinition _cachedDefaultLightGuard;
-	private static GuardDefinition DefaultLightGuard => _cachedDefaultLightGuard ??= GD.Load<GuardDefinition>("res://scenes/combat/definitions/makeshift_guard.tres");
-
-	/// <summary>Effective guard definition for this light, defaulting to makeshift guard if not explicitly authored.</summary>
-	public GuardDefinition EffectiveGuard => Guard ?? DefaultLightGuard;
-
 	/// <summary>Explicit rig adapter for the selected hand; no authored adapter means that hand is unavailable.</summary>
 	public WeaponGrip GripFor(EquipmentSlot slot) => slot switch
 	{

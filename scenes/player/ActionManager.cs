@@ -71,16 +71,14 @@ public partial class ActionManager : Node
 		SecondaryTechniqueSlot.PerformAction += () => OnActionPerformed(SecondaryTechniqueSlot);
 		SecondaryTechniqueSlot.ActionPerformed += () => OnActionCompleted(SecondaryTechniqueSlot);
 
-		// Wire or create dedicated offhand action slot
+		// Wire dedicated offhand action slot
 		OffhandActionSlot ??= GetNodeOrNull<ActionSlot>("OffhandActionSlot");
-		if (OffhandActionSlot == null)
+		if (OffhandActionSlot != null)
 		{
-			OffhandActionSlot = new ActionSlot { Name = "OffhandActionSlot", ActionKind = ActorActionKind.None };
-			AddChild(OffhandActionSlot);
+			OffhandActionSlot.SlotIndex = OffhandSlotIndex;
+			OffhandActionSlot.PerformAction += () => OnActionPerformed(OffhandActionSlot);
+			OffhandActionSlot.ActionPerformed += () => OnActionCompleted(OffhandActionSlot);
 		}
-		OffhandActionSlot.SlotIndex = OffhandSlotIndex;
-		OffhandActionSlot.PerformAction += () => OnActionPerformed(OffhandActionSlot);
-		OffhandActionSlot.ActionPerformed += () => OnActionCompleted(OffhandActionSlot);
 
 		// Default primary fallback is unarmed
 		AssignPrimary(UnarmedAttackAction.Instance, null);
@@ -101,7 +99,7 @@ public partial class ActionManager : Node
 		{
 			foreach (var child in GetChildren())
 			{
-				if (child is ActionSlot slot && slot != PrimaryAttackSlot && slot != SecondaryTechniqueSlot)
+				if (child is ActionSlot slot && slot != PrimaryAttackSlot && slot != SecondaryTechniqueSlot && slot != OffhandActionSlot)
 				{
 					slot.ActionKind = ActorActionKind.ItemUse;
 					_quickItemSlots.Add(slot);

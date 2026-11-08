@@ -24,7 +24,6 @@ KeyboardDict = Dictionary[String, Texture2D]({
 "action_4": ExtResource("6_62b3s"),
 "action_5": ExtResource("7_ikwvy"),
 "action_6": ExtResource("8_57x1u"),
-"guard": ExtResource("14_offhand"),
 "interact": ExtResource("11_interact"),
 "inventory": ExtResource("10_04ok3"),
 "offhand_action": ExtResource("14_offhand"),

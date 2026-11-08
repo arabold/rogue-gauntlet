@@ -61,10 +61,6 @@ public partial class PlayerInventoryController : Node
 		RefreshEffectiveGuard();
 	}
 
-	public Weapon EquippedOffhandWeapon => Inventory?.EquippedItems != null
-		&& Inventory.EquippedItems.TryGetValue(EquipmentSlot.ShieldHand, out var slot)
-		? slot?.Item as Weapon : null;
-
 	public void RefreshEffectiveGuard()
 	{
 		if (Player?.GuardComponent == null) return;
@@ -106,10 +102,6 @@ public partial class PlayerInventoryController : Node
 				// Off-hand weapon (melee dagger, or wand) removes guard
 				Player.GuardComponent.ApplyGuardDefinition(null);
 				return;
-			}
-			else if (offhandItem is PortableLightItem light)
-			{
-				effectiveGuard = light.EffectiveGuard;
 			}
 			else if (offhandItem?.Guard != null)
 			{

@@ -32,7 +32,7 @@ public partial class EquipableItem : BuffedItem
 	/// Type of this item
 	/// </summary>
 	[Export] public GuardDefinition Guard { get; set => SetValue(ref field, value); }
-	[Export] public virtual ValidSlots ValidSlots { get; set => SetValue(ref field, value); } = 0;
+	[Export] public ValidSlots ValidSlots { get; set => SetValue(ref field, value); } = 0;
 
 	/// <summary>Words and affixes this kind of equipment can roll at creation (authored).</summary>
 	[Export] public EquipmentRollTable RollTable { get; set => SetValue(ref field, value); }
