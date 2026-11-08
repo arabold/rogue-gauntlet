@@ -60,6 +60,15 @@ MATERIALS.update({slot:dict(metallic=.12,roughness=.64,crease=48.0)
                   for slot in ("dragon","dragon_light","dragon_dark")})
 MATERIALS.update({slot:dict(metallic=.45,roughness=.5,crease=55.0) for slot in ("mail","mail_dark")})
 MATERIALS.update({slot:dict(MATERIALS["armor"]) for slot in ("steel_scale","steel_scale_light","steel_scale_dark")})
+# Roughness of every surface without its own look: matte, like the game imports KayKit (`assets/kaykit_matte_import.gd`).
+MATTE_ROUGHNESS = 0.85
+
+
+def matte_roughness(metallic, roughness):
+    """A KayKit surface's roughness as this project shades it. KayKit leaves non-metal surfaces semi-glossy (0.3-0.5),
+    which shines like plastic under close point lights, so those turn matte; metal and deliberate gloss (its gems at
+    0.2) keep theirs. The game's KayKit import script applies the same rule."""
+    return MATTE_ROUGHNESS if metallic == 0 and .25 <= roughness < MATTE_ROUGHNESS else roughness
 HEROES = ("barbarian", "knight", "mage", "rogue")
 GENERATOR = "Rogue Gauntlet asset-studio"  # glTF asset.generator of every export (`character_kit` backs up others)  # templates whose prop node names the class resources look up
 # where standard grips props: weapons in the right hand turned about Y, off-hand ones as they come (`Barbarian.glb`)
@@ -313,7 +322,7 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=
     w.g["images"] = [{"name": "surface_palette", "mimeType": "image/png", "bufferView": w._view(png.getvalue())}]
     w.g["samplers"] = [{"magFilter": 9729, "minFilter": 9729, "wrapS": 33071, "wrapT": 33071}]
     w.g["textures"] = [{"source": 0, "sampler": 0}]
-    base = {"pbrMetallicRoughness": {"metallicFactor": 0, "roughnessFactor": .5}}
+    base = {"pbrMetallicRoughness": {"metallicFactor": 0, "roughnessFactor": MATTE_ROUGHNESS}}
     w.g["materials"] = [surface_material(base, f"{name}_{i}", spec) for i, spec in enumerate(specs)]
     w.save(path)
 
@@ -368,7 +377,9 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     label = {s: i for i, s in enumerate(used)}
     atlas = mm.Atlas([slot_colors[s] for s in used], pad=4, col_w=16, col_h=128, looks=looks, slot_names=used)
     base = g["materials"][0]
-    material_specs = [None]  # 0: the template's matte material
+    pbr = base.setdefault("pbrMetallicRoughness", {})
+    pbr["roughnessFactor"] = matte_roughness(pbr.get("metallicFactor", 1), pbr.get("roughnessFactor", 1))
+    material_specs = [None]  # 0: the template's material, made matte
 
     FLAT_SLOTS = {
         'paint', 'warpaint', 'scar', 'scars',

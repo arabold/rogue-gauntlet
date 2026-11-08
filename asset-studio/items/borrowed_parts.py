@@ -14,6 +14,8 @@ from pathlib import Path
 
 import numpy as np
 
+from core.export import matte_roughness
+
 COMPONENTS = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3, 'VEC4': 4}
 TYPES = {5121: np.uint8, 5123: np.uint16, 5125: np.uint32, 5126: np.float32}
 
@@ -65,6 +67,8 @@ def extract(source, target, keep, offset=(0, 0, 0)):
     points = position[used] + np.asarray(offset, np.float32)
     material = json.loads(json.dumps(material))
     material['pbrMetallicRoughness']['baseColorTexture'] = {'index': 0}
+    pbr = material['pbrMetallicRoughness']
+    pbr['roughnessFactor'] = matte_roughness(pbr.get('metallicFactor', 1), pbr.get('roughnessFactor', 1))
     out = {
         'asset': {'version': '2.0', 'generator': 'Rogue Gauntlet Asset Studio borrowed_parts'},
         'scene': 0, 'scenes': [{'nodes': [0]}], 'nodes': [{'name': Path(target).stem, 'mesh': 0}],

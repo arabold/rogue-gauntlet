@@ -5,7 +5,7 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6c4js"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_2ahlx"]
 _surfaces = [{
@@ -49,7 +49,7 @@ polygons = [PackedInt32Array(2, 863, 870), PackedInt32Array(2, 35, 863), PackedI
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4iooa"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_2yoll"]
 _surfaces = [{
@@ -93,7 +93,7 @@ polygons = [PackedInt32Array(779, 12, 775), PackedInt32Array(779, 8, 12), Packed
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yd1wa"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_b5rq7"]
 _surfaces = [{
@@ -137,7 +137,7 @@ polygons = [PackedInt32Array(165, 151, 145), PackedInt32Array(165, 162, 151), Pa
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwmaw"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_fcmkx"]
 _surfaces = [{
@@ -181,7 +181,7 @@ polygons = [PackedInt32Array(165, 151, 145), PackedInt32Array(165, 162, 151), Pa
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_435cd"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_548q3"]
 _surfaces = [{
@@ -225,7 +225,7 @@ polygons = [PackedInt32Array(165, 151, 145), PackedInt32Array(165, 162, 151), Pa
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_23fef"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_advuv"]
 _surfaces = [{
@@ -269,7 +269,7 @@ polygons = [PackedInt32Array(30, 16, 46), PackedInt32Array(30, 7, 16), PackedInt
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dylxn"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_ar2fv"]
 _surfaces = [{
@@ -313,7 +313,7 @@ polygons = [PackedInt32Array(36, 718, 13), PackedInt32Array(36, 725, 718), Packe
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u8dmb"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_txh4r"]
 _surfaces = [{
@@ -357,7 +357,7 @@ polygons = [PackedInt32Array(55, 3, 24), PackedInt32Array(55, 120, 3), PackedInt
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a74vv"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_hu1s2"]
 _surfaces = [{
@@ -401,7 +401,7 @@ polygons = [PackedInt32Array(40, 17, 13), PackedInt32Array(40, 869, 17), PackedI
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x46yg"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_qo37e"]
 _surfaces = [{
@@ -445,7 +445,7 @@ polygons = [PackedInt32Array(32, 402, 13), PackedInt32Array(32, 409, 402), Packe
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gf05t"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_e5vxt"]
 _surfaces = [{
@@ -489,7 +489,7 @@ polygons = [PackedInt32Array(151, 158, 2710), PackedInt32Array(2, 150, 113), Pac
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nbdol"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_e84ds"]
 _surfaces = [{
@@ -533,7 +533,7 @@ polygons = [PackedInt32Array(176, 33, 363), PackedInt32Array(176, 79, 33), Packe
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xy2m3"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_l0def"]
 _surfaces = [{
@@ -604,7 +604,7 @@ shadow_mesh = SubResource("ArrayMesh_yxqci")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qy3jl"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_huheg"]
 _surfaces = [{
@@ -675,7 +675,7 @@ shadow_mesh = SubResource("ArrayMesh_84ab2")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hdcm6"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_qgk48"]
 _surfaces = [{
@@ -712,7 +712,7 @@ shadow_mesh = SubResource("ArrayMesh_qgk48")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_53msk"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_o8ekg"]
 _surfaces = [{
@@ -749,7 +749,7 @@ shadow_mesh = SubResource("ArrayMesh_o8ekg")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ayv47"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_uuhk8"]
 _surfaces = [{
@@ -793,7 +793,7 @@ polygons = [PackedInt32Array(118, 92, 122), PackedInt32Array(118, 88, 92), Packe
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j1cop"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_q4lok"]
 _surfaces = [{
@@ -837,7 +837,7 @@ polygons = [PackedInt32Array(42, 14, 45), PackedInt32Array(42, 3, 14), PackedInt
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_toaum"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_o12qp"]
 _surfaces = [{
@@ -881,7 +881,7 @@ polygons = [PackedInt32Array(522, 434, 553), PackedInt32Array(522, 14, 434), Pac
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rqpl2"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_mh3c6"]
 _surfaces = [{
@@ -925,7 +925,7 @@ polygons = [PackedInt32Array(140, 43, 6), PackedInt32Array(140, 27, 43), PackedI
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s2321"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_arlre"]
 _surfaces = [{
@@ -969,7 +969,7 @@ polygons = [PackedInt32Array(23, 30, 167), PackedInt32Array(23, 48, 30), PackedI
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qjsw1"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_a2kbu"]
 _surfaces = [{
@@ -1013,7 +1013,7 @@ polygons = [PackedInt32Array(19, 76, 31), PackedInt32Array(19, 56, 76), PackedIn
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_em0ya"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_t876k"]
 _surfaces = [{
@@ -1057,7 +1057,7 @@ polygons = [PackedInt32Array(27, 79, 186), PackedInt32Array(31, 60, 232), Packed
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dwr3r"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_68cxl"]
 _surfaces = [{
@@ -1101,7 +1101,7 @@ polygons = [PackedInt32Array(2, 1033, 1040), PackedInt32Array(2, 35, 1033), Pack
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5icpw"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_yom15"]
 _surfaces = [{
@@ -1145,7 +1145,7 @@ polygons = [PackedInt32Array(2, 799, 806), PackedInt32Array(2, 35, 799), PackedI
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nb60m"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_da0sd"]
 _surfaces = [{
@@ -1189,7 +1189,7 @@ polygons = [PackedInt32Array(39, 3, 31), PackedInt32Array(39, 11, 3), PackedInt3
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j7g7w"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_24xa8"]
 _surfaces = [{
@@ -1233,7 +1233,7 @@ polygons = [PackedInt32Array(18, 37, 188), PackedInt32Array(18, 5, 37), PackedIn
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7bp0k"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_ou663"]
 _surfaces = [{
@@ -1277,7 +1277,7 @@ polygons = [PackedInt32Array(88, 173, 31), PackedInt32Array(45, 64, 28), PackedI
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3wibd"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_axyrh"]
 _surfaces = [{
@@ -1321,7 +1321,7 @@ polygons = [PackedInt32Array(26, 330, 29), PackedInt32Array(26, 327, 330), Packe
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2emii"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_mnawi"]
 _surfaces = [{
@@ -1365,7 +1365,7 @@ polygons = [PackedInt32Array(26, 330, 29), PackedInt32Array(26, 327, 330), Packe
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sbpoy"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_e1yq5"]
 _surfaces = [{
@@ -1409,7 +1409,7 @@ polygons = [PackedInt32Array(26, 330, 29), PackedInt32Array(26, 327, 330), Packe
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gjd7y"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_736wu")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_48etx"]
 _surfaces = [{

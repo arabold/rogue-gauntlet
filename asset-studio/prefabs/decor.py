@@ -25,6 +25,7 @@ if str(STUDIO_DIR) not in sys.path:
     sys.path.insert(0, str(STUDIO_DIR))
 
 from core import kit  # noqa: E402
+from core.export import matte_roughness  # noqa: E402
 
 ASSETS = STUDIO_DIR.parent / "assets"
 MESHES = Path(__file__).resolve().parent / "decor" / "meshes"
@@ -248,7 +249,9 @@ def palette(names=None):
     for name in names or [p.stem for p in sorted(MESHES.glob("*.npz"))]:
         meta = _stored(name)[5]
         colors.update({k: tuple(v) for k, v in meta["colors"].items()})
-        materials.update(meta["materials"])
+        # Harvested as KayKit authored them; shaded matte like the rest of the project.
+        materials.update({k: {**v, "roughness": matte_roughness(v.get("metallic", 0.0), v["roughness"])} if "roughness" in v else v
+                          for k, v in meta["materials"].items()})
     return colors, materials
 
 

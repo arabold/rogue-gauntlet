@@ -9,7 +9,7 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0qmis"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_eph4r")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_hdndl"]
 _surfaces = [{
