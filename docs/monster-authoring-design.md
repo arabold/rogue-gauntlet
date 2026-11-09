@@ -51,7 +51,7 @@ An optional `HealthPhaseComponent` latches phases from descending health thresho
 
 ### Roster examples
 
-The Plague Rat bites (35% `rat_venom.tres` on a surviving damaging hit, refreshing one activation) and rushes from 2–4.5 m. The Skeleton Mage keeps distance with fireball as its primary, regenerates the most injured ally below 75%, heals itself below 35% and casts Rage on an ally; the shared spells reject casts that would change nothing. Venom and poison share one periodic buff; see [status conditions and poison](stats-and-itemization.md#buffs-and-status-conditions) and [contact resolution](combat-system.md#contact-resolution).
+The Plague Rat bites (35% `rat_venom.tres` on a surviving damaging hit, refreshing one activation) and rushes from 2–4.5 m. The Skeleton Mage keeps distance with a mana-free volley of three straight fire missiles (one on the aim line, one 10° to each side) as its primary, casts fireball, regenerates the most injured ally below 75%, heals itself below 35% and casts Rage on an ally; the shared spells reject casts that would change nothing. Venom and poison share one periodic buff; see [status conditions and poison](stats-and-itemization.md#buffs-and-status-conditions) and [contact resolution](combat-system.md#contact-resolution).
 
 ### Validation and tuning
 

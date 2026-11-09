@@ -1,7 +1,11 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=20 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterSpellAction.cs" id="spell_action"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/missile/magic_missile_fire.tscn" id="missile"]
+[ext_resource type="PackedScene" path="res://scenes/effects/staff_muzzle_burst_fire.tscn" id="muzzle"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/AllyTargetSelector.cs" id="ally"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/SelfTargetSelector.cs" id="self"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/HealthBelowCondition.cs" id="health_below"]
@@ -11,6 +15,33 @@
 [ext_resource type="Resource" path="res://scenes/magic/healing_potion_small.tres" id="regenerate_spell"]
 [ext_resource type="Resource" path="res://scenes/magic/instant_heal.tres" id="heal_spell"]
 [ext_resource type="Resource" path="res://scenes/magic/rage_scroll.tres" id="rage_spell"]
+
+[sub_resource type="Resource" id="volley_attack"]
+script = ExtResource("attack_definition")
+IsRanged = true
+DefenseTraits = 3
+ProjectileScene = ExtResource("missile")
+MuzzleEffectScene = ExtResource("muzzle")
+ProjectilePattern = 1
+ProjectileCount = 3
+SpreadAngle = 20.0
+ProjectileSpeed = 12.0
+ProjectileAimLockDuration = 0.25
+Range = 14.0
+Element = 1
+PoiseDamage = 4.0
+
+[sub_resource type="Resource" id="volley"]
+resource_name = "missile volley"
+script = ExtResource("attack_action")
+Cooldown = 2.2
+MinimumRange = 3.0
+MaximumRange = 12.0
+Attack = SubResource("volley_attack")
+Style = &"staff.cast"
+Duration = 1.1
+MinDamage = 2.0
+MaxDamage = 4.0
 
 [sub_resource type="Resource" id="allies"]
 script = ExtResource("ally")
@@ -90,4 +121,4 @@ MaxDamage = 0.0
 script = ExtResource("profile")
 TacticalStrategy = ExtResource("tactics")
 MovementStrategy = ExtResource("movement")
-Actions = [SubResource("fireball"), SubResource("regenerate"), SubResource("instant_heal"), SubResource("rage")]
+Actions = [SubResource("volley"), SubResource("fireball"), SubResource("regenerate"), SubResource("instant_heal"), SubResource("rage")]

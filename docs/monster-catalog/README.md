@@ -7,7 +7,7 @@ The playable roster contains six monsters. Gameplay definitions and policies in 
 | [Skeleton Minion](../../scenes/enemies/skeleton/skeleton_minion_definition.tres) | Direct melee | Depths 1–3 |
 | [Skeleton Warrior](../../scenes/enemies/skeleton/skeleton_warrior_definition.tres) | Melee with guard, dodge and conditional riposte | Depths 1–3 |
 | [Skeleton Crossbowman](../../scenes/enemies/skeleton/skeleton_crossbow_definition.tres) | Projectile-only distance fighter | Depths 1–3 |
-| [Skeleton Mage](../../scenes/enemies/skeleton/skeleton_mage_definition.tres) | Ranged spells, ally healing, self healing and empowerment | Depths 2–3 |
+| [Skeleton Mage](../../scenes/enemies/skeleton/skeleton_mage_definition.tres) | Missile volleys, fireballs, ally healing, self healing and empowerment | Depths 2–3 |
 | [Plague Rat](../../scenes/enemies/rat/rat_definition.tres) | Bite/retreat, bounded low-health override | Depths 2–3 and finite nests |
 | [Forsaken Warden](../../scenes/enemies/forsaken_warden/forsaken_warden_definition.tres) | Sword/guard gatekeeper with conditional riposte | Depth 3 |
 

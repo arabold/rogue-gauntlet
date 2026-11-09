@@ -17,6 +17,7 @@ public partial class MonsterAuthoringTest
 	[TestCase("templates/melee_enemy")]
 	[TestCase("templates/projectile_enemy")]
 	[TestCase("skeleton/skeleton_crossbow")]
+	[TestCase("skeleton/skeleton_mage")]
 	[TestCase("rat/rat")]
 	[TestCase("forsaken_warden/forsaken_warden")]
 	public void AuthoredExampleHasCompleteDefinition(string path)
