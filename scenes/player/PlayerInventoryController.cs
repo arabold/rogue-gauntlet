@@ -160,6 +160,7 @@ public partial class PlayerInventoryController : Node
 			source?.CommitCollected();
 			item.OnPickup(Player, quantity);
 			Player?.QuickItemController?.OnItemAcquired(item, quantity);
+			SignalBus.EmitItemPickedUp(Player, item, quantity);
 			return Report(ItemFailure.None);
 		}
 		finally { IsCommittingItemOperation = false; }
