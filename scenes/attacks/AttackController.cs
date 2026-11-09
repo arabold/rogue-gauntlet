@@ -13,7 +13,6 @@ public partial class AttackController : Node, IParryInterruptible
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	[Export] public AttackIndicatorComponent Indicator { get; set; }
 	[Export] public CombatVisualMotionComponent VisualMotion { get; set; }
-	[Export] public WorldEffectHost WorldEffects { get; set; }
 	public bool IsAttacking => _execution.IsRunning;
 	public double PerformDuration => _preparedAttack?.Duration ?? 0;
 	public StringName CurrentStyle => _preparedAttack?.Playback?.Style ?? "";
@@ -127,14 +126,11 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
 		if (!copy.HasValidImpact(copy.HitWindowStart) || !copy.HasValidFlight(copy.HitWindowStart, duration)) return false;
-		if (copy.GroundImpact != null && !copy.GroundImpact.IsValid) return false;
 		if (!PreparedHitStatus.TryCapture(copy.OnHitStatuses, out var onHitStatuses)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
 		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged || copy.ProjectileAimLockDuration > copy.HitWindowStart)) return false;
 		var feedback = copy.FeedbackProfile?.Capture();
-		GroundImpactSnapshot? groundImpact = copy.GroundImpact?.Capture();
-		attack = new PreparedAttack(copy, playback, duration, Feedback: feedback, GroundImpact: groundImpact,
-			OnHitStatuses: onHitStatuses);
+		attack = new PreparedAttack(copy, playback, duration, Feedback: feedback, OnHitStatuses: onHitStatuses);
 		return true;
 	}
 
@@ -301,7 +297,6 @@ public partial class AttackController : Node, IParryInterruptible
 		else if (_elapsedTime >= _currentAttack.HitWindowStart && previous <= _currentAttack.HitWindowEnd
 			&& (!_contactEvaluated || previous < _currentAttack.HitWindowEnd))
 		{
-			if (!_contactEvaluated) TriggerGroundImpact();
 			// Interval intersection, not just the current timestamp: even a whole skipped window queries once.
 			if (!HasCommittedFacing) CommitMeleeFacing();
 			var profile = _currentAttack.MeleeContact;
@@ -346,23 +341,6 @@ public partial class AttackController : Node, IParryInterruptible
 		}
 		if (!_currentAttack.IsRanged && _elapsedTime >= _currentAttack.HitWindowEnd) CloseContact();
 		if (step.Completed) FinishAttack(false);
-	}
-
-	/// <summary>Present one captured impact cue at contact opening without creating a damage contact.</summary>
-	private void TriggerGroundImpact()
-	{
-		if (!EffectsEnabled || _preparedAttack?.GroundImpact is not { } impact) return;
-		if (impact.Effect != null)
-		{
-			if (WorldEffects == null || !GodotObject.IsInstanceValid(WorldEffects))
-				GD.PushWarning($"{Name}: ground impact effect is configured without a WorldEffectHost.");
-			else WorldEffects.PlayBurstAt(impact.Effect, (uint)(CurrentExecutionId.Sequence * 7919UL), _actor.GlobalPosition);
-		}
-		if (impact.CameraImpulse > 0)
-		{
-			var request = new CameraImpulseRequest(impact.CameraImpulse, impact.CameraRadius, _actor.GlobalPosition);
-			SignalBus.EmitCameraImpulseRequested(in request);
-		}
 	}
 
 	/// <summary>Trace cosmetics through intermediate poses, keeping collision independent of animation geometry.</summary>
@@ -582,11 +560,9 @@ public partial class AttackController : Node, IParryInterruptible
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		var random = new RandomNumberGenerator { Seed = _random.Randi() };
 		var context = release.Context;
-		var enemySpell = release.Source as EnemySpellProfile;
-		bool current = enemySpell == null || enemySpell.CanRelease(in context);
-		bool cast = current && release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
-			&& release.Spell.CanCast(in context) && (enemySpell == null || release.Spell.IsUseful(in context))
-			&& release.Spell.Cast(in context, random);
+		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
+			&& release.Revalidate?.Invoke(context) != false
+			&& release.Spell.CanCast(in context) && release.Spell.Cast(in context, random);
 		ReportFeedback(cast ? "Cast" : "Fizzled");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
 			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level), ("cast", cast));

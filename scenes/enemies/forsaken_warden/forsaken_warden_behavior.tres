@@ -1,8 +1,6 @@
-[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=3 format=3]
 [ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_combat.tres" id="combat"]
-[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_phase_65.tres" id="phase_65"]
-[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_phase_30.tres" id="phase_30"]
 
 [resource]
 script = ExtResource("script")
@@ -16,4 +14,3 @@ RoamPauseMax = 2.5
 HitActionDuration = 0.7
 DyingActionDuration = 1.667
 Combat = ExtResource("combat")
-Phases = [ExtResource("phase_65"), ExtResource("phase_30")]

@@ -1,19 +1,37 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
-[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyActionChoiceProfile.cs" id="choice_script"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/shooter_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_movement.tres" id="movement"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_attack.tres" id="attack"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/projectile.tscn" id="projectile"]
 
-[sub_resource type="Resource" id="attack_choice"]
-script = ExtResource("choice_script")
-Action = ExtResource("attack")
-Weight = 1.0
+[sub_resource type="Resource" id="shot_attack"]
+script = ExtResource("attack_definition")
+IsRanged = true
+DefenseTraits = 3
+ProjectileScene = ExtResource("projectile")
+ProjectileSpeed = 16.0
+ProjectileAimLockDuration = 0.3
+Range = 20.0
+HitWindowStart = 0.45
+PoiseDamage = 8.0
+
+[sub_resource type="Resource" id="shot"]
+resource_name = "shot"
+script = ExtResource("attack_action")
+Cooldown = 1.8
+MaximumRange = 14.0
+RiposteEligible = true
+Attack = SubResource("shot_attack")
+Style = &"ranged"
+Duration = 1.4
+MinDamage = 3.0
+MaxDamage = 6.0
 
 [resource]
 script = ExtResource("profile")
 TacticalStrategy = ExtResource("tactics")
 MovementStrategy = ExtResource("movement")
-ApproachAction = ExtResource("attack")
-Actions = [SubResource("attack_choice")]
+Actions = [SubResource("shot")]

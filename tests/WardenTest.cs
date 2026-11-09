@@ -207,7 +207,7 @@ public class WardenTest
 			await runner.SimulateFrames(2);
 			// Start through the executor: the AI would not start a swing at a hero behind it, but body contact
 			// must still cover every side once a swing is under way.
-			var policy = (EnemyAttackProfile)boss.EnemyBehaviorComponent.Profile.Combat.ApproachAction;
+			var policy = (MonsterAttackAction)boss.EnemyBehaviorComponent.Profile.Combat.PrimaryOffense;
 			attack.CancelAttack();
 			AssertBool(attack.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var swing)).IsTrue();
 			AssertBool(attack.StartAttack(swing, new AttackStats(policy.MinDamage, policy.MaxDamage, 0), 4)).IsTrue();

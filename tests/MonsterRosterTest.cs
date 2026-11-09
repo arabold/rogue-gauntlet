@@ -33,7 +33,7 @@ public class MonsterRosterTest
 		// The harness is not a generated level: without navigation, retreat has nowhere to go.
 		bool accepted = false;
 		var context = new EnemyContext(actor, actor.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
-			navigation, actor.Definition.Behavior, actor.Definition.Behavior.Combat, () => accepted = behavior.TryAttack());
+			navigation, actor.Definition.Behavior, _ => accepted = behavior.TryAttack());
 		context.Target = harness.Player;
 		context.TickThrottles(1.0 / 60);
 		context.ExecuteTactics();
@@ -58,7 +58,7 @@ public class MonsterRosterTest
 		AssertBool(second.Select(new(EnemyMovementGoal.Retreat, false, 7), 3, true).Intent.AllowAttack).IsFalse();
 		actor.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		var context = new EnemyContext(actor, actor.MovementComponent, actor.EnemyBehaviorComponent.GetNode<PerceptionComponent>("Perception"), null, profile, profile.Combat, () => { });
+		var context = new EnemyContext(actor, actor.MovementComponent, actor.EnemyBehaviorComponent.GetNode<PerceptionComponent>("Perception"), null, profile, _ => { });
 		context.Target = harness.Player;
 		actor.Position = harness.Player.Position + Vector3.Forward * 3;
 		var initial = profile.Combat.MovementStrategy.Evaluate(context);
@@ -75,7 +75,7 @@ public class MonsterRosterTest
 		actor.Definition.Behavior.Combat = (EnemyCombatProfile)profile.Combat.Duplicate();
 		actor.Definition.Behavior.Combat.TacticalStrategy = invalid;
 		invalid.MaximumRetreatDuration = float.NaN;
-		AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("Combat.TacticalStrategy:"))).IsTrue();
+		AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("TacticalStrategy:"))).IsTrue();
 	}
 
 	[TestCase]
@@ -282,7 +282,7 @@ public class MonsterRosterTest
 			var movement = (MaintainDistanceStrategy)actor.Definition.Behavior.Combat.MovementStrategy.Duplicate();
 			actor.Definition.Behavior.Combat.MovementStrategy = movement;
 			movement.PreferredDistance = movement.MinimumDistance;
-			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("Combat.MovementStrategy:"))).IsTrue();
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("MovementStrategy:"))).IsTrue();
 		}
 		finally { actor.Free(); }
 		AssertBool(DirAccess.DirExistsAbsolute("res://assets/quaternius-monsters")).IsFalse();

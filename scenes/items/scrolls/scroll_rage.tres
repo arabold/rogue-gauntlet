@@ -1,7 +1,6 @@
 [gd_resource type="Resource" script_class="Scroll" format=3 uid="uid://d8pfmnkebusg"]
 
 [ext_resource type="Script" uid="uid://tl6phiqa232t" path="res://scenes/items/scrolls/Scroll.cs" id="4_scroll"]
-[ext_resource type="Resource" path="res://scenes/buffs/rage_scroll.tres" id="rage_buff"]
 [ext_resource type="Resource" path="res://scenes/magic/rage_scroll.tres" id="rage_spell"]
 
 [resource]
@@ -10,7 +9,6 @@ TypeId = "scroll.rage"
 IdentityCategory = "scroll"
 TrueName = "Scroll of Rage"
 UnidentifiedNameTemplate = "scroll labeled {descriptor}"
-Buff = ExtResource("rage_buff")
 Spell = ExtResource("rage_spell")
 Name = "Scroll of Rage"
 Value = 100

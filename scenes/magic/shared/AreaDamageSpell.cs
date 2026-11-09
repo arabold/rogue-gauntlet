@@ -14,7 +14,6 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	private readonly AreaCastLifecycle _cast = new();
 	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
 		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null;
-	public bool IsUseful(in SpellCastContext context) => CanCast(in context);
 
 	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Damage; SetPhysicsProcess(false); }
 	public override void _PhysicsProcess(double delta)
@@ -42,14 +41,8 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 				target => AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)), target => target.GlobalPosition));
 		VisualRoot.AddChild(visual); visual.GlobalPosition = cast.Origin; area.SetAreaVisibility(visibility);
 		_cast.Track(visual);
-		Action<Node3D, DamageResolution> afterContact = Definition.CameraImpulse > 0
-			? (_, _) =>
-			{
-				var impulse = new CameraImpulseRequest(Definition.CameraImpulse, Definition.CameraRadius, cast.Origin,
-					Definition.CameraGrowthTime, Definition.CameraDuration, Definition.CameraDecayTime);
-				SignalBus.EmitCameraImpulseRequested(in impulse);
-			}
-			: null;
+		var shake = Definition.CameraShake;
+		Action<Node3D, DamageResolution> afterContact = shake != null ? (_, _) => shake.EmitAt(cast.Origin) : null;
 		_cast.Schedule(cast, Definition.ContactDelay, area.Front, hit, defense, Definition.PushAt(level), afterContact, Definition.Element);
 		return true;
 	}

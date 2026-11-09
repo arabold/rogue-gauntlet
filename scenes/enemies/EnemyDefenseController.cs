@@ -76,7 +76,7 @@ public partial class EnemyDefenseController : Node
 	/// <summary>Fallback duration in seconds to hold guard against an attack before lowering.</summary>
 	[Export] public float GuardHoldDuration { get; set; } = 0.55f;
 
-	private EnemyDefenseStrategy Strategy => Enemy?.EnemyBehaviorComponent?.CurrentCombatProfile?.DefenseStrategy;
+	private EnemyDefenseStrategy Strategy => Enemy?.EnemyBehaviorComponent?.Profile?.Combat?.DefenseStrategy;
 	private float PressureWindow => Strategy?.GuardPressureWindow ?? GuardHoldDuration;
 
 	private AttackIdentity _lastObservedMeleeExecution;
@@ -153,8 +153,6 @@ public partial class EnemyDefenseController : Node
 			return;
 		}
 
-
-		Enemy.EnemyBehaviorComponent?.PrepareDecision();
 		if (!HasGuardCapability && !HasDodgeCapability) return;
 
 		float dt = (float)delta;
@@ -203,7 +201,6 @@ public partial class EnemyDefenseController : Node
 	/// <summary>Attempt one counterattack after defense completion, revalidating current sight, reach and commitment.</summary>
 	public bool TryExecuteRiposte()
 	{
-		Enemy?.EnemyBehaviorComponent?.PrepareDecision();
 		if (!RiposteEnabled) return RecordRiposte(false, "disabled");
 		if (Enemy == null || Enemy.IsDead) return RecordRiposte(false, "unavailable");
 		if (Enemy.MovementComponent?.IsPushed == true || Enemy.ActionGate?.IsBusy == true)
@@ -214,19 +211,18 @@ public partial class EnemyDefenseController : Node
 		Vector3 toTarget = GetPosition(target) - GetPosition(Enemy);
 		toTarget.Y = 0;
 		float distance = toTarget.Length();
+		// The same reach the action selector uses: authored range capped by the attack's own contact reach.
 		float reach = 0;
-		var choices = Enemy.EnemyBehaviorComponent?.CurrentCombatProfile?.Actions;
-		if (choices != null)
-			foreach (var choice in choices)
-				if (choice?.Action is { IsOffensive: true, RiposteEligible: true } action)
-					reach = Mathf.Max(reach, action.MaximumDistance);
+		foreach (var action in Enemy.EnemyBehaviorComponent?.Profile?.Combat?.Actions ?? [])
+			if (action is MonsterAttackAction { RiposteEligible: true, IsOffensive: true })
+				reach = Mathf.Max(reach, action.EffectiveMaximumRange);
 		if (distance > reach) return RecordRiposte(false, "out_of_reach", target, distance, reach);
 
 		// Turn toward the target at the actor's normal turn rate; an attack that cannot start yet is rejected.
 		if (toTarget.LengthSquared() > 0.001f) Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
 
 		Enemy.EnemyBehaviorComponent?.SetTarget(target);
-		bool accepted = Enemy.EnemyBehaviorComponent?.TryRequestAction(riposteOnly: true) == ActorActionRequestResult.Success;
+		bool accepted = Enemy.EnemyBehaviorComponent?.TryRequestAction(MonsterActionFilter.Riposte) == ActorActionRequestResult.Success;
 		RecordRiposte(accepted, accepted ? "accepted" : "attack_rejected", target, distance, reach);
 		if (accepted) EmitSignalRiposteTriggered();
 		return accepted;

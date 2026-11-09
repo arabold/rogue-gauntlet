@@ -109,18 +109,17 @@ public partial class MonsterAuthoringTest
 			var definition = (MonsterDefinition)minion.Definition.Duplicate();
 			definition.Behavior = (EnemyBehaviorProfile)definition.Behavior.Duplicate();
 			definition.Behavior.Combat = (EnemyCombatProfile)definition.Behavior.Combat.Duplicate();
-			var oldProfile = (EnemyAttackProfile)definition.Behavior.Combat.ApproachAction;
-			var attackProfile = (EnemyAttackProfile)oldProfile.Duplicate();
-			var attack = (AttackDefinition)oldProfile.Attack.Duplicate();
+			var oldAction = (MonsterAttackAction)definition.Behavior.Combat.PrimaryOffense;
+			var attackAction = (MonsterAttackAction)oldAction.Duplicate();
+			var attack = (AttackDefinition)oldAction.Attack.Duplicate();
 			attack.DefenseTraits = AttackDefenseTraits.Dodgeable;
-			attackProfile.Attack = attack;
-			definition.Behavior.Combat.ApproachAction = attackProfile;
-			definition.Behavior.Combat.Actions = [new EnemyActionChoiceProfile { Action = attackProfile, Weight = 1 }];
+			attackAction.Attack = attack;
+			definition.Behavior.Combat.Actions = [attackAction];
 			minion.Definition = definition;
 			minion.AttackController.Indicator = null;
 			var errors = MonsterSceneValidator.Validate(minion);
-			AssertBool(errors.Any(e => e.StartsWith("Attack: Unblockable attacks need"))).IsTrue();
-			AssertBool(errors.Any(e => e.StartsWith("AttackController.Indicator:"))).IsTrue();
+			AssertBool(errors.Any(e => e.Contains("Attack: Unblockable attacks need"))).IsTrue();
+			AssertBool(errors.Any(e => e.Contains("AttackController.Indicator:"))).IsTrue();
 		}
 		finally { minion.Free(); }
 	}

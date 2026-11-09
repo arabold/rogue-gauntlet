@@ -8,6 +8,8 @@ The `monster_attack` scenario command requests one attack through the spawned mo
 
 The control panel is mouse-operated so keypad, movement keys, and Space stay available to control the hero.
 
+The monster section lists the spawned monster's actions for tuning: its health phase, current tactical decision and running action, then each action's priority, effective weight (after weight modifiers) and whether it is ready, cooling down or out of position, followed by the last choice or rejection. **Spawn / respawn** re-creates the monster from its scene, so Resource edits made through the Remote inspector apply to the new instance. Trace events `ai.action_attempt`, `dash.started`, `dash.blocked`, `dash.finished` and `enemy.phase_changed` record the same decisions.
+
 For player dodges, current processed movement input selects the heading; a released direction remains available for 0.08 seconds, then the player's facing is used. Space starts the dodge immediately. A new direction can correct an input-driven dodge during its first 0.04 seconds while the captured facing stays in place, making the correction a sidestep. Use slow motion to inspect timing, then review the curved path at normal speed.
 
 Checkbox defaults apply immediately on startup and to newly spawned monsters. `--combat-console` also checks the console logging option.

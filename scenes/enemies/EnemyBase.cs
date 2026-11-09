@@ -67,6 +67,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public SpellCaster SpellCaster { get; set; }
 	[Export] public ActorStatsComponent Stats { get; set; }
 	[Export] public ManaComponent ManaComponent { get; set; }
+	/// <summary>Optional: committed displacement for dash actions (rushes, hop-backs).</summary>
+	[Export] public DashComponent DashComponent { get; set; }
+	/// <summary>Optional: health phases that actions can be gated and weighted by.</summary>
+	[Export] public HealthPhaseComponent HealthPhases { get; set; }
 
 	/// <summary>Optional: shows <see cref="MonsterDefinition.DisplayName"/> above the monster while the player is near.</summary>
 	[Export] public Nameplate Nameplate { get; set; }
@@ -92,14 +96,9 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 			ProcessMode = ProcessModeEnum.Disabled;
 			return;
 		}
-		HealthComponent.SetHealth(Definition.MaxHealth, Definition.MaxHealth);
-		MovementComponent.Speed = Definition.MoveSpeed;
+		Stats.Initialize(Definition);
 		ManaComponent.SetMana(Definition.MaxMana, Definition.MaxMana);
 		ManaComponent.RegenPerSecond = Definition.ManaRegenPerSecond;
-		Stats.Actor = this;
-		Stats.Movement = MovementComponent;
-		Stats.Health = HealthComponent;
-		Stats.HurtBox = HurtBoxComponent;
 		DeathComponent.Xp = Definition.XpReward;
 		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;

@@ -41,15 +41,25 @@ public partial class SpellCaster : Node
 		return true;
 	}
 
+	/// <summary>
+	/// The spell instance a source casts: the one bound to <paramref name="source"/> when it is a focus of this
+	/// definition, otherwise the actor's innate instance of it (created once per definition).
+	/// </summary>
+	public bool TryResolve(SpellDefinition definition, GodotObject source, int level, out ICombatSpell spell)
+	{
+		spell = null;
+		if (definition?.IsValidLevel(level) != true) return false;
+		spell = source != null && _boundSpells.TryGetValue(source, out var bound) && ReferenceEquals(definition, bound.Definition)
+			? bound.Spell : GetOrCreateInnate(definition);
+		return spell != null && spell.LevelCount >= level;
+	}
+
 	/// <summary>Prepares bound, item or innate activations through the same scene-composed spell and target rules.</summary>
 	public bool TryPrepare(SpellDefinition definition, GodotObject source, in SpellCastContext context, out SpellRelease release)
 	{
 		release = null;
-		if (definition?.IsValidLevel(context.Power.Level) != true) return false;
-		ICombatSpell spell = source != null && _boundSpells.TryGetValue(source, out var bound)
-			&& ReferenceEquals(definition, bound.Definition) ? bound.Spell : GetOrCreateInnate(definition);
-		if (spell == null || spell.LevelCount < context.Power.Level || !spell.CanCast(in context)) return false;
-		release = new SpellRelease(spell, context, source);
+		if (!TryResolve(definition, source, context.Power.Level, out var spell) || !spell.CanCast(in context)) return false;
+		release = new SpellRelease(spell, context);
 		return true;
 	}
 

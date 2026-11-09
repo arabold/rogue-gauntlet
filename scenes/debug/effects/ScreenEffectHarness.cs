@@ -118,6 +118,7 @@ public partial class ScreenEffectHarness : Node
 	{
 		foreach (BuffedItem potion in Potions)
 		{
+			if (potion.Buff == null) continue;
 			var apply = new Button { Text = $"Apply {potion.Buff.Name}", FocusMode = Control.FocusModeEnum.None };
 			apply.Pressed += () => _player.ApplyBuff(potion.Buff);
 			Controls.AddChild(apply);
@@ -145,4 +146,4 @@ public partial class ScreenEffectHarness : Node
 		row.AddChild(slider);
 		Controls.AddChild(row);
 	}
-}
+}

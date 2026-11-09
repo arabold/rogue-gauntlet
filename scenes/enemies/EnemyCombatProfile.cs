@@ -1,6 +1,11 @@
 using Godot;
 
-/// <summary>One switchable set of movement, defense and action choices for an enemy.</summary>
+/// <summary>
+/// How a monster fights: positioning, engagement tactics, defense, an optional low-health retreat and the actions it
+/// chooses from. The first offensive attack or spell is the primary action: movement strategies close to its range and
+/// wait for its attack slot, while every other eligible action (a rush, a support spell) can still fire.
+/// </summary>
+[Tool]
 [GlobalClass]
 public partial class EnemyCombatProfile : Resource
 {
@@ -9,33 +14,43 @@ public partial class EnemyCombatProfile : Resource
 	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
 	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }
 	[Export] public EnemyRetreatCondition RetreatCondition { get; set; }
-	[Export] public EnemyActionProfile ApproachAction { get; set; }
-	[Export] public Godot.Collections.Array<EnemyActionChoiceProfile> Actions { get; set; } = [];
+	[ExportGroup("Actions")]
+	/// <summary>Actions in authored order; monster-only actions can live here as sub-resources.</summary>
+	[Export] public Godot.Collections.Array<MonsterAction> Actions { get; set; } = [];
+	/// <summary>Weight factor for repeating the action that started last, so a monster varies its moves.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float RepeatWeightMultiplier { get; set; } = 0.5f;
 
-	/// <summary>Returns authoring errors that would make the profile impossible or ambiguous to execute.</summary>
-	public string[] Validate()
+	/// <summary>The first offensive attack or spell, which sets the engagement range and attack slot for movement.</summary>
+	public MonsterAction PrimaryOffense
 	{
-		var errors = new System.Collections.Generic.List<string>();
-		if (MovementStrategy == null) errors.Add("combat profile has no movement strategy");
-		if (!float.IsFinite(RepeatWeightMultiplier) || RepeatWeightMultiplier < 0 || RepeatWeightMultiplier > 1)
-			errors.Add("combat profile repeat weight multiplier must be between zero and one");
-		if (Actions == null) errors.Add("combat profile action choices are missing");
-		else
+		get
 		{
-			bool approachFound = ApproachAction == null;
-			var seen = new System.Collections.Generic.HashSet<ulong>();
-			foreach (var choice in Actions)
-			{
-				if (choice?.Action == null) { errors.Add("combat profile has an empty action choice"); continue; }
-				if (!float.IsFinite(choice.Weight) || choice.Weight <= 0) errors.Add($"action '{choice.Action.ResourceName}' has an invalid weight");
-				if (!choice.Action.HasValidConfiguration) errors.Add($"action '{choice.Action.ResourceName}' has invalid configuration");
-				if (!seen.Add(choice.Action.GetInstanceId())) errors.Add($"action '{choice.Action.ResourceName}' is listed more than once");
-				if (ReferenceEquals(choice.Action, ApproachAction)) approachFound = true;
-			}
-			if (ApproachAction != null && (!ApproachAction.IsOffensive || !approachFound))
-				errors.Add("approach action must be an offensive action choice in the same combat profile");
+			foreach (var action in Actions)
+				if (IsPrimaryCandidate(action)) return action;
+			return null;
 		}
-		return errors.ToArray();
+	}
+
+	/// <summary>Only an offensive attack or spell can anchor engagement; a dash has no reach or slot of its own.</summary>
+	public static bool IsPrimaryCandidate(MonsterAction action) => action is MonsterTimedAction { IsOffensive: true };
+
+	public void Validate(MonsterValidationContext context)
+	{
+		context.Check(float.IsFinite(RepeatWeightMultiplier) && RepeatWeightMultiplier is >= 0 and <= 1,
+			"RepeatWeightMultiplier must lie between 0 and 1.");
+		if (context.Check(TacticalStrategy != null, "TacticalStrategy: assign an engagement priority strategy."))
+			TacticalStrategy.Validate(context);
+		if (context.Check(MovementStrategy != null, "MovementStrategy: assign a positioning strategy."))
+			MovementStrategy.Validate(context, this);
+		DefenseStrategy?.Validate(context);
+		RetreatCondition?.Validate(context);
+		var seen = new System.Collections.Generic.HashSet<MonsterAction>();
+		for (int index = 0; index < Actions.Count; index++)
+		{
+			var action = Actions[index];
+			if (!context.Check(action != null, $"Actions[{index}] is empty.")) continue;
+			context.Check(seen.Add(action), $"Actions: '{action.Label}' is listed more than once.");
+			using (context.Scope($"Actions[{index}] '{action.Label}'")) action.Validate(context);
+		}
 	}
 }

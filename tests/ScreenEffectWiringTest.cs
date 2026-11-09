@@ -69,7 +69,8 @@ public class ScreenEffectWiringTest
 		player.ApplyBuff(PotionBuff("blindness"));
 		await runner.SimulateFrames(3);
 		AssertFloat(blindness.Intensity).IsEqual(1f);
-		player.ApplyBuff(PotionBuff("healing"));
+		// The healing potion is a shared spell; drinking it applies the regeneration buff that cures blindness.
+		TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres").PerformAction(player);
 		await runner.SimulateFrames(3);
 		AssertFloat(blindness.Intensity).IsEqual(0f);
 

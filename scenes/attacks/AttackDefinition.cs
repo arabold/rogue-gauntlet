@@ -51,8 +51,6 @@ public partial class AttackDefinition : Resource
 
 	/// <summary>Stable gameplay volume; null uses the weapon or actor default contact profile.</summary>
 	[Export] public MeleeAttackProfile MeleeContact { get; set; }
-	/// <summary>Optional ground cue emitted once when this attack's contact window opens.</summary>
-	[Export] public GroundImpactProfile GroundImpact { get; set; }
 	/// <summary>Optional target-owned statuses rolled after confirmed direct melee or projectile damage.</summary>
 	[Export] public OnHitStatusProfile[] OnHitStatuses { get; set; } = [];
 

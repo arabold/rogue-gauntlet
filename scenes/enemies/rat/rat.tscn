@@ -7,6 +7,7 @@
 
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_definition.tres" id="definition"]
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
+[ext_resource type="Script" path="res://scenes/combat/DashComponent.cs" id="dash_script"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
@@ -90,10 +91,11 @@ height = 0.75
 radius = 0.35
 height = 0.75
 
-[node name="PlagueRat" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "BodyShape")]
+[node name="PlagueRat" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "BodyShape", "DashComponent")]
 BodyShape = NodePath("CollisionShape3D")
 Definition = ExtResource("definition")
 ActionGate = NodePath("ActorActionGateComponent")
+DashComponent = NodePath("DashComponent")
 
 [node name="RatModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -148,3 +150,10 @@ NaturalLocomotionSpeed = 2.0
 
 [node name="MovementEffectsComponent" parent="."]
 Profile = ExtResource("movement_profile")
+
+[node name="DashComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "MovementComponent", "ActionGate", "AnimationComponent")]
+script = ExtResource("dash_script")
+Actor = NodePath("..")
+MovementComponent = NodePath("../MovementComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
+AnimationComponent = NodePath("../CombatAnimationComponent")

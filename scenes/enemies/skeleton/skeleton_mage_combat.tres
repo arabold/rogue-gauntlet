@@ -1,37 +1,93 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
-[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyActionChoiceProfile.cs" id="choice_script"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterSpellAction.cs" id="spell_action"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/AllyTargetSelector.cs" id="ally"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/SelfTargetSelector.cs" id="self"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/HealthBelowCondition.cs" id="health_below"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/shooter_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/maintain_distance.tres" id="movement"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_fireball.tres" id="fireball"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_regenerate.tres" id="regenerate"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_instant_heal.tres" id="instant_heal"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_rage.tres" id="rage"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/fireball.tres" id="fireball_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/healing_potion_small.tres" id="regenerate_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/instant_heal.tres" id="heal_spell"]
+[ext_resource type="Resource" path="res://scenes/magic/rage_scroll.tres" id="rage_spell"]
 
-[sub_resource type="Resource" id="fireball_choice"]
-script = ExtResource("choice_script")
-Action = ExtResource("fireball")
-Weight = 1.0
+[sub_resource type="Resource" id="allies"]
+script = ExtResource("ally")
 
-[sub_resource type="Resource" id="regenerate_choice"]
-script = ExtResource("choice_script")
-Action = ExtResource("regenerate")
+[sub_resource type="Resource" id="self_target"]
+script = ExtResource("self")
+
+[sub_resource type="Resource" id="ally_below_75"]
+script = ExtResource("health_below")
+Fraction = 0.75
+
+[sub_resource type="Resource" id="self_below_35"]
+script = ExtResource("health_below")
+Fraction = 0.35
+
+[sub_resource type="Resource" id="fireball"]
+resource_name = "fireball"
+script = ExtResource("spell_action")
+Cooldown = 2.8
+MinimumRange = 3.0
+MaximumRange = 12.0
+Spell = ExtResource("fireball_spell")
+PaysMana = true
+Style = &"staff.cast"
+Duration = 1.2
+MinDamage = 3.0
+MaxDamage = 6.0
+CritChance = 0.05
+
+[sub_resource type="Resource" id="regenerate"]
+resource_name = "regenerate"
+script = ExtResource("spell_action")
+Priority = 2
 Weight = 0.8
+Cooldown = 9.0
+MaximumRange = 8.0
+Target = SubResource("allies")
+Conditions = [SubResource("ally_below_75")]
+Spell = ExtResource("regenerate_spell")
+PaysMana = true
+Style = &"staff.cast"
+Duration = 1.2
+MinDamage = 0.0
+MaxDamage = 0.0
 
-[sub_resource type="Resource" id="instant_heal_choice"]
-script = ExtResource("choice_script")
-Action = ExtResource("instant_heal")
-Weight = 1.0
+[sub_resource type="Resource" id="instant_heal"]
+resource_name = "instant heal"
+script = ExtResource("spell_action")
+Priority = 4
+Cooldown = 10.0
+MaximumRange = 0.0
+Target = SubResource("self_target")
+Conditions = [SubResource("self_below_35")]
+Spell = ExtResource("heal_spell")
+PaysMana = true
+Style = &"staff.cast"
+Duration = 1.2
+MinDamage = 0.0
+MaxDamage = 0.0
 
-[sub_resource type="Resource" id="rage_choice"]
-script = ExtResource("choice_script")
-Action = ExtResource("rage")
+[sub_resource type="Resource" id="rage"]
+resource_name = "rage"
+script = ExtResource("spell_action")
+Priority = 1
 Weight = 0.65
+Cooldown = 25.0
+MaximumRange = 8.0
+Target = SubResource("allies")
+Spell = ExtResource("rage_spell")
+PaysMana = true
+Style = &"staff.cast"
+Duration = 1.2
+MinDamage = 0.0
+MaxDamage = 0.0
 
 [resource]
 script = ExtResource("profile")
 TacticalStrategy = ExtResource("tactics")
 MovementStrategy = ExtResource("movement")
-ApproachAction = ExtResource("fireball")
-Actions = [SubResource("fireball_choice"), SubResource("regenerate_choice"), SubResource("instant_heal_choice"), SubResource("rage_choice")]
+Actions = [SubResource("fireball"), SubResource("regenerate"), SubResource("instant_heal"), SubResource("rage")]

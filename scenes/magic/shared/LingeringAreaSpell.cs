@@ -12,7 +12,6 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
 		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
-	public bool IsUseful(in SpellCastContext context) => CanCast(in context);
 	private readonly List<LingeringAreaField> _fields = [];
 	private readonly Dictionary<BuffController, BurningContact> _burns = [];
 	private ulong _generation;

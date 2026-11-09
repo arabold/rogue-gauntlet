@@ -30,6 +30,9 @@ public partial class CombatHarness : CanvasLayer
 	private InventoryItemSlot _previewItem;
 	private OptionButton _selection;
 	private Label _status;
+	private Label _monsterActions;
+	private readonly System.Text.StringBuilder _actionText = new();
+	private ulong _actionPanelFrame;
 	private Label _feedback;
 	private EnemyBase _monster;
 	private FloorNavigation _arenaNavigation;
@@ -108,6 +111,7 @@ public partial class CombatHarness : CanvasLayer
 		};
 		_selection = GetNode<OptionButton>("%Controls/Weapons");
 		_status = GetNode<Label>("%Controls/Status");
+		_monsterActions = GetNode<Label>("%Controls/MonsterActions");
 		foreach (var weapon in Weapons) _selection.AddItem(weapon.Name);
 		_selection.ItemSelected += index => ExecuteCommand("equip", (int)index, Vector3.Zero);
 		GetNode<Button>("%Controls/Attack").Pressed += () => ExecuteCommand("attack", 0, Vector3.Zero);
@@ -325,7 +329,6 @@ public partial class CombatHarness : CanvasLayer
 		if (candidateMonster != null)
 		{
 			candidateMonster.EnemyBehaviorComponent.AIEnabled = false;
-			candidateMonster.EnemyBehaviorComponent.GetNode<NavigationComponent>("Navigation").SetNavigationOverride(_arenaNavigation);
 			if (candidateMonster.DefenseController != null) candidateMonster.DefenseController.RiposteEnabled = false;
 			if (candidateMonster.DeathComponent != null) candidateMonster.DeathComponent.RewardsEnabled = false;
 		}
@@ -340,6 +343,7 @@ public partial class CombatHarness : CanvasLayer
 		}
 		TargetParent.AddChild(candidate);
 		candidate.ResetPhysicsInterpolation();
+		candidateMonster?.EnemyBehaviorComponent.Navigation?.SetNavigationOverride(_arenaNavigation);
 		PracticeTarget = candidate;
 		_monster = candidateMonster;
 		if (GetTargetHurtBox() is { } targetHurtBox)
@@ -368,8 +372,8 @@ public partial class CombatHarness : CanvasLayer
 	private static float GetSpawnDistance(EnemyBase monster)
 	{
 		var combat = monster?.Definition?.Behavior?.Combat;
-		if (combat?.MovementStrategy is MaintainDistanceStrategy strategy && combat.ApproachAction is { } approach)
-			return Mathf.Clamp(strategy.PreferredDistance, approach.MinimumDistance, approach.EffectiveRange);
+		if (combat?.MovementStrategy is MaintainDistanceStrategy strategy && combat.PrimaryOffense is { } primary)
+			return Mathf.Clamp(strategy.PreferredDistance, primary.MinimumRange, primary.EffectiveMaximumRange);
 		return monster?.AttackController.IsRanged == true ? 6f : 2f;
 	}
 
@@ -439,6 +443,7 @@ public partial class CombatHarness : CanvasLayer
 		{
 			_monster.HealthComponent.SetHealth(_monster.HealthComponent.MaxHealth, _monster.HealthComponent.MaxHealth);
 			_monster.MovementComponent.Push(Vector3.Zero, 0);
+			_monster.DashComponent?.Cancel();
 			_monster.HurtBoxComponent.Poise?.Restore();
 		}
 	}
@@ -505,11 +510,13 @@ public partial class CombatHarness : CanvasLayer
 	public override void _PhysicsProcess(double delta)
 	{
 		Recorder.AdvanceClock(delta);
+		UpdateActionPanel();
 		while (_pendingCasts.TryDequeue(out var cast))
 		{
 			// Direct casts use the hero's current weapon hit, as a cast from that weapon would.
-			var power = new SpellPower(cast.Level, Player.Stats.ResolveAttack(Player.Inventory.EquippedWeapon));
-			if (!_spells[cast.Spell].Cast(Player, power, _spellRandoms[cast.Spell]))
+			var context = new SpellCastContext(Player, null, SpellTargetIntent.Hostile,
+				new SpellPower(cast.Level, Player.Stats.ResolveAttack(Player.Inventory.EquippedWeapon)));
+			if (!_spells[cast.Spell].Cast(in context, _spellRandoms[cast.Spell]))
 				GD.PushError($"{_spells[cast.Spell].DisplayName} preview could not cast.");
 		}
 		int frame = (int)(Engine.GetPhysicsFrames() - _startFrame);
@@ -543,6 +550,37 @@ public partial class CombatHarness : CanvasLayer
 		var targetHealth = GetTargetHealth();
 		_status.Text = $"Hero: {DescribeAction(Player.ActionGate, Player.IsDead)} · HP {Player.HealthComponent.CurrentHealth:0}\n{(_monster == null ? "Dummy" : monster)} · HP {targetHealth?.CurrentHealth:0}";
 		GetNode<Button>("%Controls/HeroGuard").Text = _heroGuardHeld ? "Release guard (L)" : "Guard / parry (L)";
+	}
+
+	/// <summary>Refresh the action tuning panel; it evaluates actions, so it runs in the physics step like the AI.</summary>
+	private void UpdateActionPanel()
+	{
+		if (_monsterActions == null || ++_actionPanelFrame % 6 != 0) return;
+		_monsterActions.Text = GodotObject.IsInstanceValid(_monster) ? DescribeActions(_monster) : "Monster actions appear here.";
+	}
+
+	/// <summary>
+	/// Tuning view of the monster's choices: phase, tactical decision, running action, and for each authored action
+	/// its priority, effective weight (after modifiers) and whether it is ready, cooling down or out of position.
+	/// </summary>
+	private string DescribeActions(EnemyBase monster)
+	{
+		var behavior = monster.EnemyBehaviorComponent;
+		var actions = behavior.Actions;
+		if (actions == null) return "Monster AI is not ready.";
+		_actionText.Clear();
+		_actionText.Append($"Phase {monster.HealthPhases?.CurrentPhase ?? 0} · tactics: {behavior.TacticalDecisionReason}");
+		_actionText.Append($" · running: {behavior.RunningAction?.Action.Label ?? "none"}\n");
+		foreach (var action in actions.Actions)
+		{
+			var target = actions.EvaluateTarget(action);
+			float weight = target != null ? actions.ResolveWeight(action, target) : action.Weight;
+			string state = actions.IsCoolingDown(action) ? $"cooldown {actions.CooldownRemaining(action):0.0} s"
+				: target == null ? "not in position" : "ready";
+			_actionText.Append($"• {action.Label} [p{action.Priority}] weight {weight:0.##}: {state}\n");
+		}
+		_actionText.Append($"Last: {actions.LastDecision}");
+		return _actionText.ToString();
 	}
 
 	/// <summary>Present gameplay state rather than animation style identifiers in the arena HUD.</summary>

@@ -129,8 +129,8 @@ public partial class NavigationComponent : Node
 		return navigation.ChaseField(target, BodyRadius, Position).ReachesNear(navigation.Grid.CellAt(Position));
 	}
 
-	/// <summary>Require a clear, body-sized straight corridor and keep a held actor inside its home room before a rush.</summary>
-	public bool CanRush(Vector3 direction, float distance)
+	/// <summary>Require a clear, body-sized straight corridor and keep a held actor inside its home room before a dash.</summary>
+	public bool HasClearDash(Vector3 direction, float distance)
 	{
 		var navigation = Navigation;
 		if (navigation == null || !float.IsFinite(distance) || distance <= 0

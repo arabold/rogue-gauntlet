@@ -1,27 +1,62 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterDashAction.cs" id="dash_action"]
+[ext_resource type="Script" path="res://scenes/combat/DashProfile.cs" id="dash_profile"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
+[ext_resource type="Script" path="res://scenes/attacks/OnHitStatusProfile.cs" id="on_hit"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_movement.tres" id="movement"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_retreat.tres" id="retreat"]
-[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_attack.tres" id="bite"]
-[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_rush.tres" id="rush"]
-[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyActionChoiceProfile.cs" id="choice_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_contact.tres" id="contact"]
+[ext_resource type="Resource" path="res://scenes/buffs/rat_venom.tres" id="venom"]
 
-[sub_resource type="Resource" id="bite_choice"]
-script = ExtResource("choice_script")
-Action = ExtResource("bite")
-Weight = 1.0
+[sub_resource type="Resource" id="venom_on_hit"]
+script = ExtResource("on_hit")
+Effect = ExtResource("venom")
+Chance = 0.35
 
-[sub_resource type="Resource" id="rush_choice"]
-script = ExtResource("choice_script")
-Action = ExtResource("rush")
+[sub_resource type="Resource" id="bite_attack"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("contact")
+OnHitStatuses = [SubResource("venom_on_hit")]
+PoiseDamage = 6.0
+HitStopDuration = 0.03
+FacingLockLead = 0.1
+WindUpTurnRate = 720.0
+
+[sub_resource type="Resource" id="bite"]
+resource_name = "bite"
+script = ExtResource("attack_action")
+Cooldown = 1.1
+MaximumRange = 1.4
+RiposteEligible = true
+Attack = SubResource("bite_attack")
+Style = &"melee"
+Duration = 0.8
+MinDamage = 2.0
+MaxDamage = 4.0
+
+[sub_resource type="Resource" id="rush_dash"]
+script = ExtResource("dash_profile")
+Style = &"melee"
+WindUpDuration = 0.16
+Distance = 2.5
+TravelDuration = 0.45
+
+[sub_resource type="Resource" id="rush"]
+resource_name = "rush"
+script = ExtResource("dash_action")
 Weight = 0.45
+Cooldown = 4.0
+MinimumRange = 2.0
+MaximumRange = 4.5
+Dash = SubResource("rush_dash")
 
 [resource]
 script = ExtResource("profile")
 TacticalStrategy = ExtResource("tactics")
 MovementStrategy = ExtResource("movement")
 RetreatCondition = ExtResource("retreat")
-ApproachAction = ExtResource("bite")
-Actions = [SubResource("bite_choice"), SubResource("rush_choice")]
+Actions = [SubResource("bite"), SubResource("rush")]

@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Exclusive reactions to one observed threat; controllers retain timers, RNG and guard state.</summary>
+[Tool]
 [GlobalClass]
 public partial class EnemyDefenseStrategy : Resource
 {
@@ -24,4 +25,16 @@ public partial class EnemyDefenseStrategy : Resource
 				: canDodge ? EnemyDefenseMode.Dodge : EnemyDefenseMode.None;
 		return EnemyDefenseMode.None;
 	}
+
+	/// <summary>Probabilities and timings; the actor's guard/dodge wiring is checked by <see cref="MonsterSceneValidator"/>.</summary>
+	public void Validate(MonsterValidationContext context)
+	{
+		context.Check(Probability(GuardChance) && Probability(DodgeChance) && Probability(RiposteChance) && GuardChance + DodgeChance <= 1,
+			"DefenseStrategy: probabilities must be in [0,1], with guard + dodge <= 1.");
+		context.Check(float.IsFinite(ReactionDelay) && ReactionDelay >= 0 && float.IsFinite(GuardPressureWindow) && GuardPressureWindow > 0
+			&& float.IsFinite(MaxGuardDuration) && MaxGuardDuration > 0, "DefenseStrategy: invalid delay or guard durations.");
+		context.CheckDefenseCapabilities(GuardChance, DodgeChance);
+	}
+
+	private static bool Probability(float value) => float.IsFinite(value) && value is >= 0 and <= 1;
 }

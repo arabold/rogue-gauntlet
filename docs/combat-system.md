@@ -12,7 +12,7 @@ The executor owns its timing and releases ownership on completion or interruptio
 
 `AttackExecution` owns the attack phase and elapsed clock (`WindUp`, `Active`, `Recovery`), including the existing once-per-execution attacker hit stop. `AttackController` remains responsible for action-gate leases, contact sampling, projectile release and interruption. Effects and debug switches observe the execution; they do not drive phase transitions.
 
-Monster rushes use `MovementComponent` and the same action gate rather than a separate movement capability. The rush owns wind-up, travel and recovery through an `AttackExecution`; `MoveAndSlide` resolves travel against the world, navigation checks a clear route first, and pushes, status locks, stagger and death interrupt it.
+Dashes (a monster rush or hop-back) use a `DashComponent` beside `MovementComponent`, like `DodgeComponent`. It acquires the shared action gate, owns wind-up, travel and recovery through an `AttackExecution`, and drives the mover through a locomotion override; `MoveAndSlide` resolves travel against the world, a blocked dash stops instead of extending, navigation checks a clear corridor first, and pushes, status locks, stagger and death interrupt it. A dash grants no immunity and deals no damage.
 
 ## Contact feedback
 
@@ -115,7 +115,7 @@ Monster melee wind-ups track their target no faster than the attack's `WindUpTur
 Heavy actors can be outmaneuvered:
 
 - **Turn cap.** `MovementComponent.MaxTurnRate` caps all smooth turning (degrees per second). Only explicit facing snaps ignore it, and monster defenses no longer use them.
-- **Start angle.** A melee policy's `MaxStartAngle` only lets a swing start when the target is within that angle of the monster's facing.
+- **Start angle.** An action's `MaximumStartAngle` only lets it start when the target is within that angle of the monster's facing.
 - **Holding.** A monster in reach but not facing its target holds and turns toward it instead of swinging.
 - **Defenses.** A monster raises its guard along its current facing and does not guard against an attacker outside the guard's frontal sector. Any turn-capped actor raises its guard where it already faces instead of snapping toward the requested direction. A riposte turns at the normal rate and is rejected if the target is not yet in front.
 - **The Warden.** It turns at 90°/s, starts swings only within 45° and tracks a wind-up at 60°/s until 0.4 s before contact. A player who gets behind it and stays there draws no swings, but running full circles laps back through its front.

@@ -20,22 +20,21 @@ public static class Weighted
 		return valid[^1];
 	}
 
-	/// <summary>Weighted choice for callers that have already filtered options and computed each weight.</summary>
-	public static T Pick<T>(IReadOnlyList<T> options, IReadOnlyList<float> weights, RandomNumberGenerator rng) where T : class
+	/// <summary>Index of a weighted choice over precomputed weights; -1 when none is positive. Draws exactly once.</summary>
+	public static int PickIndex(IReadOnlyList<float> weights, RandomNumberGenerator rng)
 	{
-		if (options == null || weights == null || options.Count == 0 || options.Count != weights.Count) return null;
+		double roll = rng.Randf();
 		double total = 0;
-		for (int index = 0; index < options.Count; index++)
-			if (options[index] != null && float.IsFinite(weights[index]) && weights[index] > 0) total += weights[index];
-		if (total <= 0) return null;
-		double roll = rng.Randf() * total;
-		T last = null;
-		for (int index = 0; index < options.Count; index++)
+		int last = -1;
+		for (int index = 0; index < weights.Count; index++)
+			if (float.IsFinite(weights[index]) && weights[index] > 0) { total += weights[index]; last = index; }
+		if (last < 0) return -1;
+		roll *= total;
+		for (int index = 0; index < weights.Count; index++)
 		{
-			if (options[index] == null || !float.IsFinite(weights[index]) || weights[index] <= 0) continue;
-			last = options[index];
+			if (!float.IsFinite(weights[index]) || weights[index] <= 0) continue;
 			roll -= weights[index];
-			if (roll < 0) return options[index];
+			if (roll < 0) return index;
 		}
 		return last;
 	}

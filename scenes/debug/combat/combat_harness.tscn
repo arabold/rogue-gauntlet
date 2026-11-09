@@ -275,7 +275,14 @@ tooltip_text = "Prevent health loss independently of the monster's defense behav
 [node name="SpawnMonster" type="Button" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Spawn / respawn"
+tooltip_text = "Respawn the selected monster. Live edits to its Resources (Remote inspector) apply to the new instance."
 custom_minimum_size = Vector2(0, 30)
+
+[node name="MonsterActions" type="Label" parent="Instructions/Panel/Scroll/Controls"]
+layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Monster actions appear here."
 
 [node name="CameraShake" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
 unique_name_in_owner = true

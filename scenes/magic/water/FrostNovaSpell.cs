@@ -10,7 +10,6 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
 		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
-	public bool IsUseful(in SpellCastContext context) => CanCast(in context);
 	[Export] public FrostNovaDefinition Definition { get; set; }
 	[Export] public PackedScene VisualScene { get; set; }
 	[Export] public Node3D VisualRoot { get; set; }

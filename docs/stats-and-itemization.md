@@ -16,7 +16,7 @@ Timed stat buffs expire once; permanent buffs remain until explicitly removed. P
 
 Maximum mana is `BaseMaxMana + Intelligence × ManaPerIntelligence` plus `MaxMana` modifiers (20 and 5 by default, so Intelligence gear deepens the pool). `ManaRegenRate` regenerates that fraction of the maximum per second (4%), so a deeper pool also refills faster. The actor's `ManaComponent` holds current mana and regenerates it in gameplay time, processing only while below the maximum. The component owns current mana: `PlayerStatsController` pushes the maximum and regeneration into it, hands it the starting or saved value at spawn and after a load (once equipment and buffs have set the final maximum), and copies every change back into `PlayerStats.Mana`, which is saved beside health and shown by the HUD's mana bar. Lowering the maximum clamps current mana; raising it never refills. A new run starts full. A wand's or staff's spell spends it (see [weapon attacks](weapon-attack-system.md)); missiles are free.
 
-Monster definitions provide their own fixed maximum and regeneration for innate spells. Each `EnemySpellProfile` chooses whether that activation pays its `SpellDefinition` cost; scroll and potion sources still pay through their own item-use rules, not the player's or monster's mana pool.
+Monster definitions provide their own fixed maximum and regeneration for innate spells. Each `MonsterSpellAction` chooses whether that activation pays its `SpellDefinition` cost; scroll and potion sources still pay through their own item-use rules, not the player's or monster's mana pool.
 
 ## Buffs and status conditions
 
@@ -39,7 +39,7 @@ statuses without a magnitude, and to buff subclasses for effects with one:
   scene unloads. Durations count game time.
 - `Buff.CuredConditions` ends conditions when any buff is applied; healing potions cure blindness.
 
-The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after a surviving damaging contact. Venom is the same periodic poison effect used by other sources. Attack payloads reference a timed buff and use `Buff.Stacking = Refresh`, so repeated applications of the same definition preserve one activation and its tick progress. Dodged, parried, blocked, absorbed, invulnerable, filtered and lethal contacts do not apply venom. Splash and poison ticks do not carry attack payloads. Active poison duration and tick progress, refresh key and stacking mode are saved with the player's buffs; incompatible development saves require a new run under the current save version.
+The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after a surviving damaging contact. Venom is the same periodic poison effect used by other sources. Attack payloads reference a timed buff saved as its own file and use `Buff.Stacking = Refresh`, so repeated applications of the same definition, from any source, preserve one activation and its tick progress. Dodged, parried, blocked, absorbed, invulnerable, filtered and lethal contacts do not apply venom. Splash and poison ticks do not carry attack payloads. Active poison duration and tick progress, refresh key and stacking mode are saved with the player's buffs; incompatible development saves require a new run under the current save version.
 
 ## Equipment quality, affixes and enchantment
 

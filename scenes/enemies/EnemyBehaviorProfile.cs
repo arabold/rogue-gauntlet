@@ -7,12 +7,12 @@ using Godot;
 /// Create one profile per monster variant so scenes can share behavior code while changing
 /// detection, roaming, combat ranges, and action timing through resources.
 /// </remarks>
+[Tool]
 [GlobalClass]
 public partial class EnemyBehaviorProfile : Resource
 {
 	[ExportGroup("Combat")]
 	[Export] public EnemyCombatProfile Combat { get; set; }
-	[Export] public Godot.Collections.Array<BossPhaseProfile> Phases { get; set; } = [];
 	[ExportGroup("Perception and lifecycle")]
 	/// <summary>
 	/// Behavior state the enemy enters when it is initialized.
@@ -113,28 +113,9 @@ public partial class EnemyBehaviorProfile : Resource
 		};
 	}
 
-	/// <summary>Returns errors for phase counts, thresholds and complete phase configurations.</summary>
-	public string[] ValidateCombat()
+	public void Validate(MonsterValidationContext context)
 	{
-		var errors = new System.Collections.Generic.List<string>();
-		if (Combat == null) errors.Add("base combat profile is missing");
-		else errors.AddRange(Combat.Validate());
-		if (Phases == null || Phases.Count > 2) errors.Add("boss behavior supports at most two health phase transitions");
-		else
-		{
-			float previous = 1;
-			foreach (var phase in Phases)
-			{
-				if (phase == null || !float.IsFinite(phase.EnterHealthFraction) || phase.EnterHealthFraction <= 0
-					|| phase.EnterHealthFraction >= previous || phase.EnterHealthFraction >= 1 || phase.Combat == null)
-					errors.Add("boss phase thresholds must be strictly descending and each phase must have a combat profile");
-				else
-				{
-					previous = phase.EnterHealthFraction;
-					errors.AddRange(phase.Combat.Validate());
-				}
-			}
-		}
-		return errors.ToArray();
+		if (context.Check(Combat != null, "Combat: assign a combat profile."))
+			using (context.Scope("Combat")) Combat.Validate(context);
 	}
 }

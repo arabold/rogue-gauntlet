@@ -84,13 +84,12 @@ Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 HealthComponent = NodePath("../HealthComponent")
 
-[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector", "Indicator", "VisualMotion", "WorldEffects")]
+[node name="AttackController" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "MeleeDetector", "Indicator", "VisualMotion")]
 script = ExtResource("11_attack")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 MeleeDetector = NodePath("../MeleeHitDetector")
 Indicator = NodePath("../AttackIndicator")
 VisualMotion = NodePath("../CombatVisualMotion")
-WorldEffects = NodePath("../WorldEffects")
 DefaultProjectileScene = ExtResource("13_projectile")
 
 [node name="SpellCaster" type="Node" parent="."]
@@ -171,9 +170,8 @@ script = ExtResource("status_controller")
 Actor = NodePath("..")
 Health = NodePath("../HealthComponent")
 
-[node name="ActorStatsComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Movement", "Health", "HurtBox")]
+[node name="ActorStatsComponent" type="Node" parent="." node_paths=PackedStringArray("Movement", "Health", "HurtBox")]
 script = ExtResource("actor_stats_script")
-Actor = NodePath("..")
 Movement = NodePath("../MovementComponent")
 Health = NodePath("../HealthComponent")
 HurtBox = NodePath("../HurtBoxComponent")

@@ -511,9 +511,8 @@ script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
 
-[node name="ActorStatsComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Movement", "Health", "HurtBox")]
+[node name="ActorStatsComponent" type="Node" parent="." node_paths=PackedStringArray("Movement", "Health", "HurtBox")]
 script = ExtResource("actor_stats_script")
-Actor = NodePath("..")
 Movement = NodePath("../MovementComponent")
 Health = NodePath("../HealthComponent")
 HurtBox = NodePath("../HurtBoxComponent")

@@ -7,8 +7,10 @@ public interface ICombatSpell
 	int LevelCount { get; }
 	/// <summary>What a cast with <paramref name="power"/> does, as short tooltip lines (see <see cref="SpellLevels"/>).</summary>
 	System.Collections.Generic.IEnumerable<string> DescribeLevel(in SpellPower power);
+	/// <summary>Whether the cast is legal against the context's caster and target.</summary>
 	bool CanCast(in SpellCastContext context);
-	bool IsUseful(in SpellCastContext context);
+	/// <summary>Whether the cast would change anything (a heal on a hurt target); AI uses it, players may still cast.</summary>
+	bool IsUseful(in SpellCastContext context) => CanCast(in context);
 	bool Cast(in SpellCastContext context, RandomNumberGenerator random);
 	void Cancel();
 }

@@ -206,7 +206,7 @@ public partial class CombatIntegrationTest
 				{
 					sawRecovery = true;
 					if (retreat)
-						harness.Player.Position = enemy.Position + Vector3.Back * (enemy.EnemyBehaviorComponent.Profile.Combat.ApproachAction.EffectiveRange + .2f);
+						harness.Player.Position = enemy.Position + Vector3.Back * (enemy.EnemyBehaviorComponent.Profile.Combat.PrimaryOffense.EffectiveMaximumRange + .2f);
 				}
 				if (sawRecovery && !guard.IsGuardRecovering && !guard.IsGuarding)
 				{

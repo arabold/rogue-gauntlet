@@ -261,7 +261,7 @@ public partial class ActorActionGateComponent : Node
 			return newKind == ActorActionKind.Dodge;
 		}
 
-		if (currentKind == ActorActionKind.Rush)
+		if (currentKind == ActorActionKind.Dash)
 		{
 			return currentPhase switch
 			{

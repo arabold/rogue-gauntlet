@@ -11,17 +11,24 @@ using System.Linq;
 /// <see cref="BuffsChanged"/>.
 /// </summary>
 [GlobalClass]
-public partial class BuffController : Node, IBuffTarget
+public partial class BuffController : Node
 {
 	/// <summary>Fired once after buffs were applied, removed, expired or cleared.</summary>
 	[Signal] public delegate void BuffsChangedEventHandler();
 
 	[Export] public Node3D Actor { get; set; }
 	[Export] public HealthComponent Health { get; set; }
-	public IBuffTarget Target => Actor as IBuffTarget ?? this;
-	HealthComponent IBuffTarget.Health => Health;
-	BuffController IBuffTarget.Buffs => this;
-	IStatModifierTarget IBuffTarget.Modifiers => (Actor as IBuffTarget)?.Modifiers ?? Actor as IStatModifierTarget;
+	/// <summary>The actor buffs act on; a controller without an <see cref="IBuffTarget"/> actor still serves its own health.</summary>
+	public IBuffTarget Target => Actor as IBuffTarget ?? (_standalone ??= new StandaloneTarget(this));
+	private StandaloneTarget _standalone;
+
+	/// <summary>Health and buffs only, for controllers wired without a full actor (tests, props).</summary>
+	private sealed class StandaloneTarget(BuffController controller) : IBuffTarget
+	{
+		public HealthComponent Health => controller.Health;
+		public BuffController Buffs => controller;
+		public IStatModifierTarget Modifiers => controller.Actor as IStatModifierTarget;
+	}
 
 	public Array<ActiveBuff> ActiveBuffs { get; } = new();
 

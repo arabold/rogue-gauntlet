@@ -125,7 +125,7 @@ public class RealmEncounterTest
 		AssertBool(animation.TryResolve("ranged", out var playback)).IsTrue();
 		AssertString(playback.Clip.ToString()).IsEqual("1H_Ranged_Shoot");
 		var behavior = actor.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").Profile;
-		var action = (EnemyAttackProfile)behavior.Combat.ApproachAction;
+		var action = (MonsterAttackAction)behavior.Combat.PrimaryOffense;
 		AssertBool(action.Attack.IsRanged).IsTrue();
 		AssertObject(action.Attack.ProjectileScene).IsNotNull();
 		var controller = actor.GetNode<AttackController>("AttackController");
@@ -141,7 +141,8 @@ public class RealmEncounterTest
 		AssertBool(controller.StartAttack(attack, new AttackStats(3, 6, 0), 4)).IsTrue();
 		Node projectileParent = actor.GetTree().CurrentScene ?? actor.GetParent();
 		var before = projectileParent.GetChildren().OfType<Projectile>().ToHashSet();
-		controller._PhysicsProcess(.5); // cross the aim lock and the authored release time without relying on frame timing
+		// Cross the aim lock and the prepared release time in one step, without relying on frame timing.
+		controller._PhysicsProcess(attack.Definition.HitWindowStart + .05);
 		AssertBool(controller.HasCommittedFacing).IsTrue();
 		var arrow = projectileParent.GetChildren().OfType<Projectile>().Single(p => !before.Contains(p));
 		AssertFloat(arrow.Speed).IsEqual(16);
