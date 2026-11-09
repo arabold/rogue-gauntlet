@@ -56,14 +56,19 @@ public partial class SignalBus : Node
     [Signal] public delegate void ItemUnequippedEventHandler(Player player, EquipableItem item);
     [Signal] public delegate void ItemDestroyedEventHandler(Player player, Item item, int quantity);
     [Signal] public delegate void ItemDroppedEventHandler(Player player, Item item, int quantity);
+    [Signal] public delegate void ItemPickedUpEventHandler(Player player, Item item, int quantity);
     /// <summary>Fired when an item type's hidden identity is newly discovered this run.</summary>
     [Signal] public delegate void ItemIdentifiedEventHandler(string typeId);
+    /// <summary>Fired when an item type's hidden identity is revealed with its disguised and true name.</summary>
+    [Signal] public delegate void ItemIdentityRevealedEventHandler(string typeId, string disguisedName, string trueName);
     public static void EmitItemConsumed(Player player, ConsumableItem item) => Instance?.EmitSignalItemConsumed(player, item);
     public static void EmitItemIdentified(string typeId) => Instance?.EmitSignalItemIdentified(typeId);
+    public static void EmitItemIdentityRevealed(string typeId, string disguisedName, string trueName) => Instance?.EmitSignalItemIdentityRevealed(typeId, disguisedName, trueName);
     public static void EmitItemEquipped(Player player, EquipableItem item) => Instance?.EmitSignalItemEquipped(player, item);
     public static void EmitItemUnequipped(Player player, EquipableItem item) => Instance?.EmitSignalItemUnequipped(player, item);
     public static void EmitItemDestroyed(Player player, Item item, int quantity) => Instance?.EmitSignalItemDestroyed(player, item, quantity);
     public static void EmitItemDropped(Player player, Item item, int quantity) => Instance?.EmitSignalItemDropped(player, item, quantity);
+    public static void EmitItemPickedUp(Player player, Item item, int quantity) => Instance?.EmitSignalItemPickedUp(player, item, quantity);
 
     [Signal] public delegate void LevelChangedEventHandler(int level);
     [Signal] public delegate void LevelLoadedEventHandler(Level level);

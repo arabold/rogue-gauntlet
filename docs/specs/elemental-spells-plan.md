@@ -1,10 +1,10 @@
 # Elemental spells and effects
 
-**In progress:** all 20 spells are authored across five levels in `scenes/magic/spells/` and cast from wands and staves; an active ward survives saves and floor travel. Final visual acceptance (especially tuned compositions for levels 4–5) and gameplay balance remain; the [magic rework plan](magic-rework-plan.md) owns wand casting, mana, spell levels and item names. Player and monster frozen status is described in [world effects](../world-effects.md) and [stats and itemization](../stats-and-itemization.md#buffs-and-status-conditions). This plan extends [actions and magic](../actor-actions-and-interactions.md#weapon-techniques-spell-weapons-and-classes). Current staff attacks are described in [weapon attacks](../weapon-attack-system.md); project constraints are in [AGENTS.md](../../AGENTS.md), [README](../../README.md), [architecture](../../ARCHITECTURE.md), [GDD](../game-design.md) and [roadmap](../development-roadmap.md).
+**In progress:** all 20 spells are authored across five levels in `scenes/magic/spells/` and cast from wands and staves; an active ward survives saves and floor travel. Final visual acceptance (especially tuned compositions for levels 4–5) and gameplay balance remain; [weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves) owns wand casting, mana, spell levels and item names. Player and monster frozen status is described in [world effects](../world-effects.md) and [stats and itemization](../stats-and-itemization.md#buffs-and-status-conditions). This plan extends [actions and magic](../actor-actions-and-interactions.md#weapon-techniques-spell-weapons-and-classes). Current staff attacks are described in [weapon attacks](../weapon-attack-system.md); project constraints are in [AGENTS.md](../../AGENTS.md), [README](../../README.md), [architecture](../../ARCHITECTURE.md), [GDD](../game-design.md) and [roadmap](../development-roadmap.md).
 
 ## Roster
 
-Each element has five peer spells. Their first levels offer comparable overall value, with different tactical roles and costs; free missile primaries remain separate. Spells are never learned: each wand or staff carries one, and its tier sets the spell level, from one to five ([magic rework](magic-rework-plan.md)). All 20 spells exist at five levels, with levels 4–5 currently reusing the level-3 visual compositions while scaling reach and damage. Costs and numerical values remain playtest decisions. The names below are the current authored names.
+Each element has five peer spells. Their first levels offer comparable overall value, with different tactical roles and costs; free missile primaries remain separate. Spells are never learned: each wand or staff carries one, and its tier sets the spell level, from one to five ([weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves)). All 20 spells exist at five levels, with levels 4–5 currently reusing the level-3 visual compositions while scaling reach and damage. Costs and numerical values remain playtest decisions. The names below are the current authored names.
 
 | Element | Targeted | Self-centered area | Guard | Character |
 | --- | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ Roles; each is a separate spell, not a level or prerequisite of another. Protect
 
 Earth and water guards share the same mechanics but make different capacity, reflection and cost tradeoffs. Earth has more protective choices than air; exact numbers remain tuning. Gust, Frost Nova, Hailstorm, Ice Wall and Solar Flares explicitly author the effects below; other visuals do not add statuses or movement effects by themselves. The visual workbenches simulate guard interactions; the combat harness exercises actual guard capacity and reflection.
 
-**Level growth.** Targeted spells independently increase damage and/or maximum distinct targets. Area spells increase damage and/or radius. Guards have their own hit points and independently increase capacity and/or reflected damage; they have no timer or target limit. Because the weapon's tier already scales damage, later levels grow reach more than damage ([magic rework](magic-rework-plan.md#damage-levels-and-tiers)). Exact growth curves and mana costs are playtest decisions. Every spell has a distinct, polished base level and can become visually spectacular at higher levels.
+**Level growth.** Targeted spells independently increase damage and/or maximum distinct targets. Area spells increase damage and/or radius. Guards have their own hit points and independently increase capacity and/or reflected damage; they have no timer or target limit. Because the weapon's tier already scales damage, later levels grow reach more than damage ([weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves)). Exact growth curves and mana costs are playtest decisions. Every spell has a distinct, polished base level and can become visually spectacular at higher levels.
 
 ## Targeting, area and guard rules
 
@@ -136,7 +136,7 @@ Verify earth's extracted geometry retains its existing mesh, water scenes import
 Abbreviated declarations; proposed names, not existing APIs. Authored Resources are shared immutable definitions; runtime contexts and guard capacity belong to the actor/cast. Exported references are assigned in scenes; constructors and Inspector setters do not perform world queries or random rolls.
 
 ```csharp
-// SpellDefinition, SpellPower and wand casting: see magic-rework-plan.md
+// SpellDefinition, SpellPower and wand casting: see docs/weapon-attack-system.md
 // [GlobalClass] Resource, one script per authored Resource type
 partial class GuardDefinition : Resource {
     float Capacity; float ReflectionFraction;
@@ -192,14 +192,14 @@ Save/load → restore equipped staff then active guard snapshot and capacity; di
 ~ docs/weapon-attack-system.md          implemented behavior when delivered
 ```
 
-The [magic rework plan](magic-rework-plan.md) owns wand casting, mana and their save integration. Preserve free primary attacks and existing equipment throughout. Reject incompatible saves per [save policy](../randomness-and-seeds.md#save-compatibility-and-acceptance), without migration or overwrite.
+[Weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves) describes wand casting, mana and save integration. Preserve free primary attacks and existing equipment throughout. Reject incompatible saves per [save policy](../randomness-and-seeds.md#save-compatibility-and-acceptance), without migration or overwrite.
 
 ## Delivery and checks
 
 Hybrid rollout: prove the highest-risk contact and visual boundaries, then deliver playable elemental slices.
 
 1. **Workbench and contact proof:** production targeting and delivery in a shared-navigation spell harness with 0–5 independently placed real targets, moving targets, obstacles, reset, seed/replay, slow motion, lighting and gameplay camera. Test unique selection, targeted caps, uncapped area contacts, Gust displacement and collision, Frost Nova freeze/restore, overlapping impacts, harmless fillers and focus removal before and after release. No progression UI yet.
-2. **Playable spells:** the [magic rework plan](magic-rework-plan.md#delivery-slices) delivers casting from wands and staves, mana and levels 4–5, fire first.
+2. **Playable spells:** casting from wands and staves, mana and levels 4–5 are delivered.
 3. **Guard proof:** prove shield ordering and reflection against the real damage pipeline, including full/partial absorption, many and repeated attackers, blocked/parried hits, missing attackers, death, recursion, replacement, depletion, focus removal and save/load. Compare polished base and spectacular highest-level sustained and reflected visuals.
 4. **Visual acceptance per element:** verify level-specific target caps, damage growth and guard variants; compare every spell at its base and highest levels in the harness and gameplay, including screen-filling readability; tune balance and performance.
 

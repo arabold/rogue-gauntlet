@@ -132,8 +132,8 @@ class Family:
         looks = {}
         for slot, rgb in colors.items():
             base = np.asarray(rgb, float)
-            # KayKit's dungeon material: no metal, roughness 0.45, so tiles share its soft sheen.
-            spec = {"metallic": 0.0, "roughness": .45, "crease": 30.0, **decor_materials.get(slot, {}),
+            # Matte like KayKit's dungeon material once imported (`assets/kaykit_matte_import.gd`): no metal, roughness 0.85.
+            spec = {"metallic": 0.0, "roughness": .85, "crease": 30.0, **decor_materials.get(slot, {}),
                     **data.get("materials", {}).get(slot, {})}
             if slot in kaykit.gradients() and "ramp" not in spec:
                 # KayKit's own swatch gradient, copied exactly rather than approximated.

@@ -9,7 +9,7 @@ using GdUnit4;
 /// <summary>
 /// Shared factory, scene-runner, and scene-tree setups for tests.
 /// </summary>
-public static class TestFactories
+public static partial class TestFactories
 {
 	/// <summary>
 	/// Load a scene for a runtime test; the caller owns (and may dispose) the runner. Suites share one engine and
@@ -219,12 +219,14 @@ public static class TestFactories
 	}
 
 	/// <summary>
-	/// Loads the map generator scene wired with the given layout/factory (defaulting to
-	/// the Garrison factory), ready to call GenerateMap on.
+	/// Loads the map generator scene wired with the given layout/factory (defaulting to <see cref="RoomPool"/>), ready to
+	/// call GenerateMap on. The pool loads before the scene: loaded once the generator is up, it lands in the race
+	/// <see cref="ResourceCacheGuard"/> works around, and the aborted engine hangs the run.
 	/// </summary>
 	public static async Task<(ISceneRunner Runner, MapGenerator Generator)> LoadGenerator(
 		RoomLayoutStrategy layout, RoomFactory factory = null)
 	{
+		factory ??= RoomPool();
 		ISceneRunner runner = LoadScene("res://scenes/levels/generators/map_generator.tscn");
 		await runner.SimulateFrames(2); // let MapGenerator._Ready cache the child GridMaps
 
@@ -235,10 +237,12 @@ public static class TestFactories
 
 	/// <summary>
 	/// The authored level scene with its generator configured like <see cref="LoadGenerator"/>, for tests that need the
-	/// floor's runtime services: discovery and exploration saves. Regenerate with <see cref="Level.Generate"/>.
+	/// floor's runtime services: discovery and exploration saves. Regenerate with <see cref="Level.Generate"/>. Like there,
+	/// the pool loads before the scene.
 	/// </summary>
 	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(RoomLayoutStrategy layout, RoomFactory factory = null)
 	{
+		factory ??= RoomPool();
 		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
@@ -273,7 +277,7 @@ public static class TestFactories
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();
 		// Tests pin their rooms: the Garrison's, at every depth.
-		mapGenerator.Rooms = factory ?? RoomPool();
+		mapGenerator.Rooms = factory;
 		mapGenerator.Realms =
 			[new Realm { Id = "garrison", FirstDepth = 1, LastDepth = 100, Corridors = Load<DungeonTileFactory>("res://scenes/levels/realms/garrison_corridors.tres") }];
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
@@ -319,5 +323,48 @@ public static class TestFactories
 	public static void RevealTileAt(FloorDiscovery discovery, MapData map, Vector3 point)
 	{
 		discovery.RevealTiles([map.WorldToTile(point)]);
+	}
+
+	public sealed partial class TestConsumableItem : ConsumableItem
+	{
+		public TestConsumableItem(string typeId, string name, string animationId = "")
+		{
+			TypeId = typeId;
+			Name = name;
+			AnimationId = animationId;
+		}
+	}
+
+	public sealed partial class TestScroll : Scroll
+	{
+		public TestScroll(string name)
+		{
+			Name = name;
+		}
+	}
+
+	public sealed partial class TestEquipableItem : EquipableItem
+	{
+		public TestEquipableItem(string name, ValidSlots validSlots = default)
+		{
+			Name = name;
+			ValidSlots = validSlots;
+		}
+	}
+
+	public sealed partial class TestGold : Gold
+	{
+		public TestGold(string name = "Gold")
+		{
+			Name = name;
+		}
+	}
+
+	public sealed partial class TestItem : Item
+	{
+		public TestItem(string name)
+		{
+			Name = name;
+		}
 	}
 }

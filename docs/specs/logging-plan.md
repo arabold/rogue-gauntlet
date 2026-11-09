@@ -1,6 +1,6 @@
 # Logging and message feed proposal
 
-Status: proposed, not implemented. Existing [combat harness traces](../combat-harness.md) already provide structured combat diagnostics; adapt that event source instead of adding competing combat instrumentation. The [roadmap](../development-roadmap.md) owns priority.
+Status: **partially implemented** (Slice 1: GameLog channel facade, GameNarrator item and identification narration, and HUD message feed with decay, coalescing, and pause-freezing).
 
 ## Channels and output
 

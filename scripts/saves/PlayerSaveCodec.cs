@@ -14,6 +14,22 @@ public static class PlayerSaveCodec
 	{
 		// A committed teleport must not be lost if saving midway through its presentation.
 		player.WorldEffects?.CompleteSurfaceTransitions();
+		string wardSourceId = string.Empty;
+		float wardCapacity = 0f;
+		if (player.Inventory != null && player.SpellCaster != null)
+		{
+			if (player.Inventory.EquippedWeapon is MagicStaff main && player.SpellCaster.TryGetSpell(main, out var sm) && sm is MagicGuardSpell { RemainingCapacity: > 0 } wm)
+			{
+				wardSourceId = main.InstanceId;
+				wardCapacity = wm.RemainingCapacity;
+			}
+			else if (player.Inventory.EquippedOffhandWeapon is MagicStaff off && player.SpellCaster.TryGetSpell(off, out var so) && so is MagicGuardSpell { RemainingCapacity: > 0 } wo)
+			{
+				wardSourceId = off.InstanceId;
+				wardCapacity = wo.RemainingCapacity;
+			}
+		}
+
 		var data = new PlayerSaveData
 		{
 			ApplyTransform = includeTransform,
@@ -21,7 +37,8 @@ public static class PlayerSaveCodec
 			Inventory = InventorySaveCodec.Capture(player.Inventory),
 			Actions = CaptureActions(player),
 			Buffs = BuffSaveCodec.Capture(player),
-			WardCapacity = (player.SpellCaster?.Current as MagicGuardSpell)?.RemainingCapacity ?? 0,
+			WardSourceItemInstanceId = wardSourceId,
+			WardCapacity = wardCapacity,
 		};
 		if (includeTransform)
 		{
@@ -52,11 +69,17 @@ public static class PlayerSaveCodec
 		// After equipment and buffs, so the saved mana meets its final maximum.
 		player.StatsController.RestoreMana(data.Stats.Mana);
 		// After equipping, so the ward rises on the spell node its weapon just bound.
-		if (data.WardCapacity > 0
-			&& !(player.SpellCaster?.Current is MagicGuardSpell ward && player.Inventory.EquippedWeapon is MagicStaff staff
-				&& ward.Restore(player, staff.SpellLevel, data.WardCapacity)))
+		if (data.WardCapacity > 0)
 		{
-			GD.PushError("The saved ward could not be raised again; the player continues without it.");
+			MagicStaff sourceStaff = FindEquippedStaff(player.Inventory, data.WardSourceItemInstanceId);
+			if (sourceStaff != null && player.SpellCaster != null && player.SpellCaster.TryGetSpell(sourceStaff, out var s) && s is MagicGuardSpell ward)
+			{
+				ward.Restore(player, sourceStaff.SpellLevel, data.WardCapacity);
+			}
+			else
+			{
+				GD.PushError("The saved ward could not be raised again; the player continues without it.");
+			}
 		}
 		if (data.ApplyTransform)
 		{
@@ -67,13 +90,25 @@ public static class PlayerSaveCodec
 	}
 
 	/// <summary>A saved ward needs a finite capacity and an equipped spell weapon to rise on again.</summary>
+	private static MagicStaff FindEquippedStaff(Inventory inventory, string instanceId = null)
+	{
+		if (inventory?.EquippedWeapon is MagicStaff main && (instanceId == null || main.InstanceId == instanceId)) return main;
+		if (inventory?.EquippedOffhandWeapon is MagicStaff off && (instanceId == null || off.InstanceId == instanceId)) return off;
+		return null;
+	}
+
 	private static void ValidateWard(PlayerSaveData data, Inventory restored)
 	{
 		if (data.WardCapacity == 0) return;
-		string weaponId = data.Inventory.EquippedItems
-			.FirstOrDefault(e => e.Slot == nameof(EquipmentSlot.WeaponHand))?.ItemInstanceId;
-		if (!float.IsFinite(data.WardCapacity) || data.WardCapacity < 0
-			|| restored.Items.FirstOrDefault(i => i.Item.InstanceId == weaponId)?.Item is not MagicStaff staff
+		if (!float.IsFinite(data.WardCapacity) || data.WardCapacity < 0 || string.IsNullOrEmpty(data.WardSourceItemInstanceId))
+		{
+			throw new InvalidOperationException("Saved ward without an equipped spell weapon; a new run is required.");
+		}
+		var equippedRecord = data.Inventory?.EquippedItems
+			?.FirstOrDefault(e => e.ItemInstanceId == data.WardSourceItemInstanceId
+				&& (e.Slot == nameof(EquipmentSlot.WeaponHand) || e.Slot == nameof(EquipmentSlot.ShieldHand)));
+		if (equippedRecord == null
+			|| restored.Items.FirstOrDefault(i => i.Item.InstanceId == data.WardSourceItemInstanceId)?.Item is not MagicStaff staff
 			|| !staff.CanBind(staff.BoundSpell))
 		{
 			throw new InvalidOperationException("Saved ward without an equipped spell weapon; a new run is required.");
@@ -103,6 +138,10 @@ public static class PlayerSaveCodec
 			}
 		}
 
+		if (player.ActionManager != null)
+		{
+			data.WandCooldowns = player.ActionManager.CaptureWandCooldowns();
+		}
 		data.DodgeChargesRemaining = player.DodgeComponent?.ChargesRemaining ?? 0;
 		data.DodgeRechargeRemaining = player.DodgeComponent?.RechargeRemaining ?? 0f;
 		data.DodgeIntervalRemaining = player.DodgeComponent?.IntervalRemaining ?? 0f;
@@ -116,8 +155,13 @@ public static class PlayerSaveCodec
 
 	internal static void ApplyActions(Player player, PlayerActionSaveData data)
 	{
-		if (player.QuickItemController == null || data == null) return;
+		if (data == null) return;
 		data.ValidateCombatTimers();
+		if (player.ActionManager != null && data.WandCooldowns != null)
+		{
+			player.ActionManager.RestoreWandCooldowns(data.WandCooldowns);
+		}
+		if (player.QuickItemController == null) return;
 		player.QuickItemController.IsRestoringSave = true;
 		try
 		{

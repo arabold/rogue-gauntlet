@@ -6,14 +6,16 @@
 [ext_resource type="PackedScene" path="res://scenes/items/tools/lamp/held/tool_candle_tallow_held.tscn" id="held"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="right_grip"]
 [ext_resource type="Resource" path="res://scenes/items/grips/portable_light_left.tres" id="left_grip"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/makeshift_guard.tres" id="guard_makeshift"]
 
 [resource]
 script = ExtResource("2_script")
+Guard = ExtResource("guard_makeshift")
 Name = "Tallow Candle Holder"
 Scene = ExtResource("1_scene")
 Value = 35
 ShowInInventory = true
-ValidSlots = 768
+ValidSlots = 512
 HeldScene = ExtResource("held")
 WeaponHandGrip = ExtResource("right_grip")
 ShieldHandGrip = ExtResource("left_grip")

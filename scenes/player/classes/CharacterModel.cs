@@ -10,7 +10,7 @@ public static class CharacterModel
 {
 	/// <summary>
 	/// Player meshes render on layer 3 (bitmask 4); player.tscn overrides every
-	/// MeshInstance3D to it and the FlickeringLight/ObjectHighlight cull masks rely on it.
+	/// MeshInstance3D to it and the PlayerLight's light and highlight cull masks rely on it.
 	/// </summary>
 	public const uint PlayerRenderLayers = 4;
 

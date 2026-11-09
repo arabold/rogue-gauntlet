@@ -32,8 +32,8 @@ These documents explain code that exists today. Any proposed extension or future
 | [Level design](level-design.md) | Procedural layouts, assembled rooms with room-owned doorways, realm tags, inward-facing corridor styling, sunken water pools and basins, reachability, monster navigation, fog of war, encounters and light flicker |
 | [Stats and itemization](stats-and-itemization.md) | Actor-neutral buffs/statuses, venom/poison, attributes, modifiers, equipment tiers, loot rolls and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
-| [Weapon attacks](weapon-attack-system.md) | Shared player/monster spell definitions, attack payloads and weapon execution |
-| [Combat actions and defense](combat-system.md) | Shared action ownership and execution, movement rushes, hit feedback, attack indicators, dodge, guard/parry/guard break, poise, on-hit statuses, threat tiers, attack slots, RNG and persistence |
+| [Weapon attacks](weapon-attack-system.md) | Main/off-hand capabilities, paired melee, shared player/monster spell definitions, attack payloads, combos, weapon execution and contact resolution |
+| [Combat actions and defense](combat-system.md) | Shared action ownership and execution, movement rushes, hit feedback, attack indicators, dodge, guard/parry/guard break, poise, hit reactions, threat tiers, attack slots, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Passive movable target, discovered production monster scenes, component settings, interactive/scripted combat, JSONL schema and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
 | [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed item auras (in-world, equipped, dropped and in inventory previews), glowing weapons with flicker lights, fountain pool sparkles and the workbench |
@@ -47,12 +47,10 @@ These documents explain code that exists today. Any proposed extension or future
 | [Room-owned secret entrances](specs/room-owned-secrets-plan.md) | Room-selected concealed doorways, access and discovery |
 | [Exact wall placement experiment](specs/exact-wall-placement-plan.md) | Geometry contracts, room boundaries and doorway fit, corridor and interior follow-up |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm definitions, corridor factories, realm tags, and room-owned doorways landed; per-depth room roles/recipes and visible Warden stair seal remain |
-| [Magic rework](specs/magic-rework-plan.md) | Implementation delivered (slices 1–4 landed: mana pool, wands/staves, rolled spells, hit scaling, tooltips, HUD slots, ward persistence); balance, level 4–5 visuals and playtest acceptance remain |
 | [Elemental spells and effects](specs/elemental-spells-plan.md) | All 20 spells authored at 5 levels; targeting, guard rules, visual direction and playtest acceptance remain |
 | [Magic missile](specs/magic-missile-plan.md) | Free wand/staff primary as a homing seeker volley for all elements; flight contract and playable missile landed, finished look and acceptance remain |
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
-| [Combat redesign](specs/combat-redesign-plan.md) | Guard walking and open tuning risks; Warden attacks and phases are implemented in monster authoring |
-| [Off-hand weapons](specs/off-hand-weapons-plan.md) | Two alternatives for off-hand weapons: a passive off-hand damage bonus, or animated dual-wield with an off-hand action replacing the guard input (blocked on a left-hand attack clip) |
+| [Combat redesign](specs/combat-redesign-plan.md) | Warden phases, swings and Tremor slam are implemented; a guard-breaking attack, guard walking and open tuning risks remain |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.

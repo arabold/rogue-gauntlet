@@ -4839,7 +4839,7 @@ def write_item_glb(out_path, positions, normals, uvs, indices, palette_png_path)
                 "pbrMetallicRoughness": {
                     "baseColorTexture": {"index": 0},
                     "metallicFactor": 0.0,
-                    "roughnessFactor": 0.45,
+                    "roughnessFactor": 0.85,
                 },
             }
         ],

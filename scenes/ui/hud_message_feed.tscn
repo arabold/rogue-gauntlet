@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cmsgfeed001"]
+
+[ext_resource type="Script" path="res://scenes/ui/HudMessageFeed.cs" id="1_feed"]
+
+[node name="HudMessageFeed" type="VBoxContainer"]
+mouse_filter = 2
+alignment = 2
+theme_override_constants/separation = 4
+script = ExtResource("1_feed")

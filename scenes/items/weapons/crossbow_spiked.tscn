@@ -6,7 +6,7 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u3lna"]
 resource_name = "skeleton"
 albedo_texture = ExtResource("1_oypul")
-roughness = 0.5
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_yka8e"]
 _surfaces = [{

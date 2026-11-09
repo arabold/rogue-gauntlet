@@ -18,7 +18,7 @@ shader_parameter/xray_color = Color(1, 0.72, 0.3, 0.85)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hy3g6"]
 resource_name = "texture"
 albedo_texture = ExtResource("2_fidv6")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_6ryo1"]
 _surfaces = [{
