@@ -18,7 +18,6 @@ public partial class EnemySpellProfile : EnemyActionProfile
 	[Export(PropertyHint.Range, "0,1,0.01")] public float CritChance { get; set; }
 
 	public override bool IsOffensive => Intent == SpellTargetIntent.Hostile;
-	public override bool IsSupport => !IsOffensive;
 	protected override float EffectiveMaximumDistance => Mathf.Min(MaximumDistance, Spell?.Cast?.Range ?? MaximumDistance);
 
 	public override bool HasValidConfiguration => base.HasValidConfiguration && Spell?.IsValidLevel(Level) == true
@@ -89,21 +88,27 @@ public partial class EnemySpellProfile : EnemyActionProfile
 		Node3D best = null;
 		float bestHealthFraction = float.PositiveInfinity;
 		string bestPath = "";
-		foreach (Node node in context.Actor.GetTree().GetNodesInGroup("enemy"))
+		foreach (Node node in context.SupportCandidates)
 		{
 			if (node is not Node3D candidate || candidate is not IBuffTarget { Health: { } health }
 				|| health.IsDead || !IsWithinRange(context.Actor, candidate)) continue;
-			if (!WorldSight.IsClear(context.Actor.GetWorld3D(), context.Actor.GlobalPosition + Vector3.Up,
-				candidate.GlobalPosition + Vector3.Up)) continue;
+			if (!context.CanSeeSupportTarget(candidate)) continue;
 			if (!IsUsefulTarget(context, candidate)) continue;
 			float fraction = health.MaxHealth > 0 ? health.CurrentHealth / health.MaxHealth : 1;
-			string path = candidate.GetPath().ToString();
-			if (fraction < bestHealthFraction || (Mathf.IsEqualApprox(fraction, bestHealthFraction)
-				&& string.CompareOrdinal(path, bestPath) < 0))
+			if (fraction < bestHealthFraction)
 			{
 				best = candidate;
 				bestHealthFraction = fraction;
-				bestPath = path;
+				bestPath = candidate.GetPath().ToString();
+			}
+			else if (Mathf.IsEqualApprox(fraction, bestHealthFraction))
+			{
+				string path = candidate.GetPath().ToString();
+				if (string.CompareOrdinal(path, bestPath) < 0)
+				{
+					best = candidate;
+					bestPath = path;
+				}
 			}
 		}
 		if (context.Actor is IBuffTarget self && self.Health is { IsDead: false } selfHealth

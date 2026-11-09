@@ -22,6 +22,7 @@ public partial class CombatHarness : CanvasLayer
 	[Export] public ulong Seed { get; set; } = 42;
 	[Export] public CombatTraceRecorder Recorder { get; set; }
 	[Export] public string TracePath { get; set; } = "";
+	[Export] public NavigationProfile NavigationProfile { get; set; }
 	private int _stopAfterFrames;
 	private ulong _startFrame;
 	private HarnessCommand[] _commands = [];
@@ -31,6 +32,7 @@ public partial class CombatHarness : CanvasLayer
 	private Label _status;
 	private Label _feedback;
 	private EnemyBase _monster;
+	private FloorNavigation _arenaNavigation;
 	public EnemyBase Monster => _monster;
 	private double _previousTimeScale;
 	private readonly Queue<string> _history = new();
@@ -88,6 +90,7 @@ public partial class CombatHarness : CanvasLayer
 		}
 		Player.AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(Seed, "combat.attack", "player"));
 		if (_monsters.Length == 0) _monsters = DiscoverMonsters();
+		_arenaNavigation = CreateArenaNavigation();
 		_spells = Spells.Select(InstantiateSpell).ToArray();
 		if (_spells.Any(spell => string.IsNullOrWhiteSpace(spell.DisplayName) || spell.LevelCount < 1))
 			throw new InvalidDataException("Harness spells require a name and at least one level.");
@@ -322,10 +325,11 @@ public partial class CombatHarness : CanvasLayer
 		if (candidateMonster != null)
 		{
 			candidateMonster.EnemyBehaviorComponent.AIEnabled = false;
+			candidateMonster.EnemyBehaviorComponent.GetNode<NavigationComponent>("Navigation").SetNavigationOverride(_arenaNavigation);
 			if (candidateMonster.DefenseController != null) candidateMonster.DefenseController.RiposteEnabled = false;
 			if (candidateMonster.DeathComponent != null) candidateMonster.DeathComponent.RewardsEnabled = false;
 		}
-		float spawnDistance = candidateMonster?.AttackController.IsRanged == true ? 6f : 2f;
+		float spawnDistance = GetSpawnDistance(candidateMonster);
 		candidate.Position = Player.Position + Vector3.Forward * spawnDistance;
 		if (GodotObject.IsInstanceValid(PracticeTarget))
 		{
@@ -358,6 +362,32 @@ public partial class CombatHarness : CanvasLayer
 		ApplyTargetInvulnerability(GetNode<CheckButton>("%Controls/TargetInvulnerable").ButtonPressed);
 		if (_monster != null) ApplyMonsterAI(GetNode<CheckButton>("%Controls/MonsterAI").ButtonPressed);
 		return true;
+	}
+
+	/// <summary>Start monsters at the distance their authored movement and opening action are designed for.</summary>
+	private static float GetSpawnDistance(EnemyBase monster)
+	{
+		var combat = monster?.Definition?.Behavior?.Combat;
+		if (combat?.MovementStrategy is MaintainDistanceStrategy strategy && combat.ApproachAction is { } approach)
+			return Mathf.Clamp(strategy.PreferredDistance, approach.MinimumDistance, approach.EffectiveRange);
+		return monster?.AttackController.IsRanged == true ? 6f : 2f;
+	}
+
+	/// <summary>Builds navigation over the static combat arena so production monster movement works without a Level.</summary>
+	private FloorNavigation CreateArenaNavigation()
+	{
+		if (NavigationProfile == null) throw new InvalidDataException("Combat harness requires a NavigationProfile.");
+		const float halfExtent = 20f;
+		const float wallThickness = 1f;
+		var bounds = new Rect2(-halfExtent, -halfExtent, halfExtent * 2, halfExtent * 2);
+		var grid = new ClearanceGrid(bounds);
+		grid.AddFloor(bounds);
+		grid.AddObstacle(new Rect2(-halfExtent, -halfExtent, halfExtent * 2, wallThickness));
+		grid.AddObstacle(new Rect2(-halfExtent, halfExtent - wallThickness, halfExtent * 2, wallThickness));
+		grid.AddObstacle(new Rect2(-halfExtent, -halfExtent, wallThickness, halfExtent * 2));
+		grid.AddObstacle(new Rect2(halfExtent - wallThickness, -halfExtent, wallThickness, halfExtent * 2));
+		grid.Freeze();
+		return new FloorNavigation(grid, NavigationProfile);
 	}
 
 	private void BindMonsterFeedback(EnemyBase monster)

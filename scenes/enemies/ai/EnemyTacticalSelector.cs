@@ -20,7 +20,7 @@ public sealed class EnemyTacticalSelector(float maximumRetreatDuration, float re
 		if (IsRetreating) _retreatRemaining = Math.Max(0, _retreatRemaining - delta);
 	}
 
-	public EnemyTacticalDecision Select(EnemyMovementIntent preference, float distance, bool canAttack)
+	public EnemyTacticalDecision Select(EnemyMovementIntent preference, float distance, bool canAct)
 	{
 		if (preference.Goal != EnemyMovementGoal.Retreat)
 		{
@@ -34,7 +34,7 @@ public sealed class EnemyTacticalSelector(float maximumRetreatDuration, float re
 		if (rejection != null)
 		{
 			EndRetreat();
-			return Fallback(canAttack, rejection);
+			return Fallback(canAct, rejection);
 		}
 		if (!IsRetreating)
 		{
@@ -45,14 +45,14 @@ public sealed class EnemyTacticalSelector(float maximumRetreatDuration, float re
 	}
 
 	/// <summary>A rejected destination ends this opportunity immediately; do not retry it every physics frame.</summary>
-	public EnemyTacticalDecision RetreatBlocked(bool canAttack)
+	public EnemyTacticalDecision RetreatBlocked(bool canAct)
 	{
 		EndRetreat();
-		return Fallback(canAttack, "retreat_blocked");
+		return Fallback(canAct, "retreat_blocked");
 	}
 
-	private static EnemyTacticalDecision Fallback(bool canAttack, string reason) => new(
-		new(canAttack ? EnemyMovementGoal.Hold : EnemyMovementGoal.Approach, canAttack), reason);
+	private static EnemyTacticalDecision Fallback(bool canAct, string reason) => new(
+		new(canAct ? EnemyMovementGoal.Hold : EnemyMovementGoal.Approach, canAct), reason);
 
 	private void EndRetreat()
 	{

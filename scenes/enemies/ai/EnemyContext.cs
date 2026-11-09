@@ -11,7 +11,7 @@ using System.Collections.Generic;
 /// <remarks>
 /// States read and mutate this context; the host <see cref="EnemyBehaviorComponent"/> ticks the
 /// throttle timers each physics frame and bridges the timed-action layer through
-/// <see cref="RequestAttack"/> so states never poke <c>CurrentAction</c> directly. Detection
+/// <see cref="RequestAction"/> so states never poke <c>CurrentAction</c> directly. Detection
 /// and locomotion themselves live in the perception/navigation components - this only coordinates
 /// them; see docs/level-design.md for the authoritative behavior description.
 /// </remarks>
@@ -42,7 +42,8 @@ public sealed class EnemyContext
 	private Node3D _sightTarget;
 	private bool _sightResult;
 	private readonly Dictionary<ulong, Node3D> _supportTargets = [];
-	private readonly System.Collections.Generic.HashSet<ulong> _queriedSupportTargets = [];
+	private Godot.Collections.Array<Node> _supportCandidates;
+	private readonly Dictionary<ulong, bool> _supportSight = [];
 	public float HorizontalTargetDistance
 	{
 		get
@@ -54,7 +55,7 @@ public sealed class EnemyContext
 		}
 	}
 
-	public Action RequestAttack { get; }
+	public Action RequestAction { get; }
 
 	/// <summary>Degrees between the actor's facing and the horizontal direction to its target; 0 without a target.</summary>
 	public float AngleToTarget => Target == null ? 0 : Movement.LookAtDirection.HorizontalAngleTo(Target.GlobalPosition - Actor.GlobalPosition);
@@ -62,7 +63,6 @@ public sealed class EnemyContext
 	/// <summary>Attack slots of the current target; null when the target lets every attacker strike.</summary>
 	public AttackSlotsComponent TargetSlots => (Target as IAttackSlotHost)?.AttackSlots;
 
-	/// <summary>Slots this actor's attack policy must take turns through; null when it opts out or the target has none.</summary>
 	/// <summary>Whether this actor can reserve the requested offensive turn slot now.</summary>
 	public bool CanTakeActionSlot(EnemyActionSlotKind kind)
 	{
@@ -73,7 +73,7 @@ public sealed class EnemyContext
 	}
 
 	/// <summary>Whether the configured approach action's target slot is available.</summary>
-	public bool CanTakeAttackSlot() => CombatProfile?.ApproachAction is { } action && CanTakeActionSlot(action.SlotKind);
+	public bool CanTakeApproachSlot() => CombatProfile?.ApproachAction is { } action && CanTakeActionSlot(action.SlotKind);
 
 	/// <summary>Whether the configured approach action can start against the current target.</summary>
 	public bool CanUseApproachAction()
@@ -102,11 +102,25 @@ public sealed class EnemyContext
 	/// <summary>Cache one support-target fact per authored action for this physics decision.</summary>
 	public Node3D FindSupportTarget(ulong actionId, Func<Node3D> query)
 	{
-		if (_queriedSupportTargets.Contains(actionId)) return _supportTargets.GetValueOrDefault(actionId);
-		_queriedSupportTargets.Add(actionId);
+		if (_supportTargets.TryGetValue(actionId, out var cached)) return cached;
 		Node3D target = query?.Invoke();
 		_supportTargets[actionId] = target;
 		return target;
+	}
+
+	/// <summary>Share the per-frame enemy-group snapshot across support actions.</summary>
+	public Godot.Collections.Array<Node> SupportCandidates => _supportCandidates ??= Actor.GetTree().GetNodesInGroup("enemy");
+
+	/// <summary>Share candidate visibility rays across support actions during the same physics decision.</summary>
+	public bool CanSeeSupportTarget(Node3D target)
+	{
+		if (!GodotObject.IsInstanceValid(target) || !target.IsInsideTree()) return false;
+		ulong id = target.GetInstanceId();
+		if (_supportSight.TryGetValue(id, out bool visible)) return visible;
+		visible = WorldSight.IsClear(Actor.GetWorld3D(), Actor.GlobalPosition + Vector3.Up,
+			target.GlobalPosition + Vector3.Up);
+		_supportSight[id] = visible;
+		return visible;
 	}
 
 	/// <summary>
@@ -129,7 +143,7 @@ public sealed class EnemyContext
 		NavigationComponent navigation,
 		EnemyBehaviorProfile profile,
 		EnemyCombatProfile combatProfile,
-		Action requestAttack)
+		Action requestAction)
 	{
 		Actor = actor;
 		Movement = movement;
@@ -137,7 +151,7 @@ public sealed class EnemyContext
 		Navigation = navigation;
 		Profile = profile;
 		SetCombatProfile(combatProfile);
-		RequestAttack = requestAttack;
+		RequestAction = requestAction;
 		HomePosition = actor.GlobalPosition;
 	}
 
@@ -150,14 +164,7 @@ public sealed class EnemyContext
 		if (tacticsChanged) TacticalSelector = profile.TacticalStrategy?.CreateRuntime();
 	}
 
-	/// <summary>
-	/// True when the enemy currently has an unobstructed line of sight to its target. Reuses the
-	/// perception line-of-sight test so ranged enemies do not fire through walls.
-	/// </summary>
-	/// <summary>
-	/// Sight to the current target, raycast at most once per physics frame: reach, attack and positioning checks
-	/// in one tick share the answer (raycasts see physics state as of the last step anyway).
-	/// </summary>
+	/// <summary>Reuses one perception ray result per physics frame for reach, attack and positioning checks.</summary>
 	public bool HasLineOfSightToTarget()
 	{
 		if (Target == null || !GodotObject.IsInstanceValid(Target)) return false;
@@ -178,7 +185,8 @@ public sealed class EnemyContext
 	public void TickThrottles(double delta)
 	{
 		_supportTargets.Clear();
-		_queriedSupportTargets.Clear();
+		_supportCandidates = null;
+		_supportSight.Clear();
 		Delta = delta;
 		TacticalSelector?.Tick(delta);
 		_ringRefresh.Tick(delta);
@@ -284,8 +292,8 @@ public sealed class EnemyContext
 	/// <summary>Resolve tactical priorities and navigation failure before submitting an ordinary attack request.</summary>
 	public void ExecuteTactics(EnemyMovementIntent? preference = null)
 	{
-		bool canAct = CanUseApproachAction() || HasEligibleAction();
-		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance, canAct);
+		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance,
+			CanUseApproachAction() || HasEligibleAction());
 		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat())
 			decision = TacticalSelector.RetreatBlocked(CanUseApproachAction() || HasEligibleAction());
 		// An approach that is already in reach (but not yet facing or eligible) holds and turns instead.
@@ -306,7 +314,7 @@ public sealed class EnemyContext
 			if (CombatTrace.Enabled) CombatTrace.Write(Actor, "ai.tactical_decision", ("goal", decision.Intent.Goal.ToString()),
 				("reason", decision.Reason), ("allow_attack", decision.Intent.AllowAttack));
 		}
-		if (decision.Intent.AllowAttack || HasEligibleAction()) RequestAttack();
+		if (decision.Intent.AllowAttack || HasEligibleAction()) RequestAction();
 	}
 
 	/// <summary>Chase the target down its shared field. A stall only restarts progress tracking: the field updates as the target moves.</summary>

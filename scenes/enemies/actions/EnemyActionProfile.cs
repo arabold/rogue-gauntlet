@@ -1,5 +1,12 @@
 using Godot;
 
+public enum EnemyActionSlotKind
+{
+	None,
+	Melee,
+	Ranged
+}
+
 /// <summary>Shared eligibility and scheduling data for one authored enemy action.</summary>
 [GlobalClass]
 public abstract partial class EnemyActionProfile : Resource
@@ -17,7 +24,6 @@ public abstract partial class EnemyActionProfile : Resource
 	[Export] public bool RiposteEligible { get; set; } = true;
 
 	public virtual bool IsOffensive => true;
-	public virtual bool IsSupport => false;
 	public float EffectiveRange => EffectiveMaximumDistance;
 	public virtual bool HasValidConfiguration => float.IsFinite(Cooldown) && Cooldown >= 0
 		&& float.IsFinite(MinimumDistance) && MinimumDistance >= 0

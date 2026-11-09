@@ -7,6 +7,7 @@ public partial class AttackThenRetreatStrategy : EnemyMovementStrategy
 	[Export] public float RetreatDistance { get; set; } = 4;
 	[Export] public float MaximumRetreatDuration { get; set; } = 1.2f;
 	[Export] public float ReengagementDelay { get; set; } = .4f;
+	public override void AttackAccepted(EnemyContext context, AttackIdentity identity) => context.Tactics.TrackAttack(identity);
 
 	public override EnemyMovementIntent Evaluate(EnemyContext context)
 	{

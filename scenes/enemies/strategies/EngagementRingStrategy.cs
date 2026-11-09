@@ -15,7 +15,7 @@ public partial class EngagementRingStrategy : CloseDistanceStrategy
 
 	public override EnemyMovementIntent Evaluate(EnemyContext context)
 	{
-		if (!context.CanTakeAttackSlot()) return new(EnemyMovementGoal.Encircle, false, RingDistance, PreferRear);
+		if (!context.CanTakeApproachSlot()) return new(EnemyMovementGoal.Encircle, false, RingDistance, PreferRear);
 		return base.Evaluate(context);
 	}
 }

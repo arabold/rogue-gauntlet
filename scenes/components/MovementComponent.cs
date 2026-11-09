@@ -177,7 +177,7 @@ public partial class MovementComponent : Node
 			_rushClock.Finish();
 			return result;
 		}
-		_activeRush = (RushProfile)profile.Duplicate(true);
+		_activeRush = profile;
 		_rushPlayback = playback;
 		_rushLease = lease;
 		RushExecution = new AttackIdentity(GetInstanceId(), ++_rushSequence);

@@ -104,7 +104,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	private PerceptionComponent _perception;
 	private NavigationComponent _navigation;
 	private EnemyBehaviorProfile _profile;
-	private EnemyCombatProfile _combatProfile;
 	private AttackController _attackController;
 	private EnemyContext _context;
 	private EnemyStateMachine _machine;
@@ -117,7 +116,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	private int _currentPhaseIndex;
 	private int _pendingPhaseIndex = -1;
 	public int CurrentPhaseIndex => _currentPhaseIndex;
-	public EnemyCombatProfile CurrentCombatProfile => _combatProfile;
+	public EnemyCombatProfile CurrentCombatProfile => _context?.CombatProfile;
 
 	/// <summary>Seed action choices independently from attack and defense execution.</summary>
 	public void ConfigureActionRandom(ulong seed) => _actionSelector.ConfigureRandom(seed);
@@ -135,7 +134,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 			foreach (string error in profileErrors) GD.PushError($"{Name}: invalid monster combat profile: {error}");
 			return;
 		}
-		_combatProfile = _profile.Combat;
 		CurrentAction = _profile.InitialAction;
 
 		// SightRay stays authored as a direct child of this component so inherited enemy scenes are not
@@ -154,7 +152,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		// The context is the shared blackboard the behavior states read and mutate; the state machine
 		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
 		// host as a gate above the machine - see _PhysicsProcess.
-		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, _combatProfile, RequestAction);
+		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, _profile.Combat, RequestAction);
 		if (_attackController != null) _attackController.AttackFinished += OnAttackFinished;
 		MovementComponent.RushFinished += OnRushFinished;
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
@@ -190,7 +188,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	{
 		if (_context == null) return;
 		_context.TickThrottles(delta);
-		_actionSelector.Tick(delta, _context, _combatProfile);
+		_actionSelector.Tick(delta, _context, _context.CombatProfile);
 		PrepareDecision();
 		SyncEngagedSlots();
 		var gate = (Actor as EnemyBase)?.ActionGate;
@@ -297,8 +295,8 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		int previous = _currentPhaseIndex;
 		_currentPhaseIndex = _pendingPhaseIndex;
 		_pendingPhaseIndex = -1;
-		_combatProfile = _currentPhaseIndex == 0 ? _profile.Combat : _profile.Phases[_currentPhaseIndex - 1].Combat;
-		_context.SetCombatProfile(_combatProfile);
+		var combatProfile = _currentPhaseIndex == 0 ? _profile.Combat : _profile.Phases[_currentPhaseIndex - 1].Combat;
+		_context.SetCombatProfile(combatProfile);
 		EmitSignalPhaseChanged(previous, _currentPhaseIndex);
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "enemy.phase_changed", ("previous", previous), ("current", _currentPhaseIndex));
 	}
@@ -330,11 +328,13 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	public ActorActionRequestResult TryRequestAction(bool riposteOnly = false, bool attackOnly = false)
 	{
 		PrepareDecision();
-		if (_context == null || _combatProfile == null || CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed)
+		if (_context?.CombatProfile == null || CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed)
 			return ActorActionRequestResult.Busy;
-		var action = _actionSelector.Select(_combatProfile, _context, riposteOnly, attackOnly);
+		var action = _actionSelector.Select(_context.CombatProfile, _context, riposteOnly, attackOnly);
 		if (action == null) return ActorActionRequestResult.Unavailable;
-		var result = TryAction(action);
+		var result = TryStartEligibleAction(action);
+		if (CombatTrace.Enabled)
+			CombatTrace.Write(Actor, "ai.action_attempt", ("action", action.ResourcePath), ("type", action.GetType().Name), ("result", result.ToString()));
 		if (result == ActorActionRequestResult.Success) _actionSelector.Accepted(action);
 		else _actionSelector.Rejected();
 		return result;
@@ -346,9 +346,15 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	/// <summary>Start a selected profile through its existing gameplay executor.</summary>
 	public ActorActionRequestResult TryAction(EnemyActionProfile action)
 	{
-		if (_context == null || action == null || CurrentAction != EnemyAction.None || IsDead
-			|| MovementComponent.IsPushed || !action.IsEligible(_context, _actionSelector.PressureDurationFor(action)))
+		if (!CanStartAction(action) || !action.IsEligible(_context, _actionSelector.PressureDurationFor(action)))
 			return ActorActionRequestResult.Unavailable;
+		return TryStartEligibleAction(action);
+	}
+
+	/// <summary>Execute a profile after the selector has already approved its eligibility.</summary>
+	private ActorActionRequestResult TryStartEligibleAction(EnemyActionProfile action)
+	{
+		if (!CanStartAction(action)) return ActorActionRequestResult.Unavailable;
 		if (action is EnemyRushProfile rushProfile)
 		{
 			Vector3 direction = _context.Target.GlobalPosition - Actor.GlobalPosition;
@@ -375,8 +381,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 			return ActorActionRequestResult.InvalidDefinition;
 		}
 		_heldSlots = slots;
-		_context.TacticalSelector?.AttackAccepted(_attackController.CurrentExecutionId);
-		if (_combatProfile.MovementStrategy is AttackThenRetreatStrategy) _context.Tactics.TrackAttack(_attackController.CurrentExecutionId);
+		NotifyAttackAccepted(_attackController.CurrentExecutionId);
 		SetAction(attackProfile.Attack.IsRanged ? EnemyAction.RangedAttack : EnemyAction.MeeleAttack);
 		return ActorActionRequestResult.Success;
 	}
@@ -405,13 +410,18 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		}
 		_heldSlots = slots;
 		if (profile.IsOffensive)
-		{
-			_context.TacticalSelector?.AttackAccepted(_attackController.CurrentExecutionId);
-			if (_combatProfile.MovementStrategy is AttackThenRetreatStrategy)
-				_context.Tactics.TrackAttack(_attackController.CurrentExecutionId);
-		}
+			NotifyAttackAccepted(_attackController.CurrentExecutionId);
 		SetAction(EnemyAction.SpellCast);
 		return ActorActionRequestResult.Success;
+	}
+
+	private bool CanStartAction(EnemyActionProfile action) => _context != null && action != null
+		&& CurrentAction == EnemyAction.None && !IsDead && !MovementComponent.IsPushed;
+
+	private void NotifyAttackAccepted(AttackIdentity identity)
+	{
+		_context.TacticalSelector?.AttackAccepted(identity);
+		_context.CombatProfile.MovementStrategy?.AttackAccepted(_context, identity);
 	}
 
 	/// <summary>

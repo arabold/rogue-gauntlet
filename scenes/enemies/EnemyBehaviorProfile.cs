@@ -5,7 +5,7 @@ using Godot;
 /// </summary>
 /// <remarks>
 /// Create one profile per monster variant so scenes can share behavior code while changing
-/// detection, roaming, attack ranges, and action timing through resources.
+/// detection, roaming, combat ranges, and action timing through resources.
 /// </remarks>
 [GlobalClass]
 public partial class EnemyBehaviorProfile : Resource

@@ -1,6 +1,6 @@
 # Monster starting assemblies
 
-Duplicate `melee_enemy.tscn` or `projectile_enemy.tscn` in the Godot FileSystem dock and save it in your monster folder. Its actor root is independent (not inherited from another enemy); component and model scenes remain reusable instances. Delete/add optional capability nodes in the Scene tree. Keep the required references assigned on the root and on each component.
+Duplicate `melee_enemy.tscn` or `projectile_enemy.tscn` in the Godot FileSystem dock and save it in your monster folder. Its actor root is independent (not inherited from another enemy); component and model scenes remain reusable instances. Delete/add optional capability nodes in the Scene tree. Keep the required references assigned on the root and on each component, including its spell caster, mana pool and actor stats.
 
 Save the definition as a new `.tres`, give it a unique ID/display name and edit health, speed, XP and loot there. Make the behavior and its tactical/movement/attack/defense policies unique before changing values for only this monster. Changing a shared Resource intentionally changes every user of it. Assign a replacement visual/animation binding and adjust the body and hurtbox shapes to match.
 

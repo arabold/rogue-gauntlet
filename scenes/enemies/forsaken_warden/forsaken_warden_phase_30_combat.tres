@@ -7,7 +7,7 @@
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense.tres" id="defense"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_attack.tres" id="slash"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_overhead_attack.tres" id="overhead"]
-[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_stomp_attack.tres" id="stomp"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_tremor.tres" id="tremor"]
 
 [sub_resource type="Resource" id="slash_choice"]
 script = ExtResource("choice_script")
@@ -19,9 +19,9 @@ script = ExtResource("choice_script")
 Action = ExtResource("overhead")
 Weight = 1.2
 
-[sub_resource type="Resource" id="stomp_choice"]
+[sub_resource type="Resource" id="tremor_choice"]
 script = ExtResource("choice_script")
-Action = ExtResource("stomp")
+Action = ExtResource("tremor")
 Weight = 1.0
 
 [resource]
@@ -30,5 +30,5 @@ TacticalStrategy = ExtResource("tactics")
 MovementStrategy = ExtResource("movement")
 DefenseStrategy = ExtResource("defense")
 ApproachAction = ExtResource("slash")
-Actions = [SubResource("slash_choice"), SubResource("overhead_choice"), SubResource("stomp_choice")]
+Actions = [SubResource("slash_choice"), SubResource("overhead_choice"), SubResource("tremor_choice")]
 RepeatWeightMultiplier = 0.25

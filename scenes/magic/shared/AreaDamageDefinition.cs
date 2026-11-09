@@ -13,6 +13,16 @@ public partial class AreaDamageDefinition : Resource
 	[Export] public float[] PushByLevel { get; set; } = [];
 	/// <summary>Seconds between the visual's release and its contact, for delayed eruptions.</summary>
 	[Export(PropertyHint.Range, "0,10,0.05")] public float ContactDelay { get; set; }
+	/// <summary>Optional camera shake strength requested when this area spell reaches a target.</summary>
+	[Export(PropertyHint.Range, "0,2,0.01")] public float CameraImpulse { get; set; }
+	/// <summary>Horizontal radius over which the area spell's camera shake fades out.</summary>
+	[Export(PropertyHint.Range, "0,30,0.1")] public float CameraRadius { get; set; } = 11;
+	/// <summary>Seconds for the camera shake to reach full strength.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float CameraGrowthTime { get; set; }
+	/// <summary>Seconds the camera shake holds at full strength before fading.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float CameraDuration { get; set; }
+	/// <summary>Seconds for the camera shake to fade out.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float CameraDecayTime { get; set; } = .18f;
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 	[Export] public DamageElement Element { get; set; }
 	public int LevelCount => System.Math.Min(SpellLevels.Max, System.Math.Min(RadiusByLevel?.Length ?? 0, DamageScaleByLevel?.Length ?? 0));
@@ -24,7 +34,12 @@ public partial class AreaDamageDefinition : Resource
 			&& float.IsFinite(RadiusByLevel[i]) && RadiusByLevel[i] > 0
 			&& float.IsFinite(DamageScaleByLevel[i]) && DamageScaleByLevel[i] > 0
 			&& (PushByLevel is not { Length: > 0 } || i < PushByLevel.Length && float.IsFinite(PushByLevel[i]) && PushByLevel[i] >= 0)
-			&& float.IsFinite(ContactDelay) && ContactDelay >= 0;
+			&& float.IsFinite(ContactDelay) && ContactDelay >= 0
+			&& float.IsFinite(CameraImpulse) && CameraImpulse >= 0
+			&& (CameraImpulse == 0 || float.IsFinite(CameraRadius) && CameraRadius > 0
+				&& float.IsFinite(CameraGrowthTime) && CameraGrowthTime >= 0
+				&& float.IsFinite(CameraDuration) && CameraDuration >= 0
+				&& float.IsFinite(CameraDecayTime) && CameraDecayTime > 0);
 	}
 
 	/// <summary>Damage per contact.</summary>

@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/beasts/rat.glb" id="2_glb"]
@@ -7,6 +7,7 @@
 
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_definition.tres" id="definition"]
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
 [ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/small.tres" id="movement_profile"]
@@ -125,6 +126,7 @@ AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
 Profile = ExtResource("attack_animation_profile")
 [node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
 script = ExtResource("gate_script")
+AnimationProfile = ExtResource("defense_animation")
 AnimationComponent = NodePath("../CombatAnimationComponent")
 
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]

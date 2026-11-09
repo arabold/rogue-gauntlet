@@ -11,4 +11,6 @@ public readonly record struct EnemyMovementIntent(EnemyMovementGoal Goal, bool A
 public abstract partial class EnemyMovementStrategy : Resource
 {
 	public abstract EnemyMovementIntent Evaluate(EnemyContext context);
+	/// <summary>Lets stateful tactics react to a committed attack without coupling the host to a strategy type.</summary>
+	public virtual void AttackAccepted(EnemyContext context, AttackIdentity identity) { }
 }

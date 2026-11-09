@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 /// <summary>Scene-composed damage-only area cast, with a separately authored visual.</summary>
@@ -41,7 +42,15 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 				target => AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)), target => target.GlobalPosition));
 		VisualRoot.AddChild(visual); visual.GlobalPosition = cast.Origin; area.SetAreaVisibility(visibility);
 		_cast.Track(visual);
-		_cast.Schedule(cast, Definition.ContactDelay, area.Front, hit, defense, Definition.PushAt(level), element: Definition.Element);
+		Action<Node3D, DamageResolution> afterContact = Definition.CameraImpulse > 0
+			? (_, _) =>
+			{
+				var impulse = new CameraImpulseRequest(Definition.CameraImpulse, Definition.CameraRadius, cast.Origin,
+					Definition.CameraGrowthTime, Definition.CameraDuration, Definition.CameraDecayTime);
+				SignalBus.EmitCameraImpulseRequested(in impulse);
+			}
+			: null;
+		_cast.Schedule(cast, Definition.ContactDelay, area.Front, hit, defense, Definition.PushAt(level), afterContact, Definition.Element);
 		return true;
 	}
 

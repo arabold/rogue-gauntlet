@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// Monster navigation for one generated floor: shares chase and flee fields between agents of one size, plans
-/// point-to-point routes, and answers clearance queries, all on the floor's frozen <see cref="ClearanceGrid"/>.
+/// Monster navigation over one frozen <see cref="ClearanceGrid"/>: shares chase and flee fields between agents of one
+/// size, plans point-to-point routes, and answers clearance queries.
 /// Door state is read from the gates once per physics frame; any change drops every cached field, so opening or
-/// closing a door changes routes on the next query. Owned by <see cref="Level"/>; it never moves an agent.
+/// closing a door changes routes on the next query. A level owns its floor navigation; standalone arenas may own one
+/// over a frozen grid. It never moves an agent.
 /// </summary>
 /// <remarks>
 /// Fields are computed lazily, only for size classes and targets someone asks about, and only as far as the farthest
@@ -50,6 +51,15 @@ public sealed class FloorNavigation
 		_openGates = new bool[Grid.GateCount];
 	}
 
+	/// <summary>Navigation over a frozen standalone grid, for arenas that do not have a generated floor or doors.</summary>
+	public FloorNavigation(ClearanceGrid grid, NavigationProfile profile)
+	{
+		Grid = grid ?? throw new ArgumentNullException(nameof(grid));
+		if (!grid.IsFrozen) throw new ArgumentException("The navigation grid must be frozen.", nameof(grid));
+		Profile = profile ?? throw new ArgumentNullException(nameof(profile));
+		_openGates = new bool[Grid.GateCount];
+	}
+
 	public ClearanceGrid Grid { get; }
 	public NavigationProfile Profile { get; }
 	/// <summary>Bumped whenever a gate opens or closes; routes planned under an older version are stale.</summary>
@@ -67,7 +77,7 @@ public sealed class FloorNavigation
 	public void Unregister(NavigationComponent agent) => _agents.Remove(agent);
 
 	/// <summary>The room the point lies in, or -1 for corridors, thresholds and void.</summary>
-	public int RoomAt(Vector3 point) => _floor.RoomIdAt(point);
+	public int RoomAt(Vector3 point) => _floor?.RoomIdAt(point) ?? -1;
 
 	/// <summary>
 	/// The field leading to <paramref name="target"/> for bodies of <paramref name="radius"/>, shared by everyone chasing
@@ -231,10 +241,10 @@ public sealed class FloorNavigation
 		if (frame == _gateFrame) return;
 		_gateFrame = frame;
 		bool changed = GateVersion == 0;
-		var doors = _floor.NavigationGates;
+		var doors = _floor?.NavigationGates;
 		for (int gate = 0; gate < _openGates.Length; gate++)
 		{
-			bool open = gate < doors.Count && GodotObject.IsInstanceValid(doors[gate]) && doors[gate].IsOpen;
+			bool open = doors != null && gate < doors.Count && GodotObject.IsInstanceValid(doors[gate]) && doors[gate].IsOpen;
 			changed |= open != _openGates[gate];
 			_openGates[gate] = open;
 		}

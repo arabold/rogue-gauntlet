@@ -25,6 +25,7 @@
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="phantom_camera_host"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="phantom_camera"]
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="camera_feedback"]
+[ext_resource type="Resource" path="res://scenes/levels/navigation/navigation_profiles/default.tres" id="navigation_profile"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(40, 1, 40)
@@ -147,6 +148,7 @@ Player = NodePath("../Player")
 TargetParent = NodePath("..")
 PracticeTargetScene = ExtResource("practice_target")
 SpellPool = ExtResource("spell_pool")
+NavigationProfile = ExtResource("navigation_profile")
 Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10"), ExtResource("weapon_11"), ExtResource("weapon_12")]
 
 [node name="Panel" type="PanelContainer" parent="Instructions"]

@@ -247,12 +247,13 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			BuffApplication application = chancePassed
 				? Buffs.ApplyBuff(status.Effect, status.StackKey)
 				: BuffApplication.Rejected;
-			CombatTrace.Write(this, "status.resolved", ("execution_source", contact.ExecutionId.SourceInstanceId),
-				("execution", contact.ExecutionId.Sequence),
-				("key", status.StackKey), ("chance", status.Chance), ("roll", roll),
-				("chance_passed", chancePassed),
-				("applied", application is BuffApplication.Applied or BuffApplication.Refreshed),
-				("result", application.ToString()));
+			if (CombatTrace.Enabled)
+				CombatTrace.Write(this, "status.resolved", ("execution_source", contact.ExecutionId.SourceInstanceId),
+					("execution", contact.ExecutionId.Sequence),
+					("key", status.StackKey), ("chance", status.Chance), ("roll", roll),
+					("chance_passed", chancePassed),
+					("applied", application is BuffApplication.Applied or BuffApplication.Refreshed),
+					("result", application.ToString()));
 		}
 	}
 

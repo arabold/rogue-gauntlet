@@ -9,6 +9,7 @@ public partial class CombatCameraFeedbackController : Node
 	private Player _player;
 	private PhantomCameraNoiseEmitter3D _emitter;
 	private float _strongestImpulse;
+	private float _defaultGrowthTime, _defaultDuration, _defaultDecayTime;
 	private bool _enabled = true;
 	private CombatContactFeedbackHandler _contactHandler;
 	private CameraImpulseRequestHandler _impulseHandler;
@@ -27,7 +28,13 @@ public partial class CombatCameraFeedbackController : Node
 
 	public override void _Ready()
 	{
-		if (NoiseEmitter != null) _emitter = new PhantomCameraNoiseEmitter3D(NoiseEmitter);
+		if (NoiseEmitter != null)
+		{
+			_emitter = new PhantomCameraNoiseEmitter3D(NoiseEmitter);
+			_defaultGrowthTime = _emitter.GrowthTime;
+			_defaultDuration = _emitter.Duration;
+			_defaultDecayTime = _emitter.DecayTime;
+		}
 		_contactHandler = OnContact;
 		SignalBus.CombatContactResolved += _contactHandler;
 		_impulseHandler = OnCameraImpulseRequested;
@@ -65,7 +72,8 @@ public partial class CombatCameraFeedbackController : Node
 			("triggered", emitted), ("reason", reason));
 	}
 
-	private bool AddImpulse(float strength, out float appliedStrength, out string reason)
+	private bool AddImpulse(float strength, out float appliedStrength, out string reason,
+		float? growthTime = null, float? duration = null, float? decayTime = null)
 	{
 		appliedStrength = 0;
 		strength = Mathf.Min(MaximumImpulse, Mathf.Max(0, strength));
@@ -73,12 +81,18 @@ public partial class CombatCameraFeedbackController : Node
 		if (strength <= 0) { reason = "zero_strength"; return false; }
 		if (_emitter.IsEmitting() && strength < _strongestImpulse) { reason = "weaker_than_active_shake"; return false; }
 		_strongestImpulse = strength;
+		_emitter.GrowthTime = ResolveTime(growthTime, _defaultGrowthTime);
+		_emitter.Duration = ResolveTime(duration, _defaultDuration);
+		_emitter.DecayTime = ResolveTime(decayTime, _defaultDecayTime);
 		_emitter.Noise.Amplitude = strength * NoiseAmplitudePerUnit;
 		_emitter.Emit();
 		appliedStrength = strength;
 		reason = "emitted";
 		return true;
 	}
+
+	private static float ResolveTime(float? requested, float fallback) =>
+		requested is float value && float.IsFinite(value) && value >= 0 ? value : fallback;
 
 	private void OnCameraImpulseRequested(in CameraImpulseRequest request)
 	{
@@ -87,7 +101,8 @@ public partial class CombatCameraFeedbackController : Node
 		float distance = _player.GlobalPosition.HorizontalDistanceTo(request.Position);
 		if (distance >= request.Radius) return;
 		float requested = request.Strength * (1 - distance / request.Radius);
-		bool emitted = AddImpulse(requested, out float actual, out string reason);
+		bool emitted = AddImpulse(requested, out float actual, out string reason,
+			request.GrowthTime, request.Duration, request.DecayTime);
 		CombatTrace.Write(this, "effect.camera_shake", ("direction", "ground_impact"), ("requested_impulse", requested),
 			("impulse", actual), ("noise_amplitude", emitted ? actual * NoiseAmplitudePerUnit : 0),
 			("triggered", emitted), ("reason", reason));

@@ -10,6 +10,7 @@ script = ExtResource("attack")
 AttackStyle = &"staff.cast"
 HitWindowStart = 0.25
 HitWindowEnd = 0.35
+IsRanged = true
 
 [resource]
 script = ExtResource("definition")
