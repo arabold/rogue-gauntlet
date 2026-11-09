@@ -1,9 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=11 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
 [ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="2_kicr4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_menu.tscn" id="3_debug_menu"]
 [ext_resource type="PackedScene" uid="uid://bvyqk5m278bce" path="res://scenes/ui/hand_action_panel.tscn" id="4_hand_panel"]
+[ext_resource type="PackedScene" uid="uid://cmsgfeed001" path="res://scenes/ui/hud_message_feed.tscn" id="5_msg_feed"]
+[ext_resource type="Script" path="res://scripts/logging/GameNarrator.cs" id="6_narrator"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_136eg"]
 content_margin_left = 50.0
@@ -30,28 +32,38 @@ size_flags_vertical = 8
 theme_override_styles/panel = SubResource("StyleBoxEmpty_136eg")
 script = ExtResource("1_fp313")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="BottomArea" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 12
+mouse_filter = 2
+
+[node name="HudMessageFeed" parent="BottomArea" instance=ExtResource("5_msg_feed")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="BottomArea"]
 layout_mode = 2
 size_flags_vertical = 8
 
-[node name="PanelContainer" type="VBoxContainer" parent="HBoxContainer"]
+[node name="PanelContainer" type="VBoxContainer" parent="BottomArea/HBoxContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="XpLabel" type="Label" parent="HBoxContainer/PanelContainer"]
+[node name="XpLabel" type="Label" parent="BottomArea/HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "XP: 0"
 
-[node name="GoldLabel" type="Label" parent="HBoxContainer/PanelContainer"]
+[node name="GoldLabel" type="Label" parent="BottomArea/HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Gold: 0"
 
-[node name="HealthBar" type="ProgressBar" parent="HBoxContainer/PanelContainer"]
+[node name="HealthBar" type="ProgressBar" parent="BottomArea/HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(450, 50)
 layout_mode = 2
@@ -62,7 +74,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_e0nu8")
 value = 75.0
 show_percentage = false
 
-[node name="ManaBar" type="ProgressBar" parent="HBoxContainer/PanelContainer"]
+[node name="ManaBar" type="ProgressBar" parent="BottomArea/HBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(450, 24)
 layout_mode = 2
@@ -73,42 +85,42 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_mana")
 value = 75.0
 show_percentage = false
 
-[node name="Spacer" type="Control" parent="HBoxContainer"]
+[node name="Spacer" type="Control" parent="BottomArea/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer"]
+[node name="ActionHBox" type="HBoxContainer" parent="BottomArea/HBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 8
 theme_override_constants/separation = 16
 
-[node name="MainHandActionPanel" parent="HBoxContainer/HBoxContainer" instance=ExtResource("4_hand_panel")]
+[node name="MainHandActionPanel" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("4_hand_panel")]
 layout_mode = 2
 Hand = 256
 
-[node name="OffHandActionPanel" parent="HBoxContainer/HBoxContainer" instance=ExtResource("4_hand_panel")]
+[node name="OffHandActionPanel" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("4_hand_panel")]
 layout_mode = 2
 Hand = 512
 
-[node name="Spacer" type="Control" parent="HBoxContainer/HBoxContainer"]
+[node name="Spacer" type="Control" parent="BottomArea/HBoxContainer/ActionHBox"]
 custom_minimum_size = Vector2(16, 0)
 layout_mode = 2
 
-[node name="ActionContainer1" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="ActionContainer1" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 ActionBinding = "quick_item_1"
 
-[node name="ActionContainer2" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="ActionContainer2" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 1
 ActionBinding = "quick_item_2"
 
-[node name="ActionContainer3" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="ActionContainer3" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 2
 ActionBinding = "quick_item_3"
 
-[node name="ActionContainer4" parent="HBoxContainer/HBoxContainer" instance=ExtResource("2_kicr4")]
+[node name="ActionContainer4" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
 layout_mode = 2
 Slot = 3
 ActionBinding = "quick_item_4"
@@ -133,3 +145,6 @@ show_percentage = false
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
+
+[node name="GameNarrator" type="Node" parent="."]
+script = ExtResource("6_narrator")

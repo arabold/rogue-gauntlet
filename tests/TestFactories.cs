@@ -9,7 +9,7 @@ using GdUnit4;
 /// <summary>
 /// Shared factory, scene-runner, and scene-tree setups for tests.
 /// </summary>
-public static class TestFactories
+public static partial class TestFactories
 {
 	/// <summary>
 	/// Load a scene for a runtime test; the caller owns (and may dispose) the runner. Suites share one engine and
@@ -323,5 +323,48 @@ public static class TestFactories
 	public static void RevealTileAt(FloorDiscovery discovery, MapData map, Vector3 point)
 	{
 		discovery.RevealTiles([map.WorldToTile(point)]);
+	}
+
+	public sealed partial class TestConsumableItem : ConsumableItem
+	{
+		public TestConsumableItem(string typeId, string name, string animationId = "")
+		{
+			TypeId = typeId;
+			Name = name;
+			AnimationId = animationId;
+		}
+	}
+
+	public sealed partial class TestScroll : Scroll
+	{
+		public TestScroll(string name)
+		{
+			Name = name;
+		}
+	}
+
+	public sealed partial class TestEquipableItem : EquipableItem
+	{
+		public TestEquipableItem(string name, ValidSlots validSlots = default)
+		{
+			Name = name;
+			ValidSlots = validSlots;
+		}
+	}
+
+	public sealed partial class TestGold : Gold
+	{
+		public TestGold(string name = "Gold")
+		{
+			Name = name;
+		}
+	}
+
+	public sealed partial class TestItem : Item
+	{
+		public TestItem(string name)
+		{
+			Name = name;
+		}
 	}
 }
