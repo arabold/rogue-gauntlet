@@ -2,7 +2,7 @@ using Godot;
 using Godot.Collections;
 
 /// <summary>
-/// A timed or permanent effect applied to the player. A plain <see cref="Buff"/> with only a
+/// A timed or permanent effect applied to an actor. A plain <see cref="Buff"/> with only a
 /// <see cref="Condition"/> is a status with no behavior of its own, such as blindness or confusion:
 /// the systems that care react to the condition. Subclasses add behavior with a magnitude on apply,
 /// tick or removal (healing, poison, stat modifiers, game speed).
@@ -24,6 +24,11 @@ public partial class Buff : Resource
     /// Conditions this buff ends when applied, e.g. healing curing blindness as in Rogue.
     /// </summary>
     [Export] public Array<StatusCondition> CuredConditions { get; set; } = [];
+	/// <summary>Whether a repeated application with the same key refreshes the current activation or creates another.</summary>
+	[Export] public BuffStacking Stacking { get; set; }
+
+	/// <summary>Rejects targets that do not provide the capabilities required by this effect.</summary>
+	public virtual bool CanApplyTo(IBuffTarget target) => target?.Health?.IsDead != true;
 
     /// <summary>
     /// Starts the effect for one <paramref name="activation"/>. A buff is a shared definition that can be active

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_movement.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_retreat.tres" id="retreat"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_attack.tres" id="bite"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_rush.tres" id="rush"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyActionChoiceProfile.cs" id="choice_script"]
+
+[sub_resource type="Resource" id="bite_choice"]
+script = ExtResource("choice_script")
+Action = ExtResource("bite")
+Weight = 1.0
+
+[sub_resource type="Resource" id="rush_choice"]
+script = ExtResource("choice_script")
+Action = ExtResource("rush")
+Weight = 0.45
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+RetreatCondition = ExtResource("retreat")
+ApproachAction = ExtResource("bite")
+Actions = [SubResource("bite_choice"), SubResource("rush_choice")]

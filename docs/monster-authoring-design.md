@@ -1,6 +1,6 @@
 # Monster design and authoring
 
-The active roster is Skeleton Minion, Skeleton Warrior, Skeleton Crossbowman, Plague Rat and Forsaken Warden. See the [gameplay monster catalog](monster-catalog/README.md) for definitions, the [Asset Studio character catalog](../asset-studio/catalogs/characters/README.md) for published art and previews, and the [level system](level-design.md#first-realm-encounter-prototype) for encounter integration. The priority remains enjoyable depths 1–3; later realm order and additional monsters are provisional.
+The active roster is Skeleton Minion, Skeleton Warrior, Skeleton Crossbowman, Skeleton Mage, Plague Rat and Forsaken Warden. See the [gameplay monster catalog](monster-catalog/README.md) for definitions, the [Asset Studio character catalog](../asset-studio/catalogs/characters/README.md) for published art and previews, and the [level system](level-design.md#first-realm-encounter-prototype) for encounter integration. The priority remains enjoyable depths 1–3; later realm order and additional monsters are provisional.
 
 ## Authoring ownership
 
@@ -28,11 +28,17 @@ Components execute capabilities; strategies request them; the [shared action gat
 | Policy | Supported behavior |
 | --- | --- |
 | Movement | Close distance, engagement ring (wait for an attack slot around the player), maintain distance, attack then retreat |
-| Attack | One melee or clear-sight projectile attack using one visible weapon/natural attack |
+| Actions | Multiple weighted melee, projectile, spell and rush actions, each with its own eligibility and cooldown |
 | Defense | One categorical guard/dodge/no-response choice per observed threat |
 | Low-health override | Optional retreat with duration bounds and health hysteresis |
 
-Crossbowmen never silently switch to melee. A blocked or unavailable shot repositions; it cannot fire through walls. Rat attack-then-retreat starts only after normal completion of its accepted bite, not a rejected or interrupted attack. Ordinary retreat has no dodge immunity.
+Each `EnemyCombatProfile` chooses an action from its eligible weighted choices. Cooldowns and repeat bias live on the actor, while immutable action Resources can be reused by profiles and phases. Approach actions point to an available offensive choice. Crossbowmen never silently switch to melee: a blocked or unavailable shot repositions and cannot fire through walls. Rat attack-then-retreat starts only after normal completion of its accepted bite, not a rejected or interrupted action. Ordinary retreat has no dodge immunity.
+
+`EnemyBehaviorProfile` holds the base combat profile and up to two descending health thresholds, for no more than three boss phases. A phase switches combat weights and policies on the existing behavior owner; it preserves the actor's awareness, action cooldowns and current execution. The Forsaken Warden uses thresholds at 65% and 30% health. He can keep his broad sweep, add a more dangerous overhead swing, and use a pressure-triggered stomp that pushes the player and gives a brief ground impact and camera shake. Phase weights change the mix without removing the earlier attacks.
+
+`EnemyAttackProfile`, `EnemySpellProfile` and `EnemyRushProfile` all use the existing `AttackController`, `SpellCaster` and `MovementComponent`. Rush timing uses the shared action gate and animation profile; navigation checks the movement path before starting. A rush is movement only, so the monster can take an ordinary attack opportunity after it finishes. The Skeleton Mage keeps distance while choosing fireball, ally regeneration, self healing and Rage. Monster spells reference the same `SpellDefinition` and effects used by player sources; `MonsterDefinition` supplies the mage's mana pool and regeneration.
+
+The Plague Rat's bite has a 35% chance to apply `rat_venom.tres` after a direct hit damages a surviving target. Venom and poison share the same actor-neutral periodic buff. Reapplying the same definition refreshes one activation; a blocked, dodged, absorbed or lethal hit does not apply it. See [status conditions and poison](stats-and-itemization.md#buffs-and-status-conditions) and [contact resolution](combat-system.md#contact-resolution).
 
 The tactical policy bounds each retreat opportunity, delays retries and can require an intervening accepted shot attempt before retreating again. Point-blank pressure favors fighting; blocked escape yields to an eligible shot or approach. No rule guarantees safety or bypasses committed attacks, defenses, doorway crossings or collision. Low-health retreat cannot rearm repeatedly while the actor remains injured.
 
@@ -42,7 +48,7 @@ Assign `AttackController.ActionGate` to the actor's gate; validation reports a m
 
 Hit reactions come from an optional `PoiseComponent` assigned to the hurtbox and bound to the actor's gate. Leave it empty for actors that every hit should interrupt (the rat). Validation reports a foreign or unbound component, an invalid definition, and a floating bar showing another actor's meter. Melee attacks author a facing lock lead within the wind-up and a wind-up turn rate, so slow turners such as the Warden can be sidestepped. See [poise](combat-system.md#poise-and-hit-reactions).
 
-Group shelter, cover search, weapon switching, multiple attacks per monster and boss phases remain deferred.
+Group shelter, cover search, weapon switching and cinematic boss transitions remain deferred.
 
 ## Awareness and pursuit
 

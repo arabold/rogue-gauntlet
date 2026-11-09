@@ -33,15 +33,24 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 			&& ReferenceEquals(player.Inventory?.EquippedWeapon, _focus)
 			&& player.SpellCaster?.IsBoundTo(_focus) == true && player.SpellCaster.Current.LevelCount >= _focus.SpellLevel
 			&& player.ManaComponent?.CheckCost(ManaCost) == true
-			&& player.AttackController.TryPrepareAttack(Spell.Cast, _focus.AttackStyle, 0, out attack);
+			&& Prepare(player, out attack);
+	}
+
+	private bool Prepare(Player player, out PreparedAttack attack)
+	{
+		attack = null;
+		if (!player.AttackController.TryPrepareAttack(Spell.Cast, _focus.AttackStyle, 0, out attack)) return false;
+		var power = new SpellPower(_focus.SpellLevel, player.Stats.ResolveAttack(_focus));
+		var context = new SpellCastContext(player, null, SpellTargetIntent.Hostile, power);
+		if (!player.SpellCaster.TryPrepare(Spell, _focus, in context, out var release)) { attack = null; return false; }
+		attack = attack with { Spell = release };
+		return true;
 	}
 
 	/// <summary>Captures the focus's hit as the spell's power, starts the cast, then spends its mana.</summary>
 	public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default)
 	{
-		var power = new SpellPower(_focus.SpellLevel, player.Stats.ResolveAttack(_focus));
-		var cast = attack with { Spell = new SpellRelease(player.SpellCaster.Current, power) };
-		if (!player.AttackController.StartPreparedSpellCast(cast, _focus, lease)) return false;
+		if (!player.AttackController.StartPreparedSpellCast(attack, _focus, lease)) return false;
 		// Preparation checked the cost and nothing else spends mana, so this cannot fail.
 		player.ManaComponent.TrySpend(ManaCost);
 		return true;

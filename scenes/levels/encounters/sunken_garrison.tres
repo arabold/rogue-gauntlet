@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
 [ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
@@ -37,12 +37,20 @@ Weight = 3
 MinimumDepth = 2
 MaximumDepth = 3
 
+[sub_resource type="Resource" id="mage"]
+script = ExtResource("entry")
+ScenePath = "res://scenes/enemies/skeleton/skeleton_mage.tscn"
+Threat = 4
+Weight = 1
+MinimumDepth = 2
+MaximumDepth = 3
+
 [resource]
 script = ExtResource("factory")
 RealmName = "The Sunken Garrison"
 FirstDepth = 1
 FloorBudgets = PackedInt32Array(12, 20, 16)
-Entries = [SubResource("minion"), SubResource("warrior"), SubResource("crossbow"), SubResource("rat")]
+Entries = [SubResource("minion"), SubResource("warrior"), SubResource("crossbow"), SubResource("rat"), SubResource("mage")]
 Fallback = ExtResource("fallback")
 NestScene = ExtResource("nest")
 GatekeeperScene = ExtResource("boss")

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="OnHitStatusProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/OnHitStatusProfile.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/buffs/rat_venom.tres" id="venom"]
+
+[resource]
+script = ExtResource("script")
+Effect = ExtResource("venom")
+Chance = 0.35

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="EnemyAttackProfile" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyAttackProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/forsaken_warden_stomp.tres" id="contact"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_ground_impact.tres" id="ground_impact"]
+
+[sub_resource type="Resource" id="stomp"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("contact")
+GroundImpact = ExtResource("ground_impact")
+DefenseTraits = 1
+ForcePushback = true
+PoiseDamage = 24.0
+Knockback = 9.0
+HitStopDuration = 0.07
+WindUpTurnRate = 30.0
+
+[resource]
+script = ExtResource("profile")
+Cooldown = 8.0
+MaximumDistance = 3.9
+MaximumStartAngle = 180.0
+ClosePressureDuration = 0.85
+ClosePressureRange = 2.4
+SlotKind = 0
+RiposteEligible = false
+Attack = SubResource("stomp")
+Style = &"stomp"
+Duration = 2.65
+MinDamage = 18.0
+MaxDamage = 27.0

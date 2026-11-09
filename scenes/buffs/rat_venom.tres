@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PoisonBuff" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/buffs/PoisonBuff.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+Name = "Rat Venom"
+Duration = 4.0
+Stacking = 1
+TicksPerSecond = 1.0
+DamagePointsPerTick = 1

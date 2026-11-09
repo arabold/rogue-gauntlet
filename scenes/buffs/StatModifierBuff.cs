@@ -17,13 +17,16 @@ public partial class StatModifierBuff : Buff
 
 	public override void OnApply(ActiveBuff activation)
 	{
-		activation.Player.Stats.AddModifiers(activation, Modifiers);
+		activation.Target.Modifiers?.AddModifiers(activation, Modifiers);
 	}
 
 	public override void OnRemove(ActiveBuff activation)
 	{
-		activation.Player.Stats.RemoveModifiersFrom(activation);
+		activation.Target.Modifiers?.RemoveModifiersFrom(activation);
 	}
+
+	public override bool CanApplyTo(IBuffTarget target) => base.CanApplyTo(target)
+		&& target?.Modifiers != null && target.Modifiers.SupportsModifiers(Modifiers);
 
 	/// <summary>Authoring problems: a stat buff needs at least one modifier, and every modifier must change its stat.</summary>
 	public string[] Validate()
@@ -33,6 +36,7 @@ public partial class StatModifierBuff : Buff
 		foreach (StatModifier modifier in Modifiers ?? [])
 		{
 			if (modifier == null) { problems.Add($"{Name} has an empty modifier slot."); }
+			else if (!System.Enum.IsDefined(modifier.Stat) || !System.Enum.IsDefined(modifier.Op)) { problems.Add($"{Name} has an invalid modifier entry."); }
 			else if (modifier.Value == 0f) { problems.Add($"{Name} modifies {modifier.Stat} by 0."); }
 		}
 		return problems.ToArray();

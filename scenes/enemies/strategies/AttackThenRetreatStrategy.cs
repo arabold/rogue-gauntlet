@@ -14,7 +14,7 @@ public partial class AttackThenRetreatStrategy : EnemyMovementStrategy
 			RetreatDistance, MaximumRetreatDuration, ReengagementDelay);
 		if (phase == EnemyRetreatPhase.Retreat) return new(EnemyMovementGoal.Retreat, false, RetreatDistance);
 		if (phase == EnemyRetreatPhase.Wait) return new(EnemyMovementGoal.Hold, false);
-		return context.Profile.AttackStrategy.CanAttack(context)
+		return context.CanUseApproachAction()
 			? new(EnemyMovementGoal.Hold, true) : new(EnemyMovementGoal.Approach, false);
 	}
 }

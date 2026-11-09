@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="BossPhaseProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/BossPhaseProfile.cs" id="profile"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_phase_30_combat.tres" id="combat"]
+
+[resource]
+script = ExtResource("profile")
+EnterHealthFraction = 0.3
+Combat = ExtResource("combat")

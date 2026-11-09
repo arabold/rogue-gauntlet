@@ -23,7 +23,7 @@ public partial class ActiveBuffTest
 
 		public override void OnApply(ActiveBuff activation) => ApplyCount++;
 		public override void OnRemove(ActiveBuff activation) => RemoveCount++;
-		public override void OnTick(Player player) => TickCount++;
+		public override void OnTick(IBuffTarget target) => TickCount++;
 	}
 
 	[TestCase]

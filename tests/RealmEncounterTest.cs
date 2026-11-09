@@ -125,10 +125,11 @@ public class RealmEncounterTest
 		AssertBool(animation.TryResolve("ranged", out var playback)).IsTrue();
 		AssertString(playback.Clip.ToString()).IsEqual("1H_Ranged_Shoot");
 		var behavior = actor.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").Profile;
-		AssertBool(behavior.AttackStrategy.Attack.IsRanged).IsTrue();
-		AssertObject(behavior.AttackStrategy.Attack.ProjectileScene).IsNotNull();
+		var action = (EnemyAttackProfile)behavior.Combat.ApproachAction;
+		AssertBool(action.Attack.IsRanged).IsTrue();
+		AssertObject(action.Attack.ProjectileScene).IsNotNull();
 		var controller = actor.GetNode<AttackController>("AttackController");
-		AssertFloat(behavior.AttackStrategy.Attack.ProjectileAimLockDuration).IsGreater(0);
+		AssertFloat(action.Attack.ProjectileAimLockDuration).IsGreater(0);
 		// The shot locks onto a target before release, so place a player-group target straight ahead within range.
 		var shooter = (Node3D)actor;
 		Vector3 forward = (-shooter.GlobalTransform.Basis.Z with { Y = 0 }).Normalized();
@@ -136,7 +137,7 @@ public class RealmEncounterTest
 		target.AddToGroup("player");
 		shooter.GetParent().AddChild(target);
 		target.GlobalPosition = shooter.GlobalPosition + forward * 6;
-		AssertBool(controller.TryPrepareAttack(behavior.AttackStrategy.Attack, "ranged", 1, out var attack)).IsTrue();
+		AssertBool(controller.TryPrepareAttack(action.Attack, action.Style, action.Duration, out var attack)).IsTrue();
 		AssertBool(controller.StartAttack(attack, new AttackStats(3, 6, 0), 4)).IsTrue();
 		Node projectileParent = actor.GetTree().CurrentScene ?? actor.GetParent();
 		var before = projectileParent.GetChildren().OfType<Projectile>().ToHashSet();

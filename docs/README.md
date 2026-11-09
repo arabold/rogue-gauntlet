@@ -24,16 +24,16 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Coverage |
 | --- | --- |
-| [Monster design and authoring](monster-authoring-design.md) | Implemented five-monster roster, definitions and tactical policies; editable melee/projectile assemblies and editor validation |
+| [Monster design and authoring](monster-authoring-design.md) | Six-monster roster, weighted multi-action profiles, boss phases, movement-owned rush, shared monster spells and authoring |
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
 | [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, room-owned secret doors, discovery and saved access state |
 | [Level design](level-design.md) | Procedural layouts, assembled rooms with room-owned doorways, realm tags, inward-facing corridor styling, sunken water pools and basins, reachability, monster navigation, fog of war, encounters and light flicker |
-| [Stats and itemization](stats-and-itemization.md) | Attributes, modifiers, equipment tiers, loot rolls, and enchantment |
+| [Stats and itemization](stats-and-itemization.md) | Actor-neutral buffs/statuses, venom/poison, attributes, modifiers, equipment tiers, loot rolls and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
-| [Weapon attacks](weapon-attack-system.md) | Existing weapon and attack behavior |
-| [Combat actions and defense](combat-system.md) | Shared action ownership and execution, hit feedback, attack indicators, dodge, guard/parry/guard break, poise and hit reactions, threat tiers, attack slots, RNG and persistence |
+| [Weapon attacks](weapon-attack-system.md) | Shared player/monster spell definitions, attack payloads and weapon execution |
+| [Combat actions and defense](combat-system.md) | Shared action ownership and execution, movement rushes, hit feedback, attack indicators, dodge, guard/parry/guard break, poise, on-hit statuses, threat tiers, attack slots, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Passive movable target, discovered production monster scenes, component settings, interactive/scripted combat, JSONL schema and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
 | [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed item auras (in-world, equipped, dropped and in inventory previews), glowing weapons with flicker lights, fountain pool sparkles and the workbench |
@@ -51,11 +51,8 @@ These documents explain code that exists today. Any proposed extension or future
 | [Elemental spells and effects](specs/elemental-spells-plan.md) | All 20 spells authored at 5 levels; targeting, guard rules, visual direction and playtest acceptance remain |
 | [Magic missile](specs/magic-missile-plan.md) | Free wand/staff primary as a homing seeker volley for all elements; flight contract and playable missile landed, finished look and acceptance remain |
 | [Potion and scroll feedback](specs/consumable-feedback-plan.md) | Proposed unique activation signature for all 20 potion/scroll types, with world and screen channels and catalog coverage checks |
-| [Shared spell activation](specs/shared-spell-activation-plan.md) | Proposed one effect library through existing SpellCaster/item-use owners; shared buffs and unchanged spell-pool identities |
-| [Monster actions and boss phases](specs/monster-actions-and-boss-phases-plan.md) | Proposed multiple actions, up to three boss phases, Warden overhead/stomp, rush/casting, self/ally healing, empowerment and poison |
-| [Combat redesign](specs/combat-redesign-plan.md) | Guard walking and open tuning risks; Warden multi-attack delivery is owned by the monster actions plan |
+| [Combat redesign](specs/combat-redesign-plan.md) | Guard walking and open tuning risks; Warden attacks and phases are implemented in monster authoring |
 | [Off-hand weapons](specs/off-hand-weapons-plan.md) | Two alternatives for off-hand weapons: a passive off-hand damage bonus, or animated dual-wield with an off-hand action replacing the guard input (blocked on a left-hand attack clip) |
-| [Attack status effects](specs/attack-status-effects-plan.md) | Proposed shared poison/venom payloads, actor-neutral periodic buffs, refresh/save contracts and later monster presentation |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.

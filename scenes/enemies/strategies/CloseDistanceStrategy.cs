@@ -8,6 +8,6 @@ using Godot;
 public partial class CloseDistanceStrategy : EnemyMovementStrategy
 {
 	public override EnemyMovementIntent Evaluate(EnemyContext context) =>
-		context.Profile.AttackStrategy?.CanAttack(context) == true
+		context.CanUseApproachAction()
 			? new(EnemyMovementGoal.Hold, true) : new(EnemyMovementGoal.Approach, false);
 }

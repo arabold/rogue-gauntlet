@@ -1,20 +1,29 @@
-[gd_resource type="Resource" script_class="MeleeAttackStrategy" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyAttackProfile" load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scenes/enemies/strategies/MeleeAttackStrategy.cs" id="policy"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyAttackProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_contact.tres" id="contact"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/rat_venom_on_hit.tres" id="venom"]
+
 [sub_resource type="Resource" id="bite"]
 script = ExtResource("attack")
 MeleeContact = ExtResource("contact")
+OnHitStatuses = [ExtResource("venom")]
 PoiseDamage = 6.0
 HitStopDuration = 0.03
 FacingLockLead = 0.1
 WindUpTurnRate = 720.0
 
 [resource]
-script = ExtResource("policy")
+script = ExtResource("profile")
+Priority = 0
+Cooldown = 1.1
+MaximumDistance = 1.4
+MaximumStartAngle = 180.0
+SlotKind = 1
+RiposteEligible = true
 Attack = SubResource("bite")
-EngagementDistance = 1.4
+Style = &"melee"
+Duration = 0.8
 MinDamage = 2.0
 MaxDamage = 4.0
-Duration = 0.8

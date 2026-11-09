@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>The source of horizontal motion selected for the latest physics step.</summary>
-public enum MovementMotionKind { None, Locomotion, Override, Push, Lunge }
+public enum MovementMotionKind { None, Locomotion, Override, Push, Lunge, Rush }
 
 [GlobalClass]
 public partial class MovementComponent : Node
 {
+	[Signal] public delegate void RushFinishedEventHandler(ulong sourceInstanceId, ulong sequence, bool interrupted);
 	/// <summary>
 	/// The actor that will be moved by this component.
 	/// </summary>
@@ -71,12 +72,14 @@ public partial class MovementComponent : Node
 	private float _blockedDuration = 0.15f;
 	private bool _isMoving;
 
-	public bool IsMoving => _isMoving;
+	public bool IsMoving => _isMoving || IsRushing;
 	/// <summary>Collision-resolved horizontal speed from the latest <see cref="CharacterBody3D.MoveAndSlide"/> call.</summary>
 	public float GroundSpeed { get; private set; }
 	/// <summary>Movement source selected before the latest slide, for consumers that distinguish locomotion from actions.</summary>
 	public MovementMotionKind LastMotionKind { get; private set; }
 	public bool IsPushed => _pushStrength > 0.1f;
+	public bool IsRushing => _rushClock.IsRunning;
+	public AttackIdentity RushExecution { get; private set; }
 	/// <summary>Pushed by a knockback that no stagger overlapped; a stagger's pose already shows its own knockback.</summary>
 	public bool IsKnockedBack => IsPushed && !_pushCoveredByStagger;
 	public bool IsFalling => Velocity.Y < 0;
@@ -92,6 +95,16 @@ public partial class MovementComponent : Node
 	private Vector3 _lungeDirection;
 	private float _lungeSpeed;
 	private float _lungeRemaining;
+	private AttackExecution _rushClock = new();
+	private RushProfile _activeRush;
+	private AttackPlayback _rushPlayback;
+	private Vector3 _rushDirection;
+	private float _rushFrameTravel;
+	private bool _rushBlocked;
+	private bool _rushCompletedThisFrame;
+	private StringName _rushClip;
+	private ulong _rushSequence;
+	private ActorActionLease _rushLease;
 	private AttackIdentity _lastLungeExecution;
 	private bool _hasLungedExecution;
 
@@ -119,7 +132,13 @@ public partial class MovementComponent : Node
 		_statusSpeedFactor = 1;
 		foreach (float value in _statusSpeedFactors.Values) _statusSpeedFactor = Mathf.Min(_statusSpeedFactor, value);
 	}
-	public void HaltLocomotion() { _hasOverrideVelocity = false; CancelLunge(); Stop(); }
+	public void HaltLocomotion()
+	{
+		CancelRush();
+		_hasOverrideVelocity = false;
+		CancelLunge();
+		Stop();
+	}
 	public bool HasOverrideVelocity => _hasOverrideVelocity;
 	public float SpeedMultiplier => _speedMultiplier;
 
@@ -129,6 +148,162 @@ public partial class MovementComponent : Node
 		_overrideDirection = direction.Normalized();
 		_overrideSpeed = speed;
 		_hasOverrideVelocity = true;
+	}
+
+	/// <summary>Prepare a phased, collision-resolved rush using the action gate's shared animation and cancellation rules.</summary>
+	public ActorActionRequestResult TryRush(RushProfile profile, Vector3 direction, out AttackIdentity execution)
+	{
+		execution = default;
+		direction.Y = 0;
+		if (IsRushing) return ActorActionRequestResult.Busy;
+		if (profile?.IsValid != true) return ActorActionRequestResult.InvalidDefinition;
+		if (direction.LengthSquared() < 0.0001f) return ActorActionRequestResult.NoDirection;
+		if (!GodotObject.IsInstanceValid(Actor) || !GodotObject.IsInstanceValid(ActionGate)) return ActorActionRequestResult.Unavailable;
+		var animation = ActionGate.AnimationComponent;
+		if (!GodotObject.IsInstanceValid(animation) || !animation.TryResolve(profile.Style, out var playback))
+			return ActorActionRequestResult.Unavailable;
+		StringName recoveryClip = ActionGate.AnimationProfile?.RecoveryClip ?? "";
+		if (profile.RecoveryDuration > 0 && !animation.HasClip(recoveryClip)) return ActorActionRequestResult.Unavailable;
+		float totalDuration = profile.WindUpDuration + profile.TravelDuration + profile.RecoveryDuration;
+		_rushClock.Finish();
+		if (!_rushClock.TryStart(totalDuration, profile.WindUpDuration, profile.WindUpDuration + profile.TravelDuration))
+			return ActorActionRequestResult.InvalidDefinition;
+		ActorActionPhase initialPhase = profile.WindUpDuration > 0 ? ActorActionPhase.WindUp : ActorActionPhase.Active;
+		ActorActionLease lease = ActorActionLease.None;
+		var result = ActionGate.TryAcquire(ActorActionKind.Rush, initialPhase,
+			_ => OnRushInterrupted(lease), out lease);
+		if (result != ActorActionRequestResult.Success)
+		{
+			_rushClock.Finish();
+			return result;
+		}
+		_activeRush = (RushProfile)profile.Duplicate(true);
+		_rushPlayback = playback;
+		_rushLease = lease;
+		RushExecution = new AttackIdentity(GetInstanceId(), ++_rushSequence);
+		execution = RushExecution;
+		_rushDirection = direction.Normalized();
+		_rushBlocked = false;
+		_rushFrameTravel = 0;
+		_rushCompletedThisFrame = false;
+		CancelLunge();
+		SetInputDirection(Vector3.Zero);
+		_fixedFacing = _rushDirection;
+		_locomotionOverrideOwner = this;
+		if (_activeRush.WindUpDuration > 0)
+		{
+			StringName clip = playback.WindUpClipLength > 0 ? playback.WindUpClip : playback.Clip;
+			if (!animation.BeginPose(this, clip, 0.08f))
+			{
+				EndRush(RushExecution, interrupted: true, releaseGate: true);
+				execution = default;
+				return ActorActionRequestResult.Unavailable;
+			}
+			_rushClip = clip;
+		}
+		else if (!animation.BeginPose(this, playback.Clip, 0.08f))
+		{
+			EndRush(RushExecution, interrupted: true, releaseGate: true);
+			execution = default;
+			return ActorActionRequestResult.Unavailable;
+		}
+		else _rushClip = playback.Clip;
+		SampleRushPose();
+		return ActorActionRequestResult.Success;
+	}
+
+	/// <summary>Update only the wind-up aim; travel keeps the last captured horizontal heading.</summary>
+	public bool UpdateRushDirection(AttackIdentity execution, Vector3 direction)
+	{
+		if (!IsRushing || execution == default || execution != RushExecution
+			|| _rushClock.Phase != ActorActionPhase.WindUp
+			|| !direction.TryNormalizeHorizontal(out var heading)) return false;
+		_rushDirection = heading;
+		_fixedFacing = heading;
+		return true;
+	}
+
+	/// <summary>Stop the current rush; hit reactions and explicit cancellation release its action lease.</summary>
+	public void CancelRush() => EndRush(RushExecution, interrupted: true, releaseGate: true);
+
+	private void OnRushInterrupted(ActorActionLease lease)
+	{
+		if (lease == _rushLease) EndRush(RushExecution, interrupted: true, releaseGate: false);
+	}
+
+	private void EndRush(AttackIdentity execution, bool interrupted, bool releaseGate)
+	{
+		if (!IsRushing || execution == default || execution != RushExecution) return;
+		var identity = RushExecution;
+		var lease = _rushLease;
+		_rushClock.Finish();
+		_activeRush = null;
+		_rushPlayback = null;
+		_rushDirection = Vector3.Zero;
+		_rushFrameTravel = 0;
+		_rushBlocked = false;
+		_rushCompletedThisFrame = false;
+		_rushClip = "";
+		_rushLease = ActorActionLease.None;
+		RushExecution = default;
+		ActionGate?.AnimationComponent?.EndPose(this);
+		if (_locomotionOverrideOwner == this) ClearLocomotionOverride(this);
+		if (releaseGate && ActionGate?.IsLeaseCurrent(lease) == true) ActionGate.Release(lease);
+		EmitSignalRushFinished(identity.SourceInstanceId, identity.Sequence, interrupted);
+	}
+
+	private void AdvanceRush(double delta)
+	{
+		_rushFrameTravel = 0;
+		_rushCompletedThisFrame = false;
+		if (!IsRushing) return;
+		if (ActionGate == null || !ActionGate.IsLeaseCurrent(_rushLease) || ActionGate.Disabled || ActionGate.IsStatusLocked
+			|| _pushStrength > 0.1f || ActionGate.IsStaggered)
+		{
+			EndRush(RushExecution, interrupted: true, releaseGate: true);
+			return;
+		}
+		var step = _rushClock.Advance((float)delta);
+		ActionGate.ReportPhase(_rushLease, step.Phase);
+		SampleRushPose();
+		float travelStart = _activeRush.WindUpDuration;
+		float travelEnd = travelStart + _activeRush.TravelDuration;
+		float travelDelta = Mathf.Max(0, Mathf.Min(step.CurrentTime, travelEnd) - Mathf.Max(step.PreviousTime, travelStart));
+		if (!_rushBlocked) _rushFrameTravel = Mathf.Min(travelDelta, (float)delta);
+		_rushCompletedThisFrame = step.Completed;
+	}
+
+	private void SampleRushPose()
+	{
+		if (!IsRushing || _activeRush == null || _rushPlayback == null) return;
+		var animation = ActionGate?.AnimationComponent;
+		if (!GodotObject.IsInstanceValid(animation)) return;
+		float elapsed = _rushClock.Elapsed;
+		StringName clip;
+		double sample;
+		if (elapsed < _activeRush.WindUpDuration)
+		{
+			clip = _rushPlayback.WindUpClipLength > 0 ? _rushPlayback.WindUpClip : _rushPlayback.Clip;
+			sample = _rushPlayback.WindUpClipLength > 0
+				? elapsed / _activeRush.WindUpDuration * _rushPlayback.WindUpClipLength : 0;
+		}
+		else if (elapsed < _activeRush.WindUpDuration + _activeRush.TravelDuration)
+		{
+			clip = _rushPlayback.Clip;
+			sample = (elapsed - _activeRush.WindUpDuration) / _activeRush.TravelDuration * animation.PoseLength(this);
+		}
+		else if (_activeRush.RecoveryDuration > 0)
+		{
+			clip = ActionGate.AnimationProfile?.RecoveryClip ?? "";
+			sample = elapsed - _activeRush.WindUpDuration - _activeRush.TravelDuration;
+		}
+		else
+		{
+			clip = _rushPlayback.Clip;
+			sample = _rushPlayback.ClipLength;
+		}
+		if (_rushClip != clip && animation.BeginPose(this, clip, 0.08f)) _rushClip = clip;
+		animation.SamplePose(this, sample);
 	}
 
 	/// <summary>Apply a short, collision-resolved forward movement once for a successful melee execution.</summary>
@@ -199,6 +374,8 @@ public partial class MovementComponent : Node
 		LookAtDirection = -Actor.GlobalTransform.Basis.Z;
 	}
 
+	public override void _ExitTree() => CancelRush();
+
 	public void Push(Vector3 direction, float strength)
 	{
 		SetPush(direction, strength, false);
@@ -212,6 +389,7 @@ public partial class MovementComponent : Node
 
 	private void SetPush(Vector3 direction, float strength, bool bypassStatusLock)
 	{
+		CancelRush();
 		CancelLunge();
 		_pushDirection = direction.Normalized();
 		_pushStrength = strength;
@@ -270,6 +448,7 @@ public partial class MovementComponent : Node
 		_pushStrength = 0;
 		_forcePushWhileLocked = false;
 		CancelLunge();
+		CancelRush();
 		_locomotionOverrideOwner = null;
 		_hasOverrideVelocity = false;
 		_speedMultiplier = 1;
@@ -295,11 +474,21 @@ public partial class MovementComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
+		AdvanceRush(delta);
 		UpdateVelocity(delta);
 		if (ActionGate?.IsStatusLocked != true) SmoothRotateToward(delta);
 		MoveAndSlideActor();
 		_lungeRemaining = Mathf.Max(0, _lungeRemaining - (float)delta);
 		if (_lungeRemaining == 0) _lungeSpeed = 0;
+		if (IsRushing && LastMotionKind == MovementMotionKind.Rush && _rushFrameTravel > 0 && delta > 0
+			&& Actor.GetSlideCollisionCount() > 0)
+		{
+			Vector3 actual = Actor.GetRealVelocity();
+			float actualForwardSpeed = new Vector2(actual.X, actual.Z).Dot(new Vector2(_rushDirection.X, _rushDirection.Z));
+			float expectedForwardSpeed = _activeRush.Distance / _activeRush.TravelDuration * _rushFrameTravel / (float)delta;
+			if (actualForwardSpeed + 0.05f < expectedForwardSpeed * 0.85f) _rushBlocked = true;
+		}
+		if (_rushCompletedThisFrame) EndRush(RushExecution, interrupted: false, releaseGate: true);
 		UpdateIsMoving(delta);
 	}
 
@@ -370,6 +559,13 @@ public partial class MovementComponent : Node
 			if (ActionGate?.IsStaggered == true) _pushCoveredByStagger = true;
 			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
 			if (_pushStrength <= 0.1f) _forcePushWhileLocked = false;
+		}
+		else if (IsRushing)
+		{
+			LastMotionKind = MovementMotionKind.Rush;
+			float travelSpeed = delta > 0 && _activeRush != null
+				? _activeRush.Distance / _activeRush.TravelDuration * _rushFrameTravel / (float)delta : 0;
+			velocity = _rushDirection * travelSpeed;
 		}
 		else if (ActionGate?.IsStatusLocked == true || ActionGate?.IsStaggered == true)
 		{

@@ -6,11 +6,11 @@ public partial class HealingBuff : PeriodicBuff
 {
 	[Export] public int HealthPointsPerTick = 0;
 
-	public override void OnTick(Player player)
+	public override void OnTick(IBuffTarget target)
 	{
-		if (HealthPointsPerTick != 0)
+		if (HealthPointsPerTick > 0 && target?.Health != null)
 		{
-			player.Heal(HealthPointsPerTick);
+			target.Health.Heal(HealthPointsPerTick);
 		}
 	}
 }

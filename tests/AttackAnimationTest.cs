@@ -55,9 +55,11 @@ public class AttackAnimationTest
 				if (actor is not EnemyBase enemy || enemy.Definition == null) continue;
 				count++;
 				var component = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
-				var policy = enemy.Definition.Behavior.AttackStrategy;
-				AssertBool(component.TryResolve(policy.Style, out _)).OverrideFailureMessage(path + " " + policy.Style).IsTrue();
-				if (policy is ProjectileAttackStrategy) AssertBool(component.TryResolve("melee", out _)).IsFalse();
+				var attacks = enemy.Definition.Behavior.Combat.Actions.Select(choice => choice.Action).OfType<EnemyAttackProfile>().ToArray();
+				foreach (var attack in attacks)
+					AssertBool(component.TryResolve(attack.Style, out _)).OverrideFailureMessage(path + " " + attack.Style).IsTrue();
+				if (attacks.Length > 0 && attacks.All(attack => attack.Attack.IsRanged))
+					AssertBool(component.TryResolve("melee", out _)).IsFalse();
 			}
 			finally { actor.Free(); }
 		}

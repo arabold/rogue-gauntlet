@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SpellDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/SpellDefinition.cs" id="definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/effect_spell.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/magic/shared/rage_scroll_effect.tres" id="effect"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+
+[sub_resource type="Resource" id="cast"]
+script = ExtResource("attack")
+AttackStyle = &"staff.cast"
+HitWindowStart = 0.25
+HitWindowEnd = 0.35
+
+[resource]
+script = ExtResource("definition")
+DisplayName = "Rage"
+ItemTitle = ""
+SpellScene = ExtResource("scene")
+Effect = ExtResource("effect")
+ManaCostByLevel = PackedFloat32Array(5, 5, 5, 5, 5)
+Cast = SubResource("cast")

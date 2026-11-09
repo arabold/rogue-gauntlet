@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="MeleeAttackStrategy" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyAttackProfile" load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://scenes/enemies/strategies/MeleeAttackStrategy.cs" id="policy"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyAttackProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_skeleton_minion.tres" id="contact"]
 
@@ -15,9 +15,13 @@ FacingLockLead = 0.15
 WindUpTurnRate = 360.0
 
 [resource]
-script = ExtResource("policy")
+script = ExtResource("profile")
+Cooldown = 1.2
+MaximumDistance = 2.4
+MaximumStartAngle = 180.0
+SlotKind = 1
 Attack = SubResource("melee")
-EngagementDistance = 2.4
+Style = &"melee"
+Duration = 1.0
 MinDamage = 1.0
 MaxDamage = 5.0
-Duration = 1.0

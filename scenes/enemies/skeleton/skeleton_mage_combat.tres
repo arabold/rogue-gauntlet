@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyActionChoiceProfile.cs" id="choice_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/shooter_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/maintain_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_fireball.tres" id="fireball"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_regenerate.tres" id="regenerate"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_instant_heal.tres" id="instant_heal"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_rage.tres" id="rage"]
+
+[sub_resource type="Resource" id="fireball_choice"]
+script = ExtResource("choice_script")
+Action = ExtResource("fireball")
+Weight = 1.0
+
+[sub_resource type="Resource" id="regenerate_choice"]
+script = ExtResource("choice_script")
+Action = ExtResource("regenerate")
+Weight = 0.8
+
+[sub_resource type="Resource" id="instant_heal_choice"]
+script = ExtResource("choice_script")
+Action = ExtResource("instant_heal")
+Weight = 1.0
+
+[sub_resource type="Resource" id="rage_choice"]
+script = ExtResource("choice_script")
+Action = ExtResource("rage")
+Weight = 0.65
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+ApproachAction = ExtResource("fireball")
+Actions = [SubResource("fireball_choice"), SubResource("regenerate_choice"), SubResource("instant_heal_choice"), SubResource("rage_choice")]

@@ -489,12 +489,13 @@ shape = SubResource("SphereShape3D_liqyg")
 
 [node name="StairsTrigger" parent="." unique_id=1298742994 instance=ExtResource("7_52dmq")]
 
-[node name="HurtBoxComponent" parent="." unique_id=742358720 node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Poise") instance=ExtResource("8_lcxbs")]
+[node name="HurtBoxComponent" parent="." unique_id=742358720 node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Poise", "Buffs") instance=ExtResource("8_lcxbs")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 collision_layer = 4
 HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
 Poise = NodePath("../PoiseComponent")
+Buffs = NodePath("../BuffController")
 HitEffect = ExtResource("9_nunx8")
 ImpactSurface = ExtResource("impact_surface_profile")
 
@@ -523,9 +524,9 @@ player = NodePath("..")
 
 [node name="ActionManager" parent="." unique_id=1729590091 instance=ExtResource("8_ywc1u")]
 
-[node name="BuffController" type="Node" parent="." unique_id=75489622 node_paths=PackedStringArray("Player", "Health")]
+[node name="BuffController" type="Node" parent="." unique_id=75489622 node_paths=PackedStringArray("Actor", "Health")]
 script = ExtResource("12_t4bx0")
-Player = NodePath("..")
+Actor = NodePath("..")
 Health = NodePath("../HealthComponent")
 
 [node name="TimeScaleComponent" type="Node" parent="." unique_id=834617596 node_paths=PackedStringArray("Buffs")]

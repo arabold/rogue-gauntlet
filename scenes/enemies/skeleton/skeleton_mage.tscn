@@ -1,0 +1,223 @@
+[gd_scene load_steps=40 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
+[ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Mage.glb" id="mage_model"]
+
+[ext_resource type="Resource" path="res://scenes/attacks/animation_profiles/skeleton_mage.tres" id="attack_animation_profile"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_definition.tres" id="monster_definition"]
+
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_poise.tres" id="poise_definition"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="stagger_animation"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idauc"]
+animation = &"Death_A_Pose"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_baa1x"]
+animation = &"Death_A"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rjykf"]
+animation = &"Jump_Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_e2sn4"]
+animation = &"Hit_A"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_gv0bc"]
+animation = &"Idle_Combat"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1nhx5"]
+animation = &"Lie_Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_l3c85"]
+animation = &"Spawn_Ground_Skeletons"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_stcgl"]
+animation = &"Lie_StandUp"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_walk_anim"]
+animation = &"Running_A"
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_walk_ts"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_walk"]
+nodes/Animation/node = SubResource("AnimationNodeAnimation_walk_anim")
+nodes/Animation/position = Vector2(0, 0)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_walk_ts")
+nodes/TimeScale/position = Vector2(160, 0)
+nodes/output/position = Vector2(320, 0)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_t6uxn"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsMoving"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_d2noq"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsMoving"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ahwo5"]
+advance_mode = 2
+advance_expression = "IsSleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_jneow"]
+advance_mode = 2
+advance_expression = "!IsSleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3ftaq"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_551pq"]
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_gyync"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_7hibw"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_o4lkd"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bnfo4"]
+advance_mode = 2
+advance_expression = "IsSleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_kf5fr"]
+advance_mode = 2
+advance_expression = "!IsSleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_gclll"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_jplsx"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsFalling"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_viqtb"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsFalling"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_aab00"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsFalling"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_lwwi4"]
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_m1eid"]
+switch_mode = 2
+advance_mode = 2
+advance_expression = "!IsKnockedBack"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_5cn5g"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_mq8v6"]
+states/Dead/node = SubResource("AnimationNodeAnimation_idauc")
+states/Dead/position = Vector2(836.725, 96.4097)
+states/Dying/node = SubResource("AnimationNodeAnimation_baa1x")
+states/Dying/position = Vector2(650.725, 96.4093)
+states/End/position = Vector2(1021, 97.707)
+states/Falling/node = SubResource("AnimationNodeAnimation_rjykf")
+states/Falling/position = Vector2(444.142, 419.077)
+states/Hit/node = SubResource("AnimationNodeAnimation_e2sn4")
+states/Hit/position = Vector2(476.575, 193.933)
+states/Idle/node = SubResource("AnimationNodeAnimation_gv0bc")
+states/Idle/position = Vector2(368.531, 96.6595)
+states/Lie/node = SubResource("AnimationNodeAnimation_1nhx5")
+states/Lie/position = Vector2(266.277, -71.3619)
+states/Spawn/node = SubResource("AnimationNodeAnimation_l3c85")
+states/Spawn/position = Vector2(44.2281, 96.4024)
+states/StandUp/node = SubResource("AnimationNodeAnimation_stcgl")
+states/StandUp/position = Vector2(475.608, -71.7213)
+states/Start/position = Vector2(44, -71.5416)
+states/Walking/node = SubResource("AnimationNodeBlendTree_walk")
+states/Walking/position = Vector2(275.742, 419.298)
+transitions = ["Idle", "Walking", SubResource("AnimationNodeStateMachineTransition_t6uxn"), "Walking", "Idle", SubResource("AnimationNodeStateMachineTransition_d2noq"), "Idle", "Lie", SubResource("AnimationNodeStateMachineTransition_ahwo5"), "Lie", "StandUp", SubResource("AnimationNodeStateMachineTransition_jneow"), "StandUp", "Idle", SubResource("AnimationNodeStateMachineTransition_3ftaq"), "Idle", "Dying", SubResource("AnimationNodeStateMachineTransition_551pq"), "Dying", "Dead", SubResource("AnimationNodeStateMachineTransition_gyync"), "Walking", "Dying", SubResource("AnimationNodeStateMachineTransition_7hibw"), "Walking", "Hit", SubResource("AnimationNodeStateMachineTransition_o4lkd"), "Start", "Lie", SubResource("AnimationNodeStateMachineTransition_bnfo4"), "Start", "Spawn", SubResource("AnimationNodeStateMachineTransition_kf5fr"), "Spawn", "Idle", SubResource("AnimationNodeStateMachineTransition_gclll"), "Walking", "Falling", SubResource("AnimationNodeStateMachineTransition_jplsx"), "Idle", "Falling", SubResource("AnimationNodeStateMachineTransition_viqtb"), "Falling", "Idle", SubResource("AnimationNodeStateMachineTransition_aab00"), "Idle", "Hit", SubResource("AnimationNodeStateMachineTransition_lwwi4"), "Hit", "Idle", SubResource("AnimationNodeStateMachineTransition_m1eid"), "Hit", "Dying", SubResource("AnimationNodeStateMachineTransition_5cn5g")]
+graph_offset = Vector2(-0.209959, 273.549)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fv4r8"]
+radius = 0.75
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_m4sjw"]
+radius = 0.6
+
+[node name="SkeletonMage" instance=ExtResource("1_u7kdf") node_paths=PackedStringArray("ActionGate", "BodyShape")]
+BodyShape = NodePath("CollisionShape3D")
+Definition = ExtResource("monster_definition")
+ActionGate = NodePath("ActorActionGateComponent")
+
+[node name="Skeleton_Mage" parent="Pivot" index="0" instance=ExtResource("mage_model")]
+
+[node name="EnemyBehaviorComponent" parent="." index="1"]
+
+[node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
+root_node = NodePath("../../Pivot/Skeleton_Mage")
+tree_root = SubResource("AnimationNodeStateMachine_mq8v6")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../../Pivot/Skeleton_Mage/AnimationPlayer")
+
+[node name="HealthComponent" parent="." index="4"]
+
+[node name="DeathComponent" parent="." index="5"]
+
+[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../PoiseComponent")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+shape = SubResource("CapsuleShape3D_fv4r8")
+
+[node name="Nameplate" parent="." index="7"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("CapsuleShape3D_m4sjw")
+
+[editable path="Pivot/Skeleton_Mage"]
+
+[node name="CombatAnimationComponent" parent="." index="9"]
+AnimationPlayerPath = NodePath("../Pivot/Skeleton_Mage/AnimationPlayer")
+AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
+Profile = ExtResource("attack_animation_profile")
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("action_gate_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+AnimationProfile = ExtResource("stagger_animation")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
+[node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
+Movement = NodePath("../MovementComponent")
+AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")

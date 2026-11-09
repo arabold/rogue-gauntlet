@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Shared blackboard and service references handed to every <see cref="IEnemyState"/>. It owns the
@@ -28,8 +29,9 @@ public sealed class EnemyContext
 	public PerceptionComponent Perception { get; }
 	public NavigationComponent Navigation { get; }
 	public EnemyBehaviorProfile Profile { get; }
+	public EnemyCombatProfile CombatProfile { get; private set; }
 	public EnemyTacticsState Tactics { get; } = new();
-	public EnemyTacticalSelector TacticalSelector { get; }
+	public EnemyTacticalSelector TacticalSelector { get; private set; }
 	private EnemyTacticalDecision? _lastDecision;
 	public string TacticalDecisionReason => _lastDecision?.Reason ?? "inactive";
 	public double Delta { get; private set; }
@@ -39,6 +41,8 @@ public sealed class EnemyContext
 	private ulong _sightFrame = ulong.MaxValue;
 	private Node3D _sightTarget;
 	private bool _sightResult;
+	private readonly Dictionary<ulong, Node3D> _supportTargets = [];
+	private readonly System.Collections.Generic.HashSet<ulong> _queriedSupportTargets = [];
 	public float HorizontalTargetDistance
 	{
 		get
@@ -59,10 +63,33 @@ public sealed class EnemyContext
 	public AttackSlotsComponent TargetSlots => (Target as IAttackSlotHost)?.AttackSlots;
 
 	/// <summary>Slots this actor's attack policy must take turns through; null when it opts out or the target has none.</summary>
-	public AttackSlotsComponent PolicySlots => Profile.AttackStrategy?.UsesAttackSlot == true ? TargetSlots : null;
+	/// <summary>Whether this actor can reserve the requested offensive turn slot now.</summary>
+	public bool CanTakeActionSlot(EnemyActionSlotKind kind)
+	{
+		if (kind == EnemyActionSlotKind.None) return true;
+		var slots = TargetSlots;
+		if (slots == null) return true;
+		return slots.CanReserve(Actor, kind == EnemyActionSlotKind.Ranged ? AttackSlotKind.Ranged : AttackSlotKind.Melee);
+	}
 
-	/// <summary>Whether this actor may start its attack now as far as the target's slots are concerned.</summary>
-	public bool CanTakeAttackSlot() => PolicySlots?.CanReserve(Actor, Profile.AttackStrategy.SlotKind) != false;
+	/// <summary>Whether the configured approach action's target slot is available.</summary>
+	public bool CanTakeAttackSlot() => CombatProfile?.ApproachAction is { } action && CanTakeActionSlot(action.SlotKind);
+
+	/// <summary>Whether the configured approach action can start against the current target.</summary>
+	public bool CanUseApproachAction()
+	{
+		var action = CombatProfile?.ApproachAction;
+		return action != null && action.IsEligible(this) && CanTakeActionSlot(action.SlotKind);
+	}
+
+	/// <summary>Whether any action is currently in range, so a secondary action can fire while approach remains separate.</summary>
+	private bool HasEligibleAction()
+	{
+		if (CombatProfile?.Actions == null) return false;
+		foreach (var choice in CombatProfile.Actions)
+			if (choice?.Action is { } action && action.IsEligible(this) && CanTakeActionSlot(action.SlotKind)) return true;
+		return false;
+	}
 
 	/// <summary>The player currently being chased, or null when the enemy has no target.</summary>
 	private Node3D _target;
@@ -70,6 +97,16 @@ public sealed class EnemyContext
 	{
 		get => _target;
 		set { if (_target != value) { Tactics.ClearTarget(); TacticalSelector?.ClearTarget(); _lastDecision = null; _hasRingPoint = false; } _target = value; }
+	}
+
+	/// <summary>Cache one support-target fact per authored action for this physics decision.</summary>
+	public Node3D FindSupportTarget(ulong actionId, Func<Node3D> query)
+	{
+		if (_queriedSupportTargets.Contains(actionId)) return _supportTargets.GetValueOrDefault(actionId);
+		_queriedSupportTargets.Add(actionId);
+		Node3D target = query?.Invoke();
+		_supportTargets[actionId] = target;
+		return target;
 	}
 
 	/// <summary>
@@ -91,6 +128,7 @@ public sealed class EnemyContext
 		PerceptionComponent perception,
 		NavigationComponent navigation,
 		EnemyBehaviorProfile profile,
+		EnemyCombatProfile combatProfile,
 		Action requestAttack)
 	{
 		Actor = actor;
@@ -98,9 +136,18 @@ public sealed class EnemyContext
 		Perception = perception;
 		Navigation = navigation;
 		Profile = profile;
-		TacticalSelector = profile.TacticalStrategy?.CreateRuntime();
+		SetCombatProfile(combatProfile);
 		RequestAttack = requestAttack;
 		HomePosition = actor.GlobalPosition;
+	}
+
+	/// <summary>Swap only combat policy while retaining target, home, awareness, tactics and reachability caches.</summary>
+	public void SetCombatProfile(EnemyCombatProfile profile)
+	{
+		if (profile == null || ReferenceEquals(CombatProfile, profile)) return;
+		bool tacticsChanged = !ReferenceEquals(CombatProfile?.TacticalStrategy, profile.TacticalStrategy);
+		CombatProfile = profile;
+		if (tacticsChanged) TacticalSelector = profile.TacticalStrategy?.CreateRuntime();
 	}
 
 	/// <summary>
@@ -130,6 +177,8 @@ public sealed class EnemyContext
 	/// </summary>
 	public void TickThrottles(double delta)
 	{
+		_supportTargets.Clear();
+		_queriedSupportTargets.Clear();
 		Delta = delta;
 		TacticalSelector?.Tick(delta);
 		_ringRefresh.Tick(delta);
@@ -219,7 +268,7 @@ public sealed class EnemyContext
 	/// <summary>Low-health movement temporarily overrides ordinary tactics after action commitment permits it.</summary>
 	public EnemyMovementIntent EvaluateMovement()
 	{
-		var retreat = Profile.RetreatCondition;
+		var retreat = CombatProfile.RetreatCondition;
 		if (retreat != null)
 		{
 			var health = (Actor as EnemyBase)?.HealthComponent;
@@ -229,17 +278,18 @@ public sealed class EnemyContext
 				return HorizontalTargetDistance < retreat.DesiredDistance
 					? new(EnemyMovementGoal.Retreat, false, retreat.DesiredDistance) : new(EnemyMovementGoal.Hold, false);
 		}
-		return Profile.MovementStrategy.Evaluate(this);
+		return CombatProfile.MovementStrategy.Evaluate(this);
 	}
 
 	/// <summary>Resolve tactical priorities and navigation failure before submitting an ordinary attack request.</summary>
 	public void ExecuteTactics(EnemyMovementIntent? preference = null)
 	{
-		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance, Profile.AttackStrategy.CanAttack(this));
+		bool canAct = CanUseApproachAction() || HasEligibleAction();
+		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance, canAct);
 		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat())
-			decision = TacticalSelector.RetreatBlocked(Profile.AttackStrategy.CanAttack(this));
+			decision = TacticalSelector.RetreatBlocked(CanUseApproachAction() || HasEligibleAction());
 		// An approach that is already in reach (but not yet facing or eligible) holds and turns instead.
-		bool approaching = decision.Intent.Goal == EnemyMovementGoal.Approach && !Profile.AttackStrategy.IsInReach(this);
+		bool approaching = decision.Intent.Goal == EnemyMovementGoal.Approach && !(CombatProfile.ApproachAction?.IsInReach(this) ?? false);
 		if (approaching)
 		{
 			RecordTargetPosition();
@@ -256,7 +306,7 @@ public sealed class EnemyContext
 			if (CombatTrace.Enabled) CombatTrace.Write(Actor, "ai.tactical_decision", ("goal", decision.Intent.Goal.ToString()),
 				("reason", decision.Reason), ("allow_attack", decision.Intent.AllowAttack));
 		}
-		if (decision.Intent.AllowAttack) RequestAttack();
+		if (decision.Intent.AllowAttack || HasEligibleAction()) RequestAttack();
 	}
 
 	/// <summary>Chase the target down its shared field. A stall only restarts progress tracking: the field updates as the target moves.</summary>
@@ -274,11 +324,13 @@ public sealed class EnemyContext
 	private void FollowEngagementRing(float distance, bool preferRear)
 	{
 		var slots = TargetSlots;
-		if (Target == null || slots == null || Profile.AttackStrategy == null) { Navigation.Stop(); return; }
+		var action = CombatProfile.ApproachAction;
+		if (Target == null || slots == null || action == null) { Navigation.Stop(); return; }
 		if (_ringRefresh.IsReady || !_hasRingPoint)
 		{
 			_ringRefresh.Start(RingRefreshInterval);
-			Vector3 ring = slots.GetRingPoint(Actor, Profile.AttackStrategy.SlotKind, distance, preferRear);
+			AttackSlotKind kind = action.SlotKind == EnemyActionSlotKind.Ranged ? AttackSlotKind.Ranged : AttackSlotKind.Melee;
+			Vector3 ring = slots.GetRingPoint(Actor, kind, distance, preferRear);
 			_hasRingPoint = Navigation.TryFindTraversable(ring, distance, out _ringPoint);
 		}
 		if (!_hasRingPoint || !Navigation.MoveTo(_ringPoint) || Navigation.IsStuck) Navigation.Stop();

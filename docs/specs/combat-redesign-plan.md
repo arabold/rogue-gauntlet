@@ -8,7 +8,7 @@ Every exchange follows **telegraph → respond → punish**, with the existing d
 
 ## Warden guard-breaking attack
 
-The Warden's Normal slash supports block/counter play. Its proposed Heavy overhead, multiple action choices and validation now belong to the [monster actions and boss phases plan](monster-actions-and-boss-phases-plan.md), which also covers stomp, health phases, rush and casting. Keep one source of implementation decisions there. Guard walking remains independent below.
+The Warden's Normal slash supports block/counter play. Its Heavy overhead, multiple action choices, stomp, health phases, rush and casting are implemented in [monster authoring](../monster-authoring-design.md). Guard walking remains independent below.
 
 ## Guard walking
 

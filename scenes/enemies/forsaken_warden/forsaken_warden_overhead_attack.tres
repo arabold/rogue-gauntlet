@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="EnemyAttackProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/actions/EnemyAttackProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/forsaken_warden_overhead.tres" id="contact"]
+
+[sub_resource type="Resource" id="overhead"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("contact")
+DefenseTraits = 15
+PoiseDamage = 28.0
+Knockback = 7.0
+HyperArmorStart = 0.1
+HyperArmorEnd = 0.38
+HitStopDuration = 0.06
+FacingLockLead = 0.3
+WindUpTurnRate = 45.0
+
+[resource]
+script = ExtResource("profile")
+Cooldown = 4.5
+MaximumDistance = 4.0
+MaximumStartAngle = 180.0
+SlotKind = 0
+RiposteEligible = true
+Attack = SubResource("overhead")
+Style = &"overhead"
+Duration = 1.8
+MinDamage = 15.0
+MaxDamage = 24.0

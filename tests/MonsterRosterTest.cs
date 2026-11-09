@@ -33,7 +33,7 @@ public class MonsterRosterTest
 		// The harness is not a generated level: without navigation, retreat has nowhere to go.
 		bool accepted = false;
 		var context = new EnemyContext(actor, actor.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
-			navigation, actor.Definition.Behavior, () => accepted = behavior.TryAttack());
+			navigation, actor.Definition.Behavior, actor.Definition.Behavior.Combat, () => accepted = behavior.TryAttack());
 		context.Target = harness.Player;
 		context.TickThrottles(1.0 / 60);
 		context.ExecuteTactics();
@@ -51,30 +51,31 @@ public class MonsterRosterTest
 		await Frames(runner.Scene(), 2);
 		var actor = harness.Monster;
 		var profile = actor.Definition.Behavior;
-		var first = profile.TacticalStrategy.CreateRuntime();
-		var second = profile.TacticalStrategy.CreateRuntime();
+		var first = profile.Combat.TacticalStrategy.CreateRuntime();
+		var second = profile.Combat.TacticalStrategy.CreateRuntime();
 		first.Select(new(EnemyMovementGoal.Retreat, false, 7), 3, true);
 		first.RetreatBlocked(true);
 		AssertBool(second.Select(new(EnemyMovementGoal.Retreat, false, 7), 3, true).Intent.AllowAttack).IsFalse();
 		actor.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		var context = new EnemyContext(actor, actor.MovementComponent, actor.EnemyBehaviorComponent.GetNode<PerceptionComponent>("Perception"), null, profile, () => { });
+		var context = new EnemyContext(actor, actor.MovementComponent, actor.EnemyBehaviorComponent.GetNode<PerceptionComponent>("Perception"), null, profile, profile.Combat, () => { });
 		context.Target = harness.Player;
 		actor.Position = harness.Player.Position + Vector3.Forward * 3;
-		var initial = profile.MovementStrategy.Evaluate(context);
+		var initial = profile.Combat.MovementStrategy.Evaluate(context);
 		context.TacticalSelector.Select(initial, 3, true);
 		actor.Position = harness.Player.Position + Vector3.Forward * 5;
-		AssertObject(profile.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Retreat);
+		AssertObject(profile.Combat.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Retreat);
 		actor.Position = harness.Player.Position + Vector3.Forward * 7;
-		AssertObject(profile.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Hold);
+		AssertObject(profile.Combat.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Hold);
 		// At the preferred distance the authored strategy returns to its sight/attack choice.
 		context.TacticalSelector.ClearTarget();
-		var invalid = (EnemyTacticalStrategy)profile.TacticalStrategy.Duplicate();
+		var invalid = (EnemyTacticalStrategy)profile.Combat.TacticalStrategy.Duplicate();
 		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
 		actor.Definition.Behavior = (EnemyBehaviorProfile)profile.Duplicate();
-		actor.Definition.Behavior.TacticalStrategy = invalid;
+		actor.Definition.Behavior.Combat = (EnemyCombatProfile)profile.Combat.Duplicate();
+		actor.Definition.Behavior.Combat.TacticalStrategy = invalid;
 		invalid.MaximumRetreatDuration = float.NaN;
-		AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("TacticalStrategy:"))).IsTrue();
+		AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("Combat.TacticalStrategy:"))).IsTrue();
 	}
 
 	[TestCase]
@@ -126,7 +127,7 @@ public class MonsterRosterTest
 		boss.HurtBoxComponent.Armor = 0;
 		// Select a reproducible stream whose first defense and subsequent riposte rolls succeed.
 		// Keep the shipped probabilities, reaction delay, raise/recovery and hero weapon unchanged.
-		var policy = boss.Definition.Behavior.DefenseStrategy;
+		var policy = boss.Definition.Behavior.Combat.DefenseStrategy;
 		using var random = new RandomNumberGenerator();
 		ulong seed = 0;
 		for (; seed < 1000; seed++)
@@ -185,7 +186,8 @@ public class MonsterRosterTest
 		var shooter = TestFactories.Load<PackedScene>("res://scenes/enemies/templates/projectile_enemy.tscn").Instantiate<EnemyBase>();
 		shooter.Definition = (MonsterDefinition)shooter.Definition.Duplicate();
 		shooter.Definition.Behavior = (EnemyBehaviorProfile)shooter.Definition.Behavior.Duplicate();
-		shooter.Definition.Behavior.DefenseStrategy = new EnemyDefenseStrategy { GuardChance = 1, RiposteChance = 1 };
+		shooter.Definition.Behavior.Combat = (EnemyCombatProfile)shooter.Definition.Behavior.Combat.Duplicate();
+		shooter.Definition.Behavior.Combat.DefenseStrategy = new EnemyDefenseStrategy { GuardChance = 1, RiposteChance = 1 };
 		var animation = shooter.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		var guard = new GuardComponent
 		{
@@ -276,10 +278,11 @@ public class MonsterRosterTest
 		{
 			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
 			actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-			var movement = (MaintainDistanceStrategy)actor.Definition.Behavior.MovementStrategy.Duplicate();
-			actor.Definition.Behavior.MovementStrategy = movement;
+			actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+			var movement = (MaintainDistanceStrategy)actor.Definition.Behavior.Combat.MovementStrategy.Duplicate();
+			actor.Definition.Behavior.Combat.MovementStrategy = movement;
 			movement.PreferredDistance = movement.MinimumDistance;
-			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("MovementStrategy:"))).IsTrue();
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("Combat.MovementStrategy:"))).IsTrue();
 		}
 		finally { actor.Free(); }
 		AssertBool(DirAccess.DirExistsAbsolute("res://assets/quaternius-monsters")).IsFalse();

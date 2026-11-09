@@ -118,6 +118,23 @@ public partial class NavigationComponent : Node
 		return navigation.ChaseField(target, BodyRadius, Position).ReachesNear(navigation.Grid.CellAt(Position));
 	}
 
+	/// <summary>Require a clear, body-sized straight corridor and keep a held actor inside its home room before a rush.</summary>
+	public bool CanRush(Vector3 direction, float distance)
+	{
+		var navigation = Navigation;
+		if (navigation == null || !float.IsFinite(distance) || distance <= 0
+			|| !direction.TryNormalizeHorizontal(out direction)) return false;
+		Vector3 start = Position;
+		Vector3 destination = start + direction * distance;
+		if (!navigation.HasClearLine(start, destination, BodyRadius)) return false;
+		int homeRoom = HomeRoom;
+		if (homeRoom < 0) return true;
+		int steps = Mathf.Max(1, Mathf.CeilToInt(distance / (navigation.Grid.CellSize * 0.5f)));
+		for (int step = 1; step <= steps; step++)
+			if (navigation.RoomAt(start.Lerp(destination, (float)step / steps)) != homeRoom) return false;
+		return true;
+	}
+
 	/// <summary>
 	/// One physics step toward <paramref name="target"/> along the shared chase field; heads straight for it once it is
 	/// close and the line is clear. Holds still when the target is unreachable.

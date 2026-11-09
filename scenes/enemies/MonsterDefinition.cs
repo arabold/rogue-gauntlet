@@ -8,6 +8,8 @@ public partial class MonsterDefinition : Resource
 	[Export] public string DisplayName { get; set; } = "";
 	[Export(PropertyHint.Range, "1,10000,1,or_greater")] public float MaxHealth { get; set; } = 10;
 	[Export(PropertyHint.Range, "0,20,0.1,or_greater")] public float MoveSpeed { get; set; } = 3.2f;
+	[Export(PropertyHint.Range, "0,10000,1,or_greater")] public float MaxMana { get; set; }
+	[Export(PropertyHint.Range, "0,50,0.1,or_greater")] public float ManaRegenPerSecond { get; set; }
 	[Export(PropertyHint.Range, "0,10000,1,or_greater")] public int XpReward { get; set; }
 	/// <summary>What the monster drops on death and how often.</summary>
 	[Export] public LootDropProfile Loot { get; set; }

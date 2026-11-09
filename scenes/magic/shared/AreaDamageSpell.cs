@@ -11,6 +11,9 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	public int LevelCount => Definition?.LevelCount ?? 0;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly AreaCastLifecycle _cast = new();
+	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
+		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null;
+	public bool IsUseful(in SpellCastContext context) => CanCast(in context);
 
 	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Damage; SetPhysicsProcess(false); }
 	public override void _PhysicsProcess(double delta)
@@ -19,8 +22,10 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	}
 
 	/// <summary>Resolve one contact per visible hostile actor as the visual reaches it; empty areas still show the visual.</summary>
-	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
+	public bool Cast(in SpellCastContext context, RandomNumberGenerator random)
 	{
+		Node3D caster = context.Caster;
+		SpellPower power = context.Power;
 		int level = power.Level;
 		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
 		float radius = Definition.RadiusByLevel[level - 1];

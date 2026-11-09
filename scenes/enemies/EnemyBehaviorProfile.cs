@@ -10,12 +10,9 @@ using Godot;
 [GlobalClass]
 public partial class EnemyBehaviorProfile : Resource
 {
-	[ExportGroup("Monster strategies")]
-	[Export] public EnemyTacticalStrategy TacticalStrategy { get; set; }
-	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
-	[Export] public EnemyAttackStrategy AttackStrategy { get; set; }
-	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }
-	[Export] public EnemyRetreatCondition RetreatCondition { get; set; }
+	[ExportGroup("Combat")]
+	[Export] public EnemyCombatProfile Combat { get; set; }
+	[Export] public Godot.Collections.Array<BossPhaseProfile> Phases { get; set; } = [];
 	[ExportGroup("Perception and lifecycle")]
 	/// <summary>
 	/// Behavior state the enemy enters when it is initialized.
@@ -111,10 +108,33 @@ public partial class EnemyBehaviorProfile : Resource
 			EnemyAction.Spawning => SpawningActionDuration,
 			EnemyAction.StandingUp => StandingUpActionDuration,
 			EnemyAction.Hit => HitActionDuration,
-			EnemyAction.MeeleAttack => AttackStrategy?.Duration ?? 0,
-			EnemyAction.RangedAttack => AttackStrategy?.Duration ?? 0,
 			EnemyAction.Dying => DyingActionDuration,
 			_ => 0,
 		};
+	}
+
+	/// <summary>Returns errors for phase counts, thresholds and complete phase configurations.</summary>
+	public string[] ValidateCombat()
+	{
+		var errors = new System.Collections.Generic.List<string>();
+		if (Combat == null) errors.Add("base combat profile is missing");
+		else errors.AddRange(Combat.Validate());
+		if (Phases == null || Phases.Count > 2) errors.Add("boss behavior supports at most two health phase transitions");
+		else
+		{
+			float previous = 1;
+			foreach (var phase in Phases)
+			{
+				if (phase == null || !float.IsFinite(phase.EnterHealthFraction) || phase.EnterHealthFraction <= 0
+					|| phase.EnterHealthFraction >= previous || phase.EnterHealthFraction >= 1 || phase.Combat == null)
+					errors.Add("boss phase thresholds must be strictly descending and each phase must have a combat profile");
+				else
+				{
+					previous = phase.EnterHealthFraction;
+					errors.AddRange(phase.Combat.Validate());
+				}
+			}
+		}
+		return errors.ToArray();
 	}
 }

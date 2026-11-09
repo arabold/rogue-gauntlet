@@ -74,7 +74,8 @@ public partial class MonsterAuthoringTest
 			AssertObject(actor.GuardComponent).IsNull();
 			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
 			actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-			actor.Definition.Behavior.DefenseStrategy = null;
+			actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+			actor.Definition.Behavior.Combat.DefenseStrategy = null;
 			AssertString(string.Join("; ", MonsterSceneValidator.Validate(actor))).IsEmpty();
 			guard.Free();
 		}
@@ -107,10 +108,14 @@ public partial class MonsterAuthoringTest
 			// The minion's 0.52 s chop wind-up covers Normal and Heavy but is too short for Unblockable (dodge only).
 			var definition = (MonsterDefinition)minion.Definition.Duplicate();
 			definition.Behavior = (EnemyBehaviorProfile)definition.Behavior.Duplicate();
-			definition.Behavior.AttackStrategy = (EnemyAttackStrategy)definition.Behavior.AttackStrategy.Duplicate();
-			var attack = (AttackDefinition)definition.Behavior.AttackStrategy.Attack.Duplicate();
+			definition.Behavior.Combat = (EnemyCombatProfile)definition.Behavior.Combat.Duplicate();
+			var oldProfile = (EnemyAttackProfile)definition.Behavior.Combat.ApproachAction;
+			var attackProfile = (EnemyAttackProfile)oldProfile.Duplicate();
+			var attack = (AttackDefinition)oldProfile.Attack.Duplicate();
 			attack.DefenseTraits = AttackDefenseTraits.Dodgeable;
-			definition.Behavior.AttackStrategy.Attack = attack;
+			attackProfile.Attack = attack;
+			definition.Behavior.Combat.ApproachAction = attackProfile;
+			definition.Behavior.Combat.Actions = [new EnemyActionChoiceProfile { Action = attackProfile, Weight = 1 }];
 			minion.Definition = definition;
 			minion.AttackController.Indicator = null;
 			var errors = MonsterSceneValidator.Validate(minion);
@@ -188,7 +193,8 @@ public partial class MonsterAuthoringTest
 		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
 		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
 		actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-		actor.Definition.Behavior.DefenseStrategy = null;
+		actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+		actor.Definition.Behavior.Combat.DefenseStrategy = null;
 		actor.EnemyBehaviorComponent.AIEnabled = false;
 		var controller = actor.DefenseController;
 		if (!clearAfterReady) { controller.GuardComponent = null; controller.DodgeComponent = null; }

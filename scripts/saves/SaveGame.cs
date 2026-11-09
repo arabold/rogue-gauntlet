@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 74;
+	public const int CurrentVersion = 75;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -80,6 +80,9 @@ public sealed class ActiveBuffSaveData
 	public string Kind { get; set; } = "";
 	public string Name { get; set; } = "";
 	public string ConditionPath { get; set; } = "";
+	public string BuffPath { get; set; } = "";
+	public string StackKey { get; set; } = "";
+	public BuffStacking Stacking { get; set; }
 	public string SourcePath { get; set; } = "";
 	public bool HasSource { get; set; }
 	public bool Permanent { get; set; }

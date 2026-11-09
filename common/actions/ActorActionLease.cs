@@ -8,6 +8,7 @@ public enum ActorActionKind
 	ItemUse,
 	Dodge,
 	Guard,
+	Rush,
 	WorldInteraction,
 	ForcedReaction
 }

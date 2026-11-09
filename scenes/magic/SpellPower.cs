@@ -8,6 +8,12 @@ using Godot;
 /// </summary>
 public readonly record struct SpellPower(int Level, AttackStats Hit);
 
+/// <summary>One accepted spell's actor, intent, explicit target and already captured power.</summary>
+public readonly record struct SpellCastContext(Node3D Caster, Node3D Target, SpellTargetIntent Intent, SpellPower Power);
+
+/// <summary>Target relationship requested by the cast source; each effect still validates its own legal recipients.</summary>
+public enum SpellTargetIntent { Hostile, Self, Ally }
+
 /// <summary>The level cap every spell definition shares (a tier-5 weapon casts level 5) and its tooltip wording.</summary>
 public static class SpellLevels
 {

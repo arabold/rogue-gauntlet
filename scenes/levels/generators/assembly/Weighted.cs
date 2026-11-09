@@ -20,6 +20,26 @@ public static class Weighted
 		return valid[^1];
 	}
 
+	/// <summary>Weighted choice for callers that have already filtered options and computed each weight.</summary>
+	public static T Pick<T>(IReadOnlyList<T> options, IReadOnlyList<float> weights, RandomNumberGenerator rng) where T : class
+	{
+		if (options == null || weights == null || options.Count == 0 || options.Count != weights.Count) return null;
+		double total = 0;
+		for (int index = 0; index < options.Count; index++)
+			if (options[index] != null && float.IsFinite(weights[index]) && weights[index] > 0) total += weights[index];
+		if (total <= 0) return null;
+		double roll = rng.Randf() * total;
+		T last = null;
+		for (int index = 0; index < options.Count; index++)
+		{
+			if (options[index] == null || !float.IsFinite(weights[index]) || weights[index] <= 0) continue;
+			last = options[index];
+			roll -= weights[index];
+			if (roll < 0) return options[index];
+		}
+		return last;
+	}
+
 	/// <summary>Weighted choice from an item-name map, as authored on surface Resources.</summary>
 	public static string Pick(Godot.Collections.Dictionary<string, float> items, RandomNumberGenerator rng) =>
 		Pick(items.Keys.ToArray(), key => items[key], rng);

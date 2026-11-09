@@ -42,6 +42,7 @@ public partial class Projectile : Node3D, IPooledNode
 	private AttackIdentity _executionId;
 	private AttackIdentity _parentExecution;
 	private CombatFeedbackSettings? _feedback;
+	private PreparedHitStatus[] _onHitStatuses = [];
 	private AttackDefenseTraits _defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 	private AttackDefenseTraits _areaDefenseTraits;
 	/// <summary>The releasing attack's impact, set by its executor before flight; unset projectiles use the default.</summary>
@@ -129,15 +130,17 @@ public partial class Projectile : Node3D, IPooledNode
 		_homingTarget = null;
 		EffectRoot = null;
 		Element = DamageElement.None;
+		_onHitStatuses = [];
 		_parentExecution = default;
 		_attackerFaction = DamageSourceFlags.Environment;
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default, CombatFeedbackSettings? feedback = null)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default, CombatFeedbackSettings? feedback = null, PreparedHitStatus[] onHitStatuses = null)
 	{
 		_parentExecution = parentExecution;
 		_feedback = feedback;
+		_onHitStatuses = onHitStatuses ?? [];
 		_areaDefenseTraits = areaDefenseTraits;
 		_random.Seed = randomSeed;
 		_executionId = new AttackIdentity((ulong)GetInstanceId(), ++_projectileSequence);
@@ -296,7 +299,8 @@ public partial class Projectile : Node3D, IPooledNode
 				Element = Element,
 				Impact = Impact,
 					Critical = critical,
-					Feedback = _feedback
+					Feedback = _feedback,
+					OnHitStatuses = _onHitStatuses
 			};
 
 			if (damageable is ICombatDamageable combatDamageable)
@@ -629,6 +633,7 @@ public partial class Projectile : Node3D, IPooledNode
 		_effectScale = 1f;
 		EffectRoot = null;
 		Element = DamageElement.None;
+		_onHitStatuses = [];
 		_returnVersion++;
 		ImpactRadius = _defaultImpactRadius;
 		ImpactRadiusMinDamageScale = _defaultImpactRadiusMinDamageScale;

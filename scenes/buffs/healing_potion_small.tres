@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="HealingBuff" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/buffs/HealingBuff.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/blinded.tres" id="blinded"]
+
+[resource]
+script = ExtResource("script")
+HealthPointsPerTick = 8
+CuredConditions = [ExtResource("blinded")]
+Name = "Small Potion of Healing"
+Duration = 3.0

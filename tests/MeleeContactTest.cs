@@ -452,7 +452,7 @@ public class MeleeContactTest
 	{
 		using var contact = new MeleeAttackProfile { Reach = 2, EngagementMargin = .4f };
 		using var attack = new AttackDefinition { MeleeContact = contact };
-		using var enemy = new MeleeAttackStrategy { EngagementDistance = 8, Attack = attack };
+		using var enemy = new EnemyAttackProfile { MaximumDistance = 8, Attack = attack, Duration = 1, Style = "melee" };
 		AssertFloat(enemy.EffectiveRange).IsEqualApprox(1.6, .0001);
 		contact.Reach = float.NaN;
 		AssertBool(contact.IsValid).IsFalse();

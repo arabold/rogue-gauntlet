@@ -4,20 +4,24 @@ using System;
 using System.Linq;
 
 /// <summary>
-/// Owns runtime buff instances and condition-only status activations for an actor. Existing buff callbacks
-/// remain player-specific. A buff may impose a <see cref="StatusCondition"/>; the
+/// Owns runtime buff instances and condition-only status activations for an actor. A buff may impose
+/// a <see cref="StatusCondition"/>; the
 /// condition is active while at least one active buff carries it, so overlapping sources (poisoned food
 /// followed by a poison potion) read as one continuous condition. Observers re-read what they need on
 /// <see cref="BuffsChanged"/>.
 /// </summary>
 [GlobalClass]
-public partial class BuffController : Node
+public partial class BuffController : Node, IBuffTarget
 {
 	/// <summary>Fired once after buffs were applied, removed, expired or cleared.</summary>
 	[Signal] public delegate void BuffsChangedEventHandler();
 
-	[Export] public Player Player { get; set; }
+	[Export] public Node3D Actor { get; set; }
 	[Export] public HealthComponent Health { get; set; }
+	public IBuffTarget Target => Actor as IBuffTarget ?? this;
+	HealthComponent IBuffTarget.Health => Health;
+	BuffController IBuffTarget.Buffs => this;
+	IStatModifierTarget IBuffTarget.Modifiers => (Actor as IBuffTarget)?.Modifiers ?? Actor as IStatModifierTarget;
 
 	public Array<ActiveBuff> ActiveBuffs { get; } = new();
 
@@ -43,22 +47,45 @@ public partial class BuffController : Node
 	{
 		return condition != null && ActiveBuffs.Any(active => active.Buff.Condition == condition);
 	}
+	/// <summary>Whether an equivalent shared definition is already active on this actor.</summary>
+	public bool HasEquivalent(Buff definition) => definition != null && ActiveBuffs.Any(active =>
+		ReferenceEquals(active.Buff, definition) || (!string.IsNullOrEmpty(definition.ResourcePath)
+			&& active.Buff.ResourcePath == definition.ResourcePath)
+		|| (definition.Condition != null && active.Buff.Condition == definition.Condition));
 	/// <summary>Whether a live condition activation is still owned by a source.</summary>
 	public bool HasStatusFrom(object source) => source != null && ActiveBuffs.Any(a => !a.IsExpired && ReferenceEquals(a.Source, source));
 
 	/// <summary>Applies <paramref name="buff"/>, first ending the conditions it cures (e.g. healing ends blindness).</summary>
-	public void ApplyBuff(Buff buff)
+	public BuffApplication ApplyBuff(Buff buff, string stackKey = "", BuffStacking? stacking = null)
 	{
-		GD.Print($"{Player?.Name ?? Name} applied buff {buff.Name}");
+		if (buff == null || Target == null || !buff.CanApplyTo(Target) || !float.IsFinite(buff.Duration) || buff.Duration < 0)
+			return BuffApplication.Rejected;
+		string key = stackKey ?? "";
+		BuffStacking mode = stacking ?? buff.Stacking;
+		if (mode == BuffStacking.Refresh && string.IsNullOrWhiteSpace(key)) return BuffApplication.Rejected;
+		if (mode == BuffStacking.Refresh)
+		{
+			var existing = ActiveBuffs.FirstOrDefault(active => !active.IsExpired && active.Stacking == BuffStacking.Refresh
+				&& string.Equals(active.StackKey, key, StringComparison.Ordinal));
+			if (existing != null)
+			{
+				existing.Refresh(buff.Duration);
+				EmitSignalBuffsChanged();
+				return BuffApplication.Refreshed;
+			}
+		}
+
+		GD.Print($"{Actor?.Name ?? Name} applied buff {buff.Name}");
 		RemoveWhere(active => active.Buff.Condition != null && buff.CuredConditions.Contains(active.Buff.Condition));
-		AddActivation(buff);
+		AddActivation(buff, stackKey: key, stacking: mode);
 		EmitSignalBuffsChanged();
+		return BuffApplication.Applied;
 	}
 
 	/// <summary>Restore a prevalidated activation without reapplying its one-time cure.</summary>
-	public void RestoreBuff(Buff buff, object source, double remaining, double tickProgress)
+	public void RestoreBuff(Buff buff, object source, double remaining, double tickProgress, string stackKey = "", BuffStacking stacking = BuffStacking.Stack)
 	{
-		AddActivation(buff, source, remaining, tickProgress);
+		AddActivation(buff, source, remaining, tickProgress, stackKey, stacking);
 		if (source is IStatusRestoreSource tracked) tracked.StatusRestored(this);
 		EmitSignalBuffsChanged();
 	}
@@ -68,7 +95,7 @@ public partial class BuffController : Node
 	{
 		if (condition == null || source == null || !float.IsFinite(duration) || duration <= 0 || Health?.IsDead == true) return false;
 		var existing = ActiveBuffs.FirstOrDefault(a => !a.IsExpired && ReferenceEquals(a.Source, source) && a.Buff.Condition == condition);
-		if (existing != null) { existing.RefreshStatus(duration); UpdateProcessing(); }
+		if (existing != null) { existing.Refresh(duration); UpdateProcessing(); }
 		else
 			AddActivation(new Buff { Name = condition.ResourceName, Condition = condition, Duration = duration }, source);
 		EmitSignalBuffsChanged();
@@ -87,7 +114,7 @@ public partial class BuffController : Node
 		var existing = ActiveBuffs.FirstOrDefault(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition && !a.IsExpired);
 		if (existing != null)
 		{
-			if (!existing.IsPermanent) { existing.RefreshStatus(0); UpdateProcessing(); EmitSignalBuffsChanged(); }
+			if (!existing.IsPermanent) { existing.Refresh(0); UpdateProcessing(); EmitSignalBuffsChanged(); }
 			return true;
 		}
 		AddActivation(new Buff { Name = condition.ResourceName, Condition = condition, Duration = 0 }, source);
@@ -117,7 +144,7 @@ public partial class BuffController : Node
 		var activeBuff = ActiveBuffs.FirstOrDefault(b => b.Buff == buff);
 		if (activeBuff != null)
 		{
-			GD.Print($"{Player?.Name ?? Name} removed buff {buff.Name}");
+			GD.Print($"{Actor?.Name ?? Name} removed buff {buff.Name}");
 			RemoveWhere(active => active == activeBuff);
 			EmitSignalBuffsChanged();
 		}
@@ -132,10 +159,11 @@ public partial class BuffController : Node
 		}
 	}
 
-	private void AddActivation(Buff buff, object source = null, double? remaining = null, double tickProgress = 0)
+	private void AddActivation(Buff buff, object source = null, double? remaining = null, double tickProgress = 0,
+		string stackKey = "", BuffStacking stacking = BuffStacking.Stack)
 	{
 		var active = new ActiveBuff();
-		active.Initialize(Player, buff);
+		active.Initialize(Target, buff, stackKey, stacking);
 		active.SetSource(source);
 		if (remaining.HasValue) active.RestoreClock(remaining.Value, tickProgress);
 		ActiveBuffs.Add(active);

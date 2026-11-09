@@ -14,9 +14,13 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 	/// <summary>The active guard's remaining capacity, or 0 without one; saves carry it across loads and stairs.</summary>
 	public float RemainingCapacity => _guard?.Remaining ?? 0;
 
-	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random) =>
-		random != null && Definition?.IsValidLevel(power.Level) == true
-		&& Install(caster, power.Level, Definition.CapacityScaleByLevel[power.Level - 1] * power.Hit.Average);
+	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
+		&& context.Caster is IShieldOwner && Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null;
+	public bool IsUseful(in SpellCastContext context) => CanCast(in context)
+		&& context.Caster is IShieldOwner { ShieldHurtBox: { } hurtbox } && hurtbox.HealthComponent?.IsDead != true;
+	public bool Cast(in SpellCastContext context, RandomNumberGenerator random) =>
+		random != null && CanCast(in context)
+		&& Install(context.Caster, context.Power.Level, Definition.CapacityScaleByLevel[context.Power.Level - 1] * context.Power.Hit.Average);
 
 	/// <summary>Raises a saved guard again with its remaining capacity, as the cast at <paramref name="level"/> raised it.</summary>
 	public bool Restore(Node3D caster, int level, float capacity) =>

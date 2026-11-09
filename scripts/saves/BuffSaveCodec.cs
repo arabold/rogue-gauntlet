@@ -6,7 +6,7 @@ using System.Linq;
 /// <summary>Serializes live player activations without serializing Godot objects or replaying one-time cures.</summary>
 public static class BuffSaveCodec
 {
-	public sealed record Restored(Buff Buff, object Source, double Remaining, double TickProgress);
+	public sealed record Restored(Buff Buff, object Source, double Remaining, double TickProgress, string StackKey, BuffStacking Stacking);
 
 	public static List<ActiveBuffSaveData> Capture(Player player)
 	{
@@ -24,7 +24,14 @@ public static class BuffSaveCodec
 			var buff = active.Buff;
 			var record = new ActiveBuffSaveData { Name = buff.Name ?? "", Permanent = active.IsPermanent,
 				Remaining = active.IsPermanent ? 0 : active.RemainingDuration, TickProgress = active.TickProgress,
-				ConditionPath = buff.Condition?.ResourcePath ?? "" };
+				ConditionPath = buff.Condition?.ResourcePath ?? "", StackKey = active.StackKey, Stacking = active.Stacking };
+			if (!string.IsNullOrEmpty(record.StackKey))
+			{
+				if (record.Stacking != BuffStacking.Refresh || !record.StackKey.StartsWith("res://", StringComparison.Ordinal)
+					|| record.StackKey.Contains("::") || ResourceLoader.Load<Buff>(record.StackKey) == null)
+					throw new InvalidOperationException("Cannot save a refreshable buff without its external definition identity.");
+				record.BuffPath = record.StackKey;
+			}
 			if (buff.Condition != null && (string.IsNullOrEmpty(record.ConditionPath) || record.ConditionPath.Contains("::")))
 				throw new InvalidOperationException("Cannot save a condition without an external resource identity.");
 			if (active.Source != null)
@@ -62,10 +69,15 @@ public static class BuffSaveCodec
 		var result = new List<Restored>();
 		foreach (var data in saved)
 		{
-			if (data == null || !double.IsFinite(data.Remaining) || data.Remaining < 0 || data.Remaining > float.MaxValue
+			if (data == null || !Enum.IsDefined(data.Stacking) || !double.IsFinite(data.Remaining) || data.Remaining < 0 || data.Remaining > float.MaxValue
 				|| (!data.Permanent && data.Remaining <= 0) || (data.Permanent && data.Remaining != 0)
 				|| !double.IsFinite(data.TickProgress) || data.TickProgress < 0)
 				throw new InvalidOperationException("Invalid saved buff clock.");
+			if (string.IsNullOrEmpty(data.StackKey) != string.IsNullOrEmpty(data.BuffPath)
+				|| (!string.IsNullOrEmpty(data.StackKey) && (data.Stacking != BuffStacking.Refresh
+					|| data.StackKey != data.BuffPath || !data.StackKey.StartsWith("res://", StringComparison.Ordinal)
+					|| data.StackKey.Contains("::"))))
+				throw new InvalidOperationException("Invalid saved buff refresh identity.");
 			object source = null;
 			if (data.HasSource)
 			{
@@ -86,13 +98,20 @@ public static class BuffSaveCodec
 				"stat_modifier" => new StatModifierBuff { Modifiers = ItemSaveCodec.BuildModifiers(data.Modifiers) },
 				_ => throw new InvalidOperationException("Unsupported saved buff type."),
 			};
+			if (!string.IsNullOrEmpty(data.BuffPath))
+			{
+				Buff definition = ResourceLoader.Load<Buff>(data.BuffPath);
+				if (definition == null || definition.GetType() != buff.GetType())
+					throw new InvalidOperationException("Saved refresh identity does not match its buff definition.");
+			}
 			if (buff is PeriodicBuff periodic && (!float.IsFinite(periodic.TicksPerSecond) || periodic.TicksPerSecond < 0
 				|| (periodic.TicksPerSecond > 0 && data.TickProgress >= 1.0 / periodic.TicksPerSecond)))
 				throw new InvalidOperationException("Invalid saved periodic buff clock.");
 			if (buff is not PeriodicBuff && data.TickProgress != 0 || buff is TimeScaleBuff time && (!float.IsFinite(time.TimeScale) || time.TimeScale <= 0))
 				throw new InvalidOperationException("Invalid saved buff settings.");
 			buff.Name = data.Name; buff.Condition = condition; buff.Duration = data.Permanent ? 0 : (float)data.Remaining;
-			result.Add(new Restored(buff, source, data.Remaining, data.TickProgress));
+			buff.Stacking = data.Stacking;
+			result.Add(new Restored(buff, source, data.Remaining, data.TickProgress, data.StackKey, data.Stacking));
 		}
 		return result;
 	}

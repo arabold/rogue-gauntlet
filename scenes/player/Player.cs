@@ -3,8 +3,11 @@ using Godot;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IAttackSlotHost, IStatusActor, IShieldOwner, ISlowActor, IBurningActor
+public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IAttackSlotHost, IStatusActor, IShieldOwner, ISlowActor, IBurningActor, IBuffTarget
 {
+	HealthComponent IBuffTarget.Health => HealthComponent;
+	BuffController IBuffTarget.Buffs => BuffController;
+	IStatModifierTarget IBuffTarget.Modifiers => Stats;
 	HurtBoxComponent IShieldOwner.ShieldHurtBox => HurtBoxComponent;
 	[Export] public WorldEffectHost WorldEffects { get; set; }
 	[Export] public ItemUseWorldEffectDriver ItemUseEffects { get; set; }
@@ -157,6 +160,7 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 
 		// A player outside a level (previews, harnesses) plays the default run.
 		AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run.RunSeed ?? RunState.DefaultSeed, "combat.attack", "player"));
+		SpellCaster.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run.RunSeed ?? RunState.DefaultSeed, "combat.spell", "player"));
 		HealthComponent.Died += () => ActionGate.Disable();
 		HurtBoxComponent?.RegisterDefenseEvaluator(DodgeComponent);
 		HurtBoxComponent?.RegisterDefenseEvaluator(GuardComponent);

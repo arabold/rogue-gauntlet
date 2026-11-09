@@ -7,6 +7,8 @@ public interface ICombatSpell
 	int LevelCount { get; }
 	/// <summary>What a cast with <paramref name="power"/> does, as short tooltip lines (see <see cref="SpellLevels"/>).</summary>
 	System.Collections.Generic.IEnumerable<string> DescribeLevel(in SpellPower power);
-	bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random);
+	bool CanCast(in SpellCastContext context);
+	bool IsUseful(in SpellCastContext context);
+	bool Cast(in SpellCastContext context, RandomNumberGenerator random);
 	void Cancel();
 }

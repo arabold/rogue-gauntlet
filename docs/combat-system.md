@@ -12,6 +12,8 @@ The executor owns its timing and releases ownership on completion or interruptio
 
 `AttackExecution` owns the attack phase and elapsed clock (`WindUp`, `Active`, `Recovery`), including the existing once-per-execution attacker hit stop. `AttackController` remains responsible for action-gate leases, contact sampling, projectile release and interruption. Effects and debug switches observe the execution; they do not drive phase transitions.
 
+Monster rushes use `MovementComponent` and the same action gate rather than a separate movement capability. The rush owns wind-up, travel and recovery through an `AttackExecution`; `MoveAndSlide` resolves travel against the world, navigation checks a clear route first, and pushes, status locks, stagger and death interrupt it.
+
 ## Contact feedback
 
 After the hurtbox resolves a contact, one immutable result feeds target and camera feedback. `CombatFeedbackController` coordinates the existing target knockback with a short target flash, material-selected particles, damage numbers, cosmetic flinch recoil, and a physical attacker lunge on successful melee contact. The lunge moves the attacker's `CharacterBody3D` through `MovementComponent` for the profile's bounded distance and duration; `MoveAndSlide` resolves walls, while status locks, stagger and knockback take priority. Each attack execution can lunge once. The effect profile and impact-surface profile are assigned in the actor scene. `CombatCameraFeedbackController` scales its impulse from the resolved outcome, including a softer blocked response. Feedback never rolls damage, evaluates defense or applies another physical push. Sound remains deferred.
@@ -84,6 +86,8 @@ Player and enemy facades forward complete `ICombatDamageable` contacts to their 
 Dodged/parried contacts suppress ordinary damage and hit reactions. Blocks report final chip damage without a hit reaction; guard breaks report their reduced damage and stagger instead. Positive unprotected damage then [flinches, interrupts or staggers](#poise-and-hit-reactions) the defender. Parry interrupts only the source execution it actually intercepted. Each swing resolves once per defender, including a defended contact; projectile splash cannot hit its directly resolved target a second time.
 
 Defense eligibility is authored per attack: ordinary melee allows dodge, guard and parry; ordinary projectiles allow dodge/guard; area impacts have independent flags. Environmental damage does not automatically grant defense eligibility. Unavoidable content needs clear presentation.
+
+Attack profiles may carry on-hit status payloads. The hurtbox rolls each payload only after direct contact resolves as damaging and leaves the target alive. Chance uses the attack or projectile RNG; a full chance consumes no draw. Venom and poison share the same periodic buff, with authored refresh identity for repeated applications. Defended, filtered, absorbed, splash and lethal contacts do not apply it. See [status conditions](stats-and-itemization.md#buffs-and-status-conditions).
 
 ## Facing and sneak attacks
 
