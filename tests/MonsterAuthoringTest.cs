@@ -72,9 +72,7 @@ public partial class MonsterAuthoringTest
 			actor.DefenseController.GuardComponent = null;
 			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("GuardComponent:") || e.StartsWith("DefenseController.GuardComponent:"))).IsTrue();
 			AssertObject(actor.GuardComponent).IsNull();
-			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
-			actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-			actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+			TestFactories.UsePrivateCombatProfile(actor);
 			actor.Definition.Behavior.Combat.DefenseStrategy = null;
 			AssertString(string.Join("; ", MonsterSceneValidator.Validate(actor))).IsEmpty();
 			guard.Free();
@@ -190,9 +188,7 @@ public partial class MonsterAuthoringTest
 		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_minion.tscn");
 		await runner.SimulateFrames(2);
 		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
-		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
-		actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-		actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+		TestFactories.UsePrivateCombatProfile(actor);
 		actor.Definition.Behavior.Combat.DefenseStrategy = null;
 		actor.EnemyBehaviorComponent.AIEnabled = false;
 		var controller = actor.DefenseController;

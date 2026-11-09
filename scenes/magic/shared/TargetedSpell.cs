@@ -70,8 +70,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 		Node3D caster = context.Caster;
 		SpellPower power = context.Power;
 		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null
-			|| !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.Radius, out var cast)) return false;
+		if (!CanCast(in context) || !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.Radius, out var cast)) return false;
 		Node template = VisualScene.Instantiate();
 		bool valid = Definition.Delivery switch
 		{

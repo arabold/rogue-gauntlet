@@ -561,8 +561,7 @@ public partial class AttackController : Node, IParryInterruptible
 		var random = new RandomNumberGenerator { Seed = _random.Randi() };
 		var context = release.Context;
 		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
-			&& release.Revalidate?.Invoke(context) != false
-			&& release.Spell.CanCast(in context) && release.Spell.Cast(in context, random);
+			&& release.Revalidate?.Invoke(context) != false && release.Spell.Cast(in context, random);
 		ReportFeedback(cast ? "Cast" : "Fizzled");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
 			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level), ("cast", cast));

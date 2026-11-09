@@ -9,12 +9,12 @@ using System.Collections.Generic;
 [GlobalClass]
 public abstract partial class MonsterTargetSelector : Resource
 {
-	/// <summary>Hostile actions are attacks: they obey the tactical decision's attack permission and attack slots.</summary>
-	public abstract bool IsHostile { get; }
-	/// <summary>The relationship a spell cast against the selected target declares to its effect.</summary>
+	/// <summary>The relationship to the selected target; a spell cast declares it to its effect.</summary>
 	public abstract SpellTargetIntent Intent { get; }
+	/// <summary>Hostile actions are attacks: they obey the tactical decision's attack permission and attack slots.</summary>
+	public bool IsHostile => Intent == SpellTargetIntent.Hostile;
 
-	/// <summary>Append candidates in preference order. Must not allocate per call beyond <paramref name="into"/>.</summary>
+	/// <summary>Append candidates in preference order; <paramref name="action"/> lets a selector skip candidates out of its range.</summary>
 	public abstract void CollectCandidates(EnemyContext context, MonsterAction action, List<Node3D> into);
 
 	/// <summary>

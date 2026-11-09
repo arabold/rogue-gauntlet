@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -31,8 +30,7 @@ public partial class ActorStatsComponent : Node, IStatModifierTarget
 	{
 		if (modifiers == null) return false;
 		foreach (var modifier in modifiers)
-			if (modifier == null || !Enum.IsDefined(modifier.Stat) || !Enum.IsDefined(modifier.Op)
-				|| !float.IsFinite(modifier.Value) || !IsSupported(modifier.Stat)) return false;
+			if (modifier?.IsValid != true || !IsSupported(modifier.Stat)) return false;
 		return true;
 	}
 

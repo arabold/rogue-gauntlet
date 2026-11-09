@@ -32,8 +32,6 @@ public abstract partial class MonsterAction : Resource
 	[Export] public MonsterTargetSelector Target { get; set; }
 	/// <summary>Take a turn through the target's attack slots. Bosses that must never wait behind minions turn it off.</summary>
 	[Export] public bool UsesAttackSlot { get; set; } = true;
-	/// <summary>A defense may answer a blocked attack with this action.</summary>
-	[Export] public bool RiposteEligible { get; set; }
 
 	[ExportGroup("Conditions")]
 	/// <summary>Every condition must hold for the selected target.</summary>
@@ -53,6 +51,10 @@ public abstract partial class MonsterAction : Resource
 	public virtual AttackSlotKind? SlotKind => null;
 	/// <summary>The slot this action reserves when it starts, if any.</summary>
 	public AttackSlotKind? ReservedSlot => UsesAttackSlot && IsOffensive ? SlotKind : null;
+	/// <summary>An offensive action with a slot (an attack or spell) can anchor movement's engagement range.</summary>
+	public bool CanAnchorEngagement => IsOffensive && SlotKind != null;
+	/// <summary>Whether a defense may answer a blocked attack with this action.</summary>
+	public virtual bool CanRiposte => false;
 
 	/// <summary>Whether the actor has what the action needs right now (components, mana).</summary>
 	public virtual bool IsAvailable(EnemyContext context) => true;
@@ -60,13 +62,15 @@ public abstract partial class MonsterAction : Resource
 	/// <summary>Whether starting against <paramref name="target"/> would change anything, e.g. a heal on a hurt ally.</summary>
 	public virtual bool IsUsefulOn(EnemyContext context, Node3D target) => true;
 
-	/// <summary>Range, facing and sight against one candidate target; conditions and cooldown are checked by the runtime.</summary>
+	/// <summary>Whether a horizontal start distance lies within the authored band, capped by the executor's reach.</summary>
+	public bool IsInRange(float distance) => distance >= MinimumRange && distance <= EffectiveMaximumRange;
+
+	/// <summary>Range and facing against one candidate target; conditions, sight and cooldown are checked by the runtime.</summary>
 	public bool IsInPosition(EnemyContext context, Node3D target)
 	{
 		if (!GodotObject.IsInstanceValid(target)) return false;
 		if (ReferenceEquals(target, context.Actor)) return MinimumRange <= 0;
-		float distance = context.Actor.GlobalPosition.HorizontalDistanceTo(target.GlobalPosition);
-		if (distance < MinimumRange || distance > EffectiveMaximumRange) return false;
+		if (!IsInRange(context.Actor.GlobalPosition.HorizontalDistanceTo(target.GlobalPosition))) return false;
 		return MaximumStartAngle >= 180
 			|| context.Movement.LookAtDirection.HorizontalAngleTo(target.GlobalPosition - context.Actor.GlobalPosition) <= MaximumStartAngle;
 	}
@@ -80,12 +84,11 @@ public abstract partial class MonsterAction : Resource
 	/// <summary>Authoring problems for this action against the actor it is assigned to.</summary>
 	public virtual void Validate(MonsterValidationContext context)
 	{
-		context.Check(float.IsFinite(Weight) && Weight > 0, "Weight must be positive.");
-		context.Check(float.IsFinite(Cooldown) && Cooldown >= 0, "Cooldown must be nonnegative.");
-		context.Check(float.IsFinite(MinimumRange) && MinimumRange >= 0 && float.IsFinite(MaximumRange) && MaximumRange >= MinimumRange,
+		context.Check(MonsterValidationContext.IsPositive(Weight), "Weight must be positive.");
+		context.Check(MonsterValidationContext.IsNonnegative(Cooldown), "Cooldown must be nonnegative.");
+		context.Check(MonsterValidationContext.IsNonnegative(MinimumRange) && float.IsFinite(MaximumRange) && MaximumRange >= MinimumRange,
 			"require 0 <= MinimumRange <= MaximumRange.");
 		context.Check(float.IsFinite(MaximumStartAngle) && MaximumStartAngle is >= 0 and <= 180, "MaximumStartAngle must lie between 0 and 180.");
-		context.Check(!RiposteEligible || this is MonsterAttackAction, "only attack actions can be riposte eligible.");
 		EffectiveTarget.Validate(context);
 		foreach (var condition in Conditions)
 		{
@@ -94,7 +97,7 @@ public abstract partial class MonsterAction : Resource
 		}
 		foreach (var modifier in WeightModifiers)
 		{
-			context.Check(modifier?.Condition != null && float.IsFinite(modifier.Multiplier) && modifier.Multiplier >= 0,
+			context.Check(modifier?.Condition != null && MonsterValidationContext.IsNonnegative(modifier.Multiplier),
 				"WeightModifiers need a condition and a nonnegative multiplier.");
 			modifier?.Condition?.Validate(context);
 		}

@@ -1,5 +1,4 @@
 using Godot;
-using System;
 using System.Collections.Generic;
 
 [GlobalClass]
@@ -54,9 +53,10 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 	{
 		if (modifiers == null) return false;
 		foreach (var modifier in modifiers)
-			if (modifier == null || !Enum.IsDefined(modifier.Stat) || !Enum.IsDefined(modifier.Op) || !float.IsFinite(modifier.Value)) return false;
+			if (modifier?.IsValid != true) return false;
 		return true;
 	}
+
 
 	/// <summary>Removes every modifier registered under <paramref name="source"/>.</summary>
 	public void RemoveModifiersFrom(object source)

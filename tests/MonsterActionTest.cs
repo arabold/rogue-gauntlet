@@ -34,9 +34,7 @@ public partial class MonsterActionTest
 		var player = harness.Player;
 		player.MovementComponent.SetPhysicsProcess(false);
 		var rat = TestFactories.Load<PackedScene>(Rat).Instantiate<EnemyBase>();
-		rat.Definition = (MonsterDefinition)rat.Definition.Duplicate();
-		rat.Definition.Behavior = (EnemyBehaviorProfile)rat.Definition.Behavior.Duplicate();
-		rat.Definition.Behavior.Combat = (EnemyCombatProfile)rat.Definition.Behavior.Combat.Duplicate();
+		TestFactories.UsePrivateCombatProfile(rat);
 		rat.Definition.Behavior.InitialAction = EnemyAction.None;
 		configure?.Invoke(rat);
 		rat.EnemyBehaviorComponent.AIEnabled = false;
@@ -71,12 +69,12 @@ public partial class MonsterActionTest
 		context.ExecuteTactics();
 		AssertBool(context.Actions.CanEngage).OverrideFailureMessage("the bite should be in position").IsTrue();
 		AssertObject(requests[^1]).IsEqual(MonsterActionFilter.SupportOnly);
-		AssertBool(behavior.IsAttacking).IsFalse();
+		AssertObject(behavior.RunningAction).IsNull();
 
 		hold.AllowAttack = true;
 		context.ExecuteTactics();
 		AssertObject(requests[^1]).IsEqual(MonsterActionFilter.All);
-		AssertBool(behavior.IsAttacking).IsTrue();
+		AssertObject(behavior.RunningAction).IsNotNull();
 		AssertObject(behavior.RunningAction?.Action).IsSame(Bite(rat));
 	}
 

@@ -26,7 +26,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 		Node3D caster = context.Caster;
 		SpellPower power = context.Power;
 		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
+		if (!CanCast(in context)) return false;
 		float radius = Definition.RadiusByLevel[level - 1];
 		if (!AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, radius, out var cast)) return false;
 		var node = VisualScene.Instantiate();

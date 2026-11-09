@@ -15,22 +15,13 @@ public partial class BuffSpellEffect : SpellEffect
 			&& target.Buffs != null && Buff?.CanApplyTo(target) == true;
 	}
 
-	public override bool IsUseful(in SpellCastContext context)
-	{
-		if (!CanCast(in context)) return false;
-		Node3D recipient = Recipient(in context);
-		var target = (IBuffTarget)recipient;
-		if (target.Buffs.HasEquivalent(Buff)) return false;
-		return Buff is not HealingBuff healing || target.Health.CurrentHealth < target.Health.MaxHealth
-			|| healing.HealthPointsPerTick <= 0;
-	}
+	public override bool IsUseful(in SpellCastContext context) =>
+		CanCast(in context) && Buff.IsUsefulOn((IBuffTarget)Recipient(in context));
 
 	public override bool Cast(in SpellCastContext context, RandomNumberGenerator random)
 	{
 		if (random == null || !CanCast(in context)) return false;
-		var controller = ((IBuffTarget)Recipient(in context)).Buffs;
-		string key = Buff.Stacking == BuffStacking.Refresh ? Buff.ResourcePath : "";
-		return controller.ApplyBuff(Buff, key) is BuffApplication.Applied or BuffApplication.Refreshed;
+		return ((IBuffTarget)Recipient(in context)).Buffs.ApplyBuff(Buff) is BuffApplication.Applied or BuffApplication.Refreshed;
 	}
 
 	public override System.Collections.Generic.IEnumerable<string> DescribeLevel(in SpellPower power) =>

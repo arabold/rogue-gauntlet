@@ -46,7 +46,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
 	/// </summary>
-	[Export] public CharacterBody3D Actor { get; set; }
+	[Export] public EnemyBase Actor { get; set; }
 
 	/// <summary>
 	/// Movement component used to apply navigation directions.
@@ -86,8 +86,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	public bool IsMoving => CurrentAction == EnemyAction.None && MovementComponent.IsMoving;
 	public bool IsFalling => MovementComponent.IsFalling;
 	public bool IsDead => CurrentAction == EnemyAction.Dying || CurrentBehavior == EnemyBehaviorState.Dead;
-	/// <summary>An attack or cast is running on the actor's attack controller.</summary>
-	public bool IsAttacking => _running is MonsterTimedRun { IsFinished: false };
 	/// <summary>The started action, or null; tools read it to show what the monster is doing.</summary>
 	public MonsterActionRun RunningAction => _running;
 	/// <summary>Cooldowns and selection state for tools; null until ready.</summary>
@@ -111,7 +109,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	private EnemyContext _context;
 	private EnemyStateMachine _machine;
 	private MonsterActionRun _running;
-	private ulong? _actionSeed;
 	private Cooldown _actionCooldown;
 	private Cooldown _supportCheck;
 	// How often a monster without a target looks for a self or ally support action.
@@ -120,15 +117,11 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	private AttackSlotsComponent _engagedSlots;
 
 	/// <summary>Seed action choices independently from attack and defense execution.</summary>
-	public void ConfigureActionRandom(ulong seed)
-	{
-		_actionSeed = seed;
-		_context?.Actions.ConfigureRandom(seed);
-	}
+	public void ConfigureActionRandom(ulong seed) => _context?.Actions.ConfigureRandom(seed);
 
 	public override void _Ready()
 	{
-		if (Actor is EnemyBase { DefinitionValid: false }) return;
+		if (!Actor.DefinitionValid) return;
 		ProcessPhysicsPriority = CombatPhysics.Steering;
 		base._Ready();
 
@@ -145,19 +138,14 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_perception = GetNode<PerceptionComponent>("Perception");
 		_perception.Initialize(Actor, _profile, GetNode<RayCast3D>("SightRay"));
 		_navigation = GetNode<NavigationComponent>("Navigation");
-		_navigation.Initialize(Actor, MovementComponent, (Actor as EnemyBase)?.BodyRadius ?? EnemyBase.DefaultBodyRadius, _profile.StayInHomeRoom);
+		_navigation.Initialize(Actor, MovementComponent, Actor.BodyRadius, _profile.StayInHomeRoom);
 
-		_attackController = Actor is EnemyBase enemy ? enemy.AttackController : Actor.GetNodeOrNull<AttackController>("AttackController");
-		if (_attackController == null)
-		{
-			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
-		}
+		_attackController = Actor.AttackController;
 
 		// The context is the shared blackboard the behavior states read and mutate; the state machine
 		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
 		// host as a gate above the machine - see _PhysicsProcess.
 		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, filter => TryRequestAction(filter));
-		if (_actionSeed is { } seed) _context.Actions.ConfigureRandom(seed);
 		if (_attackController != null) _attackController.AttackFinished += OnAttackFinished;
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
 		{
@@ -189,7 +177,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		if (_context == null) return;
 		_context.TickThrottles(delta);
 		SyncEngagedSlots();
-		var gate = (Actor as EnemyBase)?.ActionGate;
+		var gate = Actor.ActionGate;
 		if (gate?.Disabled == true || (gate?.IsBusy == true && _running == null))
 		{
 			MovementComponent.Stop();
@@ -237,7 +225,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 
 	private void OnAttackFinished(AttackIdentity identity, bool interrupted)
 	{
-		if (_running is MonsterTimedRun run && run.Execution == identity) run.ReleaseSlots(Actor);
 		_context?.Tactics.AttackFinished(identity, interrupted);
 		_context?.TacticalSelector?.AttackFinished(identity);
 	}

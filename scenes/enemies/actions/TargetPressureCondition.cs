@@ -11,20 +11,19 @@ public partial class TargetPressureCondition : MonsterActionCondition
 	[Export(PropertyHint.Range, "0,30,0.1,suffix:m")] public float Range { get; set; } = 2;
 	[Export(PropertyHint.Range, "0,30,0.05,suffix:s")] public float Duration { get; set; } = 1;
 
+	/// <summary>Per-actor pressure time, kept by the actor's runtime.</summary>
+	private sealed class Pressure { public float Seconds; }
+
 	public override void Tick(EnemyContext context, double delta)
 	{
-		if (!GodotObject.IsInstanceValid(context.Target) || !context.HasLineOfSightToTarget())
-		{
-			context.Actions.SetConditionTime(this, 0);
-			return;
-		}
-		if (context.HorizontalTargetDistance <= Range)
-			context.Actions.SetConditionTime(this, Mathf.Min(Duration, context.Actions.ConditionTime(this) + (float)delta));
+		var pressure = context.Actions.State<Pressure>(this);
+		if (!GodotObject.IsInstanceValid(context.Target) || !context.HasLineOfSightToTarget()) pressure.Seconds = 0;
+		else if (context.HorizontalTargetDistance <= Range) pressure.Seconds = Mathf.Min(Duration, pressure.Seconds + (float)delta);
 	}
 
-	public override bool IsMet(EnemyContext context, Node3D target) => context.Actions.ConditionTime(this) >= Duration;
+	public override bool IsMet(EnemyContext context, Node3D target) => context.Actions.State<Pressure>(this).Seconds >= Duration;
 
 	public override void Validate(MonsterValidationContext context) =>
-		context.Check(float.IsFinite(Range) && Range > 0 && float.IsFinite(Duration) && Duration >= 0,
+		context.Check(MonsterValidationContext.IsPositive(Range) && MonsterValidationContext.IsNonnegative(Duration),
 			"TargetPressureCondition needs a positive Range and a nonnegative Duration.");
 }

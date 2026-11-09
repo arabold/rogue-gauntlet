@@ -39,7 +39,7 @@ statuses without a magnitude, and to buff subclasses for effects with one:
   scene unloads. Durations count game time.
 - `Buff.CuredConditions` ends conditions when any buff is applied; healing potions cure blindness.
 
-The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after a surviving damaging contact. Venom is the same periodic poison effect used by other sources. Attack payloads reference a timed buff saved as its own file and use `Buff.Stacking = Refresh`, so repeated applications of the same definition, from any source, preserve one activation and its tick progress. Dodged, parried, blocked, absorbed, invulnerable, filtered and lethal contacts do not apply venom. Splash and poison ticks do not carry attack payloads. Active poison duration and tick progress, refresh key and stacking mode are saved with the player's buffs; incompatible development saves require a new run under the current save version.
+The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after a surviving damaging contact. Venom is the same periodic poison effect used by other sources. Attack payloads reference a timed buff saved as its own file and use `Buff.Stacking = Refresh`, so repeated applications of the same definition, from any source, preserve one activation and its tick progress. Dodged, parried, blocked, absorbed, invulnerable, filtered and lethal contacts do not apply venom. Splash and poison ticks do not carry attack payloads. Active poison duration and tick progress are saved with the player's buffs; a refreshing buff restores as its definition file, so it keeps refreshing under the same identity.
 
 ## Equipment quality, affixes and enchantment
 

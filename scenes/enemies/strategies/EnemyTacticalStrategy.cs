@@ -15,7 +15,7 @@ public partial class EnemyTacticalStrategy : Resource
 		StandAndFightDistance, RequireAttackAfterRetreat);
 
 	public void Validate(MonsterValidationContext context) =>
-		context.Check(float.IsFinite(MaximumRetreatDuration) && MaximumRetreatDuration > 0 && float.IsFinite(RetreatRetryDelay)
-			&& RetreatRetryDelay >= 0 && float.IsFinite(StandAndFightDistance) && StandAndFightDistance >= 0,
+		context.Check(MonsterValidationContext.IsPositive(MaximumRetreatDuration) && MonsterValidationContext.IsNonnegative(RetreatRetryDelay)
+			&& MonsterValidationContext.IsNonnegative(StandAndFightDistance),
 			"TacticalStrategy: require positive retreat duration and nonnegative finite retry/stand distances.");
 }

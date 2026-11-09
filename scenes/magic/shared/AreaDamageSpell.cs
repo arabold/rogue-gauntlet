@@ -27,7 +27,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 		Node3D caster = context.Caster;
 		SpellPower power = context.Power;
 		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
+		if (!CanCast(in context)) return false;
 		float radius = Definition.RadiusByLevel[level - 1];
 		AttackStats hit = power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]);
 		AttackDefenseTraits defense = Definition.DefenseTraits;

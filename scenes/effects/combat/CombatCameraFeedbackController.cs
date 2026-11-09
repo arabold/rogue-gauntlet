@@ -11,8 +11,6 @@ public partial class CombatCameraFeedbackController : Node
 	private float _strongestImpulse;
 	private float _defaultGrowthTime, _defaultDuration, _defaultDecayTime;
 	private bool _enabled = true;
-	private CombatContactFeedbackHandler _contactHandler;
-	private CameraImpulseRequestHandler _impulseHandler;
 
 	[Export] public Node3D NoiseEmitter { get; set; }
 	[Export(PropertyHint.Range, "0,3,0.01")] public float MaximumImpulse { get; set; } = 0.65f;
@@ -35,12 +33,14 @@ public partial class CombatCameraFeedbackController : Node
 			_defaultDuration = _emitter.Duration;
 			_defaultDecayTime = _emitter.DecayTime;
 		}
-		_contactHandler = OnContact;
-		SignalBus.CombatContactResolved += _contactHandler;
-		_impulseHandler = OnCameraImpulseRequested;
-		SignalBus.CameraImpulseRequested += _impulseHandler;
 		if (SignalBus.Instance != null)
+		{
+			this.SubscribeUntilExit(SignalBus.Instance, _ => SignalBus.CombatContactResolved += OnContact,
+				_ => SignalBus.CombatContactResolved -= OnContact);
+			this.SubscribeUntilExit(SignalBus.Instance, _ => SignalBus.CameraImpulseRequested += OnCameraImpulseRequested,
+				_ => SignalBus.CameraImpulseRequested -= OnCameraImpulseRequested);
 			this.SubscribeUntilExit(SignalBus.Instance, b => b.PlayerSpawned += Bind, b => b.PlayerSpawned -= Bind);
+		}
 		Bind(GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault());
 	}
 
@@ -96,21 +96,15 @@ public partial class CombatCameraFeedbackController : Node
 
 	private void OnCameraImpulseRequested(in CameraImpulseRequest request)
 	{
-		if (!Enabled || _player == null || !GodotObject.IsInstanceValid(_player) || !float.IsFinite(request.Radius)
-			|| request.Radius <= 0 || !float.IsFinite(request.Strength) || request.Strength <= 0) return;
+		if (!Enabled || !GodotObject.IsInstanceValid(_player) || !(request.Radius > 0) || !(request.Strength > 0)) return;
 		float distance = _player.GlobalPosition.HorizontalDistanceTo(request.Position);
 		if (distance >= request.Radius) return;
 		float requested = request.Strength * (1 - distance / request.Radius);
 		bool emitted = AddImpulse(requested, out float actual, out string reason,
-			request.GrowthTime, request.Duration, request.DecayTime);
-		CombatTrace.Write(this, "effect.camera_shake", ("direction", "ground_impact"), ("requested_impulse", requested),
+			request.GrowthTime, request.HoldTime, request.DecayTime);
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.camera_shake", ("direction", "area"), ("requested_impulse", requested),
 			("impulse", actual), ("noise_amplitude", emitted ? actual * NoiseAmplitudePerUnit : 0),
 			("triggered", emitted), ("reason", reason));
 	}
 
-	public override void _ExitTree()
-	{
-		if (_contactHandler != null) SignalBus.CombatContactResolved -= _contactHandler;
-		if (_impulseHandler != null) SignalBus.CameraImpulseRequested -= _impulseHandler;
-	}
 }

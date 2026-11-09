@@ -22,10 +22,10 @@ public partial class MonsterDefinition : Resource
 	{
 		context.Check(!string.IsNullOrWhiteSpace(Id), "Definition.Id: enter a stable monster ID.");
 		context.Check(!string.IsNullOrWhiteSpace(DisplayName), "Definition.DisplayName: enter a display name.");
-		context.Check(float.IsFinite(MaxHealth) && MaxHealth > 0, "Definition.MaxHealth: must be positive and finite.");
-		context.Check(float.IsFinite(MoveSpeed) && MoveSpeed >= 0, "Definition.MoveSpeed: must be nonnegative and finite.");
-		context.Check(float.IsFinite(Armor) && Armor >= 0, "Definition.Armor: must be nonnegative and finite.");
-		context.Check(float.IsFinite(MaxMana) && MaxMana >= 0 && float.IsFinite(ManaRegenPerSecond) && ManaRegenPerSecond >= 0,
+		context.Check(MonsterValidationContext.IsPositive(MaxHealth), "Definition.MaxHealth: must be positive and finite.");
+		context.Check(MonsterValidationContext.IsNonnegative(MoveSpeed), "Definition.MoveSpeed: must be nonnegative and finite.");
+		context.Check(MonsterValidationContext.IsNonnegative(Armor), "Definition.Armor: must be nonnegative and finite.");
+		context.Check(MonsterValidationContext.IsNonnegative(MaxMana) && MonsterValidationContext.IsNonnegative(ManaRegenPerSecond),
 			"Definition.MaxMana and ManaRegenPerSecond must be nonnegative and finite.");
 		context.Check(XpReward >= 0, "Definition.XpReward: cannot be negative.");
 		if (context.Check(Behavior != null, "Definition.Behavior: assign a behavior Resource."))

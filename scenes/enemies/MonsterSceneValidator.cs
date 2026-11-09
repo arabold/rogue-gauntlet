@@ -14,11 +14,11 @@ public static class MonsterSceneValidator
 
 	public static string[] Validate(Node actor)
 	{
-		var errors = new List<string>();
-		void Check(bool valid, string message) { if (!valid) errors.Add(message); }
-		bool Local(Node node) => node != null && actor.IsAncestorOf(node);
 		var definition = Object<MonsterDefinition>(actor, "Definition");
 		if (definition == null) return new[] { "Definition: assign a MonsterDefinition Resource." };
+		var context = new MonsterValidationContext(actor, definition);
+		bool Check(bool valid, string message) => context.CheckWiring(valid, message);
+		bool Local(Node node) => context.Local(node);
 		foreach (var name in new[] { "HealthComponent", "MovementComponent", "EnemyBehaviorComponent", "DeathComponent", "LootTableComponent", "HurtBoxComponent", "ActionGate", "SpellCaster", "ManaComponent", "Stats", "BuffController" })
 			Check(Local(Object<Node>(actor, name)), $"{name}: assign a component within this actor.");
 		var body = Object<CollisionShape3D>(actor, "BodyShape");
@@ -88,8 +88,6 @@ public static class MonsterSceneValidator
 				&& (index == 0 || value < fractions[index - 1])).All(valid => valid),
 				"HealthPhaseComponent.EnterHealthFractions: list strictly descending fractions in (0, 1).");
 		}
-		var mana = Object<Node>(actor, "ManaComponent");
-		Check(Local(mana) && mana != null, "ManaComponent: assign this actor's local mana pool.");
 		var poise = hurtbox != null ? Object<Node>(hurtbox, "Poise") : null;
 		if (poise != null)
 		{
@@ -121,10 +119,8 @@ public static class MonsterSceneValidator
 			"AttackController.AnimationComponent: bind this actor's CombatAnimationComponent.");
 		Check(controller == null || Object<Node>(controller, "ActionGate") == gate, "AttackController.ActionGate: assign this actor's action gate.");
 		Check(gate == null || Object<Node>(gate, "AnimationComponent") == animation, "ActionGate.AnimationComponent: assign this actor's combat animation component.");
-		var context = new MonsterValidationContext(actor, definition);
 		definition.Validate(context);
-		errors.AddRange(context.Errors);
-		return errors.ToArray();
+		return [.. context.Errors];
 	}
 
 	/// <summary>Validate a saved actor without entering the tree or consuming generation RNG.</summary>

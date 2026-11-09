@@ -24,7 +24,7 @@ public partial class EngagementRingStrategy : CloseDistanceStrategy
 	{
 		base.Validate(context, combat);
 		var primary = combat.PrimaryOffense;
-		context.Check(float.IsFinite(RingDistance) && RingDistance > 0 && (primary == null || RingDistance > primary.EffectiveMaximumRange),
+		context.Check(MonsterValidationContext.IsPositive(RingDistance) && (primary == null || RingDistance > primary.EffectiveMaximumRange),
 			"MovementStrategy: the engagement ring must lie outside the primary action's range.");
 	}
 }

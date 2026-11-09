@@ -22,7 +22,6 @@ public partial class HealthPhaseCondition : MonsterActionCondition
 	{
 		context.Check(MinimumPhase >= 0 && (MaximumPhase < 0 || MaximumPhase >= MinimumPhase),
 			"HealthPhaseCondition requires 0 <= MinimumPhase <= MaximumPhase (or MaximumPhase -1).");
-		context.Check(MaximumPhase < 0 || MaximumPhase <= context.PhaseCount, "HealthPhaseCondition names a phase the actor never reaches.");
-		context.Check(MinimumPhase <= context.PhaseCount, "HealthPhaseCondition names a phase the actor never reaches.");
+		context.Check(Mathf.Max(MinimumPhase, MaximumPhase) <= context.PhaseCount, "HealthPhaseCondition names a phase the actor never reaches.");
 	}
 }

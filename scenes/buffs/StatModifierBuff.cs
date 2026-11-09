@@ -36,7 +36,7 @@ public partial class StatModifierBuff : Buff
 		foreach (StatModifier modifier in Modifiers ?? [])
 		{
 			if (modifier == null) { problems.Add($"{Name} has an empty modifier slot."); }
-			else if (!System.Enum.IsDefined(modifier.Stat) || !System.Enum.IsDefined(modifier.Op)) { problems.Add($"{Name} has an invalid modifier entry."); }
+			else if (!modifier.IsValid) { problems.Add($"{Name} has an invalid modifier entry."); }
 			else if (modifier.Value == 0f) { problems.Add($"{Name} modifies {modifier.Stat} by 0."); }
 		}
 		return problems.ToArray();

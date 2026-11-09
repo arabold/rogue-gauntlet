@@ -76,15 +76,18 @@ public sealed class MonsterValidationContext
 
 	private Resource[] BindingsFor(StringName style) => _bindings.Where(binding => binding.Get("Style").AsStringName() == style).ToArray();
 
-	/// <summary>Exactly one binding plays <paramref name="style"/>; a wind-up clip needs a positive contact start.</summary>
-	public bool CheckAttackStyle(StringName style)
+	/// <summary>
+	/// Exactly one animation binding plays <paramref name="style"/> with a valid clip; an optional wind-up clip must be
+	/// valid too and, when <paramref name="windUpNeedsContactStart"/>, end at a positive contact start.
+	/// </summary>
+	public bool CheckBinding(StringName style, bool windUpNeedsContactStart = true)
 	{
 		var matches = BindingsFor(style);
 		if (!Check(AnimationTree != null && matches.Length == 1 && HasClip(matches[0].Get("Clip").AsStringName()),
 			$"needs one valid animation binding for style '{style}'.")) return false;
 		if (!string.IsNullOrWhiteSpace(matches[0].Get("WindUpClip").AsString()))
-			Check(HasClip(matches[0].Get("WindUpClip").AsStringName()) && Number(matches[0], "ContactStart") > 0,
-				$"style '{style}' needs a valid WindUpClip and a positive ContactStart.");
+			Check(HasClip(matches[0].Get("WindUpClip").AsStringName()) && (!windUpNeedsContactStart || Number(matches[0], "ContactStart") > 0),
+				$"style '{style}' needs a valid WindUpClip{(windUpNeedsContactStart ? " and a positive ContactStart" : "")}.");
 		return true;
 	}
 
@@ -95,81 +98,12 @@ public sealed class MonsterValidationContext
 		return matches.Length == 1 ? Number(matches[0], "ContactStart") : null;
 	}
 
-	/// <summary>The attack's own rules, against the wind-up the action and its binding prepare.</summary>
-	public void CheckAttackDefinition(AttackDefinition attack, float duration, StringName style)
-	{
-		float? windUp = ContactStart(style) is { } start ? duration * start : null;
-		foreach (var status in attack.OnHitStatuses ?? [])
-			Check(status?.IsValid == true, "contains an invalid on-hit status payload (refreshing statuses need a saved buff file).");
-		Check(attack.IsRanged ? Object<PackedScene>(attack, "ProjectileScene") != null : attack.MeleeContact != null,
-			"must bind a projectile scene or a melee contact profile.");
-		if (!attack.IsRanged) CheckWiring(Object<Node>(AttackController, "MeleeDetector") != null, "AttackController.MeleeDetector: assign a hit detector.");
-		CheckWiring(Local(Object<Node>(AttackController, "Indicator")), "AttackController.Indicator: assign this actor's shared attack warning.");
-		Check(attack.HasValidImpactValues, "Attack: poise damage, knockback, hit-stop and wind-up turn rate must be nonnegative and finite.");
-		Check(attack.HasValidArmorWindow, "Attack.HyperArmorStart/End: require 0 <= start <= end <= 1.");
-		Check(attack.HasValidFacingLock(windUp), "Attack.FacingLockLead: must be nonnegative, melee only and no longer than the prepared wind-up.");
-		Check(attack.HasValidFlight(windUp, windUp != null ? duration : null),
-			"Attack flight: stagger, homing and launch ramp must be finite and nonnegative with a launch scale in (0, 1]; stagger and homing belong to aimed single/spread shots whose last projectile leaves within the attack.");
-		var tier = attack.ThreatTier;
-		Check(!(windUp < tier.MinimumWindUp() - .001f), $"Attack: {tier} attacks need at least {tier.MinimumWindUp()} s of wind-up before contact.");
-		float aimLock = attack.ProjectileAimLockDuration;
-		Check(float.IsFinite(aimLock) && aimLock >= 0, "Attack.ProjectileAimLockDuration: must be nonnegative and finite.");
-		if (aimLock > 0)
-		{
-			Check(attack.IsRanged && attack.ProjectilePattern is ProjectilePattern.Single or ProjectilePattern.Spread,
-				"Attack.ProjectileAimLockDuration: only aimed single/spread shots support locking.");
-			Check(windUp == null || aimLock <= windUp, "Attack.ProjectileAimLockDuration: cannot exceed the prepared wind-up.");
-		}
-	}
-
 	/// <summary>The actor exports <paramref name="exportName"/> as one of its own nodes.</summary>
 	public bool CheckLocalNode(string exportName, string message) => CheckWiring(Local(Object<Node>(Actor, exportName)), message);
 
-	/// <summary>A dash needs the actor's wired dash component, its travel binding and, with recovery, the gate's recovery clip.</summary>
-	public void CheckDash(DashProfile dash)
-	{
-		var component = Object<Node>(Actor, "DashComponent");
-		CheckWiring(Local(component) && Object<Node>(component, "Actor") == Actor && Object<Node>(component, "ActionGate") == ActionGate
-			&& Object<Node>(component, "MovementComponent") == Object<Node>(Actor, "MovementComponent")
-			&& Object<Node>(component, "AnimationComponent") == AnimationComponent,
-			"DashComponent: wire this actor's dash component to its actor, movement, gate and animation.");
-		var matches = BindingsFor(dash.Style);
-		if (Check(AnimationTree != null && matches.Length == 1 && HasClip(matches[0].Get("Clip").AsStringName()),
-			$"needs one valid animation binding for dash style '{dash.Style}'.")
-			&& !string.IsNullOrWhiteSpace(matches[0].Get("WindUpClip").AsString()))
-			Check(HasClip(matches[0].Get("WindUpClip").AsStringName()), $"dash style '{dash.Style}' needs a valid WindUpClip.");
-		if (dash.RecoveryDuration > 0)
-			Check(HasClip(Object<Resource>(ActionGate, "AnimationProfile")?.Get("RecoveryClip").AsStringName() ?? ""),
-				"a dash with recovery needs the action gate's recovery animation clip.");
-	}
-
-	/// <summary>Nonzero guard or dodge chances need the matching wired capability and its clips.</summary>
-	public void CheckDefenseCapabilities(float guardChance, float dodgeChance)
-	{
-		var controller = Object<Node>(Actor, "DefenseController");
-		if (controller != null) CheckWiring(Local(controller) && Object<Node>(controller, "Enemy") == Actor,
-			"DefenseController.Enemy: assign this actor to its local defense controller.");
-		CheckWiring((guardChance == 0 && dodgeChance == 0) || controller != null, "EnemyDefenseController: add a controller for nonzero response probabilities.");
-		foreach (var (chance, name, definitionProperty, clipProperties) in new[]
-		{
-			(guardChance, "GuardComponent", "GuardDef", new[] { "GuardHoldClip", "RecoveryClip", "BlockHitClip", "ParryClip" }),
-			(dodgeChance, "DodgeComponent", "DodgeDef", new[] { "DodgeBackwardClip", "DodgeForwardClip", "DodgeLeftClip", "DodgeRightClip", "RecoveryClip" })
-		})
-		{
-			if (chance <= 0) continue;
-			var capability = Object<Node>(Actor, name);
-			CheckWiring(Local(capability) && Object<Node>(controller, name) == capability,
-				$"DefenseController.{name}: assign this actor's {name}; empty means unavailable.");
-			var capabilityDefinition = Object<Resource>(capability, definitionProperty);
-			CheckWiring(capability != null && capabilityDefinition != null && Object<Node>(capability, "Actor") == Actor
-				&& Object<Node>(capability, "ActionGate") == ActionGate && Object<Node>(capability, "AnimationComponent") == AnimationComponent,
-				$"{name}: bind actor, action gate, animation and definition.");
-			var clips = Object<Resource>(capabilityDefinition, "AnimationProfile");
-			CheckWiring(clips != null && clipProperties.All(property => (property == "ParryClip"
-				&& capabilityDefinition.Get("CanParry").AsBool() == false) || HasClip(clips.Get(property).AsStringName())),
-				$"{name}: assign valid defense and recovery clips.");
-		}
-	}
+	public static bool IsNonnegative(float value) => float.IsFinite(value) && value >= 0;
+	public static bool IsPositive(float value) => float.IsFinite(value) && value > 0;
+	public static bool IsProbability(float value) => float.IsFinite(value) && value is >= 0 and <= 1;
 
 	public static T Object<T>(GodotObject owner, StringName property) where T : GodotObject => owner?.Get(property).AsGodotObject() as T;
 	public static float Number(GodotObject owner, StringName property) => owner.Get(property).AsSingle();

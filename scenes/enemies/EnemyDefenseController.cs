@@ -214,8 +214,7 @@ public partial class EnemyDefenseController : Node
 		// The same reach the action selector uses: authored range capped by the attack's own contact reach.
 		float reach = 0;
 		foreach (var action in Enemy.EnemyBehaviorComponent?.Profile?.Combat?.Actions ?? [])
-			if (action is MonsterAttackAction { RiposteEligible: true, IsOffensive: true })
-				reach = Mathf.Max(reach, action.EffectiveMaximumRange);
+			if (action?.CanRiposte == true) reach = Mathf.Max(reach, action.EffectiveMaximumRange);
 		if (distance > reach) return RecordRiposte(false, "out_of_reach", target, distance, reach);
 
 		// Turn toward the target at the actor's normal turn rate; an attack that cannot start yet is rejected.

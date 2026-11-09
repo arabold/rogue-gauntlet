@@ -20,41 +20,36 @@ public partial class MonsterSpellAction : MonsterTimedAction
 	public override AttackSlotKind? SlotKind => AttackSlotKind.Ranged;
 	private float ManaCost => PaysMana && Spell?.IsValidLevel(Level) == true ? Spell.ManaCost(Level) : 0;
 
-	public override bool IsAvailable(EnemyContext context) => base.IsAvailable(context) && context.Enemy.SpellCaster != null
-		&& (!PaysMana || context.Enemy.ManaComponent?.CanSpend(ManaCost) == true);
+	public override bool IsAvailable(EnemyContext context) => base.IsAvailable(context)
+		&& (!PaysMana || context.Actor.ManaComponent.CanSpend(ManaCost));
 
+	/// <summary>The spell would change something for this target; a spell's usefulness implies it can be cast.</summary>
 	public override bool IsUsefulOn(EnemyContext context, Node3D target)
 	{
 		var cast = CastContext(context, target, default);
-		return context.Enemy?.SpellCaster?.TryResolve(Spell, this, Level, out var spell) == true
-			&& spell.CanCast(in cast) && spell.IsUseful(in cast);
+		return context.Actor.SpellCaster.TryResolve(Spell, this, Level, out var spell) && spell.IsUseful(in cast);
 	}
 
 	public override ActorActionRequestResult TryStart(EnemyContext context, Node3D target, out MonsterActionRun run)
 	{
 		run = null;
-		var enemy = context.Enemy;
-		var controller = enemy?.AttackController;
-		if (controller == null || enemy.SpellCaster == null || Spell == null) return ActorActionRequestResult.Unavailable;
-		var mana = enemy.ManaComponent;
-		if (PaysMana && mana?.CanSpend(ManaCost) != true) return ActorActionRequestResult.Unavailable;
+		var actor = context.Actor;
+		var controller = actor.AttackController;
+		if (Spell == null) return ActorActionRequestResult.InvalidDefinition;
+		if (PaysMana && !actor.ManaComponent.CanSpend(ManaCost)) return ActorActionRequestResult.Unavailable;
 		AttackStats power = ResolvePower(context);
 		var cast = CastContext(context, target, power);
-		if (!enemy.SpellCaster.TryPrepare(Spell, this, in cast, out var release)) return ActorActionRequestResult.Unavailable;
+		if (!actor.SpellCaster.TryPrepare(Spell, this, in cast, out var release)) return ActorActionRequestResult.Unavailable;
 		if (!context.TryReserveSlot(ReservedSlot, out var slots)) return ActorActionRequestResult.Busy;
 		release = release with { Revalidate = released => CanRelease(context, released) };
-		if (PaysMana && !mana.TrySpend(ManaCost))
-		{
-			slots?.Release(context.Actor, yield: false);
-			return ActorActionRequestResult.Unavailable;
-		}
 		if (!controller.TryPrepareAttack(Spell.Cast, Style, Duration, out var prepared)
 			|| !controller.StartAttack(prepared with { Spell = release }, power, HostileMask))
 		{
-			if (PaysMana) mana.SetMana(mana.CurrentMana + ManaCost, mana.MaxMana);
-			slots?.Release(context.Actor, yield: false);
+			slots?.Release(actor, yield: false);
 			return ActorActionRequestResult.InvalidDefinition;
 		}
+		// Affordability was checked above in this same call, so the spend cannot fail.
+		if (PaysMana) actor.ManaComponent.TrySpend(ManaCost);
 		if (IsOffensive) context.NotifyAttackAccepted(controller.CurrentExecutionId);
 		run = new MonsterTimedRun(this, target, slots, controller, controller.CurrentExecutionId);
 		return ActorActionRequestResult.Success;
@@ -66,14 +61,11 @@ public partial class MonsterSpellAction : MonsterTimedAction
 	/// <summary>At release the target must still be alive, within range, visible and worth the cast.</summary>
 	private bool CanRelease(EnemyContext context, SpellCastContext cast)
 	{
-		if (context.Enemy == null || context.Enemy.IsDead || !GodotObject.IsInstanceValid(cast.Target)) return false;
+		if (context.Actor.IsDead || !GodotObject.IsInstanceValid(cast.Target)) return false;
 		if (cast.Target is IBuffTarget { Health.IsDead: true }) return false;
-		if (!ReferenceEquals(cast.Target, context.Actor))
-		{
-			float distance = context.Actor.GlobalPosition.HorizontalDistanceTo(cast.Target.GlobalPosition);
-			if (distance < MinimumRange || distance > EffectiveMaximumRange || !context.CanSee(cast.Target)) return false;
-		}
-		return context.Enemy.SpellCaster.TryResolve(Spell, this, Level, out var spell) && spell.IsUseful(in cast);
+		if (!ReferenceEquals(cast.Target, context.Actor)
+			&& (!IsInRange(context.Actor.GlobalPosition.HorizontalDistanceTo(cast.Target.GlobalPosition)) || !context.CanSee(cast.Target))) return false;
+		return context.Actor.SpellCaster.TryResolve(Spell, this, Level, out var spell) && spell.IsUseful(in cast);
 	}
 
 	public override void Validate(MonsterValidationContext context)
@@ -82,7 +74,6 @@ public partial class MonsterSpellAction : MonsterTimedAction
 		if (!context.Check(Spell?.IsValidLevel(Level) == true, "assign a SpellDefinition that supports this Level.")) return;
 		context.Check(!PaysMana || Spell.ManaCost(Level) > 0, "PaysMana needs a spell level with a mana cost.");
 		context.Check(!PaysMana || context.Definition?.MaxMana >= Spell.ManaCost(Level), "Definition.MaxMana must cover the spell's mana cost.");
-		context.CheckLocalNode("SpellCaster", "SpellCaster: spell actions need this actor's SpellCaster.");
 		context.Check(Spell.Cast != null, "the spell needs a Cast attack definition.");
 	}
 }

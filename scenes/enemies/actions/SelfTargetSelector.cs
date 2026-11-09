@@ -6,7 +6,6 @@ using System.Collections.Generic;
 [GlobalClass]
 public partial class SelfTargetSelector : MonsterTargetSelector
 {
-	public override bool IsHostile => false;
 	public override SpellTargetIntent Intent => SpellTargetIntent.Self;
 
 	public override void CollectCandidates(EnemyContext context, MonsterAction action, List<Node3D> into) => into.Add(context.Actor);

@@ -70,10 +70,7 @@ public class MonsterRosterTest
 		// At the preferred distance the authored strategy returns to its sight/attack choice.
 		context.TacticalSelector.ClearTarget();
 		var invalid = (EnemyTacticalStrategy)profile.Combat.TacticalStrategy.Duplicate();
-		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
-		actor.Definition.Behavior = (EnemyBehaviorProfile)profile.Duplicate();
-		actor.Definition.Behavior.Combat = (EnemyCombatProfile)profile.Combat.Duplicate();
-		actor.Definition.Behavior.Combat.TacticalStrategy = invalid;
+		TestFactories.UsePrivateCombatProfile(actor).TacticalStrategy = invalid;
 		invalid.MaximumRetreatDuration = float.NaN;
 		AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("TacticalStrategy:"))).IsTrue();
 	}
@@ -184,9 +181,7 @@ public class MonsterRosterTest
 		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
 		player.MovementComponent.SetPhysicsProcess(false);
 		var shooter = TestFactories.Load<PackedScene>("res://scenes/enemies/templates/projectile_enemy.tscn").Instantiate<EnemyBase>();
-		shooter.Definition = (MonsterDefinition)shooter.Definition.Duplicate();
-		shooter.Definition.Behavior = (EnemyBehaviorProfile)shooter.Definition.Behavior.Duplicate();
-		shooter.Definition.Behavior.Combat = (EnemyCombatProfile)shooter.Definition.Behavior.Combat.Duplicate();
+		TestFactories.UsePrivateCombatProfile(shooter);
 		shooter.Definition.Behavior.Combat.DefenseStrategy = new EnemyDefenseStrategy { GuardChance = 1, RiposteChance = 1 };
 		var animation = shooter.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		var guard = new GuardComponent
@@ -276,9 +271,7 @@ public class MonsterRosterTest
 		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_crossbow.tscn").Instantiate<EnemyBase>();
 		try
 		{
-			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
-			actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-			actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+			TestFactories.UsePrivateCombatProfile(actor);
 			var movement = (MaintainDistanceStrategy)actor.Definition.Behavior.Combat.MovementStrategy.Duplicate();
 			actor.Definition.Behavior.Combat.MovementStrategy = movement;
 			movement.PreferredDistance = movement.MinimumDistance;

@@ -36,7 +36,7 @@ public partial class EnemyCombatProfile : Resource
 
 	public void Validate(MonsterValidationContext context)
 	{
-		context.Check(float.IsFinite(RepeatWeightMultiplier) && RepeatWeightMultiplier is >= 0 and <= 1,
+		context.Check(MonsterValidationContext.IsProbability(RepeatWeightMultiplier),
 			"RepeatWeightMultiplier must lie between 0 and 1.");
 		if (context.Check(TacticalStrategy != null, "TacticalStrategy: assign an engagement priority strategy."))
 			TacticalStrategy.Validate(context);

@@ -26,18 +26,17 @@ public abstract partial class MonsterTimedAction : MonsterAction
 	/// <summary>Style the controller resolves: the definition's authored style, otherwise <see cref="Style"/>.</summary>
 	public StringName ResolvedStyle => Definition != null && !string.IsNullOrWhiteSpace(Definition.AttackStyle) ? Definition.AttackStyle : Style;
 
-	public override bool IsAvailable(EnemyContext context) => context.Enemy?.AttackController != null && Definition != null;
+	public override bool IsAvailable(EnemyContext context) => Definition != null;
 
 	/// <summary>Hit power after the actor's stat modifiers (Rage and similar buffs).</summary>
-	protected AttackStats ResolvePower(EnemyContext context) =>
-		context.Enemy?.Stats?.ResolveAttack(MinDamage, MaxDamage, CritChance) ?? new AttackStats(MinDamage, MaxDamage, CritChance);
+	protected AttackStats ResolvePower(EnemyContext context) => context.Actor.Stats.ResolveAttack(MinDamage, MaxDamage, CritChance);
 
 	public override void Validate(MonsterValidationContext context)
 	{
 		base.Validate(context);
-		context.Check(float.IsFinite(Duration) && Duration >= 0, "Duration must be nonnegative.");
-		context.Check(float.IsFinite(MinDamage) && MinDamage >= 0 && float.IsFinite(MaxDamage) && MaxDamage >= MinDamage
-			&& float.IsFinite(CritChance) && CritChance is >= 0 and <= 1, "require 0 <= MinDamage <= MaxDamage and a CritChance in [0, 1].");
-		if (Definition != null) context.CheckAttackStyle(ResolvedStyle);
+		context.Check(MonsterValidationContext.IsNonnegative(Duration), "Duration must be nonnegative.");
+		context.Check(MonsterValidationContext.IsNonnegative(MinDamage) && float.IsFinite(MaxDamage) && MaxDamage >= MinDamage
+			&& MonsterValidationContext.IsProbability(CritChance), "require 0 <= MinDamage <= MaxDamage and a CritChance in [0, 1].");
+		if (Definition != null) context.CheckBinding(ResolvedStyle);
 	}
 }

@@ -24,9 +24,10 @@ public sealed class EnemyContext
 	// How often a monster waiting for an attack slot recomputes its ring point.
 	private const float RingRefreshInterval = 0.3f;
 
-	public CharacterBody3D Actor { get; }
-	/// <summary>The actor as a monster, for executors that need its components; null for bare test actors.</summary>
-	public EnemyBase Enemy => Actor as EnemyBase;
+	private static readonly StringName EnemyGroup = "enemy";
+
+	/// <summary>The monster this context decides for; its required components are validated at spawn.</summary>
+	public EnemyBase Actor { get; }
 	public MovementComponent Movement { get; }
 	public PerceptionComponent Perception { get; }
 	public NavigationComponent Navigation { get; }
@@ -48,7 +49,6 @@ public sealed class EnemyContext
 	private ulong _queryFrame = ulong.MaxValue;
 	private readonly Dictionary<Node3D, bool> _sight = [];
 	private readonly List<Node3D> _allies = [];
-	private readonly List<(float Fraction, bool IsSelf, string Path, Node3D Ally)> _allyKeys = [];
 	private bool _alliesCollected;
 	public float HorizontalTargetDistance
 	{
@@ -64,14 +64,11 @@ public sealed class EnemyContext
 	/// <summary>Bridge to the host's action layer, so states never poke <c>CurrentAction</c> directly.</summary>
 	public Action<MonsterActionFilter> RequestAction { get; }
 
-	/// <summary>Degrees between the actor's facing and the horizontal direction to its target; 0 without a target.</summary>
-	public float AngleToTarget => Target == null ? 0 : Movement.LookAtDirection.HorizontalAngleTo(Target.GlobalPosition - Actor.GlobalPosition);
-
 	/// <summary>Attack slots of the current target; null when the target lets every attacker strike.</summary>
 	public AttackSlotsComponent TargetSlots => (Target as IAttackSlotHost)?.AttackSlots;
 
 	/// <summary>The actor's latched health phase; 0 without a <see cref="HealthPhaseComponent"/>.</summary>
-	public int Phase => Enemy?.HealthPhases?.CurrentPhase ?? 0;
+	public int Phase => Actor.HealthPhases?.CurrentPhase ?? 0;
 
 	/// <summary>Whether this actor can reserve a turn of <paramref name="kind"/> against its target now.</summary>
 	public bool CanTakeSlot(AttackSlotKind kind) => TargetSlots?.CanReserve(Actor, kind) != false;
@@ -82,7 +79,7 @@ public sealed class EnemyContext
 	/// </summary>
 	public bool TryReserveSlot(AttackSlotKind? kind, out AttackSlotsComponent slots)
 	{
-		slots = kind is { } slotKind ? TargetSlots : null;
+		slots = kind != null ? TargetSlots : null;
 		if (slots == null) return true;
 		if (slots.TryReserve(Actor, kind.Value)) return true;
 		slots = null;
@@ -115,29 +112,16 @@ public sealed class EnemyContext
 		}
 	}
 
-	/// <summary>
-	/// Fellow living monsters (this actor included), most injured first; on equal health others come before the actor,
-	/// then scene path keeps the order deterministic. Collected once per physics frame.
-	/// </summary>
-	public IReadOnlyList<Node3D> AlliesByInjury
+	/// <summary>Fellow living monsters in the scene, this actor included; collected once per physics frame.</summary>
+	public IReadOnlyList<Node3D> Allies
 	{
 		get
 		{
 			BeginQueryFrame();
 			if (_alliesCollected) return _allies;
 			_alliesCollected = true;
-			_allyKeys.Clear();
-			foreach (Node node in Actor.GetTree().GetNodesInGroup("enemy"))
-				if (node is Node3D ally && ally.IsInsideTree() && ally is IBuffTarget { Health: { IsDead: false, MaxHealth: > 0 } health })
-					_allyKeys.Add((health.CurrentHealth / health.MaxHealth, ReferenceEquals(ally, Actor), ally.GetPath().ToString(), ally));
-			_allyKeys.Sort((left, right) =>
-			{
-				int byHealth = left.Fraction.CompareTo(right.Fraction);
-				if (byHealth != 0) return byHealth;
-				int bySelf = left.IsSelf.CompareTo(right.IsSelf);
-				return bySelf != 0 ? bySelf : string.CompareOrdinal(left.Path, right.Path);
-			});
-			foreach (var key in _allyKeys) _allies.Add(key.Ally);
+			foreach (Node node in Actor.GetTree().GetNodesInGroup(EnemyGroup))
+				if (node is EnemyBase ally && !ally.IsDead && ally.IsInsideTree()) _allies.Add(ally);
 			return _allies;
 		}
 	}
@@ -178,7 +162,7 @@ public sealed class EnemyContext
 	private bool _lastReachable = true;
 
 	public EnemyContext(
-		CharacterBody3D actor,
+		EnemyBase actor,
 		MovementComponent movement,
 		PerceptionComponent perception,
 		NavigationComponent navigation,
@@ -309,9 +293,7 @@ public sealed class EnemyContext
 		var retreat = CombatProfile.RetreatCondition;
 		if (retreat != null)
 		{
-			var health = (Actor as EnemyBase)?.HealthComponent;
-			float fraction = health != null && health.MaxHealth > 0 ? health.CurrentHealth / health.MaxHealth : 1;
-			if (Tactics.EvaluateLowHealth(Delta, fraction, Target != null, retreat.EnterHealthFraction,
+			if (Tactics.EvaluateLowHealth(Delta, Actor.HealthComponent.Fraction, Target != null, retreat.EnterHealthFraction,
 				retreat.ExitHealthFraction, retreat.MaximumDuration))
 				return HorizontalTargetDistance < retreat.DesiredDistance
 					? new(EnemyMovementGoal.Retreat, false, retreat.DesiredDistance) : new(EnemyMovementGoal.Hold, false);
@@ -325,7 +307,9 @@ public sealed class EnemyContext
 	/// </summary>
 	public void ExecuteTactics(EnemyMovementIntent? preference = null)
 	{
-		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance, Actions.CanActNow);
+		// Whether the actor could attack instead only matters when a retreat is refused, so evaluate it only then.
+		var intent = preference ?? EvaluateMovement();
+		var decision = TacticalSelector.Select(intent, HorizontalTargetDistance, intent.Goal == EnemyMovementGoal.Retreat && Actions.CanActNow);
 		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat())
 			decision = TacticalSelector.RetreatBlocked(Actions.CanActNow);
 		// An approach that is already in reach (but not yet facing or eligible) holds and turns instead.

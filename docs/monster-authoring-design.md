@@ -23,7 +23,7 @@ Use **Project → Tools → Validate monster scene**, then exercise the actor in
 
 ## Independent capabilities and policies
 
-Components execute capabilities; strategies and actions request them; the [shared action gate](combat-system.md#action-ownership) decides whether they may start. Guard/dodge can accompany any action mix. The [monster action architecture plan](specs/monster-action-architecture-plan.md) records the design and what remains.
+Components execute capabilities; strategies and actions request them; the [shared action gate](combat-system.md#action-ownership) decides whether they may start. Guard/dodge can accompany any action mix. The [monster action architecture plan](specs/monster-action-architecture-plan.md) lists what remains.
 
 | Policy | Supported behavior |
 | --- | --- |

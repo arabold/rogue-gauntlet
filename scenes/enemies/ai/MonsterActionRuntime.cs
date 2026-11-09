@@ -33,8 +33,7 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	private const float RetryDelay = 0.2f;
 	private readonly Dictionary<MonsterAction, Cooldown> _cooldowns = [];
 	private readonly List<MonsterAction> _cooldownKeys = [];
-	private readonly Dictionary<MonsterActionCondition, float> _conditionTime = [];
-	private readonly HashSet<MonsterActionCondition> _ticked = [];
+	private readonly Dictionary<MonsterActionCondition, object> _conditionState = [];
 	private readonly Dictionary<MonsterAction, Node3D> _evaluated = [];
 	private readonly List<Node3D> _candidates = [];
 	private readonly List<(MonsterAction Action, Node3D Target)> _choices = [];
@@ -42,15 +41,29 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	private readonly RandomNumberGenerator _random = new();
 	private EnemyCombatProfile _snapshotProfile;
 	private Entry[] _entries = [];
+	private Dictionary<MonsterAction, int> _entryIndex = [];
+	private MonsterActionCondition[] _tickedConditions = [];
+	private MonsterAction _primary;
 	private ulong _evaluatedFrame = ulong.MaxValue;
 	private Cooldown _retry;
 	private MonsterAction _lastAccepted;
+	private (MonsterAction Action, Node3D Target, ActorActionRequestResult Result) _lastDecision;
 
 	public bool DecisionReady => _retry.IsReady;
-	/// <summary>The last selection and why it happened, for traces and the tuning panel.</summary>
-	public string LastDecision { get; private set; } = "none";
 	/// <summary>The current combat profile's actions in authored order.</summary>
 	public IEnumerable<MonsterAction> Actions => Entries.Select(entry => entry.Action);
+
+	/// <summary>The last selection and its outcome, for traces and the tuning panel; formatted only when read.</summary>
+	public string LastDecision
+	{
+		get
+		{
+			var (action, target, result) = _lastDecision;
+			if (action == null) return "none";
+			if (result != ActorActionRequestResult.Success) return $"{action.Label} rejected: {result}";
+			return $"{action.Label} → {(ReferenceEquals(target, context.Actor) ? "self" : target?.Name.ToString() ?? "none")}";
+		}
+	}
 
 	public void ConfigureRandom(ulong seed) => _random.Seed = seed;
 
@@ -58,14 +71,24 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	{
 		get
 		{
-			var profile = context.CombatProfile;
-			if (ReferenceEquals(profile, _snapshotProfile)) return _entries;
-			_snapshotProfile = profile;
-			_entries = profile?.Actions?.Where(action => action != null).Select(action => new Entry(action,
-				action.Conditions.Where(condition => condition != null).ToArray(),
-				action.WeightModifiers.Where(modifier => modifier?.Condition != null).ToArray())).ToArray() ?? [];
+			EnsureSnapshot();
 			return _entries;
 		}
+	}
+
+	/// <summary>Snapshot the combat profile's actions once per profile with everything the frame loop needs.</summary>
+	private void EnsureSnapshot()
+	{
+		var profile = context.CombatProfile;
+		if (ReferenceEquals(profile, _snapshotProfile)) return;
+		_snapshotProfile = profile;
+		_entries = profile?.Actions?.Where(action => action != null).Select(action => new Entry(action,
+			action.Conditions.Where(condition => condition != null).ToArray(),
+			action.WeightModifiers.Where(modifier => modifier?.Condition != null).ToArray())).ToArray() ?? [];
+		_entryIndex = _entries.Select((entry, index) => (entry.Action, index)).ToDictionary(pair => pair.Action, pair => pair.index);
+		_tickedConditions = _entries.SelectMany(entry => entry.Conditions.Concat(entry.Modifiers.Select(modifier => modifier.Condition)))
+			.Distinct().ToArray();
+		_primary = _entries.Select(entry => entry.Action).FirstOrDefault(action => action.CanAnchorEngagement);
 	}
 
 	/// <summary>The combat profile's first offensive attack or spell: movement strategies use its range and slot.</summary>
@@ -73,9 +96,8 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	{
 		get
 		{
-			foreach (var entry in Entries)
-				if (EnemyCombatProfile.IsPrimaryCandidate(entry.Action)) return entry.Action;
-			return null;
+			EnsureSnapshot();
+			return _primary;
 		}
 	}
 
@@ -94,18 +116,21 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 				else _cooldowns[action] = cooldown;
 			}
 		}
-		_ticked.Clear();
-		foreach (var entry in Entries)
-		{
-			foreach (var condition in entry.Conditions)
-				if (_ticked.Add(condition)) condition.Tick(context, delta);
-			foreach (var modifier in entry.Modifiers)
-				if (_ticked.Add(modifier.Condition)) modifier.Condition.Tick(context, delta);
-		}
+		EnsureSnapshot();
+		foreach (var condition in _tickedConditions) condition.Tick(context, delta);
 	}
 
-	public float ConditionTime(MonsterActionCondition condition) => _conditionTime.GetValueOrDefault(condition);
-	public void SetConditionTime(MonsterActionCondition condition, float seconds) => _conditionTime[condition] = seconds;
+	/// <summary>
+	/// This actor's memory for a stateful condition (a timer, a counter), created on first use. Shared condition Resources
+	/// stay stateless; the memory resets when the target changes.
+	/// </summary>
+	public T State<T>(MonsterActionCondition condition) where T : class, new()
+	{
+		if (_conditionState.TryGetValue(condition, out var state)) return (T)state;
+		var created = new T();
+		_conditionState[condition] = created;
+		return created;
+	}
 
 	public bool IsCoolingDown(MonsterAction action) => _cooldowns.ContainsKey(action);
 	public float CooldownRemaining(MonsterAction action) => _cooldowns.TryGetValue(action, out var cooldown) ? cooldown.Remaining : 0;
@@ -124,12 +149,11 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 		}
 		if (_evaluated.TryGetValue(action, out var cached)) return cached;
 		Node3D found = null;
-		var entry = FindEntry(action);
-		if (entry.Action != null && action.IsAvailable(context))
+		if (TryGetEntry(action, out var entry) && action.IsAvailable(context))
 		{
-			_candidates.Clear();
-			action.EffectiveTarget.CollectCandidates(context, action, _candidates);
 			var selector = action.EffectiveTarget;
+			_candidates.Clear();
+			selector.CollectCandidates(context, action, _candidates);
 			foreach (var candidate in _candidates)
 				if (action.IsInPosition(context, candidate) && ConditionsMet(entry, candidate)
 					&& selector.CanSee(context, candidate) && action.IsUsefulOn(context, candidate))
@@ -142,11 +166,12 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 		return found;
 	}
 
-	private Entry FindEntry(MonsterAction action)
+	private bool TryGetEntry(MonsterAction action, out Entry entry)
 	{
-		foreach (var entry in Entries)
-			if (ReferenceEquals(entry.Action, action)) return entry;
-		return default;
+		var entries = Entries;
+		bool found = _entryIndex.TryGetValue(action, out int index);
+		entry = found ? entries[index] : default;
+		return found;
 	}
 
 	private bool ConditionsMet(Entry entry, Node3D target)
@@ -159,9 +184,9 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	/// <summary>The action's weight for this target after its condition-driven modifiers.</summary>
 	public float ResolveWeight(MonsterAction action, Node3D target)
 	{
-		var entry = FindEntry(action);
 		float weight = action.Weight;
-		foreach (var modifier in entry.Modifiers ?? [])
+		if (!TryGetEntry(action, out var entry)) return weight;
+		foreach (var modifier in entry.Modifiers)
 			if (modifier.Condition.IsMet(context, target)) weight *= modifier.Multiplier;
 		return weight;
 	}
@@ -172,16 +197,8 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	public bool CanEngage => PrimaryOffense is { } primary && EvaluateTarget(primary) != null && CanTakeSlot(primary);
 
 	/// <summary>The target lies within the primary action's range and sight, even if it cannot start yet (facing, slot).</summary>
-	public bool IsPrimaryInReach
-	{
-		get
-		{
-			var primary = PrimaryOffense;
-			if (primary == null || !GodotObject.IsInstanceValid(context.Target) || !context.HasLineOfSightToTarget()) return false;
-			float distance = context.HorizontalTargetDistance;
-			return distance >= primary.MinimumRange && distance <= primary.EffectiveMaximumRange;
-		}
-	}
+	public bool IsPrimaryInReach => PrimaryOffense is { } primary && GodotObject.IsInstanceValid(context.Target)
+		&& context.HasLineOfSightToTarget() && primary.IsInRange(context.HorizontalTargetDistance);
 
 	/// <summary>
 	/// Whether the actor can attack right now: the primary can engage, or some other offensive action is ready (off
@@ -236,7 +253,7 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	{
 		MonsterActionFilter.SupportOnly => !action.IsOffensive,
 		MonsterActionFilter.Attacks => action is MonsterAttackAction,
-		MonsterActionFilter.Riposte => action.RiposteEligible && action is MonsterAttackAction,
+		MonsterActionFilter.Riposte => action.CanRiposte,
 		_ => true,
 	};
 
@@ -251,23 +268,20 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 			_cooldowns[action] = cooldown;
 		}
 		_retry.Start(RetryDelay);
-		LastDecision = $"{action.Label} → {(ReferenceEquals(target, context.Actor) ? "self" : target?.Name.ToString() ?? "none")}";
+		_lastDecision = (action, target, ActorActionRequestResult.Success);
 	}
 
 	/// <summary>Wait a short while before the next attempt instead of retrying every frame.</summary>
 	public void Rejected(MonsterAction action, ActorActionRequestResult result)
 	{
 		_retry.Start(RetryDelay);
-		LastDecision = $"{action.Label} rejected: {result}";
+		_lastDecision = (action, null, result);
 	}
 
 	/// <summary>Forget condition memory and this frame's evaluations, which depend on the target, when it changes.</summary>
 	public void ClearTargetMemory()
 	{
-		_conditionTime.Clear();
-		Invalidate();
+		_conditionState.Clear();
+		_evaluatedFrame = ulong.MaxValue;
 	}
-
-	/// <summary>Drop this frame's cached evaluations after a change that affects them (target, position, phase).</summary>
-	public void Invalidate() => _evaluatedFrame = ulong.MaxValue;
 }

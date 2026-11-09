@@ -19,18 +19,20 @@ public partial class ConsumableItem : IdentifiableItem, IPlayerAction
 	{
 		if (Spell == null) return true;
 		if (player == null || player.IsDead || player.SpellCaster == null || !Spell.IsValidLevel(SpellLevel)) return false;
-		var context = new SpellCastContext(player, player, SpellTargetIntent.Self,
-			new SpellPower(SpellLevel, player.Stats.ResolveAttack(null)));
+		var context = SelfCast(player);
 		return player.SpellCaster.TryPrepare(Spell, this, in context, out _);
 	}
+
+	/// <summary>The drinker casts the item's spell on itself at the item's level and its own unarmed hit.</summary>
+	private SpellCastContext SelfCast(Player player) =>
+		new(player, player, SpellTargetIntent.Self, new SpellPower(SpellLevel, player.Stats.ResolveAttack(null)));
 
 	public virtual void PerformAction(Player player)
 	{
 		GD.Print($"Consuming {Name}");
 		if (Spell != null)
 		{
-			var power = new SpellPower(SpellLevel, player.Stats.ResolveAttack(null));
-			var context = new SpellCastContext(player, player, SpellTargetIntent.Self, power);
+			var context = SelfCast(player);
 			player.SpellCaster?.CastImmediate(Spell, this, in context);
 		}
 		else ApplyBuff(player);

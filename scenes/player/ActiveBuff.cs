@@ -8,8 +8,8 @@ public partial class ActiveBuff : Node
 	public IBuffTarget Target { get; private set; }
 	public Buff Buff { get; private set; }
 	public object Source { get; private set; }
+	/// <summary>The refresh identity this activation was applied under; empty for stacking buffs.</summary>
 	public string StackKey { get; private set; } = "";
-	public BuffStacking Stacking { get; private set; }
 	public double RemainingDuration { get; private set; }
 	public double TickProgress => _tickAccumulator;
 
@@ -23,12 +23,11 @@ public partial class ActiveBuff : Node
 
 	public override void _Ready() => UpdateProcessing();
 
-	public void Initialize(IBuffTarget target, Buff buff, string stackKey = "", BuffStacking stacking = BuffStacking.Stack)
+	public void Initialize(IBuffTarget target, Buff buff)
 	{
 		Target = target;
 		Buff = buff;
-		StackKey = stackKey ?? "";
-		Stacking = stacking;
+		StackKey = buff.RefreshKey;
 		_isPermanent = buff.Duration <= 0;
 		RemainingDuration = buff.Duration;
 

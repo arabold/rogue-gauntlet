@@ -9,7 +9,6 @@ public partial class HostileTargetSelector : MonsterTargetSelector
 	/// <summary>Require an unobstructed line of sight, so nothing is aimed through walls.</summary>
 	[Export] public bool RequireLineOfSight { get; set; } = true;
 
-	public override bool IsHostile => true;
 	public override SpellTargetIntent Intent => SpellTargetIntent.Hostile;
 
 	public override void CollectCandidates(EnemyContext context, MonsterAction action, List<Node3D> into)

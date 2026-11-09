@@ -21,7 +21,7 @@ public partial class MaintainDistanceStrategy : EnemyMovementStrategy
 	public override void Validate(MonsterValidationContext context, EnemyCombatProfile combat)
 	{
 		var primary = combat.PrimaryOffense;
-		context.Check(float.IsFinite(MinimumDistance) && MinimumDistance >= 0 && float.IsFinite(PreferredDistance)
+		context.Check(MonsterValidationContext.IsNonnegative(MinimumDistance) && float.IsFinite(PreferredDistance)
 			&& float.IsFinite(MaximumDistance) && MinimumDistance < PreferredDistance && PreferredDistance < MaximumDistance
 			&& primary != null && MaximumDistance <= primary.EffectiveMaximumRange,
 			"MovementStrategy: require minimum < preferred < maximum <= the primary action's range.");

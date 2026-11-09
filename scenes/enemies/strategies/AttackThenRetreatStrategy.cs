@@ -25,8 +25,8 @@ public partial class AttackThenRetreatStrategy : EnemyMovementStrategy
 	public override void Validate(MonsterValidationContext context, EnemyCombatProfile combat)
 	{
 		RequirePrimary(context, combat);
-		context.Check(float.IsFinite(RetreatDistance) && RetreatDistance > 0 && float.IsFinite(MaximumRetreatDuration)
-			&& MaximumRetreatDuration > 0 && float.IsFinite(ReengagementDelay) && ReengagementDelay >= 0,
+		context.Check(MonsterValidationContext.IsPositive(RetreatDistance) && MonsterValidationContext.IsPositive(MaximumRetreatDuration)
+			&& MonsterValidationContext.IsNonnegative(ReengagementDelay),
 			"MovementStrategy: invalid retreat distance, duration or delay.");
 	}
 }

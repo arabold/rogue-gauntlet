@@ -29,7 +29,8 @@ public partial class DashComponent : Node
 	private AttackPlayback _playback;
 	private Vector3 _heading;
 	private Vector3 _facing;
-	private StringName _clip = "";
+	private static readonly StringName NoClip = "";
+	private StringName _clip = NoClip;
 	private ActorActionLease _lease;
 	private ulong _sequence;
 	private float _commandedSpeed;
@@ -62,7 +63,7 @@ public partial class DashComponent : Node
 		if (!GodotObject.IsInstanceValid(Actor) || !GodotObject.IsInstanceValid(MovementComponent)
 			|| !GodotObject.IsInstanceValid(ActionGate) || !GodotObject.IsInstanceValid(AnimationComponent)
 			|| !AnimationComponent.TryResolve(profile.Style, out var playback)) return ActorActionRequestResult.Unavailable;
-		if (profile.RecoveryDuration > 0 && !AnimationComponent.HasClip(ActionGate.AnimationProfile?.RecoveryClip ?? ""))
+		if (profile.RecoveryDuration > 0 && !AnimationComponent.HasClip(ActionGate.AnimationProfile?.RecoveryClip ?? NoClip))
 			return ActorActionRequestResult.Unavailable;
 		if (!_clock.TryStart(profile.WindUpDuration + profile.TravelDuration + profile.RecoveryDuration,
 			profile.WindUpDuration, profile.WindUpDuration + profile.TravelDuration)) return ActorActionRequestResult.InvalidDefinition;
@@ -77,16 +78,13 @@ public partial class DashComponent : Node
 		_profile = profile;
 		_playback = playback;
 		_lease = lease;
-		_heading = heading;
-		_facing = facing is { } look && look.TryNormalizeHorizontal(out var lookHeading) ? lookHeading : heading;
 		_blocked = false;
 		_finishPending = false;
 		_commandedSpeed = 0;
 		Execution = execution = new AttackIdentity(GetInstanceId(), ++_sequence);
 		MovementComponent.SetInputDirection(Vector3.Zero);
-		MovementComponent.SetLocomotionOverride(this, _heading, 0);
-		MovementComponent.SetFixedFacing(this, _facing);
-		_clip = "";
+		Aim(heading, facing);
+		_clip = NoClip;
 		if (!SamplePose())
 		{
 			End(interrupted: true, releaseGate: true);
@@ -103,11 +101,17 @@ public partial class DashComponent : Node
 	public bool UpdateDirection(AttackIdentity execution, Vector3 direction, Vector3? facing = null)
 	{
 		if (!IsRunning(execution) || _clock.Phase != ActorActionPhase.WindUp || !direction.TryNormalizeHorizontal(out var heading)) return false;
+		Aim(heading, facing);
+		return true;
+	}
+
+	/// <summary>Hold still along a new heading, facing <paramref name="facing"/> when it has a direction.</summary>
+	private void Aim(Vector3 heading, Vector3? facing)
+	{
 		_heading = heading;
 		_facing = facing is { } look && look.TryNormalizeHorizontal(out var lookHeading) ? lookHeading : heading;
 		MovementComponent.SetLocomotionOverride(this, _heading, 0);
 		MovementComponent.SetFixedFacing(this, _facing);
-		return true;
 	}
 
 	/// <summary>Stop the running dash and release its action.</summary>
@@ -177,7 +181,7 @@ public partial class DashComponent : Node
 		}
 		else if (_profile.RecoveryDuration > 0)
 		{
-			clip = ActionGate.AnimationProfile?.RecoveryClip ?? "";
+			clip = ActionGate.AnimationProfile?.RecoveryClip ?? NoClip;
 			sample = elapsed - _profile.WindUpDuration - _profile.TravelDuration;
 		}
 		else
@@ -210,7 +214,7 @@ public partial class DashComponent : Node
 		_lease = ActorActionLease.None;
 		_commandedSpeed = 0;
 		_finishPending = false;
-		_clip = "";
+		_clip = NoClip;
 		Execution = default;
 		if (GodotObject.IsInstanceValid(AnimationComponent)) AnimationComponent.EndPose(this);
 		if (GodotObject.IsInstanceValid(MovementComponent)) MovementComponent.ClearLocomotionOverride(this);

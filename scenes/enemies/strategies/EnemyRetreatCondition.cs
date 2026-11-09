@@ -11,9 +11,7 @@ public partial class EnemyRetreatCondition : Resource
 	[Export] public float MaximumDuration { get; set; } = 2;
 
 	public void Validate(MonsterValidationContext context) =>
-		context.Check(Probability(EnterHealthFraction) && Probability(ExitHealthFraction) && EnterHealthFraction < ExitHealthFraction
-			&& float.IsFinite(DesiredDistance) && DesiredDistance > 0 && float.IsFinite(MaximumDuration) && MaximumDuration > 0,
-			"RetreatCondition: require ordered health thresholds and positive distance/duration.");
-
-	private static bool Probability(float value) => float.IsFinite(value) && value is >= 0 and <= 1;
+		context.Check(MonsterValidationContext.IsProbability(EnterHealthFraction) && MonsterValidationContext.IsProbability(ExitHealthFraction)
+			&& EnterHealthFraction < ExitHealthFraction && MonsterValidationContext.IsPositive(DesiredDistance)
+			&& MonsterValidationContext.IsPositive(MaximumDuration), "RetreatCondition: require ordered health thresholds and positive distance/duration.");
 }

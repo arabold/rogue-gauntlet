@@ -32,6 +32,8 @@ public partial class HealthComponent : Node
 		}
 	} = 10;
 	public bool IsDead => CurrentHealth <= 0;
+	/// <summary>Current health as a share of the maximum; 1 without a positive maximum.</summary>
+	public float Fraction => MaxHealth > 0 ? CurrentHealth / MaxHealth : 1;
 
 	public HealthComponent()
 	{

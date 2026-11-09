@@ -57,6 +57,21 @@ public static partial class TestFactories
 		Assertions.AssertBool(light is OmniLight3D { } omni && omni.IsVisibleInTree()).IsEqual(visible);
 	}
 
+	/// <summary>A hostile cast by <paramref name="caster"/> at <paramref name="power"/>, as an offensive spell source prepares it.</summary>
+	public static SpellCastContext CastContext(Node3D caster, SpellPower power) => new(caster, null, SpellTargetIntent.Hostile, power);
+
+	/// <summary>
+	/// Give <paramref name="actor"/> private copies of its definition, behavior and combat profile, so a test can change
+	/// them without touching the cached Resources every suite shares. Call before the actor enters the tree.
+	/// </summary>
+	public static EnemyCombatProfile UsePrivateCombatProfile(EnemyBase actor)
+	{
+		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
+		actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
+		actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+		return actor.Definition.Behavior.Combat;
+	}
+
 	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>
 	public static ISceneRunner LoadCombatHarness() => LoadScene("res://scenes/debug/combat/combat_harness.tscn");
 
@@ -85,7 +100,7 @@ public static partial class TestFactories
 
 	/// <summary>Casts a harness spell as the player, the same call the harness's cast button queues.</summary>
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
-		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, SpellPower(level), new RandomNumberGenerator { Seed = seed });
+		GetSpell<ICombatSpell>(harness, name).Cast(TestFactories.CastContext(harness.Player, SpellPower(level)), new RandomNumberGenerator { Seed = seed });
 
 	/// <summary>
 	/// Waits until a level-one area cast has swept its whole area: its delay plus the time its visual's front takes

@@ -82,7 +82,7 @@ public partial class SpellWandTest
 		var spell = (AreaDamageSpell)combatSpell;
 		var certainCritical = new AttackStats(8, 8, 1);
 
-		AssertBool(spell.Cast(harness.Player, new SpellPower(1, certainCritical), new RandomNumberGenerator { Seed = 3 })).IsTrue();
+		AssertBool(spell.Cast(TestFactories.CastContext(harness.Player, new SpellPower(1, certainCritical)), new RandomNumberGenerator { Seed = 3 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < 50);
 
 		float scale = spell.Definition.DamageScaleByLevel[0];
@@ -151,7 +151,7 @@ public partial class SpellWandTest
 		var wand = (MagicStaff)player.Inventory.EquippedWeapon;
 		AssertBool(player.SpellCaster.TryGetSpell(wand, out var boundSpell)).IsTrue();
 		var ward = (MagicGuardSpell)boundSpell;
-		AssertBool(ward.Cast(player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 1 })).IsTrue();
+		AssertBool(ward.Cast(TestFactories.CastContext(player, TestFactories.SpellPower(1)), new RandomNumberGenerator { Seed = 1 })).IsTrue();
 		float full = ward.RemainingCapacity;
 		var contact = new DamageContext { OwnerNode = attacker, SourceNode = attacker, Faction = DamageSourceFlags.Enemy,
 			Amount = 4, IncomingDirection = Vector3.Left, DeliveryKind = DamageDeliveryKind.DirectMelee };

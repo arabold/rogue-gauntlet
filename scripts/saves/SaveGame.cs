@@ -84,9 +84,8 @@ public sealed class ActiveBuffSaveData
 	public string Kind { get; set; } = "";
 	public string Name { get; set; } = "";
 	public string ConditionPath { get; set; } = "";
+	/// <summary>A refreshing buff's definition file, restored as that shared definition; empty for stacking buffs.</summary>
 	public string BuffPath { get; set; } = "";
-	public string StackKey { get; set; } = "";
-	public BuffStacking Stacking { get; set; }
 	public string SourcePath { get; set; } = "";
 	public bool HasSource { get; set; }
 	public bool Permanent { get; set; }

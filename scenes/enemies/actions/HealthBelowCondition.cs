@@ -20,10 +20,9 @@ public partial class HealthBelowCondition : MonsterActionCondition
 	public override bool IsMet(EnemyContext context, Node3D target)
 	{
 		var subject = Subject == MonsterActionSubject.Actor ? context.Actor : target;
-		return subject is IBuffTarget { Health: { MaxHealth: > 0 } health } && !health.IsDead
-			&& health.CurrentHealth / health.MaxHealth <= Fraction;
+		return subject is IBuffTarget { Health: { IsDead: false } health } && health.Fraction <= Fraction;
 	}
 
 	public override void Validate(MonsterValidationContext context) =>
-		context.Check(float.IsFinite(Fraction) && Fraction is > 0 and <= 1, "HealthBelowCondition.Fraction must lie in (0, 1].");
+		context.Check(MonsterValidationContext.IsProbability(Fraction) && Fraction > 0, "HealthBelowCondition.Fraction must lie in (0, 1].");
 }
