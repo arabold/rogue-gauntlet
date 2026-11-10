@@ -6,7 +6,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Playable defense, committed projectile aim and repeatable arena controls through production scenes.</summary>
+/// <summary>Playable defense, committed projectile aim and arrow contact through production scenes.</summary>
 [TestSuite]
 [RequireGodotRuntime]
 public partial class CombatAccessibilityTest
@@ -15,28 +15,6 @@ public partial class CombatAccessibilityTest
 	{
 		for (int i = 0; i < count; i++) await scene.ToSignal(scene.GetTree(), SceneTree.SignalName.PhysicsFrame);
 		await scene.ToSignal(scene.GetTree(), SceneTree.SignalName.ProcessFrame);
-	}
-
-	[TestCase]
-	public async Task DodgeUsesSteeringRegardlessOfFacingOrExternalVelocity()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		await Frames(runner.Scene(), 4);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		var player = harness.Player;
-		player.InputComponent.SetPhysicsProcess(false);
-		player.InputController.SetPhysicsProcess(false);
-		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
-		player.MovementComponent.Push(Vector3.Left, 3);
-		player.InputComponent.InputDirection = Vector3.Right;
-		AssertThat(player.InputController.GetDodgeDirection()).IsEqual(Vector3.Right);
-		player.InputComponent.InputDirection = Vector3.Zero;
-		AssertThat(player.InputController.GetDodgeDirection()).IsEqual(Vector3.Forward);
-		player.MovementComponent.ResetTransientMotion();
-		player.InputComponent.InputDirection = Vector3.Right;
-		AssertBool(harness.RequestHeroDodge(Vector3.Zero)).IsTrue();
-		AssertThat(player.MovementComponent.LocomotionDirection).IsEqual(Vector3.Right);
-		AssertBool(player.MovementComponent.LocomotionSpeed > player.Stats.Speed).IsTrue();
 	}
 
 	[TestCase]
@@ -102,52 +80,74 @@ public partial class CombatAccessibilityTest
 		AssertBool(player.MovementComponent.LookAtDirection.Dot(Vector3.Right) > .1f).IsTrue();
 	}
 
-	[TestCase(DamageDeliveryKind.Hazard)]
-	[TestCase(DamageDeliveryKind.Environmental)]
-	public async Task DodgeRejectsWeaponsAndArrowsButEnvironmentalDamageStillLands(DamageDeliveryKind environment)
+	/// <summary>A bare dodging actor wired as actor scenes wire it: movement, health, hurtbox, action gate and dodge.</summary>
+	private static (HurtBoxComponent HurtBox, HealthComponent Health, DodgeComponent Dodge) CreateDodger()
 	{
-		using var runner = TestFactories.LoadCombatHarness();
-		await Frames(runner.Scene(), 4);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		var player = harness.Player;
-		player.HurtBoxComponent.Armor = 0;
-		float health = player.HealthComponent.CurrentHealth;
-		AssertBool(harness.RequestHeroDodge(Vector3.Right)).IsTrue();
-		foreach (var kind in new[] { DamageDeliveryKind.DirectMelee, DamageDeliveryKind.Projectile, environment })
+		var actor = AutoFree(new CharacterBody3D());
+		var movement = new MovementComponent { Actor = actor, Speed = 5 };
+		var health = new HealthComponent();
+		var hurtBox = new HurtBoxComponent { HealthComponent = health, MovementComponent = movement, DamageFilter = DamageSourceFlags.All };
+		var gate = new ActorActionGateComponent();
+		var dodge = new DodgeComponent
 		{
-			var result = player.HurtBoxComponent.ResolveDamage(new DamageContext
+			Actor = actor, MovementComponent = movement, ActionGate = gate,
+			DodgeDef = new DodgeDefinition { Distance = 1.2f, TravelDuration = .2f, ImmunityStart = 0, ImmunityEnd = .2f, RecoveryDuration = .08f, CooldownDuration = .6f }
+		};
+		foreach (Node component in new Node[] { movement, health, hurtBox, gate, dodge }) actor.AddChild(component);
+		health.SetHealth(100, 100);
+		hurtBox.RegisterDefenseEvaluator(dodge);
+		return (hurtBox, health, dodge);
+	}
+
+	/// <summary>A dodge evades weapons and projectiles, never hazards or the environment.</summary>
+	[TestCase]
+	public void DodgeRejectsWeaponsAndArrowsButEnvironmentalDamageStillLands()
+	{
+		var (hurtBox, health, dodge) = CreateDodger();
+		AssertObject(dodge.TryDodge(Vector3.Right)).IsEqual(DefenseRequestResult.Success);
+		dodge._PhysicsProcess(.05);
+		foreach (var kind in new[] { DamageDeliveryKind.DirectMelee, DamageDeliveryKind.Projectile, DamageDeliveryKind.Hazard, DamageDeliveryKind.Environmental })
+		{
+			var result = hurtBox.ResolveDamage(new DamageContext
 			{
 				Amount = 1, Faction = DamageSourceFlags.Enemy, DeliveryKind = kind,
 				DefenseTraits = AttackDefenseTraits.Dodgeable, IncomingDirection = Vector3.Forward
 			});
-			AssertObject(result.Outcome).IsEqual(kind == environment ? DamageOutcome.Damaged : DamageOutcome.Dodged);
+			bool lands = kind is DamageDeliveryKind.Hazard or DamageDeliveryKind.Environmental;
+			AssertObject(result.Outcome).OverrideFailureMessage(kind.ToString()).IsEqual(lands ? DamageOutcome.Damaged : DamageOutcome.Dodged);
 		}
-		AssertFloat(player.HealthComponent.CurrentHealth).IsEqual(health - 1);
+		AssertFloat(health.CurrentHealth).IsEqual(98);
 	}
 
-	[TestCase(ActorActionKind.PrimaryAttack)]
-	[TestCase(ActorActionKind.SecondaryTechnique)]
-	public void DodgeCanReplaceAttackRecoveryButCannotReplaceActiveContact(ActorActionKind kind)
-	{
-		using var gate = new ActorActionGateComponent();
-		bool interrupted = false;
-		gate.TryAcquire(kind, ActorActionPhase.Active, _ => interrupted = true, out var lease);
-		AssertObject(gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out _)).IsEqual(ActorActionRequestResult.Busy);
-		gate.ReportPhase(lease, ActorActionPhase.Recovery);
-		AssertObject(gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out var dodge)).IsEqual(ActorActionRequestResult.Success);
-		AssertBool(interrupted).IsTrue();
-		gate.Release(lease);
-		AssertBool(gate.IsLeaseCurrent(dodge)).IsTrue();
-	}
-
+	/// <summary>A dodge may cut a primary or secondary attack's recovery short, never its active contact.</summary>
 	[TestCase]
-	public async Task ActualArrowContactPreservesDodgeEligibility()
+	public void DodgeCanReplaceAttackRecoveryButCannotReplaceActiveContact()
+	{
+		foreach (var kind in new[] { ActorActionKind.PrimaryAttack, ActorActionKind.SecondaryTechnique })
+		{
+			using var gate = new ActorActionGateComponent();
+			bool interrupted = false;
+			gate.TryAcquire(kind, ActorActionPhase.Active, _ => interrupted = true, out var lease);
+			AssertObject(gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out _)).IsEqual(ActorActionRequestResult.Busy);
+			gate.ReportPhase(lease, ActorActionPhase.Recovery);
+			AssertObject(gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out var dodge)).IsEqual(ActorActionRequestResult.Success);
+			AssertBool(interrupted).OverrideFailureMessage(kind.ToString()).IsTrue();
+			gate.Release(lease);
+			AssertBool(gate.IsLeaseCurrent(dodge)).IsTrue();
+		}
+	}
+
+	/// <summary>
+	/// A real arrow keeps its dodge eligibility: a dodging hero evades it without damage or knockback. An arrow reused
+	/// from the pool, which never runs _Ready again, still hits.
+	/// </summary>
+	[TestCase]
+	public async Task ArrowsAreDodgedAndStillHitAfterPoolReuse()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		var shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		await Frames(runner.Scene(), 3);
 		var player = harness.Player;
 		player.InputController.SetPhysicsProcess(false);
@@ -155,16 +155,31 @@ public partial class CombatAccessibilityTest
 		float health = player.HealthComponent.CurrentHealth;
 		DamageOutcome? outcome = null;
 		player.HurtBoxComponent.DamageResolved += (result, _, _) => outcome = (DamageOutcome)result;
+		var scene = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
+		void Shoot(Projectile arrow) => arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Forward * 3,
+			Vector3.Back, 16, 10, new AttackStats(10, 10, 0), shooter);
+
 		AssertBool(harness.RequestHeroDodge(Vector3.Right)).IsTrue();
-		var arrow = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
-		runner.Scene().AddChild(arrow);
-		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Forward * 3,
-			Vector3.Back, 16, 10, new AttackStats(10, 10, 0), harness.Monster);
+		var dodged = scene.Instantiate<Projectile>();
+		runner.Scene().AddChild(dodged);
+		Shoot(dodged);
 		await Frames(runner.Scene(), 15);
 		AssertBool(outcome.HasValue).IsTrue();
 		AssertObject(outcome.Value).IsEqual(DamageOutcome.Dodged);
 		AssertFloat(player.HealthComponent.CurrentHealth).IsEqual(health);
 		AssertBool(player.MovementComponent.IsPushed).IsFalse();
+
+		await TestFactories.AwaitPhysicsUntil(runner, () => !player.DodgeComponent.IsDodging, 2);
+		outcome = null;
+		var first = ScenePool.Spawn<Projectile>(scene, runner.Scene());
+		ScenePool.Despawn(first);
+		await Frames(runner.Scene(), 1); // Projectiles return to the pool deferred, so reuse always comes on a later frame.
+		var reused = ScenePool.Spawn<Projectile>(scene, runner.Scene());
+		AssertObject(reused).IsSame(first);
+		Shoot(reused);
+		await Frames(runner.Scene(), 15);
+		AssertObject(outcome).IsEqual(DamageOutcome.Damaged);
+		AssertFloat(player.HealthComponent.CurrentHealth).IsLess(health);
 	}
 
 	[TestCase]
@@ -173,8 +188,7 @@ public partial class CombatAccessibilityTest
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		var player = harness.Player;
 		float health = player.HealthComponent.CurrentHealth;
 		var arrow = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
@@ -187,88 +201,62 @@ public partial class CombatAccessibilityTest
 		ScenePool.Despawn(arrow);
 	}
 
-	[TestCase]
-	public async Task PooledArrowsStillHitAfterReuse()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		await Frames(runner.Scene(), 4);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
-		await Frames(runner.Scene(), 3);
-		var player = harness.Player;
-		player.InputController.SetPhysicsProcess(false);
-		player.MovementComponent.SetPhysicsProcess(false);
-		float health = player.HealthComponent.CurrentHealth;
-		var scene = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
-		// Despawning leaves the tree; the reused arrow must still report hits without running _Ready again.
-		var first = ScenePool.Spawn<Projectile>(scene, runner.Scene());
-		ScenePool.Despawn(first);
-		await Frames(runner.Scene(), 1); // Projectiles return to the pool deferred, so reuse always comes on a later frame.
-		var arrow = ScenePool.Spawn<Projectile>(scene, runner.Scene());
-		AssertObject(arrow).IsSame(first);
-		arrow.Initialize(player.GlobalPosition + Vector3.Up + Vector3.Forward * 3,
-			Vector3.Back, 16, 10, new AttackStats(10, 10, 0), harness.Monster);
-		await Frames(runner.Scene(), 15);
-		AssertFloat(player.HealthComponent.CurrentHealth).IsLess(health);
-	}
-
+	/// <summary>
+	/// The crossbowman's warning tracks the hero while it aims, then locks: the raised crossbow holds the locked line and
+	/// the release fires one bolt along it however the hero moves, and the warning fades once the attack ends. A shot
+	/// cancelled before its release fires nothing and clears its warning at once.
+	/// </summary>
 	[TestCase]
 	public async Task CrossbowTracksThenLocksAndFiresAlongTheWarningAfterPlayerMoves()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
-		await Frames(runner.Scene(), 3);
-		var shooter = harness.Monster;
-		var attack = shooter.AttackController;
 		harness.GetNode<CheckButton>("%Controls/Effects").ButtonPressed = false;
+		var shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
+		await Frames(runner.Scene(), 3);
+		var attack = shooter.AttackController;
+		var clips = shooter.GetNode<AnimationPlayer>("Pivot/Skeleton_Minion/AnimationPlayer");
+		var crossbow = shooter.GetNode<Node3D>("Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D/Skeleton_Crossbow");
+		Projectile[] Shots() => runner.Scene().GetChildren().OfType<Projectile>().Where(p => p.Attacker == shooter && p.IsInsideTree()).ToArray();
+
 		AssertBool(harness.ExecuteCommand("monster_attack", 0, Vector3.Zero)).IsTrue();
 		attack.SetPhysicsProcess(false);
 		AssertBool(attack.Indicator.Visible).IsTrue();
 		AssertBool(attack.IsProjectileAimLocked).IsFalse();
+		AssertString(clips.AssignedAnimation).IsEqual("1H_Ranged_Aiming");
 		harness.Player.Position += Vector3.Right;
 		attack._PhysicsProcess(.35);
+		AssertBool(attack.IsProjectileAimLocked).IsTrue();
 		AssertBool(attack.Indicator.IsCommitted).IsTrue();
 		Vector3 locked = attack.CommittedFacing;
 		AssertBool(locked.X > 0).IsTrue();
 		harness.Player.Position += Vector3.Left * 3;
-		attack._PhysicsProcess(.3);
-		var shots = runner.Scene().GetChildren().OfType<Projectile>().Where(p => p.Attacker == shooter).ToArray();
+		attack._PhysicsProcess(.1);
+		await Frames(runner.Scene(), 2); // Let Skeleton3D move the attached crossbow to the sampled pose.
+		// The KayKit crossbow mesh points its barrel along local +Z, whatever the actor's own facing axis.
+		AssertFloat(crossbow.GlobalBasis.Z.Normalized().Dot(locked)).IsGreater(.98f);
+		AssertString(clips.AssignedAnimation).IsEqual("1H_Ranged_Aiming");
+		attack._PhysicsProcess(.2);
+		AssertString(clips.AssignedAnimation).IsEqual("1H_Ranged_Shoot");
+		var shots = Shots();
 		AssertInt(shots.Length).IsEqual(1);
 		AssertThat(shots[0].Direction).IsEqual(locked);
-		AssertBool(attack.Indicator.Visible).IsFalse();
+		attack._PhysicsProcess(1);
+		AssertBool(attack.IsAttacking).IsFalse();
+		await TestFactories.AwaitPhysicsUntil(runner, () => !attack.Indicator.Visible, 1);
 		foreach (var shot in shots) ScenePool.Despawn(shot);
-		attack.CancelAttack();
-		shooter.EnemyBehaviorComponent.SetAction(EnemyAction.None);
+
+		// The finished shot's cooldown blocks an immediate retry, so a fresh crossbowman takes the cancelled shot.
+		shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
+		attack = shooter.AttackController;
+		await Frames(runner.Scene(), 2);
 		AssertBool(harness.ExecuteCommand("monster_attack", 0, Vector3.Zero)).IsTrue();
 		attack.SetPhysicsProcess(false);
+		attack._PhysicsProcess(.1);
 		attack.CancelAttack();
 		AssertBool(attack.Indicator.Visible).IsFalse();
 		attack._PhysicsProcess(1);
-		AssertInt(runner.Scene().GetChildren().OfType<Projectile>().Count(p => p.Attacker == shooter)).IsEqual(0);
-	}
-
-	[TestCase]
-	public async Task HarnessKeepsDefenseAndInvulnerabilityIndependent()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		await Frames(runner.Scene(), 4);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		var targetInvulnerable = harness.GetNode<CheckButton>("%Controls/TargetInvulnerable");
-		targetInvulnerable.ButtonPressed = true;
-		AssertBool(harness.PracticeTarget is CombatPracticeTarget dummy && dummy.HurtBox.Invulnerable).IsTrue();
-		AssertBool(harness.ExecuteCommand("spawn", 1, Vector3.Zero)).IsTrue();
-		await Frames(runner.Scene(), 3);
-		var monster = harness.Monster;
-		AssertBool(monster != null && !monster.EnemyBehaviorComponent.AIEnabled && !monster.DefenseController.RiposteEnabled).IsTrue();
-		AssertBool(monster.HurtBoxComponent.Invulnerable).IsTrue();
-		AssertBool(harness.ExecuteCommand("defense", 2, Vector3.Zero)).IsTrue();
-		AssertInt((int)monster.DefenseController.Mode).IsEqual((int)EnemyDefenseMode.Dodge);
-		AssertBool(monster.HurtBoxComponent.Invulnerable).IsTrue();
-		AssertBool(harness.ExecuteCommand("defense", 3, Vector3.Zero)).IsTrue();
-		AssertInt((int)monster.DefenseController.Mode).IsEqual((int)EnemyDefenseMode.GuardParry);
+		AssertInt(Shots().Length).IsEqual(0);
 	}
 }

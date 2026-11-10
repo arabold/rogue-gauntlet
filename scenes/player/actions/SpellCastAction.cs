@@ -27,8 +27,8 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 	public float ManaCost => _focus?.CanBind(Spell) == true ? Spell.ManaCost(_focus.SpellLevel) : 0;
 
 	/// <summary>
-	/// Accepts only an equipped focus in its assigned hand whose spell is bound at a level both the definition
-	/// and the spell scene support, with enough mana. Mutates nothing; a mana shortfall is announced to the HUD's cue.
+	/// Validates its assigned hand, spell instance and mana, then captures the cast using the shared spell runtime.
+	/// Mutates nothing; a mana shortfall is announced to the HUD's cue.
 	/// </summary>
 	public bool TryPrepare(Player player, out PreparedAttack attack)
 	{
@@ -41,25 +41,27 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 		if (!ReferenceEquals(equipped, _focus)) return false;
 
 		if (player.SpellCaster?.TryGetSpell(_focus, out var combatSpell) != true
-			|| combatSpell.LevelCount < _focus.SpellLevel)
+			|| combatSpell.LevelCount < _focus.SpellLevel) return false;
+		if (player.ManaComponent?.CheckCost(ManaCost) != true || !player.AttackController.CanHandoffSpell(_focus)) return false;
+
+		if (!player.AttackController.TryPrepareAttack(Spell.Cast, _focus.AttackStyle, 0, out attack)) return false;
+		var power = new SpellPower(_focus.SpellLevel, player.Stats.ResolveAttack(_focus));
+		var context = new SpellCastContext(player, null, SpellTargetIntent.Hostile, power);
+		if (!player.SpellCaster.TryPrepare(Spell, _focus, in context, out var release))
 		{
+			attack = null;
 			return false;
 		}
-
-		if (player.ManaComponent?.CheckCost(ManaCost) != true) return false;
-
-		if (!player.AttackController.CanHandoffSpell(_focus)) return false;
-
-		return player.AttackController.TryPrepareAttack(Spell.Cast, _focus.AttackStyle, 0, out attack);
+		attack = attack with { Spell = release };
+		return true;
 	}
 
-	/// <summary>Captures the focus's hit as the spell's power, starts the cast, then spends its mana.</summary>
+	/// <summary>Starts the captured cast and spends mana only after the attack controller accepts it.</summary>
 	public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default)
 	{
-		if (player.SpellCaster?.TryGetSpell(_focus, out var combatSpell) != true) return false;
-		var power = new SpellPower(_focus.SpellLevel, player.Stats.ResolveAttack(_focus));
-		var cast = attack with { Spell = new SpellRelease(combatSpell, power) };
-		if (!player.AttackController.StartPreparedSpellCast(cast, _focus, lease)) return false;
+		if (attack?.Spell == null || player.SpellCaster?.TryGetSpell(_focus, out var combatSpell) != true
+			|| !ReferenceEquals(combatSpell, attack.Spell.Spell)) return false;
+		if (!player.AttackController.StartPreparedSpellCast(attack, _focus, lease)) return false;
 		// Preparation checked the cost and nothing else spends mana, so this cannot fail.
 		player.ManaComponent.TrySpend(ManaCost);
 		return true;

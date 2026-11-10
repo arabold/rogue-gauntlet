@@ -26,7 +26,7 @@ public class CombatPositioningTest
 		var minion = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		minion.Position = position;
 		runner.Scene().AddChild(minion);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		minion.EnemyBehaviorComponent.AIEnabled = false;
 		return minion;
 	}
@@ -47,11 +47,17 @@ public class CombatPositioningTest
 		return before - target.HealthComponent.CurrentHealth;
 	}
 
+	/// <summary>
+	/// Rear hits land harder and break poise faster; a sneak hit on an unaware monster doubles, breaks its poise and
+	/// alerts it.
+	/// </summary>
 	[TestCase]
-	public async Task RearHitsLandHarderAndBreakPoiseFaster()
+	public async Task RearAndSneakHitsLandHarderAndBreakPoiseFaster()
 	{
 		var (runner, harness) = await Load();
+		using var cleanup = runner;
 		var minion = await AddMinion(runner, new Vector3(6, 0, 0));
+		var unaware = await AddMinion(runner, new Vector3(-6, 0, 0));
 		minion.HurtBoxComponent.Awareness = null; // isolate the directional bonus from the sneak bonus
 		minion.Rotation = Vector3.Zero; // faces -Z
 		minion.MovementComponent.SetLookAtDirection(Vector3.Forward);
@@ -65,24 +71,17 @@ public class CombatPositioningTest
 		poise.Restore();
 		// Area impacts have no facing: a blast from behind is ordinary damage.
 		AssertFloat(DamageOf(minion, Contact(harness.Player, 2, 4, Vector3.Forward, DamageDeliveryKind.AreaImpact))).IsEqualApprox(2, .001);
-	}
 
-	[TestCase]
-	public async Task SneakAttackDoublesDamageBreaksPoiseAndAlertsTheMonster()
-	{
-		var (runner, harness) = await Load();
-		var minion = await AddMinion(runner, new Vector3(6, 0, 0));
-		var behavior = minion.EnemyBehaviorComponent;
+		var behavior = unaware.EnemyBehaviorComponent;
 		AssertBool(behavior.IsUnaware).IsTrue();
-
-		AssertFloat(DamageOf(minion, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(4, .001);
-		AssertBool(minion.HurtBoxComponent.Poise.IsBroken).IsTrue();
+		AssertFloat(DamageOf(unaware, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(4, .001);
+		AssertBool(unaware.HurtBoxComponent.Poise.IsBroken).IsTrue();
 		AssertObject(behavior.Target).IsEqual(harness.Player);
 		AssertObject(behavior.CurrentBehavior).IsEqual(EnemyBehaviorState.Chasing);
 		AssertBool(behavior.IsUnaware).IsFalse();
 		// The alerted monster takes ordinary frontal damage afterwards (still staggered, so the punish bonus applies).
-		float staggered = minion.HurtBoxComponent.Poise.Definition.StaggeredDamageMultiplier;
-		AssertFloat(DamageOf(minion, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(2 * staggered, .001);
+		float staggered = unaware.HurtBoxComponent.Poise.Definition.StaggeredDamageMultiplier;
+		AssertFloat(DamageOf(unaware, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(2 * staggered, .001);
 	}
 
 	/// <summary>Real enemies keep running MoveAndSlide while idle, so pass-through must suppress their recovery too.</summary>
@@ -100,9 +99,7 @@ public class CombatPositioningTest
 		var existingException = new StaticBody3D();
 		runner.Scene().AddChild(existingException);
 		player.AddCollisionExceptionWith(existingException);
-		harness.Monsters = [TestFactories.Load<PackedScene>(scene)];
-		AssertBool(harness.ExecuteCommand("spawn", 1, Vector3.Zero)).IsTrue();
-		var enemy = harness.Monster;
+		var enemy = TestFactories.SpawnHarnessMonster(harness, scene);
 		enemy.EnemyBehaviorComponent.SetPhysicsProcess(false);
 		enemy.DefenseController?.SetPhysicsProcess(false);
 		enemy.MovementComponent.Stop();
@@ -168,39 +165,43 @@ public class CombatPositioningTest
 		AssertFloat(player.Position.Z).IsLess(-5f);
 	}
 
-	[TestCase("cancel")]
-	[TestCase("interrupt")]
-	[TestCase("exit")]
-	public async Task EndingADodgeRestoresOnlyItsOwnCollisionExceptions(string ending)
+	/// <summary>A dodge cut short by its own cancel, a gate interrupt or leaving the tree restores only the exceptions it added.</summary>
+	[TestCase]
+	public async Task EndingADodgeRestoresOnlyItsOwnCollisionExceptions()
 	{
 		var (runner, harness) = await Load();
 		using var cleanup = runner;
 		var player = harness.Player;
 		player.InputComponent.SetPhysicsProcess(false);
 		player.MovementComponent.Gravity = 0;
-		player.Position = Vector3.Zero;
-		harness.PracticeTarget.Position = Vector3.Forward * 1.5f;
 		var existingException = new StaticBody3D();
 		runner.Scene().AddChild(existingException);
 		player.AddCollisionExceptionWith(existingException);
 		uint mask = player.CollisionMask;
-		await runner.SimulateFrames(2, 20);
-		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
-		await runner.SimulateFrames(1, 20);
-		AssertBool(player.GetCollisionExceptions().Contains((PhysicsBody3D)harness.PracticeTarget)).IsTrue();
-		switch (ending)
+		foreach (string ending in new[] { "cancel", "interrupt", "exit" })
 		{
-			case "cancel": player.DodgeComponent.Cancel(ActionInterruptReason.Invalidated); break;
-			case "interrupt": player.ActionGate.CancelCurrent(ActionInterruptReason.Invalidated); break;
-			case "exit":
-				var dodge = player.DodgeComponent;
-				player.RemoveChild(dodge);
-				player.AddChild(dodge);
-				break;
+			player.Position = Vector3.Zero;
+			player.ResetPhysicsInterpolation();
+			harness.PracticeTarget.Position = Vector3.Forward * 1.5f;
+			player.DodgeComponent.RestoreCharges(2, 0, 0);
+			await runner.SimulateFrames(2, 20);
+			AssertBool(harness.RequestHeroDodge(Vector3.Forward)).OverrideFailureMessage($"dodge before {ending}").IsTrue();
+			await runner.SimulateFrames(1, 20);
+			AssertBool(player.GetCollisionExceptions().Contains((PhysicsBody3D)harness.PracticeTarget)).IsTrue();
+			switch (ending)
+			{
+				case "cancel": player.DodgeComponent.Cancel(ActionInterruptReason.Invalidated); break;
+				case "interrupt": player.ActionGate.CancelCurrent(ActionInterruptReason.Invalidated); break;
+				case "exit":
+					var dodge = player.DodgeComponent;
+					player.RemoveChild(dodge);
+					player.AddChild(dodge);
+					break;
+			}
+			AssertBool(player.CollisionMask == mask).OverrideFailureMessage($"mask after {ending}").IsTrue();
+			AssertInt(player.GetCollisionExceptions().Count).OverrideFailureMessage($"exceptions after {ending}").IsEqual(1);
+			AssertBool(player.GetCollisionExceptions().Contains(existingException)).IsTrue();
 		}
-		AssertBool(player.CollisionMask == mask).IsTrue();
-		AssertInt(player.GetCollisionExceptions().Count).IsEqual(1);
-		AssertBool(player.GetCollisionExceptions().Contains(existingException)).IsTrue();
 	}
 
 	[TestCase]
@@ -230,6 +231,7 @@ public class CombatPositioningTest
 	public async Task DodgePassesThroughEnemyBodiesAndComesOutTheFarSide(bool passThrough)
 	{
 		var (runner, harness) = await Load();
+		using var cleanup = runner;
 		var player = harness.Player;
 		var dodge = (DodgeDefinition)player.DodgeComponent.DodgeDef.Duplicate();
 		if (!passThrough) dodge.PassThroughLayers = 0;
@@ -238,10 +240,10 @@ public class CombatPositioningTest
 		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
 		// The practice target is an enemy-layer body just beyond touching distance (player radius 0.5, target 0.4).
 		harness.PracticeTarget.Position = new Vector3(0, 0, -1f);
-		await runner.SimulateFrames(3);
+		await runner.SimulateFrames(3, 20);
 		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
 		AssertBool((player.CollisionMask & EnemyLayer) == 0).IsEqual(passThrough);
-		for (int i = 0; i < 40 && player.DodgeComponent.IsDodging; i++) await runner.SimulateFrames(1);
+		for (int i = 0; i < 40 && player.DodgeComponent.IsDodging; i++) await runner.SimulateFrames(1, 20);
 		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
 		AssertBool((player.CollisionMask & EnemyLayer) != 0).IsTrue();
 		if (passThrough)

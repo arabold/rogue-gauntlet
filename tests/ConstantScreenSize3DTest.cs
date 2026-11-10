@@ -33,6 +33,10 @@ public class ConstantScreenSize3DTest
 		Node3D[] visuals = [prompt, health, title];
 		float[] widths = [ProjectedWidth(camera, prompt, 256 * prompt.PixelSize), ProjectedWidth(camera, health, 256 * health.PixelSize), ProjectedWidth(camera, title, 100 * title.PixelSize)];
 		Vector3[] anchors = [prompt.GlobalPosition, health.GlobalPosition, title.GlobalPosition];
+		// The nameplate keeps the on-screen gap between its name and its bar, too.
+		float Gap() => camera.UnprojectPosition(plate.NameLabel.GlobalPosition).DistanceTo(camera.UnprojectPosition(health.GlobalPosition));
+		float gap = Gap();
+		AssertFloat(gap).IsGreater(1f);
 		foreach (float zoom in new[] { 10f, 32f, 20f, 10f, 20f })
 		{
 			camera.Size = zoom;
@@ -43,50 +47,9 @@ public class ConstantScreenSize3DTest
 			AssertFloat(ProjectedWidth(camera, title, 100 * title.PixelSize)).IsEqualApprox(widths[2], 0.01f);
 			for (int i = 0; i < visuals.Length; i++)
 				AssertBool(visuals[i].GlobalPosition.IsEqualApprox(anchors[i])).IsTrue();
-		}
-		AssertVector(title.Scale).IsEqual(new Vector3(0.8f, 0.8f, 0.8f));
-	}
-
-	[TestCase]
-	public void AuthoredTitlesAndPromptsHaveExplicitSizeCompensation()
-	{
-		foreach (var (path, labelPath) in new[]
-		{
-			("res://scenes/components/nameplate.tscn", "."),
-			("res://scenes/props/door.tscn", "InteractiveComponent/FloatingLabel"),
-			("res://scenes/debug/combat/combat_practice_target.tscn", "Label"),
-		})
-		{
-			Node scene = AutoFree(TestFactories.Load<PackedScene>(path).Instantiate());
-			Node3D label = scene.GetNode<Node3D>(labelPath);
-			AssertObject(label.GetNode<ConstantScreenSize3D>("ConstantScreenSize3D").Target).IsSame(label);
-		}
-	}
-
-	[TestCase]
-	public async Task NameplateKeepsTheGapBetweenNameAndBarAcrossZoomLevels()
-	{
-		var viewport = new SubViewport { Size = new Vector2I(960, 540), OwnWorld3D = true };
-		var camera = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = 20f, Position = new Vector3(0, 0, 15), Current = true };
-		viewport.AddChild(camera);
-		var plate = TestFactories.Load<PackedScene>("res://scenes/components/nameplate.tscn").Instantiate<Nameplate>();
-		var bar = TestFactories.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
-		plate.AddChild(bar);
-		viewport.AddChild(plate);
-		TestFactories.AddToSceneTree(viewport);
-		await Frame(viewport);
-		await Frame(viewport);
-
-		float Gap() => camera.UnprojectPosition(plate.NameLabel.GlobalPosition).DistanceTo(camera.UnprojectPosition(bar.GlobalPosition));
-		float gap = Gap();
-		AssertFloat(gap).IsGreater(1f);
-		foreach (float zoom in new[] { 10f, 32f, 20f })
-		{
-			camera.Size = zoom;
-			await Frame(viewport);
-			await Frame(viewport);
 			AssertFloat(Gap()).IsEqualApprox(gap, 0.01f);
 		}
+		AssertVector(title.Scale).IsEqual(new Vector3(0.8f, 0.8f, 0.8f));
 	}
 
 	/// <summary>Projects a visual's billboard width into pixels, including its world scale.</summary>

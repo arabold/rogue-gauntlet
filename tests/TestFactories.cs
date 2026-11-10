@@ -57,6 +57,21 @@ public static partial class TestFactories
 		Assertions.AssertBool(light is OmniLight3D { } omni && omni.IsVisibleInTree()).IsEqual(visible);
 	}
 
+	/// <summary>A hostile cast by <paramref name="caster"/> at <paramref name="power"/>, as an offensive spell source prepares it.</summary>
+	public static SpellCastContext CastContext(Node3D caster, SpellPower power) => new(caster, null, SpellTargetIntent.Hostile, power);
+
+	/// <summary>
+	/// Give <paramref name="actor"/> private copies of its definition, behavior and combat profile, so a test can change
+	/// them without touching the cached Resources every suite shares. Call before the actor enters the tree.
+	/// </summary>
+	public static EnemyCombatProfile UsePrivateCombatProfile(EnemyBase actor)
+	{
+		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
+		actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
+		actor.Definition.Behavior.Combat = (EnemyCombatProfile)actor.Definition.Behavior.Combat.Duplicate();
+		return actor.Definition.Behavior.Combat;
+	}
+
 	/// <summary>Load the combat harness scene; the caller owns (and may dispose) the runner.</summary>
 	public static ISceneRunner LoadCombatHarness() => LoadScene("res://scenes/debug/combat/combat_harness.tscn");
 
@@ -65,6 +80,27 @@ public static partial class TestFactories
 	{
 		await runner.SimulateFrames(frames);
 		return runner.Scene().GetNode<CombatHarness>("Instructions");
+	}
+
+	public const string MinionScene = "res://scenes/enemies/skeleton/skeleton_minion.tscn";
+	public const string WarriorScene = "res://scenes/enemies/skeleton/skeleton_warrior.tscn";
+	public const string CrossbowScene = "res://scenes/enemies/skeleton/skeleton_crossbow.tscn";
+	public const string WardenScene = "res://scenes/enemies/forsaken_warden/forsaken_warden.tscn";
+	public const string RatScene = "res://scenes/enemies/rat/rat.tscn";
+
+	/// <summary>
+	/// Spawn one authored monster through the harness's spawn command (AI off, facing the hero), then place it
+	/// <paramref name="distance"/> metres in front of the hero on that same line. Tests name the scene instead of a picker
+	/// index, so adding a monster to the discovered roster never changes which monster a test fights.
+	/// </summary>
+	public static EnemyBase SpawnHarnessMonster(CombatHarness harness, string scenePath, float distance = 2)
+	{
+		harness.Monsters = [Load<PackedScene>(scenePath)];
+		if (!harness.ExecuteCommand("spawn", 1, Vector3.Zero)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
+		var monster = harness.Monster;
+		monster.Position = harness.Player.Position + Vector3.Forward * distance;
+		monster.ResetPhysicsInterpolation();
+		return monster;
 	}
 
 	/// <summary>One of the harness's spell components, found by its authored name.</summary>
@@ -85,7 +121,7 @@ public static partial class TestFactories
 
 	/// <summary>Casts a harness spell as the player, the same call the harness's cast button queues.</summary>
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
-		GetSpell<ICombatSpell>(harness, name).Cast(harness.Player, SpellPower(level), new RandomNumberGenerator { Seed = seed });
+		GetSpell<ICombatSpell>(harness, name).Cast(TestFactories.CastContext(harness.Player, SpellPower(level)), new RandomNumberGenerator { Seed = seed });
 
 	/// <summary>
 	/// Waits until a level-one area cast has swept its whole area: its delay plus the time its visual's front takes

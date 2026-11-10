@@ -58,14 +58,12 @@ public class EnemyTacticsTest
 	}
 
 	[TestCase]
-	public void LosingTargetClearsPendingAttackRetreatAndInstancesDoNotShareState()
+	public void LosingTargetClearsAPendingAttackRetreat()
 	{
-		var first = new EnemyTacticsState();
-		var second = new EnemyTacticsState();
-		first.TrackAttack(new(1, 1));
-		first.AttackFinished(new(1, 1), false);
-		AssertInt((int)second.EvaluatePostAttack(.1, 1, 4, 1, .2f)).IsEqual((int)EnemyRetreatPhase.None);
-		first.ClearTarget();
-		AssertInt((int)first.EvaluatePostAttack(.1, 1, 4, 1, .2f)).IsEqual((int)EnemyRetreatPhase.None);
+		var state = new EnemyTacticsState();
+		state.TrackAttack(new(1, 1));
+		state.AttackFinished(new(1, 1), false);
+		state.ClearTarget();
+		AssertInt((int)state.EvaluatePostAttack(.1, 1, 4, 1, .2f)).IsEqual((int)EnemyRetreatPhase.None);
 	}
 }

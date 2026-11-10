@@ -24,7 +24,7 @@ public static class BuffSaveCodec
 			var buff = active.Buff;
 			var record = new ActiveBuffSaveData { Name = buff.Name ?? "", Permanent = active.IsPermanent,
 				Remaining = active.IsPermanent ? 0 : active.RemainingDuration, TickProgress = active.TickProgress,
-				ConditionPath = buff.Condition?.ResourcePath ?? "" };
+				ConditionPath = buff.Condition?.ResourcePath ?? "", BuffPath = active.StackKey };
 			if (buff.Condition != null && (string.IsNullOrEmpty(record.ConditionPath) || record.ConditionPath.Contains("::")))
 				throw new InvalidOperationException("Cannot save a condition without an external resource identity.");
 			if (active.Source != null)
@@ -77,7 +77,11 @@ public static class BuffSaveCodec
 			StatusCondition condition = null;
 			if (!string.IsNullOrEmpty(data.ConditionPath))
 				condition = ResourceLoader.Load<StatusCondition>(data.ConditionPath) ?? throw new InvalidOperationException("Saved status condition is missing.");
-			Buff buff = data.Kind switch
+			// A refreshing buff restores as its shared definition, so it keeps refreshing under the same identity.
+			Buff definition = string.IsNullOrEmpty(data.BuffPath) ? null : ResourceLoader.Load<Buff>(data.BuffPath);
+			if (!string.IsNullOrEmpty(data.BuffPath) && definition?.RefreshKey != data.BuffPath)
+				throw new InvalidOperationException("Saved refresh identity does not name a refreshing buff definition.");
+			Buff buff = definition ?? data.Kind switch
 			{
 				"condition" => new Buff(),
 				"healing" => new HealingBuff { TicksPerSecond = data.TicksPerSecond, HealthPointsPerTick = data.PointsPerTick },
@@ -91,7 +95,7 @@ public static class BuffSaveCodec
 				throw new InvalidOperationException("Invalid saved periodic buff clock.");
 			if (buff is not PeriodicBuff && data.TickProgress != 0 || buff is TimeScaleBuff time && (!float.IsFinite(time.TimeScale) || time.TimeScale <= 0))
 				throw new InvalidOperationException("Invalid saved buff settings.");
-			buff.Name = data.Name; buff.Condition = condition; buff.Duration = data.Permanent ? 0 : (float)data.Remaining;
+			if (definition == null) { buff.Name = data.Name; buff.Condition = condition; buff.Duration = data.Permanent ? 0 : (float)data.Remaining; }
 			result.Add(new Restored(buff, source, data.Remaining, data.TickProgress));
 		}
 		return result;

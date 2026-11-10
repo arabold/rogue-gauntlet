@@ -25,6 +25,7 @@
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="phantom_camera_host"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="phantom_camera"]
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="camera_feedback"]
+[ext_resource type="Resource" path="res://scenes/levels/navigation/navigation_profiles/default.tres" id="navigation_profile"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
 size = Vector3(40, 1, 40)
@@ -147,6 +148,7 @@ Player = NodePath("../Player")
 TargetParent = NodePath("..")
 PracticeTargetScene = ExtResource("practice_target")
 SpellPool = ExtResource("spell_pool")
+NavigationProfile = ExtResource("navigation_profile")
 Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10"), ExtResource("weapon_11"), ExtResource("weapon_12")]
 
 [node name="Panel" type="PanelContainer" parent="Instructions"]
@@ -273,7 +275,14 @@ tooltip_text = "Prevent health loss independently of the monster's defense behav
 [node name="SpawnMonster" type="Button" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Spawn / respawn"
+tooltip_text = "Respawn the selected monster. Live edits to its Resources (Remote inspector) apply to the new instance."
 custom_minimum_size = Vector2(0, 30)
+
+[node name="MonsterActions" type="Label" parent="Instructions/Panel/Scroll/Controls"]
+layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Monster actions appear here."
 
 [node name="CameraShake" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
 unique_name_in_owner = true
@@ -306,12 +315,6 @@ layout_mode = 2
 text = "Combat effects"
 button_pressed = true
 
-[node name="Moving" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-text = "Move practice target"
-button_pressed = false
-
 [node name="SlowMotion" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Slow motion (¼ speed)"
@@ -330,20 +333,6 @@ theme_override_font_sizes/font_size = 15
 layout_mode = 2
 autowrap_mode = 2
 text = "Combat outcomes appear here."
-
-[node name="TraceFrames" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-text = "Record actor state each frame"
-button_pressed = true
-tooltip_text = "Include position, health, action and defense timers in the combat trace."
-
-[node name="TraceConsole" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-text = "Echo JSON to console"
-button_pressed = false
-tooltip_text = "Print structured combat records to the Godot output console."
 
 [node name="CombatTraceRecorder" type="Node" parent="."]
 script = ExtResource("recorder")

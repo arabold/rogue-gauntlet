@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 /// <summary>Scene-composed damage-only area cast, with a separately authored visual.</summary>
@@ -11,6 +12,8 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	public int LevelCount => Definition?.LevelCount ?? 0;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly AreaCastLifecycle _cast = new();
+	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
+		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null;
 
 	public override void _Ready() { ProcessPhysicsPriority = CombatPhysics.Damage; SetPhysicsProcess(false); }
 	public override void _PhysicsProcess(double delta)
@@ -19,10 +22,12 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	}
 
 	/// <summary>Resolve one contact per visible hostile actor as the visual reaches it; empty areas still show the visual.</summary>
-	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
+	public bool Cast(in SpellCastContext context, RandomNumberGenerator random)
 	{
+		Node3D caster = context.Caster;
+		SpellPower power = context.Power;
 		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
+		if (!CanCast(in context)) return false;
 		float radius = Definition.RadiusByLevel[level - 1];
 		AttackStats hit = power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]);
 		AttackDefenseTraits defense = Definition.DefenseTraits;
@@ -36,7 +41,9 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 				target => AreaSpellTargets.IsVisible(target, cast.World, cast.Origin)), target => target.GlobalPosition));
 		VisualRoot.AddChild(visual); visual.GlobalPosition = cast.Origin; area.SetAreaVisibility(visibility);
 		_cast.Track(visual);
-		_cast.Schedule(cast, Definition.ContactDelay, area.Front, hit, defense, Definition.PushAt(level), element: Definition.Element);
+		var shake = Definition.CameraShake;
+		Action<Node3D, DamageResolution> afterContact = shake != null ? (_, _) => shake.EmitAt(cast.Origin) : null;
+		_cast.Schedule(cast, Definition.ContactDelay, area.Front, hit, defense, Definition.PushAt(level), afterContact, Definition.Element);
 		return true;
 	}
 

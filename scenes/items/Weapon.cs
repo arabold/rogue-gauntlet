@@ -40,6 +40,7 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// <summary>Fraction of this weapon's damage contributed to main-hand attacks when dual-wielded in the off hand.</summary>
 	[Export(PropertyHint.Range, "0,1,0.05")] public float OffhandDamageScale { get; set => SetValue(ref field, value); } = 0.5f;
 	[Export] public MeleeAttackProfile MeleeContact { get; set => SetValue(ref field, value); }
+	[Export] public OnHitStatusProfile[] OnHitStatuses { get; set => SetValue(ref field, value ?? []); } = [];
 	/// <summary>Primary combo shared by the weapon family; null keeps a single repeated primary attack.</summary>
 	[Export] public AttackCombo PrimaryCombo { get; set => SetValue(ref field, value); }
 

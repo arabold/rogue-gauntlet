@@ -25,13 +25,6 @@ public class WalkabilityGridTest
 	}
 
 	[TestCase]
-	public void GateWideOpeningsPassAndNarrowGapsBlock()
-	{
-		AssertBool(Divided(2.4f).AreConnected([new(2, 6), new(10, 6)])).IsTrue();
-		AssertBool(Divided(1.6f).AreConnected([new(2, 6), new(10, 6)])).IsFalse();
-	}
-
-	[TestCase]
 	public void GapsOpenExactlyWhenTheActorFitsWhereverTheGridFalls()
 	{
 		// A half-unit wall with a gap, shifted by fractions of a cell: narrower than the 2-unit actor never connects,

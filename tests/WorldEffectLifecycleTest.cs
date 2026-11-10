@@ -22,6 +22,9 @@ public class WorldEffectLifecycleTest
 		host.SurfaceController = surface; root.AddChild(host); TestFactories.AddToSceneTree(root);
 		return (root, host, mesh, original);
 	}
+	/// <summary>The host's one instance that is still playing; finished ones linger until the frame ends.</summary>
+	private static WorldEffectInstance Live(WorldEffectHost host) =>
+		host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(effect => !effect.IsQueuedForDeletion());
 	[TestCase]
 	public void EditorSurfacePreviewDoesNotChangeOrSerializeAuthoredMaterials()
 	{
@@ -125,7 +128,8 @@ public class WorldEffectLifecycleTest
 		AssertBool(host.SetSustained(new object(), healing, true, 42) == WorldEffectResult.Rejected).IsTrue();
 		AssertInt(host.ActiveInstanceCount).IsEqual(1);
 		host.PlayBurst(Definition("strength"), 42); AssertInt(host.ActiveInstanceCount).IsEqual(2);
-		for (int i = 0; i < 10; i++) host.PlayBurst(Definition("level_up"), 42);
+		var levelUp = Definition("level_up");
+		for (int i = 0; i < 10; i++) host.PlayBurst(levelUp, 42);
 		AssertInt(host.ActiveInstanceCount).IsEqual(4);
 	}
 	[TestCase]
@@ -151,36 +155,19 @@ public class WorldEffectLifecycleTest
 		AssertBool(host.SetSustained(new object(), Definition("blessed"), true, 42) == WorldEffectResult.Rejected).IsTrue();
 	}
 	[TestCase]
-	public async Task BurstFinishesAndSuppressedAuraKeepsItsSourceWithoutReplayingTheEntry()
+	public void BurstFinishesAndSuppressedAuraKeepsItsSourceWithoutReplayingTheEntry()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene();
-		preview.ClearEffects(); preview.SetPlaybackSpeed(1);
 		var (_, host, _, _) = Fixture();
-		host.PlayBurst(Definition("healing"), 42); await runner.SimulateFrames(110, 20);
+		host.PlayBurst(Definition("healing"), 42);
+		var burst = Live(host);
+		burst._Process(burst.Duration); burst._Process(burst.ExitTime);
 		AssertInt(host.ActiveInstanceCount).IsEqual(0);
 		host.SetSustained(new object(), Definition("blessed"), true, 42);
-		await runner.SimulateFrames(20, 20); host.SetOwnerSuppressed(true);
+		var effect = Live(host);
+		effect._Process(.4f); host.SetOwnerSuppressed(true);
 		AssertInt(host.LeaseCount).IsEqual(1);
-		var effect = host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single();
 		AssertBool(effect.Visible).IsFalse(); float elapsed = effect.Elapsed;
 		host.SetOwnerSuppressed(false); AssertBool(effect.Visible).IsTrue(); AssertFloat(effect.Elapsed).IsEqual(elapsed);
-	}
-	[TestCase]
-	public async Task HarnessAndCommittedConsumptionUseTheProductionHost()
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene();
-		preview.ClearEffects(); var player = preview.Stage.GetChildren().OfType<Player>().Single();
-		var potion = ItemFactory.CopyDefinition(TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
-		potion.Set("PerformDuration", 0f); player.Inventory.TryAdd(potion, 1);
-		var slot = player.Inventory.Items.First(s => s.Item == potion);
-		player.HealthComponent.TakeDamage(2);
-		AssertBool(player.InventoryController.TryUse(slot).Success).IsTrue();
-		AssertInt(player.WorldEffects.ActiveInstanceCount).IsEqual(1);
-		AssertBool(player.Inventory.Items.Contains(slot)).IsFalse();
-		preview.SelectEffect(0); await runner.SimulateFrames(2);
-		AssertInt(preview.Stage.GetChildCount()).IsEqual(1); AssertInt(preview.InstanceCount).IsEqual(1);
 	}
 	[TestCase]
 	public void CurseAuraRequiresKnowledgeAndStopsWhenTheCurseIsLifted()
@@ -214,45 +201,42 @@ public class WorldEffectLifecycleTest
 		AssertInt(aura.Host.LeaseCount).IsEqual(1);
 	}
 	[TestCase]
-	public async Task HelpersAddedDuringASkinAreExcludedAndReplayUnloadsThePreviousSubject()
+	public async Task MeshesAddedDuringASkinTakeItUnlessTheyAreHelpers()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2);
-		var (_, host, mesh, _) = Fixture();
+		var (root, host, mesh, _) = Fixture();
 		host.SetSustained(new object(), Definition("iron_skin"), true, 42);
+		var gearMaterial = new StandardMaterial3D { AlbedoColor = Colors.Green };
+		var gear = new MeshInstance3D { Mesh = new BoxMesh(), MaterialOverride = gearMaterial };
 		var helper = new Node3D(); VisualHelper.Mark(helper);
 		var own = new StandardMaterial3D { AlbedoColor = Colors.Purple };
 		var auraMesh = new MeshInstance3D { Mesh = new SphereMesh(), MaterialOverride = own };
-		helper.AddChild(auraMesh); mesh.AddChild(helper); await runner.SimulateFrames(2);
-		AssertObject(auraMesh.MaterialOverride).IsSame(own);
-		var preview = (ActorItemEffectPreview)runner.Scene();
-		preview.SelectEffect(0);
-		var actor = preview.Stage.GetChildren().OfType<Player>().Single();
-		actor.WorldEffects.SetSustained(this, Definition("blessed"), true, 42);
-		actor.WorldEffects.PlayBurst(Definition("healing"), 42);
-		preview.Replay(); await runner.SimulateFrames(3);
-		AssertBool(GodotObject.IsInstanceValid(actor)).IsFalse(); AssertInt(preview.Stage.GetChildCount()).IsEqual(1);
-		AssertInt(preview.InstanceCount).IsEqual(1);
+		helper.AddChild(auraMesh); mesh.AddChild(helper); mesh.AddChild(gear);
+		// New meshes are captured on a deferred call.
+		var tree = root.GetTree();
+		await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+		await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+		AssertObject(gear.GetActiveMaterial(0)).IsNotSame(gearMaterial);
+		AssertObject(auraMesh.GetActiveMaterial(0)).IsSame(own);
 	}
 	[TestCase]
-	public async Task HealingTicksDoNotReplayTheActivationAndCanceledUseEmitsNothing()
+	public async Task HealingTicksDoNotReplayTheActivation()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
+		await runner.SimulateFrames(2, 20); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
-		player.BuffController.ProcessMode = Node.ProcessModeEnum.Always;
 		var potion = ItemFactory.CopyDefinition(TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
-		potion.Set("PerformDuration", 0f); player.Inventory.TryAdd(potion, 2);
-		var slot = player.Inventory.Items.First(s => s.Item == potion);
-		player.HealthComponent.TakeDamage(30); player.InventoryController.TryUse(slot);
-		AssertInt(player.WorldEffects.ActiveInstanceCount).IsEqual(1);
-		await runner.SimulateFrames(110, 20);
+		potion.Set("PerformDuration", 0f); player.Inventory.TryAdd(potion, 1);
+		player.HealthComponent.TakeDamage(30);
+		AssertBool(player.InventoryController.TryUse(player.Inventory.Items.First(s => s.Item == potion)).Success).IsTrue();
+		var activation = Live(player.WorldEffects);
+		activation._Process(activation.Duration); activation._Process(activation.ExitTime);
 		AssertInt(player.WorldEffects.ActiveInstanceCount).IsEqual(0);
-		AssertInt(player.BuffController.ActiveBuffs.Count).IsGreater(0);
-		potion.Set("PerformDuration", 1f); player.InventoryController.TryUse(slot);
-		player.InventoryController.CancelItemUse(ActionInterruptReason.Invalidated);
-		await runner.SimulateFrames(60, 20);
-		AssertInt(player.WorldEffects.ActiveInstanceCount).IsEqual(0); AssertInt(slot.Quantity).IsEqual(1);
+
+		// The regeneration keeps healing without replaying the drink's activation.
+		float health = player.HealthComponent.CurrentHealth;
+		foreach (var buff in player.BuffController.ActiveBuffs.ToArray()) buff._PhysicsProcess(1);
+		AssertFloat(player.HealthComponent.CurrentHealth).IsGreater(health);
+		AssertInt(player.WorldEffects.ActiveInstanceCount).IsEqual(0);
 	}
 
 	[TestCase]

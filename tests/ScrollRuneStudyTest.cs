@@ -6,7 +6,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using static GdUnit4.Assertions;
 
-/// <summary>Authored glyph pairs stay with randomized paper appearances, including restored assignment descriptors.</summary>
+/// <summary>
+/// Every paper appearance owns a renderable glyph, and the rune study animates the ring without touching the run's
+/// identification. Which glyph a read scroll shows is covered by <see cref="ScrollConsumptionEffectsTest"/>.
+/// </summary>
 [TestSuite, RequireGodotRuntime]
 public class ScrollRuneStudyTest
 {
@@ -15,9 +18,9 @@ public class ScrollRuneStudyTest
 	public void EveryPaperAppearanceHasItsOwnAuthoredRenderableGlyph()
 	{
 		var appearances = ScrollCategory().AppearancePool.Appearances;
-		AssertInt(appearances.Count).IsEqual(12);
-		AssertInt(appearances.Select(a => a.GlyphId).Distinct().Count()).IsEqual(12);
-		AssertInt(appearances.Select(a => a.GlyphMesh?.ResourcePath).Distinct().Count()).IsEqual(12);
+		AssertInt(appearances.Count).IsGreater(0);
+		AssertInt(appearances.Select(a => a.GlyphId).Distinct().Count()).IsEqual(appearances.Count);
+		AssertInt(appearances.Select(a => a.GlyphMesh?.ResourcePath).Distinct().Count()).IsEqual(appearances.Count);
 		foreach (var appearance in appearances)
 		{
 			AssertBool(appearance.GlyphId.IsEmpty).IsFalse(); AssertObject(appearance.GetModel("")).IsNotNull();
@@ -27,44 +30,10 @@ public class ScrollRuneStudyTest
 		}
 	}
 	[TestCase]
-	public void RandomizedAndRestoredAppearancesSelectTheMatchingMeshInsteadOfAFixedEffectRune()
-	{
-		var scroll = (Scroll)ScrollCategory().Types[0]; var first = new IdentificationService(); first.Initialize(42);
-		var original = first.GetAppearance(scroll);
-		bool changed = false;
-		for (ulong seed = 43; seed < 50; seed++)
-		{
-			var next = new IdentificationService(); next.Initialize(seed);
-			var appearance = next.GetAppearance(scroll);
-			if (appearance != original)
-			{
-				changed = true; AssertBool(appearance.GlyphMesh != original.GlyphMesh).IsTrue();
-				AssertBool(appearance.GetModel("") != original.GetModel("")).IsTrue();
-			}
-		}
-		AssertBool(changed).IsTrue();
-		var restored = new IdentificationService(); restored.Initialize(999, persistedAssignments: first.GetAssignmentDescriptors());
-		AssertObject(restored.GetAppearance(scroll).GlyphMesh).IsSame(original.GlyphMesh);
-		AssertObject(restored.GetAppearance(scroll).GetModel("")).IsSame(original.GetModel(""));
-	}
-	[TestCase]
-	public async Task ReadingPreviewUsesTheProductionRendererAndMappedMesh()
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
-		await runner.SimulateFrames(2); var study = (ScrollRuneStudy)runner.Scene();
-		study.SetSeed(42); study.SetTime(.55f);
-		var expected = new IdentificationService(); expected.Initialize(42);
-		AssertObject(study.Appearance).IsSame(expected.GetAppearance(study.SelectedScroll));
-		AssertBool(study.RuneRing.Glyphs.All(g => g.Mesh == study.Appearance.GlyphMesh)).IsTrue();
-		AssertInt(study.Stage.GetChildCount()).IsEqual(1); AssertInt(study.RingGlyphCount).IsEqual(10);
-		study.SelectScroll(2); study.SetSeed(43); await runner.SimulateFrames(2);
-		AssertBool(study.RuneRing.Glyphs.All(g => g.Mesh == study.Appearance.GlyphMesh)).IsTrue();
-	}
-	[TestCase]
 	public async Task SessionAssignmentCanBeCopiedWithoutIdentifyingOrReshufflingItems()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
-		await runner.SimulateFrames(2); var study = (ScrollRuneStudy)runner.Scene();
+		await runner.SimulateFrames(2, 20); var study = (ScrollRuneStudy)runner.Scene();
 		var run = GameSession.Instance.Run; var assignment = run.Identification.GetAssignmentDescriptors();
 		var known = run.Identification.GetIdentifiedTypeIds().ToArray();
 		study.UseSessionAssignment();
@@ -77,7 +46,7 @@ public class ScrollRuneStudyTest
 	public async Task RuneRingRotatesExpandsAndDissolvesWithoutSubstitutingOtherGlyphs()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
-		await runner.SimulateFrames(2); var study = (ScrollRuneStudy)runner.Scene(); study.SetTime(.2f);
+		await runner.SimulateFrames(2, 20); var study = (ScrollRuneStudy)runner.Scene(); study.SetTime(.2f);
 		var ring = study.Stage.GetChild<Node3D>(0);
 		var glyphs = ring.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => m.Mesh == study.MatchedGlyph).ToArray();
 		AssertInt(glyphs.Length).IsEqual(10);

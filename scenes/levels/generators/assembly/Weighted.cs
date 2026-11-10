@@ -20,6 +20,25 @@ public static class Weighted
 		return valid[^1];
 	}
 
+	/// <summary>Index of a weighted choice over precomputed weights; -1 when none is positive. Draws exactly once.</summary>
+	public static int PickIndex(IReadOnlyList<float> weights, RandomNumberGenerator rng)
+	{
+		double roll = rng.Randf();
+		double total = 0;
+		int last = -1;
+		for (int index = 0; index < weights.Count; index++)
+			if (float.IsFinite(weights[index]) && weights[index] > 0) { total += weights[index]; last = index; }
+		if (last < 0) return -1;
+		roll *= total;
+		for (int index = 0; index < weights.Count; index++)
+		{
+			if (!float.IsFinite(weights[index]) || weights[index] <= 0) continue;
+			roll -= weights[index];
+			if (roll < 0) return index;
+		}
+		return last;
+	}
+
 	/// <summary>Weighted choice from an item-name map, as authored on surface Resources.</summary>
 	public static string Pick(Godot.Collections.Dictionary<string, float> items, RandomNumberGenerator rng) =>
 		Pick(items.Keys.ToArray(), key => items[key], rng);

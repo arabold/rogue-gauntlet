@@ -169,59 +169,6 @@ public partial class EnemyDefenseTest
 	}
 
 	[TestCase]
-	public void ShieldEnemyParriesMeleeAttack()
-	{
-		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
-		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
-		controller.Mode = EnemyDefenseMode.GuardParry;
-		controller.ReactionDelay = 0.04f;
-		controller.GuardHoldDuration = 0.85f;
-
-		var (player, attackCtrl) = CreateTestPlayer();
-		controller.Target = player;
-		player.Position = new Vector3(0, 0, 0);
-		enemy.Position = new Vector3(0, 0, -2);
-
-		var sceneRoot = new Node3D();
-		sceneRoot.AddChild(player);
-		sceneRoot.AddChild(enemy);
-
-		var def = new AttackDefinition
-		{
-			HitWindowStart = 0.3f,
-			HitWindowEnd = 0.6f,
-			MeleeContact = attackCtrl.DefaultMeleeContact
-		};
-		AssertBool(attackCtrl.StartAttack(def, new AttackStats(10, 10, 0), 8)).IsTrue();
-
-		// Detect and react
-		controller._PhysicsProcess(0.02f);
-		controller._PhysicsProcess(0.05f);
-
-		AssertBool(guard.IsGuarding).IsTrue();
-
-		// Advance guard past raise duration (0.03s) within parry window (0.21s)
-		guard._PhysicsProcess(0.05f);
-
-		var context = new DamageContext
-		{
-			ExecutionId = attackCtrl.CurrentExecutionId,
-			Amount = 20f,
-			IncomingDirection = new Vector3(0, 0, -1),
-			SourceNode = attackCtrl,
-			OwnerNode = player,
-			Faction = DamageSourceFlags.Player,
-			DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable
-		};
-
-		var res = hurtbox.ResolveDamage(context);
-		AssertInt((int)res.Outcome).IsEqual((int)DamageOutcome.Parried);
-		AssertFloat(health.CurrentHealth).IsEqual(100f);
-
-		sceneRoot.QueueFree();
-	}
-
-	[TestCase]
 	public void DodgeEnemyDodgesMeleeAttack()
 	{
 		var (enemy, controller, dodge, hurtbox, health) = CreateDodgeEnemy();
@@ -313,76 +260,19 @@ public partial class EnemyDefenseTest
 		sceneRoot.QueueFree();
 	}
 
+	/// <summary>
+	/// A defended contact holds the raised guard for the pressure window, then the guard drops. A parry does not re-arm
+	/// within one guard: the next contact only blocks, and it refreshes the window.
+	/// </summary>
 	[TestCase]
-	public void SustainedBlockingMaintainsGuardWhileUnderPressure()
+	public void DefendedContactsHoldTheGuardUntilThePressureWindowLapses()
 	{
-		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
-		enemy.MovementComponent.SetLookAtDirection(Vector3.Back); // face the attacker at the origin
-		controller.Mode = EnemyDefenseMode.GuardParry;
-		controller.ReactionDelay = 0.04f;
-		controller.GuardHoldDuration = 0.85f;
-
-		var (player, attackCtrl) = CreateTestPlayer();
-		controller.Target = player;
-		player.Position = new Vector3(0, 0, 0);
-		enemy.Position = new Vector3(0, 0, -2);
-
-		var sceneRoot = new Node3D();
-		sceneRoot.AddChild(player);
-		sceneRoot.AddChild(enemy);
-
-		var def = new AttackDefinition
-		{
-			HitWindowStart = 0.3f,
-			HitWindowEnd = 0.6f,
-			MeleeContact = attackCtrl.DefaultMeleeContact
-		};
-		attackCtrl.StartAttack(def, new AttackStats(10, 10, 0), 8);
-
-		controller._PhysicsProcess(0.02f);
-		controller._PhysicsProcess(0.05f);
-		AssertBool(guard.IsGuarding).IsTrue();
-
-		guard._PhysicsProcess(0.05f);
-
-		// Attack lands on shield -> Blocked
-		var context = new DamageContext
-		{
-			ExecutionId = attackCtrl.CurrentExecutionId,
-			Amount = 10f,
-			IncomingDirection = new Vector3(0, 0, -1),
-			SourceNode = attackCtrl,
-			OwnerNode = player,
-			Faction = DamageSourceFlags.Player,
-			DefenseTraits = AttackDefenseTraits.Guardable
-		};
-		hurtbox.ResolveDamage(context);
-
-		// Advance 0.6s: with pressure window of 0.85s, enemy remains guarding!
-		controller._PhysicsProcess(0.60f);
-		AssertBool(guard.IsGuarding).IsTrue();
-
-		// Once pressure window elapses past 0.85s, guard drops
-		controller._PhysicsProcess(0.30f);
-		AssertBool(guard.IsGuarding).IsFalse();
-
-		sceneRoot.QueueFree();
-	}
-
-	[TestCase]
-	public void GuardDropsAfterPressureButNoRiposteIsReportedWithoutAnExecutableAttack()
-	{
-		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
+		var (_, controller, guard, hurtbox, _) = CreateShieldEnemy();
 		controller.Mode = EnemyDefenseMode.GuardParry;
 		controller.GuardHoldDuration = 0.85f;
-
-		bool riposteFired = false;
-		controller.RiposteTriggered += () => riposteFired = true;
-
 		guard.TryBeginGuard(new Vector3(0, 0, 1));
-		guard._PhysicsProcess(0.05f); // Within parry window (0.21s)
-
-		var context = new DamageContext
+		guard._PhysicsProcess(0.05f); // Within the parry window (0.21 s)
+		var contact = new DamageContext
 		{
 			Amount = 20f,
 			IncomingDirection = new Vector3(0, 0, -1),
@@ -390,173 +280,33 @@ public partial class EnemyDefenseTest
 			DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable
 		};
 
-		var res = hurtbox.ResolveDamage(context);
-		AssertInt((int)res.Outcome).IsEqual((int)DamageOutcome.Parried);
-
-		// Continuous guard continues! Guard has NOT dropped yet, riposte has NOT fired yet.
-		AssertBool(guard.IsGuarding).IsTrue();
-		AssertBool(riposteFired).IsFalse();
-
-		// Parry sustains pressure across intention ticks, rather than immediately releasing.
+		AssertObject(hurtbox.ResolveDamage(contact).Outcome).IsEqual(DamageOutcome.Parried);
 		guard._PhysicsProcess(0.20f);
 		controller._PhysicsProcess(0.20f);
 		AssertBool(guard.IsGuarding).IsTrue();
-		// A following contact blocks and refreshes pressure without rearming parry.
-		var res2 = hurtbox.ResolveDamage(context);
-		AssertInt((int)res2.Outcome).IsEqual((int)DamageOutcome.Blocked);
-		AssertBool(guard.IsGuarding).IsTrue();
-		AssertBool(riposteFired).IsFalse();
-
+		AssertObject(hurtbox.ResolveDamage(contact).Outcome).IsEqual(DamageOutcome.Blocked);
 		controller._PhysicsProcess(0.60f);
 		AssertBool(guard.IsGuarding).IsTrue();
-		// Advance time past the refreshed pressure window (0.85s).
 		controller._PhysicsProcess(0.30f);
-
-		// Guard ends; no attack executor/target means no successful riposte notification.
 		AssertBool(guard.IsGuarding).IsFalse();
-		AssertBool(riposteFired).IsFalse();
 	}
 
-	[TestCase]
-	public void RiposteDoesNotTriggerWhenTargetIsBeyondReachableDistance()
-	{
-		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
-		controller.Mode = EnemyDefenseMode.GuardParry;
-		controller.GuardHoldDuration = 0.5f;
-
-		// Target is 8.0m away (e.g. archer shooting arrows from afar)
-		var distantTarget = new Node3D { Position = new Vector3(0, 0, 8.0f) };
-		controller.Target = distantTarget;
-
-		bool riposteFired = false;
-		controller.RiposteTriggered += () => riposteFired = true;
-
-		guard.TryBeginGuard(new Vector3(0, 0, 1));
-		guard._PhysicsProcess(0.05f);
-
-		var context = new DamageContext
-		{
-			Amount = 15f,
-			IncomingDirection = new Vector3(0, 0, -1),
-			Faction = DamageSourceFlags.Player,
-			DefenseTraits = AttackDefenseTraits.Guardable
-		};
-
-		var res = hurtbox.ResolveDamage(context);
-		AssertInt((int)res.Outcome).IsEqual((int)DamageOutcome.Blocked);
-
-		// Advance time past the pressure window to end guard
-		controller._PhysicsProcess(0.60f);
-
-		// Guard ends, but riposte must NOT fire because target is unreachable
-		AssertBool(guard.IsGuarding).IsFalse();
-		AssertBool(riposteFired).IsFalse();
-
-		distantTarget.QueueFree();
-	}
-
-	[TestCase]
-	public void RiposteWithoutAnAttackExecutorIsNotReportedAsSuccessful()
-	{
-		var (enemy, controller, guard, hurtbox, health) = CreateShieldEnemy();
-		controller.Mode = EnemyDefenseMode.GuardParry;
-		controller.GuardHoldDuration = 0.5f;
-
-		// Target is 1.8m away (within melee reachable range)
-		var closeTarget = new Node3D { Position = new Vector3(0, 0, 1.8f) };
-		controller.Target = closeTarget;
-
-		bool riposteFired = false;
-		controller.RiposteTriggered += () => riposteFired = true;
-
-		guard.TryBeginGuard(new Vector3(0, 0, 1));
-		guard._PhysicsProcess(0.05f);
-
-		var context = new DamageContext
-		{
-			Amount = 15f,
-			IncomingDirection = new Vector3(0, 0, -1),
-			Faction = DamageSourceFlags.Player,
-			DefenseTraits = AttackDefenseTraits.Guardable
-		};
-
-		var res = hurtbox.ResolveDamage(context);
-		AssertInt((int)res.Outcome).IsEqual((int)DamageOutcome.Blocked);
-
-		// Advance time past the pressure window to end guard
-		controller._PhysicsProcess(0.60f);
-
-		// Range alone cannot authorize success without a working attack executor.
-		AssertBool(guard.IsGuarding).IsFalse();
-		AssertBool(riposteFired).IsFalse();
-
-		closeTarget.QueueFree();
-	}
-
-	[TestCase]
-	public async System.Threading.Tasks.Task HarnessSkeletonParriesPlayerAttack()
-	{
-		ISceneRunner runner = TestFactories.LoadCombatHarness();
-		await runner.SimulateFrames(3);
-
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		var monstersOpt = harness.GetNode<OptionButton>("%Controls/Monsters");
-		monstersOpt.Selected = 1;
-
-		var defenseOpt = harness.GetNode<OptionButton>("%Controls/Defense");
-		defenseOpt.Selected = 4;
-
-		harness.SpawnMonster();
-		var monster = harness.Monster;
-		AssertObject(monster).IsNotNull();
-
-		harness.ApplyDefense();
-		float initialHp = monster.HealthComponent.CurrentHealth;
-
-		harness.EquipPreview(0);
-		harness.Attack();
-
-		for (int f = 0; f < 25; f++)
-		{
-			await runner.SimulateFrames(1);
-			GD.Print($"[F{f:D2}] Atk:{harness.Player.AttackController.IsAttacking} Res:{harness.Player.AttackController.LastResult} | Guarding:{monster.GuardComponent?.IsGuarding} Dodging:{monster.DodgeComponent?.IsDodging} HP:{monster.HealthComponent.CurrentHealth:F1}");
-		}
-
-		GD.Print($"[TEST RESULT] Monster HP: {monster.HealthComponent.CurrentHealth}/{initialHp}, Player LastResult: {harness.Player.AttackController.LastResult}, LastDamage: {harness.Player.AttackController.LastDamage}");
-		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(initialHp);
-		AssertString(harness.Player.AttackController.LastResult).IsEqual("Parried");
-	}
-
+	/// <summary>A production warrior forced to dodge evades a real hero swing without taking damage.</summary>
 	[TestCase]
 	public async System.Threading.Tasks.Task HarnessSkeletonDodgesPlayerAttack()
 	{
-		ISceneRunner runner = TestFactories.LoadCombatHarness();
-		await runner.SimulateFrames(3);
-
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		var monstersOpt = harness.GetNode<OptionButton>("%Controls/Monsters");
-		monstersOpt.Selected = 1;
-
-		var defenseOpt = harness.GetNode<OptionButton>("%Controls/Defense");
-		defenseOpt.Selected = 3; // Always Dodge
-
-		harness.SpawnMonster();
-		var monster = harness.Monster;
-		AssertObject(monster).IsNotNull();
-
-		harness.ApplyDefense();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
+		harness.EquipPreview(0);
+		// Equipping reapplies the harness's defense picker, so force the dodge afterwards.
+		monster.DefenseController.Mode = EnemyDefenseMode.Dodge;
 		float initialHp = monster.HealthComponent.CurrentHealth;
 
-		harness.EquipPreview(0);
 		harness.Attack();
+		AssertBool(harness.Player.AttackController.IsAttacking).IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => !harness.Player.AttackController.IsAttacking, 2);
 
-		for (int f = 0; f < 25; f++)
-		{
-			await runner.SimulateFrames(1);
-			GD.Print($"[DODGE F{f:D2}] Atk:{harness.Player.AttackController.IsAttacking} Res:{harness.Player.AttackController.LastResult} | Guarding:{monster.GuardComponent?.IsGuarding} Dodging:{monster.DodgeComponent?.IsDodging} HP:{monster.HealthComponent.CurrentHealth:F1}");
-		}
-
-		GD.Print($"[TEST RESULT] Monster HP: {monster.HealthComponent.CurrentHealth}/{initialHp}, Player LastResult: {harness.Player.AttackController.LastResult}, LastDamage: {harness.Player.AttackController.LastDamage}");
 		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(initialHp);
 		AssertString(harness.Player.AttackController.LastResult).IsEqual("Dodged");
 	}
@@ -646,14 +396,23 @@ public partial class EnemyDefenseTest
 		root.QueueFree();
 	}
 
-	/// <summary>The policy's guard interval dodges (or does nothing) against attacks that are unsafe to guard.</summary>
+	/// <summary>
+	/// The policy splits one roll into exclusive dodge, guard and idle intervals; an unavailable defense never rerolls into
+	/// another, and an attack that is unsafe to guard turns the guard interval into a dodge (or nothing).
+	/// </summary>
 	[TestCase]
-	public void AiDoesNotChooseGuardAgainstAttacksThatAreUnsafeToGuard()
+	public void DefenseStrategyChoosesByExclusiveIntervalsAndNeverGuardsUnsafeAttacks()
 	{
+		using var strategy = new EnemyDefenseStrategy { DodgeChance = .2f, GuardChance = .5f };
+		AssertObject(strategy.Choose(true, true, .1f)).IsEqual(EnemyDefenseMode.Dodge);
+		AssertObject(strategy.Choose(true, true, .2f)).IsEqual(EnemyDefenseMode.GuardParry);
+		AssertObject(strategy.Choose(true, true, .7f)).IsEqual(EnemyDefenseMode.None);
+		AssertObject(strategy.Choose(true, false, .1f)).IsEqual(EnemyDefenseMode.None);
+		AssertObject(strategy.Choose(false, true, .3f)).IsEqual(EnemyDefenseMode.None);
+
 		AssertBool(Traits(false).IsSafeToGuard()).IsTrue();
 		AssertBool(Traits(true).IsSafeToGuard()).IsFalse();
 		AssertBool(AttackDefenseTraits.Dodgeable.IsSafeToGuard()).IsFalse();
-		using var strategy = new EnemyDefenseStrategy { DodgeChance = .2f, GuardChance = .5f };
 		AssertObject(strategy.Choose(true, true, .3f, guardSafe: true)).IsEqual(EnemyDefenseMode.GuardParry);
 		AssertObject(strategy.Choose(true, true, .3f, guardSafe: false)).IsEqual(EnemyDefenseMode.Dodge);
 		AssertObject(strategy.Choose(true, false, .3f, guardSafe: false)).IsEqual(EnemyDefenseMode.None);

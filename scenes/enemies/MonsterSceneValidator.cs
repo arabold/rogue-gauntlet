@@ -4,26 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Read-only checks shared by spawning and the editor. Read stored properties rather than casting
-/// gameplay scripts: Godot represents non-tool C# components as native placeholders in the editor.
-/// [Tool] definition Resources (attack, poise, vulnerability) are real instances, so their own rules are reused.
+/// Read-only checks shared by spawning and the editor. Node wiring is read through stored properties, because Godot
+/// represents non-tool C# components as native placeholders in the editor. The monster's Resources (definition,
+/// behavior, combat profile, strategies, actions, conditions) are [Tool], so they validate themselves through
+/// <see cref="MonsterValidationContext"/>; adding a strategy or action type never edits this class.
 /// </summary>
 public static class MonsterSceneValidator
 {
 
 	public static string[] Validate(Node actor)
 	{
-		var errors = new List<string>();
-		void Check(bool valid, string message) { if (!valid) errors.Add(message); }
-		bool Local(Node node) => node != null && actor.IsAncestorOf(node);
-		var definition = Object<Resource>(actor, "Definition");
+		var definition = Object<MonsterDefinition>(actor, "Definition");
 		if (definition == null) return new[] { "Definition: assign a MonsterDefinition Resource." };
-		Check(!string.IsNullOrWhiteSpace(definition.Get("Id").AsString()), "Definition.Id: enter a stable monster ID.");
-		Check(!string.IsNullOrWhiteSpace(definition.Get("DisplayName").AsString()), "Definition.DisplayName: enter a display name.");
-		Check(Positive(Number(definition, "MaxHealth")), "Definition.MaxHealth: must be positive and finite.");
-		Check(Nonnegative(Number(definition, "MoveSpeed")), "Definition.MoveSpeed: must be nonnegative and finite.");
-		Check(definition.Get("XpReward").AsInt32() >= 0, "Definition.XpReward: cannot be negative.");
-		foreach (var name in new[] { "HealthComponent", "MovementComponent", "EnemyBehaviorComponent", "DeathComponent", "LootTableComponent", "HurtBoxComponent", "ActionGate" })
+		var context = new MonsterValidationContext(actor, definition);
+		bool Check(bool valid, string message) => context.CheckWiring(valid, message);
+		bool Local(Node node) => context.Local(node);
+		foreach (var name in new[] { "HealthComponent", "MovementComponent", "EnemyBehaviorComponent", "DeathComponent", "LootTableComponent", "HurtBoxComponent", "ActionGate", "SpellCaster", "ManaComponent", "Stats", "BuffController" })
 			Check(Local(Object<Node>(actor, name)), $"{name}: assign a component within this actor.");
 		var body = Object<CollisionShape3D>(actor, "BodyShape");
 		Check(body != null && body.GetParent() == actor && body.Shape is CapsuleShape3D or CylinderShape3D or SphereShape3D,
@@ -31,7 +27,8 @@ public static class MonsterSceneValidator
 		var health = Object<Node>(actor, "HealthComponent");
 		var statuses = Object<Node>(actor, "BuffController");
 		if (statuses != null)
-			Check(Local(statuses) && Object<Node>(statuses, "Health") == health, "BuffController: bind this actor's health.");
+			Check(Local(statuses) && Object<Node>(statuses, "Actor") == actor && Object<Node>(statuses, "Health") == health,
+				"BuffController: bind this actor and its health.");
 		var effects = Object<Node>(actor, "WorldEffects");
 		if (effects != null)
 		{
@@ -76,7 +73,21 @@ public static class MonsterSceneValidator
 			Check(Object<Node>(movement, "ActionGate") == gate, "MovementComponent.ActionGate: assign this actor's action gate.");
 		}
 		if (death != null) Check(Object<Node>(death, "HealthComponent") == health && Object<Node>(death, "LootTableComponent") == loot, "DeathComponent: bind this actor's health and loot.");
-		if (hurtbox != null) Check(Object<Node>(hurtbox, "HealthComponent") == health && (Object<Node>(hurtbox, "MovementComponent") == null || Object<Node>(hurtbox, "MovementComponent") == movement), "HurtBoxComponent: bind this actor's health and movement.");
+		if (hurtbox != null) Check(Object<Node>(hurtbox, "HealthComponent") == health && Object<Node>(hurtbox, "Buffs") == statuses
+			&& (Object<Node>(hurtbox, "MovementComponent") == null || Object<Node>(hurtbox, "MovementComponent") == movement),
+			"HurtBoxComponent: bind this actor's health, buff controller and movement.");
+		var stats = Object<Node>(actor, "Stats");
+		if (stats != null) Check(Local(stats) && Object<Node>(stats, "Movement") == movement && Object<Node>(stats, "Health") == health
+			&& Object<Node>(stats, "HurtBox") == hurtbox, "ActorStatsComponent: bind this actor's movement, health and hurtbox.");
+		var phases = Object<Node>(actor, "HealthPhases");
+		if (phases != null)
+		{
+			var fractions = phases.Get("EnterHealthFractions").AsFloat32Array();
+			Check(Local(phases) && Object<Node>(phases, "Health") == health, "HealthPhaseComponent: bind this actor's health.");
+			Check(fractions.Length > 0 && fractions.Select((value, index) => float.IsFinite(value) && value is > 0 and < 1
+				&& (index == 0 || value < fractions[index - 1])).All(valid => valid),
+				"HealthPhaseComponent.EnterHealthFractions: list strictly descending fractions in (0, 1).");
+		}
 		var poise = hurtbox != null ? Object<Node>(hurtbox, "Poise") : null;
 		if (poise != null)
 		{
@@ -99,139 +110,17 @@ public static class MonsterSceneValidator
 				&& behavior.GetNodeOrNull<Node>("Perception") != null && behavior.GetNodeOrNull<RayCast3D>("SightRay") != null,
 				"EnemyBehaviorComponent: retain navigation, perception and sight ray children.");
 		}
-		var profile = Object<Resource>(definition, "Behavior");
-		Check(profile != null, "Definition.Behavior: assign a behavior Resource.");
-		if (profile == null) return errors.ToArray();
-		Check(Object<Resource>(profile, "MovementStrategy") != null, "Behavior.MovementStrategy: assign a positioning strategy.");
-		Check(profile.Get("StayInHomeRoom").AsBool() || EnemyBase.HorizontalRadius(body) <= RoomAssembler.ActorRadius + .001f,
+		var profile = definition.Behavior;
+		Check(profile == null || profile.StayInHomeRoom || EnemyBase.HorizontalRadius(body) <= RoomAssembler.ActorRadius + .001f,
 			$"BodyShape: wider than generation keeps passable ({RoomAssembler.ActorRadius}); shrink it or hold the monster in its room (Behavior.StayInHomeRoom).");
-		var tactics = Object<Resource>(profile, "TacticalStrategy");
-		Check(tactics != null, "Behavior.TacticalStrategy: assign an engagement priority strategy.");
-		if (tactics != null)
-			Check(Positive(Number(tactics, "MaximumRetreatDuration")) && Nonnegative(Number(tactics, "RetreatRetryDelay"))
-				&& Nonnegative(Number(tactics, "StandAndFightDistance")), "TacticalStrategy: require positive retreat duration and nonnegative finite retry/stand distances.");
-		var policy = Object<Resource>(profile, "AttackStrategy");
-		Check(policy != null, "Behavior.AttackStrategy: assign the monster's single attack policy.");
 		var animation = actor.GetNodeOrNull<Node>("CombatAnimationComponent");
 		var controller = Object<Node>(actor, "AttackController");
 		Check(Local(controller) && animation != null && Object<Node>(controller, "AnimationComponent") == animation,
 			"AttackController.AnimationComponent: bind this actor's CombatAnimationComponent.");
 		Check(controller == null || Object<Node>(controller, "ActionGate") == gate, "AttackController.ActionGate: assign this actor's action gate.");
-		var playerPath = animation?.Get("AnimationPlayerPath").AsNodePath();
-		var player = playerPath != null && !playerPath.IsEmpty ? animation.GetNodeOrNull<AnimationPlayer>(playerPath) : null;
-		var treePath = animation?.Get("AnimationTreePath").AsNodePath();
 		Check(gate == null || Object<Node>(gate, "AnimationComponent") == animation, "ActionGate.AnimationComponent: assign this actor's combat animation component.");
-		var tree = treePath != null && !treePath.IsEmpty ? animation.GetNodeOrNull<AnimationTree>(treePath) : null;
-		bool HasClip(StringName clip) => player != null && !clip.IsEmpty && player.HasAnimation(clip)
-			&& double.IsFinite(player.GetAnimation(clip).Length) && player.GetAnimation(clip).Length > 0;
-		if (policy != null)
-		{
-			var attack = Object<Resource>(policy, "Attack");
-			Check(attack != null, "AttackStrategy.Attack: assign an AttackDefinition.");
-			Check(Positive(Number(policy, "Duration")) && Positive(Number(policy, "EngagementDistance")), "AttackStrategy: duration and engagement distance must be positive and finite.");
-			Check(Nonnegative(Number(policy, "MinDamage")) && float.IsFinite(Number(policy, "MaxDamage"))
-				&& Number(policy, "MaxDamage") >= Number(policy, "MinDamage") && Probability(Number(policy, "CritChance")), "AttackStrategy: invalid damage range or critical chance.");
-			var style = attack?.Get("AttackStyle").AsString();
-			if (string.IsNullOrEmpty(style)) style = attack?.Get("IsRanged").AsBool() == true ? "ranged" : "melee";
-			var animationProfile = Object<Resource>(animation, "Profile");
-			var bindings = animationProfile?.Get("Bindings").AsGodotArray();
-			var bindingList = bindings?.Select(value => value.AsGodotObject() as Resource).ToArray() ?? Array.Empty<Resource>();
-			var matches = bindingList.Where(value => value != null && value.Get("Style").AsString() == style).ToArray();
-			Check(tree != null && matches.Length == 1 && HasClip(matches[0].Get("Clip").AsStringName()),
-				"CombatAnimationComponent: assign a valid attack style/clip and AnimationPlayer/Tree paths.");
-			if (matches.Length == 1 && !string.IsNullOrWhiteSpace(matches[0].Get("WindUpClip").AsString()))
-				Check(HasClip(matches[0].Get("WindUpClip").AsStringName()) && Number(matches[0], "ContactStart") > 0,
-					"CombatAnimationComponent: assign a valid WindUpClip with positive contact start.");
-			if (Object<Script>(policy, "script")?.ResourcePath.EndsWith("/MeleeAttackStrategy.cs") == true)
-			{
-				Check(attack?.Get("IsRanged").AsBool() == false && Object<Resource>(attack, "MeleeContact") != null,
-					"MeleeAttackStrategy: assign a melee definition with an explicit contact profile.");
-				Check(Object<Node>(controller, "MeleeDetector") != null, "AttackController.MeleeDetector: assign a hit detector.");
-				float startAngle = Number(policy, "MaxStartAngle");
-				Check(startAngle >= 0 && startAngle <= 180, "MeleeAttackStrategy.MaxStartAngle: must lie between 0 and 180 degrees.");
-			}
-			if (Object<Script>(policy, "script")?.ResourcePath.EndsWith("/ProjectileAttackStrategy.cs") == true)
-				Check(attack?.Get("IsRanged").AsBool() == true && Object<PackedScene>(attack, "ProjectileScene") != null,
-					"ProjectileAttackStrategy: assign a projectile definition and scene.");
-			if (attack is AttackDefinition authored)
-			{
-				Check(Local(Object<Node>(controller, "Indicator")), "AttackController.Indicator: assign this actor's shared attack warning.");
-				// The attack's own rules, against the wind-up this policy and binding prepare.
-				float? windUp = matches.Length == 1 ? Number(policy, "Duration") * Number(matches[0], "ContactStart") : null;
-				Check(authored.HasValidImpactValues, "Attack: poise damage, knockback, hit-stop and wind-up turn rate must be nonnegative and finite.");
-				Check(authored.HasValidArmorWindow, "Attack.HyperArmorStart/End: require 0 <= start <= end <= 1.");
-				Check(authored.HasValidFacingLock(windUp), "Attack.FacingLockLead: must be nonnegative, melee only and no longer than the prepared wind-up.");
-				Check(authored.HasValidFlight(windUp, windUp != null ? Number(policy, "Duration") : null),
-					"Attack flight: stagger, homing and launch ramp must be finite and nonnegative with a launch scale in (0, 1]; stagger and homing belong to aimed single/spread shots whose last projectile leaves within the attack.");
-				var tier = authored.ThreatTier;
-				if (windUp < tier.MinimumWindUp() - .001f)
-					errors.Add($"Attack: {tier} attacks need at least {tier.MinimumWindUp()} s of wind-up before contact.");
-			}
-			float aimLock = attack != null ? Number(attack, "ProjectileAimLockDuration") : 0;
-			Check(Nonnegative(aimLock), "Attack.ProjectileAimLockDuration: must be nonnegative and finite.");
-			if (aimLock > 0)
-			{
-				Check(attack.Get("IsRanged").AsBool() && attack.Get("ProjectilePattern").AsInt32() is 0 or 1,
-					"Attack.ProjectileAimLockDuration: only aimed single/spread shots support locking.");
-				if (matches.Length == 1)
-					Check(aimLock <= Number(policy, "Duration") * Number(matches[0], "ContactStart"),
-						"Attack.ProjectileAimLockDuration: cannot exceed the prepared wind-up.");
-			}
-
-		}
-		var movementPolicy = Object<Resource>(profile, "MovementStrategy");
-		var movementScript = Object<Script>(movementPolicy, "script")?.ResourcePath ?? "";
-		if (movementScript.EndsWith("/MaintainDistanceStrategy.cs"))
-		{
-			float minimum = Number(movementPolicy, "MinimumDistance"), preferred = Number(movementPolicy, "PreferredDistance"), maximum = Number(movementPolicy, "MaximumDistance");
-			Check(Nonnegative(minimum) && float.IsFinite(preferred) && Positive(maximum) && minimum < preferred && preferred < maximum
-				&& policy != null && maximum <= Number(policy, "EngagementDistance"), "MovementStrategy: require minimum < preferred < maximum <= attack engagement distance.");
-		}
-		if (movementScript.EndsWith("/EngagementRingStrategy.cs"))
-			Check(Positive(Number(movementPolicy, "RingDistance")) && policy != null && Number(movementPolicy, "RingDistance") > Number(policy, "EngagementDistance"),
-				"MovementStrategy: the engagement ring must lie outside the attack's engagement distance.");
-		if (movementScript.EndsWith("/AttackThenRetreatStrategy.cs"))
-			Check(Positive(Number(movementPolicy, "RetreatDistance")) && Positive(Number(movementPolicy, "MaximumRetreatDuration"))
-				&& Nonnegative(Number(movementPolicy, "ReengagementDelay")), "MovementStrategy: invalid retreat distance, duration or delay.");
-		var retreat = Object<Resource>(profile, "RetreatCondition");
-		if (retreat != null)
-			Check(Probability(Number(retreat, "EnterHealthFraction")) && Probability(Number(retreat, "ExitHealthFraction"))
-				&& Number(retreat, "EnterHealthFraction") < Number(retreat, "ExitHealthFraction") && Positive(Number(retreat, "DesiredDistance"))
-				&& Positive(Number(retreat, "MaximumDuration")), "RetreatCondition: require ordered health thresholds and positive distance/duration.");
-
-		var defense = Object<Resource>(profile, "DefenseStrategy");
-		if (defense != null)
-		{
-			float guardChance = Number(defense, "GuardChance"), dodgeChance = Number(defense, "DodgeChance");
-			Check(Probability(guardChance) && Probability(dodgeChance) && Probability(Number(defense, "RiposteChance"))
-				&& guardChance + dodgeChance <= 1, "DefenseStrategy: probabilities must be in [0,1], with guard + dodge <= 1.");
-			Check(Nonnegative(Number(defense, "ReactionDelay")) && Positive(Number(defense, "GuardPressureWindow"))
-				&& Positive(Number(defense, "MaxGuardDuration")), "DefenseStrategy: invalid delay or guard durations.");
-			var defenseController = Object<Node>(actor, "DefenseController");
-			if (defenseController != null) Check(Local(defenseController) && Object<Node>(defenseController, "Enemy") == actor,
-				"DefenseController.Enemy: assign this actor to its local defense controller.");
-			Check((guardChance == 0 && dodgeChance == 0) || defenseController != null, "EnemyDefenseController: add a controller for nonzero response probabilities.");
-			foreach (var (chance, name, definitionProperty, clipProperties) in new[]
-			{
-				(guardChance, "GuardComponent", "GuardDef", new[] { "GuardHoldClip", "RecoveryClip", "BlockHitClip", "ParryClip" }),
-				(dodgeChance, "DodgeComponent", "DodgeDef", new[] { "DodgeBackwardClip", "DodgeForwardClip", "DodgeLeftClip", "DodgeRightClip", "RecoveryClip" })
-			})
-			{
-				if (chance <= 0) continue;
-				var capability = Object<Node>(actor, name);
-				Check(Local(capability) && Object<Node>(defenseController, name) == capability,
-					$"DefenseController.{name}: assign this actor's {name}; empty means unavailable.");
-				var capabilityDefinition = Object<Resource>(capability, definitionProperty);
-				Check(capability != null && capabilityDefinition != null && Object<Node>(capability, "Actor") == actor
-					&& Object<Node>(capability, "ActionGate") == gate && Object<Node>(capability, "AnimationComponent") == animation,
-					$"{name}: bind actor, action gate, animation and definition.");
-				var clips = Object<Resource>(capabilityDefinition, "AnimationProfile");
-				Check(clips != null && clipProperties.All(property => (property == "ParryClip"
-					&& capabilityDefinition.Get("CanParry").AsBool() == false) || HasClip(clips.Get(property).AsStringName())),
-					$"{name}: assign valid defense and recovery clips.");
-			}
-		}
-		return errors.ToArray();
+		definition.Validate(context);
+		return [.. context.Errors];
 	}
 
 	/// <summary>Validate a saved actor without entering the tree or consuming generation RNG.</summary>
@@ -249,9 +138,5 @@ public static class MonsterSceneValidator
 		finally { actor.Free(); }
 	}
 
-	private static T Object<T>(GodotObject owner, StringName property) where T : GodotObject => owner?.Get(property).AsGodotObject() as T;
-	private static float Number(GodotObject owner, StringName property) => owner.Get(property).AsSingle();
-	private static bool Positive(float value) => float.IsFinite(value) && value > 0;
-	private static bool Nonnegative(float value) => float.IsFinite(value) && value >= 0;
-	private static bool Probability(float value) => float.IsFinite(value) && value >= 0 && value <= 1;
+	private static T Object<T>(GodotObject owner, StringName property) where T : GodotObject => MonsterValidationContext.Object<T>(owner, property);
 }

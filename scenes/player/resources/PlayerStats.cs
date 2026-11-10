@@ -2,12 +2,12 @@ using Godot;
 using System.Collections.Generic;
 
 [GlobalClass]
-public partial class PlayerStats : ObservableResource
+public partial class PlayerStats : ObservableResource, IStatModifierTarget
 {
 	// Active stat modifiers contributed by buffs and equipped items, keyed by the object
 	// that registered them so each source can be reversed cleanly without float drift.
 	// Hand-local entries are a weapon's attack stats, which count only for attacks made with that weapon.
-	private readonly List<(object Source, StatModifier Modifier, bool HandLocal)> _modifiers = new();
+	private readonly StatModifierLedger _modifiers = new();
 
 	/// <summary>Registers a single modifier under <paramref name="source"/>.</summary>
 	public void AddModifier(object source, StatModifier modifier)
@@ -17,12 +17,17 @@ public partial class PlayerStats : ObservableResource
 			return;
 		}
 
-		_modifiers.Add((source, modifier, false));
+		_modifiers.Register(source, [modifier]);
 		EmitChanged();
 	}
 
 	/// <summary>Registers all non-null modifiers under <paramref name="source"/>.</summary>
-	public void AddModifiers(object source, IEnumerable<StatModifier> modifiers) => Register(source, modifiers, false);
+	public bool AddModifiers(object source, IEnumerable<StatModifier> modifiers)
+	{
+		if (!SupportsModifiers(modifiers)) return false;
+		Register(source, modifiers, false);
+		return true;
+	}
 
 	/// <summary>
 	/// Registers a worn weapon's modifiers. Its attack stats (damage range and crit chance) stay out of the character's
@@ -38,28 +43,25 @@ public partial class PlayerStats : ObservableResource
 			return;
 		}
 
-		bool added = false;
-		foreach (StatModifier modifier in modifiers)
-		{
-			if (modifier != null)
-			{
-				_modifiers.Add((source, modifier, isWeapon && IsAttackStat(modifier.Stat)));
-				added = true;
-			}
-		}
-
-		if (added)
+		if (_modifiers.Register(source, modifiers, isWeapon) > 0)
 		{
 			EmitChanged();
 		}
 	}
 
-	private static bool IsAttackStat(StatType stat) => stat is StatType.MinDamage or StatType.MaxDamage or StatType.CritChance;
+	public bool SupportsModifiers(IEnumerable<StatModifier> modifiers)
+	{
+		if (modifiers == null) return false;
+		foreach (var modifier in modifiers)
+			if (modifier?.IsValid != true) return false;
+		return true;
+	}
+
 
 	/// <summary>Removes every modifier registered under <paramref name="source"/>.</summary>
 	public void RemoveModifiersFrom(object source)
 	{
-		int removed = _modifiers.RemoveAll(entry => ReferenceEquals(entry.Source, source));
+		int removed = _modifiers.Remove(source);
 		if (removed > 0)
 		{
 			EmitChanged();
@@ -73,26 +75,7 @@ public partial class PlayerStats : ObservableResource
 	/// </summary>
 	private float ResolveStat(StatType stat, float baseValue, Weapon weapon = null)
 	{
-		float flat = 0f;
-		float percent = 0f;
-		foreach ((object source, StatModifier modifier, bool handLocal) in _modifiers)
-		{
-			if (modifier.Stat != stat || (handLocal && !ReferenceEquals(source, weapon)))
-			{
-				continue;
-			}
-
-			if (modifier.Op == ModifierOp.Percent)
-			{
-				percent += modifier.Value;
-			}
-			else
-			{
-				flat += modifier.Value;
-			}
-		}
-
-		return (baseValue + flat) * (1f + percent);
+		return _modifiers.Resolve(stat, baseValue, weapon);
 	}
 
 	// Rules that turn primary attributes into secondary stats. Null = no derivation.
@@ -174,9 +157,10 @@ public partial class PlayerStats : ObservableResource
 		}
 		float minFlat = 0f, minPercent = 0f;
 		float maxFlat = 0f, maxPercent = 0f;
-		foreach ((object source, StatModifier modifier, bool _) in _modifiers)
+		foreach (var entry in _modifiers.Entries)
 		{
-			if (!ReferenceEquals(source, weapon)) continue;
+			if (!ReferenceEquals(entry.Source, weapon)) continue;
+			var modifier = entry.Modifier;
 			if (modifier.Stat == StatType.MinDamage)
 			{
 				if (modifier.Op == ModifierOp.Percent) minPercent += modifier.Value;
@@ -223,7 +207,7 @@ public partial class PlayerStats : ObservableResource
 	public AttackStats PreviewAttack(Weapon weapon, IEnumerable<StatModifier> modifiers)
 	{
 		var preview = CreateRuntimeCopy();
-		preview._modifiers.AddRange(_modifiers.FindAll(entry => entry.Source is not Weapon));
+		_modifiers.CopyTo(preview._modifiers, entry => entry.Source is not Weapon);
 		preview.AddWeaponModifiers(weapon, modifiers);
 		return preview.ResolveAttack(weapon);
 	}

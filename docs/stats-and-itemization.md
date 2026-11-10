@@ -4,7 +4,7 @@ Implemented item ownership, inventory and stat rules. Godot Resources supply def
 
 ## Attributes and modifiers
 
-Player stats are copied per actor. Strength, Dexterity, Vitality and Intelligence feed secondary stats through an authored `StatProfile`; class profiles choose their coefficients. Modifiers apply flat contributions before percentage contributions. Equipment registers contributions under the item instance and a buff under each activation, so removing one source reverses its effects without changing another's, even two overlapping drinks from one potion stack.
+Player stats are copied per actor. Strength, Dexterity, Vitality and Intelligence feed secondary stats through an authored `StatProfile`; class profiles choose their coefficients. Modifiers apply flat contributions before percentage contributions. Equipment registers contributions under the item instance and a buff under each activation, so removing one source reverses its effects without changing another's, even two overlapping drinks from one potion stack. Monsters use their local `ActorStatsComponent` for the same modifier ledger without acquiring player progression state.
 
 A weapon's damage-range and critical-chance modifiers apply only to attacks made with that weapon: its own scaled damage and crit, rolled sharpness/ferocity/keenness affixes and a dread curse alike. `PlayerStats.ResolveAttack(weapon)` folds them into the same sums as the character's modifiers, while `MinDamage`/`MaxDamage`/`CritChance` give the unarmed values. Two worn weapons therefore never add their damage together. A weapon's other modifiers, such as attribute affixes, and damage modifiers on other gear or buffs apply to every attack. The character dialog shows the main-hand weapon's attack.
 
@@ -16,6 +16,8 @@ Timed stat buffs expire once; permanent buffs remain until explicitly removed. P
 
 Maximum mana is `BaseMaxMana + Intelligence × ManaPerIntelligence` plus `MaxMana` modifiers (20 and 5 by default, so Intelligence gear deepens the pool). `ManaRegenRate` regenerates that fraction of the maximum per second (4%), so a deeper pool also refills faster. The actor's `ManaComponent` holds current mana and regenerates it in gameplay time, processing only while below the maximum. The component owns current mana: `PlayerStatsController` pushes the maximum and regeneration into it, hands it the starting or saved value at spawn and after a load (once equipment and buffs have set the final maximum), and copies every change back into `PlayerStats.Mana`, which is saved beside health and shown by the HUD's mana bar. Lowering the maximum clamps current mana; raising it never refills. A new run starts full. A wand's or staff's spell spends it (see [weapon attacks](weapon-attack-system.md)); missiles are free.
 
+Monster definitions provide their own fixed maximum and regeneration for innate spells. Each `MonsterSpellAction` chooses whether that activation pays its `SpellDefinition` cost; scroll and potion sources still pay through their own item-use rules, not the player's or monster's mana pool.
+
 ## Buffs and status conditions
 
 A buff can declare the status it imposes in `Buff.Condition`, a `StatusCondition` Resource such as
@@ -25,6 +27,7 @@ embedded buffs but keeps external conditions shared. `BuffController.HasConditio
 any active buff carries the condition, so overlapping sources, such as poisoned food followed by a
 poison potion, read as one continuous condition. `BuffController` fires one `BuffsChanged` per
 application, removal, expiry sweep or `ClearBuffs`, and observers re-read what they need.
+Buffs target an actor-neutral `IBuffTarget`, implemented by players and monsters. Healing, timed poison and stat modifiers therefore keep one runtime path; a stat modifier checks that the target supplies the required stat capability before applying.
 Presentation, such as [screen effects](screen-effects.md), and gameplay react to conditions for
 statuses without a magnitude, and to buff subclasses for effects with one:
 
@@ -35,6 +38,8 @@ statuses without a magnitude, and to buff subclasses for effects with one:
   slowest active one to `Engine.TimeScale` and restores normal speed when the last one ends or the
   scene unloads. Durations count game time.
 - `Buff.CuredConditions` ends conditions when any buff is applied; healing potions cure blindness.
+
+The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after a surviving damaging contact. Venom is the same periodic poison effect used by other sources. Attack payloads reference a timed buff saved as its own file and use `Buff.Stacking = Refresh`, so repeated applications of the same definition, from any source, preserve one activation and its tick progress. Dodged, parried, blocked, absorbed, invulnerable, filtered and lethal contacts do not apply venom. Splash and poison ticks do not carry attack payloads. Active poison duration and tick progress are saved with the player's buffs; a refreshing buff restores as its definition file, so it keeps refreshing under the same identity.
 
 ## Equipment quality, affixes and enchantment
 
@@ -111,7 +116,7 @@ Every jewelry type is eligible from depth 1; its quality carries the progression
 
 ## Portable-light equipment
 
-Six `PortableLightItem` definitions provide held illumination. Each explicitly assigns a `HeldScene` and `WeaponHandGrip`/`ShieldHandGrip` adapters; its ordinary `Scene` remains the unlit pickup/inventory model. The attachment manager instances the held scene only while equipped, so removing, dropping or displacing a light removes its model and flame together. Held scenes carry no light of their own: the player's `PlayerLight` burns at its `Lit` profile on normal floors or while either hand holds a portable light, and dims to its `Dark` profile otherwise, following the level's darkness signal and the inventory's equip events. Flame visuals remain visible while equipped.
+Six `PortableLightItem` definitions provide held illumination. Each explicitly assigns a `HeldScene` and a `ShieldHandGrip` adapter, since lights are held only in the off hand; its ordinary `Scene` remains the unlit pickup/inventory model. The attachment manager instances the held scene only while equipped, so removing, dropping or displacing a light removes its model and flame together. Held scenes carry no light of their own: the player's `PlayerLight` burns at its `Lit` profile on normal floors or while either hand holds a portable light, and dims to its `Dark` profile otherwise, following the level's darkness signal and the inventory's equip events. Flame visuals remain visible while equipped.
 
 The inventory menu offers left (shield) and right (weapon) hands. Automatic equip prefers an empty hand, checking the shield hand first; when both hands are occupied it replaces the shield. A light displaces that hand's occupant, and a shield-hand light also displaces a two-handed weapon. Equipping a two-handed weapon removes either held light. Existing curse checks keep these transfers atomic. Displaced gear stays in the backpack. Current-version saves preserve the item identity and hand assignment; restoring equipment recreates the held light.
 

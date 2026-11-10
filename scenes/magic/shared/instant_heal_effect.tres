@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="HealSpellEffect" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/shared/HealSpellEffect.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+MaxHealthFractionByLevel = PackedFloat32Array(0.25, 0.3, 0.35, 0.4, 0.45)

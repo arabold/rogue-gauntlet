@@ -10,15 +10,18 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
+	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
+		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
 	private readonly List<LingeringAreaField> _fields = [];
 	private readonly Dictionary<BuffController, BurningContact> _burns = [];
 	private ulong _generation;
 
-	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
+	public bool Cast(in SpellCastContext context, RandomNumberGenerator random)
 	{
+		Node3D caster = context.Caster;
+		SpellPower power = context.Power;
 		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null
-			|| !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.RadiusByLevel[level - 1], out var cast)) return false;
+		if (!CanCast(in context) || !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.RadiusByLevel[level - 1], out var cast)) return false;
 		Node node = VisualScene.Instantiate();
 		bool valid = Definition.Kind switch
 		{

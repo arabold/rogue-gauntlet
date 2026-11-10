@@ -17,6 +17,7 @@ public class MonsterChaseTest
 {
 	private const int FrameMilliseconds = 16;
 	private const float MeleeReach = 3.2f;
+	private const int Copies = 2;
 	private static readonly string[] Chasers =
 	[
 		"res://scenes/enemies/rat/rat.tscn",
@@ -34,19 +35,22 @@ public class MonsterChaseTest
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		var rng = new RandomNumberGenerator { Seed = seed * 7919 + depth };
 		var chases = new List<(EnemyBase Monster, Node3D Target, string Label)>();
-		foreach (string scene in Chasers)
-		for (int copy = 0; copy < 4; copy++)
-		for (int attempt = 0; attempt < 10; attempt++)
+		foreach (string path in Chasers)
 		{
-			// Rooms behind locked or secret doors stay sealed; re-roll a spawn there.
-			var monster = Spawn(level, scene, rng);
-			if (monster == null) break;
-			var goal = PickTarget(level, monster, rng);
-			if (goal == null) { monster.Free(); continue; }
-			chases.Add((monster, AddMarker(level, goal.Value), $"{scene.GetFile()} from {Flat(monster.GlobalPosition)} to {Flat(goal.Value)}"));
-			break;
+			var scene = TestFactories.Load<PackedScene>(path);
+			for (int copy = 0; copy < Copies; copy++)
+			for (int attempt = 0; attempt < 10; attempt++)
+			{
+				// Rooms behind locked or secret doors stay sealed; re-roll a spawn there.
+				var monster = Spawn(level, scene, rng);
+				if (monster == null) break;
+				var goal = PickTarget(level, monster, rng);
+				if (goal == null) { monster.Free(); continue; }
+				chases.Add((monster, AddMarker(level, goal.Value), $"{path.GetFile()} from {Flat(monster.GlobalPosition)} to {Flat(goal.Value)}"));
+				break;
+			}
 		}
-		AssertInt(chases.Count).IsEqual(Chasers.Length * 4);
+		AssertInt(chases.Count).IsEqual(Chasers.Length * Copies);
 		await Settle(runner);
 		foreach (var (monster, target, _) in chases)
 		{
@@ -58,7 +62,7 @@ public class MonsterChaseTest
 		var arrived = new HashSet<EnemyBase>();
 		for (int frame = 0; frame < 1600 && arrived.Count < chases.Count; frame++)
 		{
-			await runner.SimulateFrames(1, FrameMilliseconds);
+			await PhysicsTick(runner);
 			foreach (var (monster, target, _) in chases)
 				if (Arrived(monster, target)) arrived.Add(monster);
 		}
@@ -75,7 +79,7 @@ public class MonsterChaseTest
 		using var scope = runner;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		// Either side of a door that is the only way between them once every door shuts.
-		var minion = TestFactories.Load<PackedScene>(Chasers[1]).Instantiate<EnemyBase>();
+		var minion = Instantiate(TestFactories.Load<PackedScene>(Chasers[1]));
 		Vector3? start = null, goal = null;
 		foreach (var door in level.Floor.NavigationGates)
 		{
@@ -115,7 +119,7 @@ public class MonsterChaseTest
 		using var scope = runner;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		var rng = new RandomNumberGenerator { Seed = 9 };
-		var monster = Spawn(level, Chasers[0], rng);
+		var monster = Spawn(level, TestFactories.Load<PackedScene>(Chasers[0]), rng);
 		var navigation = monster.EnemyBehaviorComponent.Navigation;
 		await Settle(runner);
 		monster.EnemyBehaviorComponent.AIEnabled = false;
@@ -123,16 +127,25 @@ public class MonsterChaseTest
 		AssertBool(navigation.TryFindTraversable(monster.GlobalPosition + Vector3.Right * 2, 2, out var near)).IsTrue();
 		var threat = AddMarker(level, near);
 		float before = monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition);
-		for (int frame = 0; frame < 180; frame++)
+		for (int frame = 0; frame < 180 && monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition) <= before + 6; frame++)
 		{
 			navigation.Flee(threat);
-			await runner.SimulateFrames(1, FrameMilliseconds);
+			await PhysicsTick(runner);
 		}
 		AssertFloat(monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition)).IsGreater(before + 6);
 	}
 
+	/// <summary>A monster that starts without its spawn and stand-up actions, so its behavior is in control at once.</summary>
+	private static EnemyBase Instantiate(PackedScene scene)
+	{
+		var monster = scene.Instantiate<EnemyBase>();
+		TestFactories.UsePrivateCombatProfile(monster);
+		monster.Definition.Behavior.InitialAction = EnemyAction.None;
+		return monster;
+	}
+
 	/// <summary>A monster at a random roomy cell; positioned before entering the tree, as spawn points do.</summary>
-	private static EnemyBase Spawn(Level level, string scenePath, RandomNumberGenerator rng)
+	private static EnemyBase Spawn(Level level, PackedScene scene, RandomNumberGenerator rng)
 	{
 		var grid = level.Navigation.Grid;
 		for (int attempt = 0; attempt < 400; attempt++)
@@ -142,7 +155,7 @@ public class MonsterChaseTest
 			var center = grid.CellCenter(cell);
 			var point = new Vector3(center.X, .1f, center.Y);
 			if (level.Navigation.RoomAt(point) < 0) continue;
-			var monster = TestFactories.Load<PackedScene>(scenePath).Instantiate<EnemyBase>();
+			var monster = Instantiate(scene);
 			monster.Position = point;
 			level.AddWorldNode(monster);
 			return monster;
@@ -177,8 +190,17 @@ public class MonsterChaseTest
 		return marker;
 	}
 
-	/// <summary>Past the spawn and stand-up actions, so behavior states are in control.</summary>
-	private static async Task Settle(ISceneRunner runner) => await runner.SimulateFrames(260, FrameMilliseconds);
+	/// <summary>
+	/// One fixed-step physics tick; cheaper than a rendered frame, and monsters move and decide on the physics clock.
+	/// </summary>
+	private static async Task PhysicsTick(ISceneRunner runner)
+	{
+		var tree = runner.Scene().GetTree();
+		await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+	}
+
+	/// <summary>Monsters land on the floor; they start without spawn actions, so behavior states are in control.</summary>
+	private static async Task Settle(ISceneRunner runner) => await runner.SimulateFrames(5, FrameMilliseconds);
 
 	private static bool Arrived(EnemyBase monster, Node3D target) => monster.GlobalPosition.HorizontalDistanceTo(target.GlobalPosition) <= MeleeReach;
 	private static string Flat(Vector3 point) => $"({point.X:0.0}, {point.Z:0.0})";

@@ -76,7 +76,7 @@ public partial class EnemyDefenseController : Node
 	/// <summary>Fallback duration in seconds to hold guard against an attack before lowering.</summary>
 	[Export] public float GuardHoldDuration { get; set; } = 0.55f;
 
-	private EnemyDefenseStrategy Strategy => Enemy?.EnemyBehaviorComponent?.Profile?.DefenseStrategy;
+	private EnemyDefenseStrategy Strategy => Enemy?.EnemyBehaviorComponent?.Profile?.Combat?.DefenseStrategy;
 	private float PressureWindow => Strategy?.GuardPressureWindow ?? GuardHoldDuration;
 
 	private AttackIdentity _lastObservedMeleeExecution;
@@ -153,7 +153,6 @@ public partial class EnemyDefenseController : Node
 			return;
 		}
 
-
 		if (!HasGuardCapability && !HasDodgeCapability) return;
 
 		float dt = (float)delta;
@@ -212,14 +211,17 @@ public partial class EnemyDefenseController : Node
 		Vector3 toTarget = GetPosition(target) - GetPosition(Enemy);
 		toTarget.Y = 0;
 		float distance = toTarget.Length();
-		float reach = Enemy.EnemyBehaviorComponent?.Profile?.AttackStrategy?.EffectiveRange ?? 0;
+		// The same reach the action selector uses: authored range capped by the attack's own contact reach.
+		float reach = 0;
+		foreach (var action in Enemy.EnemyBehaviorComponent?.Profile?.Combat?.Actions ?? [])
+			if (action?.CanRiposte == true) reach = Mathf.Max(reach, action.EffectiveMaximumRange);
 		if (distance > reach) return RecordRiposte(false, "out_of_reach", target, distance, reach);
 
 		// Turn toward the target at the actor's normal turn rate; an attack that cannot start yet is rejected.
 		if (toTarget.LengthSquared() > 0.001f) Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
 
 		Enemy.EnemyBehaviorComponent?.SetTarget(target);
-		bool accepted = Enemy.EnemyBehaviorComponent?.TryAttack() ?? false;
+		bool accepted = Enemy.EnemyBehaviorComponent?.TryRequestAction(MonsterActionFilter.Riposte) == ActorActionRequestResult.Success;
 		RecordRiposte(accepted, accepted ? "accepted" : "attack_rejected", target, distance, reach);
 		if (accepted) EmitSignalRiposteTriggered();
 		return accepted;

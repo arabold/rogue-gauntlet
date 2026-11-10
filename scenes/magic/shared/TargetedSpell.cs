@@ -12,6 +12,8 @@ public partial class TargetedSpell : Node, ICombatSpell
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
+	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
+		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
 	private readonly AreaCastLifecycle _cast = new();
 	private readonly List<PendingHit> _pending = [];
 	private double _clock;
@@ -63,11 +65,12 @@ public partial class TargetedSpell : Node, ICombatSpell
 		if (_pending.Count == 0) SetPhysicsProcess(false);
 	}
 
-	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
+	public bool Cast(in SpellCastContext context, RandomNumberGenerator random)
 	{
+		Node3D caster = context.Caster;
+		SpellPower power = context.Power;
 		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null
-			|| !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.Radius, out var cast)) return false;
+		if (!CanCast(in context) || !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.Radius, out var cast)) return false;
 		Node template = VisualScene.Instantiate();
 		bool valid = Definition.Delivery switch
 		{

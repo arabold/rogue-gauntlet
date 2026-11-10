@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// Moves an enemy body over its level's <see cref="FloorNavigation"/>: chases a target down the shared chase field,
+/// Moves an enemy body over its assigned <see cref="FloorNavigation"/>: chases a target down the shared chase field,
 /// walks point routes to individual destinations, and flees down the shared flee field. Routes keep the body where it
 /// fits and to the middle of passages; nearby agents steer apart; a body that stops making progress side-steps toward
 /// open space before it reports <see cref="IsStuck"/>.
@@ -10,8 +10,8 @@ using Godot;
 /// <remarks>
 /// This component owns "how the body moves", not "where it wants to go": the behavior states call one of
 /// <see cref="Chase"/>, <see cref="MoveTo"/> or <see cref="Flee"/> every physics frame from their own physics step
-/// (before <see cref="MovementComponent"/> moves the body) and decide what a stall means. Outside a generated level
-/// there is no navigation: every query reports unreachable and the body holds still.
+/// (before <see cref="MovementComponent"/> moves the body) and decide what a stall means. Without a generated level or
+/// an explicit navigation override, every route query reports unreachable and the body holds still.
 /// </remarks>
 public partial class NavigationComponent : Node
 {
@@ -34,6 +34,7 @@ public partial class NavigationComponent : Node
 	private CharacterBody3D _actor;
 	private MovementComponent _movement;
 	private Level _level;
+	private FloorNavigation _navigationOverride;
 	private FloorNavigation _navigation;
 	private bool _stayInHomeRoom;
 	private int _homeRoom = -1;
@@ -93,12 +94,22 @@ public partial class NavigationComponent : Node
 		ResetStuckTracking();
 	}
 
-	/// <summary>The level's navigation, registering this agent with it the first time a floor is available.</summary>
+	/// <summary>Uses an explicitly supplied navigation grid when this actor is outside a generated level.</summary>
+	public void SetNavigationOverride(FloorNavigation navigation)
+	{
+		if (_navigationOverride == navigation) return;
+		_navigation?.Unregister(this);
+		_navigation = null;
+		_navigationOverride = navigation;
+		_hasRoute = false;
+	}
+
+	/// <summary>Level or override navigation, registering this agent the first time a grid is available.</summary>
 	private FloorNavigation Navigation
 	{
 		get
 		{
-			var navigation = _actor != null && IsInsideTree() ? _level?.Navigation : null;
+			var navigation = _actor != null && IsInsideTree() ? _navigationOverride ?? _level?.Navigation : null;
 			if (navigation == _navigation) return navigation;
 			_navigation?.Unregister(this);
 			_navigation = navigation;
@@ -116,6 +127,23 @@ public partial class NavigationComponent : Node
 		var navigation = Navigation;
 		if (navigation == null || !GodotObject.IsInstanceValid(target)) return false;
 		return navigation.ChaseField(target, BodyRadius, Position).ReachesNear(navigation.Grid.CellAt(Position));
+	}
+
+	/// <summary>Require a clear, body-sized straight corridor and keep a held actor inside its home room before a dash.</summary>
+	public bool HasClearDash(Vector3 direction, float distance)
+	{
+		var navigation = Navigation;
+		if (navigation == null || !float.IsFinite(distance) || distance <= 0
+			|| !direction.TryNormalizeHorizontal(out direction)) return false;
+		Vector3 start = Position;
+		Vector3 destination = start + direction * distance;
+		if (!navigation.HasClearLine(start, destination, BodyRadius)) return false;
+		int homeRoom = HomeRoom;
+		if (homeRoom < 0) return true;
+		int steps = Mathf.Max(1, Mathf.CeilToInt(distance / (navigation.Grid.CellSize * 0.5f)));
+		for (int step = 1; step <= steps; step++)
+			if (navigation.RoomAt(start.Lerp(destination, (float)step / steps)) != homeRoom) return false;
+		return true;
 	}
 
 	/// <summary>

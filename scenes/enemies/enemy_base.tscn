@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=41 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -31,6 +31,9 @@
 [ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium_monster.tres" id="movement_profile"]
 
 [ext_resource type="Script" path="res://scenes/player/BuffController.cs" id="status_controller"]
+[ext_resource type="Script" path="res://scenes/enemies/ActorStatsComponent.cs" id="actor_stats_script"]
+[ext_resource type="Script" path="res://scenes/components/SpellCaster.cs" id="spell_caster_script"]
+[ext_resource type="Script" uid="uid://d2nktmasmdw41" path="res://scenes/components/ManaComponent.cs" id="mana_component_script"]
 [ext_resource type="Script" path="res://scenes/components/FrozenStatusComponent.cs" id="frozen_driver"]
 [ext_resource type="Resource" path="res://scenes/buffs/conditions/frozen.tres" id="frozen_condition"]
 [ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen_effect"]
@@ -47,7 +50,7 @@
 [ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/flesh.tres" id="impact_surface_profile"]
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatVisualMotionComponent.cs" id="combat_motion_script"]
 
-[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent") groups=["enemy"]]
+[node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "SpellCaster", "ManaComponent", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent", "Stats") groups=["enemy"]]
 Nameplate = NodePath("Nameplate")
 BuffController = NodePath("BuffController")
 FrozenStatus = NodePath("FrozenStatusComponent")
@@ -63,12 +66,15 @@ platform_floor_layers = 4294901761
 platform_wall_layers = 2
 script = ExtResource("1_j62no")
 AttackController = NodePath("AttackController")
+SpellCaster = NodePath("SpellCaster")
+ManaComponent = NodePath("ManaComponent")
 EnemyBehaviorComponent = NodePath("EnemyBehaviorComponent")
 MovementComponent = NodePath("MovementComponent")
 HealthComponent = NodePath("HealthComponent")
 HurtBoxComponent = NodePath("HurtBoxComponent")
 DeathComponent = NodePath("DeathComponent")
 LootTableComponent = NodePath("LootTableComponent")
+Stats = NodePath("ActorStatsComponent")
 
 [node name="Pivot" type="Node3D" parent="."]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
@@ -86,6 +92,12 @@ Indicator = NodePath("../AttackIndicator")
 VisualMotion = NodePath("../CombatVisualMotion")
 DefaultProjectileScene = ExtResource("13_projectile")
 
+[node name="SpellCaster" type="Node" parent="."]
+script = ExtResource("spell_caster_script")
+
+[node name="ManaComponent" type="Node" parent="."]
+script = ExtResource("mana_component_script")
+
 [node name="MovementComponent" parent="." node_paths=PackedStringArray("Actor") instance=ExtResource("4_qc6m8")]
 Actor = NodePath("..")
 
@@ -97,12 +109,13 @@ Actor = NodePath("..")
 HealthComponent = NodePath("../HealthComponent")
 LootTableComponent = NodePath("../LootTableComponent")
 
-[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent") instance=ExtResource("8_b88gg")]
+[node name="HurtBoxComponent" parent="." node_paths=PackedStringArray("HealthComponent", "MovementComponent", "Buffs") instance=ExtResource("8_b88gg")]
 Vulnerability = ExtResource("vulnerability")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00378418, 1.01208, -0.00549316)
 collision_layer = 8
 HealthComponent = NodePath("../HealthComponent")
 MovementComponent = NodePath("../MovementComponent")
+Buffs = NodePath("../BuffController")
 HitEffect = ExtResource("9_d4q6w")
 ImpactSurface = ExtResource("impact_surface_profile")
 
@@ -152,9 +165,16 @@ Target = NodePath("../Pivot")
 SurfaceController = NodePath("../SurfaceAppearanceController")
 Health = NodePath("../HealthComponent")
 
-[node name="BuffController" type="Node" parent="." node_paths=PackedStringArray("Health")]
+[node name="BuffController" type="Node" parent="." node_paths=PackedStringArray("Actor", "Health")]
 script = ExtResource("status_controller")
+Actor = NodePath("..")
 Health = NodePath("../HealthComponent")
+
+[node name="ActorStatsComponent" type="Node" parent="." node_paths=PackedStringArray("Movement", "Health", "HurtBox")]
+script = ExtResource("actor_stats_script")
+Movement = NodePath("../MovementComponent")
+Health = NodePath("../HealthComponent")
+HurtBox = NodePath("../HurtBoxComponent")
 
 [node name="FrozenStatusComponent" type="Node" parent="." node_paths=PackedStringArray("Statuses", "ActionGate", "Animation", "Effects", "Health")]
 script = ExtResource("frozen_driver")

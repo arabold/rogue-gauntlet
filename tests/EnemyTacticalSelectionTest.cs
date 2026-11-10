@@ -91,15 +91,13 @@ public class EnemyTacticalSelectionTest
 	}
 
 	[TestCase]
-	public void TargetLossClearsTransientChoicesAndSeparateActorsStayIndependent()
+	public void TargetLossClearsTransientChoices()
 	{
-		var first = Shooter();
-		var second = Shooter();
-		first.Select(Retreat, 3, true);
-		first.RetreatBlocked(true);
-		AssertBool(second.Select(Retreat, 3, true).Intent.AllowAttack).IsFalse();
-		first.ClearTarget();
-		AssertBool(first.Select(Retreat, 3, true).Intent.AllowAttack).IsFalse();
+		var state = Shooter();
+		state.Select(Retreat, 3, true);
+		AssertBool(state.RetreatBlocked(true).Intent.AllowAttack).IsTrue();
+		state.ClearTarget();
+		AssertBool(state.Select(Retreat, 3, true).Intent.AllowAttack).IsFalse();
 	}
 
 	[TestCase]

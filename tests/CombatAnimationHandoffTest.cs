@@ -48,25 +48,25 @@ public class CombatAnimationHandoffTest
 	}
 
 	private const string Player = "player";
-	private const string Minion = "res://scenes/enemies/skeleton/skeleton_minion.tscn";
-	private const string Warrior = "res://scenes/enemies/skeleton/skeleton_warrior.tscn";
-	private const string Crossbow = "res://scenes/enemies/skeleton/skeleton_crossbow.tscn";
-	private const string Warden = "res://scenes/enemies/forsaken_warden/forsaken_warden.tscn";
-	private const string Rat = "res://scenes/enemies/rat/rat.tscn";
 
 	private static AnimationTree Tree(Node actor) => actor.GetNode<AnimationTree>(actor is global::Player ? "AnimationTree" : "EnemyBehaviorComponent/AnimationTree");
 
-	/// <summary>The harness player, or a harness monster once its spawn clip has settled into idling.</summary>
-	private static async Task<(ISceneRunner Runner, CharacterBody3D Actor)> LoadActor(string actor)
+	/// <summary>The harness player, or a harness monster standing in its idle pose.</summary>
+	private static async Task<CharacterBody3D> IdleActor(ISceneRunner runner, string actor)
 	{
-		var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		await runner.SimulateFrames(20, 20);
-		if (actor == Player) return (runner, harness.Player);
-		AssertBool(harness.ExecuteCommand("spawn", Array.FindIndex(harness.Monsters, monster => monster.ResourcePath == actor), Vector3.Zero)).IsTrue();
-		var playback = (AnimationNodeStateMachinePlayback)Tree(harness.Monster).Get("parameters/playback");
-		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Idle", 6);
-		return (runner, harness.Monster);
+		if (actor == Player)
+		{
+			await runner.SimulateFrames(20, 20);
+			return harness.Player;
+		}
+		var monster = TestFactories.SpawnHarnessMonster(harness, actor);
+		// Skip the spawn clip, a 3.5-second rise from the ground: these tests start from an idling monster.
+		var playback = (AnimationNodeStateMachinePlayback)Tree(monster).Get("parameters/playback");
+		playback.Start("Idle");
+		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Idle", 1);
+		await runner.SimulateFrames(5, 20);
+		return monster;
 	}
 
 	/// <summary>A push that decays over about 1.2 seconds at the actor's own speed.</summary>
@@ -77,85 +77,87 @@ public class CombatAnimationHandoffTest
 		return movement;
 	}
 
-	[TestCase("unarmed")]
-	[TestCase("technique")]
-	[TestCase("spell")]
-	public async Task CombatActionsLeaveTheTreeToLocomotion(string action)
+	/// <summary>An unarmed attack, a weapon technique and a spell each pose through the combat component, and the tree stays in Idle.</summary>
+	[TestCase]
+	public async Task CombatActionsLeaveTheTreeToLocomotion()
 	{
-		var runner = TestFactories.LoadCombatHarness();
+		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
 		var player = harness.Player;
-		if (action == "unarmed") player.Inventory.Unequip(player.Inventory.EquippedItems[EquipmentSlot.WeaponHand]);
-		if (action == "spell") AssertBool(harness.ExecuteCommand("equip", Array.FindIndex(harness.Weapons, weapon => weapon is MagicStaff), Vector3.Zero)).IsTrue();
-		await runner.SimulateFrames(20, 20);
 		var pose = player.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
-
-		using var log = new TreeLog(Tree(player));
-		bool accepted = action == "unarmed" ? player.ActionManager.TryPerformPrimary() : player.ActionManager.TryPerformSecondary();
-		AssertBool(accepted).IsTrue();
-		bool posed = false;
-		string treeActionId = null;
-		await TestFactories.AwaitPhysicsUntil(runner, () =>
+		await runner.SimulateFrames(10, 20);
+		async Task Perform(string action, Func<bool> request)
 		{
-			posed |= pose.IsPlaying;
-			treeActionId ??= player.CurrentActionId;
-			return !player.IsPerformingAction;
-		}, 3);
-		await runner.SimulateFrames(25, 20);
+			await runner.SimulateFrames(10, 20); // Let the tree settle into Idle before logging.
+			using var log = new TreeLog(Tree(player));
+			AssertBool(request()).OverrideFailureMessage($"{action} was not accepted.").IsTrue();
+			bool posed = false;
+			string treeActionId = null;
+			await TestFactories.AwaitPhysicsUntil(runner, () =>
+			{
+				posed |= pose.IsPlaying;
+				treeActionId ??= player.CurrentActionId;
+				return !player.IsPerformingAction;
+			}, 3);
+			await runner.SimulateFrames(10, 20);
 
-		AssertBool(posed).OverrideFailureMessage("The action never posed through the combat component.").IsTrue();
-		AssertString(treeActionId).IsNull();
-		AssertArray(log.States).ContainsExactly("Idle");
+			AssertBool(posed).OverrideFailureMessage($"The {action} never posed through the combat component.").IsTrue();
+			AssertString(treeActionId).OverrideFailureMessage(action).IsNull();
+			AssertArray(log.States).OverrideFailureMessage(action).ContainsExactly("Idle");
+		}
+
+		player.Inventory.Unequip(player.Inventory.EquippedItems[EquipmentSlot.WeaponHand]);
+		await Perform("unarmed attack", player.ActionManager.TryPerformPrimary);
+		AssertBool(harness.ExecuteCommand("equip", 0, Vector3.Zero)).IsTrue();
+		await Perform("technique", player.ActionManager.TryPerformSecondary);
+		AssertBool(harness.ExecuteCommand("equip", Array.FindIndex(harness.Weapons, weapon => weapon is MagicStaff), Vector3.Zero)).IsTrue();
+		await Perform("spell", player.ActionManager.TryPerformSecondary);
 	}
 
-	/// <summary>A poise break staggers, then pushes, as a hurtbox reacts; the knockback outlasts the stagger.</summary>
+	/// <summary>
+	/// A knockback plays one hit reaction however long it lasts. A poise break staggers, then pushes, as a hurtbox reacts:
+	/// the stagger pose owns the knockback it overlaps, so the tree never shows the reaction under it.
+	/// </summary>
 	[TestCase(Player)]
-	[TestCase(Minion)]
-	[TestCase(Warrior)]
-	[TestCase(Crossbow)]
-	[TestCase(Warden)]
-	public async Task StaggerPoseOwnsTheKnockbackItOverlaps(string actor)
+	[TestCase(TestFactories.MinionScene)]
+	[TestCase(TestFactories.WardenScene)]
+	public async Task KnockbackPlaysOneHitReactionAndAStaggerPoseOwnsTheKnockbackItOverlaps(string actor)
 	{
-		var (runner, body) = await LoadActor(actor);
-		var gate = body.GetNode<ActorActionGateComponent>("ActorActionGateComponent");
-
-		using var log = new TreeLog(Tree(body));
-		AssertBool(gate.TryStagger(0.3f)).IsTrue();
-		AssertBool(body.GetNode<CombatAnimationComponent>("CombatAnimationComponent").IsPlaying).OverrideFailureMessage("The stagger must pose.").IsTrue();
-		var movement = PushLong(body);
-		await TestFactories.AwaitPhysicsUntil(runner, () => !gate.IsStaggered, 2);
-		AssertBool(movement.IsPushed).OverrideFailureMessage("The knockback must outlast the stagger.").IsTrue();
-		await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
-		await runner.SimulateFrames(25, 20);
-
-		AssertArray(log.States).ContainsExactly("Idle");
-	}
-
-	[TestCase(Player)]
-	[TestCase(Minion)]
-	[TestCase(Warden)]
-	public async Task OneKnockbackPlaysOneHitReactionHoweverLongItLasts(string actor)
-	{
-		var (runner, body) = await LoadActor(actor);
+		using var runner = TestFactories.LoadCombatHarness();
+		var body = await IdleActor(runner, actor);
 		var tree = Tree(body);
 		var clip = tree.GetNode<AnimationPlayer>(tree.AnimPlayer).GetAnimation("Hit_A");
+		using (var log = new TreeLog(tree))
+		{
+			var movement = PushLong(body);
+			ulong start = Engine.GetPhysicsFrames();
+			await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
+			AssertFloat((Engine.GetPhysicsFrames() - start) / (float)Engine.PhysicsTicksPerSecond).OverrideFailureMessage("The knockback must outlast the clip.").IsGreater((float)clip.Length);
+			await runner.SimulateFrames(10, 20);
+			AssertInt(log.Starts("Hit")).IsEqual(1);
+			AssertString(log.Current).IsEqual("Idle");
+		}
 
-		using var log = new TreeLog(tree);
-		var movement = PushLong(body);
-		ulong start = Engine.GetPhysicsFrames();
-		await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
-		AssertFloat((Engine.GetPhysicsFrames() - start) / (float)Engine.PhysicsTicksPerSecond).OverrideFailureMessage("The knockback must outlast the clip.").IsGreater((float)clip.Length);
-		await runner.SimulateFrames(25, 20);
-
-		AssertInt(log.Starts("Hit")).IsEqual(1);
-		AssertString(log.Current).IsEqual("Idle");
+		var gate = body.GetNode<ActorActionGateComponent>("ActorActionGateComponent");
+		using (var log = new TreeLog(tree))
+		{
+			AssertBool(gate.TryStagger(0.3f)).IsTrue();
+			AssertBool(body.GetNode<CombatAnimationComponent>("CombatAnimationComponent").IsPlaying).OverrideFailureMessage("The stagger must pose.").IsTrue();
+			var movement = PushLong(body);
+			await TestFactories.AwaitPhysicsUntil(runner, () => !gate.IsStaggered, 2);
+			AssertBool(movement.IsPushed).OverrideFailureMessage("The knockback must outlast the stagger.").IsTrue();
+			await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
+			await runner.SimulateFrames(10, 20);
+			AssertArray(log.States).ContainsExactly("Idle");
+		}
 	}
 
 	/// <summary>The rat holds its looping idle clip as its hit reaction, so it must leave the reaction when the push ends.</summary>
 	[TestCase]
 	public async Task RatRunsAgainOnceAKnockbackEnds()
 	{
-		var (runner, rat) = await LoadActor(Rat);
+		using var runner = TestFactories.LoadCombatHarness();
+		var rat = await IdleActor(runner, TestFactories.RatScene);
 		using var log = new TreeLog(Tree(rat));
 		var movement = PushLong(rat);
 		await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
@@ -169,9 +171,9 @@ public class CombatAnimationHandoffTest
 	[TestCase]
 	public async Task SleepingSkeletonLiesUntilWokenThenStandsUp()
 	{
-		var runner = TestFactories.LoadCombatHarness();
+		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		var skeleton = TestFactories.Load<PackedScene>(Minion).Instantiate<EnemyBase>();
+		var skeleton = TestFactories.Load<PackedScene>(TestFactories.MinionScene).Instantiate<EnemyBase>();
 		var definition = (MonsterDefinition)skeleton.Definition.Duplicate();
 		definition.Behavior = (EnemyBehaviorProfile)definition.Behavior.Duplicate();
 		definition.Behavior.InitialBehavior = EnemyBehaviorState.Sleeping;

@@ -27,4 +27,4 @@ AreaDustShader = ExtResource("dust")
 [node name="Timeline" type="Node" parent="."]
 script = ExtResource("timeline")
 WaveFront = SubResource("wave_front")
-Duration = 1.7
+Duration = 1.1

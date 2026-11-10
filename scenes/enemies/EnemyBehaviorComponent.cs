@@ -16,7 +16,8 @@ public enum EnemyBehaviorState
 }
 
 /// <summary>
-/// Timed enemy actions that temporarily interrupt normal behavior decisions.
+/// Timed enemy activities that temporarily interrupt normal behavior decisions. <see cref="Acting"/> covers every
+/// authored <see cref="MonsterAction"/>; the running action itself says what it is.
 /// </summary>
 public enum EnemyAction
 {
@@ -24,28 +25,28 @@ public enum EnemyAction
 	Spawning,
 	StandingUp,
 	Hit,
-	MeeleAttack,
-	RangedAttack,
+	Acting,
 	Dying,
 }
 
 /// <summary>
 /// Thin host that wires up an enemy's AI: it owns the perception and navigation components, the
-/// behavior <see cref="EnemyStateMachine"/>, and the timed-action layer (spawn, hit, attack, death)
-/// that gates the machine. Per-state behavior lives in the <see cref="IEnemyState"/> classes and
-/// shared data in <see cref="EnemyContext"/>; this component only ties them together, surfaces the
-/// animation <c>Is*</c> flags, and runs the action gate in <see cref="_PhysicsProcess"/>.
+/// behavior <see cref="EnemyStateMachine"/>, and the timed-action layer (spawn, hit, acting, death)
+/// that gates the machine. Per-state behavior lives in the <see cref="IEnemyState"/> classes, shared
+/// data in <see cref="EnemyContext"/> and action choice in <see cref="MonsterActionRuntime"/>; this
+/// component ties them together, holds the one running <see cref="MonsterActionRun"/>, and surfaces
+/// the animation <c>Is*</c> flags.
 /// </summary>
 /// <remarks>
-/// Monster-specific tuning lives in <see cref="EnemyBehaviorProfile"/> resources so new enemy
-/// scenes can vary behavior without duplicating this controller.
+/// Monster-specific tuning lives in <see cref="EnemyBehaviorProfile"/> resources and its actions, so new
+/// monsters and new kinds of action never change this controller.
 /// </remarks>
 public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 {
 	/// <summary>
 	/// Character body moved and rotated by this behavior controller.
 	/// </summary>
-	[Export] public CharacterBody3D Actor { get; set; }
+	[Export] public EnemyBase Actor { get; set; }
 
 	/// <summary>
 	/// Movement component used to apply navigation directions.
@@ -85,7 +86,10 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	public bool IsMoving => CurrentAction == EnemyAction.None && MovementComponent.IsMoving;
 	public bool IsFalling => MovementComponent.IsFalling;
 	public bool IsDead => CurrentAction == EnemyAction.Dying || CurrentBehavior == EnemyBehaviorState.Dead;
-	public bool IsAttacking => CurrentAction == EnemyAction.MeeleAttack || CurrentAction == EnemyAction.RangedAttack;
+	/// <summary>The started action, or null; tools read it to show what the monster is doing.</summary>
+	public MonsterActionRun RunningAction => _running;
+	/// <summary>Cooldowns and selection state for tools; null until ready.</summary>
+	public MonsterActionRuntime Actions => _context?.Actions;
 	/// <summary>Drives the tree's Hit state: a knockback outside a stagger, since a stagger poses its own reaction.</summary>
 	public bool IsKnockedBack => MovementComponent.IsKnockedBack;
 
@@ -104,18 +108,29 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	private AttackController _attackController;
 	private EnemyContext _context;
 	private EnemyStateMachine _machine;
+	private MonsterActionRun _running;
 	private Cooldown _actionCooldown;
-	// Slots of the target currently engaged, and of the target whose slot the running attack holds.
+	private Cooldown _supportCheck;
+	// How often a monster without a target looks for a self or ally support action.
+	private const float IdleSupportInterval = 0.25f;
+	// Slots of the target currently engaged; the running action holds its own.
 	private AttackSlotsComponent _engagedSlots;
-	private AttackSlotsComponent _heldSlots;
+
+	/// <summary>Seed action choices independently from attack and defense execution.</summary>
+	public void ConfigureActionRandom(ulong seed) => _context?.Actions.ConfigureRandom(seed);
 
 	public override void _Ready()
 	{
-		if (Actor is EnemyBase { DefinitionValid: false }) return;
+		if (!Actor.DefinitionValid) return;
 		ProcessPhysicsPriority = CombatPhysics.Steering;
 		base._Ready();
 
 		_profile = Profile ?? new EnemyBehaviorProfile();
+		if (_profile.Combat == null)
+		{
+			GD.PushError($"{Name}: the behavior profile has no combat profile.");
+			return;
+		}
 		CurrentAction = _profile.InitialAction;
 
 		// SightRay stays authored as a direct child of this component so inherited enemy scenes are not
@@ -123,18 +138,14 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_perception = GetNode<PerceptionComponent>("Perception");
 		_perception.Initialize(Actor, _profile, GetNode<RayCast3D>("SightRay"));
 		_navigation = GetNode<NavigationComponent>("Navigation");
-		_navigation.Initialize(Actor, MovementComponent, (Actor as EnemyBase)?.BodyRadius ?? EnemyBase.DefaultBodyRadius, _profile.StayInHomeRoom);
+		_navigation.Initialize(Actor, MovementComponent, Actor.BodyRadius, _profile.StayInHomeRoom);
 
-		_attackController = Actor is EnemyBase enemy ? enemy.AttackController : Actor.GetNodeOrNull<AttackController>("AttackController");
-		if (_attackController == null)
-		{
-			GD.PushError($"{Actor.Name} has no AttackController child; melee attacks will not deal damage.");
-		}
+		_attackController = Actor.AttackController;
 
 		// The context is the shared blackboard the behavior states read and mutate; the state machine
 		// owns the behavior layer. The timed-action layer (spawn, hit, attack, death) stays on this
 		// host as a gate above the machine - see _PhysicsProcess.
-		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, RequestAttack);
+		_context = new EnemyContext(Actor, MovementComponent, _perception, _navigation, _profile, filter => TryRequestAction(filter));
 		if (_attackController != null) _attackController.AttackFinished += OnAttackFinished;
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
 		{
@@ -166,44 +177,39 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		if (_context == null) return;
 		_context.TickThrottles(delta);
 		SyncEngagedSlots();
-		var gate = (Actor as EnemyBase)?.ActionGate;
-		if (gate?.Disabled == true || (gate?.IsBusy == true && !IsAttacking))
+		var gate = Actor.ActionGate;
+		if (gate?.Disabled == true || (gate?.IsBusy == true && _running == null))
 		{
 			MovementComponent.Stop();
 			_navigation.ResetStuckTracking();
 			return;
 		}
 
-		// Action layer: timed actions (spawn, stand up, hit, attack, death) interrupt the behavior
-		// layer. While one is active the body holds still and the state machine does not tick; when it
-		// expires control returns to the machine.
+		// Action layer: timed activities (spawn, stand up, hit, a running action, death) interrupt the
+		// behavior layer. While one is active the body holds still and the state machine does not tick;
+		// when it ends control returns to the machine.
 		if (CurrentAction != EnemyAction.None)
 		{
 			MovementComponent.Stop();
 			_navigation.ResetStuckTracking();
-
-			// Track the target through the wind-up (movement rotation is off while stopped), no faster than
-			// the attack's authored turn rate, then hold the committed facing. An early facing lock plus a
-			// capped turn lets a target sidestep a committed swing.
-			if (IsAttacking && Target != null && GodotObject.IsInstanceValid(Target))
+			if (_running != null)
 			{
-				if (_attackController.HasCommittedFacing) MovementComponent.FaceDirection(_attackController.CommittedFacing);
-				else MovementComponent.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition,
-					_attackController.CurrentAttack?.WindUpTurnRate ?? 0);
+				_running.Tick(_context, delta);
+				if (_running.IsFinished) SetAction(EnemyAction.None);
 			}
-
-			if (IsAttacking ? !_attackController.IsAttacking : _actionCooldown.Tick(delta))
-			{
-				SetAction(EnemyAction.None);
-			}
+			else if (_actionCooldown.Tick(delta)) SetAction(EnemyAction.None);
 		}
 		else if (AIEnabled)
 		{
+			// Self and ally support stays available without a hostile target or a chase state, checked on a short cadence.
+			if (Target == null && _supportCheck.Tick(delta))
+			{
+				_supportCheck.Start(IdleSupportInterval);
+				if (TryRequestAction(MonsterActionFilter.SupportOnly) == ActorActionRequestResult.Success) return;
+			}
 			_machine.Tick(delta);
 		}
 	}
-
-	private void RequestAttack() => TryAttack();
 
 	/// <summary>Sneak-attack window: no target yet, and not searching, chasing or fleeing.</summary>
 	public bool IsUnaware => _context != null && !IsDead && Target == null
@@ -219,8 +225,6 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 
 	private void OnAttackFinished(AttackIdentity identity, bool interrupted)
 	{
-		if (GodotObject.IsInstanceValid(_heldSlots)) _heldSlots.Release(Actor);
-		_heldSlots = null;
 		_context?.Tactics.AttackFinished(identity, interrupted);
 		_context?.TacticalSelector?.AttackFinished(identity);
 	}
@@ -243,31 +247,39 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	private void ForgetSlots()
 	{
 		if (GodotObject.IsInstanceValid(_engagedSlots)) _engagedSlots.Forget(Actor);
-		if (GodotObject.IsInstanceValid(_heldSlots)) _heldSlots.Forget(Actor);
-		_engagedSlots = _heldSlots = null;
+		_running?.ForgetSlots(Actor);
+		_engagedSlots = null;
 	}
 
-	/// <summary>Execute the one authored monster attack after range, sight and action validation.</summary>
-	public bool TryAttack()
+	/// <summary>
+	/// Select one ready action through the actor's <see cref="MonsterActionRuntime"/> and start it. A rejected start
+	/// changes no cooldown or history; it only delays the next attempt briefly.
+	/// </summary>
+	public ActorActionRequestResult TryRequestAction(MonsterActionFilter filter = MonsterActionFilter.All)
 	{
-		var policy = Profile?.AttackStrategy;
-		if (_context == null || policy == null || CurrentAction != EnemyAction.None || IsDead
-			|| MovementComponent.IsPushed || !policy.CanAttack(_context)) return false;
-		// Take a turn through the target's attack slots; a start that fails afterwards hands the slot straight back.
-		var slots = _context.PolicySlots;
-		if (slots != null && !slots.TryReserve(Actor, policy.SlotKind)) return false;
-		if (!_attackController.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var attack)
-			|| !_attackController.StartAttack(attack, new AttackStats(policy.MinDamage, policy.MaxDamage, policy.CritChance), 4))
+		if (_context?.CombatProfile == null || CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed)
+			return ActorActionRequestResult.Busy;
+		if (_context.Actions.Select(filter) is not { } choice) return ActorActionRequestResult.Unavailable;
+		var (action, target) = choice;
+		var result = action.TryStart(_context, target, out var run);
+		if (CombatTrace.Enabled)
+			CombatTrace.Write(Actor, "ai.action_attempt", ("action", action.Label), ("type", action.GetType().Name),
+				("target", target?.Name.ToString() ?? ""), ("result", result.ToString()));
+		if (result == ActorActionRequestResult.Success && run == null)
+			throw new System.InvalidOperationException($"{action.GetType().Name}.TryStart reported success without a run.");
+		if (result != ActorActionRequestResult.Success)
 		{
-			slots?.Release(Actor, yield: false);
-			return false;
+			_context.Actions.Rejected(action, result);
+			return result;
 		}
-		_heldSlots = slots;
-		_context.TacticalSelector?.AttackAccepted(_attackController.CurrentExecutionId);
-		if (Profile.MovementStrategy is AttackThenRetreatStrategy) _context.Tactics.TrackAttack(_attackController.CurrentExecutionId);
-		SetAction(policy.Attack.IsRanged ? EnemyAction.RangedAttack : EnemyAction.MeeleAttack);
-		return true;
+		_context.Actions.Accepted(action, target);
+		SetAction(EnemyAction.Acting);
+		_running = run;
+		return ActorActionRequestResult.Success;
 	}
+
+	/// <summary>Request one of the monster's weapon attacks now, through the same selection and executors as the AI.</summary>
+	public bool TryAttack() => TryRequestAction(MonsterActionFilter.Attacks) == ActorActionRequestResult.Success;
 
 	/// <summary>
 	/// Forces a behavior transition through the state machine. Kept as the public entry point used
@@ -286,22 +298,24 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 
 	public void SetAction(EnemyAction newAction)
 	{
-		if (CurrentAction != newAction)
-		{
-			GameDebug.Ai($"{Actor.Name} is performing {newAction}");
-			CurrentAction = newAction;
-			_actionCooldown.Start(_profile.GetActionDuration(newAction));
-			if (newAction != EnemyAction.None)
-			{
-				MovementComponent.Stop();
-			}
+		if (CurrentAction == newAction) return;
+		GameDebug.Ai($"{Actor.Name} is performing {newAction}");
+		CurrentAction = newAction;
+		_actionCooldown.Start(_profile.GetActionDuration(newAction));
+		if (newAction != EnemyAction.None) MovementComponent.Stop();
+		if (newAction == EnemyAction.Acting) return;
+		// Leaving an action (finished, hit or dying) ends it and returns its slot; an attack started outside the AI ends too.
+		EndRunningAction();
+		if (newAction is EnemyAction.None or EnemyAction.Hit or EnemyAction.Dying) _attackController?.CancelAttack();
+	}
 
-			// Cancel attack hitbox if transitioning out of attack, getting hit, or dying
-			if (newAction == EnemyAction.None || newAction == EnemyAction.Hit || newAction == EnemyAction.Dying)
-			{
-				_attackController?.CancelAttack();
-			}
-		}
+	private void EndRunningAction()
+	{
+		var run = _running;
+		if (run == null) return;
+		_running = null;
+		run.Cancel();
+		run.ReleaseSlots(Actor);
 	}
 
 	public void OnDie()

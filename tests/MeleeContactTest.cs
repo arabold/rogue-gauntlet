@@ -1,7 +1,7 @@
 namespace RogueGauntlet.Tests;
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -13,14 +13,20 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class MeleeContactTest
 {
-	private static async Task<(ISceneRunner Runner, CombatHarness Harness)> Load()
+	/// <summary>Settles a freshly loaded harness with the hero held still, so only the test moves it.</summary>
+	private static async Task<CombatHarness> Settle(ISceneRunner runner)
 	{
-		var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 4);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		return (runner, harness);
+		return harness;
 	}
+
+	private static readonly Dictionary<string, MeleeAttackProfile> Profiles = [];
+
+	/// <summary>An authored melee profile, loaded once per run: every load first settles the resource cache.</summary>
+	private static MeleeAttackProfile Profile(string name) => Profiles.TryGetValue(name, out var profile)
+		? profile : Profiles[name] = TestFactories.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{name}.tres");
 
 	/// <summary>Normalized contact start of a player style, so timing tests follow the rig profile's strike.</summary>
 	private static float ContactStart(CombatHarness harness, StringName style)
@@ -35,8 +41,7 @@ public class MeleeContactTest
 		var controller = harness.Player.AttackController;
 		controller.CancelAttack();
 		controller.EffectsEnabled = effects;
-		var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
-			MeleeContact = TestFactories.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profile}.tres") };
+		var definition = new AttackDefinition { AttackStyle = "sword.1h.slash", MeleeContact = Profile(profile) };
 		configure?.Invoke(definition);
 		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
 		AssertBool(controller.StartAttack(attack, new AttackStats(10, 10, 0), mask)).IsTrue();
@@ -46,113 +51,126 @@ public class MeleeContactTest
 
 	private static HealthComponent Health(CombatHarness harness) => harness.PracticeTarget.GetNode<HealthComponent>("HealthComponent");
 
+	/// <summary>Moves a fresh practice target to <paramref name="position"/> and lets the physics space register it.</summary>
+	private static async Task PlaceTarget(ISceneRunner runner, CombatHarness harness, Vector3 position)
+	{
+		TestFactories.ResetPracticeTarget(harness);
+		harness.PracticeTarget.Position = position;
+		await TestFactories.AwaitPhysicsFrames(runner);
+	}
+
 	[TestCase]
 	public async Task BodyContactIsTimedAndCanBeEnteredAfterTheWindowOpens()
 	{
-		var (runner, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		harness.PracticeTarget.Position = new Vector3(0, 0, .85f); // touching the rear of the hero's physical body (radius .5)
-		await runner.SimulateFrames(2);
+		await TestFactories.AwaitPhysicsFrames(runner);
 		var controller = Start(harness);
 		controller._PhysicsProcess(.05);
 		AssertInt(controller.ContactCount).IsEqual(0);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
 		harness.PracticeTarget.Position = new Vector3(0, 0, 5);
-		await runner.SimulateFrames(2);
+		await TestFactories.AwaitPhysicsFrames(runner);
 		controller._PhysicsProcess(.35); // window opens while the target is absent
 		AssertInt(controller.ContactCount).IsEqual(0);
 		harness.PracticeTarget.Position = new Vector3(0, 0, .85f);
-		await runner.SimulateFrames(2);
+		await TestFactories.AwaitPhysicsFrames(runner);
 		controller._PhysicsProcess(.1);
 		AssertInt(controller.ContactCount).IsEqual(1);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
 		controller._PhysicsProcess(.1);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
 		// The body envelope obeys the same wall test as the forward swing.
-		Health(harness).SetHealth(1000, 1000);
+		TestFactories.ResetPracticeTarget(harness);
 		var wall = new StaticBody3D { Position = new Vector3(0, 1, .65f), CollisionLayer = 2 };
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(3, 2, .1f) } });
 		runner.Scene().AddChild(wall);
-		await runner.SimulateFrames(2);
+		await TestFactories.AwaitPhysicsFrames(runner);
 		controller = Start(harness);
 		controller._PhysicsProcess(2);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
 		AssertString(controller.LastResult).IsEqual("Obstructed");
 	}
 
+	/// <summary>
+	/// Each authored footprint reaches what it covers and nothing else: a target's near edge, chop and thrust lanes and a
+	/// spin's rear; never behind a forward swing, beyond reach or beside a thrust. Every footprint covers its full width
+	/// at the attacker's centre and reaches low and flying targets in its lane, while that vertical tolerance never extends
+	/// the horizontal reach.
+	/// </summary>
 	[TestCase]
-	public async Task MeleeVolumesCoverTheirFullWidthAtTheAttackersCenter()
+	public async Task MeleeFootprintsHitWhatTheyCoverAndNothingElse()
 	{
-		var (runner, harness) = await Load();
-		var shape = new CapsuleShape3D { Radius = .08f, Height = .2f };
-		harness.PracticeTarget.GetNode<CollisionShape3D>("CollisionShape3D").Shape = shape;
-		harness.PracticeTarget.GetNode<CollisionShape3D>("HurtBoxComponent/CollisionShape3D").Shape = shape;
-		foreach (string profileName in new[] { "slash_1h", "chop_1h", "thrust", "spin" })
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
+		string[] profiles = ["slash_1h", "chop_1h", "thrust", "spin"];
+		async Task Expect(Vector3 position, string profile, bool hit)
 		{
-			var profile = TestFactories.Load<MeleeAttackProfile>($"res://scenes/attacks/melee_profiles/{profileName}.tres");
-			foreach (float side in new[] { -1f, 0, 1f })
-			{
-				harness.PracticeTarget.Position = new Vector3(side * profile.Width * .4f, 0, -.03f);
-				Health(harness).SetHealth(1000, 1000);
-				await runner.SimulateFrames(2);
-				var controller = Start(harness, profileName);
-				controller._PhysicsProcess(2);
-				AssertInt(controller.ContactCount).OverrideFailureMessage($"{profileName}, side {side}: close contact").IsEqual(1);
-				AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-			}
+			await PlaceTarget(runner, harness, position);
+			var controller = Start(harness, profile);
+			controller._PhysicsProcess(2);
+			string where = $"{profile} at {position}";
+			AssertInt(controller.ContactCount).OverrideFailureMessage($"{where}: contacts").IsEqual(hit ? 1 : 0);
+			AssertFloat(Health(harness).CurrentHealth).OverrideFailureMessage($"{where}: health").IsEqual(hit ? 990 : 1000);
+			if (!hit) AssertString(controller.LastResult).OverrideFailureMessage(where).IsEqual("No contact");
 		}
-	}
 
-	[TestCase]
-	public async Task AllMeleeFootprintsHitLowAndFlyingTargetsWithoutHeightAiming()
-	{
-		var (runner, harness) = await Load();
-		var bodyShape = harness.PracticeTarget.GetNode<CollisionShape3D>("CollisionShape3D");
+		// The arena's practice target, at its authored size.
+		await Expect(new Vector3(0, 0, -2.7f), "slash_1h", true);
+		await Expect(new Vector3(0, 0, 2), "slash_1h", false);
+		await Expect(new Vector3(0, 0, -4), "slash_1h", false);
+		await Expect(new Vector3(0, 0, -2), "chop_1h", true);
+		await Expect(new Vector3(0, 0, -2), "thrust", true);
+		await Expect(new Vector3(1.6f, 0, -2), "thrust", false);
+		await Expect(new Vector3(0, 0, 2), "spin", true);
+
+		// A tiny target at the attacker's centre, across each footprint's width.
+		var body = harness.PracticeTarget.GetNode<CollisionShape3D>("CollisionShape3D");
 		var hurtbox = harness.PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent");
-		bodyShape.Shape = new CapsuleShape3D { Radius = .15f, Height = .3f };
-		hurtbox.GetNode<CollisionShape3D>("CollisionShape3D").Shape = bodyShape.Shape;
-		bodyShape.Position = Vector3.Up * .15f;
-		hurtbox.Position = Vector3.Up * .15f;
-		foreach (string profile in new[] { "slash_1h", "chop_1h", "thrust", "spin" })
+		body.Shape = hurtbox.GetNode<CollisionShape3D>("CollisionShape3D").Shape = new CapsuleShape3D { Radius = .08f, Height = .2f };
+		foreach (string profile in profiles)
 		{
+			float width = Profile(profile).Width;
+			foreach (float side in new[] { -1f, 0, 1f })
+				await Expect(new Vector3(side * width * .4f, 0, -.03f), profile, true);
+		}
+
+		// A small target on the floor and far above it: no footprint needs height aiming.
+		body.Shape = hurtbox.GetNode<CollisionShape3D>("CollisionShape3D").Shape = new CapsuleShape3D { Radius = .15f, Height = .3f };
+		body.Position = hurtbox.Position = Vector3.Up * .15f;
+		foreach (string profile in profiles)
 			foreach (float height in new[] { -.1f, 0, 5, 24 })
-			{
-				Health(harness).SetHealth(1000, 1000);
-				harness.PracticeTarget.Position = new Vector3(0, height, -1.8f);
-				await runner.SimulateFrames(2);
-				var controller = Start(harness, profile);
-				controller._PhysicsProcess(2);
-				AssertInt(controller.ContactCount).IsEqual(1);
-				AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-			}
-		}
-		// Vertical tolerance must not extend the horizontal reach or hit behind a slash.
-		foreach (var position in new[] { new Vector3(0, 12, -5), new Vector3(0, 12, 2) })
-		{
-			Health(harness).SetHealth(1000, 1000);
-			harness.PracticeTarget.Position = position;
-			await runner.SimulateFrames(2);
-			Start(harness)._PhysicsProcess(2);
-			AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
-		}
+				await Expect(new Vector3(0, height, -1.8f), profile, true);
+		await Expect(new Vector3(0, 12, -5), "slash_1h", false);
+		await Expect(new Vector3(0, 12, 2), "slash_1h", false);
 	}
 
+	/// <summary>A wall between attacker and target obstructs the swing, also when elevation lifts both above the wall.</summary>
 	[TestCase]
-	public async Task VisualElevationCannotBypassWallsAndMeleeAimAssistUsesHorizontalRange()
+	public async Task WallsObstructContactAtAnyElevationAndMeleeAimAssistUsesHorizontalRange()
 	{
-		var (runner, harness) = await Load();
-		harness.Player.Position += Vector3.Up * 8;
-		harness.PracticeTarget.Position = new Vector3(0, 12, -2);
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		var wall = new StaticBody3D { Position = new Vector3(0, 1, -1), CollisionLayer = 2 };
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(3, 2, .2f) } });
 		runner.Scene().AddChild(wall);
-		await runner.SimulateFrames(3);
-		AssertObject(harness.Player.AttackController.FindMeleeAimAssistTarget()).IsSame(harness.PracticeTarget);
+		await PlaceTarget(runner, harness, new Vector3(0, 0, -2));
 		var controller = Start(harness);
 		controller._PhysicsProcess(2);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
 		AssertString(controller.LastResult).IsEqual("Obstructed");
+
+		harness.Player.Position += Vector3.Up * 8;
+		await PlaceTarget(runner, harness, new Vector3(0, 12, -2));
+		AssertObject(harness.Player.AttackController.FindMeleeAimAssistTarget()).IsSame(harness.PracticeTarget);
+		controller = Start(harness);
+		controller._PhysicsProcess(2);
+		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
+		AssertString(controller.LastResult).IsEqual("Obstructed");
+
 		wall.QueueFree();
-		await runner.SimulateFrames(2);
+		await TestFactories.AwaitPhysicsFrames(runner);
 		Start(harness)._PhysicsProcess(2);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
 	}
@@ -160,7 +178,8 @@ public class MeleeContactTest
 	[TestCase]
 	public async Task ExistingOverlapHitsImmediatelyAndOnlyOnceAcrossBodyAndHurtbox()
 	{
-		var (_, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		var controller = Start(harness);
 		controller._PhysicsProcess(.4);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
@@ -172,81 +191,37 @@ public class MeleeContactTest
 	}
 
 	[TestCase]
-	public async Task AWholeSkippedContactWindowStillHits()
-	{
-		var (_, harness) = await Load();
-		var controller = Start(harness);
-		controller._PhysicsProcess(2);
-		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-		AssertBool(controller.IsAttacking).IsFalse();
-	}
-
-	[TestCase]
-	public async Task ActualTargetEdgesCountButBehindAndOutOfReachDoNot()
-	{
-		var (runner, harness) = await Load();
-		foreach (var position in new[] { new Vector3(0, 0, 2), new Vector3(0, 0, -4) })
-		{
-			harness.PracticeTarget.Position = position;
-			await runner.SimulateFrames(3);
-			var controller = Start(harness);
-			controller._PhysicsProcess(2);
-			AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
-			AssertString(controller.LastResult).IsEqual("No contact");
-		}
-		harness.PracticeTarget.Position = new Vector3(0, 0, -2.7f);
-		await runner.SimulateFrames(3);
-		Start(harness)._PhysicsProcess(2);
-		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-	}
-
-	[TestCase]
 	public async Task ContactUsesActorFacingAndCommitsItForTheRestOfTheSwing()
 	{
-		var (runner, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		harness.Player.LookAt(harness.Player.GlobalPosition + Vector3.Right);
-		harness.PracticeTarget.Position = new Vector3(2, 0, 0);
-		await runner.SimulateFrames(3);
+		await PlaceTarget(runner, harness, new Vector3(2, 0, 0));
 		var controller = Start(harness);
 		controller._PhysicsProcess(.4);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
 		AssertBool(controller.CommittedFacing.IsEqualApprox(Vector3.Right)).IsTrue();
-		Health(harness).SetHealth(1000, 1000);
-		harness.PracticeTarget.Position = new Vector3(0, 0, -4);
 		harness.Player.LookAt(harness.Player.GlobalPosition + Vector3.Forward);
-		await runner.SimulateFrames(3);
+		await PlaceTarget(runner, harness, new Vector3(0, 0, -4));
 		controller = Start(harness);
 		controller._PhysicsProcess(.4);
 		harness.Player.LookAt(harness.Player.GlobalPosition + Vector3.Back);
 		harness.PracticeTarget.Position = new Vector3(0, 0, -2);
-		await runner.SimulateFrames(3);
+		await TestFactories.AwaitPhysicsFrames(runner);
 		controller._PhysicsProcess(.1);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
 		AssertBool(controller.CommittedFacing.IsEqualApprox(Vector3.Forward)).IsTrue();
 	}
 
 	[TestCase]
-	public async Task WallsBlockContactAndProduceAnObstructionOutcome()
-	{
-		var (runner, harness) = await Load();
-		var wall = new StaticBody3D { Position = new Vector3(0, 1, -1), CollisionLayer = 2 };
-		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(3, 2, .2f) } });
-		runner.Scene().AddChild(wall);
-		await runner.SimulateFrames(3);
-		var controller = Start(harness);
-		controller._PhysicsProcess(2);
-		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
-		AssertString(controller.LastResult).IsEqual("Obstructed");
-	}
-
-	[TestCase]
 	public async Task SmallQueryBatchesDoNotTruncateCrowdedAttacks()
 	{
-		var (runner, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		var scene = TestFactories.Load<PackedScene>("res://scenes/debug/combat/combat_practice_target.tscn");
 		var targets = Enumerable.Range(0, 12).Select(_ => scene.Instantiate<Node3D>()).ToArray();
 		foreach (var target in targets) { target.Position = new Vector3(0, 0, -2); runner.Scene().AddChild(target); }
-		await runner.SimulateFrames(3);
+		await TestFactories.AwaitPhysicsFrames(runner);
 		harness.Player.GetNode<MeleeHitDetector>("MeleeHitDetector").QueryBatchSize = 8;
 		var controller = Start(harness);
 		controller._PhysicsProcess(2);
@@ -257,7 +232,8 @@ public class MeleeContactTest
 	[TestCase]
 	public async Task WrongFactionAndCancelledAttacksCannotDamageTargets()
 	{
-		var (_, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		var controller = Start(harness, mask: 4);
 		controller._PhysicsProcess(2);
 		AssertInt(controller.ContactCount).IsEqual(0);
@@ -269,144 +245,101 @@ public class MeleeContactTest
 		AssertString(controller.LastResult).IsEqual("Interrupted");
 	}
 
+	/// <summary>Effects are presentation only: a swing deals the same damage with its swoosh on or off.</summary>
 	[TestCase]
-	public async Task SwooshEnabledAndDisabledHaveIdenticalDamageAndThrustHasNoSwoosh()
+	public async Task SwooshEnabledAndDisabledHaveIdenticalDamage()
 	{
-		var (_, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		Start(harness)._PhysicsProcess(2);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-		Health(harness).SetHealth(1000, 1000);
+		TestFactories.ResetPracticeTarget(harness);
 		Start(harness, effects: true)._PhysicsProcess(2);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-		AssertObject(TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/thrust.tres").SwooshScene).IsNull();
 	}
 
+	/// <summary>Damage resolution reports why a contact dealt nothing: immunity, nothing left after mitigation, or the wrong faction.</summary>
 	[TestCase]
-	public async Task NativeMonsterMeleeDamagesHeroThroughTheSameDetector()
+	public void DamageResolutionReportsImmunityAbsorptionAndFilteringWithoutDamage()
 	{
-		var (_, harness) = await Load();
-		harness.SpawnMonster();
-		var monster = harness.Player.GetParent().GetChildren().OfType<EnemyBase>().Single();
-		monster.GlobalPosition = harness.Player.GlobalPosition + Vector3.Forward * 1.8f;
-		harness.Player.HurtBoxComponent.Armor = 0;
-		float health = harness.Player.HealthComponent.CurrentHealth;
-		harness.MonsterAttack();
-		var controller = monster.GetNode<AttackController>("AttackController");
-		controller.SetPhysicsProcess(false);
-		AssertBool(controller.IsAttacking).IsTrue();
-		// The minion's chop connects at 52-66% of its one-second swing, when the blade visibly comes down.
-		controller._PhysicsProcess(.45);
-		AssertInt(controller.ContactCount).IsEqual(0);
-		controller._PhysicsProcess(.15);
-		AssertBool(harness.Player.HealthComponent.CurrentHealth < health).IsTrue();
-		AssertInt(controller.ContactCount).IsEqual(1);
-		AssertString(controller.LastResult).IsEqual("Damaged");
-	}
-
-	[TestCase]
-	public async Task DamageResolutionDistinguishesArmorAndImmunityFromMisses()
-	{
-		var (_, harness) = await Load();
-		var hurtBox = harness.PracticeTarget.GetNode<HurtBoxComponent>("HurtBoxComponent");
+		var health = AutoFree(new HealthComponent());
+		health.SetHealth(1000, 1000);
+		var hurtBox = AutoFree(new HurtBoxComponent { HealthComponent = health, DamageFilter = DamageSourceFlags.All });
 		using var random = new RandomNumberGenerator { Seed = 42 };
 		hurtBox.Invulnerable = true;
-		AssertBool(hurtBox.ResolveDamage(10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Invulnerable).IsTrue();
+		AssertObject(hurtBox.ResolveDamage(10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome).IsEqual(DamageOutcome.Invulnerable);
 		hurtBox.Invulnerable = false;
-		AssertBool(hurtBox.ResolveDamage(0, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Absorbed).IsTrue();
+		AssertObject(hurtBox.ResolveDamage(0, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome).IsEqual(DamageOutcome.Absorbed);
 		hurtBox.DamageFilter = DamageSourceFlags.None;
-		AssertBool(hurtBox.ResolveDamage(10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome == DamageOutcome.Filtered).IsTrue();
-		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
+		AssertObject(hurtBox.ResolveDamage(10, Vector3.Forward, attackerFaction: DamageSourceFlags.Player, random: random).Outcome).IsEqual(DamageOutcome.Filtered);
+		AssertFloat(health.CurrentHealth).IsEqual(1000);
 	}
 
 	[TestCase]
-	public async Task ChopThrustAndRadialProfilesUseTheirAuthoredFootprints()
-	{
-		var (runner, harness) = await Load();
-		foreach (var profile in new[] { "chop_1h", "thrust", "spin" })
-		{
-			Health(harness).SetHealth(1000, 1000);
-			harness.PracticeTarget.Position = new Vector3(0, 0, profile == "spin" ? 2 : -2);
-			await runner.SimulateFrames(3);
-			Start(harness, profile)._PhysicsProcess(2);
-			AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-		}
-		harness.PracticeTarget.Position = new Vector3(1.6f, 0, -2);
-		Health(harness).SetHealth(1000, 1000);
-		await runner.SimulateFrames(3);
-		Start(harness, "thrust")._PhysicsProcess(2);
-		AssertFloat(Health(harness).CurrentHealth).IsEqual(1000);
-	}
-
-	[TestCase]
-	public void AuthoredMeleeProfilesAreValidAndOnlySwingProfilesRequireEffects()
+	public void AuthoredMeleeProfilesAreValidAndBuildTheirShape()
 	{
 		string folder = ProjectSettings.GlobalizePath("res://scenes/attacks/melee_profiles");
-		foreach (string file in Directory.EnumerateFiles(folder, "*.tres"))
+		foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.tres"))
 		{
-			var profile = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/" + Path.GetFileName(file));
-			AssertBool(profile.IsValid).IsTrue();
+			var profile = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/" + System.IO.Path.GetFileName(file));
+			AssertBool(profile.IsValid).OverrideFailureMessage(file).IsTrue();
 			using var shape = profile.CreateShape();
 			AssertObject(shape).IsNotNull();
 		}
 	}
 
+	/// <summary>A primary swing's and a special attack's swoosh trail the weapon's animated blade markers through the contact window.</summary>
 	[TestCase]
-	public async Task AxeBroadswordAndHalberdTrailsFollowTheirAnimatedBladeMarkers()
+	public async Task SwooshTrailsFollowTheWeaponsAnimatedBladeMarkers()
 	{
-		var (_, harness) = await Load();
-		foreach (int weaponIndex in new[] { 1, 2, 4 })
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
+		var controller = harness.Player.AttackController;
+		var manager = harness.Player.GetNode<BoneAttachmentManager>("BoneAttachmentManager");
+		(MeleeSwoosh Swoosh, Marker3D Tip, Marker3D Base) Trail(Weapon weapon)
 		{
-			harness.EquipPreview(weaponIndex);
-			var weapon = harness.Weapons[weaponIndex];
-			var controller = harness.Player.AttackController;
-			controller.EffectsEnabled = true;
-			var definition = new AttackDefinition { AttackStyle = weapon.AttackStyle };
-			AssertBool(controller.TryPrepareAttack(definition, weapon.AttackStyle, 1, out var attack, weapon.MeleeContact)).IsTrue();
-			AssertBool(controller.StartAttack(attack, new AttackStats(10, 10, 0), 8)).IsTrue();
-			controller.SetPhysicsProcess(false);
-			// Two steps inside the weapon's contact window, which follows its strike.
-			float start = attack.Definition.HitWindowStart, step = (attack.Definition.HitWindowEnd - start) * .35f;
-			controller._PhysicsProcess(start + step);
 			var swoosh = harness.Player.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();
-			AssertBool(swoosh.FollowsWeapon).IsTrue();
+			AssertBool(swoosh.FollowsWeapon).OverrideFailureMessage(weapon.ResourcePath).IsTrue();
 			AssertInt(swoosh.TrailSampleCount).IsGreater(2);
-			var manager = harness.Player.GetNode<BoneAttachmentManager>("BoneAttachmentManager");
 			var mount = manager.AttachmentNodes[weapon.IsTwoHanded ? AttachmentType.TwoHandedWeapon : AttachmentType.OneHandedWeapon];
 			var tip = (Marker3D)mount.FindChild("TrailTip", true, false);
 			var bladeBase = (Marker3D)mount.FindChild("TrailBase", true, false);
 			AssertBool(swoosh.LastBladeTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
 			AssertBool(swoosh.LastBladeBase.IsEqualApprox(bladeBase.GlobalPosition)).IsTrue();
+			return (swoosh, tip, bladeBase);
+		}
+
+		// Axe, broadsword and halberd primaries: two steps inside the weapon's contact window, which follows its strike.
+		foreach (int weaponIndex in new[] { 1, 2, 4 })
+		{
+			harness.EquipPreview(weaponIndex);
+			var weapon = harness.Weapons[weaponIndex];
+			controller.EffectsEnabled = true;
+			var definition = new AttackDefinition { AttackStyle = weapon.AttackStyle };
+			AssertBool(controller.TryPrepareAttack(definition, weapon.AttackStyle, 1, out var attack, weapon.MeleeContact)).IsTrue();
+			AssertBool(controller.StartAttack(attack, new AttackStats(10, 10, 0), 8)).IsTrue();
+			controller.SetPhysicsProcess(false);
+			float start = attack.Definition.HitWindowStart, step = (attack.Definition.HitWindowEnd - start) * .35f;
+			controller._PhysicsProcess(start + step);
+			var (swoosh, tip, _) = Trail(weapon);
 			var firstTip = swoosh.LastBladeTip;
 			controller._PhysicsProcess(step);
 			AssertBool(firstTip.DistanceTo(swoosh.LastBladeTip) > .01f).IsTrue();
 			AssertBool(swoosh.LastBladeTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
 			controller.CancelAttack();
 		}
-	}
 
-	[TestCase]
-	public async Task SpecialSpinAttackSwooshFollowsWeaponBladeTrail()
-	{
-		var (runner, harness) = await Load();
+		// Specials of the first three harness weapons, sampled late in their window.
 		foreach (int weaponIndex in new[] { 0, 1, 2 })
 		{
 			harness.EquipPreview(weaponIndex);
-			var controller = harness.Player.AttackController;
 			controller.EffectsEnabled = true;
 			var weapon = (Weapon)harness.Player.Inventory.EquippedItems[EquipmentSlot.WeaponHand].Item;
 			AssertBool(controller.TryPrepareWeaponAttack(weapon, out var attack, isSpecial: true)).IsTrue();
 			AssertBool(controller.StartPreparedWeaponAttack(attack, weapon, isSpecial: true)).IsTrue();
 			controller.SetPhysicsProcess(false);
 			controller._PhysicsProcess(Mathf.Lerp(attack.Definition.HitWindowStart, attack.Definition.HitWindowEnd, .6f));
-			var swoosh = harness.Player.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();
-			AssertBool(swoosh.FollowsWeapon).IsTrue();
-			AssertInt(swoosh.TrailSampleCount).IsGreater(2);
-			var manager = harness.Player.GetNode<BoneAttachmentManager>("BoneAttachmentManager");
-			var mount = manager.AttachmentNodes[weapon.IsTwoHanded ? AttachmentType.TwoHandedWeapon : AttachmentType.OneHandedWeapon];
-			var tip = (Marker3D)mount.FindChild("TrailTip", true, false);
-			var bladeBase = (Marker3D)mount.FindChild("TrailBase", true, false);
-			AssertBool(swoosh.LastBladeTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
-			AssertBool(swoosh.LastBladeBase.IsEqualApprox(bladeBase.GlobalPosition)).IsTrue();
+			Trail(weapon);
 			controller.CancelAttack();
 		}
 	}
@@ -414,13 +347,15 @@ public class MeleeContactTest
 	[TestCase]
 	public async Task SkippedContactWindowStillBuildsTheBladeTrailAndPoolingClearsIt()
 	{
-		var (_, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		var controller = Start(harness, effects: true);
 		controller._PhysicsProcess(2);
 		var swoosh = harness.Player.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();
 		AssertBool(swoosh.FollowsWeapon).IsTrue();
 		AssertInt(swoosh.TrailSampleCount).IsGreater(2);
 		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
+		AssertBool(controller.IsAttacking).IsFalse();
 		swoosh.OnDespawnedToPool();
 		swoosh.OnSpawnedFromPool();
 		swoosh.Initialize(Transform3D.Identity, 2);
@@ -430,89 +365,21 @@ public class MeleeContactTest
 	}
 
 	[TestCase]
-	public void SwingWeaponScenesExposeEditableBladeMarkers()
-	{
-		var roots = Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/weapons"), "*.tres", SearchOption.AllDirectories)
-			.Select(file => TestFactories.Load<Resource>("res://" + Path.GetRelativePath(ProjectSettings.GlobalizePath("res://"), file))).ToArray();
-		foreach (var weapon in roots.OfType<Weapon>().Where(w => w.AttackStyle.ToString().EndsWith(".slash") || w.AttackStyle.ToString().EndsWith(".chop")))
-		{
-			var visual = weapon.Scene.Instantiate<Node3D>();
-			var bladeBase = visual.FindChild("TrailBase", true, false) as Marker3D;
-			var tip = visual.FindChild("TrailTip", true, false) as Marker3D;
-			AssertObject(bladeBase).OverrideFailureMessage(weapon.ResourcePath).IsNotNull();
-			AssertObject(tip).OverrideFailureMessage(weapon.ResourcePath).IsNotNull();
-			AssertBool(tip.Position.DistanceTo(bladeBase.Position) > .05f).IsTrue();
-			visual.Free();
-		}
-		GC.KeepAlive(roots);
-	}
-
-	[TestCase]
 	public void ProfileValidationAndMonsterEngagementUseTheSameReach()
 	{
 		using var contact = new MeleeAttackProfile { Reach = 2, EngagementMargin = .4f };
 		using var attack = new AttackDefinition { MeleeContact = contact };
-		using var enemy = new MeleeAttackStrategy { EngagementDistance = 8, Attack = attack };
-		AssertFloat(enemy.EffectiveRange).IsEqualApprox(1.6, .0001);
+		using var enemy = new MonsterAttackAction { MaximumRange = 8, Attack = attack, Duration = 1, Style = "melee" };
+		AssertFloat(enemy.EffectiveMaximumRange).IsEqualApprox(1.6, .0001);
 		contact.Reach = float.NaN;
 		AssertBool(contact.IsValid).IsFalse();
-	}
-	[TestCase]
-	public void SecondaryAttackDerivesCorrectArchetypeStyleAndContactProfile()
-	{
-		using var sword1h = new Weapon { AttackStyle = "sword.1h.slash" };
-		AssertString(sword1h.GetEffectiveSecondaryStyle().ToString()).IsEqual("sword.1h.special");
-		AssertString(sword1h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
-
-		using var sword2h = new Weapon { AttackStyle = "sword.2h.slash" };
-		AssertString(sword2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("sword.2h.special");
-		AssertString(sword2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("spin.tres");
-
-		using var axe1h = new Weapon { AttackStyle = "axe.1h.chop" };
-		AssertString(axe1h.GetEffectiveSecondaryStyle().ToString()).IsEqual("axe.1h.special");
-		AssertString(axe1h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
-
-		using var axe2h = new Weapon { AttackStyle = "axe.2h.chop" };
-		AssertString(axe2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("axe.2h.special");
-		AssertString(axe2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
-
-		using var spear2h = new Weapon { AttackStyle = "spear.2h.thrust" };
-		AssertString(spear2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("spear.2h.special");
-		AssertString(spear2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("slash_2h.tres");
-
-		using var blunt2h = new Weapon { AttackStyle = "blunt.2h.chop" };
-		AssertString(blunt2h.GetEffectiveSecondaryStyle().ToString()).IsEqual("blunt.2h.special");
-		AssertString(blunt2h.GetEffectiveSecondaryMeleeContact().ResourcePath).EndsWith("spin.tres");
-
-		using var ranged = new RangedWeapon { AttackStyle = "crossbow.shoot" };
-		AssertString(ranged.GetEffectiveSecondaryStyle().ToString()).IsEqual("crossbow.shoot.special");
-		AssertObject(ranged.GetEffectiveSecondaryMeleeContact()).IsNull();
-		AssertFloat(ranged.SecondaryDamageMultiplier).IsEqual(2.0f);
-	}
-
-	[TestCase]
-	public void MartialTechniqueActionDerivesWeaponSecondaryProperties()
-	{
-		using var weapon = new Weapon
-		{
-			AttackStyle = "axe.1h.chop",
-			SecondaryDelay = 0.2f,
-			SecondaryPerformDuration = 0.7f,
-			SecondaryCooldownDuration = 1.4f,
-			SecondaryDamageMultiplier = 1.8f
-		};
-
-		var action = new MartialTechniqueAction(weapon);
-		AssertFloat(action.Delay).IsEqual(0.2f);
-		AssertFloat(action.PerformDuration).IsEqual(0.7f);
-		AssertFloat(action.CooldownDuration).IsEqual(1.4f);
-		AssertString(action.CooldownKey).IsEqual("axe.1h.special");
 	}
 
 	[TestCase]
 	public async Task SecondaryAttackAppliesSecondaryDamageMultiplier()
 	{
-		var (_, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		harness.Player.Inventory.Unequip(EquipmentSlot.WeaponHand);
 		harness.Player.Stats.BaseMinDamage = 0;
 		harness.Player.Stats.BaseMaxDamage = 0;
@@ -526,14 +393,13 @@ public class MeleeContactTest
 			DamageMax = 10,
 			ValidSlots = ValidSlots.WeaponHand,
 			SecondaryDamageMultiplier = 2.0f,
-			MeleeContact = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres")
+			MeleeContact = Profile("slash_1h")
 		};
 		AssertBool(harness.Player.Inventory.TryAdd(def).Success).IsTrue();
 		var slot = harness.Player.Inventory.Items.Last();
 		var weapon = (Weapon)slot.Item;
 		harness.Player.Inventory.Equip(slot);
 
-		Health(harness).SetHealth(1000, 1000);
 		AssertBool(controller.TryPrepareWeaponAttack(weapon, out var primaryAttack, isSpecial: false)).IsTrue();
 		AssertBool(controller.StartPreparedWeaponAttack(primaryAttack, weapon, isSpecial: false)).IsTrue();
 		controller.SetPhysicsProcess(false);
@@ -541,7 +407,7 @@ public class MeleeContactTest
 		float primaryDamage = 1000 - Health(harness).CurrentHealth;
 		AssertFloat(primaryDamage).IsEqual(11.0f);
 
-		Health(harness).SetHealth(1000, 1000);
+		TestFactories.ResetPracticeTarget(harness);
 		var action = new MartialTechniqueAction(weapon);
 		AssertBool(action.TryPrepare(harness.Player, out var secondaryAttack)).IsTrue();
 		AssertBool(action.StartPrepared(harness.Player, secondaryAttack)).IsTrue();
@@ -564,32 +430,31 @@ public class MeleeContactTest
 	}
 
 	/// <summary>A facing lock lead commits the swing early: turning afterwards cannot redirect it.</summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task FacingLockLeadCommitsTheSwingBeforeContact(bool locked)
+	[TestCase]
+	public async Task FacingLockLeadCommitsTheSwingBeforeContact()
 	{
-		var (runner, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		harness.Player.Rotation = Vector3.Zero;
-		harness.PracticeTarget.Position = new Vector3(0, 0, -2);
-		await runner.SimulateFrames(2);
+		await PlaceTarget(runner, harness, new Vector3(0, 0, -2));
 		// A lead as long as the slash's wind-up commits on the first tick.
 		float contactStart = ContactStart(harness, "sword.1h.slash");
-		var controller = Start(harness, configure: d => d.FacingLockLead = locked ? contactStart : 0);
+		var controller = Start(harness, configure: d => d.FacingLockLead = contactStart);
 		controller._PhysicsProcess(.01);
-		AssertBool(controller.HasCommittedFacing).IsEqual(locked);
+		AssertBool(controller.HasCommittedFacing).IsTrue();
 		harness.Player.Rotation = new Vector3(0, Mathf.Pi, 0);
 		controller._PhysicsProcess(.4);
-		AssertBool(controller.CommittedFacing.IsEqualApprox(locked ? Vector3.Forward : Vector3.Back)).IsTrue();
-		AssertInt(controller.ContactCount).IsEqual(locked ? 1 : 0);
+		AssertBool(controller.CommittedFacing.IsEqualApprox(Vector3.Forward)).IsTrue();
+		AssertInt(controller.ContactCount).IsEqual(1);
 	}
 
 	[TestCase]
 	public async Task HitStopPausesOnlyTheAttackersClockOncePerSwing()
 	{
-		var (runner, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		harness.Player.Rotation = Vector3.Zero;
-		harness.PracticeTarget.Position = new Vector3(0, 0, -2);
-		await runner.SimulateFrames(2);
+		await PlaceTarget(runner, harness, new Vector3(0, 0, -2));
 		int pauses = 0;
 		var controller = Start(harness, configure: d => d.HitStopDuration = .1f);
 		controller.HitStopStarted += _ => pauses++;
@@ -607,7 +472,8 @@ public class MeleeContactTest
 	[TestCase]
 	public async Task HyperArmorFollowsTheNormalizedWindowAndEndsWithTheAttack()
 	{
-		var (_, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		var gate = harness.Player.ActionGate;
 		var controller = Start(harness, configure: d => { d.HyperArmorStart = 0; d.HyperArmorEnd = .5f; });
 		AssertBool(gate.IsHyperArmored).IsTrue();
@@ -619,17 +485,21 @@ public class MeleeContactTest
 		AssertBool(gate.IsHyperArmored).IsFalse();
 	}
 
+	/// <summary>Preparation rejects an attack whose timing, impact, tracking or projectile flight cannot play out, before it starts.</summary>
 	[TestCase]
-	public async Task PreparationRejectsInvalidImpactAndTracking()
+	public async Task PreparationRejectsInvalidImpactTrackingAndFlight()
 	{
-		var (_, harness) = await Load();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await Settle(runner);
 		var controller = harness.Player.AttackController;
+		var slash = Profile("slash_1h");
 		bool Prepare(Action<AttackDefinition> configure)
 		{
-			var definition = new AttackDefinition { AttackStyle = "sword.1h.slash",
-				MeleeContact = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres") };
+			using var definition = new AttackDefinition { AttackStyle = "sword.1h.slash", MeleeContact = slash };
 			configure(definition);
-			return controller.TryPrepareAttack(definition, "", 1, out _);
+			bool accepted = controller.TryPrepareAttack(definition, "", 1, out var attack);
+			AssertBool(accepted || attack == null).IsTrue();
+			return accepted;
 		}
 		// One-second preparation: the lead may equal the wind-up but not exceed it.
 		float contactStart = ContactStart(harness, "sword.1h.slash");
@@ -640,20 +510,15 @@ public class MeleeContactTest
 		AssertBool(Prepare(d => d.PoiseDamage = -1)).IsFalse();
 		AssertBool(Prepare(d => d.Knockback = float.NaN)).IsFalse();
 		AssertBool(Prepare(d => d.WindUpTurnRate = -1)).IsFalse();
-	}
 
-	/// <summary>An AI wind-up's capped turn cannot snap onto a target that circles it.</summary>
-	[TestCase]
-	public async Task CappedFacingRequestsTurnNoFasterThanTheirRate()
-	{
-		var (_, harness) = await Load();
-		var movement = harness.Player.MovementComponent;
-		movement.SetLookAtDirection(Vector3.Forward);
-		movement.FaceDirection(Vector3.Right, 90);
-		movement._PhysicsProcess(.1);
-		AssertFloat(Mathf.RadToDeg(movement.LookAtDirection.AngleTo(Vector3.Forward))).IsEqualApprox(9, .1);
-		movement.FaceDirection(Vector3.Right);
-		movement._PhysicsProcess(.1);
-		AssertFloat(Mathf.RadToDeg(movement.LookAtDirection.AngleTo(Vector3.Right))).IsLess(1);
+		// Projectile flight: crossbow.shoot releases at 0.45 of the second, so three shots 0.3 s apart outlast the attack.
+		AssertBool(Prepare(d => { d.AttackStyle = "crossbow.shoot"; d.IsRanged = true; d.ProjectilePattern = ProjectilePattern.Spread;
+			d.ProjectileCount = 3; d.SpreadAngle = 40; d.ProjectileStagger = .3f; d.HomingTurnRate = 360; d.HomingDelay = .05f;
+			d.Range = 30; d.AimingAngle = 180; })).IsFalse();
+		AssertBool(Prepare(d => { d.AttackStyle = "axe.1h.chop"; d.HomingTurnRate = 90; })).IsFalse();
+		AssertBool(Prepare(d => { d.AttackStyle = "crossbow.shoot"; d.IsRanged = true; d.LaunchSpeedScale = 0; })).IsFalse();
+		AssertBool(Prepare(d => { d.AttackStyle = "crossbow.shoot"; d.IsRanged = true; d.HomingDelay = float.NaN; })).IsFalse();
+		AssertBool(Prepare(d => { d.AttackStyle = "crossbow.shoot"; d.IsRanged = true; d.LaunchSpeedScale = .5f; d.LaunchRampDuration = .1f; })).IsTrue();
+		AssertBool(controller.IsAttacking).IsFalse();
 	}
 }

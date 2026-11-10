@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SpellDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/magic/SpellDefinition.cs" id="definition"]
+[ext_resource type="PackedScene" path="res://scenes/magic/shared/effect_spell.tscn" id="scene"]
+[ext_resource type="Resource" path="res://scenes/magic/shared/instant_heal_effect.tres" id="effect"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/spell_cast.tres" id="cast"]
+
+[resource]
+script = ExtResource("definition")
+DisplayName = "Healing Light"
+SpellScene = ExtResource("scene")
+Effect = ExtResource("effect")
+ManaCostByLevel = PackedFloat32Array(12, 14, 16, 18, 20)
+Cast = ExtResource("cast")

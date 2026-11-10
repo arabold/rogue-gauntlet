@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="chest"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/treasury_gold.tres" id="gold"]
+
+[node name="TreasuryChest" instance=ExtResource("chest")]
+
+[node name="LootTableComponent" parent="."]
+Profile = ExtResource("gold")

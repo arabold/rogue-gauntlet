@@ -26,19 +26,44 @@ public partial class FloorTraversalTest
 	private readonly List<(CharacterBody3D Body, string Row, float Radius, float Goal)> _walkers = [];
 	private int _row;
 
+	/// <summary>
+	/// Every walkable tile collides as one flat box covering its footprint, all at one height, so seams between tiles are
+	/// flush. Bodies only meet colliders, so tiles that share one are walked once: copies of each collider in a row, and
+	/// the different colliders of each footprint side by side in both directions. All rows are walked at once.
+	/// </summary>
 	[TestCase]
 	public async Task WalkingActorsCrossEveryFloorTileWithoutWallContacts()
 	{
 		var library = TestFactories.Load<MeshLibrary>(FloorLibrary);
+		var walkable = library.GetItemList().Where(item => IsWalkableFloor(library.GetItemName(item))
+			&& library.GetItemShapes(item).Count > 0).ToArray();
+		var tops = new HashSet<float>();
+		foreach (int item in walkable)
+		{
+			string name = library.GetItemName(item);
+			var shapes = library.GetItemShapes(item);
+			AssertInt(shapes.Count).OverrideFailureMessage($"{name}: one collider").IsEqual(2);
+			AssertBool(shapes[0].AsGodotObject() is BoxShape3D).OverrideFailureMessage($"{name}: a box collider").IsTrue();
+			var box = (BoxShape3D)shapes[0].AsGodotObject();
+			var offset = shapes[1].AsTransform3D().Origin;
+			var footprint = Footprint(library, item);
+			AssertBool(box.Size.X >= footprint.X - .01f && box.Size.Z >= footprint.Y - .01f)
+				.OverrideFailureMessage($"{name}: collider {box.Size} does not cover its {footprint} footprint").IsTrue();
+			tops.Add(Mathf.Snapped(offset.Y + box.Size.Y / 2, .001f));
+		}
+		AssertArray(tops.ToArray()).OverrideFailureMessage($"Walkable floor tops differ: {string.Join(", ", tops)}").HasSize(1);
+
 		var root = new Node3D();
 		var floor = new GridMap { MeshLibrary = library, CellSize = Vector3.One, CellCenterX = false, CellCenterY = false, CellCenterZ = false };
 		root.AddChild(floor);
-		var walkable = library.GetItemList().Where(item => IsWalkableFloor(library.GetItemName(item))
-			&& library.GetItemShapes(item).Count > 0).ToArray();
-		foreach (int item in walkable) AddRow(root, floor, library, Enumerable.Repeat(item, Copies).ToArray());
-		// Different tiles of one footprint side by side: the steps between their walkable heights.
-		foreach (var group in walkable.GroupBy(item => Footprint(library, item)).Where(group => group.Count() > 1))
+		var colliders = walkable.GroupBy(item => (Footprint(library, item), Collider(library, item))).Select(group => group.First()).ToArray();
+		foreach (int item in colliders) AddRow(root, floor, library, Enumerable.Repeat(item, Copies).ToArray());
+		// Different colliders of one footprint side by side: the steps between their walkable heights, up and down.
+		foreach (var group in colliders.GroupBy(item => Footprint(library, item)).Where(group => group.Count() > 1))
+		{
 			AddRow(root, floor, library, group.ToArray());
+			AddRow(root, floor, library, group.Reverse().ToArray());
+		}
 		TestFactories.AddToSceneTree(root);
 		var tree = root.GetTree();
 		await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
@@ -70,7 +95,7 @@ public partial class FloorTraversalTest
 	{
 		var bounds = library.GetItemMesh(items[0]).GetAabb();
 		int step = Mathf.Max(1, Mathf.RoundToInt(bounds.Size.X));
-		string row = string.Join(" > ", items.Distinct().Select(library.GetItemName));
+		string row = string.Join(" > ", items.Select(library.GetItemName));
 		foreach (var (radius, height) in Bodies)
 		{
 			int z = Mathf.RoundToInt(_row++ * RowSpacing);
@@ -88,6 +113,14 @@ public partial class FloorTraversalTest
 	{
 		var size = library.GetItemMesh(item).GetAabb().Size;
 		return new Vector2I(Mathf.RoundToInt(size.X), Mathf.RoundToInt(size.Z));
+	}
+
+	/// <summary>The item's collision as physics sees it: its shapes and their placement.</summary>
+	private static string Collider(MeshLibrary library, int item)
+	{
+		var shapes = library.GetItemShapes(item);
+		return string.Join("|", Enumerable.Range(0, shapes.Count / 2)
+			.Select(i => $"{shapes[2 * i].AsGodotObject().GetInstanceId()}@{shapes[2 * i + 1].AsTransform3D().Origin.Snapped(Vector3.One * .001f)}"));
 	}
 
 	/// <summary>Foundations are raised structure and pool pieces line a pit; every other floor item is walked on.</summary>

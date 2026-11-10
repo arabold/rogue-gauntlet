@@ -11,12 +11,9 @@ using static GdUnit4.Assertions;
 public class RibbonTrailTest
 {
 	[TestCase]
-	public async Task ManualSamplesRespectBoundsAndRetireAfterEnd()
+	public void ManualSamplesRespectBoundsAndRetireAfterEnd()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/effect_harness_navigation.tscn");
-		await runner.SimulateFrames(1, 20);
-		var root = TestFactories.AddToSceneTree(new Node());
-		var trail = new RibbonTrail
+		var trail = TestFactories.AddToSceneTree(new RibbonTrail
 		{
 			Target = null,
 			MaxPoints = 3,
@@ -24,25 +21,20 @@ public class RibbonTrailTest
 			PointLifetime = 0.08f,
 			MaxLength = 0.35f,
 			MeshUpdateInterval = 0,
-		};
-		root.AddChild(trail);
+		});
 
-		AssertBool(trail.IsProcessing()).IsFalse();
 		trail.Begin();
-		AssertBool(trail.IsProcessing()).IsTrue();
 		trail.Sample(Vector3.Zero);
 		trail.Sample(Vector3.Forward * 0.2f);
 		trail.Sample(Vector3.Forward * 0.4f);
 		trail.Sample(Vector3.Forward * 0.6f);
-		await runner.SimulateFrames(1, 20);
+		trail._Process(.02);
 
-		var mesh = (ArrayMesh)trail.Mesh;
-		var vertices = mesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+		var vertices = ((ArrayMesh)trail.Mesh).SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
 		AssertInt(vertices.Length).IsEqual(4);
 
 		trail.End();
-		await runner.SimulateFrames(5, 20);
-
+		for (int frame = 0; frame < 5; frame++) trail._Process(.02);
 		AssertObject(trail.Mesh).IsNull();
 		AssertBool(trail.IsProcessing()).IsFalse();
 	}

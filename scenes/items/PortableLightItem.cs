@@ -9,14 +9,8 @@ using Godot;
 public partial class PortableLightItem : EquipableItem
 {
 	[Export] public PackedScene HeldScene { get; set; }
-	[Export] public WeaponGrip WeaponHandGrip { get; set; }
 	[Export] public WeaponGrip ShieldHandGrip { get; set; }
 
-	/// <summary>Explicit rig adapter for the selected hand; no authored adapter means that hand is unavailable.</summary>
-	public WeaponGrip GripFor(EquipmentSlot slot) => slot switch
-	{
-		EquipmentSlot.WeaponHand => WeaponHandGrip,
-		EquipmentSlot.ShieldHand => ShieldHandGrip,
-		_ => null,
-	};
+	/// <summary>Rig adapter for <paramref name="slot"/>; lights are held only in the off hand, so every other slot has none.</summary>
+	public WeaponGrip GripFor(EquipmentSlot slot) => slot == EquipmentSlot.ShieldHand ? ShieldHandGrip : null;
 }

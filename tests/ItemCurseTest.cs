@@ -1,6 +1,8 @@
 namespace RogueGauntlet.Tests;
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -39,26 +41,38 @@ public class ItemCurseTest
 		return inventory.Items.Last();
 	}
 
+	private static List<string> TooltipLines(Item item)
+	{
+		var view = new ItemDetailsView();
+		view.SetItem(item);
+		var lines = view.GetChildren().OfType<Label>().Select(label => label.Text).ToList();
+		view.Free();
+		return lines;
+	}
+
 	[TestCase]
 	public void CreationCursesByChanceAndHarmfulTypesAlways()
 	{
+		ItemCreationPolicy policy = Policy;
+		Item ring = TestFactories.Load<Item>(Ring);
+		Item frailty = TestFactories.Load<Item>(Frailty);
 		using var rng = GenerationRandom.Create(42, "curse-creation");
 		int cursed = 0;
 		for (int i = 0; i < 400; i++)
 		{
-			var ring = (EquipableItem)ItemFactory.Create(TestFactories.Load<Item>(Ring), Policy, 12, rng);
-			AssertBool(ring.CurseStatusKnown).IsFalse();
-			if (ring.IsCursed)
+			var created = (EquipableItem)ItemFactory.Create(ring, policy, 12, rng);
+			AssertBool(created.CurseStatusKnown).IsFalse();
+			if (created.IsCursed)
 			{
 				cursed++;
-				AssertBool(ring.CurseModifiers.All(modifier => modifier.Value < 0)).IsTrue();
+				AssertBool(created.CurseModifiers.All(modifier => modifier.Value < 0)).IsTrue();
 			}
 		}
 		AssertInt(cursed).IsBetween(20, 70);
 
 		for (int i = 0; i < 20; i++)
 		{
-			AssertBool(((EquipableItem)ItemFactory.Create(TestFactories.Load<Item>(Frailty), Policy, 3, rng)).IsCursed).IsTrue();
+			AssertBool(((EquipableItem)ItemFactory.Create(frailty, policy, 3, rng)).IsCursed).IsTrue();
 		}
 
 		EquipableItem fixedRing = Create(Frailty);
@@ -66,12 +80,27 @@ public class ItemCurseTest
 	}
 
 	[TestCase]
-	public void ThePenaltyAppliesWhileWornButIsNotAnAttribute()
+	public async Task ThePenaltyLowersWornStatsButStaysOffTheTooltipUntilRevealed()
 	{
-		EquipableItem ring = Cursed(Ring);
+		EquipableItem shield = Create(Shield);
+		shield.CursePenalty = [new StatModifier { Stat = StatType.Dexterity, Value = -3 }];
+		shield.CurseStatusKnown = false;
+		static bool ShowsPenalty(List<string> lines) => lines.Any(line => line.Contains(nameof(StatType.Dexterity)));
+		AssertBool(ShowsPenalty(TooltipLines(shield))).IsFalse();
 
-		AssertInt(ring.StatModifiers.Count()).IsEqual(ring.AttributeModifiers.Count() + ring.CursePenalty.Length);
-		AssertBool(ring.CurseModifiers.All(modifier => modifier.Value < 0)).IsTrue();
+		using var runner = TestFactories.LoadCombatHarness();
+		Player player = (await TestFactories.SettleCombatHarness(runner)).Player;
+		float dexterity = player.Stats.Dexterity;
+		InventoryItemSlot entry = Add(player.Inventory, shield);
+		AssertBool(player.Inventory.Equip(entry, EquipmentSlot.ShieldHand).Success).IsTrue();
+		AssertFloat(player.Stats.Dexterity).IsEqualApprox(dexterity - 3, 0.001f);
+		// Wearing reveals the attributes, not the curse.
+		AssertBool(ShowsPenalty(TooltipLines(shield))).IsFalse();
+
+		shield.RevealCurseStatus();
+		List<string> revealed = TooltipLines(shield);
+		AssertBool(revealed.Contains("Cursed")).IsTrue();
+		AssertBool(ShowsPenalty(revealed)).IsTrue();
 	}
 
 	[TestCase]

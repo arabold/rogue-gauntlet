@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Optional bounded low-health override, with hysteresis to prevent repeated retreat at low health.</summary>
+[Tool]
 [GlobalClass]
 public partial class EnemyRetreatCondition : Resource
 {
@@ -8,4 +9,9 @@ public partial class EnemyRetreatCondition : Resource
 	[Export(PropertyHint.Range, "0,1,0.01")] public float ExitHealthFraction { get; set; } = .4f;
 	[Export] public float DesiredDistance { get; set; } = 5;
 	[Export] public float MaximumDuration { get; set; } = 2;
+
+	public void Validate(MonsterValidationContext context) =>
+		context.Check(MonsterValidationContext.IsProbability(EnterHealthFraction) && MonsterValidationContext.IsProbability(ExitHealthFraction)
+			&& EnterHealthFraction < ExitHealthFraction && MonsterValidationContext.IsPositive(DesiredDistance)
+			&& MonsterValidationContext.IsPositive(MaximumDuration), "RetreatCondition: require ordered health thresholds and positive distance/duration.");
 }

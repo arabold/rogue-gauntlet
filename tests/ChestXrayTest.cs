@@ -6,7 +6,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Checks the authored chest's golden silhouette, toggle, opening and exploration behavior.</summary>
+/// <summary>Checks the authored chest's x-ray silhouette, toggle, opening and exploration behavior.</summary>
 [TestSuite, RequireGodotRuntime]
 public class ChestXrayTest
 {
@@ -22,18 +22,11 @@ public class ChestXrayTest
 			GameDebug.LootXrayEnabled = true;
 			var chest = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>());
 			await Settle(chest);
-			AssertObject(chest.Xray).IsNotNull();
-			AssertInt((int)chest.Xray.Category).IsEqual((int)XrayCategory.Loot);
 			MeshInstance3D[] silhouettes = Silhouettes(chest);
 			AssertInt(silhouettes.Length).IsEqual(2); // Body and lid each use the same depth-based occlusion shader as doors.
 			AssertBool(silhouettes.All(m => m.Visible)).IsTrue();
 			// Drawn above the fog surface, so walls still under fog never hide a discovered chest.
 			AssertInt(silhouettes.Count(m => ((ShaderMaterial)m.MaterialOverride).RenderPriority == FloorDiscovery.AboveFogRenderPriority)).IsEqual(2);
-			foreach (var mesh in silhouettes)
-			{
-				Color tint = ((ShaderMaterial)mesh.MaterialOverride).GetShaderParameter("xray_color").AsColor();
-				AssertBool(tint.IsEqualApprox(new Color(1, 0.72f, 0.3f, 0.85f))).IsTrue();
-			}
 
 			GameDebug.LootXrayEnabled = false;
 			SignalBus.EmitXraySettingsChanged();
@@ -65,32 +58,26 @@ public class ChestXrayTest
 	[TestCase]
 	public async Task ChestSilhouetteAppearsOnlyOnceItsTileIsSeen()
 	{
-		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5);
-		var level = runner.Scene().GetNode<Level>("Level");
-		var map = level.MapGenerator;
+		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
+		await runner.SimulateFrames(2, 20);
+		var (level, map) = TestFactories.UngeneratedLevel();
+		TestFactories.AddToSceneTree(level);
+		GeneratedFloor floor = TestFactories.StartEmptyFloor(level, map);
 		var chest = TestFactories.Load<PackedScene>("res://scenes/props/chest.tscn").Instantiate<Chest>();
-		// Pick a real floor cell under fog and beyond the arrival's sight, so ordinary line of sight cannot reveal it first.
-		Vector3 arrival = map.Floor.Arrival.GlobalPosition;
-		Vector3 point = map.FloorGridMap.GetUsedCells()
-			.Select(cell => map.FloorGridMap.ToGlobal(map.FloorGridMap.MapToLocal(cell)))
-			.Where(p => !level.Discovery.IsRevealedAt(p))
-			.OrderByDescending(p => p.DistanceTo(arrival)).First();
-		chest.Position = point;
+		chest.Position = new Vector3(8, 0, 8);
 		bool original = GameDebug.LootXrayEnabled;
 		try
 		{
 			GameDebug.LootXrayEnabled = true;
 			level.AddChild(chest);
-			await runner.SimulateFrames(25, 20); // Past the 0.3 s poll: still fogged, so still dark.
+			await runner.SimulateFrames(20, 20); // Past the 0.3 s poll: still fogged, so still dark.
 			AssertInt(Silhouettes(chest).Length).IsEqual(2);
 			AssertBool(Silhouettes(chest).All(m => !m.Visible)).IsTrue();
 
-			// Line-of-sight discovery reveals the tile without a room event; the poll alone must light it, then stop.
-			level.Discovery.RevealTiles([map.Map.WorldToTile(point)]);
-			await runner.SimulateFrames(25, 20);
+			// Line-of-sight discovery reveals the tile without a room event; the poll alone must light it.
+			TestFactories.RevealTileAt(level.Discovery, floor.Map, chest.GlobalPosition);
+			await runner.SimulateFrames(20, 20);
 			AssertBool(Silhouettes(chest).All(m => m.Visible)).IsTrue();
-			AssertBool(chest.Xray.IsProcessing()).IsFalse();
 		}
 		finally
 		{

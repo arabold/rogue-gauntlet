@@ -174,6 +174,7 @@ public partial class PlayerInventoryController : Node
 		Scroll scroll = consumable as Scroll;
 		if (scroll?.RequiresTarget == true && (target == source || !Inventory.Items.Contains(target)
 			|| !scroll.Effect.IsValidTarget(Player, target))) { return Report(ItemFailure.InvalidTarget); }
+		if (scroll?.RequiresTarget != true && !consumable.CanPerformAction(Player)) return Report(ItemFailure.InvalidTarget);
 
 		if (Player?.QuickItemController?.IsVarietyOnCooldown(consumable.DefinitionPath) == true)
 		{

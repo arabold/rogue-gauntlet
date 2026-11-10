@@ -57,7 +57,7 @@ public class DamageNumberTest
 		Vector3 start = number.GlobalPosition;
 		AssertBool(start.Y > harness.PracticeTarget.GlobalPosition.Y + 2).IsTrue();
 
-		await runner.SimulateFrames(20);
+		await runner.SimulateFrames(20, 20);
 		AssertBool(number.GlobalPosition.Y > start.Y).IsTrue();
 		await runner.SimulateFrames(60, 20);
 		// Despawned to the pool (hidden, idle) or freed when the pool is full.

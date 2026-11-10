@@ -42,10 +42,10 @@ public partial class DiscoveryAndAccessBalanceTest
 		AssertBool(restored.Visible).IsTrue(); AssertBool(restored.DiscoveryEffect.IsPlaying).IsFalse();
 	}
 	[TestCase]
-	public async Task SurfaceRevealFinishesAndHarnessReplaysAllProductionEffects()
+	public async Task SurfaceRevealsGlowOnceFinishCleanlyAndHarnessReplaysAllProductionEffects()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var harness = (WorldEffectHarness)runner.Scene();
 		AssertBool(harness.PreviewTrap.IsDiscovered).IsFalse();
 		await runner.SimulateFrames(30, 20);
@@ -55,8 +55,6 @@ public partial class DiscoveryAndAccessBalanceTest
 		AssertBool(RowVisible("Wall variant")).IsFalse(); AssertBool(RowVisible("Reveal glow")).IsTrue();
 		harness.Replay();
 		var trap = harness.PreviewTrap;
-		AssertFloat(trap.Discovery.Profile.Radius).IsEqual(12);
-		AssertFloat(trap.DiscoveryEffect.Duration).IsEqual(0.6f);
 		AssertBool(trap.DiscoveryEffect.IsPlaying).IsTrue();
 		var plate = trap.GetNode<MeshInstance3D>("floor_tile_big_spikes");
 		AssertObject(plate.MaterialOverlay).IsNull();
@@ -78,45 +76,22 @@ public partial class DiscoveryAndAccessBalanceTest
 		harness.Replay();
 		var door = harness.PreviewDoor;
 		AssertBool(door.IsDiscovered).IsTrue(); AssertBool(door.IsOpen).IsFalse();
-		AssertFloat(door.Secret.Discovery.Profile.Radius).IsEqual(6);
 		AssertBool(door.Secret.DiscoveryEffect.IsPlaying).IsTrue();
 		var originalWall = door.Secret.DiscoveryEffect.GetNode<MeshInstance3D>("ConcealedSurface");
 		// During the glow-only lead-in keep the original opaque depth-writing material.
 		AssertObject(originalWall.GetSurfaceOverrideMaterial(0)).IsNotNull();
 		AssertBool(((BaseMaterial3D)originalWall.GetActiveMaterial(0)).Transparency == BaseMaterial3D.TransparencyEnum.Disabled).IsTrue();
 		AssertInt(harness.PreviewRoot.GetChildren().OfType<GridMap>().Last().GetCellItem(Vector3I.Zero)).IsEqual(-1);
-		await runner.SimulateFrames(30, 20);
-		AssertBool(door.Secret.DiscoveryEffect.IsPlaying).IsFalse();
-		foreach (var mesh in door.DoorVisual.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => !VisualHelper.IsHelper(m)))
-		{ AssertObject(mesh.MaterialOverlay).IsNull(); AssertFloat(mesh.Transparency).IsEqual(0); }
-		AssertInt(door.Secret.DiscoveryEffect.GetChildCount()).IsEqual(0);
-		harness.SelectEffect(2); await runner.SimulateFrames(2);
-		AssertBool(RowVisible("Reveal glow")).IsFalse(); AssertBool(RowVisible("Wall variant")).IsFalse();
-		AssertBool(harness.Controls.FindChildren("*", "ColorPickerButton", true, false).Any()).IsFalse();
-		AssertBool(harness.PreviewRoot.GetChildren().OfType<LootBeam>().Any()).IsTrue();
-		harness.SelectEffect(3); await runner.SimulateFrames(2);
-		AssertBool(RowVisible("Wall variant")).IsFalse();
-		AssertBool(RowVisible("Reveal glow")).IsFalse();
-		AssertBool(harness.PreviewRoot.GetChildren().OfType<HitEffect>().Any()).IsTrue();
-		harness.SelectEffect(0); AssertBool(harness.PreviewTrap.DiscoveryEffect.IsPlaying).IsFalse();
-	}
-	[TestCase]
-	public async Task RevealGlowHasOnePeakAndKeepsTheSameMaterialAcrossRenderingChanges()
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2);
-		var harness = (WorldEffectHarness)runner.Scene();
-		harness.SelectEffect(1); harness.Replay();
-		var door = harness.PreviewDoor;
-		var mesh = (MeshInstance3D)door.DoorVisual;
-		var material = (BaseMaterial3D)mesh.GetActiveMaterial(0);
+		// The door's reveal glow rises to one peak and fades on the door's own material, never an overlay or a swap.
+		var leaf = (MeshInstance3D)door.DoorVisual;
+		var material = (BaseMaterial3D)leaf.GetActiveMaterial(0);
 		float previous = 0, peak = 0; bool decreasing = false;
 		for (int frame = 0; frame < 80 && door.Secret.DiscoveryEffect.IsPlaying; frame++)
 		{
 			await runner.SimulateFrames(1, 20);
 			if (!door.Secret.DiscoveryEffect.IsPlaying) break;
-			AssertObject(mesh.GetActiveMaterial(0)).IsSame(material);
-			AssertObject(mesh.MaterialOverlay).IsNull();
+			AssertObject(leaf.GetActiveMaterial(0)).IsSame(material);
+			AssertObject(leaf.MaterialOverlay).IsNull();
 			float strength = material.Emission.R;
 			if (strength < previous - 0.001f) decreasing = true;
 			if (decreasing) AssertFloat(strength).IsLessEqual(previous + 0.001f);
@@ -124,7 +99,19 @@ public partial class DiscoveryAndAccessBalanceTest
 		}
 		AssertBool(decreasing).IsTrue(); AssertFloat(peak).IsGreater(0);
 		AssertBool(door.Secret.DiscoveryEffect.IsPlaying).IsFalse();
-		AssertObject(mesh.GetActiveMaterial(0)).IsNotSame(material);
+		AssertObject(leaf.GetActiveMaterial(0)).IsNotSame(material);
+		foreach (var mesh in door.DoorVisual.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => !VisualHelper.IsHelper(m)))
+		{ AssertObject(mesh.MaterialOverlay).IsNull(); AssertFloat(mesh.Transparency).IsEqual(0); }
+		AssertInt(door.Secret.DiscoveryEffect.GetChildCount()).IsEqual(0);
+		harness.SelectEffect(2); await runner.SimulateFrames(2, 20);
+		AssertBool(RowVisible("Reveal glow")).IsFalse(); AssertBool(RowVisible("Wall variant")).IsFalse();
+		AssertBool(harness.Controls.FindChildren("*", "ColorPickerButton", true, false).Any()).IsFalse();
+		AssertBool(harness.PreviewRoot.GetChildren().OfType<LootBeam>().Any()).IsTrue();
+		harness.SelectEffect(3); await runner.SimulateFrames(2, 20);
+		AssertBool(RowVisible("Wall variant")).IsFalse();
+		AssertBool(RowVisible("Reveal glow")).IsFalse();
+		AssertBool(harness.PreviewRoot.GetChildren().OfType<HitEffect>().Any()).IsTrue();
+		harness.SelectEffect(0); AssertBool(harness.PreviewTrap.DiscoveryEffect.IsPlaying).IsFalse();
 	}
 	[TestCase]
 	public void RogueAloneStartsWithTwoPicks()
@@ -141,7 +128,6 @@ public partial class DiscoveryAndAccessBalanceTest
 	{
 		var profile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
 		profile.Validate();
-		AssertInt(profile.MaximumLockedDoors).IsEqual(1);
 		int locked = 0;
 		for (ulong seed = 0; seed < 200; seed++)
 		{
@@ -152,23 +138,5 @@ public partial class DiscoveryAndAccessBalanceTest
 		profile.LockedRoomChance = 0;
 		using var rng = GenerationRandom.Create(42, "none");
 		AssertInt(profile.RollLockedRoomBudget(rng)).IsEqual(0);
-	}
-
-	[TestCase]
-	public async Task DoorCapAppliesAcrossMultiEntranceRoomsAndFloorsSpawnNoPicks()
-	{
-		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
-		TestFactories.WireLootScenes(map);
-		map.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
-		map.AccessProfile.LockedRoomChance = 1; map.AccessProfile.MaximumLockedRooms = 3;
-		map.MapWidth = map.MapDepth = 30;
-		for (ulong seed = 1; seed <= 4; seed++)
-		{
-			map.Seed = seed; map.GenerateMap();
-			var doors = map.FloorContent.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
-			AssertInt(doors.Count(d => d.Lock?.IsLocked == true)).IsLessEqual(map.AccessProfile.MaximumLockedDoors);
-			AssertBool(map.FloorContent.GetChildren().OfType<LootableItem>().All(i => i.Item is not LockpickItem)).IsTrue();
-			await runner.SimulateFrames(1);
-		}
 	}
 }

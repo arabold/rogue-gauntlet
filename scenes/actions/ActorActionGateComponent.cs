@@ -261,6 +261,17 @@ public partial class ActorActionGateComponent : Node
 			return newKind == ActorActionKind.Dodge;
 		}
 
+		if (currentKind == ActorActionKind.Dash)
+		{
+			return currentPhase switch
+			{
+				ActorActionPhase.WindUp => newKind is ActorActionKind.Dodge or ActorActionKind.Guard,
+				ActorActionPhase.Recovery => newKind == ActorActionKind.Dodge
+					|| (recoveryCancels && (newKind == ActorActionKind.Guard || newKind == ActorActionKind.PrimaryAttack)),
+				_ => false
+			};
+		}
+
 		// World interaction: release, movement, combat or quick item cancels
 		if (currentKind == ActorActionKind.WorldInteraction)
 		{

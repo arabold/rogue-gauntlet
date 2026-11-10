@@ -5,17 +5,14 @@ using Godot;
 /// </summary>
 /// <remarks>
 /// Create one profile per monster variant so scenes can share behavior code while changing
-/// detection, roaming, attack ranges, and action timing through resources.
+/// detection, roaming, combat ranges, and action timing through resources.
 /// </remarks>
+[Tool]
 [GlobalClass]
 public partial class EnemyBehaviorProfile : Resource
 {
-	[ExportGroup("Monster strategies")]
-	[Export] public EnemyTacticalStrategy TacticalStrategy { get; set; }
-	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
-	[Export] public EnemyAttackStrategy AttackStrategy { get; set; }
-	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }
-	[Export] public EnemyRetreatCondition RetreatCondition { get; set; }
+	[ExportGroup("Combat")]
+	[Export] public EnemyCombatProfile Combat { get; set; }
 	[ExportGroup("Perception and lifecycle")]
 	/// <summary>
 	/// Behavior state the enemy enters when it is initialized.
@@ -111,10 +108,14 @@ public partial class EnemyBehaviorProfile : Resource
 			EnemyAction.Spawning => SpawningActionDuration,
 			EnemyAction.StandingUp => StandingUpActionDuration,
 			EnemyAction.Hit => HitActionDuration,
-			EnemyAction.MeeleAttack => AttackStrategy?.Duration ?? 0,
-			EnemyAction.RangedAttack => AttackStrategy?.Duration ?? 0,
 			EnemyAction.Dying => DyingActionDuration,
 			_ => 0,
 		};
+	}
+
+	public void Validate(MonsterValidationContext context)
+	{
+		if (context.Check(Combat != null, "Combat: assign a combat profile."))
+			using (context.Scope("Combat")) Combat.Validate(context);
 	}
 }

@@ -16,13 +16,13 @@ public class RoomGenerationHarnessTest
 	public async Task EveryRecipePreviewsAndRoomTypesFurnishThemselves()
 	{
 		using var runner = TestFactories.LoadScene(Scene);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertString(harness.LastError).IsEmpty();
 		for (int index = 0; index < harness.Recipes.Count; index++)
 		{
 			harness.SelectRecipe(index);
-			await runner.SimulateFrames(1);
+			await runner.SimulateFrames(1, 20);
 			AssertString(harness.LastError).IsEmpty();
 			if (harness.Recipes[index] is RoomType type)
 			{
@@ -35,36 +35,39 @@ public class RoomGenerationHarnessTest
 		for (int realm = 1; realm < harness.Generator.Realms.Length; realm++)
 		{
 			harness.SelectRealm(realm);
-			await runner.SimulateFrames(1);
+			await runner.SimulateFrames(1, 20);
 			AssertString(harness.LastError).OverrideFailureMessage($"{harness.Realm.Id}: {harness.LastError}").IsEmpty();
 			AssertObject(harness.PreviewRoom.Type).IsSame(harness.Factory.RoomTypes[0]);
 		}
 	}
 
+	/// <summary>
+	/// The harness's floor, furnishing and rotation controls reach the previewed room; that surfaces never move furniture is
+	/// an assembly contract (<see cref="RoomAssemblyTest.FloorStylesNeverMoveFurnitureAndFurnishingLeavesWallsAlone"/>).
+	/// </summary>
 	[TestCase]
-	public async Task FloorAndWallOverridesNeverMoveFurnitureAndFurnishingLeavesStructureAlone()
+	public async Task FloorFurnishingAndRotationControlsReachThePreview()
 	{
 		using var runner = TestFactories.LoadScene(Scene);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		int barracks = harness.Recipes.ToList().FindIndex(recipe => recipe is RoomType { Id: "barracks" });
 		harness.SelectRecipe(barracks);
 		harness.Seed = 99;
 		// Columns are structure, not furnishing: keep them out so a bare room has no props at all.
 		harness.ColumnsOverride = RoomAssemblyOptions.Off;
+		harness.FloorOverride = 0;
 		harness.Regenerate();
 		string props = Props(harness.PreviewRoom);
-		string walls = Cells(harness.PreviewRoom.WallGridMap);
+		string floor = Cells(harness.PreviewRoom.FloorGridMap);
 		harness.FloorOverride = 1;
 		harness.Regenerate();
-		AssertString(Props(harness.PreviewRoom)).IsEqual(props);
-		AssertString(Cells(harness.PreviewRoom.WallGridMap)).IsEqual(walls);
+		AssertString(Cells(harness.PreviewRoom.FloorGridMap)).IsNotEqual(floor);
 		harness.Furnishings = false;
 		harness.Regenerate();
 		AssertInt(harness.PreviewRoom.GetNode("Props").GetChildCount()).IsEqual(0);
-		AssertString(Cells(harness.PreviewRoom.WallGridMap)).IsEqual(walls);
 		harness.Furnishings = true;
-		harness.FloorOverride = RoomAssemblyOptions.Seeded;
+		harness.FloorOverride = 0;
 		harness.Regenerate();
 		var before = harness.PreviewRoom.Map;
 		harness.RotatePreview(1);
@@ -73,33 +76,33 @@ public class RoomGenerationHarnessTest
 		harness.RotatePreview(3);
 		harness.Regenerate();
 		AssertString(Props(harness.PreviewRoom)).IsEqual(props);
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 	}
 
 	[TestCase]
 	public async Task FloorViewUsesProductionFactoryAndCanReturnToAnIndividualRoom()
 	{
 		using var runner = TestFactories.LoadScene(Scene);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		harness.Mode = RoomPreviewMode.Floor;
 		harness.Seed = 23;
 		// A realm other than the first: the floor view builds the selected realm's rooms and corridors.
 		harness.SelectRealm(1);
 		harness.Regenerate();
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		AssertString(harness.LastError).IsEmpty();
 		AssertObject(harness.Generator.CurrentRealm).IsSame(harness.Realm);
 		AssertObject(harness.PreviewRoom).IsNull();
 		AssertBool(harness.Generator.Visible).IsTrue();
-		AssertArray(LayoutConnectivityTest.FindConnectivityFailures(harness.Generator)).IsEmpty();
+		AssertArray(TestFactories.ConnectivityFailures(harness.Generator).ToArray()).IsEmpty();
 		harness.Mode = RoomPreviewMode.Room;
 		harness.SelectRecipe(0);
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		AssertString(harness.LastError).IsEmpty();
 		AssertBool(harness.PreviewRoot.Visible).IsTrue();
 		AssertBool(harness.Generator.Visible).IsFalse();
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 	}
 
 	private static string Props(Room room) => string.Join("|", room.GetNode("Props").GetChildren().OfType<Node3D>()

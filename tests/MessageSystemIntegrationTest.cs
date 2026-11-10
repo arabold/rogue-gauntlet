@@ -4,61 +4,26 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
+/// <summary>
+/// The HUD scene connects the narrator to the message feed, so a gameplay event on the SignalBus reaches the screen.
+/// Wording is covered by <see cref="GameNarratorTest"/>; coalescing, fading and bounds by <see cref="HudMessageFeedTest"/>.
+/// </summary>
 [TestSuite]
 [RequireGodotRuntime]
 public partial class MessageSystemIntegrationTest
 {
 	[TestCase]
-	public void EndToEndMessageFeedFlowsFromSignalBusToUI()
+	public void AGameplayEventReachesTheHudFeed()
 	{
-		var hudScene = TestFactories.Load<PackedScene>("res://scenes/ui/hud.tscn");
-		var hud = TestFactories.AddToSceneTree(hudScene.Instantiate<Hud>());
+		var hud = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/ui/hud.tscn").Instantiate<Hud>());
+		var feed = hud.GetNode<HudMessageFeed>("BottomArea/HudMessageFeed");
+		int before = feed.ActiveMessageCount;
 
-		var feed = hud.GetNodeOrNull<HudMessageFeed>("BottomArea/HudMessageFeed");
-		AssertObject(feed).IsNotNull();
-
-		var narrator = hud.GetNodeOrNull<GameNarrator>("GameNarrator");
-		AssertObject(narrator).IsNotNull();
-
-		// 1. Unidentified potion consumption: reveal + drink
-		var potion = new TestFactories.TestConsumableItem("potion.healing", "Small Potion of Healing", "drink_potion");
-		SignalBus.EmitItemIdentityRevealed("potion.healing", "Small Murky Potion", "Small Potion of Healing");
-		SignalBus.EmitItemConsumed(null, potion);
+		SignalBus.EmitItemEquipped(null, new TestFactories.TestEquipableItem("Steel Longsword", ValidSlots.WeaponHand));
 
 		var active = feed.GetActiveMessages();
-		AssertInt(active.Count).IsEqual(2);
-		AssertString(active[0]).IsEqual("Drank [b]Small Murky Potion[/b]");
-		AssertString(active[1]).IsEqual("[b]Small Murky Potion[/b] is [b]Small Potion of Healing[/b]");
-
-		// 2. Read scroll
-		var scroll = new TestFactories.TestScroll("Scroll of Teleportation");
-		SignalBus.EmitItemConsumed(null, scroll);
-
-		active = feed.GetActiveMessages();
-		AssertInt(active.Count).IsEqual(3);
-		AssertString(active[2]).IsEqual("Read [b]Scroll of Teleportation[/b]");
-
-		// 3. Wield weapon
-		var sword = new TestFactories.TestEquipableItem("Steel Longsword", ValidSlots.WeaponHand);
-		SignalBus.EmitItemEquipped(null, sword);
-
-		active = feed.GetActiveMessages();
-		AssertInt(active.Count).IsEqual(4);
-		AssertString(active[3]).IsEqual("Wielded [b]Steel Longsword[/b]");
-
-		// 4. Pickup gold
-		var gold = new TestFactories.TestGold();
-		SignalBus.EmitItemPickedUp(null, gold, 30);
-
-		active = feed.GetActiveMessages();
-		AssertInt(active.Count).IsEqual(5);
-		AssertString(active[4]).IsEqual("Picked up [b]30 Gold[/b]");
-
-		// 5. Coalesce repeated gold pickup
-		SignalBus.EmitItemPickedUp(null, gold, 30);
-		active = feed.GetActiveMessages();
-		AssertInt(active.Count).IsEqual(5);
-		AssertString(active[4]).IsEqual("Picked up [b]30 Gold[/b] (x2)");
+		AssertInt(active.Count).IsEqual(before + 1);
+		AssertString(active[^1]).IsEqual("Wielded [b]Steel Longsword[/b]");
 
 		hud.QueueFree();
 	}

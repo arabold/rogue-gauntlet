@@ -20,13 +20,14 @@ public class ItemLifecycleTest
 	public void FixedCreationDoesNotRollAndFoodPiecesKeepIndependentState()
 	{
 		var definition = TestFactories.Load<FoodItem>(Apple);
-		definition.PoisonChance = 1;
 		using var rng = GenerationRandom.Create(42, "test");
 		var policy = TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
-		var poisoned = (FoodItem)ItemFactory.Create(definition, policy, 1, rng);
-		var wholesome = (FoodItem)ItemFactory.Create(definition);
-		AssertBool(poisoned.IsPoisoned).IsTrue();
-		AssertBool(wholesome.IsPoisoned || definition.IsPoisoned).IsFalse();
+		// Rolled creation contaminates by the authored chance; fixed creation never rolls it.
+		FoodItem[] rolled = Enumerable.Range(0, 60).Select(_ => (FoodItem)ItemFactory.Create(definition, policy, 1, rng)).ToArray();
+		FoodItem poisoned = rolled.FirstOrDefault(food => food.IsPoisoned);
+		AssertObject(poisoned).IsNotNull();
+		AssertBool(rolled.All(food => food.IsPoisoned)).IsFalse();
+		AssertBool(Enumerable.Range(0, 60).Any(_ => ((FoodItem)ItemFactory.Create(definition)).IsPoisoned) || definition.IsPoisoned).IsFalse();
 		AssertBool(poisoned.CanStack).IsFalse();
 		var copied = (FoodItem)ItemFactory.CopyDefinition(poisoned);
 		AssertBool(copied.IsPoisoned).IsTrue();
@@ -35,7 +36,6 @@ public class ItemLifecycleTest
 		AssertBool(restored.IsPoisoned).IsTrue();
 		AssertString(restored.InstanceId).IsEqual(poisoned.InstanceId);
 		AssertBool(ItemFactory.CreateBatch(definition, 3).Select(e => e.Item.InstanceId).Distinct().Count() == 3).IsTrue();
-		definition.PoisonChance = 0.15f;
 	}
 
 	[TestCase]

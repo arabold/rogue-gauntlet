@@ -12,6 +12,8 @@ The executor owns its timing and releases ownership on completion or interruptio
 
 `AttackExecution` owns the attack phase and elapsed clock (`WindUp`, `Active`, `Recovery`), including the existing once-per-execution attacker hit stop. `AttackController` remains responsible for action-gate leases, contact sampling, projectile release and interruption. Effects and debug switches observe the execution; they do not drive phase transitions.
 
+Dashes (a monster rush or hop-back) use a `DashComponent` beside `MovementComponent`, like `DodgeComponent`. It acquires the shared action gate, owns wind-up, travel and recovery through an `AttackExecution`, and drives the mover through a locomotion override; `MoveAndSlide` resolves travel against the world, a blocked dash stops instead of extending, navigation checks a clear corridor first, and pushes, status locks, stagger and death interrupt it. A dash grants no immunity and deals no damage.
+
 ## Contact feedback
 
 After the hurtbox resolves a contact, one immutable result feeds target and camera feedback. `CombatFeedbackController` coordinates the existing target knockback with a short target flash, material-selected particles, damage numbers, cosmetic flinch recoil, and a physical attacker lunge on successful melee contact. The lunge moves the attacker's `CharacterBody3D` through `MovementComponent` for the profile's bounded distance and duration; `MoveAndSlide` resolves walls, while status locks, stagger and knockback take priority. Each attack execution can lunge once. The effect profile and impact-surface profile are assigned in the actor scene. `CombatCameraFeedbackController` scales its impulse from the resolved outcome, including a softer blocked response. Feedback never rolls damage, evaluates defense or applies another physical push. Sound remains deferred.
@@ -85,6 +87,8 @@ Dodged/parried contacts suppress ordinary damage and hit reactions. Blocks repor
 
 Defense eligibility is authored per attack: ordinary melee allows dodge, guard and parry; ordinary projectiles allow dodge/guard; area impacts have independent flags. Environmental damage does not automatically grant defense eligibility. Unavoidable content needs clear presentation.
 
+Attack profiles may carry on-hit status payloads. The hurtbox rolls each payload only after direct contact resolves as damaging and leaves the target alive. Chance uses the attack or projectile RNG; a full chance consumes no draw. Venom and poison share the same periodic buff, with authored refresh identity for repeated applications. Defended, filtered, absorbed, splash and lethal contacts do not apply it. See [status conditions](stats-and-itemization.md#buffs-and-status-conditions).
+
 ## Facing and sneak attacks
 
 A hurtbox may assign a `HitVulnerabilityProfile` (monsters use `humanoid_vulnerability.tres`; the player has none). Direct melee and projectile contacts are classified by where they come from relative to the defender's facing: front within `FrontHalfAngle` (60°), rear within `RearHalfAngle` (45°) of directly behind, side otherwise. Area, hazard and environmental damage have no zone.
@@ -111,7 +115,7 @@ Monster melee wind-ups track their target no faster than the attack's `WindUpTur
 Heavy actors can be outmaneuvered:
 
 - **Turn cap.** `MovementComponent.MaxTurnRate` caps all smooth turning (degrees per second). Only explicit facing snaps ignore it, and monster defenses no longer use them.
-- **Start angle.** A melee policy's `MaxStartAngle` only lets a swing start when the target is within that angle of the monster's facing.
+- **Start angle.** An action's `MaximumStartAngle` only lets it start when the target is within that angle of the monster's facing.
 - **Holding.** A monster in reach but not facing its target holds and turns toward it instead of swinging.
 - **Defenses.** A monster raises its guard along its current facing and does not guard against an attacker outside the guard's frontal sector. Any turn-capped actor raises its guard where it already faces instead of snapping toward the requested direction. A riposte turns at the normal rate and is rejected if the target is not yet in front.
 - **The Warden.** It turns at 90°/s, starts swings only within 45° and tracks a wind-up at 60°/s until 0.4 s before contact. A player who gets behind it and stays there draws no swings, but running full circles laps back through its front.

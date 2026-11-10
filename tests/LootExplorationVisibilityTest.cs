@@ -40,7 +40,7 @@ public class LootExplorationVisibilityTest
 	public async Task GeneratedAndRuntimeLootStayHiddenUntilTheirOwnTileIsExplored(bool runtimeWorld)
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var (level, map) = TestFactories.UngeneratedLevel();
 		var pickup = Pickup(); pickup.Position = new Vector3(8, 0, 8);
 		if (runtimeWorld) level.AddWorldNode(pickup);
@@ -48,36 +48,36 @@ public class LootExplorationVisibilityTest
 		// The pickup becomes ready before the map exists. It must fail closed.
 		TestFactories.AddToSceneTree(level);
 		AssertPresentation(pickup, false);
-		await runner.SimulateFrames(3);
+		await runner.SimulateFrames(3, 20);
 		AssertPresentation(pickup, false); // The map has not been generated yet either.
 		var floor = TestFactories.StartEmptyFloor(level, map);
-		await runner.SimulateFrames(3);
+		await runner.SimulateFrames(3, 20);
 		AssertPresentation(pickup, false);
 		var helpers = pickup.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>()
 			.Where(m => VisualHelper.IsHelper(m)).ToArray();
 		AssertBool(helpers.Length > 0).IsTrue(); AssertBool(helpers.All(m => !m.Visible)).IsTrue();
 		// Uncovering a neighboring cell must not expose this pickup or its tall particles.
 		Reveal(level, floor, pickup.GlobalPosition + Vector3.Right * 4);
-		await runner.SimulateFrames(2); AssertPresentation(pickup, false);
+		await runner.SimulateFrames(2, 20); AssertPresentation(pickup, false);
 		Reveal(level, floor, pickup.GlobalPosition);
-		await runner.SimulateFrames(3); AssertPresentation(pickup, true);
+		await runner.SimulateFrames(3, 20); AssertPresentation(pickup, true);
 		AssertBool(helpers.Any(m => m.Visible)).IsEqual(GameDebug.LootXrayEnabled);
 		// Moving into unexplored space must suppress even previously running particles and lights.
 		pickup.GlobalPosition += Vector3.Back * 4;
-		await runner.SimulateFrames(2); AssertPresentation(pickup, false);
+		await runner.SimulateFrames(2, 20); AssertPresentation(pickup, false);
 	}
 	[TestCase]
-	public async Task StandalonePreviewsRemainVisibleAndParticleActivationDoesNotRestartEveryFrame()
+	public async Task StandalonePreviewsRemainVisibleAndTheBeamTogglesItsSparksAndLight()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var pickup = TestFactories.AddToSceneTree(Pickup());
-		await runner.SimulateFrames(3); AssertPresentation(pickup, true);
+		await runner.SimulateFrames(3, 20); AssertPresentation(pickup, true);
 		var beam = pickup.GetNode<LootBeam>("LootBeam");
 		beam.SetActive(false);
 		AssertBool(beam.GetNode<GpuParticles3D>("Sparks").Emitting).IsFalse();
 		AssertBool(beam.GetNode<OmniLight3D>("Light").Visible).IsFalse();
-		beam.SetActive(true); beam.SetActive(true);
+		beam.SetActive(true); beam.SetActive(true); // A repeated request keeps it on.
 		AssertBool(beam.GetNode<GpuParticles3D>("Sparks").Emitting).IsTrue();
 		AssertBool(beam.GetNode<OmniLight3D>("Light").Visible).IsTrue();
 	}

@@ -126,10 +126,11 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
 		if (!copy.HasValidImpact(copy.HitWindowStart) || !copy.HasValidFlight(copy.HitWindowStart, duration)) return false;
+		if (!PreparedHitStatus.TryCapture(copy.OnHitStatuses, out var onHitStatuses)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
 		if (copy.ProjectileAimLockDuration > 0 && (!copy.IsRanged || copy.ProjectileAimLockDuration > copy.HitWindowStart)) return false;
 		var feedback = copy.FeedbackProfile?.Capture();
-		attack = new PreparedAttack(copy, playback, duration, Feedback: feedback);
+		attack = new PreparedAttack(copy, playback, duration, Feedback: feedback, OnHitStatuses: onHitStatuses);
 		return true;
 	}
 
@@ -473,7 +474,8 @@ public partial class AttackController : Node, IParryInterruptible
 			DeliveryKind = DamageDeliveryKind.DirectMelee,
 			Impact = _currentAttack.Impact,
 				Critical = critical,
-				Feedback = _preparedAttack.Feedback
+				Feedback = _preparedAttack.Feedback,
+				OnHitStatuses = _preparedAttack.OnHitStatuses
 		};
 
 		if (target is ICombatDamageable combatDamageable)
@@ -557,11 +559,12 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		var random = new RandomNumberGenerator { Seed = _random.Randi() };
+		var context = release.Context;
 		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
-			&& release.Spell.Cast(_actor, release.Power, random);
+			&& release.Revalidate?.Invoke(context) != false && release.Spell.Cast(in context, random);
 		ReportFeedback(cast ? "Cast" : "Fizzled");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
-			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Power.Level), ("cast", cast));
+			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level), ("cast", cast));
 	}
 
 	/// <summary>
@@ -590,7 +593,7 @@ public partial class AttackController : Node, IParryInterruptible
 			_currentAttack.Range,
 			_currentHit.Scaled(_currentAttack.ProjectileDamageScale),
 				_actor, _currentAttack.DefenseTraits, _currentAttack.AreaDefenseTraits, _random.Randi(), CurrentExecutionId,
-				_preparedAttack.Feedback);
+				_preparedAttack.Feedback, _preparedAttack.OnHitStatuses);
 		projectile.ConfigureFlight(_currentAttack.Flight, _releaseTarget);
 
 		GameDebug.Combat($"{_actor.Name} spawned projectile flying {direction}");

@@ -12,12 +12,14 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class PlayerSaveCodecTest
 {
+	private const string Potion = "res://scenes/items/potions/potion_dexterity_small.tres";
+	private const string Apple = "res://scenes/items/food/food/food_apple_red.tres";
+
 	[TestCase]
 	public async Task BuffAndStatusSourcesSurviveSaveWithoutReplayingTicksOrCures()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5);
-		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+		using var runner = TestFactories.LoadCombatHarness();
+		Player player = (await TestFactories.SettleCombatHarness(runner)).Player;
 		var frozen = player.FrozenStatus.Condition;
 		player.Frozen = true;
 		player.BuffController.ApplyStatus(frozen, player.Invisibility, 8);
@@ -49,9 +51,8 @@ public class PlayerSaveCodecTest
 	[TestCase]
 	public async Task UnsupportedStatusSourcesAndInvalidSnapshotsAreRejected()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5);
-		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+		using var runner = TestFactories.LoadCombatHarness();
+		Player player = (await TestFactories.SettleCombatHarness(runner)).Player;
 		var saved = PlayerSaveCodec.Capture(player, false);
 		var source = new object();
 		player.BuffController.ApplyStatus(player.FrozenStatus.Condition, source, 10);
@@ -70,13 +71,20 @@ public class PlayerSaveCodecTest
 	[TestCase]
 	public async Task CapturedPlayerRestoresExactlyAndARejectedRecordChangesNothing()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5);
-		var player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+		using var runner = TestFactories.LoadCombatHarness();
+		Player player = (await TestFactories.SettleCombatHarness(runner)).Player;
 		player.Stats.Gold = 37;
 		player.Stats.Xp = 5;
 		player.Stats.BaseStrength = 13;
 		player.ManaComponent.CurrentMana = 12.5f;
+		// Quick slots: a potion variety on cooldown, a carried apple bound by instance, and empty slots.
+		var apple = ItemFactory.Create(TestFactories.Load<Item>(Apple));
+		AssertBool(player.Inventory.TryAdd(apple).Success).IsTrue();
+		PlayerQuickItemController quick = player.QuickItemController;
+		for (int i = 0; i < PlayerQuickItemController.SlotCount; i++) quick.ClearSlot(i);
+		AssertBool(quick.TryAssignVariety(0, Potion)).IsTrue();
+		AssertBool(quick.TryAssignInstance(1, apple.InstanceId, apple.DefinitionPath)).IsTrue();
+		quick.StartVarietyCooldown(Potion, 3.5f);
 		var saved = PlayerSaveCodec.Capture(player, includeTransform: true);
 		var data = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(saved));
 		Vector3 position = player.GlobalPosition;
@@ -87,6 +95,10 @@ public class PlayerSaveCodecTest
 		player.Stats.BaseIntelligence = 40;
 		player.ManaComponent.CurrentMana = 200;
 		player.GlobalPosition += new Vector3(4, 0, 0);
+		quick.ClearSlot(0);
+		quick.ClearSlot(1);
+		AssertBool(quick.TryAssignVariety(2, Potion)).IsTrue();
+		quick.RestoreVarietyCooldowns(new());
 		PlayerSaveCodec.Apply(player, data);
 		AssertInt(player.Stats.Gold).IsEqual(37);
 		AssertInt(player.Stats.Xp).IsEqual(5);
@@ -94,6 +106,12 @@ public class PlayerSaveCodecTest
 		AssertFloat(player.ManaComponent.CurrentMana).IsEqual(12.5f);
 		AssertFloat(player.ManaComponent.MaxMana).IsEqual(player.Stats.MaxMana);
 		AssertVector(player.GlobalPosition).IsEqual(position);
+		AssertInt((int)quick.GetBinding(0).Kind).IsEqual((int)QuickItemBindingKind.Variety);
+		AssertString(quick.GetBinding(0).DefinitionPath).IsEqual(Potion);
+		AssertInt((int)quick.GetBinding(1).Kind).IsEqual((int)QuickItemBindingKind.Instance);
+		AssertString(quick.GetBinding(1).InstanceId).IsEqual(apple.InstanceId);
+		AssertBool(quick.GetBinding(2).IsAssigned).IsFalse();
+		AssertBool(quick.IsVarietyOnCooldown(Potion)).IsTrue();
 		AssertString(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, includeTransform: true)))
 			.IsEqual(JsonSerializer.Serialize(saved));
 
@@ -106,7 +124,7 @@ public class PlayerSaveCodecTest
 		try { PlayerSaveCodec.Apply(player, data); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
 		AssertInt(player.Stats.Gold).IsEqual(5);
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 	}
 
 	[TestCase]

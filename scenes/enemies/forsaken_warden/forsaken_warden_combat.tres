@@ -1,0 +1,129 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=27 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterSpellAction.cs" id="spell_action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/HealthPhaseCondition.cs" id="phase"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/TargetPressureCondition.cs" id="pressure"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterActionWeightModifier.cs" id="modifier"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense.tres" id="defense"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/forsaken_warden.tres" id="swing_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/forsaken_warden_overhead.tres" id="overhead_contact"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/tremor.tres" id="tremor_spell"]
+
+[sub_resource type="Resource" id="phase_two"]
+script = ExtResource("phase")
+MinimumPhase = 1
+MaximumPhase = 1
+
+[sub_resource type="Resource" id="phase_two_on"]
+script = ExtResource("phase")
+MinimumPhase = 1
+
+[sub_resource type="Resource" id="phase_three"]
+script = ExtResource("phase")
+MinimumPhase = 2
+
+[sub_resource type="Resource" id="close_pressure"]
+script = ExtResource("pressure")
+Range = 2.4
+Duration = 0.85
+
+[sub_resource type="Resource" id="slash_late"]
+script = ExtResource("modifier")
+Condition = SubResource("phase_three")
+Multiplier = 0.4
+
+[sub_resource type="Resource" id="overhead_mid"]
+script = ExtResource("modifier")
+Condition = SubResource("phase_two")
+Multiplier = 1.625
+
+[sub_resource type="Resource" id="overhead_late"]
+script = ExtResource("modifier")
+Condition = SubResource("phase_three")
+Multiplier = 3.0
+
+[sub_resource type="Resource" id="tremor_mid"]
+script = ExtResource("modifier")
+Condition = SubResource("phase_two")
+Multiplier = 0.45
+
+[sub_resource type="Resource" id="swing"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("swing_contact")
+PoiseDamage = 30.0
+Knockback = 5.0
+HyperArmorStart = 0.1
+HyperArmorEnd = 0.5
+HitStopDuration = 0.05
+FacingLockLead = 0.4
+WindUpTurnRate = 60.0
+
+[sub_resource type="Resource" id="overhead_swing"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("overhead_contact")
+DefenseTraits = 15
+PoiseDamage = 28.0
+Knockback = 7.0
+HyperArmorStart = 0.1
+HyperArmorEnd = 0.38
+HitStopDuration = 0.06
+FacingLockLead = 0.3
+WindUpTurnRate = 45.0
+
+[sub_resource type="Resource" id="slash"]
+resource_name = "slash"
+script = ExtResource("attack_action")
+Cooldown = 1.4
+MaximumRange = 3.2
+MaximumStartAngle = 45.0
+UsesAttackSlot = false
+RiposteEligible = true
+WeightModifiers = [SubResource("slash_late")]
+Attack = SubResource("swing")
+Style = &"melee"
+Duration = 1.6
+MinDamage = 10.0
+MaxDamage = 18.0
+
+[sub_resource type="Resource" id="overhead"]
+resource_name = "overhead"
+script = ExtResource("attack_action")
+Weight = 0.4
+Cooldown = 4.5
+MaximumRange = 4.0
+MaximumStartAngle = 45.0
+UsesAttackSlot = false
+RiposteEligible = true
+WeightModifiers = [SubResource("overhead_mid"), SubResource("overhead_late")]
+Attack = SubResource("overhead_swing")
+Style = &"overhead"
+Duration = 1.8
+MinDamage = 15.0
+MaxDamage = 24.0
+
+[sub_resource type="Resource" id="tremor"]
+resource_name = "tremor"
+script = ExtResource("spell_action")
+Cooldown = 8.0
+MaximumRange = 3.9
+UsesAttackSlot = false
+Conditions = [SubResource("phase_two_on"), SubResource("close_pressure")]
+WeightModifiers = [SubResource("tremor_mid")]
+Spell = ExtResource("tremor_spell")
+Style = &"stomp"
+Duration = 2.65
+MinDamage = 18.0
+MaxDamage = 27.0
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+DefenseStrategy = ExtResource("defense")
+Actions = [SubResource("slash"), SubResource("overhead"), SubResource("tremor")]
+RepeatWeightMultiplier = 0.35

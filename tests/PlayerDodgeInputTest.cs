@@ -18,7 +18,7 @@ public class PlayerDodgeInputTest
 	}
 
 	[TestCase]
-	public async Task InputControllerCorrectsEarlyThenLocksAtTheOriginalDeadline()
+	public async Task SteeringSetsTheDashHeadingThenCorrectsEarlyAndLocksAtTheOriginalDeadline()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 4);
@@ -27,13 +27,19 @@ public class PlayerDodgeInputTest
 		player.InputComponent.DeviceEnabled = false;
 		player.InputController.SetPhysicsProcess(false);
 		player.MovementComponent.SetPhysicsProcess(false);
-		player.InputComponent.InputDirection = Vector3.Forward;
 		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		// Steering picks the heading, not the facing or a knockback's velocity.
+		player.MovementComponent.Push(Vector3.Left, 3);
+		player.InputComponent.InputDirection = Vector3.Right;
+		AssertThat(player.InputController.GetDodgeDirection()).IsEqual(Vector3.Right);
+		player.MovementComponent.ResetTransientMotion();
+		player.InputComponent.InputDirection = Vector3.Forward;
 		player.InputController.PushIntent(PlayerIntent.Dodge);
 		player.InputController._PhysicsProcess(0.016);
 
 		AssertBool(player.DodgeComponent.IsDodging).IsTrue();
 		AssertThat(player.MovementComponent.LocomotionDirection).IsEqual(Vector3.Forward);
+		AssertFloat(player.MovementComponent.LocomotionSpeed).IsGreater(player.Stats.Speed);
 
 		player.InputComponent.InputDirection = Vector3.Right;
 		player.InputController._PhysicsProcess(0.016);

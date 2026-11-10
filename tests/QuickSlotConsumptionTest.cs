@@ -17,16 +17,19 @@ public class QuickSlotConsumptionTest
 	[TestCase]
 	public async Task DrinkingTheLastPotionFromAQuickSlotLeavesItDepleted()
 	{
-		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(10);
-		Player player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().First();
+		using ISceneRunner runner = TestFactories.LoadCombatHarness();
+		Player player = (await TestFactories.SettleCombatHarness(runner)).Player;
 		var potion = ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/potions/potion_healing_small.tres"));
+		// Only the last potion matters: drop any starting stack so the pickup is the only one carried.
+		foreach (InventoryItemSlot carried in player.Inventory.Items.Where(entry => entry.Item.DefinitionPath == potion.DefinitionPath).ToList())
+		{
+			player.Inventory.RemoveItem(carried, carried.Quantity);
+		}
 		AssertBool(player.InventoryController.PickupItem(potion)).IsTrue();
 		PlayerQuickItemController quick = player.QuickItemController;
 		int slot = Enumerable.Range(0, PlayerQuickItemController.SlotCount)
 			.First(i => quick.GetBinding(i).DefinitionPath == potion.DefinitionPath);
-		int before = quick.GetSlotCount(slot);
-		AssertInt(before).IsGreater(0);
+		AssertInt(quick.GetSlotCount(slot)).IsEqual(1);
 
 		int consumed = 0;
 		int shownQuantity = -1;
@@ -34,19 +37,21 @@ public class QuickSlotConsumptionTest
 		// What the HUD's action container reads when it is notified.
 		void OnSlotChanged(int index, ActionSlot action) { if (index == slot) { shownQuantity = action.Quantity; } }
 		SignalBus.Instance.PlayerActionSlotChanged += OnSlotChanged;
-		for (int drink = 0; drink < before; drink++)
+		try
 		{
 			ItemOperationResult result = quick.TryUseSlot(slot);
-			AssertBool(result.Success).OverrideFailureMessage($"drink {drink + 1}: {result.Failure}").IsTrue();
-			for (int i = 0; i < 60 && consumed <= drink; i++) { await runner.SimulateFrames(5, 20); }
-			for (int i = 0; i < 60 && quick.IsVarietyOnCooldown(potion.DefinitionPath); i++) { await runner.SimulateFrames(5, 20); }
+			AssertBool(result.Success).OverrideFailureMessage($"drink: {result.Failure}").IsTrue();
+			for (int i = 0; i < 60 && consumed == 0; i++) { await runner.SimulateFrames(5, 20); }
+		}
+		finally
+		{
+			SignalBus.Instance.PlayerActionSlotChanged -= OnSlotChanged;
 		}
 
-		AssertInt(consumed).IsEqual(before);
+		AssertInt(consumed).IsEqual(1);
 		AssertInt(quick.GetSlotCount(slot)).IsEqual(0);
 		AssertBool(quick.IsSlotDepleted(slot)).IsTrue();
 		AssertInt(player.ActionManager.GetActionSlot(slot).Quantity).IsEqual(0);
 		AssertInt(shownQuantity).IsEqual(0);
-		SignalBus.Instance.PlayerActionSlotChanged -= OnSlotChanged;
 	}
 }

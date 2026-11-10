@@ -35,8 +35,9 @@ public class WallClipTest
 	public async Task GeneratedWallsAndClosedDoorsBlockWhileRoomsAndOpenPassagesStayClear()
 	{
 		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
+		using var scope = runner;
 		level.Generate();
-		await runner.SimulateFrames(2); // Doors join the mask on the frame after generation.
+		await runner.SimulateFrames(2, 20); // Doors join the mask on the frame after generation.
 		var discovery = level.Discovery;
 		var map = level.Floor.Map;
 		var doored = level.Floor.Doors.Select(pair => pair.Connector).ToHashSet();
@@ -78,11 +79,11 @@ public class WallClipTest
 		AssertBool(faces.All(discovery.IsWallAt)).IsTrue();
 		door.IsOpen = true;
 		SignalBus.EmitDoorOpened(door);
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		AssertBool(faces.Any(discovery.IsWallAt)).IsFalse();
 		door.IsOpen = false;
 		SignalBus.EmitDoorClosed(door);
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		AssertBool(faces.All(discovery.IsWallAt)).IsTrue();
 	}
 

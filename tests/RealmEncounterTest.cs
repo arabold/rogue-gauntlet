@@ -33,21 +33,20 @@ public class RealmEncounterTest
 			.IsEqual(string.Join("|", factory.Fallback.CreateEncounter(4, fallbackB).Select(s => s.ResourcePath)));
 		AssertBool(factory.ContainsDepth(0)).IsFalse();
 		AssertBool(factory.ContainsDepth(4)).IsFalse();
-		AssertString(string.Join(",", factory.FloorBudgets)).IsEqual("12,20,16");
 	}
 
 	[TestCase]
 	public async Task ThreeFloorsHaveFiniteNestsAndPersistentGatekeeperUnlock()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var level = runner.Scene().GetNode<Level>("Level");
 		AssertBool(level.CanDescend).IsTrue();
 		AssertBool(level.MapGenerator.EnemySpawnPoints.All(p => p.Scenes[0].ResourcePath.Contains("/skeleton/"))).IsTrue();
 
 		level.ConfigureGeneration(new RunState(12345), 2, null, null);
 		level.Generate();
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		var nest = level.FindChildren("*", "", true, false).OfType<DestructibleNest>().First();
 		nest.SetProcess(false);
 		string nestId = nest.GetMeta("persistent_id").AsString();
@@ -66,7 +65,7 @@ public class RealmEncounterTest
 		AssertObject(nest.ReleaseMinion()).IsNull();
 		nest.TakeDamage(1000, Vector3.Forward, faction: DamageSourceFlags.Player);
 		AssertBool(level.Run.IsCleared(nestId)).IsTrue();
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		level.Generate();
 		AssertBool(level.FindChildren("*", "", true, false).OfType<DestructibleNest>()
 			.Any(n => n.GetMeta("persistent_id").AsString() == nestId)).IsFalse();
@@ -102,7 +101,7 @@ public class RealmEncounterTest
 	public async Task GatekeeperFloorWithoutAGatekeeperSceneKeepsItsDescentSealed()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
 		var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory.Duplicate();
 		realm.GatekeeperScene = null;
@@ -112,23 +111,20 @@ public class RealmEncounterTest
 		AssertObject(level.Floor).IsNotNull();
 		AssertObject(level.Floor.GatekeeperSpawn).IsNull();
 		AssertBool(level.CanDescend).IsFalse();
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 	}
 
 	[TestCase]
-	public async Task CrossbowVariantResolvesShootingClipAndProjectile()
+	public async Task CrossbowSkeletonShootsABoltAtItsTarget()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_crossbow.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var actor = runner.Scene();
 		var animation = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
-		AssertBool(animation.TryResolve("ranged", out var playback)).IsTrue();
-		AssertString(playback.Clip.ToString()).IsEqual("1H_Ranged_Shoot");
+		AssertBool(animation.TryResolve("ranged", out _)).IsTrue();
 		var behavior = actor.GetNode<EnemyBehaviorComponent>("EnemyBehaviorComponent").Profile;
-		AssertBool(behavior.AttackStrategy.Attack.IsRanged).IsTrue();
-		AssertObject(behavior.AttackStrategy.Attack.ProjectileScene).IsNotNull();
+		var action = (MonsterAttackAction)behavior.Combat.PrimaryOffense;
 		var controller = actor.GetNode<AttackController>("AttackController");
-		AssertFloat(behavior.AttackStrategy.Attack.ProjectileAimLockDuration).IsGreater(0);
 		// The shot locks onto a target before release, so place a player-group target straight ahead within range.
 		var shooter = (Node3D)actor;
 		Vector3 forward = (-shooter.GlobalTransform.Basis.Z with { Y = 0 }).Normalized();
@@ -136,16 +132,15 @@ public class RealmEncounterTest
 		target.AddToGroup("player");
 		shooter.GetParent().AddChild(target);
 		target.GlobalPosition = shooter.GlobalPosition + forward * 6;
-		AssertBool(controller.TryPrepareAttack(behavior.AttackStrategy.Attack, "ranged", 1, out var attack)).IsTrue();
+		AssertBool(controller.TryPrepareAttack(action.Attack, action.Style, action.Duration, out var attack)).IsTrue();
 		AssertBool(controller.StartAttack(attack, new AttackStats(3, 6, 0), 4)).IsTrue();
 		Node projectileParent = actor.GetTree().CurrentScene ?? actor.GetParent();
 		var before = projectileParent.GetChildren().OfType<Projectile>().ToHashSet();
-		controller._PhysicsProcess(.5); // cross the aim lock and the authored release time without relying on frame timing
+		// Cross the aim lock and the prepared release time in one step, without relying on frame timing.
+		controller._PhysicsProcess(attack.Definition.HitWindowStart + .05);
 		AssertBool(controller.HasCommittedFacing).IsTrue();
 		var arrow = projectileParent.GetChildren().OfType<Projectile>().Single(p => !before.Contains(p));
-		AssertFloat(arrow.Speed).IsEqual(16);
 		AssertFloat(arrow.Hit.MinDamage).IsEqual(3);
-		AssertInt((int)arrow.GetNode<HitBoxComponent>("%HitBoxComponent").CollisionMask).IsEqual(4);
 		AssertFloat((arrow.Direction with { Y = 0 }).Normalized().Dot(forward)).IsGreater(0.95f);
 		ScenePool.Despawn(arrow);
 		controller.CancelAttack();

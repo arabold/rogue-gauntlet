@@ -4,6 +4,20 @@ using Godot;
 public partial class SignalBus : Node
 {
 	public static event CombatContactFeedbackHandler CombatContactResolved;
+	public static event CameraImpulseRequestHandler CameraImpulseRequested;
+	public static void EmitCameraImpulseRequested(in CameraImpulseRequest request)
+	{
+		if (CameraImpulseRequested == null) return;
+		foreach (CameraImpulseRequestHandler handler in CameraImpulseRequested.GetInvocationList())
+		{
+			try { handler(in request); }
+			catch (System.Exception error)
+			{
+				CameraImpulseRequested -= handler;
+				GD.PushWarning($"Camera impulse observer disabled: {error.Message}");
+			}
+		}
+	}
 	public static void EmitCombatContactResolved(in CombatContactFeedback feedback)
 	{
 		if (CombatContactResolved == null) return;

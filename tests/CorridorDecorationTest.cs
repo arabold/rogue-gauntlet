@@ -8,33 +8,13 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Verifies corridor wall styling (inward-facing straight and accent walls) and strategy-based corridor decoration
-/// (passageways, doorway torches, corner/junction sconces, and hallway wall props) across all three realms.
+/// The depth picks the realm, whose rooms and corridor tiles build the floor; corridors take the realm's wall palette,
+/// face their walls inward and are decorated and lit reproducibly. Corridor tile factories validate with the realms in
+/// <see cref="RoomAssemblyTest.EveryRoomAndRealmDefinitionValidates"/>.
 /// </summary>
 [TestSuite, RequireGodotRuntime]
 public class CorridorDecorationTest
 {
-	private static readonly string[] CorridorFactoryPaths =
-	[
-		"res://scenes/levels/realms/garrison_corridors.tres",
-		"res://scenes/levels/realms/sewer_corridors.tres",
-		"res://scenes/levels/realms/jungle_corridors.tres",
-	];
-
-	[TestCase]
-	public void EveryRealmCorridorTileFactoryValidatesCleanly()
-	{
-		foreach (string path in CorridorFactoryPaths)
-		{
-			var factory = TestFactories.Load<DungeonTileFactory>(path);
-			AssertObject(factory).OverrideFailureMessage($"failed to load {path}").IsNotNull();
-			AssertArray(factory.Validate()).OverrideFailureMessage($"{path} validation errors").IsEmpty();
-			AssertBool(factory.Steps.Length >= 4).OverrideFailureMessage($"{path} should configure corridor steps").IsTrue();
-			AssertBool(factory.Walls.Accents.Count > 0 && factory.Walls.AccentChance > 0f)
-				.OverrideFailureMessage($"{path} should configure corridor wall accents").IsTrue();
-		}
-	}
-
 	[TestCase]
 	public async Task CorridorWallsUseTheRealmPaletteWhenTheyFit()
 	{
@@ -50,7 +30,7 @@ public class CorridorDecorationTest
 			tiles.Walls = walls;
 			realm.Corridors = tiles;
 			int found = 0;
-			for (ulong seed = 1; seed <= 4; seed++)
+			for (ulong seed = 1; seed <= 4 && found == 0; seed++)
 			{
 				generator.Seed = seed;
 				generator.GenerateMap(includeGameplay: false);
@@ -65,7 +45,7 @@ public class CorridorDecorationTest
 						if (item >= 0 && generator.WallGridMap.MeshLibrary.GetItemName(item) == "wall_mossy_A") found++;
 					}
 				}
-				await runner.SimulateFrames(1);
+				await runner.SimulateFrames(1, 20);
 			}
 			AssertInt(found).IsGreater(0);
 		}
@@ -101,34 +81,43 @@ public class CorridorDecorationTest
 				string current = string.Join("|", root.GetChildren().OfType<Node3D>().Select(node => $"{node.Name}:{node.Transform}"));
 				if (signature != null) AssertString(current).IsEqual(signature);
 				signature = current;
-				await runner.SimulateFrames(1);
+				await runner.SimulateFrames(1, 20);
 			}
 		}
 	}
 
+	/// <summary>
+	/// One floor per realm: each depth band is covered by exactly one realm, whose rooms and corridor floor tiles build the
+	/// connected floor; its corridors carry lights and decor, face their walls inward and replay identically.
+	/// </summary>
 	[TestCase]
-	public async Task RealmsDecorateCorridorsDeterministicallyAndOrientWallsInward()
+	public async Task EachRealmBuildsItsOwnConnectedFloorWithDeterministicInwardCorridors()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
 		var generator = level.MapGenerator;
+		for (uint depth = 1; depth <= 9; depth++)
+			AssertInt(generator.Realms.Count(realm => realm.Covers(depth))).OverrideFailureMessage($"depth {depth}: realms").IsEqual(1);
+		string failure = "";
+		level.GenerationFailed += error => failure = error;
 
 		foreach (uint depth in new uint[] { 2, 5, 8 })
 		{
 			level.ConfigureGeneration(new RunState(77), depth, null, null);
+			failure = "";
 			level.Generate();
+			AssertString(failure).OverrideFailureMessage($"depth {depth}: {failure}").IsEmpty();
+			AssertRealmFloor(generator, depth);
 
 			var corridorRoot = generator.GetNodeOrNull<Node3D>("CorridorProps");
 			AssertObject(corridorRoot).OverrideFailureMessage($"depth {depth}: CorridorProps missing").IsNotNull();
 			var children = corridorRoot.GetChildren().OfType<Node3D>().ToArray();
 			AssertBool(children.Length > 0).OverrideFailureMessage($"depth {depth}: no corridor props placed").IsTrue();
 
-			var propIds = children.Select(node => node.GetMeta("prop_id", "").AsString()).ToArray();
-			AssertBool(propIds.Any(id => id.Contains("torch") || id.Contains("sconce")))
-				.OverrideFailureMessage($"depth {depth}: expected corridor light fixtures").IsTrue();
-			AssertBool(propIds.Any(id => id.Contains("passageway") || id.Contains("banner") || id.Contains("shield") || id.Contains("shackles") || id.Contains("rack") || id.Contains("trophy") || id.Contains("shelf")))
-				.OverrideFailureMessage($"depth {depth}: expected corridor passageways or wall decor").IsTrue();
+			static bool Lights(Node node) => node is LightFixture || node.FindChildren("*", "", true, false).OfType<LightFixture>().Any();
+			AssertBool(children.Any(Lights)).OverrideFailureMessage($"depth {depth}: expected corridor light fixtures").IsTrue();
+			AssertBool(children.Any(node => !Lights(node))).OverrideFailureMessage($"depth {depth}: expected corridor passageways or wall decor").IsTrue();
 
 			AssertInwardCorridorWalls(generator, depth);
 
@@ -150,8 +139,26 @@ public class CorridorDecorationTest
 					.IsTrue();
 			}
 
-			await runner.SimulateFrames(1);
+			await runner.SimulateFrames(1, 20);
 		}
+	}
+
+	/// <summary>The floor's rooms all belong to its realm, its corridors use the realm's floor tiles and the floor connects.</summary>
+	private static void AssertRealmFloor(MapGenerator generator, uint depth)
+	{
+		string label = $"depth {depth}";
+		var realm = generator.CurrentRealm;
+		var rooms = generator.FloorContent.GetChildren().OfType<Room>().Where(room => room.Type != null).ToArray();
+		AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Realms.Contains(realm.Id)))
+			.OverrideFailureMessage($"{label}: rooms outside the {realm.Id} realm").IsTrue();
+		AssertArray(TestFactories.ConnectivityFailures(generator).ToArray()).OverrideFailureMessage(label).IsEmpty();
+		var corridors = realm.Corridors.Floor;
+		var map = generator.Map;
+		var foreign = Enumerable.Range(0, map.Width).SelectMany(x => Enumerable.Range(0, map.Height).Select(z => new Vector2I(x, z)))
+			.Where(tile => map.IsCorridor(tile.X, tile.Y))
+			.Select(tile => generator.FloorGridMap.GetCellItem(map.TileToWorld(tile.X, tile.Y)))
+			.Where(item => item >= 0 && !corridors.Large.ContainsKey(generator.FloorGridMap.MeshLibrary.GetItemName(item)));
+		AssertBool(foreign.Any()).OverrideFailureMessage($"{label}: corridor tiles from another realm").IsFalse();
 	}
 
 	private static void AssertInwardCorridorWalls(MapGenerator generator, uint depth)

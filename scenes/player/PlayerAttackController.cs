@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 /// <summary>
 /// Controls player combat attacks by coordinating equipped weapons with the animation-synchronized AttackController.
@@ -152,6 +153,11 @@ public partial class PlayerAttackController : AttackController
 		duration *= step?.DurationScale ?? 1;
 		var contact = isSpecial ? (weapon?.GetEffectiveSecondaryMeleeContact(SpecialMeleeContact) ?? SpecialMeleeContact) : weapon?.MeleeContact;
 		if (!TryPrepareAttack(definition, style, duration, out attack, contact)) return false;
+		if (weapon?.OnHitStatuses is { Length: > 0 } weaponStatuses)
+		{
+			if (!PreparedHitStatus.TryCapture(weaponStatuses, out var captured)) return false;
+			attack = attack with { OnHitStatuses = (attack.OnHitStatuses ?? []).Concat(captured).ToArray() };
+		}
 		if (attack.Feedback == null)
 		{
 			var profile = isSpecial ? SecondaryFeedbackProfile : PrimaryFeedbackProfile;
@@ -200,7 +206,7 @@ public partial class PlayerAttackController : AttackController
 		_activeWeapon = focus;
 		_activeOffhandWeapon = null;
 		_aimAssistTarget = null;
-		if (!StartAttack(attack, attack.Spell.Power.Hit, 24, lease)) return false;
+		if (!StartAttack(attack, attack.Spell.Context.Power.Hit, 24, lease)) return false;
 		ResetCombo();
 		return true;
 	}
