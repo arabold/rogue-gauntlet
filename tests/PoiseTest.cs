@@ -47,7 +47,6 @@ public class PoiseTest
 		poise.Restore();
 		var hurtbox = new HurtBoxComponent { HealthComponent = health, MovementComponent = movement, Poise = poise, DamageFilter = DamageSourceFlags.All };
 		foreach (Node node in new Node[] { gate, movement, health, poise, hurtbox }) actor.AddChild(node);
-		health.Owner = actor; // as in a saved scene; death reports name the owner
 		return (hurtbox, gate, movement, health);
 	}
 

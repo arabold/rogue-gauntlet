@@ -92,7 +92,7 @@ public partial class HealthComponent : Node
 
 	private void Die()
 	{
-		GD.Print($"{GetOwner().Name} has died.");
+		GD.Print($"{GetOwner()?.Name ?? Name} has died.");
 		EmitSignalDied();
 	}
 }
