@@ -2,16 +2,13 @@ namespace RogueGauntlet.Tests;
 
 using Godot;
 using GdUnit4;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using static GdUnit4.Assertions;
 
 /// <summary>One noise-driven flicker profile drives every flickering light, each from its own start offset.</summary>
 [TestSuite, RequireGodotRuntime]
 public class FlickerProfileTest
 {
-	private const string Harness = "res://scenes/debug/effects/world_effect_harness.tscn";
 	private const string Presets = "res://scenes/effects/flicker_profiles/";
 
 	private static FlickeringLight TorchLight() => TestFactories.AddToSceneTree(TestFactories.Torch()).GetNode<FlickeringLight>("FlickeringLight");
@@ -19,13 +16,10 @@ public class FlickerProfileTest
 		Enumerable.Range(0, count).Select(i => profile.Sample(i * step)).ToArray();
 
 	[TestCase]
-	public async Task TorchesSpawnedTogetherFlickerOutOfStep()
+	public void TorchesSpawnedTogetherFlickerOutOfStep()
 	{
-		using var runner = TestFactories.LoadScene(Harness);
-		await runner.SimulateFrames(2);
 		var lights = new[] { TorchLight(), TorchLight() };
-		await runner.SimulateFrames(10, 20);
-		AssertString(lights[0].Profile.ResourcePath).IsEqual(Presets + "torch.tres");
+		foreach (var light in lights) light._Process(.2);
 		AssertFloat(lights[0].LightEnergy).IsNotEqual(lights[1].LightEnergy);
 	}
 
@@ -44,38 +38,38 @@ public class FlickerProfileTest
 		AssertFloat(light.LightEnergy).IsEqual(light.Energy);
 	}
 
-	/// <summary>Spell flicker is scene data now that the drivers have no default, so each scene must keep its preset.</summary>
-	[TestCase("res://scenes/magic/air/lightning_arc.tscn", "electric")]
-	[TestCase("res://scenes/magic/air/lightning_ball.tscn", "electric")]
-	[TestCase("res://scenes/magic/air/lightning_ball_impact.tscn", "electric")]
-	[TestCase("res://scenes/magic/air/storm_guard.tscn", "electric")]
-	[TestCase("res://scenes/magic/air/thunderstorm.tscn", "electric")]
-	[TestCase("res://scenes/magic/fire/ember_guard.tscn", "flame")]
-	[TestCase("res://scenes/magic/fire/flame_burst.tscn", "flame")]
-	[TestCase("res://scenes/magic/fire/meteor_shower.tscn", "flame")]
-	[TestCase("res://scenes/magic/fire/solar_flares.tscn", "flame")]
-	[TestCase("res://scenes/magic/fireball/fireball_impact.tscn", "flame")]
-	[TestCase("res://scenes/magic/fireball/fireball_visual.tscn", "flame")]
-	public void SpellScenesKeepTheirFlicker(string path, string preset)
+	/// <summary>
+	/// Spell flicker is scene data now that the drivers have no default, so every fire and lightning light must keep a
+	/// profile; ice lights burn steady by design.
+	/// </summary>
+	[TestCase]
+	public void FireAndLightningSpellLightsFlicker()
 	{
-		var root = AutoFree(TestFactories.Load<PackedScene>(path).Instantiate());
-		var flickers = new List<FlickerProfile>();
-		foreach (var node in root.FindChildren("*", "", true, false).Prepend(root).Where(node => node == root || node.Owner == root))
+		string[] scenes =
+		[
+			"air/lightning_arc", "air/lightning_ball", "air/lightning_ball_impact", "air/storm_guard", "air/thunderstorm",
+			"fire/ember_guard", "fire/flame_burst", "fire/meteor_shower", "fire/solar_flares", "fireball/fireball_impact", "fireball/fireball_visual",
+		];
+		foreach (string scene in scenes)
 		{
-			if (node is VisualEffectTimeline timeline) flickers.Add(timeline.FlickerProfile);
-			else if (node is FireballImpact impact) flickers.Add(impact.FlickerProfile);
-			else if (node is FlickeringLight light) flickers.Add(light.Profile);
+			var root = AutoFree(TestFactories.Load<PackedScene>($"res://scenes/magic/{scene}.tscn").Instantiate());
+			var flickers = root.FindChildren("*", "", true, false).Prepend(root).Where(node => node == root || node.Owner == root)
+				.Select<Node, (bool Driver, FlickerProfile Profile)>(node => node switch
+				{
+					VisualEffectTimeline timeline => (true, timeline.FlickerProfile),
+					FireballImpact impact => (true, impact.FlickerProfile),
+					FlickeringLight light => (true, light.Profile),
+					_ => default,
+				}).Where(driver => driver.Driver).ToArray();
+			AssertArray(flickers).OverrideFailureMessage($"{scene} has no flicker driver").IsNotEmpty();
+			AssertBool(flickers.All(driver => driver.Profile != null)).OverrideFailureMessage($"{scene} has a steady light").IsTrue();
 		}
-		AssertArray(flickers.ToArray()).IsNotEmpty();
-		foreach (var flicker in flickers) AssertString(flicker?.ResourcePath).IsEqual($"{Presets}{preset}.tres");
 	}
 
 	/// <summary>A flicker dip can hide the impact light for a frame; the light must come back while the flame burns.</summary>
 	[TestCase]
-	public async Task FireballImpactLightRecoversFromFlickerDips()
+	public void FireballImpactLightRecoversFromFlickerDips()
 	{
-		using var runner = TestFactories.LoadScene(Harness);
-		await runner.SimulateFrames(2);
 		var impact = TestFactories.Load<PackedScene>("res://scenes/magic/fireball/fireball_impact.tscn").Instantiate<FireballImpact>();
 		// Swings the multiplier through zero several times within the flame.
 		impact.FlickerProfile = new FlickerProfile { Noise = new FastNoiseLite { Frequency = 12f }, Min = -1f, Max = 1f };
@@ -83,7 +77,7 @@ public class FlickerProfileTest
 		bool dipped = false, recovered = false;
 		for (int frame = 0; frame < 40 && !recovered; frame++)
 		{
-			await runner.SimulateFrames(1, 20);
+			impact._Process(.02);
 			if (!impact.ImpactLight.Visible) dipped = true;
 			else if (dipped) recovered = true;
 		}

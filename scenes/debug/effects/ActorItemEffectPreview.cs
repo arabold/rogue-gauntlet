@@ -108,8 +108,9 @@ public partial class ActorItemEffectPreview : Node3D
 	private void ApplySurfaceStyle()
 	{
 		if (_subject == null || !_facetChoice.Visible) return;
+		// Runtime meshes such as the dodge ribbon have no mesh while idle.
 		foreach (var mesh in _subject.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
-			for (int i = 0; i < mesh.Mesh.GetSurfaceCount(); i++)
+			for (int i = 0; i < (mesh.Mesh?.GetSurfaceCount() ?? 0); i++)
 				if (mesh.GetActiveMaterial(i) is ShaderMaterial material && material.GetShaderParameter("skin_kind").VariantType == Variant.Type.Int)
 				{ material.SetShaderParameter("faceted", _faceted); material.SetShaderParameter("polish", _polished ? 1f : 0f); }
 	}

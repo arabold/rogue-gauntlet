@@ -31,7 +31,7 @@ public partial class FrostNovaCombatTest
 		var immune = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Immune");
 		var lethal = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, 2), "Lethal");
 		var guarded = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, -2), "Guarded");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(immune); TestFactories.PrepareCombatMonster(lethal); TestFactories.PrepareCombatMonster(guarded);
 		var frost = harness.GetSpell<FrostNovaSpell>();
 		immune.HurtBoxComponent.Invulnerable = true;
@@ -54,7 +54,7 @@ public partial class FrostNovaCombatTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		harness.Player.GlobalPosition = Vector3.Zero;
 		var monster = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Monster");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(monster);
 		var random = new RandomNumberGenerator { Seed = 3 };
 		var frost = harness.GetSpell<FrostNovaSpell>();
@@ -84,7 +84,7 @@ public partial class FrostNovaCombatTest
 		harness.Player.GlobalPosition = Vector3.Zero;
 		var first = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "AFirst");
 		var second = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, 2), "BSecond");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
 		var frost = harness.GetSpell<FrostNovaSpell>();
 		first.BuffController.BuffsChanged += () =>
@@ -106,7 +106,7 @@ public partial class FrostNovaCombatTest
 		harness.Player.GlobalPosition = Vector3.Zero;
 		harness.Player.HurtBoxComponent.Armor = 0;
 		var monster = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Caster");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(monster);
 		float before = harness.Player.HealthComponent.CurrentHealth;
 		var frost = harness.GetSpell<FrostNovaSpell>();

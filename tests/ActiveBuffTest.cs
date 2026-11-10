@@ -97,7 +97,7 @@ public partial class ActiveBuffTest
 	}
 
 	[TestCase]
-	public void ExpiryRemovesTheBuffOnceAndStops()
+	public void ExpiryRemovesTheBuffOnceAndLaterRemovalsDoNothing()
 	{
 		var buff = new CountingPeriodicBuff { Duration = 1f, TicksPerSecond = 10f };
 		var active = AutoFree(new ActiveBuff());
@@ -107,22 +107,10 @@ public partial class ActiveBuffTest
 		int ticksAtExpiry = buff.TickCount;
 		AssertInt(buff.RemoveCount).IsEqual(1);
 
-		// Further processing after removal is a no-op: no extra ticks, no second removal.
+		// Further processing or an explicit removal after expiry is a no-op: no extra ticks, no second removal.
 		active._PhysicsProcess(2.0);
+		active.Deactivate();
 		AssertInt(buff.TickCount).IsEqual(ticksAtExpiry);
-		AssertInt(buff.RemoveCount).IsEqual(1);
-	}
-
-	[TestCase]
-	public void DeactivateIsIdempotent()
-	{
-		var buff = new CountingPeriodicBuff { Duration = 5f, TicksPerSecond = 1f };
-		var active = AutoFree(new ActiveBuff());
-		active.Initialize(null, buff);
-
-		active.Deactivate();
-		active.Deactivate();
-
 		AssertInt(buff.RemoveCount).IsEqual(1);
 	}
 
