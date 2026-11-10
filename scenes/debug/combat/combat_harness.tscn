@@ -315,12 +315,6 @@ layout_mode = 2
 text = "Combat effects"
 button_pressed = true
 
-[node name="Moving" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-text = "Move practice target"
-button_pressed = false
-
 [node name="SlowMotion" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Slow motion (¼ speed)"
@@ -339,20 +333,6 @@ theme_override_font_sizes/font_size = 15
 layout_mode = 2
 autowrap_mode = 2
 text = "Combat outcomes appear here."
-
-[node name="TraceFrames" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-text = "Record actor state each frame"
-button_pressed = true
-tooltip_text = "Include position, health, action and defense timers in the combat trace."
-
-[node name="TraceConsole" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-text = "Echo JSON to console"
-button_pressed = false
-tooltip_text = "Print structured combat records to the Godot output console."
 
 [node name="CombatTraceRecorder" type="Node" parent="."]
 script = ExtResource("recorder")

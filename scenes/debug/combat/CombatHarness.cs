@@ -451,6 +451,7 @@ public partial class CombatHarness : CanvasLayer
 		{
 			dummy.Movement?.Stop();
 			dummy.Movement?.Push(Vector3.Zero, 0);
+			dummy.ActionGate?.ResetForSimulation(); // Ends a stagger, so the restored dummy no longer takes punish damage.
 			dummy.HurtBox?.Poise?.Restore();
 		}
 		if (GodotObject.IsInstanceValid(_monster) && !_monster.IsDead)
