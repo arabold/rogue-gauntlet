@@ -53,6 +53,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat redesign](specs/combat-redesign-plan.md) | Warden phases, swings and Tremor slam are implemented; a guard-breaking attack, guard walking and open tuning risks remain |
 | [Monster action architecture](specs/monster-action-architecture-plan.md) | Landed; dodge on the dash component, editor badges, phase content and spell cast validation remain |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
+| [Shared debug toolkit](specs/debug-toolkit-plan.md) | Proposed debug-menu tools shared by the game and every harness, an arena world contract, path-based harness scenarios, hero build presets and retiring duplicate harnesses |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 
