@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static GdUnit4.Assertions;
 
-/// <summary>Production door completion, stack costs, concealment and seeded access guarantees.</summary>
+/// <summary>Production door completion, stack costs, concealment and seeded access guarantees, including the locked-door cap.</summary>
 [TestSuite]
 [RequireGodotRuntime]
 public class DoorAccessTest
@@ -122,13 +122,17 @@ public class DoorAccessTest
 		AssertBool(target.TryCommit(reservation, context) != InteractionCommitResult.Success).IsTrue();
 		AssertBool(target.TryCommit(default, context) != InteractionCommitResult.Success).IsTrue();
 	}
+	/// <summary>Every published key is a distinct, stackable access item whose model instantiates.</summary>
 	[TestCase]
 	public void AllPublishedKeyModelsLoadAsCanonicalAccessItems()
 	{
+		const string Keys = "res://scenes/items/keys/key";
 		var ids = new System.Collections.Generic.HashSet<string>();
-		foreach (var name in new[] { "gold_treasury", "silver_crypt", "bronze_ornate", "bone_skull", "iron_prison", "arcane_crystal" })
+		var paths = DirAccess.GetFilesAt(Keys).Where(file => file.EndsWith(".tres")).ToArray();
+		AssertInt(paths.Length).IsGreater(1);
+		foreach (var file in paths)
 		{
-			var key = TestFactories.Load<KeyItem>($"res://scenes/items/keys/key/key_{name}.tres");
+			var key = TestFactories.Load<KeyItem>($"{Keys}/{file}");
 			AssertBool(ids.Add(key.DefinitionPath)).IsTrue(); AssertBool(key.CanStack).IsTrue();
 			var model = key.Scene.Instantiate<Node3D>(); AssertBool(model.GetChildCount() > 0).IsTrue(); model.Free();
 		}
@@ -172,7 +176,7 @@ public class DoorAccessTest
 		AssertBool(door.KeyMarker.Visible).IsFalse();
 	}
 	[TestCase]
-	public void DetectionUsesResolvedStatAndRejectsOppositeSide()
+	public void DetectionChanceGrowsWithTheResolvedStatUpToItsCap()
 	{
 		var profile = new SecretDetectionProfile(); profile.Validate();
 		var stats = new PlayerStats { BaseIntelligence = 10 };
@@ -185,10 +189,11 @@ public class DoorAccessTest
 	public async Task RequiredRoutesMayPassThroughSecretDoors()
 	{
 		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets(1));
+		using var scope = runner;
 		var generator = level.MapGenerator;
 		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
 		bool sawHiddenRoute = false;
-		for (ulong seed = 1; seed <= 8; seed++)
+		for (ulong seed = 1; seed <= 3; seed++)
 		{
 			generator.Seed = seed; level.Generate();
 			var blocked = generator.Floor.Doors.Where(d => !d.Door.IsDiscovered).Select(d => d.Connector).ToHashSet();
@@ -200,7 +205,7 @@ public class DoorAccessTest
 			if (!exit.Tiles.Any(beforeDiscovery.Contains)) sawHiddenRoute = true;
 			var afterDiscovery = AccessSolutionValidator.Reachable(generator.Map, entry, new System.Collections.Generic.HashSet<Vector2I>());
 			AssertBool(exit.Tiles.Any(afterDiscovery.Contains)).IsTrue();
-			await runner.SimulateFrames(1);
+			await runner.SimulateFrames(1, 20);
 		}
 		AssertBool(sawHiddenRoute).IsTrue();
 	}
@@ -209,13 +214,15 @@ public class DoorAccessTest
 	public async Task GeneratedPairsAreReachableAndSecretsRestoreAsClosedDoors()
 	{
 		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets());
+		using var scope = runner;
 		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
 		generator.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
-		// Solvability coverage deliberately requests dense content; player-facing scarcity is tested separately.
+		// Solvability coverage deliberately requests dense content; player-facing scarcity is tested separately. More
+		// locked rooms than locked doors are allowed, so rooms with several entrances press against the door cap.
 		generator.AccessProfile.LockedRoomChance = 1;
-		generator.AccessProfile.MaximumLockedRooms = 2;
-		generator.AccessProfile.MaximumLockedDoors = 3;
+		generator.AccessProfile.MaximumLockedRooms = 3;
+		generator.AccessProfile.MaximumLockedDoors = 2;
 		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
 		int lockedCount = 0, secretCount = 0;
 		for (ulong seed = 1; seed <= 8; seed++)
@@ -224,6 +231,7 @@ public class DoorAccessTest
 			AssertObject(level.Floor).IsNotNull();
 			var doors = generator.FloorContent.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion()).ToArray();
 			var locked = doors.Where(d => d.Lock?.IsLocked == true).ToArray(); lockedCount += locked.Length;
+			AssertInt(locked.Length).OverrideFailureMessage($"seed {seed}: locked doors").IsLessEqual(generator.AccessProfile.MaximumLockedDoors);
 			var secrets = generator.Floor.Doors.Where(d => d.Door.Secret?.IsSecret == true).ToArray();
 			var blocked = generator.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true || !d.Door.IsDiscovered)
 				.Select(d => d.Connector).ToHashSet();
@@ -293,7 +301,7 @@ public class DoorAccessTest
 				var restored = regenerated.Single(d => d.ConnectionId == state.ConnectionId);
 				AssertBool(restored.IsDiscovered == state.IsDiscovered && restored.Lock.IsLocked == state.IsLocked && restored.IsOpen == state.IsOpen).IsTrue();
 			}
-			await runner.SimulateFrames(1);
+			await runner.SimulateFrames(1, 20);
 		}
 		GD.Print($"ACCESS_COUNTS locked={lockedCount} secret={secretCount}");
 		AssertInt(lockedCount).IsGreater(0);

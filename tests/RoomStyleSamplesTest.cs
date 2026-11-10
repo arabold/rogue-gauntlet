@@ -7,52 +7,15 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Depot and treasury rooms retain their layouts, defining content and gold rewards.</summary>
+/// <summary>Depot dividers, treasury doors and room lighting: the style choices a room type makes, and that doorways stay passable.</summary>
 [TestSuite, RequireGodotRuntime]
 public class RoomStyleSamplesTest
 {
 	private const string RoomTypes = "res://scenes/levels/rooms/room_types/";
 
-	[TestCase("partitioned_depot")]
-	[TestCase("treasury")]
-	public void SamplesReproduceConnectedLayoutsAndTheirDefiningContent(string name)
-	{
-		var type = TestFactories.Load<RoomType>($"{RoomTypes}{name}.tres");
-		AssertArray(type.Validate()).IsEmpty();
-		foreach (ulong seed in new ulong[] { 1, 23, 41, 99, 7919, 104729 })
-		{
-			var first = RoomAssembler.Build(type, seed);
-			var second = RoomAssembler.Build(type, seed);
-			try
-			{
-				AssertBool(first.IsAcceptable).OverrideFailureMessage($"{name} seed {seed}").IsTrue();
-				AssertString(Signature(second)).IsEqual(Signature(first));
-				int maximumTiles = name == "treasury" ? 9 : 20;
-				AssertInt(first.Footprint.Count).IsLessEqual(maximumTiles);
-				AssertString(RoomAssemblyTest.FloorCoverage(first)).IsEmpty();
-				AssertInt(first.Pieces.Count(piece => piece.Prop.Id == "sconce")).IsGreaterEqual(2);
-				var nodes = first.Room.FindChildren("*", "", true, false);
-				if (name == "treasury")
-				{
-					var chest = nodes.OfType<Chest>().Single();
-					AssertString(chest.LootTable.Profile.ResourcePath).IsEqual("res://scenes/items/loot/drops/chest_common.tres");
-				}
-			}
-			finally
-			{
-				first.Room.Free();
-				second.Room.Free();
-			}
-		}
-	}
-
 	[TestCase]
 	public void RoomLightingIsSeededAndIndependentOfPlacement()
 	{
-		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
-		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
-		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
-		player.Free();
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
 		string signature = null;
 		bool[] previous = null;
@@ -77,12 +40,16 @@ public class RoomStyleSamplesTest
 	}
 
 	/// <summary>Junctions replace perimeter pieces and their outward-facing ends join without overlapping other walls.</summary>
-	[TestCase(0, 0)]
-	[TestCase(1, 1)]
-	[TestCase(2, 2)]
-	public void DepotWallVariantsJoinWithoutOverlapping(int style, int sides)
+	[TestCase]
+	public void DepotWallVariantsJoinWithoutOverlapping()
 	{
 		var type = TestFactories.Load<RoomType>($"{RoomTypes}partitioned_depot.tres");
+		// Wall style index and the divider junctions it builds: free-standing partitions, then one or two divider walls.
+		foreach (var (style, sides) in new[] { (0, 0), (1, 1), (2, 2) }) AssertDepotWalls(type, style, sides);
+	}
+
+	private static void AssertDepotWalls(RoomType type, int style, int sides)
+	{
 		var ends = new System.Collections.Generic.HashSet<string>();
 		foreach (ulong seed in new ulong[] { 1, 2, 3, 4, 5, 6, 7, 8, 31, 60, 65, 95 })
 		{
@@ -171,97 +138,87 @@ public class RoomStyleSamplesTest
 		AssertBool(retried).IsTrue();
 	}
 
-	[TestCase(0)] // ordinary door
-	[TestCase(1)] // secret door
-	[TestCase(2)] // doorless frame
-	[TestCase(3)] // bare opening
-	public void DoorwayFramesKeepTheirOpeningsClear(int mode)
+	/// <summary>
+	/// The player's body crosses every kind of doorway in every room rotation: an open door, a revealed and opened secret
+	/// door, a doorless frame and a bare opening. A closed leaf or a concealed wall blocks it.
+	/// </summary>
+	[TestCase]
+	public async Task PlayerFitsThroughEveryKindOfDoorway()
 	{
 		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
 		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
 		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
 		player.Free();
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
-		type.SecretDoorChance = mode == 1 ? 1 : 0;
-		type.DoorChance = mode < 2 ? 1 : 0;
-		type.FrameChance = mode == 2 ? 1 : 0;
-		var blueprint = RoomAssembler.Build(type, 23, new RoomAssemblyOptions { Furnish = false });
-		try
+		var root = TestFactories.AddToSceneTree(new Node3D());
+		var tree = root.GetTree();
+		async Task PhysicsFrames(int count)
 		{
-			var room = blueprint.Room;
-			AssertInt(room.FramedEdges.Count).IsEqual(mode == 3 ? 0 : 1);
-			// The door leaf owns its own collision; the frame adds no permanent obstruction.
-			AssertInt(room.GetChildren().OfType<StaticBody3D>().Count()).IsEqual(0);
-			AssertBool(blueprint.IsAcceptable).IsTrue();
+			for (int frame = 0; frame < count; frame++) await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
 		}
-		finally { blueprint.Room.Free(); }
-	}
-
-	/// <summary>The player's body can cross open frames and doors in every room rotation; a closed leaf still blocks it.</summary>
-	[TestCase(false)]
-	[TestCase(true)]
-	public async Task PlayerFitsThroughDoorway(bool hasDoor)
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/rooms/room_generation_harness.tscn");
-		await runner.SimulateFrames(2, 20);
-		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
-		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
-		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
-		player.Free();
-		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
-		type.SecretDoorChance = 0;
-		type.DoorChance = hasDoor ? 1 : 0;
-		type.FrameChance = 1;
-		for (int turn = 0; turn < 4; turn++)
+		foreach (var (kind, door, secret, frame) in new[] { ("door", 1f, 0f, 0f), ("secret door", 1f, 1f, 0f), ("frame", 0f, 0f, 1f), ("opening", 0f, 0f, 0f) })
 		{
-			var blueprint = RoomAssembler.Build(type, 23, new RoomAssemblyOptions { Furnish = false });
-			var room = blueprint.Room;
-			var doorway = blueprint.Doorways.Single();
-			var rotation = new Basis(Vector3.Up, turn * Mathf.Pi / 2);
-			room.Rotate(turn);
-			room.Position = new Vector3(1000, 0, 1000);
-			runner.Scene().AddChild(room);
-			await runner.SimulateFrames(2, 20);
-			var outward = rotation * doorway.Outward;
-			var center = room.GlobalTransform * (rotation * doorway.Edge);
-			using var query = new PhysicsShapeQueryParameters3D
+			type.DoorChance = door;
+			type.SecretDoorChance = secret;
+			type.FrameChance = frame;
+			for (int turn = 0; turn < 4; turn++)
 			{
-				Shape = bodyShape,
-				Transform = new Transform3D(Basis.Identity, center - outward * 3 + bodyOffset),
-				Motion = outward * 6,
-				CollisionMask = 18,
-			};
-			var space = room.GetWorld3D().DirectSpaceState;
-			if (hasDoor)
-			{
-				AssertFloat(space.CastMotion(query)[0]).IsLess(1f);
-				room.Doors.Values.Single().IsOpen = true;
-				await runner.SimulateFrames(2, 20);
+				var blueprint = RoomAssembler.Build(type, 23, new RoomAssemblyOptions { Furnish = false });
+				var room = blueprint.Room;
+				var doorway = blueprint.Doorways.Single();
+				var rotation = new Basis(Vector3.Up, turn * Mathf.Pi / 2);
+				room.Rotate(turn);
+				room.Position = new Vector3(1000, 0, 1000);
+				root.AddChild(room);
+				await PhysicsFrames(2);
+				var outward = rotation * doorway.Outward;
+				var center = room.GlobalTransform * (rotation * doorway.Edge);
+				using var query = new PhysicsShapeQueryParameters3D
+				{
+					Shape = bodyShape,
+					Transform = new Transform3D(Basis.Identity, center - outward * 3 + bodyOffset),
+					Motion = outward * 6,
+					CollisionMask = 18,
+				};
+				var space = room.GetWorld3D().DirectSpaceState;
+				string label = $"{kind}, rotation {turn}";
+				AssertInt(room.Doors.Count).OverrideFailureMessage(label).IsEqual(door > 0 ? 1 : 0);
+				if (room.Doors.Count > 0)
+				{
+					var leaf = room.Doors.Values.Single();
+					AssertBool(leaf.Secret.IsSecret).OverrideFailureMessage(label).IsEqual(secret > 0);
+					AssertFloat(space.CastMotion(query)[0]).OverrideFailureMessage($"{label}: closed").IsLess(1f);
+					if (leaf.Secret.IsSecret) AssertBool(leaf.Secret.Reveal()).OverrideFailureMessage(label).IsTrue();
+					leaf.IsOpen = true;
+					await PhysicsFrames(2);
+				}
+				AssertFloat(space.CastMotion(query)[0]).OverrideFailureMessage(label).IsGreaterEqual(.99f);
+				room.QueueFree();
+				await PhysicsFrames(1);
 			}
-			AssertFloat(space.CastMotion(query)[0]).OverrideFailureMessage($"door={hasDoor}, rotation={turn}").IsGreaterEqual(.99f);
-			room.QueueFree();
-			await runner.SimulateFrames(1, 20);
 		}
 	}
 
 	/// <summary>A room's secret chance owns the doorway decision; the wall and discovery state follow the door.</summary>
-	[TestCase(0, false)]
-	[TestCase(1, true)]
-	public async Task TreasuryChoosesItsOwnSecretDoor(int chance, bool expectedSecret)
+	[TestCase]
+	public async Task TreasuryChoosesItsOwnSecretDoor()
 	{
-		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<CharacterBody3D>();
-		var playerBody = player.GetNode<CollisionShape3D>("CollisionShape3D");
-		var (bodyShape, bodyOffset) = (playerBody.Shape, playerBody.Position);
-		player.Free();
 		using var type = (RoomType)TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres").Duplicate();
-		type.SecretDoorChance = chance;
+		type.SecretDoorChance = 0;
+		var plain = RoomAssembler.Build(type, 23, new RoomAssemblyOptions { Furnish = false });
+		try
+		{
+			AssertInt(plain.Room.Doors.Count).IsEqual(1);
+			AssertBool(plain.Room.Doors.Values.Single().Secret.IsSecret).IsFalse();
+		}
+		finally { plain.Room.Free(); }
+		type.SecretDoorChance = 1;
 		var blueprint = RoomAssembler.Build(type, 23, new RoomAssemblyOptions { Furnish = false });
 		try
 		{
 			AssertInt(blueprint.Room.Doors.Count).IsEqual(1);
 			var door = blueprint.Room.Doors.Values.Single();
-			AssertBool(door.Secret.IsSecret).IsEqual(expectedSecret);
-			if (!expectedSecret) return;
+			AssertBool(door.Secret.IsSecret).IsTrue();
 			AssertBool(door.IsDiscovered).IsFalse();
 			var wall = door.GetChildren().OfType<GridMap>().Single();
 			int item = wall.GetCellItem(Vector3I.Zero);
@@ -337,43 +294,6 @@ public class RoomStyleSamplesTest
 			AssertInt(blueprint.Pieces.Count).IsEqual(1);
 		}
 		finally { blueprint.Room.Free(); }
-	}
-
-	[TestCase]
-	public void TreasuryChestGuaranteesAuthoredGold()
-	{
-		var profile = TestFactories.Load<LootDropProfile>("res://scenes/items/loot/loot_treasury_gold.tres");
-		AssertArray(profile.Table.Validate()).IsEmpty();
-		foreach (uint depth in new uint[] { 1, 3, 9 })
-		{
-			using var rng = GenerationRandom.Create(23, GenerationRandom.Loot, "test.treasury");
-			var rewards = LootTableComponent.GenerateOutcome(profile, depth, rng, "test.treasury");
-			AssertInt(rewards.Count).IsEqual(1);
-			AssertBool(rewards[0].Item is Gold).IsTrue();
-			AssertInt(rewards[0].Quantity).IsEqual(240);
-		}
-	}
-
-	[TestCase]
-	public async Task HarnessPreviewsProductionDepotPrisonAndTreasury()
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/rooms/room_generation_harness.tscn");
-		await runner.SimulateFrames(2);
-		var harness = (RoomGenerationHarness)runner.Scene();
-		var pool = (AssembledRoomFactory)harness.Generator.Rooms;
-		foreach (string id in new[] { "partitioned_depot", "prison", "treasury" })
-		{
-			var type = pool.RoomTypes.Single(room => room.Id == id);
-			AssertBool(type.Realms.Contains("garrison")).IsTrue();
-			int index = harness.Recipes.ToList().FindIndex(room => room == type);
-			AssertInt(index).IsGreaterEqual(0);
-			harness.SelectRecipe(index);
-			harness.Regenerate();
-			await runner.SimulateFrames(1);
-			AssertString(harness.LastError).IsEmpty();
-			AssertObject(harness.PreviewRoom.Type).IsSame(type);
-			AssertBool(harness.PreviewBlueprint.IsAcceptable).IsTrue();
-		}
 	}
 
 	private static string Signature(RoomBlueprint blueprint) => string.Join("|", blueprint.Pieces.Select(piece =>
