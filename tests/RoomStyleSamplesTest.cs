@@ -273,6 +273,26 @@ public class RoomStyleSamplesTest
 		AssertInt(secrets).IsLess(20);
 	}
 
+	/// <summary>The treasury's chest is the room's reward: whatever the seed or depth, opening it yields gold and nothing else.</summary>
+	[TestCase]
+	public void TreasuryChestAlwaysHoldsGold()
+	{
+		var blueprint = RoomAssembler.Build(TestFactories.Load<RoomType>($"{RoomTypes}treasury.tres"), 23);
+		try
+		{
+			var profile = blueprint.Room.FindChildren("*", "", true, false).OfType<Chest>().Single().LootTable.Profile;
+			foreach (uint depth in new uint[] { 1, 3, 9 })
+				for (ulong seed = 1; seed <= 3; seed++)
+				{
+					using var rng = GenerationRandom.Create(seed, GenerationRandom.Loot, "test.treasury");
+					var rewards = LootTableComponent.GenerateOutcome(profile, depth, rng, "test.treasury");
+					AssertInt(rewards.Count).IsEqual(1);
+					AssertBool(rewards[0].Item is Gold && rewards[0].Quantity > 0).IsTrue();
+				}
+		}
+		finally { blueprint.Room.Free(); }
+	}
+
 	[TestCase]
 	public void RequiredGroupMemberRollsBackTheAnchorWhenItCannotFit()
 	{

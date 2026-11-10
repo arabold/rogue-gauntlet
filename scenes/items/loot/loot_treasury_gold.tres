@@ -1,12 +1,16 @@
-[gd_resource type="Resource" script_class="LootDropProfile" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="LootTable" load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://scenes/components/LootDropProfile.cs" id="profile"]
-[ext_resource type="Resource" path="res://scenes/items/loot/drops/treasury_gold.tres" id="table"]
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" path="res://scenes/items/gold/gold.tres" id="gold"]
+
+[sub_resource type="Resource" id="gold"]
+script = ExtResource("entry")
+Item = ExtResource("gold")
+Quantity = 240
+metadata/_custom_type_script = ExtResource("entry")
 
 [resource]
-script = ExtResource("profile")
-Table = ExtResource("table")
-Chance = 1.0
-CountMin = 1
-CountMax = 1
-metadata/_custom_type_script = ExtResource("profile")
+script = ExtResource("table")
+Items = [SubResource("gold")]
+metadata/_custom_type_script = ExtResource("table")
