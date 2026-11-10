@@ -58,7 +58,7 @@ custom_minimum_size = Vector2(0, 32)
 theme_override_constants/separation = 8
 script = ExtResource("1_debug_menu")
 SpawnPolicy = ExtResource("2_quality_rules")
-SpawnSpells = ExtResource("3_spells")
+CastSpells = ExtResource("3_spells")
 
 [node name="DebugMenuButton" type="MenuButton" parent="."]
 unique_name_in_owner = true

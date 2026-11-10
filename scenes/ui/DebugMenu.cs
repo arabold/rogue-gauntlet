@@ -27,9 +27,10 @@ public partial class DebugMenu : HBoxContainer
 
 	/// <summary>
 	/// Category label to res:// folder the "Spawn item" submenu is built from. Every
-	/// top-level <c>.tres</c> in a folder is offered for spawning, grouped under its label —
+	/// <c>.tres</c> in a folder or its subfolders is offered for spawning, grouped under its label —
 	/// add a folder here once and every item authored into it shows up automatically, instead
 	/// of hand-listing every item (which silently drifts out of sync as new items are added).
+	/// Spell weapons are the exception: they get the <see cref="SpellWeaponCategories"/> submenus.
 	/// </summary>
 	[Export]
 	public Godot.Collections.Dictionary<string, string> SpawnableCategories { get; set; } = new()
@@ -46,33 +47,45 @@ public partial class DebugMenu : HBoxContainer
 	};
 
 	/// <summary>
+	/// Spell weapons are authored among the other weapons but listed in their own submenus, right
+	/// after the folder they are found in: one-handed wands apart from the stronger two-handed staves.
+	/// </summary>
+	private static readonly (string Label, System.Func<Item, bool> Matches)[] SpellWeaponCategories =
+	[
+		("Wands", item => item is MagicStaff { IsTwoHanded: false }),
+		("Staves", item => item is MagicStaff { IsTwoHanded: true }),
+	];
+
+	/// <summary>
 	/// Creation policy (quality ladder and curse penalties) for the "Spawn quality" picker. Without it the picker is
-	/// unavailable and equipment spawns as authored: Normal at scale 1. Affixes come from each definition's roll table.
+	/// unavailable and equipment spawns exactly as saved. Affixes come from each definition's roll table.
 	/// </summary>
 	[Export] public ItemCreationPolicy SpawnPolicy { get; set; }
 
-	/// <summary>Spells for the "Spawn spell" picker; without it the picker is unavailable.</summary>
-	[Export] public SpellPool SpawnSpells { get; set; }
+	/// <summary>Spells the "Cast spell" submenu casts straight from the player; without it the submenu is unavailable.</summary>
+	[Export] public SpellPool CastSpells { get; set; }
 
 	/// <summary>Gameplay floor controlled by this menu, explicitly wired by the containing scene.</summary>
 	[Export] public Level ActiveLevel { get; set; }
 	private NavigationDebugOverlay _navigationOverlay;
 
-	private readonly List<Item> _spawnableItems = [];
+	/// <summary>What each "Spawn item" entry creates: a definition and, for a wand or staff, the spell it carries.</summary>
+	private readonly List<(Item Definition, SpellDefinition Spell)> _spawnables = [];
+	/// <summary>What each "Cast spell" entry casts.</summary>
+	private readonly List<(SpellDefinition Spell, int Level)> _castables = [];
 
 	private Label _fpsLabel;
 	private MenuButton _menuButton;
 	private PopupMenu _debugMenu;
 	private PopupMenu _spawnItemMenu;
 	private PopupMenu _spawnQualityMenu;
-	private PopupMenu _spawnSpellMenu;
-	/// <summary>Spell bound to spawned wands and staves; null keeps the authored or rolled spell.</summary>
-	private SpellDefinition _spawnSpell;
-	/// <summary>Quality stamped onto spawned equipment; null spawns it as authored.</summary>
+	private PopupMenu _castSpellMenu;
+	/// <summary>Quality forced onto spawned equipment; null rolls it like a drop at the current depth.</summary>
 	private ItemQuality? _spawnQuality;
 	/// <summary>Whether spawned equipment is cursed, with its curse status still unknown.</summary>
 	private bool _spawnCursed;
 	private const int SpawnCursedId = 100;
+	private const int SpawnRandomQualityId = 101;
 	private ConfirmationDialog _replayDialog;
 	private LineEdit _replaySeedInput;
 	private bool _debugMeshesEnabled;
@@ -92,7 +105,7 @@ public partial class DebugMenu : HBoxContainer
 		_debugMenu = _menuButton.GetPopup();
 		_spawnItemMenu = new PopupMenu { Name = "SpawnItemMenu" };
 		_spawnQualityMenu = new PopupMenu { Name = "SpawnQualityMenu" };
-		_spawnSpellMenu = new PopupMenu { Name = "SpawnSpellMenu" };
+		_castSpellMenu = new PopupMenu { Name = "CastSpellMenu" };
 
 		BuildMenu();
 		SetDebugMeshesEnabled(false);
@@ -156,11 +169,12 @@ public partial class DebugMenu : HBoxContainer
 		{
 			GD.PushError("DebugMenu: SpawnPolicy needs a quality ladder.");
 		}
-		if (SpawnSpells != null)
+		if (CastSpells != null)
 		{
-			BuildSpawnSpellMenu();
-			_debugMenu.AddChild(_spawnSpellMenu);
-			_debugMenu.AddSubmenuNodeItem("Spawn spell", _spawnSpellMenu);
+			BuildCastSpellMenu();
+			_debugMenu.AddSeparator();
+			_debugMenu.AddChild(_castSpellMenu);
+			_debugMenu.AddSubmenuNodeItem("Cast spell", _castSpellMenu);
 		}
 
 		SetChecked(ToggleCombatLogsId, GameDebug.CombatLogsEnabled);
@@ -172,54 +186,105 @@ public partial class DebugMenu : HBoxContainer
 
 	/// <summary>
 	/// Builds one submenu per <see cref="SpawnableCategories"/> entry, populated by scanning
-	/// its folder. IDs are indices into <see cref="_spawnableItems"/>, shared across every
-	/// category submenu so a single <see cref="OnSpawnItemPressed"/> handler covers all of them.
+	/// its folder, plus the <see cref="SpellWeaponCategories"/> split out of them. IDs are indices
+	/// into <see cref="_spawnables"/>, shared across every category submenu so a single
+	/// <see cref="OnSpawnItemPressed"/> handler covers all of them.
 	/// </summary>
 	private void BuildSpawnItemMenu()
 	{
-		_spawnableItems.Clear();
+		_spawnables.Clear();
 
+		var categories = new List<(string Label, IEnumerable<(Item Item, string Path)> Entries)>();
 		foreach (var (label, directory) in SpawnableCategories)
 		{
-			var entries = LoadItemsInDirectory(directory)
-				.OrderBy(e => e.Item.Name, System.StringComparer.Ordinal)
-				.ThenBy(e => (e.Item as EquipableItem)?.Tier ?? 0)
-				.ThenBy(e => e.Path, System.StringComparer.Ordinal)
-				.ToList();
-			if (entries.Count == 0)
-			{
-				continue;
-			}
+			var entries = LoadItemsInDirectory(directory);
+			categories.Add((label, entries.Where(e => e.Item is not MagicStaff)));
+			categories.AddRange(SpellWeaponCategories.Select(c => (c.Label, entries.Where(e => c.Matches(e.Item)))));
+		}
 
-			var categoryMenu = new PopupMenu { Name = $"Spawn{label}Menu" };
-			string[] labels = DescribeEntries(entries);
-			for (int i = 0; i < entries.Count; i++)
-			{
-				_spawnableItems.Add(entries[i].Item);
-				categoryMenu.AddItem(labels[i], _spawnableItems.Count - 1);
-				categoryMenu.SetItemTooltip(i, entries[i].Path);
-			}
-
-			categoryMenu.IdPressed += OnSpawnItemPressed;
-			_spawnItemMenu.AddChild(categoryMenu);
-			_spawnItemMenu.AddSubmenuNodeItem(label, categoryMenu);
+		// Merges spell weapons found in several folders into one submenu, placed where they first appear.
+		foreach (var category in categories.GroupBy(c => c.Label, c => c.Entries))
+		{
+			AddSpawnCategory(category.Key, category.SelectMany(entries => entries));
 		}
 	}
 
 	/// <summary>
-	/// Radio list of spawn qualities plus a "Cursed" toggle. Id 0 spawns equipment as authored; quality ids are their
-	/// <see cref="ItemQuality"/> plus one.
+	/// Adds one "Spawn item" submenu listing <paramref name="entries"/> by name and tier; an empty one is left out. A
+	/// wand or staff opens its own spell submenu instead of spawning directly.
+	/// </summary>
+	private void AddSpawnCategory(string label, IEnumerable<(Item Item, string Path)> entries)
+	{
+		var sorted = entries
+			.OrderBy(e => e.Item.Name, System.StringComparer.Ordinal)
+			.ThenBy(e => (e.Item as EquipableItem)?.Tier ?? 0)
+			.ThenBy(e => e.Path, System.StringComparer.Ordinal)
+			.ToList();
+		if (sorted.Count == 0)
+		{
+			return;
+		}
+
+		var categoryMenu = new PopupMenu { Name = $"Spawn{label}Menu" };
+		string[] labels = DescribeEntries(sorted);
+		for (int i = 0; i < sorted.Count; i++)
+		{
+			var (item, path) = sorted[i];
+			if (item is MagicStaff { SpellPool: not null } staff)
+			{
+				PopupMenu spellMenu = BuildSpellWeaponMenu(staff);
+				categoryMenu.AddChild(spellMenu);
+				categoryMenu.AddSubmenuNodeItem(labels[i], spellMenu);
+			}
+			else
+			{
+				categoryMenu.AddItem(labels[i], AddSpawnable(item, null));
+			}
+			categoryMenu.SetItemTooltip(i, path);
+		}
+
+		categoryMenu.IdPressed += OnSpawnItemPressed;
+		_spawnItemMenu.AddChild(categoryMenu);
+		_spawnItemMenu.AddSubmenuNodeItem(label, categoryMenu);
+	}
+
+	/// <summary>
+	/// The spells <paramref name="staff"/> can roll: each entry spawns the weapon carrying that spell, so the debug menu
+	/// offers exactly the variants a dungeon drop can be.
+	/// </summary>
+	private PopupMenu BuildSpellWeaponMenu(MagicStaff staff)
+	{
+		var menu = new PopupMenu();
+		foreach (SpellDefinition spell in staff.SpellPool.Spells.Where(staff.CanBind))
+		{
+			menu.AddItem(spell.DisplayName, AddSpawnable(staff, spell));
+		}
+
+		menu.IdPressed += OnSpawnItemPressed;
+		return menu;
+	}
+
+	/// <summary>Registers what a "Spawn item" entry creates and returns its menu id.</summary>
+	private int AddSpawnable(Item definition, SpellDefinition spell)
+	{
+		_spawnables.Add((definition, spell));
+		return _spawnables.Count - 1;
+	}
+
+	/// <summary>
+	/// Radio list of "Random", which rolls the quality like a drop at the current depth, and every quality (ids are their
+	/// <see cref="ItemQuality"/>), plus a "Cursed" toggle.
 	/// </summary>
 	private void BuildSpawnQualityMenu()
 	{
 		_spawnQualityMenu.Clear();
-		_spawnQualityMenu.AddRadioCheckItem("Authored", 0);
+		_spawnQualityMenu.AddRadioCheckItem("Random", SpawnRandomQualityId);
 		foreach (ItemQuality quality in System.Enum.GetValues<ItemQuality>())
 		{
-			_spawnQualityMenu.AddRadioCheckItem(quality.ToString(), (int)quality + 1);
+			_spawnQualityMenu.AddRadioCheckItem(quality.ToString(), (int)quality);
 		}
 
-		_spawnQualityMenu.SetItemChecked(0, true);
+		CheckRadio(_spawnQualityMenu, SpawnRandomQualityId);
 		_spawnQualityMenu.AddSeparator();
 		_spawnQualityMenu.AddCheckItem("Cursed", SpawnCursedId);
 		_spawnQualityMenu.IdPressed += OnSpawnQualityPressed;
@@ -234,7 +299,7 @@ public partial class DebugMenu : HBoxContainer
 			return;
 		}
 
-		_spawnQuality = id == 0 ? null : (ItemQuality)(id - 1);
+		_spawnQuality = id == SpawnRandomQualityId ? null : (ItemQuality)id;
 		CheckRadio(_spawnQualityMenu, id);
 	}
 
@@ -250,36 +315,62 @@ public partial class DebugMenu : HBoxContainer
 		}
 	}
 
-	/// <summary>Radio list of spells; id 0 keeps each wand's or staff's own spell, spell ids are their pool index plus one.</summary>
-	private void BuildSpawnSpellMenu()
+	/// <summary>One submenu per spell in <see cref="CastSpells"/>, listing every level it can be cast at.</summary>
+	private void BuildCastSpellMenu()
 	{
-		_spawnSpellMenu.Clear();
-		_spawnSpellMenu.AddRadioCheckItem("Authored", 0);
-		for (int i = 0; i < SpawnSpells.Spells.Length; i++)
+		_castables.Clear();
+		foreach (SpellDefinition spell in CastSpells.Spells.Where(spell => spell != null))
 		{
-			_spawnSpellMenu.AddRadioCheckItem(SpawnSpells.Spells[i]?.DisplayName ?? "", i + 1);
+			var levelMenu = new PopupMenu();
+			for (int level = 1; level <= spell.LevelCount; level++)
+			{
+				if (!spell.IsValidLevel(level)) { continue; }
+				_castables.Add((spell, level));
+				levelMenu.AddItem($"Level {level}", _castables.Count - 1);
+			}
+
+			levelMenu.IdPressed += OnCastSpellPressed;
+			_castSpellMenu.AddChild(levelMenu);
+			_castSpellMenu.AddSubmenuNodeItem(spell.DisplayName, levelMenu);
 		}
-
-		_spawnSpellMenu.SetItemChecked(0, true);
-		_spawnSpellMenu.IdPressed += OnSpawnSpellPressed;
-	}
-
-	private void OnSpawnSpellPressed(long id)
-	{
-		_spawnSpell = id == 0 ? null : SpawnSpells.Spells[id - 1];
-		CheckRadio(_spawnSpellMenu, id);
 	}
 
 	/// <summary>
-	/// The picked definition itself, or a copy: equipment with a picked quality or the cursed toggle is rolled like a drop
-	/// at the current depth with that quality (Normal when only cursed) and curse forced, and a wand or staff takes the
-	/// picked spell when it supports the weapon's tier.
+	/// Casts the picked spell from the player at once, without mana, cooldown or wind-up, at the picked level and with the
+	/// equipped weapon's hit (unarmed without one), the way a wand of that tier casts it at release.
 	/// </summary>
-	private Item CreateSpawnItem(Item definition)
+	private void OnCastSpellPressed(long id)
 	{
-		bool roll = (_spawnQuality != null || _spawnCursed) && definition is EquipableItem { RollTable: not null };
-		bool bindSpell = _spawnSpell != null && definition is MagicStaff;
-		if (!roll && !bindSpell)
+		if (id < 0 || id >= _castables.Count)
+		{
+			return;
+		}
+
+		Player player = GetPlayer();
+		if (player?.SpellCaster == null || player.IsDead)
+		{
+			GD.PrintErr("Cannot cast a spell without a living player.");
+			return;
+		}
+
+		var (spell, level) = _castables[(int)id];
+		var power = new SpellPower(level, player.Stats.ResolveAttack(player.Inventory?.EquippedWeapon));
+		var context = new SpellCastContext(player, null, SpellTargetIntent.Hostile, power);
+		if (!player.SpellCaster.CastImmediate(spell, this, in context))
+		{
+			GD.Print($"{spell.DisplayName} (Level {level}) could not be cast here.");
+		}
+	}
+
+	/// <summary>
+	/// The picked definition itself, or a copy: equipment is rolled like a drop at the current depth with the picked
+	/// quality (rolled too when "Random") and the curse toggle forced, and a wand or staff carries
+	/// <paramref name="spell"/>, which the roll would otherwise redraw from its pool.
+	/// </summary>
+	private Item CreateSpawnItem(Item definition, SpellDefinition spell)
+	{
+		bool roll = SpawnPolicy?.QualityLadder != null && definition is EquipableItem { RollTable: not null };
+		if (!roll && spell == null)
 		{
 			return definition;
 		}
@@ -289,12 +380,11 @@ public partial class DebugMenu : HBoxContainer
 		{
 			var rng = new RandomNumberGenerator();
 			rng.Randomize();
-			LootRoller.ApplyRoll(item, ActiveLevel?.Depth ?? 1, rng, SpawnPolicy,
-				_spawnQuality ?? ItemQuality.Normal, _spawnCursed);
+			LootRoller.ApplyRoll(item, ActiveLevel?.Depth ?? 1, rng, SpawnPolicy, _spawnQuality, _spawnCursed);
 		}
-		if (item is MagicStaff staff && staff.CanBind(_spawnSpell))
+		if (item is MagicStaff staff && spell != null)
 		{
-			staff.BoundSpell = _spawnSpell;
+			staff.BoundSpell = spell;
 		}
 		return item;
 	}
@@ -410,7 +500,7 @@ public partial class DebugMenu : HBoxContainer
 
 	private void OnSpawnItemPressed(long id)
 	{
-		if (id < 0 || id >= _spawnableItems.Count || _spawnableItems[(int)id] == null)
+		if (id < 0 || id >= _spawnables.Count)
 		{
 			return;
 		}
@@ -424,7 +514,8 @@ public partial class DebugMenu : HBoxContainer
 		}
 
 		LootableItem lootableItem = player.LootableItemScene.Instantiate<LootableItem>();
-		lootableItem.Item = CreateSpawnItem(_spawnableItems[(int)id]);
+		var (definition, spell) = _spawnables[(int)id];
+		lootableItem.Item = CreateSpawnItem(definition, spell);
 		lootableItem.Quantity = 1;
 
 		// Thrown out of a free spot ahead of the player like a monster drop, then collected by the magnet.
