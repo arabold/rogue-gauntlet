@@ -1,6 +1,6 @@
 # Shared debug toolkit
 
-Status: proposed. Today the in-game debug menu (`scenes/ui/DebugMenu.cs`), the [combat harness](../combat-harness.md) and the [debug harnesses](../../scenes/debug/README.md) each implement their own item, spell, monster and display controls. This plan moves those controls into one toolkit. The game and every harness host it, so a harness only stages a scene and adds the readouts specific to it.
+Status: slice 1 landed: the in-game debug menu hosts six tools ([guide](../../scenes/debug/README.md#in-game-debug-menu)). Slices 2–5 remain. Before this plan, the debug menu, the [combat harness](../combat-harness.md) and the [debug harnesses](../../scenes/debug/README.md) each implemented their own item, spell, monster and display controls. This plan moves those controls into one toolkit. The game and every harness host it, so a harness only stages a scene and adds the readouts specific to it.
 
 Goal: every debug action exists once, as a typed method that runs through production code. Menu clicks, harness scenarios and tests all call that same method. Adding an item, monster, spell or class needs no harness edit.
 
@@ -53,7 +53,7 @@ public partial class DebugMenu : HBoxContainer
 | --- | --- | --- |
 | `ItemSpawnTool` | Spawn item, Spawn quality, Cursed, wand/staff spell submenus, lifecycle harness fill | `Quality` (`ItemQuality?`, null = roll like a drop), `Cursed`, `Item Create(Item definition, SpellDefinition spell = null)`, `bool Drop(Item)`, `bool Give(Item, bool equip)`, `void FillBackpack(Item)`; a Drop/Backpack/Equip delivery choice in the menu |
 | `SpellCastTool` | Cast spell (menu), harness spell list and cast queue | `bool Cast(SpellDefinition, int level)`, `ICombatSpell Resolve(SpellDefinition)` (the innate instance, for tests) |
-| `MonsterSpawnTool` | Harness discovery, dummy, AI/defense/invulnerable/rewards, Kill all enemies | `AIEnabled`, `DefenseMode` (`EnemyDefenseMode`), `Invulnerable`, `RewardsEnabled` (default off), `Count` (ring of 1/3/5), `Node3D Spawn(PackedScene scene, float distance)`, `void Clear()`, `void KillAll()`; `PracticeTargetScene` export listed first when set |
+| `MonsterTool` | Harness discovery, dummy, AI/defense/invulnerable/rewards, Kill all enemies | `AIEnabled`, `DefenseMode` (`EnemyDefenseMode`), `Invulnerable`, `RewardsEnabled` (default off), `Count` (ring of 1/3/5), `Node3D Spawn(PackedScene scene, float distance)`, `void Clear()`, `void KillAll()`; `PracticeTargetScene` export listed first when set |
 | `HeroTool` | Kill player, harness reset | `void Reset()`, `void Kill()`, `bool ApplyBuild(HeroBuildProfile)`, `bool ChangeClass(CharacterClass)`; build presets and class picker submenus |
 | `CombatDisplayTool` | Debug meshes, combat/AI logs, harness volumes, hurtboxes, effects, slow motion, camera shake | One `bool` property per toggle; applies to existing and later-spawned actors |
 | `LevelTool` | Navigation, x-rays, dark, reveal map, restart, copy seed, replay run | Methods per entry; only `SetDark` works without a `Level` |
@@ -69,7 +69,7 @@ Tools never assume a generated floor. The scene's world provides placement, navi
 public interface IDebugWorld
 {
 	uint Depth { get; }                                          // loot depth for rolls
-	ulong RunSeed { get; }                                       // seeds build rolls; RunState.DefaultSeed outside a run
+	ulong RunSeed { get; }                                       // added with hero builds: seeds their rolls
 	FloorNavigation Navigation { get; }
 	bool IsDark { get; }
 	void SetDark(bool dark);
@@ -122,10 +122,7 @@ A build is an authored preset that tools, scenarios and tests apply by path. Pre
 
 A build replaces the inventory and attributes. Quality is explicit: builds have no Random. Affixes roll from a stream derived from `DebugWorld.RunSeed`, the build's path and the entry index. The same build therefore yields the same items for the same seed. XP level has no gameplay effect yet, so builds leave it out. Fixed affixes are deferred until a bug needs an exact item.
 
-**Class ownership.** Today `Player._EnterTree` applies `GameSession.ActiveCharacterClass`, and the model swap only works before `_Ready`, so a class change has to respawn the player. Changing the session class from a harness would leak into later test suites, because autoloads outlive them. Proposed:
-
-- `Player` gains `[Export] public CharacterClass CharacterClass`. `_EnterTree` resolves it as `CharacterClass ??= GameSession.Instance?.ActiveCharacterClass` and applies it as today. An arena can then author its hero's class.
-- `GameSession.SaveActiveGame` records `player.CharacterClass`, and floor transitions carry it. A class swapped mid-run then survives saving and the next floor, and the session class only seeds new and loaded runs.
+**Class changes respawn the player.** `Player._EnterTree` applies the class, and the model swap only works before `_Ready`, so a build with another class replaces the player. The class is set on the new player node, never on `GameSession`, because autoload state would leak into later test suites. `Player` gains `[Export] public CharacterClass CharacterClass`; `_EnterTree` resolves it as `CharacterClass ??= GameSession.Instance?.ActiveCharacterClass` and applies it as today, which also lets an arena author its hero's class. A class change is a debug convenience: the run's class stays the session's, so saving or taking the stairs restores it. Class switching is the last and optional part of slice 4; builds that keep the current class do not need it.
 
 ```
 HeroTool.ApplyBuild(build)
@@ -150,7 +147,7 @@ HeroTool.ApplyBuild(build)
 - the status line, the monster action tuning panel and the feedback log;
 - the trace recorder, the CLI arguments and the scenario runner.
 
-It drops `Weapons`, `SpellPool`, spell instancing, monster discovery and its toggles. It exports the tools it drives (`ItemSpawnTool`, `MonsterSpawnTool`, `SpellCastTool`, `HeroTool`, `CombatDisplayTool`) instead of finding them.
+It drops `Weapons`, `SpellPool`, spell instancing, monster discovery and its toggles. It exports the tools it drives (`ItemSpawnTool`, `MonsterTool`, `SpellCastTool`, `HeroTool`, `CombatDisplayTool`) instead of finding them.
 
 Commands name resources by path. The index forms are removed, with no fallback:
 
@@ -162,12 +159,12 @@ public bool ExecuteCommand(string command, string path = "", int value = 0, Vect
 | --- | --- |
 | `equip` | `Path`: item definition; `ItemSpawnTool.Create` then `Give(equip: true)` |
 | `spell` | `Path`: spell definition; binds it to the equipped wand or staff |
-| `spawn` | `Path`: monster scene, empty for the practice dummy; `MonsterSpawnTool.Clear` then `Spawn` |
+| `spawn` | `Path`: monster scene, empty for the practice dummy; `MonsterTool.Clear` then `Spawn` |
 | `build` | New. `Path`: `HeroBuildProfile`; `HeroTool.ApplyBuild` |
-| `defense`, `automation` | Set `MonsterSpawnTool.DefenseMode` / `AIEnabled`; values unchanged |
+| `defense`, `automation` | Set `MonsterTool.DefenseMode` / `AIEnabled`; values unchanged |
 | others | Unchanged |
 
-Scenario files gain a `Path` field. `TestFactories` keeps the signatures of `SpawnHarnessMonster`, `GetSpell` and `CastSpell`; their bodies move to `MonsterSpawnTool.Spawn` and `SpellCastTool.Resolve`. The roster workaround goes away.
+Scenario files gain a `Path` field. `TestFactories` keeps the signatures of `SpawnHarnessMonster`, `GetSpell` and `CastSpell`; their bodies move to `MonsterTool.Spawn` and `SpellCastTool.Resolve`. The roster workaround goes away.
 
 ### What stays and what goes
 
@@ -179,14 +176,14 @@ Scenario files gain a `Path` field. `TestFactories` keeps the signatures of `Spa
 
 ```
 + scenes/ui/debug/DebugTool.cs, IDebugWorld.cs, DebugCatalog.cs
-+ scenes/ui/debug/ItemSpawnTool.cs, SpellCastTool.cs, MonsterSpawnTool.cs, HeroTool.cs, CombatDisplayTool.cs, LevelTool.cs
++ scenes/ui/debug/ItemSpawnTool.cs, SpellCastTool.cs, MonsterTool.cs, HeroTool.cs, CombatDisplayTool.cs, LevelTool.cs
 ~ scenes/ui/DebugMenu.cs, debug_menu.tscn → scenes/ui/debug/   host only; tools as children; World replaces ActiveLevel
 ~ scenes/ui/hud.tscn, scenes/main/main.tscn                     new menu path; World = Level
 ~ scenes/levels/Level.cs                                         implements IDebugWorld
 + scenes/debug/stage/DebugArena.cs                               arena world: stage, navigation, darkness
 + scenes/player/classes/HeroBuildProfile.cs, HeroBuildItem.cs
 + scenes/debug/hero_build_profiles/*.tres                        one preset per class to start
-~ scenes/player/Player.cs, scripts/GameSession.cs                CharacterClass export; save and transitions read it
+~ scenes/player/Player.cs                                        CharacterClass export, set on a respawned player
 ~ scenes/debug/combat/CombatHarness.cs, combat_harness.tscn      arena + HUD; harness-only panel; path commands
 ~ scenes/debug/combat/scenarios/*.json                           paths instead of indices
 - scenes/debug/items/                                            item lifecycle harness
@@ -201,16 +198,15 @@ Scenario files gain a `Path` field. `TestFactories` keeps the signatures of `Spa
 ## Slices
 
 1. **Toolkit in the game.** Add `DebugTool`, the host, `DebugCatalog` and `IDebugWorld` on `Level`. Split today's menu into `ItemSpawnTool`, `SpellCastTool`, `LevelTool`, `HeroTool` (kill only) and `CombatDisplayTool` (debug meshes, logs). Behavior is unchanged; entries move into tool submenus. Verify with `dotnet build`, `DarkLevelTest` (it presses the entry inside `LevelTool`'s submenu), and one test that a forced-quality wand created by `ItemSpawnTool` keeps its picked spell.
-2. **Monsters and combat display in the game.** Add `MonsterSpawnTool` and move the harness toggles into `CombatDisplayTool`. Verify with a test that a monster spawned on a generated floor, with AI on, reaches the player on the floor's navigation, and that killing it records no cleared entity.
+2. **Monsters and combat display in the game.** Add `MonsterTool` and move the harness toggles into `CombatDisplayTool`. Verify with a test that a monster spawned on a generated floor, with AI on, reaches the player on the floor's navigation, and that killing it records no cleared entity.
 3. **Arena on the toolkit.** Add `DebugArena`, the HUD in `combat_harness.tscn`, the slimmed `CombatHarness`, path commands, the migrated scenarios and `TestFactories`, and the docs. Verify with the harness suites, then capture each scenario and run `scripts/analyze_combat_trace.py --require-complete`.
-4. **Hero builds.** Add the profiles, `HeroTool.ApplyBuild`/`ChangeClass`, the `Player.CharacterClass` ownership, the `build` command and the presets. Verify with tests that a build equips its items at the authored quality, curse and spell, and that the same seed gives the same affixes. A class swap must respawn the player with the new model while the camera, HUD and harness follow, and the class must survive a save, a load and a floor transition.
+4. **Hero builds.** Add the profiles, `HeroTool.ApplyBuild`, the `build` command and the presets. Verify with tests that a build equips its items at the authored quality, curse and spell, and that the same seed gives the same affixes. Optionally add `ChangeClass` with the `Player.CharacterClass` export last, verified by a respawn with the new model while the camera, HUD and harness follow.
 5. **Retire duplicates.** Delete the item lifecycle harness and the elemental previews, then update `scenes/debug/README.md` and `docs/README.md`. Before deleting, cast every spell in the arena at levels 1, 3 and 5, against the dummy ring with walls and in darkness, to confirm nothing a preview showed is lost.
 
 Slices 1 and 2 already help in play: monster spawning in a real dungeon. Slice 3 is the riskiest, because 37 test files use the harness. Most only read `harness.Player`, which keeps working.
 
 ## Open decisions
 
-- **Class ownership:** the proposal makes `Player.CharacterClass` the source of truth for saves and transitions. The alternative, a respawn that sets the session class, is simpler but leaks between test suites and changes the save slot's class.
 - **Screen-effect harness:** fold it into a tool and lose the sliders, or keep it.
 - **Capturing builds:** "save the current hero as a build" needs fixed affixes on `HeroBuildItem`; deferred until a bug report needs an exact item.
-- **Debug menu ergonomics in the arena:** a popup menu takes more clicks than today's always-visible pickers. If spawning and equipping prove slow, add a "recent" section to `ItemSpawnTool` and `MonsterSpawnTool` rather than a second set of controls.
+- **Debug menu ergonomics in the arena:** a popup menu takes more clicks than today's always-visible pickers. If spawning and equipping prove slow, add a "recent" section to `ItemSpawnTool` and `MonsterTool` rather than a second set of controls.

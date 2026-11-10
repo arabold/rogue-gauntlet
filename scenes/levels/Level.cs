@@ -3,7 +3,7 @@ using System.Linq;
 using Godot;
 
 [Tool]
-public partial class Level : Node
+public partial class Level : Node, IDebugWorld
 {
 	[Export] public bool AutoGenerateOnReady { get; set; } = true;
 
@@ -124,6 +124,11 @@ public partial class Level : Node
 	public uint Depth => MapGenerator.DungeonDepth;
 	/// <summary>The generated floor gameplay queries; null until generation succeeds.</summary>
 	public GeneratedFloor Floor { get; private set; }
+
+	Vector3 IDebugWorld.FindFreePositionNear(Vector3 origin) => Floor?.FindFreePositionNear(origin) ?? origin;
+
+	Vector3 IDebugWorld.FindDropLanding(Vector3 source, Vector3 direction, float distance) =>
+		Floor?.FindDropLanding(source, direction, distance) ?? source;
 
 	/// <summary>Recreates a reward stream without advancing generation or gameplay RNGs.</summary>
 	public RandomNumberGenerator CreateSourceLootRng(string sourceId) => MapGenerator.CreateSourceLootRng(sourceId);

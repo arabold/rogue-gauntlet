@@ -32,7 +32,7 @@ public class DarkLevelTest
 		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
 		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Lit.Range);
 		var menu = scene.FindChildren("*", "HBoxContainer", true, false).OfType<DebugMenu>().Single();
-		var popup = menu.GetNode<MenuButton>("%DebugMenuButton").GetPopup();
+		var popup = menu.GetTool<LevelTool>().Popup;
 		int index = Enumerable.Range(0, popup.ItemCount).Single(i => popup.GetItemText(i) == "Dark level");
 		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
 		AssertBool(level.IsDark).IsTrue();

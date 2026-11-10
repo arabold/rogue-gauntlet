@@ -16,6 +16,10 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 | Water spells | [effects/water_spell_preview.tscn](effects/water_spell_preview.tscn) | Preview Ice Lance, Frost Nova, Frost Guard, Hailstorm and Ice Wall at three levels |
 | Screen effects | [effects/screen_effect_harness.tscn](effects/screen_effect_harness.tscn) | Exercise overlays in gameplay; [guide](../../docs/screen-effects.md) |
 
+## In-game debug menu
+
+The **Debug** button in the gameplay HUD (debug builds only) has one submenu per tool in [`scenes/ui/debug/`](../ui/debug/): **Items** (any authored item, with quality, curse and wand/staff spell pickers), **Spells** (any spell at a chosen level, without a wand), **Monsters**, **Hero**, **Combat** (hit volumes, combat and AI logs) and **Level** (navigation, x-rays, darkness, map reveal, restart and run seeds). Each tool is a `DebugTool` child of `debug_menu.tscn` listed in the menu's `Tools`. Its entries only call the tool's public methods, which tests call directly. The menu's `World` names the `IDebugWorld` the tools act in: the `Level` in `main.tscn`. Items authored into a folder of the Items tool's `Categories` and spells added to its pool appear without code changes. The [debug toolkit plan](../../docs/specs/debug-toolkit-plan.md) moves the harnesses onto these tools.
+
 ## Room generation
 
 The scene instances the production level and lists its generator's realms; it keeps no catalog of its own. The **Realm** picker selects a realm: the room pool's types tagged for it, then the entrance and exit, form the recipe list, and the style pickers list only that realm's styles; the floor view generates that realm's first depth, with its rooms and corridors.
