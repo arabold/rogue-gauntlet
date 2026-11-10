@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scenes/ui/debug/CombatDisplayTool.cs" id="8_combat_tool"]
 [ext_resource type="Script" path="res://scenes/ui/debug/LevelTool.cs" id="9_level_tool"]
 [ext_resource type="PackedScene" path="res://scenes/debug/combat/combat_practice_target.tscn" id="10_practice_target"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_bread_roll.tres" id="11_fill_item"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.03, 0.035, 0.045, 0.72)
@@ -90,6 +91,7 @@ text = "FPS: 0"
 script = ExtResource("4_item_tool")
 Title = "Items"
 CreationPolicy = ExtResource("2_quality_rules")
+FillItem = ExtResource("11_fill_item")
 
 [node name="SpellCastTool" type="Node" parent="."]
 script = ExtResource("5_spell_tool")
@@ -101,9 +103,10 @@ script = ExtResource("6_monster_tool")
 Title = "Monsters"
 PracticeTargetScene = ExtResource("10_practice_target")
 
-[node name="HeroTool" type="Node" parent="."]
+[node name="HeroTool" type="Node" parent="." node_paths=PackedStringArray("Items")]
 script = ExtResource("7_hero_tool")
 Title = "Hero"
+Items = NodePath("../ItemSpawnTool")
 
 [node name="CombatDisplayTool" type="Node" parent="."]
 script = ExtResource("8_combat_tool")

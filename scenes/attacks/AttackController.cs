@@ -790,12 +790,12 @@ public partial class AttackController : Node, IParryInterruptible
 	private bool IsValidAimTarget(Node node) => !IsOwnedByActor(node) && IsLivingTarget(node);
 
 	/// <summary>
-	/// A target that still exists and, when it is an actor or an actor's part, is not dead. Shared with homing
-	/// projectiles, which give up a target that fails it.
+	/// A target that still exists in the scene and, when it is an actor or an actor's part, is not dead. Shared with
+	/// homing projectiles, which give up a target that fails it.
 	/// </summary>
 	public static bool IsLivingTarget(Node node)
 	{
-		if (!GodotObject.IsInstanceValid(node)) return false;
+		if (!GodotObject.IsInstanceValid(node) || !node.IsInsideTree()) return false;
 		if (node is EnemyBase enemy) return !enemy.IsDead;
 		if (node is Player player) return !player.IsDead;
 		if (node.GetParent() is EnemyBase parentEnemy) return !parentEnemy.IsDead;

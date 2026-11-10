@@ -34,7 +34,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Weapon attacks](weapon-attack-system.md) | Main/off-hand capabilities, paired melee, shared player/monster spell definitions, attack payloads, combos, weapon execution and contact resolution |
 | [Combat actions and defense](combat-system.md) | Shared action ownership and execution, dashes, hit feedback, attack indicators, dodge, guard/parry/guard break, poise, hit reactions, threat tiers, attack slots, RNG and persistence |
-| [Combat harness and traces](combat-harness.md) | Passive movable target, discovered production monster scenes, component settings, interactive/scripted combat, JSONL schema and analyzer |
+| [Combat harness and traces](combat-harness.md) | Arena on the game's debug menu, passive movable target, path-based scripted combat, JSONL schema and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
 | [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed item auras (in-world, equipped, dropped and in inventory previews), glowing weapons with flicker lights, fountain pool sparkles and the workbench |
 | [Movement presentation](movement-feedback.md) | Shared locomotion animation sync and size-aware run, stop and dash cues |
@@ -53,14 +53,14 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat redesign](specs/combat-redesign-plan.md) | Warden phases, swings and Tremor slam are implemented; a guard-breaking attack, guard walking and open tuning risks remain |
 | [Monster action architecture](specs/monster-action-architecture-plan.md) | Landed; dodge on the dash component, editor badges, phase content and spell cast validation remain |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
-| [Shared debug toolkit](specs/debug-toolkit-plan.md) | Proposed debug-menu tools shared by the game and every harness, an arena world contract, path-based harness scenarios, hero build presets and retiring duplicate harnesses |
+| [Shared debug toolkit](specs/debug-toolkit-plan.md) | Implemented; remaining class switching, arena darkness for the hero's light, captured builds and open harness decisions |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 
 ## Content and authoring references
 
 - [Level generation folders](../scenes/levels/README.md): generator code, room types and their content.
-- [Debug harnesses](../scenes/debug/README.md): room, combat, item and effects entry points.
+- [Debug harnesses](../scenes/debug/README.md): the in-game debug menu, and room, combat and effects entry points.
 - [Room assembly authoring](../scenes/levels/generators/assembly/README.md): props, groups, styles, steps and room types; harness and editor plugin.
 
 - [Gameplay item catalog](item-catalog.md) and [monster catalog](monster-catalog/README.md): references for authored gameplay content. Use the Asset Studio catalogs below for published models and previews.

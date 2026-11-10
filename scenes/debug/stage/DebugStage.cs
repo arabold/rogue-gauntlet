@@ -10,6 +10,8 @@ public partial class DebugStage : Node3D
 	[Export] public StaticBody3D[] DefaultWalls { get; set; } = [];
 	[Export] public StaticBody3D[] RoomWalls { get; set; } = [];
 	[Export] public DebugArrangement[] Arrangements { get; set; } = [];
+	/// <summary>Arrangement the stage starts with; an arena that must stay open picks one without walls.</summary>
+	[Export] public int InitialArrangement { get; set; }
 	public string[] ArrangementNames => Arrangements.Select(a => a.DisplayName).ToArray();
 	private StaticBody3D[] _walls = [];
 	public int Arrangement { get; private set; }
@@ -24,7 +26,7 @@ public partial class DebugStage : Node3D
 	{
 		_walls = new[] { WestWall }.Concat(DefaultWalls).Concat(RoomWalls).ToArray();
 		PopulateFloor(FloorTiles);
-		SetArrangement(0);
+		SetArrangement(InitialArrangement);
 	}
 
 	/// <summary>Populates the common floor grid for test scenes.</summary>

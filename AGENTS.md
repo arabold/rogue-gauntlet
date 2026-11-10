@@ -32,7 +32,7 @@ codegraph init
   - Every `TestFactories.Load` forces a GC to settle finalizers, so load each resource once per test into a local, never through a property getter inside a loop.
   - Physics-tick and fixed-delta waits run in real time. Wait for the outcome (`AwaitPhysicsUntil`) instead of a long fixed frame count, and stage independent scenarios side by side in one world instead of one after another.
   - Generate a floor once and check every invariant on it (`GeneratedFloorSweepTest`) rather than regenerating the same seeds per invariant.
-- Spawn combat-harness monsters with `TestFactories.SpawnHarnessMonster(harness, scenePath)`. The harness discovers its roster and lists the practice dummy first, so picker indices shift whenever a monster is added.
+- Spawn combat-harness monsters with `TestFactories.SpawnHarnessMonster(harness, scenePath)`. Harness commands name items, spells and monster scenes by `res://` path, never by list position.
 - `dotnet build "Rogue Gauntlet.sln"` remains the fast compile check; add a `dotnet test` run when changing testable C# logic.
 
 ## Git / Commits & PRs

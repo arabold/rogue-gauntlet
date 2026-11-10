@@ -75,4 +75,66 @@ public class DebugToolkitTest
 		AssertBool(monster.IsDead).IsTrue();
 		AssertArray(level.Run.CaptureClearedIds()).IsEqual(cleared);
 	}
+
+	/// <summary>
+	/// A hero build equips its items at the authored quality, curse and spell, packs its backpack and takes its class's
+	/// attributes; applied again with the same seed it gives the same affixes, even over its own cursed staff. A build
+	/// that cannot apply leaves the hero untouched, and every authored preset applies.
+	/// </summary>
+	[TestCase]
+	public async Task AHeroBuildEquipsExactItemsAndRepeatsItsAffixesForTheSameSeed()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var mage = TestFactories.Load<CharacterClass>("res://scenes/player/classes/class_mage.tres");
+		var meteor = TestFactories.Load<SpellDefinition>("res://scenes/magic/spells/meteor.tres");
+		var potion = TestFactories.Load<Item>("res://scenes/items/potions/potion_healing_small.tres");
+		var build = new HeroBuildProfile
+		{
+			CharacterClass = mage,
+			Equipment =
+			[
+				new HeroBuildItem
+				{
+					Definition = TestFactories.Load<MagicStaff>("res://scenes/items/weapons/staff/staff_archmage.tres"),
+					Quality = ItemQuality.Rare, Cursed = true, Spell = meteor,
+				},
+				new HeroBuildItem
+				{
+					Definition = TestFactories.Load<Item>("res://scenes/items/jewelry/ring/ring_mind.tres"),
+					Quality = ItemQuality.Magic, Slot = EquipmentSlot.LeftRing,
+				},
+			],
+			Backpack = [new HeroBuildItem { Definition = potion, Quantity = 3 }],
+		};
+		var inventory = harness.Player.Inventory;
+		string[] Rolls() => inventory.EquippedItems.Values.Where(entry => entry != null).Select(entry => (EquipableItem)entry.Item)
+			.Select(item => $"{item.Name} {item.MagnitudeScale}: " + string.Join(", ", item.Affixes.SelectMany(affix => affix.Modifiers)
+				.Select(modifier => $"{modifier.Stat} {modifier.Op} {modifier.Value}"))).ToArray();
+
+		AssertBool(harness.Hero.ApplyBuild(build)).IsTrue();
+		var staff = (MagicStaff)inventory.EquippedItems[EquipmentSlot.WeaponHand].Item;
+		AssertObject(staff.BoundSpell).IsSame(meteor);
+		AssertBool(staff.Quality == ItemQuality.Rare && staff.IsCursed).IsTrue();
+		AssertBool(((EquipableItem)inventory.EquippedItems[EquipmentSlot.LeftRing].Item).Quality == ItemQuality.Magic).IsTrue();
+		AssertInt(inventory.Items.Count).IsEqual(3);
+		AssertInt(inventory.Items.Single(entry => entry.Item.Name == potion.Name).Quantity).IsEqual(3);
+		AssertFloat(harness.Player.Stats.BaseIntelligence).IsEqual(mage.BaseIntelligence);
+		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsEqual(harness.Player.Stats.MaxHealth);
+		string[] first = Rolls();
+		AssertBool(first.Any(roll => roll.Contains(" Flat ") || roll.Contains(" Percent"))).IsTrue();
+
+		AssertBool(harness.Hero.ApplyBuild(build)).IsTrue();
+		AssertArray(Rolls()).IsEqual(first);
+
+		var invalid = new HeroBuildProfile { Equipment = [new HeroBuildItem { Definition = potion, Slot = EquipmentSlot.WeaponHand }] };
+		AssertBool(harness.Hero.ApplyBuild(invalid)).IsFalse();
+		AssertArray(Rolls()).IsEqual(first);
+
+		foreach (var (preset, path) in DebugCatalog.Resources<HeroBuildProfile>(harness.Hero.BuildDirectory))
+		{
+			AssertBool(harness.Hero.ApplyBuild(preset)).OverrideFailureMessage(path).IsTrue();
+			AssertInt(inventory.Items.Count).OverrideFailureMessage(path).IsEqual(preset.Equipment.Length + preset.Backpack.Length);
+		}
+	}
 }

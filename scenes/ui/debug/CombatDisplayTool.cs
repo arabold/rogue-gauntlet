@@ -18,18 +18,21 @@ public partial class CombatDisplayTool : DebugTool
 	private const double SlowMotionScale = .25;
 
 	/// <summary>Shows attack hit volumes and every node in the <c>debug_mesh</c> group.</summary>
+	[Export]
 	public bool DebugMeshesEnabled
 	{
 		get;
 		set
 		{
 			field = value;
+			if (!IsInsideTree()) { return; }
 			AttackController.GlobalDebugDrawEnabled = value;
 			ForEachNode<Node>(ApplyDebugMeshes);
 		}
 	}
 
 	/// <summary>Outlines every hurtbox's shapes.</summary>
+	[Export]
 	public bool HurtboxesEnabled
 	{
 		get;
@@ -41,6 +44,7 @@ public partial class CombatDisplayTool : DebugTool
 	}
 
 	/// <summary>Hit reactions, impact effects and the lunge on contact; off shows bare contacts.</summary>
+	[Export]
 	public bool EffectsEnabled
 	{
 		get;
@@ -52,6 +56,7 @@ public partial class CombatDisplayTool : DebugTool
 	} = true;
 
 	/// <summary>Camera shake on the player's resolved contacts.</summary>
+	[Export]
 	public bool CameraShakeEnabled
 	{
 		get;
@@ -63,15 +68,14 @@ public partial class CombatDisplayTool : DebugTool
 	} = true;
 
 	/// <summary>Runs the game at a quarter of the speed it had when slow motion was turned on.</summary>
+	[Export]
 	public bool SlowMotionEnabled
 	{
 		get;
 		set
 		{
-			if (field == value) { return; }
 			field = value;
-			if (value) { _normalTimeScale = Engine.TimeScale; }
-			Engine.TimeScale = value ? _normalTimeScale * SlowMotionScale : _normalTimeScale;
+			if (IsInsideTree()) { ApplySlowMotion(); }
 		}
 	}
 
@@ -88,19 +92,31 @@ public partial class CombatDisplayTool : DebugTool
 	}
 
 	private double _normalTimeScale = 1;
+	private bool _slowed;
 
 	/// <summary>Whether a node added to the scene needs this tool's settings: only while one differs from the game's.</summary>
 	private bool OverridesActors => DebugMeshesEnabled || HurtboxesEnabled || !EffectsEnabled || !CameraShakeEnabled;
 
+	public override void _EnterTree() => ApplySlowMotion();
+
+	/// <summary>Applies the authored settings to the scene the tool joins; hit volumes otherwise carry over from an earlier scene.</summary>
 	public override void _Ready()
 	{
 		this.SubscribeUntilExit(GetTree(), tree => tree.NodeAdded += OnNodeAdded, tree => tree.NodeAdded -= OnNodeAdded);
+		DebugMeshesEnabled = DebugMeshesEnabled;
+		HurtboxesEnabled = HurtboxesEnabled;
+		EffectsEnabled = EffectsEnabled;
+		CameraShakeEnabled = CameraShakeEnabled;
 	}
 
 	public override void _ExitTree()
 	{
 		// Engine-wide switches would otherwise outlive the scene that set them.
-		SlowMotionEnabled = false;
+		if (_slowed)
+		{
+			Engine.TimeScale = _normalTimeScale;
+			_slowed = false;
+		}
 		if (DebugMeshesEnabled) { AttackController.GlobalDebugDrawEnabled = false; }
 	}
 
@@ -115,8 +131,6 @@ public partial class CombatDisplayTool : DebugTool
 		menu.AddCheckItem("Combat logs", CombatLogsId);
 		menu.AddCheckItem("AI logs", AiLogsId);
 		menu.IdPressed += OnPressed;
-		// Hit volumes start hidden; the global switch would otherwise carry over from an earlier scene.
-		DebugMeshesEnabled = false;
 		RefreshMenu(menu);
 	}
 
@@ -162,6 +176,17 @@ public partial class CombatDisplayTool : DebugTool
 	{
 		if (node is AttackController attackController) { attackController.DebugDrawEnabled = DebugMeshesEnabled; }
 		else if (node is Node3D node3D && node.IsInGroup("debug_mesh")) { node3D.Visible = DebugMeshesEnabled; }
+	}
+
+	private void ApplySlowMotion()
+	{
+		if (SlowMotionEnabled == _slowed)
+		{
+			return;
+		}
+		if (SlowMotionEnabled) { _normalTimeScale = Engine.TimeScale; }
+		Engine.TimeScale = SlowMotionEnabled ? _normalTimeScale * SlowMotionScale : _normalTimeScale;
+		_slowed = SlowMotionEnabled;
 	}
 
 	private void ApplyHurtbox(HurtBoxComponent hurtBox) => hurtBox.DebugDrawEnabled = HurtboxesEnabled;

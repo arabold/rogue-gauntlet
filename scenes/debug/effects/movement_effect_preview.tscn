@@ -100,4 +100,4 @@ text = "Play run, stop, dash"
 text = "Reset player"
 
 [node name="Navigation" parent="." instance=ExtResource("navigation")]
-SelectedPreview = 7
+SelectedPreview = 3

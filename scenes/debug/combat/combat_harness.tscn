@@ -3,22 +3,11 @@
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
 
 [ext_resource type="Script" path="res://scenes/debug/combat/CombatHarness.cs" id="harness"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="weapon_0"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/axe_common.tres" id="weapon_1"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/broadsword_common.tres" id="weapon_2"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/polearm/spear_steel.tres" id="weapon_3"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/polearm/halberd_steel.tres" id="weapon_4"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_common.tres" id="weapon_5"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_common.tres" id="weapon_6"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow/crossbow_gilded.tres" id="weapon_7"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff_common.tres" id="weapon_8"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_archmage.tres" id="weapon_9"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/hammer_common.tres" id="weapon_10"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/wand.tres" id="weapon_11"]
-[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_celestial.tres" id="weapon_12"]
+[ext_resource type="Script" path="res://scenes/debug/stage/DebugArena.cs" id="arena"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="hud"]
+[ext_resource type="PackedScene" path="res://scenes/debug/stage/debug_stage.tscn" id="stage"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="starting_weapon"]
 
-[ext_resource type="PackedScene" path="res://scenes/debug/combat/combat_practice_target.tscn" id="practice_target"]
-[ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="spell_pool"]
 [ext_resource type="Script" path="res://scenes/debug/combat/CombatTraceRecorder.cs" id="recorder"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_3d.gd" id="noise_emitter"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/phantom_camera_noise_3d.gd" id="noise_resource"]
@@ -67,7 +56,12 @@ corner_radius_top_right = 8
 corner_radius_bottom_left = 8
 corner_radius_bottom_right = 8
 
-[node name="CombatHarness" type="Node3D"]
+[node name="CombatHarness" type="Node3D" node_paths=PackedStringArray("Stage", "Lighting", "KeyLight")]
+script = ExtResource("arena")
+NavigationProfile = ExtResource("navigation_profile")
+Stage = NodePath("DebugStage")
+Lighting = NodePath("WorldEnvironment")
+KeyLight = NodePath("DirectionalLight3D")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 position = Vector3(-4, 14, 7)
@@ -140,24 +134,51 @@ position = Vector3(-19.5, 1, 0)
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BoundaryWest"]
 shape = SubResource("east_boundary_shape")
 
+[node name="DebugStage" parent="." instance=ExtResource("stage")]
+InitialArrangement = 2
+
+[node name="FloorTiles" parent="DebugStage" index="3"]
+visible = false
+collision_layer = 0
+
+[node name="Ground" parent="DebugStage" index="4"]
+visible = false
+
 [node name="Player" parent="." instance=ExtResource("player")]
 
-[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "TargetParent")]
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="UI" instance=ExtResource("hud")]
+
+[node name="DebugMenu" parent="UI/HUD" index="2" node_paths=PackedStringArray("World")]
+World = NodePath("../../..")
+
+[node name="ItemSpawnTool" parent="UI/HUD/DebugMenu" index="2"]
+Delivery = 2
+
+[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "Arena", "Items", "Monsters", "Spells", "Hero", "Display", "Recorder")]
+layer = 2
 script = ExtResource("harness")
 Player = NodePath("../Player")
-TargetParent = NodePath("..")
-PracticeTargetScene = ExtResource("practice_target")
-SpellPool = ExtResource("spell_pool")
-NavigationProfile = ExtResource("navigation_profile")
-Weapons = [ExtResource("weapon_0"), ExtResource("weapon_1"), ExtResource("weapon_2"), ExtResource("weapon_3"), ExtResource("weapon_4"), ExtResource("weapon_5"), ExtResource("weapon_6"), ExtResource("weapon_7"), ExtResource("weapon_8"), ExtResource("weapon_9"), ExtResource("weapon_10"), ExtResource("weapon_11"), ExtResource("weapon_12")]
+Arena = NodePath("..")
+Items = NodePath("../UI/HUD/DebugMenu/ItemSpawnTool")
+Monsters = NodePath("../UI/HUD/DebugMenu/MonsterTool")
+Spells = NodePath("../UI/HUD/DebugMenu/SpellCastTool")
+Hero = NodePath("../UI/HUD/DebugMenu/HeroTool")
+Display = NodePath("../UI/HUD/DebugMenu/CombatDisplayTool")
+StartingWeapon = ExtResource("starting_weapon")
+Recorder = NodePath("../CombatTraceRecorder")
 
 [node name="Panel" type="PanelContainer" parent="Instructions"]
-anchors_preset = 9
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
+offset_left = -416.0
 offset_top = 16.0
-offset_right = 416.0
-offset_bottom = -16.0
+offset_right = -16.0
+offset_bottom = -150.0
+grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("panel_style")
 
@@ -198,33 +219,10 @@ layout_mode = 2
 text = "Hero"
 theme_override_font_sizes/font_size = 15
 
-[node name="WeaponLabel" type="Label" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Weapon"
-
-
-[node name="Weapons" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-
-
 [node name="Attack" type="Button" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Attack (J)"
 custom_minimum_size = Vector2(0, 30)
-
-[node name="Spell" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-
-[node name="SpellLevel" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-
-[node name="CastSpell" type="Button" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-visible = false
-text = "Cast spell"
-tooltip_text = "Cast the selected spell directly with the hero's weapon hit and no mana. An equipped wand or staff also takes the selected spell for its secondary."
 
 [node name="HeroGuard" type="Button" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
@@ -246,79 +244,11 @@ layout_mode = 2
 text = "Monster"
 theme_override_font_sizes/font_size = 15
 
-[node name="Monsters" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-tooltip_text = "Choose a monster, then spawn or respawn it."
-
-[node name="DefenseLabel" type="Label" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Defense"
-
-
-[node name="Defense" type="OptionButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-tooltip_text = "Monster default uses its authored defense chances and timing. Overrides retain normal cooldowns."
-
-[node name="MonsterAI" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Monster AI (walk + attack)"
-button_pressed = false
-tooltip_text = "Let the selected monster move, chase and attack using its normal behavior. When off, it stays passive but still reacts to your hits and can defend itself."
-
-[node name="TargetInvulnerable" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Target invulnerable"
-tooltip_text = "Prevent health loss independently of the monster's defense behavior."
-
-[node name="SpawnMonster" type="Button" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Spawn / respawn"
-tooltip_text = "Respawn the selected monster. Live edits to its Resources (Remote inspector) apply to the new instance."
-custom_minimum_size = Vector2(0, 30)
-
 [node name="MonsterActions" type="Label" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "Monster actions appear here."
-
-[node name="CameraShake" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Camera shake"
-button_pressed = true
-
-[node name="DisplaySectionSeparator" type="HSeparator" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-
-
-[node name="DisplaySection" type="Label" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Display & simulation"
-theme_override_font_sizes/font_size = 15
-
-[node name="Volumes" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Active hitboxes"
-button_pressed = false
-tooltip_text = "Visible only during an attack’s contact window. Use slow motion to inspect."
-
-[node name="Hurtboxes" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Hurtboxes"
-button_pressed = false
-
-[node name="Effects" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Combat effects"
-button_pressed = true
-
-[node name="SlowMotion" type="CheckButton" parent="Instructions/Panel/Scroll/Controls"]
-layout_mode = 2
-text = "Slow motion (¼ speed)"
-button_pressed = false
 
 [node name="LogSectionSeparator" type="HSeparator" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
@@ -336,3 +266,7 @@ text = "Combat outcomes appear here."
 
 [node name="CombatTraceRecorder" type="Node" parent="."]
 script = ExtResource("recorder")
+
+[editable path="DebugStage"]
+[editable path="UI/HUD"]
+[editable path="UI/HUD/DebugMenu"]

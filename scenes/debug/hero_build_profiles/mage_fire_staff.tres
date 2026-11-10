@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="HeroBuildProfile" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scenes/player/classes/HeroBuildProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/player/classes/HeroBuildItem.cs" id="item"]
+[ext_resource type="Resource" path="res://scenes/player/classes/class_mage.tres" id="class"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/staff/staff_archmage.tres" id="res_0"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/meteor.tres" id="res_1"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_mind.tres" id="res_2"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand.tres" id="res_3"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/fire_nova.tres" id="res_4"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="res_5"]
+
+[sub_resource type="Resource" id="Equipment_0"]
+script = ExtResource("item")
+Definition = ExtResource("res_0")
+Quality = 4
+Spell = ExtResource("res_1")
+
+[sub_resource type="Resource" id="Equipment_1"]
+script = ExtResource("item")
+Definition = ExtResource("res_2")
+Quality = 3
+Slot = 32
+
+[sub_resource type="Resource" id="Backpack_0"]
+script = ExtResource("item")
+Definition = ExtResource("res_3")
+Spell = ExtResource("res_4")
+
+[sub_resource type="Resource" id="Backpack_1"]
+script = ExtResource("item")
+Definition = ExtResource("res_5")
+Quantity = 2
+
+[resource]
+script = ExtResource("profile")
+DisplayName = "Mage: archmage staff with Meteor"
+CharacterClass = ExtResource("class")
+Equipment = Array[ExtResource("item")]([SubResource("Equipment_0"), SubResource("Equipment_1")])
+Backpack = Array[ExtResource("item")]([SubResource("Backpack_0"), SubResource("Backpack_1")])

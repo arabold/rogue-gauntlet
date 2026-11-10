@@ -2,7 +2,7 @@ using Godot;
 using System.Globalization;
 
 /// <summary>
-/// Floor diagnostics and run controls: the navigation overlay, x-rays, darkness, revealing the map, restarting the floor
+/// Floor diagnostics and run controls: the navigation overlay, x-rays, darkness, an arena's walls, revealing the map, restarting the floor
 /// and replaying the run from a seed. Revealing the map needs a generated <see cref="Level"/>; darkness and navigation
 /// need a debug world.
 /// </summary>
@@ -57,6 +57,8 @@ public partial class LevelTool : DebugTool
 	}
 
 	/// <summary>The run this floor belongs to; gameplay reads it from the level, not the session.</summary>
+	private PopupMenu _wallsMenu;
+
 	public ulong RunSeed => Menu?.Level?.Run?.RunSeed ?? GameSession.Instance?.Run.RunSeed ?? RunState.DefaultSeed;
 
 	public override void BuildMenu(PopupMenu menu)
@@ -66,6 +68,14 @@ public partial class LevelTool : DebugTool
 		menu.AddCheckItem("Monster x-ray", MonsterXrayId);
 		menu.AddCheckItem("Loot x-ray", LootXrayId);
 		menu.AddCheckItem("Dark level", DarkId);
+		if (Menu?.World is DebugArena { Stage: { } stage })
+		{
+			_wallsMenu = new PopupMenu { Name = "WallsMenu" };
+			for (int index = 0; index < stage.Arrangements.Length; index++) { _wallsMenu.AddRadioCheckItem(stage.Arrangements[index].DisplayName, index); }
+			_wallsMenu.IdPressed += id => SetWalls(stage, (int)id);
+			menu.AddChild(_wallsMenu);
+			menu.AddSubmenuNodeItem("Walls", _wallsMenu);
+		}
 		menu.AddSeparator();
 		menu.AddItem("Reveal map", RevealMapId);
 		menu.AddItem("Restart level", RestartLevelId);
@@ -81,6 +91,7 @@ public partial class LevelTool : DebugTool
 	public override void RefreshMenu(PopupMenu menu)
 	{
 		IDebugWorld world = Menu?.DebugWorld;
+		if (_wallsMenu != null && Menu?.World is DebugArena { Stage: { } stage }) { CheckRadio(_wallsMenu, stage.Arrangement); }
 		SetChecked(menu, NavigationId, NavigationEnabled);
 		SetChecked(menu, DoorXrayId, DoorXrayEnabled);
 		SetChecked(menu, MonsterXrayId, MonsterXrayEnabled);
@@ -88,8 +99,24 @@ public partial class LevelTool : DebugTool
 		SetChecked(menu, DarkId, world?.IsDark == true);
 		SetDisabled(menu, NavigationId, world == null);
 		SetDisabled(menu, DarkId, world == null);
-		SetDisabled(menu, RevealMapId, Menu?.Level == null);
+		bool noLevel = Menu?.Level == null;
+		SetDisabled(menu, RevealMapId, noLevel);
+		SetDisabled(menu, RestartLevelId, noLevel);
+		SetDisabled(menu, CopyRunSeedId, noLevel);
+		SetDisabled(menu, ReplayRunId, noLevel);
 		menu.SetItemText(menu.GetItemIndex(CopyRunSeedId), $"Copy run seed ({FormatSeed(RunSeed)})");
+	}
+
+	/// <summary>Switches an arena's stage to another wall arrangement; navigation, and its overlay when shown, follow.</summary>
+	public void SetWalls(DebugStage stage, int arrangement)
+	{
+		stage.SetArrangement(arrangement);
+		if (NavigationEnabled)
+		{
+			NavigationEnabled = false;
+			NavigationEnabled = true;
+		}
+		RefreshMenu(Popup);
 	}
 
 	/// <summary>Turns the world's lights off or back on; exploration is unchanged.</summary>

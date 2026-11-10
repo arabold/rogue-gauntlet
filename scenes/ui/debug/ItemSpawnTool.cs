@@ -2,8 +2,19 @@ using Godot;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>Where a spawned item goes.</summary>
+public enum ItemDelivery
+{
+	/// <summary>Thrown out in front of the player like a monster drop; the magnet collects it.</summary>
+	Drop,
+	/// <summary>Straight into the backpack.</summary>
+	Backpack,
+	/// <summary>Into the backpack and equipped at once, replacing what the slot held.</summary>
+	Equip,
+}
+
 /// <summary>
-/// Spawns authored items in front of the player, thrown out like a monster drop. Every item under the
+/// Spawns authored items for the player, dropped, packed or equipped as <see cref="Delivery"/> says. Every item under the
 /// <see cref="Categories"/> folders is listed. Equipment is rolled like a drop at the world's depth, at
 /// <see cref="Quality"/> and with <see cref="Cursed"/>, and each wand or staff lists the spells its pool can bind.
 /// </summary>
@@ -14,6 +25,13 @@ public partial class ItemSpawnTool : DebugTool
 	private const float DropDistance = 1.5f;
 	private const int CursedId = 100;
 	private const int RandomQualityId = 101;
+	private const int FillBackpackId = 102;
+	private static readonly (string Label, ItemDelivery Delivery)[] Deliveries =
+	[
+		("Drop", ItemDelivery.Drop),
+		("Backpack", ItemDelivery.Backpack),
+		("Equip", ItemDelivery.Equip),
+	];
 
 	/// <summary>
 	/// Category label to the res:// folder its submenu lists: every <c>.tres</c> item in the folder or its subfolders, so an
@@ -46,6 +64,12 @@ public partial class ItemSpawnTool : DebugTool
 	/// <summary>Whether spawned equipment is cursed, with its curse status still unknown.</summary>
 	public bool Cursed { get; set; }
 
+	/// <summary>Where menu spawns go; an arena without an inventory screen equips them.</summary>
+	[Export] public ItemDelivery Delivery { get; set; } = ItemDelivery.Drop;
+
+	/// <summary>What "Fill backpack" packs; unassigned, the entry is left out.</summary>
+	[Export] public Item FillItem { get; set; }
+
 	/// <summary>
 	/// Spell weapons are authored among the other weapons but listed in their own submenus, right after the folder they are
 	/// found in: one-handed wands apart from the stronger two-handed staves.
@@ -59,6 +83,7 @@ public partial class ItemSpawnTool : DebugTool
 	/// <summary>What each entry creates: a definition and, for a wand or staff, the spell it carries. Ids index this list.</summary>
 	private readonly List<(Item Definition, SpellDefinition Spell)> _spawnables = [];
 	private PopupMenu _qualityMenu;
+	private PopupMenu _deliveryMenu;
 
 	public override void BuildMenu(PopupMenu menu)
 	{
@@ -75,19 +100,31 @@ public partial class ItemSpawnTool : DebugTool
 			AddCategory(menu, category.Key, category.SelectMany(entries => entries));
 		}
 
+		menu.AddSeparator();
+		if (FillItem != null)
+		{
+			menu.AddItem($"Fill backpack with {FillItem.Name}", FillBackpackId);
+			menu.IdPressed += id => { if (id == FillBackpackId) { FillBackpack(FillItem); } };
+		}
+		_deliveryMenu = new PopupMenu { Name = "DeliveryMenu" };
+		foreach (var (label, delivery) in Deliveries) { _deliveryMenu.AddRadioCheckItem(label, (int)delivery); }
+		_deliveryMenu.IdPressed += id => { Delivery = (ItemDelivery)(int)id; RefreshMenu(menu); };
+		menu.AddChild(_deliveryMenu);
+		menu.AddSubmenuNodeItem("Delivery", _deliveryMenu);
+
 		if (CreationPolicy?.QualityLadder == null)
 		{
 			if (CreationPolicy != null) { GD.PushError($"{Name}: the creation policy needs a quality ladder."); }
 			return;
 		}
 		_qualityMenu = BuildQualityMenu();
-		menu.AddSeparator();
 		menu.AddChild(_qualityMenu);
 		menu.AddSubmenuNodeItem("Quality", _qualityMenu);
 	}
 
 	public override void RefreshMenu(PopupMenu menu)
 	{
+		CheckRadio(_deliveryMenu, (int)Delivery);
 		if (_qualityMenu == null)
 		{
 			return;
@@ -98,11 +135,22 @@ public partial class ItemSpawnTool : DebugTool
 	}
 
 	/// <summary>
-	/// The definition itself, or a runtime copy: equipment is rolled like a drop at the world's depth with
+	/// A runtime copy of <paramref name="definition"/>: equipment is rolled like a drop at the world's depth with
 	/// <see cref="Quality"/> (rolled too when null) and <see cref="Cursed"/> forced, and a wand or staff then carries
 	/// <paramref name="spell"/>, which the roll would otherwise redraw from its pool. Null when the item cannot carry the spell.
 	/// </summary>
 	public Item Create(Item definition, SpellDefinition spell = null)
+	{
+		var rng = new RandomNumberGenerator();
+		rng.Randomize();
+		return Create(definition, spell, Quality, Cursed, rng);
+	}
+
+	/// <summary>
+	/// A runtime copy of <paramref name="definition"/> rolled from <paramref name="rng"/>, so a seeded caller such as a hero
+	/// build gets the same affixes every time. Without a creation policy, equipment is copied exactly as authored.
+	/// </summary>
+	public Item Create(Item definition, SpellDefinition spell, ItemQuality? quality, bool cursed, RandomNumberGenerator rng)
 	{
 		if (definition == null)
 		{
@@ -115,18 +163,10 @@ public partial class ItemSpawnTool : DebugTool
 			return null;
 		}
 
-		bool roll = CreationPolicy?.QualityLadder != null && definition is EquipableItem { RollTable: not null };
-		if (!roll && spell == null)
+		Item item = ItemFactory.Create(definition);
+		if (CreationPolicy?.QualityLadder != null && item is EquipableItem { RollTable: not null } equipment)
 		{
-			return definition;
-		}
-
-		var item = (EquipableItem)ItemFactory.Create(definition);
-		if (roll)
-		{
-			var rng = new RandomNumberGenerator();
-			rng.Randomize();
-			LootRoller.ApplyRoll(item, Menu?.DebugWorld?.Depth ?? 1, rng, CreationPolicy, Quality, Cursed);
+			LootRoller.ApplyRoll(equipment, Menu?.DebugWorld?.Depth ?? 1, rng, CreationPolicy, quality, cursed);
 		}
 		if (item is MagicStaff staff && spell != null)
 		{
@@ -161,6 +201,74 @@ public partial class ItemSpawnTool : DebugTool
 		world.AddWorldNode(pickup, world.FindDropLanding(source, direction, DropDistance));
 		return true;
 	}
+
+	/// <summary>
+	/// Puts <paramref name="item"/> in the player's backpack and, with <paramref name="equip"/>, equips it, interrupting the
+	/// current attack as a gear change does. False, with the item left out, when it does not fit or cannot be equipped.
+	/// </summary>
+	public bool Give(Item item, bool equip)
+	{
+		Player player = Menu?.Player;
+		if (item == null || player?.Inventory == null)
+		{
+			GD.PrintErr("Cannot give an item without an active player.");
+			return false;
+		}
+		if (equip && item is not EquipableItem)
+		{
+			GD.PrintErr($"{item.Name} cannot be equipped.");
+			return false;
+		}
+		if (!player.Inventory.TryAdd(item).Success)
+		{
+			GD.PrintErr($"{item.Name} does not fit in the backpack.");
+			return false;
+		}
+		if (!equip)
+		{
+			return true;
+		}
+
+		InventoryItemSlot entry = player.Inventory.Items.First(slot => ReferenceEquals(slot.Item, item));
+		player.AttackController?.CancelAttack();
+		if (player.Inventory.Equip(entry).Success)
+		{
+			return true;
+		}
+		GD.PrintErr($"{item.Name} could not be equipped.");
+		return false;
+	}
+
+	/// <summary>
+	/// Packs copies of <paramref name="definition"/> through the normal pickup path until the backpack is full, so the
+	/// next pickup exercises the capacity check. Returns how many were packed.
+	/// </summary>
+	public int FillBackpack(Item definition)
+	{
+		Player player = Menu?.Player;
+		if (definition == null || player?.Inventory == null)
+		{
+			GD.PrintErr("Cannot fill a backpack without an item and an active player.");
+			return 0;
+		}
+
+		// Bounded by the capacity: a stackable item merges into one entry and never fills the backpack.
+		int packed = 0;
+		while (packed < player.Inventory.Capacity && !player.Inventory.IsFull && player.InventoryController.PickupItem(Create(definition)))
+		{
+			packed++;
+		}
+		return packed;
+	}
+
+	/// <summary>Delivers <paramref name="item"/> the way <see cref="Delivery"/> says.</summary>
+	public bool Deliver(Item item) => Delivery switch
+	{
+		ItemDelivery.Backpack => Give(item, equip: false),
+		ItemDelivery.Equip when item is EquipableItem => Give(item, equip: true),
+		ItemDelivery.Equip => Give(item, equip: false),
+		_ => Drop(item),
+	};
 
 	/// <summary>
 	/// Adds one submenu listing <paramref name="entries"/> by name and tier; an empty one is left out. A wand or staff opens
@@ -228,7 +336,7 @@ public partial class ItemSpawnTool : DebugTool
 		}
 
 		var (definition, spell) = _spawnables[(int)id];
-		Drop(Create(definition, spell));
+		Deliver(Create(definition, spell));
 	}
 
 	/// <summary>

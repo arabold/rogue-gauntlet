@@ -298,8 +298,7 @@ public partial class EnemyDefenseTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
 		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
-		harness.EquipPreview(0);
-		// Equipping reapplies the harness's defense picker, so force the dodge afterwards.
+		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/sword_common.tres")).IsTrue();
 		monster.DefenseController.Mode = EnemyDefenseMode.Dodge;
 		float initialHp = monster.HealthComponent.CurrentHealth;
 

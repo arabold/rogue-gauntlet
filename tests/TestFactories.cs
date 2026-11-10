@@ -90,22 +90,23 @@ public static partial class TestFactories
 
 	/// <summary>
 	/// Spawn one authored monster through the harness's spawn command (AI off, facing the hero), then place it
-	/// <paramref name="distance"/> metres in front of the hero on that same line. Tests name the scene instead of a picker
-	/// index, so adding a monster to the discovered roster never changes which monster a test fights.
+	/// <paramref name="distance"/> metres in front of the hero on that same line. The command names the scene by path, so
+	/// adding a monster never changes which monster a test fights.
 	/// </summary>
 	public static EnemyBase SpawnHarnessMonster(CombatHarness harness, string scenePath, float distance = 2)
 	{
-		harness.Monsters = [Load<PackedScene>(scenePath)];
-		if (!harness.ExecuteCommand("spawn", 1, Vector3.Zero)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
+		// Held while the harness loads the same path, so the cached scene cannot be collected in between.
+		var scene = Load<PackedScene>(scenePath);
+		if (!harness.ExecuteCommand("spawn", scene.ResourcePath)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
 		var monster = harness.Monster;
 		monster.Position = harness.Player.Position + Vector3.Forward * distance;
 		monster.ResetPhysicsInterpolation();
 		return monster;
 	}
 
-	/// <summary>One of the harness's spell components, found by its authored name.</summary>
+	/// <summary>The hero's own instance of a spell in the arena's pool, found by its authored name; the debug menu casts the same one.</summary>
 	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell =>
-		harness.SpellComponents.OfType<T>().Single(spell => spell.DisplayName == name);
+		(T)harness.Spells.Resolve(harness.Spells.Spells.Spells.Single(spell => spell.DisplayName == name));
 
 	/// <summary>The hit test casts use: a steady 8 that never rolls a critical, so amounts are exact.</summary>
 	public static readonly AttackStats SpellHit = new(8, 8, 0);
@@ -119,7 +120,7 @@ public static partial class TestFactories
 	/// <summary>The amount a definition scale yields with <see cref="SpellHit"/>.</summary>
 	public static float SpellAmount(float scale) => scale * SpellHit.MaxDamage;
 
-	/// <summary>Casts a harness spell as the player, the same call the harness's cast button queues.</summary>
+	/// <summary>Casts a pooled spell as the player with <see cref="SpellHit"/> and a fixed seed.</summary>
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
 		GetSpell<ICombatSpell>(harness, name).Cast(TestFactories.CastContext(harness.Player, SpellPower(level)), new RandomNumberGenerator { Seed = seed });
 

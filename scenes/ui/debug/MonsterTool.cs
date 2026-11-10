@@ -24,6 +24,9 @@ public partial class MonsterTool : DebugTool
 		("Always guard / parry", EnemyDefenseMode.GuardParry),
 	];
 
+	/// <summary>A target this tool spawned is in the world, configured and facing the player.</summary>
+	[Signal] public delegate void TargetSpawnedEventHandler(Node3D target);
+
 	/// <summary>Folder whose monster scenes the spawn submenu lists, so a new monster shows up without a menu edit.</summary>
 	[Export] public string MonsterDirectory { get; set; } = "res://scenes/enemies";
 
@@ -171,6 +174,7 @@ public partial class MonsterTool : DebugTool
 			Prepare(target, player, world, index);
 			_spawned.Add(target);
 			first ??= target;
+			EmitSignalTargetSpawned(target);
 		}
 		return first;
 	}

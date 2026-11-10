@@ -13,6 +13,8 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class MeleeContactTest
 {
+	private const string Weapons = "res://scenes/items/weapons/";
+
 	/// <summary>Settles a freshly loaded harness with the hero held still, so only the test moves it.</summary>
 	private static async Task<CombatHarness> Settle(ISceneRunner runner)
 	{
@@ -310,10 +312,10 @@ public class MeleeContactTest
 		}
 
 		// Axe, broadsword and halberd primaries: two steps inside the weapon's contact window, which follows its strike.
-		foreach (int weaponIndex in new[] { 1, 2, 4 })
+		foreach (string path in new[] { Weapons + "axe_common.tres", Weapons + "broadsword_common.tres", Weapons + "polearm/halberd_steel.tres" })
 		{
-			harness.EquipPreview(weaponIndex);
-			var weapon = harness.Weapons[weaponIndex];
+			AssertBool(harness.ExecuteCommand("equip", path)).IsTrue();
+			var weapon = (Weapon)harness.Player.Inventory.EquippedItems[EquipmentSlot.WeaponHand].Item;
 			controller.EffectsEnabled = true;
 			var definition = new AttackDefinition { AttackStyle = weapon.AttackStyle };
 			AssertBool(controller.TryPrepareAttack(definition, weapon.AttackStyle, 1, out var attack, weapon.MeleeContact)).IsTrue();
@@ -329,10 +331,10 @@ public class MeleeContactTest
 			controller.CancelAttack();
 		}
 
-		// Specials of the first three harness weapons, sampled late in their window.
-		foreach (int weaponIndex in new[] { 0, 1, 2 })
+		// Sword, axe and broadsword specials, sampled late in their window.
+		foreach (string path in new[] { Weapons + "sword_common.tres", Weapons + "axe_common.tres", Weapons + "broadsword_common.tres" })
 		{
-			harness.EquipPreview(weaponIndex);
+			AssertBool(harness.ExecuteCommand("equip", path)).IsTrue();
 			controller.EffectsEnabled = true;
 			var weapon = (Weapon)harness.Player.Inventory.EquippedItems[EquipmentSlot.WeaponHand].Item;
 			AssertBool(controller.TryPrepareWeaponAttack(weapon, out var attack, isSpecial: true)).IsTrue();

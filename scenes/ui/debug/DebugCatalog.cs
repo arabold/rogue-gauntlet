@@ -10,7 +10,23 @@ using System.Linq;
 /// </summary>
 public static class DebugCatalog
 {
-	private static readonly Dictionary<string, IReadOnlyList<(Item Item, string Path)>> ItemsByDirectory = [];
+	private static readonly Dictionary<(Type Type, string Directory), object> ResourcesByDirectory = [];
+
+	/// <summary>
+	/// Every <typeparamref name="T"/> <c>.tres</c> in <paramref name="directory"/> and its subfolders with its path, sorted
+	/// by path. Files that fail to load or have another type are skipped.
+	/// </summary>
+	public static IReadOnlyList<(T Resource, string Path)> Resources<T>(string directory) where T : Resource
+	{
+		if (!ResourcesByDirectory.TryGetValue((typeof(T), directory), out object cached))
+		{
+			ResourceCacheGuard.Settle();
+			var found = new List<(T Resource, string Path)>();
+			CollectResources(directory.TrimEnd('/'), found);
+			ResourcesByDirectory[(typeof(T), directory)] = cached = found.OrderBy(e => e.Path, StringComparer.Ordinal).ToList();
+		}
+		return (IReadOnlyList<(T Resource, string Path)>)cached;
+	}
 
 	/// <summary>
 	/// Every <see cref="Item"/> <c>.tres</c> in <paramref name="directory"/> and its subfolders with its path, in display
@@ -20,13 +36,12 @@ public static class DebugCatalog
 	{
 		if (!ItemsByDirectory.TryGetValue(directory, out var items))
 		{
-			ResourceCacheGuard.Settle();
-			var found = new List<(Item Item, string Path)>();
-			CollectItems(directory.TrimEnd('/'), found);
-			ItemsByDirectory[directory] = items = InDisplayOrder(found).ToList();
+			ItemsByDirectory[directory] = items = InDisplayOrder(Resources<Item>(directory).Select(e => (e.Resource, e.Path))).ToList();
 		}
 		return items;
 	}
+
+	private static readonly Dictionary<string, IReadOnlyList<(Item Item, string Path)>> ItemsByDirectory = [];
 
 	private static readonly Dictionary<string, IReadOnlyList<(PackedScene Scene, string Name)>> MonstersByDirectory = [];
 
@@ -86,18 +101,22 @@ public static class DebugCatalog
 			.ThenBy(e => (e.Item as EquipableItem)?.Tier ?? 0)
 			.ThenBy(e => e.Path, StringComparer.Ordinal);
 
-	private static void CollectItems(string directory, List<(Item Item, string Path)> items)
+	private static void CollectResources<T>(string directory, List<(T Resource, string Path)> resources) where T : Resource
 	{
+		if (!DirAccess.DirExistsAbsolute(directory))
+		{
+			return;
+		}
 		foreach (string name in ResourceLoader.ListDirectory(directory))
 		{
 			string path = directory + "/" + name.TrimEnd('/');
 			if (name.EndsWith('/'))
 			{
-				CollectItems(path, items);
+				CollectResources(path, resources);
 			}
-			else if (name.EndsWith(".tres", StringComparison.Ordinal) && ResourceLoader.Load(path) is Item item)
+			else if (name.EndsWith(".tres", StringComparison.Ordinal) && ResourceLoader.Load(path) is T resource)
 			{
-				items.Add((item, path));
+				resources.Add((resource, path));
 			}
 		}
 	}

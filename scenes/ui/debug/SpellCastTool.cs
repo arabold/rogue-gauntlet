@@ -65,6 +65,16 @@ public partial class SpellCastTool : DebugTool
 		return false;
 	}
 
+	/// <summary>
+	/// The player's innate instance of <paramref name="spell"/>, the one <see cref="Cast"/> releases, created on first use;
+	/// null without a living player or for a spell without a scene. Tests cast it directly with their own context.
+	/// </summary>
+	public ICombatSpell Resolve(SpellDefinition spell)
+	{
+		SpellCaster caster = Menu?.Player?.SpellCaster;
+		return caster != null && caster.TryResolve(spell, null, 1, out ICombatSpell instance) ? instance : null;
+	}
+
 	private void OnCastPressed(long id)
 	{
 		if (id < 0 || id >= _castables.Count)

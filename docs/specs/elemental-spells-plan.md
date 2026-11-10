@@ -107,7 +107,7 @@ Reuse muzzle bursts and `RibbonTrail` where appropriate. Reuse actor/item effect
 
 ## Air visual composition slice
 
-The workbench-only air slice composes authored scenes: `VisualEffectTimeline` owns instance-local shader materials, a timed fade and optional sustained lifetime; `LightningArc` draws a seeded cosmetic path between captured endpoints; shared, stateless `DirectTargetStrategy` and `ChainTargetStrategy` Resources choose links from ordered preview positions; area surfaces use the existing `AreaVisibility` mask. Inspector-assigned visual nodes and PackedScenes are required; the workbench owns casts and target fixtures, while spawned scenes own their animation and cleanup. Shared shader Resources remain definitions, with material copies per cast. No component chooses gameplay targets or applies damage.
+The workbench-only air slice composes authored scenes: `VisualEffectTimeline` owns instance-local shader materials, a timed fade and optional sustained lifetime; `LightningArc` draws a seeded cosmetic path between captured endpoints; the workbench chose links from ordered preview positions (the workbenches are retired; spells are cast in the [combat harness](../combat-harness.md)); area surfaces use the existing `AreaVisibility` mask. Inspector-assigned visual nodes and PackedScenes are required; the workbench owns casts and target fixtures, while spawned scenes own their animation and cleanup. Shared shader Resources remain definitions, with material copies per cast. No component chooses gameplay targets or applies damage.
 
 ```text
 Air workbench → order distinct visible fixtures → assigned strategy selects direct/chain links → instantiate authored orb or bolt scenes
