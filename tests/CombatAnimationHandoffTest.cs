@@ -63,7 +63,7 @@ public class CombatAnimationHandoffTest
 		var harness = await TestFactories.SettleCombatHarness(runner);
 		await runner.SimulateFrames(20, 20);
 		if (actor == Player) return (runner, harness.Player);
-		AssertBool(harness.ExecuteCommand("spawn", Array.FindIndex(harness.Monsters, monster => monster.ResourcePath == actor), Vector3.Zero)).IsTrue();
+		TestFactories.SpawnHarnessMonster(harness, actor);
 		var playback = (AnimationNodeStateMachinePlayback)Tree(harness.Monster).Get("parameters/playback");
 		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Idle", 6);
 		return (runner, harness.Monster);

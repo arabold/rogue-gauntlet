@@ -146,8 +146,7 @@ public partial class CombatAccessibilityTest
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		await Frames(runner.Scene(), 3);
 		var player = harness.Player;
 		player.InputController.SetPhysicsProcess(false);
@@ -173,8 +172,7 @@ public partial class CombatAccessibilityTest
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		var player = harness.Player;
 		float health = player.HealthComponent.CurrentHealth;
 		var arrow = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
@@ -193,8 +191,7 @@ public partial class CombatAccessibilityTest
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		await Frames(runner.Scene(), 3);
 		var player = harness.Player;
 		player.InputController.SetPhysicsProcess(false);
@@ -219,8 +216,7 @@ public partial class CombatAccessibilityTest
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		await Frames(runner.Scene(), 3);
 		var shooter = harness.Monster;
 		var attack = shooter.AttackController;

@@ -81,7 +81,7 @@ public partial class CombatIntegrationTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 1, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
 		await runner.SimulateFrames(3);
 		// High Dexterity must not confer any hidden chance to discard confirmed contact.
 		harness.Player.Stats.BaseDexterity = 1000;
@@ -118,18 +118,18 @@ public partial class CombatIntegrationTest
 		using (runner)
 		{
 			AssertInt(harness.GetNode<OptionButton>("%Controls/Weapons").ItemCount).IsEqual(harness.Weapons.Length);
-			AssertInt(harness.GetNode<OptionButton>("%Controls/Defense").ItemCount).IsEqual(5);
-			AssertInt(harness.GetNode<OptionButton>("%Controls/Monsters").ItemCount).IsEqual(harness.Monsters.Length);
+			AssertInt(harness.GetNode<OptionButton>("%Controls/Defense").ItemCount).IsEqual(4);
+			AssertInt(harness.GetNode<OptionButton>("%Controls/Monsters").ItemCount).IsEqual(harness.Monsters.Length + 1);
 			AssertBool(harness.Weapons.Length > 0 && harness.Monsters.Length > 0).IsTrue();
 			var defense = harness.GetNode<OptionButton>("%Controls/Defense");
-			AssertInt(defense.Selected).IsEqual(2);
-			AssertString(defense.GetItemText(2)).IsEqual("Monster default");
-			AssertString(harness.GetNode<OptionButton>("%Controls/Monsters").GetItemText(1)).IsEqual("Skeleton Warrior");
+			AssertInt(defense.Selected).IsEqual(0);
+			AssertString(defense.GetItemText(0)).IsEqual("Monster default");
+			AssertString(harness.GetNode<OptionButton>("%Controls/Monsters").GetItemText(0)).IsEqual("Practice dummy");
 			harness.GetNode<OptionButton>("%Controls/Monsters").Selected = 1;
 			harness.GetNode<Button>("%Controls/SpawnMonster").EmitSignal(BaseButton.SignalName.Pressed);
 			AssertBool(GodotObject.IsInstanceValid(harness.Monster)).IsTrue();
 			AssertInt((int)harness.Monster.DefenseController.Mode).IsEqual((int)EnemyDefenseMode.ProfileDefault);
-			harness.ExecuteCommand("defense", 0, Vector3.Zero); // Keep this UI smoke attack undefended so its hitbox remains observable.
+			harness.ExecuteCommand("defense", 1, Vector3.Zero); // Keep this UI smoke attack undefended so its hitbox remains observable.
 			await PhysicsFrames(runner, 2); // Enemy presentation becomes visible after its first physics tick.
 			var hurtboxes = harness.GetNode<CheckButton>("%Controls/Hurtboxes");
 			hurtboxes.ButtonPressed = true;
@@ -171,9 +171,8 @@ public partial class CombatIntegrationTest
 		using (runner)
 		{
 			harness.Player.InputController.SetPhysicsProcess(false);
-			harness.ExecuteCommand("spawn", 1, Vector3.Zero);
-			harness.ExecuteCommand("defense", 4, Vector3.Zero);
-			var enemy = harness.Monster;
+			var enemy = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
+			enemy.DefenseController.Mode = EnemyDefenseMode.GuardParry;
 			var guard = enemy.GuardComponent;
 			var definition = (GuardDefinition)guard.GuardDef.Duplicate(true);
 			definition.CanParry = parry;
@@ -232,8 +231,7 @@ public partial class CombatIntegrationTest
 		var (runner, harness) = await Load();
 		using (runner)
 		{
-			harness.ExecuteCommand("spawn", 1, Vector3.Zero);
-			var enemy = harness.Monster;
+			var enemy = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
 			AssertInt((int)enemy.GuardComponent.TryBeginGuard(Vector3.Back)).IsEqual((int)DefenseRequestResult.Success);
 			AssertBool(enemy.EnemyBehaviorComponent.TryAttack()).IsFalse();
 			enemy.GuardComponent.EndGuard(true);
@@ -403,9 +401,7 @@ public partial class CombatIntegrationTest
 		var (runner, harness) = await Load();
 		using (runner)
 		{
-			harness.ExecuteCommand("spawn", 1, Vector3.Zero);
-			harness.ExecuteCommand("defense", 2, Vector3.Zero);
-			var enemy = harness.Monster;
+			var enemy = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
 			var profile = (EnemyBehaviorProfile)enemy.EnemyBehaviorComponent.Profile.Duplicate();
 			profile.Combat = (EnemyCombatProfile)profile.Combat.Duplicate();
 			profile.Combat.DefenseStrategy = (EnemyDefenseStrategy)profile.Combat.DefenseStrategy.Duplicate();
@@ -429,8 +425,7 @@ public partial class CombatIntegrationTest
 		var (runner, harness) = await Load();
 		using (runner)
 		{
-			harness.ExecuteCommand("spawn", 1, Vector3.Zero);
-			var enemy = harness.Monster;
+			var enemy = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
 			AssertInt((int)enemy.GuardComponent.TryBeginGuard(Vector3.Back)).IsEqual((int)DefenseRequestResult.Success);
 			await PhysicsFrames(runner, 4);
 			float before = enemy.HealthComponent.CurrentHealth;

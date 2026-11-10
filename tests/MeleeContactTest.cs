@@ -285,8 +285,7 @@ public class MeleeContactTest
 	public async Task NativeMonsterMeleeDamagesHeroThroughTheSameDetector()
 	{
 		var (_, harness) = await Load();
-		harness.SpawnMonster();
-		var monster = harness.Player.GetParent().GetChildren().OfType<EnemyBase>().Single();
+		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
 		monster.GlobalPosition = harness.Player.GlobalPosition + Vector3.Forward * 1.8f;
 		harness.Player.HurtBoxComponent.Armor = 0;
 		float health = harness.Player.HealthComponent.CurrentHealth;

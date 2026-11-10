@@ -233,8 +233,7 @@ public class ProjectileFlightTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 0, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene, 6);
 		await runner.SimulateFrames(2);
 		var controller = harness.Player.AttackController;
 		Node parent = harness.Player.GetTree().CurrentScene ?? runner.Scene();

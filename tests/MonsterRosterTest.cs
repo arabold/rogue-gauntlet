@@ -22,7 +22,7 @@ public class MonsterRosterTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene);
 		await Frames(runner.Scene(), 2);
 		var actor = harness.Monster;
 		actor.Position = harness.Player.Position + Vector3.Forward * 3;
@@ -47,7 +47,7 @@ public class MonsterRosterTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene);
 		await Frames(runner.Scene(), 2);
 		var actor = harness.Monster;
 		var profile = actor.Definition.Behavior;
@@ -80,7 +80,7 @@ public class MonsterRosterTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene);
 		await Frames(runner.Scene(), 2);
 		var shooter = harness.Monster;
 		shooter.Position = harness.Player.Position + Vector3.Forward * 6;
@@ -112,8 +112,7 @@ public class MonsterRosterTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 2, Vector3.Zero);
-		var boss = harness.Monster;
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
 		var player = harness.Player;
 		player.InputController.SetPhysicsProcess(false);
 		player.MovementComponent.SetPhysicsProcess(false);
@@ -160,8 +159,7 @@ public class MonsterRosterTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 4, Vector3.Zero);
-		var rat = harness.Monster;
+		var rat = TestFactories.SpawnHarnessMonster(harness, TestFactories.RatScene);
 		rat.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		rat.Position = harness.Player.Position + Vector3.Forward * 1.22f;
@@ -219,8 +217,7 @@ public class MonsterRosterTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 1, Vector3.Zero);
-		var actor = harness.Monster;
+		var actor = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
 		int count = 0;
 		AttackIdentity ended = default;
 		bool interrupted = true;

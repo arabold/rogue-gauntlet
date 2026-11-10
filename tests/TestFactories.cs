@@ -82,6 +82,27 @@ public static partial class TestFactories
 		return runner.Scene().GetNode<CombatHarness>("Instructions");
 	}
 
+	public const string MinionScene = "res://scenes/enemies/skeleton/skeleton_minion.tscn";
+	public const string WarriorScene = "res://scenes/enemies/skeleton/skeleton_warrior.tscn";
+	public const string CrossbowScene = "res://scenes/enemies/skeleton/skeleton_crossbow.tscn";
+	public const string WardenScene = "res://scenes/enemies/forsaken_warden/forsaken_warden.tscn";
+	public const string RatScene = "res://scenes/enemies/rat/rat.tscn";
+
+	/// <summary>
+	/// Spawn one authored monster through the harness's spawn command (AI off, facing the hero), then place it
+	/// <paramref name="distance"/> metres in front of the hero on that same line. Tests name the scene instead of a picker
+	/// index, so adding a monster to the discovered roster never changes which monster a test fights.
+	/// </summary>
+	public static EnemyBase SpawnHarnessMonster(CombatHarness harness, string scenePath, float distance = 2)
+	{
+		harness.Monsters = [Load<PackedScene>(scenePath)];
+		if (!harness.ExecuteCommand("spawn", 1, Vector3.Zero)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
+		var monster = harness.Monster;
+		monster.Position = harness.Player.Position + Vector3.Forward * distance;
+		monster.ResetPhysicsInterpolation();
+		return monster;
+	}
+
 	/// <summary>One of the harness's spell components, found by its authored name.</summary>
 	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell =>
 		harness.SpellComponents.OfType<T>().Single(spell => spell.DisplayName == name);

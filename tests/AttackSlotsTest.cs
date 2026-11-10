@@ -14,8 +14,7 @@ public class AttackSlotsTest
 	{
 		var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn_distance", 2, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 0, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
 		await runner.SimulateFrames(2);
 		return (runner, harness, harness.Monster);
 	}

@@ -100,9 +100,7 @@ public class CombatPositioningTest
 		var existingException = new StaticBody3D();
 		runner.Scene().AddChild(existingException);
 		player.AddCollisionExceptionWith(existingException);
-		harness.Monsters = [TestFactories.Load<PackedScene>(scene)];
-		AssertBool(harness.ExecuteCommand("spawn", 1, Vector3.Zero)).IsTrue();
-		var enemy = harness.Monster;
+		var enemy = TestFactories.SpawnHarnessMonster(harness, scene);
 		enemy.EnemyBehaviorComponent.SetPhysicsProcess(false);
 		enemy.DefenseController?.SetPhysicsProcess(false);
 		enemy.MovementComponent.Stop();

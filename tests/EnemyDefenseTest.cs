@@ -500,17 +500,8 @@ public partial class EnemyDefenseTest
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		var monstersOpt = harness.GetNode<OptionButton>("%Controls/Monsters");
-		monstersOpt.Selected = 1;
-
-		var defenseOpt = harness.GetNode<OptionButton>("%Controls/Defense");
-		defenseOpt.Selected = 4;
-
-		harness.SpawnMonster();
-		var monster = harness.Monster;
-		AssertObject(monster).IsNotNull();
-
-		harness.ApplyDefense();
+		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
+		monster.DefenseController.Mode = EnemyDefenseMode.GuardParry;
 		float initialHp = monster.HealthComponent.CurrentHealth;
 
 		harness.EquipPreview(0);
@@ -534,17 +525,8 @@ public partial class EnemyDefenseTest
 		await runner.SimulateFrames(3);
 
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		var monstersOpt = harness.GetNode<OptionButton>("%Controls/Monsters");
-		monstersOpt.Selected = 1;
-
-		var defenseOpt = harness.GetNode<OptionButton>("%Controls/Defense");
-		defenseOpt.Selected = 3; // Always Dodge
-
-		harness.SpawnMonster();
-		var monster = harness.Monster;
-		AssertObject(monster).IsNotNull();
-
-		harness.ApplyDefense();
+		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
+		monster.DefenseController.Mode = EnemyDefenseMode.Dodge;
 		float initialHp = monster.HealthComponent.CurrentHealth;
 
 		harness.EquipPreview(0);

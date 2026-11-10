@@ -14,7 +14,7 @@ public partial class ActorFrozenStatusTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		harness.SpawnMonster();
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
 		await runner.SimulateFrames(5);
 		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		foreach (Node actor in new Node[] { harness.Player, harness.Monster })
@@ -59,7 +59,7 @@ public partial class ActorFrozenStatusTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		harness.SpawnMonster();
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
 		var monster = harness.Monster;
 		var frozen = monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
 		var playback = (AnimationNodeStateMachinePlayback)frozen.Animation.Get("parameters/playback");
@@ -78,7 +78,7 @@ public partial class ActorFrozenStatusTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		harness.SpawnMonster();
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
 		await runner.SimulateFrames(5);
 		var monster = harness.Monster;
 		var frozen = monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent");

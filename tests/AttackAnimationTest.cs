@@ -173,8 +173,7 @@ public class AttackAnimationTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		await runner.SimulateFrames(2);
 		var shooter = harness.Monster;
 		var controller = shooter.AttackController;
@@ -209,7 +208,7 @@ public class AttackAnimationTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.ExecuteCommand("spawn", 3, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene);
 		var shooter = harness.Monster;
 		var component = shooter.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		component.Profile = (AttackAnimationProfile)component.Profile.Duplicate(true);
@@ -225,9 +224,7 @@ public class AttackAnimationTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.Monsters = [TestFactories.Load<PackedScene>(path)];
-		harness.ExecuteCommand("spawn_distance", 6, Vector3.Zero);
-		harness.ExecuteCommand("spawn", 0, Vector3.Zero);
+		TestFactories.SpawnHarnessMonster(harness, path, 6);
 		await runner.SimulateFrames(2);
 		var shooter = harness.Monster;
 		var mount = shooter.GetNode<BoneAttachment3D>("Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D");
