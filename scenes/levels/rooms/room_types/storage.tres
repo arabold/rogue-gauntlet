@@ -182,5 +182,5 @@ Walls = [ExtResource("4_stone_walls"), ExtResource("5_ruined_walls"), ExtResourc
 Floors = [ExtResource("7_stone_floor"), ExtResource("8_dirt_floor"), ExtResource("11_drained_ston"), ExtResource("x_bricks_floor"), ExtResource("x_earth_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_drained_flagstones")]
 Columns = [SubResource("CenterColumns_3"), SubResource("CornerColumns_4")]
 ColumnChance = 0.25
-Steps = [SubResource("AlongWallsStep_sluice"), SubResource("PoolStep_channel"), SubResource("AlongWallsStep_pipework"), SubResource("CornersStep_5"), SubResource("AlongWallsStep_6"), SubResource("ScatterStep_7"), SubResource("CornersStep_8"), SubResource("ScatterStep_goo"), SubResource("WallDecorStep_9")]
+Steps = [SubResource("PoolStep_channel"), SubResource("CornersStep_5"), SubResource("AlongWallsStep_6"), SubResource("AlongWallsStep_sluice"), SubResource("AlongWallsStep_pipework"), SubResource("ScatterStep_7"), SubResource("CornersStep_8"), SubResource("ScatterStep_goo"), SubResource("WallDecorStep_9")]
 metadata/_custom_type_script = ExtResource("1_RoomType")
