@@ -45,31 +45,38 @@ public class LootThrowTest
 	public async Task ChestLootLandsOnAFreeSpotInSightOfTheChest()
 	{
 		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
-		TestFactories.WireLootScenes(map);
-		map.MinChests = map.MaxChests = 2;
-		var failures = new List<string>();
-		for (ulong seed = 1; seed <= 5; seed++)
+		using (runner)
 		{
-			map.Seed = seed;
-			map.GenerateMap(includeGameplay: true);
-			await runner.SimulateFrames(3);
-			foreach (Chest chest in map.FloorContent.GetChildren().OfType<Chest>())
+			TestFactories.WireLootScenes(map);
+			// Few floors with many chests: every chest is a sample, every generation costs.
+			map.MinChests = map.MaxChests = 4;
+			var failures = new List<string>();
+			int chests = 0;
+			for (ulong seed = 1; seed <= 2; seed++)
 			{
-				Vector3 source = chest.GlobalPosition, front = chest.GlobalBasis.Z;
-				// The back throw aims at the wall the chest stands against: it must turn, never pass the wall.
-				foreach (Vector3 direction in new[] { front, -front })
+				map.Seed = seed;
+				map.GenerateMap(includeGameplay: true);
+				await runner.SimulateFrames(3, 20);
+				foreach (Chest chest in map.FloorContent.GetChildren().OfType<Chest>())
 				{
-					Vector3 landing = map.Floor.FindDropLanding(source, direction, chest.LootTable.DropDistance);
-					Vector2I tile = map.Floor.Map.WorldToTile(landing);
-					bool onFloor = map.Floor.Map.IsRoom(tile.X, tile.Y) || map.Floor.Map.IsCorridor(tile.X, tile.Y);
-					bool inSight = WorldSight.IsClear(map.GetWorld3D(), source + Vector3.Up, landing + Vector3.Up);
-					if (landing == source || !onFloor || map.Floor.IsColumnObstructed(landing) || !inSight)
+					chests++;
+					Vector3 source = chest.GlobalPosition, front = chest.GlobalBasis.Z;
+					// The back throw aims at the wall the chest stands against: it must turn, never pass the wall.
+					foreach (Vector3 direction in new[] { front, -front })
 					{
-						failures.Add($"seed {seed} chest {source} toward {direction}: landed {landing} (floor {onFloor}, sight {inSight})");
+						Vector3 landing = map.Floor.FindDropLanding(source, direction, chest.LootTable.DropDistance);
+						Vector2I tile = map.Floor.Map.WorldToTile(landing);
+						bool onFloor = map.Floor.Map.IsRoom(tile.X, tile.Y) || map.Floor.Map.IsCorridor(tile.X, tile.Y);
+						bool inSight = WorldSight.IsClear(map.GetWorld3D(), source + Vector3.Up, landing + Vector3.Up);
+						if (landing == source || !onFloor || map.Floor.IsColumnObstructed(landing) || !inSight)
+						{
+							failures.Add($"seed {seed} chest {source} toward {direction}: landed {landing} (floor {onFloor}, sight {inSight})");
+						}
 					}
 				}
 			}
+			AssertInt(chests).IsGreaterEqual(6);
+			AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
 		}
-		AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
 	}
 }

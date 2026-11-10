@@ -84,10 +84,15 @@ public class EquipmentRollTableTest
 		};
 		var rng = new RandomNumberGenerator { Seed = 3 };
 
+		var percents = new System.Collections.Generic.HashSet<float>();
 		for (int i = 0; i < 50; i++)
 		{
-			AssertFloat(keen.Roll(AffixKind.Prefix, rng).Modifiers[0].Value).IsBetween(0.02f, 0.04f);
+			float percent = keen.Roll(AffixKind.Prefix, rng).Modifiers[0].Value * 100f;
+			AssertFloat(percent).IsEqualApprox(Mathf.Round(percent), 0.0001f);
+			percents.Add(Mathf.Round(percent));
 		}
+		// Whole percents across the range, never whole points (which would round every roll to 0).
+		AssertArray(percents.Order().ToArray()).ContainsExactly(2f, 3f, 4f);
 	}
 
 	[TestCase]

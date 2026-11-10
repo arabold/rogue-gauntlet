@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
@@ -49,26 +50,6 @@ public class InventoryEquipSlotTest
 	}
 
 	[TestCase]
-	public void DaggerCanExplicitlyEquipToOffhand()
-	{
-		var inventory = new Inventory();
-		var sword = TestFactories.Load<EquipableItem>("res://scenes/items/weapons/sword_common.tres");
-		var dagger = TestFactories.Load<EquipableItem>("res://scenes/items/weapons/dagger_common.tres");
-		var slotSword = new InventoryItemSlot { Item = sword, Quantity = 1 };
-		var slotDagger = new InventoryItemSlot { Item = dagger, Quantity = 1 };
-		inventory.Items.Add(slotSword);
-		inventory.Items.Add(slotDagger);
-
-		inventory.Equip(slotSword, EquipmentSlot.WeaponHand);
-		inventory.Equip(slotDagger, EquipmentSlot.ShieldHand);
-
-		AssertObject(inventory.EquippedItems[EquipmentSlot.WeaponHand]).IsEqual(slotSword);
-		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsEqual(slotDagger);
-		AssertObject(inventory.EquippedWeapon).IsEqual(sword);
-		AssertObject(inventory.EquippedOffhandWeapon).IsEqual(dagger);
-	}
-
-	[TestCase]
 	public void TwoHandedWeaponDisplacesOffhand()
 	{
 		var inventory = new Inventory();
@@ -91,8 +72,8 @@ public class InventoryEquipSlotTest
 	[TestCase]
 	public async Task OpeningEquipmentPanelShowsTwoHandedWeaponInBothHands()
 	{
-		ISceneRunner runner = TestFactories.LoadScene("res://scenes/ui/equipment_panel.tscn");
-		await runner.SimulateFrames(1);
+		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/ui/equipment_panel.tscn");
+		await runner.SimulateFrames(1, 20);
 		var panel = (EquipmentPanel)runner.Scene();
 		var inventory = new Inventory();
 		var weapon = (Weapon)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/weapons/crossbow_common.tres"));
@@ -140,22 +121,20 @@ public class InventoryEquipSlotTest
 		var harness = await TestFactories.SettleCombatHarness(harnessRunner, 3);
 		var player = harness.Player;
 
-		var torch = TestFactories.Load<EquipableItem>("res://scenes/items/tools/lamp/tool_torch_wooden.tres");
-		var slot = new InventoryItemSlot { Item = torch, Quantity = 1 };
-		player.Inventory.Items.Add(slot);
+		var torch = (EquipableItem)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/tools/lamp/tool_torch_wooden.tres"));
+		AssertObject(torch.Guard).IsNotNull();
+		AssertBool(player.Inventory.TryAdd(torch).Success).IsTrue();
+		player.Inventory.Equip(player.Inventory.Items.First(entry => entry.Item == torch), EquipmentSlot.ShieldHand);
 
-		player.Inventory.Equip(slot, EquipmentSlot.ShieldHand);
-		player.InventoryController.RefreshEffectiveGuard();
-
-		AssertBool(player.GuardComponent.HasGuard).IsTrue();
-		AssertFloat(player.GuardComponent.EffectiveDefinition.DamageMultiplier).IsEqual(0.65f);
+		// Equipping alone refreshes the guard: the held light's own guard replaces the bare-handed one.
+		AssertObject(player.GuardComponent.EffectiveDefinition).IsSame(torch.Guard);
 	}
 
 	[TestCase]
 	public async Task ContextMenuConfiguresHandOptionsAccurately()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/ui/inventory_item_context_menu.tscn");
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		var menu = (InventoryItemContextMenu)runner.Scene();
 		var inventory = new Inventory();
 

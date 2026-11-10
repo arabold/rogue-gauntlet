@@ -9,21 +9,6 @@ using static GdUnit4.Assertions;
 public partial class HudMessageFeedTest
 {
 	[TestCase]
-	public void AddMessageCreatesChildLabelAndIncrementsCount()
-	{
-		var feed = TestFactories.AddToSceneTree(new HudMessageFeed());
-		feed.AddMessage("Drank Small Potion of Healing", LogSeverity.Info);
-
-		AssertInt(feed.ActiveMessageCount).IsEqual(1);
-		AssertInt(feed.GetChildCount()).IsEqual(1);
-
-		var label = feed.GetChild<RichTextLabel>(0);
-		AssertString(label.Text).IsEqual("Drank Small Potion of Healing");
-
-		feed.QueueFree();
-	}
-
-	[TestCase]
 	public void ConsecutiveIdenticalMessagesCoalesceWithRepeatCount()
 	{
 		var feed = TestFactories.AddToSceneTree(new HudMessageFeed());
@@ -56,6 +41,7 @@ public partial class HudMessageFeedTest
 		var active = feed.GetActiveMessages();
 		AssertString(active[0]).IsEqual("Drank Small Potion of Healing");
 		AssertString(active[1]).IsEqual("Wielded Iron Broadsword");
+		AssertString(feed.GetChild<RichTextLabel>(0).Text).IsEqual("Drank Small Potion of Healing");
 
 		feed.QueueFree();
 	}

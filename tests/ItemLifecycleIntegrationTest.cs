@@ -15,8 +15,8 @@ public class ItemLifecycleIntegrationTest
 	[TestCase]
 	public async Task PickupUseDropAndFloorReconstructionConserveItems()
 	{
-		ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(10);
+		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
+		await runner.SimulateFrames(10, 20);
 		var level = runner.Scene().GetNode<Level>("Level");
 		level.MapGenerator.MinChests = 1;
 		level.Generate();
@@ -107,6 +107,6 @@ public class ItemLifecycleIntegrationTest
 		AssertInt(ground[0].Quantity).IsEqual(1);
 		restoredChest.GetNode<LootTableComponent>("LootTableComponent").DropLoot();
 		AssertString(JsonSerializer.Serialize(level.ItemPersistence.Capture())).IsEqual(JsonSerializer.Serialize(restored));
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 	}
 }

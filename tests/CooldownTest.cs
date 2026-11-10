@@ -11,37 +11,19 @@ using static GdUnit4.Assertions;
 public class CooldownTest
 {
 	[TestCase]
-	public void NewCooldownIsReady()
+	public void ACooldownIsReadyUntilStartedAndAgainOnceItsDurationElapses()
 	{
 		var cooldown = new Cooldown();
 		AssertBool(cooldown.IsReady).IsTrue();
-	}
 
-	[TestCase]
-	public void StartedCooldownIsNotReady()
-	{
-		var cooldown = new Cooldown();
 		cooldown.Start(1.0f);
 		AssertBool(cooldown.IsReady).IsFalse();
-	}
-
-	[TestCase]
-	public void TickReportsNotReadyUntilDurationElapses()
-	{
-		var cooldown = new Cooldown();
-		cooldown.Start(1.0f);
-
 		AssertBool(cooldown.Tick(0.4)).IsFalse();
 		AssertBool(cooldown.IsReady).IsFalse();
-
 		AssertBool(cooldown.Tick(0.6)).IsTrue();
 		AssertBool(cooldown.IsReady).IsTrue();
-	}
 
-	[TestCase]
-	public void OvershootingTickIsReady()
-	{
-		var cooldown = new Cooldown();
+		// One long tick overshooting the duration is enough.
 		cooldown.Start(0.5f);
 		AssertBool(cooldown.Tick(10.0)).IsTrue();
 	}

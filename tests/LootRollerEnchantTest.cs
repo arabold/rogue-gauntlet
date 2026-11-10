@@ -23,9 +23,10 @@ public class LootRollerEnchantTest
 	private static EquipableItem Copy(string path) => (EquipableItem)ItemFactory.CopyDefinition(TestFactories.Load<EquipableItem>(path));
 
 	[TestCase]
-	public void EnchantAddsOneAffixAndMakesTheItemMagic()
+	public void EnchantAddsOneAffixAndMakesTheItemMagicWithoutTouchingTheDefinition()
 	{
-		EquipableItem instance = Copy(AxeCommonPath);
+		var definition = TestFactories.Load<EquipableItem>(AxeCommonPath);
+		var instance = (EquipableItem)ItemFactory.CopyDefinition(definition);
 		var rng = new RandomNumberGenerator { Seed = 99 };
 
 		AssertInt((int)instance.Quality).IsEqual((int)ItemQuality.Normal);
@@ -34,22 +35,25 @@ public class LootRollerEnchantTest
 		AssertInt((int)instance.Quality).IsEqual((int)ItemQuality.Magic);
 		AssertFloat(instance.MagnitudeScale).IsEqual(1f);
 		AssertInt(instance.Affixes.Count).IsEqual(1);
+		AssertInt((int)definition.Quality).IsEqual((int)ItemQuality.Normal);
+		AssertInt(definition.Affixes.Count).IsEqual(0);
 	}
 
 	[TestCase]
 	public void EnchantTurnsRarePastMagicsMaximumAndStopsAtRaresMaximum()
 	{
+		QualityLadder ladder = Ladder;
 		EquipableItem ring = Copy(RingPath);
 		var rng = new RandomNumberGenerator { Seed = 5 };
 
 		for (int i = 0; i < 6; i++)
 		{
-			LootRoller.Enchant(ring, 24, rng, Ladder);
+			LootRoller.Enchant(ring, 24, rng, ladder);
 		}
 
 		AssertInt((int)ring.Quality).IsEqual((int)ItemQuality.Rare);
-		AssertInt(ring.Affixes.Count).IsEqual(Ladder.Level(ItemQuality.Rare).MaxAffixes);
-		AssertBool(LootRoller.CanEnchant(ring, Ladder)).IsFalse();
+		AssertInt(ring.Affixes.Count).IsEqual(ladder.Level(ItemQuality.Rare).MaxAffixes);
+		AssertBool(LootRoller.CanEnchant(ring, ladder)).IsFalse();
 	}
 
 	[TestCase]
@@ -69,32 +73,20 @@ public class LootRollerEnchantTest
 	[TestCase]
 	public void EnchantNeverStacksAFamily()
 	{
+		QualityLadder ladder = Ladder;
 		EquipableItem instance = Copy(AxeCommonPath);
 		var rng = new RandomNumberGenerator { Seed = 7 };
 
 		for (int i = 0; i < 4; i++)
 		{
-			LootRoller.Enchant(instance, 24, rng, Ladder);
+			LootRoller.Enchant(instance, 24, rng, ladder);
 		}
 
+		AssertInt(instance.Affixes.Count).IsEqual(4);
 		var seen = new System.Collections.Generic.HashSet<string>();
 		foreach (RolledAffix affix in instance.Affixes)
 		{
 			AssertBool(seen.Add(affix.Group)).IsTrue();
 		}
-	}
-
-	[TestCase]
-	public void EnchantDoesNotMutateTheSharedDefinition()
-	{
-		var definition = TestFactories.Load<EquipableItem>(AxeCommonPath);
-		var instance = (EquipableItem)ItemFactory.CopyDefinition(definition);
-		var rng = new RandomNumberGenerator { Seed = 123 };
-
-		LootRoller.Enchant(instance, 10, rng, Ladder);
-
-		AssertInt((int)definition.Quality).IsEqual((int)ItemQuality.Normal);
-		AssertFloat(definition.MagnitudeScale).IsEqual(1f);
-		AssertInt(definition.Affixes.Count).IsEqual(0);
 	}
 }

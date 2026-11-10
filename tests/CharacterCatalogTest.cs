@@ -4,35 +4,21 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Validates the authored character catalog: the four classes load complete and in order,
-/// lookup-by-id behaves (including the fallback contract GameSession relies on), and the
-/// class application helpers derive the expected stats without mutating the definitions.
-/// Needs the Godot runtime to load the .tres resources.
+/// The authored character catalog: every class is complete and starts in the first tier, lookup-by-id behaves
+/// (including the default GameSession falls back to), and applying a class derives the player's pools and damage from
+/// its attributes without mutating the definition. Needs the Godot runtime to load the .tres resources.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
 public partial class CharacterCatalogTest
 {
 	[TestCase]
-	public void CatalogContainsTheFourClassesInOrder()
-	{
-		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
-
-		AssertObject(catalog).IsNotNull();
-		AssertInt(catalog.Classes.Count).IsEqual(4);
-		AssertString(catalog.Classes[0].Id).IsEqual("barbarian");
-		AssertString(catalog.Classes[1].Id).IsEqual("knight");
-		AssertString(catalog.Classes[2].Id).IsEqual("rogue");
-		AssertString(catalog.Classes[3].Id).IsEqual("mage");
-		AssertString(catalog.DefaultClass.Id).IsEqual("barbarian");
-	}
-
-	[TestCase]
 	public void FindByIdResolvesKnownAndRejectsUnknownIds()
 	{
 		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
 
-		AssertString(catalog.FindById("rogue").DisplayName).IsEqual("Rogue");
+		AssertObject(catalog.DefaultClass).IsSame(catalog.Classes[0]);
+		AssertObject(catalog.FindById(catalog.Classes[^1].Id)).IsSame(catalog.Classes[^1]);
 		AssertObject(catalog.FindById("necromancer")).IsNull();
 		AssertObject(catalog.FindById("")).IsNull();
 		AssertObject(catalog.FindById(null)).IsNull();
@@ -43,6 +29,7 @@ public partial class CharacterCatalogTest
 	{
 		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
 
+		AssertInt(catalog.Classes.Count).IsGreater(0);
 		foreach (CharacterClass characterClass in catalog.Classes)
 		{
 			AssertString(characterClass.Id).IsNotEmpty();
@@ -70,68 +57,41 @@ public partial class CharacterCatalogTest
 		}
 	}
 
+	/// <summary>A made-up class, so balance changes to the authored classes never break the derivation rules.</summary>
 	[TestCase]
-	public void ApplyToStatsDerivesClassHealth()
+	public void ApplyingAClassDerivesFullPoolsAndDamageFromItsAttributes()
 	{
-		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
-		CharacterClass knight = catalog.FindById("knight");
-		var stats = new PlayerStats();
+		var profile = new StatProfile { HealthPerVitality = 4, ManaPerIntelligence = 3, DamagePerStrength = 0.5f, DamagePerIntelligence = 0.25f };
+		var hero = new CharacterClass { StatProfile = profile, BaseStrength = 6, BaseVitality = 10, BaseIntelligence = 8 };
+		var stats = new PlayerStats { BaseMaxHealth = 50, BaseMaxMana = 20, BaseMinDamage = 1, BaseMaxDamage = 3, Health = 1, Mana = 0 };
 
-		knight.ApplyToStats(stats);
+		hero.ApplyToStats(stats);
 
-		// BaseMaxHealth 50 + Vitality 14 * HealthPerVitality 5 = 120, refilled on apply.
-		AssertFloat(stats.MaxHealth).IsEqual(120f);
+		AssertObject(stats.Profile).IsSame(profile);
+		AssertFloat(stats.MaxHealth).IsEqual(50f + 10 * 4);
+		AssertFloat(stats.MaxMana).IsEqual(20f + 8 * 3);
+		// Both pools start full.
 		AssertFloat(stats.Health).IsEqual(stats.MaxHealth);
-		AssertFloat(stats.BaseStrength).IsEqual(12f);
-		AssertObject(stats.Profile).IsSame(knight.StatProfile);
-	}
-
-	[TestCase]
-	public void MageProfileScalesDamageWithIntelligence()
-	{
-		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
-		CharacterClass mage = catalog.FindById("mage");
-		var stats = new PlayerStats();
-
-		mage.ApplyToStats(stats);
-
-		// Damage derivation: STR 6 * 0.05 + INT 16 * 0.2 = 3.5 on top of the base values.
-		AssertFloat(stats.MinDamage).IsEqual(3.5f);
-		AssertFloat(stats.MaxDamage).IsEqual(5.5f);
-	}
-
-	[TestCase]
-	public void IntelligenceSizesEachClassManaPool()
-	{
-		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
-
-		// BaseMaxMana 20 + Intelligence * ManaPerIntelligence 5, refilled on apply; 4% of the pool regenerates per second.
-		foreach ((string id, float pool) in new[] { ("barbarian", 45f), ("knight", 50f), ("rogue", 60f), ("mage", 100f) })
-		{
-			var stats = new PlayerStats();
-			catalog.FindById(id).ApplyToStats(stats);
-			AssertFloat(stats.MaxMana).IsEqual(pool);
-			AssertFloat(stats.Mana).IsEqual(pool);
-			AssertFloat(stats.ManaRegenPerSecond).IsEqualApprox(pool * 0.04f, 0.0001f);
-		}
-
-		var mage = new PlayerStats();
-		catalog.FindById("mage").ApplyToStats(mage);
-		mage.AddModifier(this, new StatModifier { Stat = StatType.MaxMana, Value = 10 });
-		AssertFloat(mage.MaxMana).IsEqual(110f);
+		AssertFloat(stats.Mana).IsEqual(stats.MaxMana);
+		// Strength and Intelligence both feed the damage range: 6 * 0.5 + 8 * 0.25 = 5.
+		AssertFloat(stats.MinDamage).IsEqual(1f + 5);
+		AssertFloat(stats.MaxDamage).IsEqual(3f + 5);
+		// Item bonuses add on top of the derived pool.
+		stats.AddModifier(this, new StatModifier { Stat = StatType.MaxMana, Value = 10 });
+		AssertFloat(stats.MaxMana).IsEqual(20f + 8 * 3 + 10);
 	}
 
 	[TestCase]
 	public void StartingInventoryIsACopyOfTheDefinition()
 	{
 		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
-		CharacterClass barbarian = catalog.FindById("barbarian");
+		CharacterClass first = catalog.Classes[0];
 
-		Inventory inventory = barbarian.CreateStartingInventory(20);
+		Inventory inventory = first.CreateStartingInventory(20);
 
-		AssertInt(inventory.Items.Count).IsEqual(barbarian.StartingItems.Count);
-		int authoredQuantity = barbarian.StartingItems[0].Quantity;
+		AssertInt(inventory.Items.Count).IsEqual(first.StartingItems.Count);
+		int authoredQuantity = first.StartingItems[0].Quantity;
 		inventory.Items[0].Quantity = 99;
-		AssertInt(barbarian.StartingItems[0].Quantity).IsEqual(authoredQuantity);
+		AssertInt(first.StartingItems[0].Quantity).IsEqual(authoredQuantity);
 	}
 }

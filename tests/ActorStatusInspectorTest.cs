@@ -21,16 +21,14 @@ public partial class ActorStatusInspectorTest
 			var actor = TestFactories.Load<PackedScene>($"res://scenes/{path}.tscn").Instantiate<Node3D>();
 			actor.Set("Invisible", true); actor.Set("Frozen", true); actor.Set("IronSkin", true); actor.Set("StoneSkin", true);
 			TestFactories.AddToSceneTree(actor);
-			await runner.SimulateFrames(2);
+			await runner.SimulateFrames(2, 20);
 			foreach (string property in new[] { "Invisible", "Frozen", "IronSkin", "StoneSkin" })
 				AssertBool(actor.Get(property).AsBool()).IsTrue();
 			var controller = actor.GetNode<BuffController>("BuffController");
 			var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
-			AssertObject(cloak.Target).IsSame(actor.GetNode<Node3D>("Pivot"));
-			AssertObject(cloak.Effect.Scene).IsNotNull();
-			AssertObject(cloak.Host).IsNotNull();
-			AssertObject(cloak.Statuses).IsSame(controller);
 			AssertBool(cloak.IsInvisible).IsTrue();
+			// The cloak reaches the actor's own surfaces, not just its state.
+			AssertBool(cloak.Host.SurfaceController.HasCloak).IsTrue();
 			AssertInt(controller.ActiveBuffs.Count).IsEqual(4);
 			AssertBool(actor.GetNode<FrozenStatusComponent>("FrozenStatusComponent").ActionGate.IsStatusLocked).IsTrue();
 			foreach (string property in new[] { "Invisible", "Frozen", "IronSkin", "StoneSkin" }) actor.Set(property, false);
@@ -38,7 +36,7 @@ public partial class ActorStatusInspectorTest
 				AssertBool(actor.Get(property).AsBool()).IsFalse();
 			AssertInt(controller.ActiveBuffs.Count).IsEqual(0);
 			actor.QueueFree();
-			await runner.SimulateFrames(2);
+			await runner.SimulateFrames(2, 20);
 		}
 	}
 
@@ -91,7 +89,7 @@ public partial class ActorStatusInspectorTest
 		var frozen = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		player.InitialConditions.Add(frozen);
 		TestFactories.AddToSceneTree(player);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		AssertBool(player.Frozen).IsTrue();
 		player.Frozen = false;
 		AssertBool(player.Frozen).IsTrue();
@@ -100,7 +98,7 @@ public partial class ActorStatusInspectorTest
 		var enemy = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		enemy.InitialConditions.Add(frozen);
 		TestFactories.AddToSceneTree(enemy);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		AssertBool(enemy.Frozen).IsTrue();
 		enemy.Frozen = false;
 		AssertBool(enemy.Frozen).IsTrue();

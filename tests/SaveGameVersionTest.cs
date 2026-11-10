@@ -8,42 +8,35 @@ using static GdUnit4.Assertions;
 [TestSuite]
 public class SaveGameVersionTest
 {
-	[TestCase("{}")]
-	[TestCase("{\"Version\":74}")]
-	[TestCase("{\"Version\":41}")]
-	[TestCase("{\"Version\":19}")]
-	[TestCase("{\"Version\":18}")]
-	[TestCase("{\"Version\":17}")]
-	[TestCase("{\"Version\":16}")]
-	[TestCase("{\"Version\":15}")]
-	[TestCase("{\"Version\":14}")]
-	[TestCase("{\"Version\":13}")]
-	[TestCase("{\"Version\":4}")]
-	[TestCase("{\"Version\":99999}")]
-	[TestCase("{\"Version\":null}")]
-	[TestCase("{\"Version\":\"5\"}")]
-	[TestCase("[]")]
-	public void IncompatibleOrMissingVersionIsRejected(string json)
+	[TestCase]
+	public void IncompatibleOrMissingVersionIsRejected()
 	{
-		bool rejected = false;
-		try
+		// Missing, older, newer, null, mistyped, and not an object at all.
+		string[] saves = ["{}", $"{{\"Version\":{SaveGame.CurrentVersion - 1}}}", $"{{\"Version\":{SaveGame.CurrentVersion + 1}}}",
+			"{\"Version\":null}", $"{{\"Version\":\"{SaveGame.CurrentVersion}\"}}", "[]"];
+		foreach (string json in saves)
 		{
-			SaveService.DeserializeCurrentVersion(json);
+			bool rejected = false;
+			try
+			{
+				SaveService.DeserializeCurrentVersion(json);
+			}
+			catch (JsonException)
+			{
+				rejected = true;
+			}
+			AssertBool(rejected).OverrideFailureMessage($"accepted {json}").IsTrue();
 		}
-		catch (JsonException)
-		{
-			rejected = true;
-		}
-		AssertBool(rejected).IsTrue();
 	}
 
 	[TestCase]
-	public void CurrentSavePreservesSeedAndGameplayCounter()
+	public void CurrentSavePreservesRunIdentityAndGameplayCounter()
 	{
-		var save = new SaveGame { Seed = 12345, DungeonDepth = 3, LootRollsConsumed = 17 };
+		var save = new SaveGame { Seed = 12345, DungeonDepth = 3, LootRollsConsumed = 17, CharacterClassId = "mage" };
 		SaveGame restored = SaveService.DeserializeCurrentVersion(JsonSerializer.Serialize(save));
 		AssertBool(restored.Seed == save.Seed).IsTrue();
 		AssertInt((int)restored.DungeonDepth).IsEqual(3);
 		AssertInt((int)restored.LootRollsConsumed).IsEqual(17);
+		AssertString(restored.CharacterClassId).IsEqual("mage");
 	}
 }

@@ -54,24 +54,6 @@ public class IdentificationServiceCatalogTest
 	}
 
 	[TestCase]
-	public void InitializeAssignsAnAppearanceToEveryCatalogType()
-	{
-		List<string> expectedTypeIds = CatalogTypeIds();
-		AssertInt(expectedTypeIds.Count).OverrideFailureMessage(
-			"The authored identity catalog has no identifiable types to assign.").IsGreater(0);
-
-		var service = new IdentificationService();
-		service.Initialize(42);
-
-		IReadOnlyDictionary<string, string> assignment = service.GetAssignmentDescriptors();
-		AssertInt(assignment.Count).IsEqual(expectedTypeIds.Count);
-		foreach (string typeId in expectedTypeIds)
-		{
-			AssertBool(assignment.ContainsKey(typeId)).IsTrue();
-		}
-	}
-
-	[TestCase]
 	public void SameSeedProducesIdenticalAssignment()
 	{
 		var first = new IdentificationService();
@@ -90,6 +72,10 @@ public class IdentificationServiceCatalogTest
 		var saved = new IdentificationService();
 		saved.Initialize(1000);
 		IReadOnlyDictionary<string, string> persisted = saved.GetAssignmentDescriptors();
+		// The saved record covers every disguised type, so none falls back to the new seed.
+		List<string> typeIds = CatalogTypeIds();
+		AssertInt(typeIds.Count).IsGreater(0);
+		AssertArray(persisted.Keys.ToArray()).ContainsExactlyInAnyOrder(typeIds.ToArray());
 
 		var restored = new IdentificationService();
 		restored.Initialize(9999, identifiedTypeIds: null, persistedAssignments: persisted);

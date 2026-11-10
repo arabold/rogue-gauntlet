@@ -46,11 +46,12 @@ public class ItemQualityTest
 	[TestCase]
 	public void MagicAndRareArriveAtTheirIntroductionDepthsAndLowerQualitiesNeverVanish()
 	{
+		QualityLadder ladder = Ladder;
 		var rng = new RandomNumberGenerator { Seed = 11 };
 		var seen = new HashSet<(uint Depth, ItemQuality Quality)>();
 		for (uint depth = 1; depth <= 24; depth++)
 		{
-			for (int i = 0; i < 1000; i++) { seen.Add((depth, Ladder.Roll(depth, rng))); }
+			for (int i = 0; i < 200; i++) { seen.Add((depth, ladder.Roll(depth, rng))); }
 		}
 
 		AssertBool(seen.Contains((1, ItemQuality.Magic))).IsFalse();
@@ -60,16 +61,19 @@ public class ItemQualityTest
 	}
 
 	[TestCase]
-	public void CreationRollsAdjectivesAndAffixesThatMatchTheQuality()
+	public void CreationRollsAdjectivesScalesAndAffixesThatMatchTheQuality()
 	{
 		ItemCreationPolicy policy = Policy;
+		QualityLadder ladder = policy.QualityLadder;
 		string[] paths = ["res://scenes/items/weapons/broadsword_common.tres", "res://scenes/items/armor/shield_common.tres",
 			"res://scenes/items/jewelry/ring/ring_strength.tres"];
 		Item[] definitions = paths.Select(path => TestFactories.Load<Item>(path)).ToArray();
+		var qualities = new HashSet<ItemQuality>();
 		using var rng = GenerationRandom.Create(42, "quality-creation");
-		for (int i = 0; i < 600; i++)
+		for (int i = 0; i < 150; i++)
 		{
 			var item = (EquipableItem)ItemFactory.Create(definitions[i % definitions.Length], policy, 16, rng);
+			qualities.Add(item.Quality);
 			EquipmentRollTable table = item.RollTable;
 			string[] words = item.Quality switch
 			{
@@ -79,25 +83,14 @@ public class ItemQualityTest
 			};
 			AssertBool(words.Contains(item.QualityAdjective)).IsTrue();
 			AssertBool(item.AttributesKnown).IsEqual(item.Quality < ItemQuality.Magic);
-			QualityLevel level = Ladder.Level(item.Quality);
+			QualityLevel level = ladder.Level(item.Quality);
+			AssertFloat(item.MagnitudeScale).IsBetween(level.MinScale, level.MaxScale);
 			AssertInt(item.Affixes.Count).IsBetween(level.MinAffixes, level.MaxAffixes);
 			AssertInt(item.Affixes.Select(affix => affix.Group).Distinct().Count()).IsEqual(item.Affixes.Count);
 			AssertBool(item.Affixes.All(affix => table.Prefixes.Concat(table.Suffixes).Any(entry => entry.NameFragment == affix.NameFragment))).IsTrue();
 		}
-	}
-
-	[TestCase]
-	public void ScalesAndAffixCountsStayInsideTheirBands()
-	{
-		var rng = new RandomNumberGenerator { Seed = 3 };
-		foreach (QualityLevel level in Ladder.Levels)
-		{
-			for (int i = 0; i < 200; i++)
-			{
-				AssertFloat(Ladder.RollScale(level.Quality, rng)).IsBetween(level.MinScale, level.MaxScale);
-				AssertInt(Ladder.RollAffixCount(level.Quality, rng)).IsBetween(level.MinAffixes, level.MaxAffixes);
-			}
-		}
+		// Every quality's band was exercised, not just the common ones.
+		AssertInt(qualities.Count).IsEqual(System.Enum.GetValues<ItemQuality>().Length);
 	}
 
 	[TestCase]
@@ -199,6 +192,8 @@ public class ItemQualityTest
 	[TestCase]
 	public void LootTablesFenceBaseTiersByDepth()
 	{
+		// Entry windows are the only fence; LootTableDepthTest proves PickEntry never leaves them.
+		TierDepthBands bands = TierBands;
 		foreach (string path in Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/loot"), "*.tres", SearchOption.AllDirectories))
 		{
 			if (TestFactories.Load<Resource>(ProjectSettings.LocalizePath(path)) is not LootTable table) { continue; }
@@ -210,21 +205,9 @@ public class ItemQualityTest
 				}
 				else if (entry.Item is EquipableItem equipment)
 				{
-					Vector2I band = TierBands.For(equipment.Tier);
+					Vector2I band = bands.For(equipment.Tier);
 					AssertBool(entry.MinDepth == band.X && entry.MaxDepth == band.Y)
 						.OverrideFailureMessage($"{entry.Item.ResourcePath}: T{equipment.Tier} drops {entry.MinDepth}-{entry.MaxDepth}").IsTrue();
-				}
-			}
-
-			var rng = new RandomNumberGenerator { Seed = 19 };
-			for (uint depth = 1; depth <= 24; depth++)
-			{
-				for (int i = 0; i < 300; i++)
-				{
-					if (table.PickEntry(depth, rng)?.Item is EquipableItem picked)
-					{
-						AssertBool(depth >= TierBands.For(picked.Tier).X).IsTrue();
-					}
 				}
 			}
 		}

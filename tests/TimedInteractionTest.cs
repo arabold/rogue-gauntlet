@@ -80,39 +80,35 @@ public partial class TimedInteractionTest
 	}
 
 	[TestCase]
-	public void ExactAuthoredDurationsAdvanceAndCommitAtAuthoredTimes()
+	public void TheAuthoredDurationAdvancesProgressAndCommitsAtItsEnd()
 	{
-		float[] testDurations = new[] { 1.0f, 5.0f, 10.0f };
+		const float duration = 5f;
+		var (actor, gate, interaction) = CreateTestActor();
+		var target = new DummyTarget { Position = new Vector3(1, 0, 0), Duration = duration };
+		var context = new ActorInteractionContext(actor, new ActorCapabilities());
+		var offer = target.GetOffer(context);
 
-		foreach (float duration in testDurations)
-		{
-			var (actor, gate, interaction) = CreateTestActor();
-			var target = new DummyTarget { Position = new Vector3(1, 0, 0), Duration = duration };
-			var context = new ActorInteractionContext(actor, new ActorCapabilities());
-			var offer = target.GetOffer(context);
+		var result = interaction.TryBegin(offer, context);
+		AssertInt((int)result).IsEqual((int)InteractionRequestResult.Success);
+		AssertBool(interaction.IsActive).IsTrue();
+		AssertBool(gate.IsBusy).IsTrue();
+		AssertInt(target.CommitCount).IsEqual(0);
 
-			var result = interaction.TryBegin(offer, context);
-			AssertInt((int)result).IsEqual((int)InteractionRequestResult.Success);
-			AssertBool(interaction.IsActive).IsTrue();
-			AssertBool(gate.IsBusy).IsTrue();
-			AssertInt(target.CommitCount).IsEqual(0);
+		// Halfway tick
+		float halfTime = duration * 0.5f;
+		interaction._PhysicsProcess(halfTime);
+		AssertBool(interaction.IsActive).IsTrue();
+		AssertInt(target.CommitCount).IsEqual(0);
+		AssertFloat(interaction.Progress).IsEqualApprox(0.5f, 0.05f);
 
-			// Halfway tick
-			float halfTime = duration * 0.5f;
-			interaction._PhysicsProcess(halfTime);
-			AssertBool(interaction.IsActive).IsTrue();
-			AssertInt(target.CommitCount).IsEqual(0);
-			AssertFloat(interaction.Progress).IsEqualApprox(0.5f, 0.05f);
+		// Complete the remaining half
+		interaction._PhysicsProcess(halfTime + 0.01f);
+		AssertBool(interaction.IsActive).IsFalse();
+		AssertBool(gate.IsBusy).IsFalse();
+		AssertInt(target.CommitCount).IsEqual(1);
 
-			// Complete the remaining half
-			interaction._PhysicsProcess(halfTime + 0.01f);
-			AssertBool(interaction.IsActive).IsFalse();
-			AssertBool(gate.IsBusy).IsFalse();
-			AssertInt(target.CommitCount).IsEqual(1);
-
-			actor.Free();
-			target.Free();
-		}
+		actor.Free();
+		target.Free();
 	}
 
 	[TestCase]
@@ -283,36 +279,7 @@ public partial class TimedInteractionTest
 	}
 
 	[TestCase]
-	public void DoorAndChestComponentsCommitAuthorityThroughInteraction()
-	{
-		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
-		var door = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
-
-		var (actor, gate, interaction) = CreateTestActor(new ActorCapabilities { CanOpenDoors = true });
-		var comp = door.GetNode<InteractiveComponent>("InteractiveComponent");
-
-		var context = new ActorInteractionContext(actor, new ActorCapabilities { CanOpenDoors = true });
-		var offer = comp.GetOffer(context);
-		AssertString(offer.VerbLabel).IsEqual("Open Door");
-		AssertFloat(offer.Duration).IsEqual(0.5f);
-
-		// An unlocked door completes at half a second.
-		var beginResult = interaction.TryBegin(offer, context);
-		AssertInt((int)beginResult).IsEqual((int)InteractionRequestResult.Success);
-
-		interaction._PhysicsProcess(0.45f);
-		AssertBool(door.IsOpen).IsFalse();
-		AssertBool(interaction.IsActive).IsTrue();
-		interaction._PhysicsProcess(0.1f);
-
-		AssertBool(door.IsOpen).IsTrue();
-		AssertBool(interaction.IsActive).IsFalse();
-
-		actor.Free();
-	}
-
-	[TestCase]
-	public void DoorCanBeInteractedFromBothSides()
+	public void AnUnlockedDoorOpensFromEitherSideOnceItsChannelCompletes()
 	{
 		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
 		var door = doorScene.Instantiate<Door>();
@@ -337,7 +304,14 @@ public partial class TimedInteractionTest
 		var offerB = comp.GetOffer(context);
 		var resB = interaction.TryBegin(offerB, context);
 		AssertInt((int)resB).IsEqual((int)InteractionRequestResult.Success);
-		interaction.Cancel(InteractionCancelReason.ActionInterrupted);
+
+		// The door opens through the channel, at its offered duration and not before.
+		interaction._PhysicsProcess(offerB.Duration * 0.9f);
+		AssertBool(door.IsOpen).IsFalse();
+		AssertBool(interaction.IsActive).IsTrue();
+		interaction._PhysicsProcess(offerB.Duration * 0.2f);
+		AssertBool(door.IsOpen).IsTrue();
+		AssertBool(interaction.IsActive).IsFalse();
 
 		actor.Free();
 	}
