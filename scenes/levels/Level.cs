@@ -125,6 +125,8 @@ public partial class Level : Node, IDebugWorld
 	/// <summary>The generated floor gameplay queries; null until generation succeeds.</summary>
 	public GeneratedFloor Floor { get; private set; }
 
+	ulong IDebugWorld.RunSeed => Run?.RunSeed ?? RunState.DefaultSeed;
+
 	Vector3 IDebugWorld.FindFreePositionNear(Vector3 origin) => Floor?.FindFreePositionNear(origin) ?? origin;
 
 	Vector3 IDebugWorld.FindDropLanding(Vector3 source, Vector3 direction, float distance) =>

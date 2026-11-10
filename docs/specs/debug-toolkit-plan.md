@@ -1,6 +1,6 @@
 # Shared debug toolkit
 
-Status: slice 1 landed: the in-game debug menu hosts six tools ([guide](../../scenes/debug/README.md#in-game-debug-menu)). Slices 2–5 remain. Before this plan, the debug menu, the [combat harness](../combat-harness.md) and the [debug harnesses](../../scenes/debug/README.md) each implemented their own item, spell, monster and display controls. This plan moves those controls into one toolkit. The game and every harness host it, so a harness only stages a scene and adds the readouts specific to it.
+Status: slices 1 and 2 landed: the in-game debug menu hosts six tools, including monster spawning and the harness's display toggles ([guide](../../scenes/debug/README.md#in-game-debug-menu)). Slices 3–5 remain. Before this plan, the debug menu, the [combat harness](../combat-harness.md) and the [debug harnesses](../../scenes/debug/README.md) each implemented their own item, spell, monster and display controls. This plan moves those controls into one toolkit. The game and every harness host it, so a harness only stages a scene and adds the readouts specific to it.
 
 Goal: every debug action exists once, as a typed method that runs through production code. Menu clicks, harness scenarios and tests all call that same method. Adding an item, monster, spell or class needs no harness edit.
 
@@ -53,7 +53,7 @@ public partial class DebugMenu : HBoxContainer
 | --- | --- | --- |
 | `ItemSpawnTool` | Spawn item, Spawn quality, Cursed, wand/staff spell submenus, lifecycle harness fill | `Quality` (`ItemQuality?`, null = roll like a drop), `Cursed`, `Item Create(Item definition, SpellDefinition spell = null)`, `bool Drop(Item)`, `bool Give(Item, bool equip)`, `void FillBackpack(Item)`; a Drop/Backpack/Equip delivery choice in the menu |
 | `SpellCastTool` | Cast spell (menu), harness spell list and cast queue | `bool Cast(SpellDefinition, int level)`, `ICombatSpell Resolve(SpellDefinition)` (the innate instance, for tests) |
-| `MonsterTool` | Harness discovery, dummy, AI/defense/invulnerable/rewards, Kill all enemies | `AIEnabled`, `DefenseMode` (`EnemyDefenseMode`), `Invulnerable`, `RewardsEnabled` (default off), `Count` (ring of 1/3/5), `Node3D Spawn(PackedScene scene, float distance)`, `void Clear()`, `void KillAll()`; `PracticeTargetScene` export listed first when set |
+| `MonsterTool` | Harness discovery, dummy, AI/defense/invulnerable/rewards, Kill all enemies | `AIEnabled`, `DefenseMode` (`EnemyDefenseMode`), `Invulnerable`, `RewardsEnabled` (default off), `Count` (ring of 1/3/5), `Node3D Spawn(PackedScene scene, float? distance = null)` (null: the monster's preferred distance), `Spawned`, `void Clear()`, `void KillAll()`; `PracticeTargetScene` export listed first when set |
 | `HeroTool` | Kill player, harness reset | `void Reset()`, `void Kill()`, `bool ApplyBuild(HeroBuildProfile)`, `bool ChangeClass(CharacterClass)`; build presets and class picker submenus |
 | `CombatDisplayTool` | Debug meshes, combat/AI logs, harness volumes, hurtboxes, effects, slow motion, camera shake | One `bool` property per toggle; applies to existing and later-spawned actors |
 | `LevelTool` | Navigation, x-rays, dark, reveal map, restart, copy seed, replay run | Methods per entry; only `SetDark` works without a `Level` |
@@ -69,7 +69,7 @@ Tools never assume a generated floor. The scene's world provides placement, navi
 public interface IDebugWorld
 {
 	uint Depth { get; }                                          // loot depth for rolls
-	ulong RunSeed { get; }                                       // added with hero builds: seeds their rolls
+	ulong RunSeed { get; }                                       // seeds spawned monsters' combat streams and build rolls
 	FloorNavigation Navigation { get; }
 	bool IsDark { get; }
 	void SetDark(bool dark);

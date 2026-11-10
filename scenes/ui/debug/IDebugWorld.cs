@@ -9,6 +9,9 @@ public interface IDebugWorld
 	/// <summary>Depth spawned equipment is rolled at.</summary>
 	uint Depth { get; }
 
+	/// <summary>Seeds the combat streams of spawned monsters, so a debug encounter replays the same way.</summary>
+	ulong RunSeed { get; }
+
 	/// <summary>Monster navigation; null until the world has one.</summary>
 	FloorNavigation Navigation { get; }
 

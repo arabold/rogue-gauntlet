@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scenes/ui/debug/HeroTool.cs" id="7_hero_tool"]
 [ext_resource type="Script" path="res://scenes/ui/debug/CombatDisplayTool.cs" id="8_combat_tool"]
 [ext_resource type="Script" path="res://scenes/ui/debug/LevelTool.cs" id="9_level_tool"]
+[ext_resource type="PackedScene" path="res://scenes/debug/combat/combat_practice_target.tscn" id="10_practice_target"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.03, 0.035, 0.045, 0.72)
@@ -98,6 +99,7 @@ Spells = ExtResource("3_spells")
 [node name="MonsterTool" type="Node" parent="."]
 script = ExtResource("6_monster_tool")
 Title = "Monsters"
+PracticeTargetScene = ExtResource("10_practice_target")
 
 [node name="HeroTool" type="Node" parent="."]
 script = ExtResource("7_hero_tool")
