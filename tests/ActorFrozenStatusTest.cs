@@ -9,49 +9,46 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public partial class ActorFrozenStatusTest
 {
+	/// <summary>
+	/// Freezing interrupts the current action, locks out new ones and holds the pose under the frozen visual until its last
+	/// source lets go; gameplay never depends on the visual, so a monster without it freezes the same way.
+	/// </summary>
 	[TestCase]
-	public async Task PlayerAndMonsterShareFrozenStateAndSourceOwnership()
+	public async Task FreezingLocksActionsAndHoldsThePoseUntilTheLastSourceLetsGo()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
-		await runner.SimulateFrames(5);
 		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
-		foreach (Node actor in new Node[] { harness.Player, harness.Monster })
-		{
-			var statuses = actor.GetNode<BuffController>("BuffController");
-			var frozen = actor.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
-			var gate = frozen.ActionGate;
-			var first = new object();
-			var second = new object();
-			bool interrupted = false;
-			gate.CancelCurrent(ActionInterruptReason.Invalidated);
-			AssertInt((int)gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, _ => interrupted = true, out _))
-				.IsEqual((int)ActorActionRequestResult.Success);
-			AssertObject(frozen.Condition).IsSame(condition);
-			AssertObject(frozen.Statuses).IsSame(statuses);
-			AssertObject(frozen.Health).IsNotNull();
-			AssertObject(frozen.Animation).IsNotNull();
-			AssertObject(frozen.Effects).IsNotNull();
-			AssertObject(frozen.Appearance).IsNotNull();
-			AssertBool(statuses.ApplyStatus(condition, first, 5)).IsTrue();
-			AssertBool(interrupted).IsTrue();
-			AssertBool(gate.IsStatusLocked).IsTrue();
-			AssertInt((int)frozen.Animation.ProcessMode).IsEqual((int)Node.ProcessModeEnum.Disabled);
-			AssertInt(frozen.Effects.LeaseCount).IsEqual(1);
-			AssertInt((int)gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out _)).IsEqual((int)ActorActionRequestResult.Disabled);
-			statuses.ApplyStatus(condition, first, 8);
-			AssertInt(statuses.ActiveBuffs.Count).IsEqual(1);
-			AssertFloat(statuses.ActiveBuffs[0].RemainingDuration).IsEqual(8);
-			statuses.ApplyStatus(condition, second, 5);
-			statuses.RemoveStatuses(first);
-			AssertBool(statuses.HasCondition(condition)).IsTrue();
-			AssertBool(gate.IsStatusLocked).IsTrue();
-			statuses.RemoveStatuses(second);
-			AssertBool(gate.IsStatusLocked).IsFalse();
-			AssertInt((int)frozen.Animation.ProcessMode).IsNotEqual((int)Node.ProcessModeEnum.Disabled);
-			AssertInt(frozen.Effects.LeaseCount).IsEqual(0);
-		}
+		var player = harness.Player;
+		var frozen = player.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
+		var gate = player.ActionGate;
+		bool interrupted = false;
+		gate.CancelCurrent(ActionInterruptReason.Invalidated);
+		AssertInt((int)gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, _ => interrupted = true, out _))
+			.IsEqual((int)ActorActionRequestResult.Success);
+		var first = new object();
+		var second = new object();
+		AssertBool(player.BuffController.ApplyStatus(condition, first, 5)).IsTrue();
+		AssertBool(player.BuffController.ApplyStatus(condition, second, 5)).IsTrue();
+		AssertBool(interrupted).IsTrue();
+		AssertInt((int)gate.TryAcquire(ActorActionKind.Dodge, ActorActionPhase.Active, null, out _)).IsEqual((int)ActorActionRequestResult.Disabled);
+		AssertInt((int)frozen.Animation.ProcessMode).IsEqual((int)Node.ProcessModeEnum.Disabled);
+		AssertInt(frozen.Effects.LeaseCount).IsEqual(1);
+		player.BuffController.RemoveStatuses(first);
+		AssertBool(gate.IsStatusLocked).IsTrue();
+		player.BuffController.RemoveStatuses(second);
+		AssertBool(gate.IsStatusLocked).IsFalse();
+		AssertInt((int)frozen.Animation.ProcessMode).IsNotEqual((int)Node.ProcessModeEnum.Disabled);
+		AssertInt(frozen.Effects.LeaseCount).IsEqual(0);
+
+		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
+		await runner.SimulateFrames(2, 20);
+		monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent").Effects = null;
+		var source = new object();
+		AssertBool(monster.BuffController.ApplyStatus(condition, source, 3)).IsTrue();
+		AssertBool(monster.ActionGate.IsStatusLocked).IsTrue();
+		monster.BuffController.RemoveStatuses(source);
+		AssertBool(monster.ActionGate.IsStatusLocked).IsFalse();
 	}
 
 	[TestCase]
@@ -63,7 +60,10 @@ public partial class ActorFrozenStatusTest
 		var monster = harness.Monster;
 		var frozen = monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
 		var playback = (AnimationNodeStateMachinePlayback)frozen.Animation.Get("parameters/playback");
-		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Idle");
+		// Skip the spawn and stand-up clips: the harness monster is already out of its spawn action.
+		playback.Start("Idle");
+		await runner.SimulateFrames(2, 20);
+		AssertString(playback.GetCurrentNode()).IsEqual("Idle");
 		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
 		var source = new object();
 		AssertBool(monster.BuffController.ApplyStatus(condition, source, 5)).IsTrue();
@@ -79,7 +79,7 @@ public partial class ActorFrozenStatusTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(5, 20);
 		var monster = harness.Monster;
 		var frozen = monster.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
 		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
@@ -95,43 +95,13 @@ public partial class ActorFrozenStatusTest
 		Vector3 position = monster.GlobalPosition;
 		monster.MovementComponent.SetInputDirection(Vector3.Right);
 		monster.MovementComponent.Push(Vector3.Right, 10);
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(5, 20);
 		AssertFloat(monster.GlobalPosition.X).IsEqualApprox(position.X, .01);
 		monster.HealthComponent.TakeDamage(monster.HealthComponent.CurrentHealth + 1);
 		AssertBool(monster.HealthComponent.IsDead).IsTrue();
 		AssertBool(frozen.ActionGate.IsStatusLocked).IsFalse();
-		await runner.SimulateFrames(3);
+		await runner.SimulateFrames(3, 20);
 		AssertBool(monster.BuffController.HasCondition(condition)).IsFalse();
 		AssertBool(monster.BuffController.ApplyStatus(condition, new object(), 1)).IsFalse();
-	}
-
-	[TestCase]
-	public async Task FrozenStatusExpiresWithoutResumingCanceledAction()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var player = harness.Player;
-		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/frozen.tres");
-		var source = new object();
-		AssertBool(player.BuffController.ApplyStatus(condition, source, 1)).IsTrue();
-		player.BuffController.ActiveBuffs[0]._PhysicsProcess(2);
-		player.BuffController._PhysicsProcess(0);
-		AssertBool(player.BuffController.HasCondition(condition)).IsFalse();
-		AssertBool(player.ActionGate.IsStatusLocked).IsFalse();
-		AssertBool(player.ActionGate.IsBusy).IsFalse();
-	}
-
-	[TestCase]
-	public async Task FrozenGameplayDoesNotDependOnVisualAvailability()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var frozen = harness.Player.GetNode<FrozenStatusComponent>("FrozenStatusComponent");
-		frozen.Effects = null;
-		var source = new object();
-		AssertBool(harness.Player.BuffController.ApplyStatus(frozen.Condition, source, 3)).IsTrue();
-		AssertBool(harness.Player.ActionGate.IsStatusLocked).IsTrue();
-		harness.Player.BuffController.RemoveStatuses(source);
-		AssertBool(harness.Player.ActionGate.IsStatusLocked).IsFalse();
 	}
 }

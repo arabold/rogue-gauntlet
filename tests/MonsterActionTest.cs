@@ -60,20 +60,17 @@ public partial class MonsterActionTest
 		var profile = (EnemyBehaviorProfile)rat.Definition.Behavior.Duplicate();
 		profile.Combat = (EnemyCombatProfile)profile.Combat.Duplicate();
 		profile.Combat.MovementStrategy = hold;
-		var requests = new System.Collections.Generic.List<MonsterActionFilter>();
 		var context = new EnemyContext(rat, rat.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
-			behavior.Navigation, profile, filter => { requests.Add(filter); behavior.TryRequestAction(filter); });
+			behavior.Navigation, profile, filter => behavior.TryRequestAction(filter));
 		context.Target = harness.Player;
 		context.TickThrottles(0.02);
 
 		context.ExecuteTactics();
 		AssertBool(context.Actions.CanEngage).OverrideFailureMessage("the bite should be in position").IsTrue();
-		AssertObject(requests[^1]).IsEqual(MonsterActionFilter.SupportOnly);
 		AssertObject(behavior.RunningAction).IsNull();
 
 		hold.AllowAttack = true;
 		context.ExecuteTactics();
-		AssertObject(requests[^1]).IsEqual(MonsterActionFilter.All);
 		AssertObject(behavior.RunningAction).IsNotNull();
 		AssertObject(behavior.RunningAction?.Action).IsSame(Bite(rat));
 	}

@@ -14,6 +14,7 @@ public sealed class MonsterValidationContext
 	private readonly List<string> _errors = [];
 	private readonly Stack<string> _scopes = new();
 	private readonly Resource[] _bindings;
+	private readonly bool _bindingsResolve;
 	private readonly AnimationPlayer _player;
 
 	public Node Actor { get; }
@@ -38,7 +39,11 @@ public sealed class MonsterValidationContext
 		var treePath = AnimationComponent?.Get("AnimationTreePath").AsNodePath();
 		AnimationTree = treePath != null && !treePath.IsEmpty ? AnimationComponent.GetNodeOrNull<AnimationTree>(treePath) : null;
 		var profile = Object<Resource>(AnimationComponent, "Profile");
-		_bindings = profile?.Get("Bindings").AsGodotArray().Select(value => value.AsGodotObject() as Resource).Where(value => value != null).ToArray() ?? [];
+		var bindings = profile?.Get("Bindings").AsGodotArray();
+		_bindings = bindings?.Select(value => value.AsGodotObject() as Resource).Where(value => value != null).ToArray() ?? [];
+		// Resolution rejects the whole profile when any binding is empty, invalid or repeats a style.
+		_bindingsResolve = bindings != null && _bindings.Length == bindings.Count && _bindings.All(IsValidBinding)
+			&& _bindings.Select(binding => binding.Get("Style").AsString()).Distinct().Count() == _bindings.Length;
 		var phases = Object<Node>(actor, "HealthPhases");
 		PhaseCount = phases?.Get("EnterHealthFractions").AsFloat32Array().Length ?? 0;
 	}
@@ -76,12 +81,24 @@ public sealed class MonsterValidationContext
 
 	private Resource[] BindingsFor(StringName style) => _bindings.Where(binding => binding.Get("Style").AsStringName() == style).ToArray();
 
+	/// <summary><see cref="AttackAnimationBinding.IsValid"/>, read through stored properties.</summary>
+	private static bool IsValidBinding(Resource binding)
+	{
+		float start = Number(binding, "ContactStart"), end = Number(binding, "ContactEnd");
+		return !string.IsNullOrWhiteSpace(binding.Get("Style").AsString()) && !string.IsNullOrWhiteSpace(binding.Get("Clip").AsString())
+			&& float.IsFinite(start) && float.IsFinite(end) && start >= 0 && end >= start && end <= 1
+			&& (string.IsNullOrWhiteSpace(binding.Get("WindUpClip").AsString()) || start > 0);
+	}
+
 	/// <summary>
-	/// Exactly one animation binding plays <paramref name="style"/> with a valid clip; an optional wind-up clip must be
-	/// valid too and, when <paramref name="windUpNeedsContactStart"/>, end at a positive contact start.
+	/// Exactly one animation binding plays <paramref name="style"/> with a valid clip, in a profile the combat animation
+	/// component can resolve at all; an optional wind-up clip must be valid too and, when
+	/// <paramref name="windUpNeedsContactStart"/>, end at a positive contact start.
 	/// </summary>
 	public bool CheckBinding(StringName style, bool windUpNeedsContactStart = true)
 	{
+		CheckWiring(_bindingsResolve, "CombatAnimationComponent.Profile: every binding needs a style, a clip and an ordered contact window "
+			+ "in [0, 1] (a positive start with a wind-up clip), and no style may repeat; otherwise no attack resolves.");
 		var matches = BindingsFor(style);
 		if (!Check(AnimationTree != null && matches.Length == 1 && HasClip(matches[0].Get("Clip").AsStringName()),
 			$"needs one valid animation binding for style '{style}'.")) return false;

@@ -96,6 +96,7 @@ script = ExtResource("attack_action")
 Weight = 0.4
 Cooldown = 4.5
 MaximumRange = 4.0
+MaximumStartAngle = 45.0
 UsesAttackSlot = false
 RiposteEligible = true
 WeightModifiers = [SubResource("overhead_mid"), SubResource("overhead_late")]

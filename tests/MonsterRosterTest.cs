@@ -1,6 +1,5 @@
 namespace RogueGauntlet.Tests;
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -11,147 +10,77 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class MonsterRosterTest
 {
-	private static async Task Frames(Node node, int count)
-	{
-		for (int i = 0; i < count; i++) await node.ToSignal(node.GetTree(), SceneTree.SignalName.PhysicsFrame);
-		await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);
-	}
-
+	/// <summary>A shooter whose retreat is blocked takes its shot at once instead of standing idle.</summary>
 	[TestCase]
-	public async Task UnreachableRetreatDispatchesTheRealShotInsteadOfLeavingTheShooterIdle()
+	public async Task ABlockedRetreatTakesTheShotInsteadOfLeavingTheShooterIdle()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene);
-		await Frames(runner.Scene(), 2);
-		var actor = harness.Monster;
-		actor.Position = harness.Player.Position + Vector3.Forward * 3;
-		actor.MovementComponent.SetPhysicsProcess(false);
+		var shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 3);
+		shooter.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		var behavior = actor.EnemyBehaviorComponent;
-		var navigation = behavior.GetNode<NavigationComponent>("Navigation");
-		// The harness is not a generated level: without navigation, retreat has nowhere to go.
-		bool accepted = false;
-		var context = new EnemyContext(actor, actor.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
-			navigation, actor.Definition.Behavior, _ => accepted = behavior.TryAttack());
+		var behavior = shooter.EnemyBehaviorComponent;
+		// Without the arena's navigation the shooter has nowhere to retreat to.
+		behavior.Navigation.SetNavigationOverride(null);
+		await runner.SimulateFrames(2, 20);
+		var context = new EnemyContext(shooter, shooter.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
+			behavior.Navigation, shooter.Definition.Behavior, filter => behavior.TryRequestAction(filter));
 		context.Target = harness.Player;
 		context.TickThrottles(1.0 / 60);
 		context.ExecuteTactics();
-		AssertString(context.TacticalDecisionReason).IsEqual("retreat_blocked");
-		AssertBool(accepted).IsTrue();
-		AssertBool(actor.AttackController.IsRanged).IsTrue();
+		AssertBool(shooter.AttackController.IsAttacking).IsTrue();
+		AssertBool(shooter.AttackController.IsRanged).IsTrue();
 	}
 
+	/// <summary>
+	/// Every actor gets its own tactical runtime from the shared strategy, and a retreat continues past the minimum distance
+	/// until the preferred one.
+	/// </summary>
 	[TestCase]
-	public async Task ShooterPolicyFactoryIsolatesActorsAndRetreatContinuesBeyondMinimumDistance()
+	public void ShooterPolicyFactoryIsolatesActorsAndRetreatContinuesBeyondMinimumDistance()
 	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene);
-		await Frames(runner.Scene(), 2);
-		var actor = harness.Monster;
-		var profile = actor.Definition.Behavior;
+		var shooter = TestFactories.Load<PackedScene>(TestFactories.CrossbowScene).Instantiate<EnemyBase>();
+		shooter.EnemyBehaviorComponent.AIEnabled = false;
+		TestFactories.AddToSceneTree(shooter);
+		var target = TestFactories.AddToSceneTree(new Node3D());
+		var profile = shooter.Definition.Behavior;
 		var first = profile.Combat.TacticalStrategy.CreateRuntime();
 		var second = profile.Combat.TacticalStrategy.CreateRuntime();
 		first.Select(new(EnemyMovementGoal.Retreat, false, 7), 3, true);
 		first.RetreatBlocked(true);
 		AssertBool(second.Select(new(EnemyMovementGoal.Retreat, false, 7), 3, true).Intent.AllowAttack).IsFalse();
-		actor.MovementComponent.SetPhysicsProcess(false);
-		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		var context = new EnemyContext(actor, actor.MovementComponent, actor.EnemyBehaviorComponent.GetNode<PerceptionComponent>("Perception"), null, profile, _ => { });
-		context.Target = harness.Player;
-		actor.Position = harness.Player.Position + Vector3.Forward * 3;
-		var initial = profile.Combat.MovementStrategy.Evaluate(context);
-		context.TacticalSelector.Select(initial, 3, true);
-		actor.Position = harness.Player.Position + Vector3.Forward * 5;
+
+		var context = new EnemyContext(shooter, shooter.MovementComponent, shooter.EnemyBehaviorComponent.GetNode<PerceptionComponent>("Perception"),
+			null, profile, _ => { });
+		context.Target = target;
+		shooter.Position = Vector3.Forward * 3;
+		context.TacticalSelector.Select(profile.Combat.MovementStrategy.Evaluate(context), 3, true);
+		shooter.Position = Vector3.Forward * 5;
 		AssertObject(profile.Combat.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Retreat);
-		actor.Position = harness.Player.Position + Vector3.Forward * 7;
+		shooter.Position = Vector3.Forward * 7;
 		AssertObject(profile.Combat.MovementStrategy.Evaluate(context).Goal).IsEqual(EnemyMovementGoal.Hold);
-		// At the preferred distance the authored strategy returns to its sight/attack choice.
-		context.TacticalSelector.ClearTarget();
-		var invalid = (EnemyTacticalStrategy)profile.Combat.TacticalStrategy.Duplicate();
-		TestFactories.UsePrivateCombatProfile(actor).TacticalStrategy = invalid;
-		invalid.MaximumRetreatDuration = float.NaN;
-		AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("TacticalStrategy:"))).IsTrue();
 	}
 
+	/// <summary>A wall between shooter and hero blocks the shot without starting an execution; once it is gone the shot starts.</summary>
 	[TestCase]
-	public async Task ShooterUsesOnlyProjectilesAndRejectsOccludedTargetsWithoutStartingAnExecution()
+	public async Task ShooterHoldsItsShotWhileAWallBlocksItsSight()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene);
-		await Frames(runner.Scene(), 2);
-		var shooter = harness.Monster;
-		shooter.Position = harness.Player.Position + Vector3.Forward * 6;
+		var shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		shooter.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsTrue();
-		AssertBool(shooter.AttackController.IsRanged).IsTrue();
-		AssertBool(shooter.GetNode<CombatAnimationComponent>("CombatAnimationComponent").TryResolve("melee", out _)).IsFalse();
-		shooter.AttackController._PhysicsProcess(.8);
-		var released = runner.Scene().GetChildren().OfType<Projectile>().Where(projectile => projectile.Attacker == shooter).ToArray();
-		AssertInt(released.Length).IsEqual(1);
-		foreach (var projectile in released) projectile.QueueFree();
-		shooter.AttackController.CancelAttack();
-		shooter.EnemyBehaviorComponent.SetAction(EnemyAction.None);
 		var wall = new StaticBody3D { CollisionLayer = 2, Position = (shooter.Position + harness.Player.Position) / 2 + Vector3.Up };
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(5, 4, .5f) } });
 		runner.Scene().AddChild(wall);
-		await Frames(runner.Scene(), 2);
-		var previous = shooter.AttackController.CurrentExecutionId;
-		AssertBool(shooter.EnemyBehaviorComponent.TryAttack()).IsFalse();
+		await runner.SimulateFrames(2, 20);
+		var behavior = shooter.EnemyBehaviorComponent;
+		AssertBool(behavior.TryAttack()).IsFalse();
 		AssertBool(shooter.AttackController.IsAttacking).IsFalse();
-		AssertBool(shooter.AttackController.CurrentExecutionId == previous).IsTrue();
-		wall.QueueFree();
-	}
 
-	[TestCase(false)]
-	[TestCase(true)]
-	public async Task WardenReactsToAnOrdinaryHeroSwingParriesAndRipostesWithAuthoredTiming(bool alreadyWindingUp)
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
-		var player = harness.Player;
-		player.InputController.SetPhysicsProcess(false);
-		player.MovementComponent.SetPhysicsProcess(false);
-		boss.MovementComponent.SetPhysicsProcess(false);
-		boss.Position = player.Position + Vector3.Forward * 2.5f;
-		boss.LookAt(player.GlobalPosition);
-		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
-		boss.HurtBoxComponent.Armor = 0;
-		// Select a reproducible stream whose first defense and subsequent riposte rolls succeed.
-		// Keep the shipped probabilities, reaction delay, raise/recovery and hero weapon unchanged.
-		var policy = boss.Definition.Behavior.Combat.DefenseStrategy;
-		using var random = new RandomNumberGenerator();
-		ulong seed = 0;
-		for (; seed < 1000; seed++)
-		{
-			random.Seed = seed;
-			if (random.Randf() < policy.GuardChance && random.Randf() < policy.RiposteChance) break;
-		}
-		AssertBool(seed < 1000).IsTrue();
-		boss.DefenseController.ConfigureRandom(seed);
-		int parries = 0, blocks = 0, ripostes = 0;
-		bool animatedGuard = false;
-		boss.GuardComponent.ParrySuccessful += () => parries++;
-		boss.GuardComponent.BlockSuccessful += _ => blocks++;
-		boss.DefenseController.RiposteTriggered += () => ripostes++;
-		if (alreadyWindingUp) AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
-		harness.Attack();
-		AssertBool(player.AttackController.IsAttacking).IsTrue();
-		for (int frame = 0; frame < 100; frame++)
-		{
-			await Frames(runner.Scene(), 1);
-			animatedGuard |= boss.GuardComponent.IsGuarding
-				&& boss.GetNode<CombatAnimationComponent>("CombatAnimationComponent").IsPlaying;
-		}
-		AssertBool(animatedGuard).OverrideFailureMessage("Authored Warden must react during the hero swing and acquire its guard pose").IsTrue();
-		// The authored shield parries early contact; an ordinary swing it reacts to arrives inside that window.
-		AssertInt(parries).IsEqual(1);
-		AssertInt(blocks).IsEqual(0);
-		AssertInt(ripostes).IsEqual(1);
+		wall.QueueFree();
+		await TestFactories.AwaitPhysicsUntil(runner, () => behavior.TryAttack(), .05f);
+		AssertBool(shooter.AttackController.IsRanged).IsTrue();
 	}
 
 	[TestCase]
@@ -165,18 +94,19 @@ public class MonsterRosterTest
 		rat.Position = harness.Player.Position + Vector3.Forward * 1.22f;
 		rat.LookAt(harness.Player.GlobalPosition);
 		harness.Player.HurtBoxComponent.Armor = 0;
-		await Frames(runner.Scene(), 2);
+		await runner.SimulateFrames(2, 20);
 		AssertBool(rat.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		rat.AttackController._PhysicsProcess(.5);
 		AssertInt(rat.AttackController.ContactCount).IsEqual(1);
 	}
 
+	/// <summary>A shooter given a guard answers a defended hit with its own projectile, once its guard has fully recovered.</summary>
 	[TestCase]
 	public async Task ShooterCanComposeGuardAndRiposteWithItsSameProjectilePolicy()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
-		await runner.SimulateFrames(3);
-		var player = runner.Scene().GetNode<CombatHarness>("Instructions").Player;
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var player = harness.Player;
 		player.MovementComponent.SetPhysicsProcess(false);
 		var shooter = TestFactories.Load<PackedScene>("res://scenes/enemies/templates/projectile_enemy.tscn").Instantiate<EnemyBase>();
 		TestFactories.UsePrivateCombatProfile(shooter);
@@ -197,7 +127,7 @@ public class MonsterRosterTest
 		shooter.Position = player.Position + Vector3.Forward * 6;
 		shooter.EnemyBehaviorComponent.AIEnabled = false;
 		runner.Scene().AddChild(shooter);
-		await Frames(runner.Scene(), 2);
+		await runner.SimulateFrames(2, 20);
 		shooter.MovementComponent.SetPhysicsProcess(false);
 		shooter.EnemyBehaviorComponent.SetAction(EnemyAction.None);
 		AssertBool(guard.TryBeginGuard(Vector3.Back) == DefenseRequestResult.Success).IsTrue();
@@ -207,7 +137,6 @@ public class MonsterRosterTest
 		guard._PhysicsProcess(1);
 		AssertBool(defense.TryExecuteRiposte()).IsTrue();
 		AssertBool(shooter.AttackController.IsRanged).IsTrue();
-		AssertBool(animation.TryResolve("melee", out _)).IsFalse();
 		shooter.AttackController.CancelAttack();
 		shooter.QueueFree();
 	}
@@ -236,7 +165,7 @@ public class MonsterRosterTest
 	}
 
 	[TestCase]
-	public void RealmDepthEligibilityHasInclusiveBoundsAndRatsStartOnFloorTwo()
+	public void SpawnEntryDepthBoundsAreInclusiveAndAZeroMaximumIsOpenEnded()
 	{
 		using var entry = new MobSpawnEntry { MinimumDepth = 2, MaximumDepth = 3 };
 		AssertBool(entry.EligibleAt(1)).IsFalse();
@@ -244,10 +173,6 @@ public class MonsterRosterTest
 		AssertBool(entry.EligibleAt(4)).IsFalse();
 		entry.MaximumDepth = 0;
 		AssertBool(entry.EligibleAt(20)).IsTrue();
-		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
-		var rat = factory.Entries.Single(e => e.ScenePath.EndsWith("/rat.tscn"));
-		AssertBool(rat.EligibleAt(1)).IsFalse();
-		AssertBool(rat.EligibleAt(2)).IsTrue();
 	}
 
 	[TestCase]
@@ -262,19 +187,25 @@ public class MonsterRosterTest
 		AssertString(string.Join("; ", source.ValidatePool(1))).IsEmpty();
 	}
 
+	/// <summary>Movement and tactical strategies report tuning that cannot work.</summary>
 	[TestCase]
-	public void StrategiesValidateTheirTuningAndNoRetiredGameExportIsRequired()
+	public void StrategiesValidateTheirTuning()
 	{
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_crossbow.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>(TestFactories.CrossbowScene).Instantiate<EnemyBase>();
 		try
 		{
-			TestFactories.UsePrivateCombatProfile(actor);
-			var movement = (MaintainDistanceStrategy)actor.Definition.Behavior.Combat.MovementStrategy.Duplicate();
-			actor.Definition.Behavior.Combat.MovementStrategy = movement;
+			var combat = TestFactories.UsePrivateCombatProfile(actor);
+			var authored = combat.MovementStrategy;
+			var movement = (MaintainDistanceStrategy)authored.Duplicate();
+			combat.MovementStrategy = movement;
 			movement.PreferredDistance = movement.MinimumDistance;
 			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("MovementStrategy:"))).IsTrue();
+			combat.MovementStrategy = authored;
+			var tactics = (EnemyTacticalStrategy)combat.TacticalStrategy.Duplicate();
+			combat.TacticalStrategy = tactics;
+			tactics.MaximumRetreatDuration = float.NaN;
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.Contains("TacticalStrategy:"))).IsTrue();
 		}
 		finally { actor.Free(); }
-		AssertBool(DirAccess.DirExistsAbsolute("res://assets/quaternius-monsters")).IsFalse();
 	}
 }

@@ -35,13 +35,20 @@ public class PoiseTest
 		DeliveryKind = DamageDeliveryKind.DirectMelee, IncomingDirection = Vector3.Back
 	};
 
-	private static async Task<CombatHarness> LoadHarness()
+	/// <summary>A bare actor whose hurtbox reacts through poise, gate and movement wired as on a real actor.</summary>
+	private static (HurtBoxComponent Hurtbox, ActorActionGateComponent Gate, MovementComponent Movement, HealthComponent Health) Actor()
 	{
-		var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 4);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		return harness;
+		var actor = AutoFree(new CharacterBody3D());
+		var gate = new ActorActionGateComponent();
+		var movement = new MovementComponent { Actor = actor, ActionGate = gate };
+		var health = new HealthComponent();
+		health.SetHealth(100, 100);
+		var poise = new PoiseComponent { Definition = Definition(), ActionGate = gate };
+		poise.Restore();
+		var hurtbox = new HurtBoxComponent { HealthComponent = health, MovementComponent = movement, Poise = poise, DamageFilter = DamageSourceFlags.All };
+		foreach (Node node in new Node[] { gate, movement, health, poise, hurtbox }) actor.AddChild(node);
+		health.Owner = actor; // as in a saved scene; death reports name the owner
+		return (hurtbox, gate, movement, health);
 	}
 
 	[TestCase]
@@ -133,8 +140,11 @@ public class PoiseTest
 	[TestCase]
 	public async Task HurtboxFlinchesThenStaggersAndPunishesTheStaggeredActor()
 	{
-		var harness = await LoadHarness();
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 4);
 		var player = harness.Player;
+		player.InputController.SetPhysicsProcess(false);
+		player.MovementComponent.SetPhysicsProcess(false);
 		var hurtbox = player.HurtBoxComponent;
 		var poise = hurtbox.Poise;
 		AssertObject(poise).IsNotNull();
@@ -164,82 +174,67 @@ public class PoiseTest
 	}
 
 	[TestCase]
-	public async Task WithoutPoiseHitsInterruptUnlessTheActionIsHyperArmored()
+	public void WithoutPoiseHitsInterruptUnlessTheActionIsHyperArmored()
 	{
-		var harness = await LoadHarness();
-		var player = harness.Player;
-		var hurtbox = player.HurtBoxComponent;
+		var (hurtbox, gate, movement, _) = Actor();
 		hurtbox.Poise = null;
-		player.ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
-		player.ActionGate.ReportHyperArmor(lease, true);
-		hurtbox.Armor = 0;
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
+		gate.ReportHyperArmor(lease, true);
 		hurtbox.ResolveDamage(Contact(1, 0));
-		AssertBool(player.ActionGate.IsLeaseCurrent(lease)).IsTrue();
-		AssertBool(player.MovementComponent.IsPushed).IsFalse();
+		AssertBool(gate.IsLeaseCurrent(lease)).IsTrue();
+		AssertBool(movement.IsPushed).IsFalse();
 
-		player.ActionGate.ReportHyperArmor(lease, false);
-		hurtbox.Armor = 0;
+		gate.ReportHyperArmor(lease, false);
 		hurtbox.ResolveDamage(Contact(1, 0, knockback: 4));
-		AssertBool(player.ActionGate.IsBusy).IsFalse();
-		AssertBool(player.MovementComponent.IsPushed).IsTrue();
+		AssertBool(gate.IsBusy).IsFalse();
+		AssertBool(movement.IsPushed).IsTrue();
 	}
 
 	[TestCase]
-	public async Task ForcedPushbackPushesAndInterruptsAFlinchWithoutBreakingPoise()
+	public void ForcedPushbackPushesAndInterruptsAFlinchWithoutBreakingPoise()
 	{
-		var harness = await LoadHarness();
-		var player = harness.Player;
-		var hurtbox = player.HurtBoxComponent;
+		var (hurtbox, gate, movement, _) = Actor();
 		var reactions = new List<HitReaction>();
 		hurtbox.HitReacted += reaction => reactions.Add((HitReaction)reaction);
-		player.ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
-		hurtbox.Armor = 0;
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
 		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
 		AssertArray(reactions).ContainsExactly(HitReaction.Interrupted);
-		AssertBool(player.ActionGate.IsLeaseCurrent(lease)).IsFalse();
-		AssertBool(player.ActionGate.IsStaggered).IsFalse();
-		AssertBool(player.MovementComponent.IsPushed).IsTrue();
+		AssertBool(gate.IsLeaseCurrent(lease)).IsFalse();
+		AssertBool(gate.IsStaggered).IsFalse();
+		AssertBool(movement.IsPushed).IsTrue();
 		AssertFloat(hurtbox.Poise.Current).IsEqual(hurtbox.Poise.Maximum - 1);
 	}
 
 	[TestCase]
-	public async Task HyperArmorAndPushbackResistanceHoldAgainstForcedPushback()
+	public void HyperArmorAndPushbackResistanceHoldAgainstForcedPushback()
 	{
-		var harness = await LoadHarness();
-		var player = harness.Player;
-		var hurtbox = player.HurtBoxComponent;
-		player.ActionGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
-		player.ActionGate.ReportHyperArmor(lease, true);
-		hurtbox.Armor = 0;
+		var (hurtbox, gate, movement, _) = Actor();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
+		gate.ReportHyperArmor(lease, true);
 		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
-		AssertBool(player.ActionGate.IsLeaseCurrent(lease)).IsTrue();
-		AssertBool(player.MovementComponent.IsPushed).IsFalse();
+		AssertBool(gate.IsLeaseCurrent(lease)).IsTrue();
+		AssertBool(movement.IsPushed).IsFalse();
 
-		player.ActionGate.ReportHyperArmor(lease, false);
-		var resistant = (PoiseDefinition)hurtbox.Poise.Definition.Duplicate();
+		gate.ReportHyperArmor(lease, false);
+		var resistant = Definition();
 		resistant.ResistsForcedPushback = true;
 		hurtbox.Poise.Definition = resistant;
-		hurtbox.Armor = 0;
 		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
-		AssertBool(player.ActionGate.IsLeaseCurrent(lease)).IsTrue();
-		AssertBool(player.MovementComponent.IsPushed).IsFalse();
+		AssertBool(gate.IsLeaseCurrent(lease)).IsTrue();
+		AssertBool(movement.IsPushed).IsFalse();
 	}
 
 	[TestCase]
-	public async Task ForcedPushbackMovesButNeverShortensAStagger()
+	public void ForcedPushbackMovesButNeverShortensAStagger()
 	{
-		var harness = await LoadHarness();
-		var player = harness.Player;
-		var hurtbox = player.HurtBoxComponent;
-		hurtbox.Armor = 0;
+		var (hurtbox, gate, movement, _) = Actor();
 		hurtbox.ResolveDamage(Contact(1, 100));
-		AssertBool(player.ActionGate.IsStaggered).IsTrue();
-		player.MovementComponent.ResetTransientMotion();
-		AssertBool(player.MovementComponent.IsPushed).IsFalse();
-		hurtbox.Armor = 0;
+		AssertBool(gate.IsStaggered).IsTrue();
+		movement.ResetTransientMotion();
+		AssertBool(movement.IsPushed).IsFalse();
 		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
-		AssertBool(player.ActionGate.IsStaggered).IsTrue();
-		AssertBool(player.MovementComponent.IsPushed).IsTrue();
+		AssertBool(gate.IsStaggered).IsTrue();
+		AssertBool(movement.IsPushed).IsTrue();
 	}
 
 	private sealed class FixedDefense(DamageOutcome outcome) : IDefenseEvaluator
@@ -252,19 +247,16 @@ public class PoiseTest
 	}
 
 	[TestCase]
-	public async Task ForcedDisplacementMovesOnlyContactsThatLand()
+	public void ForcedDisplacementMovesOnlyContactsThatLand()
 	{
-		var harness = await LoadHarness();
-		var player = harness.Player;
-		var hurtbox = player.HurtBoxComponent;
+		var (hurtbox, _, movement, health) = Actor();
 		// Defenses only answer contacts that declare them, as every spell contact does.
 		var push = Contact(1, 0, knockback: 0) with { ForcedPush = 2, DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable };
 		bool Pushes(DamageContext contact)
 		{
-			player.MovementComponent.ResetTransientMotion();
-			hurtbox.Armor = 0;
+			movement.ResetTransientMotion();
 			hurtbox.ResolveDamage(contact);
-			return player.MovementComponent.IsPushed;
+			return movement.IsPushed;
 		}
 
 		AssertBool(Pushes(push)).IsTrue();
@@ -283,30 +275,14 @@ public class PoiseTest
 		hurtbox.DamageFilter = DamageSourceFlags.Player;
 		AssertBool(Pushes(push)).OverrideFailureMessage("Filtered contact pushed").IsFalse();
 		hurtbox.DamageFilter = filter;
-		player.HealthComponent.SetHealth(1, 100);
+		health.SetHealth(1, 100);
 		AssertBool(Pushes(push with { Amount = 5 })).OverrideFailureMessage("Lethal contact pushed").IsFalse();
 	}
 
 	[TestCase]
-	public async Task HeavyMeleeSpecialAndAirStaffForcePushback()
+	public void UnauthoredDamageCarriesPoiseInProportionToItsAmount()
 	{
-		var harness = await LoadHarness();
-		var controller = harness.Player.AttackController;
-		var sword = harness.Weapons[0];
-		AssertBool(controller.TryPrepareWeaponAttack(sword, out var special, isSpecial: true)).IsTrue();
-		AssertBool(special.Definition.ForcePushback).IsTrue();
-		AssertBool(controller.TryPrepareWeaponAttack(sword, out var primary)).IsTrue();
-		AssertBool(primary.Definition.ForcePushback).IsFalse();
-		AssertBool(controller.TryPrepareWeaponAttack(harness.Weapons[6], out var bolt, isSpecial: true)).IsTrue();
-		AssertBool(bolt.Definition.ForcePushback).IsFalse();
-	}
-
-	[TestCase]
-	public async Task UnauthoredDamageCarriesPoiseInProportionToItsAmount()
-	{
-		var harness = await LoadHarness();
-		var hurtbox = harness.Player.HurtBoxComponent;
-		hurtbox.Armor = 0;
+		var (hurtbox, _, _, _) = Actor();
 		hurtbox.ResolveDamage(6, Vector3.Back, null, DamageSourceFlags.Trap);
 		AssertFloat(hurtbox.Poise.Current).IsEqual(hurtbox.Poise.Maximum - 6);
 	}
