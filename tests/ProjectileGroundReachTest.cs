@@ -14,34 +14,42 @@ public partial class ProjectileGroundReachTest
 {
 	private const uint PropsLayer = 1 << 4;
 
-	[TestCase(1.5f, false, true)]
-	[TestCase(1.5f, true, true)]
-	[TestCase(0f, false, false)]
-	public async Task ChestHeightBoltHitsARatBelowItsFlightLine(float groundReach, bool lowTableInTheWay, bool expectHit)
+	/// <summary>
+	/// Two lanes, one bolt each: with ground reach a bolt clears a low table and still hits the rat behind it; without
+	/// ground reach the same bolt passes over a rat in the open.
+	/// </summary>
+	[TestCase]
+	public async Task ChestHeightBoltHitsARatBelowItsFlightLineOverALowTable()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		var root = runner.Scene();
-		var rat = TestFactories.SpawnCombatMonster(root, new Vector3(6, 0, 0), "Rat", "res://scenes/enemies/rat/rat.tscn");
-		if (lowTableInTheWay)
+		const float otherLane = -6;
+		var reached = TestFactories.SpawnCombatMonster(root, new Vector3(6, 0, 0), "ReachedRat", TestFactories.RatScene);
+		var overflown = TestFactories.SpawnCombatMonster(root, new Vector3(6, 0, otherLane), "OverflownRat", TestFactories.RatScene);
+		var table = new StaticBody3D { Position = new Vector3(4, .4f, 0), CollisionLayer = PropsLayer };
+		table.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(1, .8f, 2) } });
+		root.AddChild(table);
+		await runner.SimulateFrames(5, 20);
+		TestFactories.PrepareCombatMonster(reached);
+		TestFactories.PrepareCombatMonster(overflown);
+
+		var scene = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn");
+		foreach (var (lane, groundReach) in new[] { (0f, 1.5f), (otherLane, 0f) })
 		{
-			var table = new StaticBody3D { Position = new Vector3(4, .4f, 0), CollisionLayer = PropsLayer };
-			table.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(1, .8f, 2) } });
-			root.AddChild(table);
+			var bolt = scene.Instantiate<Projectile>();
+			root.AddChild(bolt);
+			bolt.GroundReach = groundReach;
+			bolt.Initialize(new Vector3(2, 1.2f, lane), Vector3.Right, 16, 10, new AttackStats(5, 5, 0), harness.Player, AttackDefenseTraits.None);
 		}
-		await runner.SimulateFrames(5);
-		TestFactories.PrepareCombatMonster(rat);
+		// Each bolt covers the 4 m to its rat in a quarter second.
+		await TestFactories.AwaitPhysicsUntil(runner, () => reached.HealthComponent.CurrentHealth < 50, 1);
+		await TestFactories.AwaitPhysicsSeconds(runner, .3f);
 
-		var bolt = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
-		root.AddChild(bolt);
-		bolt.GroundReach = groundReach;
-		bolt.Initialize(new Vector3(2, 1.2f, 0), Vector3.Right, 16, 10, new AttackStats(5, 5, 0), harness.Player, AttackDefenseTraits.None);
-		var tree = root.GetTree();
-		for (int i = 0; i < 40; i++) await root.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
-
-		// Side and sneak-attack multipliers vary the amount; only whether the rat was hit matters here.
-		AssertBool(rat.HealthComponent.CurrentHealth < 50).IsEqual(expectHit);
+		// Side and sneak-attack multipliers vary the amount; only whether each rat was hit matters here.
+		AssertFloat(reached.HealthComponent.CurrentHealth).IsLess(50);
+		AssertFloat(overflown.HealthComponent.CurrentHealth).IsEqual(50);
 	}
 }

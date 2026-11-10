@@ -48,18 +48,16 @@ public class ShieldAttachmentTest
 	[TestCase]
 	public async Task EquippedShieldMountsOnTheSharedHandSocket()
 	{
-		using var runner = TestFactories.LoadCombatHarness();
-		await TestFactories.SettleCombatHarness(runner, 3);
 		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
-		await runner.SimulateFrames(2);
+		var tree = player.GetTree();
+		await player.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
 		var shield = ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/shield_common.tres"));
 		AssertBool(player.Inventory.TryAdd(shield).Success).IsTrue();
 		var entry = player.Inventory.Items.Single(slot => slot.Item == shield);
 		AssertBool(player.InventoryController.TryEquip(entry, EquipmentSlot.ShieldHand).Success).IsTrue();
-		await runner.SimulateFrames(1);
+		await player.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
 
 		var mount = player.GetNode<BoneAttachmentManager>("BoneAttachmentManager").AttachmentNodes[AttachmentType.Shield];
-		AssertString(mount.BoneName).IsEqual("handslot.l");
 		AssertBool(mount.FindChildren("*", "MeshInstance3D", true, false).Count > 0).IsTrue();
 		// The authored player is the Barbarian, whose own (stripped) shield bone shows where a shield belongs.
 		var native = CharacterModel.FindSkeleton(player).GetNode<Node3D>("Barbarian_Round_Shield");

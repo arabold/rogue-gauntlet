@@ -161,10 +161,8 @@ public class WeaponAttackStatsTest
 	[TestCase]
 	public async Task EquippingAWeaponKeepsItsDamageOutOfTheCharacterStats()
 	{
-		using var runner = TestFactories.LoadCombatHarness();
-		await TestFactories.SettleCombatHarness(runner, 3);
 		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
-		await runner.SimulateFrames(2);
+		await player.ToSignal(player.GetTree(), SceneTree.SignalName.PhysicsFrame);
 		InventoryItemSlot worn = player.Inventory.EquippedItems[EquipmentSlot.WeaponHand];
 		if (worn != null)
 		{

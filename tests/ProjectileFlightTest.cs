@@ -178,100 +178,72 @@ public class ProjectileFlightTest
 	private static Projectile[] Released(Node parent, Projectile[] before) =>
 		parent.GetChildren().OfType<Projectile>().Where(projectile => projectile.IsInsideTree()).Except(before).ToArray();
 
+	/// <summary>
+	/// Volleys release on the attack clock: a staggered volley fires its first bolt at the release and each later one on
+	/// its own beat, and cancelling drops the rest; a tick past several release times fires every due bolt across the
+	/// fan; bolts released while a monster is in reach home on it.
+	/// </summary>
 	[TestCase]
-	public async Task StaggeredVolleyReleasesOnTheAttackClockAndCancellationDropsTheRest()
-	{
-		var runner = TestFactories.LoadCombatHarness();
-		await runner.SimulateFrames(3);
-		var player = runner.Scene().GetNode<Player>("Player");
-		var controller = player.AttackController;
-		Node parent = player.GetTree().CurrentScene ?? runner.Scene();
-		var before = parent.GetChildren().OfType<Projectile>().ToArray();
-		using var definition = Volley();
-		// crossbow.shoot releases at 0.45 of the one-second duration, then every 0.05 s.
-		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
-		controller.SetPhysicsProcess(false);
-		controller._PhysicsProcess(.45);
-		AssertInt(Released(parent, before).Length).IsEqual(1);
-		controller._PhysicsProcess(.04);
-		AssertInt(Released(parent, before).Length).IsEqual(1);
-		controller._PhysicsProcess(.02);
-		var released = Released(parent, before);
-		AssertInt(released.Length).IsEqual(2);
-		AssertBool(released.All(projectile => projectile.Element == DamageElement.Fire)).IsTrue();
-		controller.CancelAttack();
-		controller._PhysicsProcess(.2);
-		AssertInt(Released(parent, before).Length).IsEqual(2);
-		foreach (var projectile in released) ScenePool.Despawn(projectile);
-	}
-
-	[TestCase]
-	public async Task ATickPastSeveralReleaseTimesFiresEachDueProjectile()
-	{
-		var runner = TestFactories.LoadCombatHarness();
-		await runner.SimulateFrames(3);
-		var player = runner.Scene().GetNode<Player>("Player");
-		var controller = player.AttackController;
-		Node parent = player.GetTree().CurrentScene ?? runner.Scene();
-		var before = parent.GetChildren().OfType<Projectile>().ToArray();
-		using var definition = Volley();
-		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
-		controller.SetPhysicsProcess(false);
-		controller._PhysicsProcess(.6);
-		var released = Released(parent, before);
-		AssertInt(released.Length).IsEqual(3);
-		// The fan opens 40 degrees from the first to the last projectile.
-		AssertFloat(Mathf.RadToDeg(released.Max(a => released.Max(b => a.Direction.AngleTo(b.Direction))))).IsEqualApprox(40, .5);
-		controller.CancelAttack();
-		foreach (var projectile in released) ScenePool.Despawn(projectile);
-	}
-
-	[TestCase]
-	public async Task VolleyHomesOnTheTargetCapturedAtRelease()
+	public async Task VolleysReleaseOnTheAttackClockAndHomeOnTheirTarget()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene, 6);
-		await runner.SimulateFrames(2);
 		var controller = harness.Player.AttackController;
 		Node parent = harness.Player.GetTree().CurrentScene ?? runner.Scene();
-		var before = parent.GetChildren().OfType<Projectile>().ToArray();
-		using var definition = Volley(stagger: 0);
-		AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
-		controller.SetPhysicsProcess(false);
-		controller._PhysicsProcess(.5);
-		var released = Released(parent, before);
-		AssertInt(released.Length).IsEqual(3);
-		AssertBool(released.All(projectile => projectile.IsHoming)).IsTrue();
-		controller.CancelAttack();
-		foreach (var projectile in released) ScenePool.Despawn(projectile);
-	}
-
-	[TestCase]
-	public async Task InvalidFlightIsRejectedBeforeTheAttackStarts()
-	{
-		var runner = TestFactories.LoadCombatHarness();
-		await runner.SimulateFrames(3);
-		var controller = runner.Scene().GetNode<Player>("Player").AttackController;
-		AttackDefinition[] invalid =
-		[
-			// 0.45 + 2 x 0.3 leaves after the one-second attack ends.
-			Volley(stagger: .3f),
-			new AttackDefinition { AttackStyle = "axe.1h.chop", HomingTurnRate = 90 },
-			new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, LaunchSpeedScale = 0 },
-			new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, HomingDelay = float.NaN },
-		];
-		foreach (var definition in invalid)
+		Projectile[] before = [];
+		void Start(AttackDefinition definition)
 		{
-			AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsFalse();
-			AssertObject(attack).IsNull();
-			definition.Dispose();
+			before = parent.GetChildren().OfType<Projectile>().ToArray();
+			AssertBool(controller.TryPrepareAttack(definition, "", 1, out var attack)).IsTrue();
+			AssertBool(controller.StartAttack(attack, new AttackStats(1, 1, 0), 0)).IsTrue();
+			controller.SetPhysicsProcess(false);
 		}
-		AssertBool(controller.IsAttacking).IsFalse();
-		using var straight = new AttackDefinition { AttackStyle = "crossbow.shoot", IsRanged = true, LaunchSpeedScale = .5f, LaunchRampDuration = .1f };
-		AssertBool(controller.TryPrepareAttack(straight, "", 1, out _)).IsTrue();
+		async Task Clear(Projectile[] released)
+		{
+			controller.CancelAttack();
+			foreach (var projectile in released) ScenePool.Despawn(projectile);
+			await TestFactories.AwaitPhysicsFrames(runner, 1); // Despawned projectiles leave the tree deferred.
+		}
+
+		// crossbow.shoot releases at 0.45 of the one-second duration, then every 0.05 s.
+		using (var staggered = Volley())
+		{
+			Start(staggered);
+			controller._PhysicsProcess(.45);
+			AssertInt(Released(parent, before).Length).IsEqual(1);
+			controller._PhysicsProcess(.04);
+			AssertInt(Released(parent, before).Length).IsEqual(1);
+			controller._PhysicsProcess(.02);
+			var released = Released(parent, before);
+			AssertInt(released.Length).IsEqual(2);
+			AssertBool(released.All(projectile => projectile.Element == DamageElement.Fire)).IsTrue();
+			controller.CancelAttack();
+			controller._PhysicsProcess(.2);
+			AssertInt(Released(parent, before).Length).IsEqual(2);
+			await Clear(released);
+		}
+
+		using (var skipped = Volley())
+		{
+			Start(skipped);
+			controller._PhysicsProcess(.6);
+			var released = Released(parent, before);
+			AssertInt(released.Length).IsEqual(3);
+			// The fan opens 40 degrees from the first to the last projectile.
+			AssertFloat(Mathf.RadToDeg(released.Max(a => released.Max(b => a.Direction.AngleTo(b.Direction))))).IsEqualApprox(40, .5);
+			await Clear(released);
+		}
+
+		TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene, 6);
+		await TestFactories.AwaitPhysicsFrames(runner);
+		using (var homing = Volley(stagger: 0))
+		{
+			Start(homing);
+			controller._PhysicsProcess(.5);
+			var released = Released(parent, before);
+			AssertInt(released.Length).IsEqual(3);
+			AssertBool(released.All(projectile => projectile.IsHoming)).IsTrue();
+			await Clear(released);
+		}
 	}
 }

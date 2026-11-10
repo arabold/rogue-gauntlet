@@ -159,8 +159,22 @@ public partial class CombatHarness : CanvasLayer
 		ApplyDefense();
 	}
 
+	/// <summary>
+	/// Discovered rosters by root directory. Validating instantiates every monster scene and dominates a harness load, and
+	/// the authored scenes cannot change within one process, so later loads (test suites reload the arena per test) reuse
+	/// the first result.
+	/// </summary>
+	private static readonly Dictionary<string, PackedScene[]> DiscoveredMonsters = [];
+
 	/// <summary>Discover valid authored monster scenes locally so adding a monster never needs a harness roster edit.</summary>
 	private PackedScene[] DiscoverMonsters()
+	{
+		if (!DiscoveredMonsters.TryGetValue(MonsterRootDirectory, out var roster))
+			DiscoveredMonsters[MonsterRootDirectory] = roster = ScanMonsters();
+		return [.. roster];
+	}
+
+	private PackedScene[] ScanMonsters()
 	{
 		var scenes = new List<PackedScene>();
 		void Visit(string directory)
