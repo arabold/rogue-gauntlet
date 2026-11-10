@@ -23,6 +23,6 @@ These tuning changes came with the migration; check them in play:
 
 ## Persistence
 
-Surviving monsters reset on floor reconstruction, so phases, cooldowns and dash state are not saved. Player buff saves add one field, `BuffPath`, naming a refreshing buff's definition (such as venom); it is additive, so saves from main still load and `SaveGame.CurrentVersion` is unchanged.
+Surviving monsters reset on floor reconstruction, so phases, cooldowns and dash state are not saved. Player buff saves add one field, `BuffPath`, naming a refreshing buff's definition (such as venom). `SaveGame.CurrentVersion` is 76 because the sewer storeroom fix changes generated floors.
 
 A combat profile's action list is read when the monster spawns: respawn to apply edits (the combat harness's **Spawn / respawn** keeps Remote-inspector changes).
