@@ -16,7 +16,8 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task SampleHistorySurvivesRegenerationExactlyAndInvalidRestoreIsAtomic()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout());
+		using var scope = runner;
 		level.Generate();
 		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(0);
 		Vector3 position = level.Floor.Arrival.GlobalPosition;
@@ -34,66 +35,19 @@ public class DiscoveryPersistenceTest
 		try { level.RestoreExploration(saved); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
 		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(saved.ExploredSamples.Count - 1);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 	}
 
+	/// <summary>
+	/// Sight crosses a room edge only through a connector: a room beside a corridor without one stays sealed, and of two
+	/// dooring connectors in a row, opening one unseals only the space up to the next. Door events alone reveal nothing.
+	/// </summary>
 	[TestCase]
-	public async Task DoorEventsDoNotRevealAnEntireDestination()
+	public void SightCrossesRoomEdgesOnlyThroughOpenConnectors()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
-		level.Generate();
-		var door = level.Floor.Doors[0].Door;
-		door.IsOpen = true;
-		SignalBus.EmitDoorOpened(door);
-		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(0);
-		await runner.SimulateFrames(1);
-	}
-
-	[TestCase]
-	public async Task AdjacentCorridorRequiresAnOpeningAndSecretsStaySealedUntilOpened()
-	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets());
-		var map = level.MapGenerator;
-		level.Generate();
-		map.Map.ResetToBorderedEmpty();
-		map.Map.SetTile(3, 5, MapTile.Room);
-		map.Map.SetTile(4, 5, MapTile.Corridor);
-		Vector3 Point(Vector2I tile) => map.Map.TileToWorld(tile);
-		level.Discovery.RevealFrom(Point(new Vector2I(3, 5)));
-		AssertBool(level.Discovery.IsRevealedAt(Point(new Vector2I(4, 5)))).IsFalse();
-		map.Map.SetConnector(3, 5, [Vector2I.Right]);
-		level.Discovery.RevealFrom(Point(new Vector2I(3, 5)));
-		AssertBool(level.Discovery.IsRevealedAt(Point(new Vector2I(4, 5)))).IsTrue();
-
-		map.MapWidth = map.MapDepth = 30; map.MaxRooms = 6;
-		for (ulong seed = 1; seed <= 8; seed++)
-		{
-			map.Seed = seed; level.Generate();
-			if (level.Floor != null && map.Floor.Doors.Any(d => d.Door.Secret?.IsSecret == true)) break;
-			await runner.SimulateFrames(1);
-		}
-		var secret = map.Floor.Doors.First(d => d.Door.Secret?.IsSecret == true);
-		var direction = map.Map.GetConnectorDirections(secret.Connector.X, secret.Connector.Y).Single();
-		var outside = secret.Connector + direction;
-		level.Discovery.RevealFrom(Point(outside));
-		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
-		secret.Door.Secret.Restore(true);
-		level.Discovery.RevealFrom(Point(outside));
-		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
-		secret.Door.IsOpen = true;
-		level.Discovery.RevealFrom(Point(outside));
-		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsTrue();
-		await runner.SimulateFrames(2);
-	}
-
-	[TestCase]
-	public async Task OpeningOneOfTwoAdjacentDooredConnectorsUnsealsOnlyThatOne()
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2);
 		var (level, generator) = TestFactories.UngeneratedLevel();
 		TestFactories.AddToSceneTree(level);
-		// room | connector (opens right) | corridor | connector (opens left) | room
+		// room | connector (opens right) | corridor | connector (opens left) | room, and an unconnected room beside a corridor.
 		var map = new MapData(12, 12);
 		map.ResetToBorderedEmpty();
 		map.SetTile(2, 5, MapTile.Room);
@@ -101,6 +55,8 @@ public class DiscoveryPersistenceTest
 		map.SetTile(4, 5, MapTile.Corridor);
 		map.SetConnector(5, 5, [Vector2I.Left]);
 		map.SetTile(6, 5, MapTile.Room);
+		map.SetTile(2, 9, MapTile.Room);
+		map.SetTile(3, 9, MapTile.Corridor);
 		var floor = new GeneratedFloor(map, generator, generator.FloorGridMap, generator.DecorationGridMap);
 		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
 		var near = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
@@ -108,6 +64,19 @@ public class DiscoveryPersistenceTest
 		floor.AddDoor(near, new Vector2I(3, 5));
 		floor.AddDoor(far, new Vector2I(5, 5));
 		level.Discovery.Initialize(floor);
+
+		level.Discovery.RevealFrom(map.TileToWorld(2, 9));
+		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(3, 9))).OverrideFailureMessage("Sight leaked into a corridor without a connector").IsFalse();
+
+		near.IsOpen = far.IsOpen = true;
+		SignalBus.EmitDoorOpened(near);
+		SignalBus.EmitDoorOpened(far);
+		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(4, 5)) || level.Discovery.IsRevealedAt(map.TileToWorld(6, 5)))
+			.OverrideFailureMessage("A door event revealed space nobody saw").IsFalse();
+		near.IsOpen = far.IsOpen = false;
+		SignalBus.EmitDoorClosed(near);
+		SignalBus.EmitDoorClosed(far);
+
 		Vector3 origin = map.TileToWorld(2, 5);
 		level.Discovery.RevealFrom(origin);
 		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(4, 5))).IsFalse();
@@ -118,6 +87,29 @@ public class DiscoveryPersistenceTest
 		far.IsOpen = true;
 		level.Discovery.RevealFrom(origin);
 		AssertBool(level.Discovery.IsRevealedAt(map.TileToWorld(6, 5))).IsTrue();
-		await runner.SimulateFrames(1);
+	}
+
+	/// <summary>A secret doorway seals sight from the corridor until its door is open, even once discovered.</summary>
+	[TestCase]
+	public async Task SecretsStaySealedUntilOpened()
+	{
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets(1));
+		using var scope = runner;
+		var map = level.MapGenerator;
+		map.MapWidth = map.MapDepth = 30; map.MaxRooms = 6;
+		level.Generate();
+		var secret = map.Floor.Doors.First(d => d.Door.Secret?.IsSecret == true);
+		Vector3 Point(Vector2I tile) => map.Map.TileToWorld(tile);
+		var direction = map.Map.GetConnectorDirections(secret.Connector.X, secret.Connector.Y).Single();
+		var outside = secret.Connector + direction;
+		level.Discovery.RevealFrom(Point(outside));
+		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
+		secret.Door.Secret.Restore(true);
+		level.Discovery.RevealFrom(Point(outside));
+		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsFalse();
+		secret.Door.IsOpen = true;
+		level.Discovery.RevealFrom(Point(outside));
+		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsTrue();
+		await runner.SimulateFrames(2, 20);
 	}
 }

@@ -92,11 +92,22 @@ public sealed class RunState
 	/// </summary>
 	public bool IdentifyItemType(Item item)
 	{
-		if (item is IIdentifiable identifiable && identifiable.HasIdentity && Identification.Identify(identifiable.TypeId))
+		if (item is IIdentifiable identifiable && identifiable.HasIdentity)
 		{
-			GD.Print($"Identified {identifiable.TypeId} as {identifiable.TrueName}.");
-			SignalBus.EmitItemIdentified(identifiable.TypeId);
-			return true;
+			if (Identification.IsIdentified(identifiable))
+			{
+				return false;
+			}
+
+			string disguisedName = ItemIdentity.ComposeDisplayName(item, Identification);
+			if (Identification.Identify(identifiable.TypeId))
+			{
+				string trueName = ItemIdentity.ComposeDisplayName(item, Identification);
+				GD.Print($"Identified {identifiable.TypeId} as {trueName}.");
+				SignalBus.EmitItemIdentified(identifiable.TypeId);
+				SignalBus.EmitItemIdentityRevealed(identifiable.TypeId, disguisedName, trueName);
+				return true;
+			}
 		}
 
 		return false;

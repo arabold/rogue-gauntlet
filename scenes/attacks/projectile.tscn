@@ -18,13 +18,13 @@ roughness = 0.3
 resource_name = "BrownDark"
 cull_mode = 2
 albedo_color = Color(0.607141, 0.351749, 0.27004, 1)
-roughness = 0.4
+roughness = 0.85
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1hwlp"]
 resource_name = "GreenDark"
 cull_mode = 2
 albedo_color = Color(0.157695, 0.544253, 0.553327, 1)
-roughness = 0.4
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_73brr"]
 _surfaces = [{

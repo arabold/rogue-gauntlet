@@ -9,8 +9,8 @@ public partial class CombatCameraFeedbackController : Node
 	private Player _player;
 	private PhantomCameraNoiseEmitter3D _emitter;
 	private float _strongestImpulse;
+	private float _defaultGrowthTime, _defaultDuration, _defaultDecayTime;
 	private bool _enabled = true;
-	private CombatContactFeedbackHandler _contactHandler;
 
 	[Export] public Node3D NoiseEmitter { get; set; }
 	[Export(PropertyHint.Range, "0,3,0.01")] public float MaximumImpulse { get; set; } = 0.65f;
@@ -26,11 +26,21 @@ public partial class CombatCameraFeedbackController : Node
 
 	public override void _Ready()
 	{
-		if (NoiseEmitter != null) _emitter = new PhantomCameraNoiseEmitter3D(NoiseEmitter);
-		_contactHandler = OnContact;
-		SignalBus.CombatContactResolved += _contactHandler;
+		if (NoiseEmitter != null)
+		{
+			_emitter = new PhantomCameraNoiseEmitter3D(NoiseEmitter);
+			_defaultGrowthTime = _emitter.GrowthTime;
+			_defaultDuration = _emitter.Duration;
+			_defaultDecayTime = _emitter.DecayTime;
+		}
 		if (SignalBus.Instance != null)
+		{
+			this.SubscribeUntilExit(SignalBus.Instance, _ => SignalBus.CombatContactResolved += OnContact,
+				_ => SignalBus.CombatContactResolved -= OnContact);
+			this.SubscribeUntilExit(SignalBus.Instance, _ => SignalBus.CameraImpulseRequested += OnCameraImpulseRequested,
+				_ => SignalBus.CameraImpulseRequested -= OnCameraImpulseRequested);
 			this.SubscribeUntilExit(SignalBus.Instance, b => b.PlayerSpawned += Bind, b => b.PlayerSpawned -= Bind);
+		}
 		Bind(GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault());
 	}
 
@@ -62,7 +72,8 @@ public partial class CombatCameraFeedbackController : Node
 			("triggered", emitted), ("reason", reason));
 	}
 
-	private bool AddImpulse(float strength, out float appliedStrength, out string reason)
+	private bool AddImpulse(float strength, out float appliedStrength, out string reason,
+		float? growthTime = null, float? duration = null, float? decayTime = null)
 	{
 		appliedStrength = 0;
 		strength = Mathf.Min(MaximumImpulse, Mathf.Max(0, strength));
@@ -70,6 +81,9 @@ public partial class CombatCameraFeedbackController : Node
 		if (strength <= 0) { reason = "zero_strength"; return false; }
 		if (_emitter.IsEmitting() && strength < _strongestImpulse) { reason = "weaker_than_active_shake"; return false; }
 		_strongestImpulse = strength;
+		_emitter.GrowthTime = ResolveTime(growthTime, _defaultGrowthTime);
+		_emitter.Duration = ResolveTime(duration, _defaultDuration);
+		_emitter.DecayTime = ResolveTime(decayTime, _defaultDecayTime);
 		_emitter.Noise.Amplitude = strength * NoiseAmplitudePerUnit;
 		_emitter.Emit();
 		appliedStrength = strength;
@@ -77,8 +91,20 @@ public partial class CombatCameraFeedbackController : Node
 		return true;
 	}
 
-	public override void _ExitTree()
+	private static float ResolveTime(float? requested, float fallback) =>
+		requested is float value && float.IsFinite(value) && value >= 0 ? value : fallback;
+
+	private void OnCameraImpulseRequested(in CameraImpulseRequest request)
 	{
-		if (_contactHandler != null) SignalBus.CombatContactResolved -= _contactHandler;
+		if (!Enabled || !GodotObject.IsInstanceValid(_player) || !(request.Radius > 0) || !(request.Strength > 0)) return;
+		float distance = _player.GlobalPosition.HorizontalDistanceTo(request.Position);
+		if (distance >= request.Radius) return;
+		float requested = request.Strength * (1 - distance / request.Radius);
+		bool emitted = AddImpulse(requested, out float actual, out string reason,
+			request.GrowthTime, request.HoldTime, request.DecayTime);
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.camera_shake", ("direction", "area"), ("requested_impulse", requested),
+			("impulse", actual), ("noise_amplitude", emitted ? actual * NoiseAmplitudePerUnit : 0),
+			("triggered", emitted), ("reason", reason));
 	}
+
 }

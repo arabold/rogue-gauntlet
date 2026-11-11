@@ -53,6 +53,61 @@ public class WeaponAttackStatsTest
 	}
 
 	[TestCase]
+	public void PairedMeleeAttacksAddScaledOffhandContribution()
+	{
+		var stats = new PlayerStats();
+		var sword = Create(Sword);
+		var dagger = Create(Dagger);
+		AttackStats unarmed = stats.ResolveAttack(null);
+
+		stats.AddWeaponModifiers(sword, sword.StatModifiers);
+		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
+
+		AttackStats paired = stats.ResolveAttack(sword, dagger);
+		float expectedMin = unarmed.MinDamage + sword.ScaledDamageMin + (dagger.ScaledDamageMin * dagger.OffhandDamageScale);
+		float expectedMax = unarmed.MaxDamage + sword.ScaledDamageMax + (dagger.ScaledDamageMax * dagger.OffhandDamageScale);
+
+		AssertFloat(paired.MinDamage).IsEqual(expectedMin);
+		AssertFloat(paired.MaxDamage).IsEqual(expectedMax);
+		AssertFloat(paired.CritChance).IsEqual(stats.ResolveAttack(sword).CritChance);
+	}
+
+	[TestCase]
+	public void PairedMeleeAttacksRequireBothWeaponsToBeMelee()
+	{
+		var stats = new PlayerStats();
+		var dagger = Create(Dagger);
+		var crossbow = (Weapon)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/weapons/crossbow_common.tres"));
+		stats.AddWeaponModifiers(crossbow, crossbow.StatModifiers);
+		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
+
+		// Unarmed main + dagger offhand = no paired bonus
+		AssertFloat(stats.ResolveAttack(null, dagger).MaxDamage).IsEqual(stats.ResolveAttack(null).MaxDamage);
+		// Crossbow main + dagger offhand = no paired bonus
+		AssertFloat(stats.ResolveAttack(crossbow, dagger).MaxDamage).IsEqual(stats.ResolveAttack(crossbow).MaxDamage);
+	}
+
+	[TestCase]
+	public void CharacterWideDamageModifiersApplyOnceToPairedAttacks()
+	{
+		var stats = new PlayerStats();
+		var sword = Create(Sword);
+		var dagger = Create(Dagger);
+		float unarmedMax = stats.MaxDamage;
+
+		stats.AddWeaponModifiers(sword, sword.StatModifiers);
+		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
+		stats.AddModifiers(new object(), [
+			new StatModifier { Stat = StatType.MaxDamage, Value = 4 }
+		]);
+
+		AttackStats paired = stats.ResolveAttack(sword, dagger);
+		// The +4 character-wide modifier is folded into unarmed/base damage once, not twice
+		float expectedMax = unarmedMax + 4 + sword.ScaledDamageMax + (dagger.ScaledDamageMax * dagger.OffhandDamageScale);
+		AssertFloat(paired.MaxDamage).IsEqual(expectedMax);
+	}
+
+	[TestCase]
 	public void CharacterWideDamageModifiersApplyToEveryAttack()
 	{
 		var stats = new PlayerStats();
@@ -106,10 +161,8 @@ public class WeaponAttackStatsTest
 	[TestCase]
 	public async Task EquippingAWeaponKeepsItsDamageOutOfTheCharacterStats()
 	{
-		using var runner = TestFactories.LoadCombatHarness();
-		await TestFactories.SettleCombatHarness(runner, 3);
 		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
-		await runner.SimulateFrames(2);
+		await player.ToSignal(player.GetTree(), SceneTree.SignalName.PhysicsFrame);
 		InventoryItemSlot worn = player.Inventory.EquippedItems[EquipmentSlot.WeaponHand];
 		if (worn != null)
 		{

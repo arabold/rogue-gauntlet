@@ -121,7 +121,7 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6c4js"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_2ahlx"]
 _surfaces = [{
@@ -177,7 +177,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4iooa"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_2yoll"]
 _surfaces = [{
@@ -233,7 +233,7 @@ points = PackedVector3Array(2, 4, 0.500001, 2, 0, 0.500001, 2, 4, -0.5, -2, 4, 0
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gf05t"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_e5vxt"]
 _surfaces = [{
@@ -289,7 +289,7 @@ points = PackedVector3Array(2, 4, 0.499885, 1.59475, 0.293657, 0.624517, 1.63273
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nbdol"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_e84ds"]
 _surfaces = [{
@@ -345,7 +345,7 @@ points = PackedVector3Array(2, 4, 0.499647, 0.5, 4, 1.99967, 0.5, 3.44988, 2.000
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xy2m3"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_l0def"]
 _surfaces = [{
@@ -394,7 +394,7 @@ image = SubResource("Image_ure3o")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qy3jl"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_huheg"]
 _surfaces = [{
@@ -443,7 +443,7 @@ image = SubResource("Image_a2ug0")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hdcm6"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_qgk48"]
 _surfaces = [{
@@ -492,7 +492,7 @@ image = SubResource("Image_bnmpl")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_53msk"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_o8ekg"]
 _surfaces = [{
@@ -541,7 +541,7 @@ image = SubResource("Image_usb87")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ayv47"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_uuhk8"]
 _surfaces = [{
@@ -597,7 +597,7 @@ points = PackedVector3Array(0, 0, -0.5, 0.899914, 0, -0.5, 0, 0, 0.5, 0, 4, -0.5
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j1cop"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_q4lok"]
 _surfaces = [{
@@ -653,7 +653,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_toaum"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_o12qp"]
 _surfaces = [{
@@ -709,7 +709,7 @@ points = PackedVector3Array(-1.62921e-07, 0, -0.500001, 1.9998, 0, -0.500001, -1
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rqpl2"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_mh3c6"]
 _surfaces = [{
@@ -765,7 +765,7 @@ points = PackedVector3Array(-2, 0, -0.5, 0, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, 0,
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yd1wa"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_b5rq7"]
 _surfaces = [{
@@ -821,7 +821,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s2321"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_arlre"]
 _surfaces = [{
@@ -877,7 +877,7 @@ points = PackedVector3Array(-2, 0, -0.5, 0, 0, -0.5, -2, 0, 0.5, -2, 4, -0.5, 0,
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qjsw1"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_a2kbu"]
 _surfaces = [{
@@ -933,7 +933,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_em0ya"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_t876k"]
 _surfaces = [{
@@ -989,7 +989,7 @@ points = PackedVector3Array(2, 4, 0.499951, 2, 0, 0.499951, 2, 4, -0.500098, 0.3
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dwr3r"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_68cxl"]
 _surfaces = [{
@@ -1045,7 +1045,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5icpw"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_yom15"]
 _surfaces = [{
@@ -1101,7 +1101,7 @@ points = PackedVector3Array(2, 4, 0.499997, 0.408771, 2.89977, 0.779783, 0.43931
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nb60m"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_da0sd"]
 _surfaces = [{
@@ -1157,7 +1157,7 @@ points = PackedVector3Array(-0.900157, 4, 0.5, 2, 0.249804, 0.5, -0.900157, 4, -
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j7g7w"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_24xa8"]
 _surfaces = [{
@@ -1213,7 +1213,7 @@ points = PackedVector3Array(2, 4, 0.499926, 0.5, 3.99961, 1.99982, 2, 0, 0.49992
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7bp0k"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_ou663"]
 _surfaces = [{
@@ -1269,7 +1269,7 @@ points = PackedVector3Array(2, 4, 0.499902, 2, 0, 0.499902, 2, 3.44988, -0.50000
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3wibd"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_axyrh"]
 _surfaces = [{
@@ -1325,7 +1325,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2emii"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_mnawi"]
 _surfaces = [{
@@ -1381,7 +1381,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwmaw"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_fcmkx"]
 _surfaces = [{
@@ -1437,7 +1437,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sbpoy"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_e1yq5"]
 _surfaces = [{
@@ -1493,7 +1493,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gjd7y"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_48etx"]
 _surfaces = [{
@@ -1549,7 +1549,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_435cd"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_548q3"]
 _surfaces = [{
@@ -1605,7 +1605,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_23fef"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_advuv"]
 _surfaces = [{
@@ -1661,7 +1661,7 @@ points = PackedVector3Array(2, 4, 0.5, 2, 0, 0.5, 2, 4, -0.5, -2, 4, 0.5, 2, 0, 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dylxn"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_ar2fv"]
 _surfaces = [{
@@ -1717,7 +1717,7 @@ points = PackedVector3Array(-0.500147, 3.44988, 2.00006, -0.250049, 3.19969, 2.0
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u8dmb"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_txh4r"]
 _surfaces = [{
@@ -1773,7 +1773,7 @@ points = PackedVector3Array(-0.500138, 3.44988, 2.00006, -0.250038, 3.19969, 2.0
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a74vv"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_hu1s2"]
 _surfaces = [{
@@ -1829,7 +1829,7 @@ points = PackedVector3Array(-0.500147, 3.44988, 2.00006, 0.5, 4, 1.99982, -0.500
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x46yg"]
 resource_name = "texture"
 albedo_texture = ExtResource("1_ypmv1")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_qo37e"]
 _surfaces = [{

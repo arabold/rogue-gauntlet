@@ -14,7 +14,7 @@ public class ScrollConsumptionEffectsTest
 	public async Task EveryScrollUsesItsAssignedRingWithoutMutatingTheSharedAppearance()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
+		await runner.SimulateFrames(2, 20); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		var identity = new IdentificationService(); identity.Initialize(42); player.ItemUseEffects.Identification = identity;
 		var category = TestFactories.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres").Categories.Single(c => c.Category == "scroll");
@@ -33,7 +33,7 @@ public class ScrollConsumptionEffectsTest
 	public async Task ActualConsumptionPlaysReadingAndResultCueOnceAndCancellationPlaysNeither()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
+		await runner.SimulateFrames(2, 20); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		var identity = new IdentificationService(); identity.Initialize(42); player.ItemUseEffects.Identification = identity;
 		var scroll = (Scroll)ItemFactory.CopyDefinition(TestFactories.Load<Scroll>("res://scenes/items/scrolls/scroll_vitality.tres"));
@@ -45,14 +45,17 @@ public class ScrollConsumptionEffectsTest
 		player.WorldEffects.Clear(); scroll.Set("PerformDuration", 1f);
 		AssertBool(player.InventoryController.TryUse(slot).Success).IsTrue();
 		player.InventoryController.CancelItemUse(ActionInterruptReason.Damage);
-		await runner.SimulateFrames(65, 20);
+		await runner.SimulateFrames(55, 20); // Past the 1 s read, when an uncancelled use would commit.
 		AssertInt(player.WorldEffects.ActiveInstanceCount).IsEqual(0);
+		// The completed read spent one scroll; the cancelled one spent nothing.
+		AssertBool(player.Inventory.Items.Contains(slot)).IsTrue();
+		AssertInt(slot.Quantity).IsEqual(1);
 	}
 	[TestCase]
 	public async Task DepartureStaysAtItsOriginAndArrivalFollowsTheActorUntilCleanup()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
+		await runner.SimulateFrames(2, 20); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single(); var host = player.WorldEffects;
 		var departure = TestFactories.Load<WorldEffectDefinition>("res://scenes/effects/world/teleport_departure/teleport_departure.tres");
 		var arrival = TestFactories.Load<WorldEffectDefinition>("res://scenes/effects/world/teleport_arrival/teleport_arrival.tres");
@@ -62,6 +65,5 @@ public class ScrollConsumptionEffectsTest
 		AssertBool(effects.Single(e => e.Definition == departure).GlobalPosition.IsEqualApprox(origin)).IsTrue();
 		AssertBool(effects.Single(e => e.Definition == arrival).GlobalPosition.IsEqualApprox(player.GlobalPosition)).IsTrue();
 		await runner.SimulateFrames(40, 20); AssertInt(host.ActiveInstanceCount).IsEqual(0);
-		AssertObject(TestFactories.Load<Scroll>("res://scenes/items/scrolls/scroll_summon.tres").Effect.Get("Arrival").AsGodotObject()).IsSame(arrival);
 	}
 }

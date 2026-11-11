@@ -8,46 +8,17 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Correctness contracts for Room.Rotate, swept across seeds using every room type
-/// (irregular footprints, doorways, doors, props and stairwell pits -- the hardest shapes to get right):
-/// <list type="bullet">
-/// <item>Rotating four quarter turns (360 degrees) returns the exact original GridMap
-/// cells, child transforms and tile map -- rotation must be a lossless, invertible
-/// permutation of the tile lattice, not an approximation that drifts.</item>
-/// <item>A single quarter turn swaps Map.Width/Height, and every tile-type population
-/// (Room/Connector/Chasm counts) is preserved.</item>
-/// <item>At EVERY intermediate rotation the tile map, rotated as data, still matches the
-/// rotated geometry: floor tiles lie under floor cells, each blueprint doorway turned
-/// with the room is a connector facing its turned direction, and its door stays in
-/// its gap.</item>
-/// </list>
+/// Correctness contracts for Room.Rotate. <see cref="CheckRotationSweep"/> turns a room through all four quarter turns:
+/// at every turn its tile map, rotated as data, still matches its rotated geometry (floor tiles lie under floor cells,
+/// each doorway is a connector facing its turned direction with its door in the gap), and four turns restore the exact
+/// original cells, child transforms and map. <see cref="RoomAssemblyTest"/> sweeps every realm's rooms through it; the
+/// cases here compose orientations that authored content does not yet use.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
 public class RoomRotationTest
 {
-	private const int SeedCount = 64;
 	private const int TileSize = Room.TileSize;
-
-	[TestCase]
-	public void RotatingProceduralRoomsKeepsTheirMapOnTheirGeometry()
-	{
-		var failures = new List<string>();
-		int doors = 0;
-		for (ulong seed = 1; seed <= SeedCount; seed++)
-		{
-			var blueprint = Build(seed, withDoors: true);
-			doors += blueprint.Room.Doors.Count;
-			CheckRotationSweep(blueprint, $"seed {seed}", failures);
-			blueprint.Room.Free();
-		}
-
-		AssertInt(doors).IsGreater(0);
-		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} rotation violation(s) across {SeedCount} procedural seeds:\n  "
-				+ string.Join("\n  ", failures))
-			.IsEmpty();
-	}
 
 	/// <summary>
 	/// A prop tilted off pure-Y rotation (e.g. a knocked-over barrel authored with
@@ -59,7 +30,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingATiltedChildComposesViaBasisNotEulerAddition()
 	{
-		Room room = Build(1).Room;
+		Room room = BuildRoom();
 
 		var tiltedProp = new Node3D
 		{
@@ -72,7 +43,7 @@ public class RoomRotationTest
 		room.Rotate(1);
 		Basis actualBasis = tiltedProp.Transform.Basis;
 
-		room.QueueFree();
+		room.Free();
 
 		AssertBool(BasisApproxEquals(expectedBasis, actualBasis))
 			.OverrideFailureMessage("A tilted child's rotation was not composed via basis multiplication. "
@@ -91,7 +62,7 @@ public class RoomRotationTest
 	[TestCase]
 	public void RotatingANonUprightGridMapOrientationComposesCorrectly()
 	{
-		Room room = Build(1).Room;
+		Room room = BuildRoom();
 
 		// Far outside the room's own generated content, so this doesn't collide with it.
 		var cell = new Vector3I(1000, 0, 1000);
@@ -106,7 +77,7 @@ public class RoomRotationTest
 		int rotatedOrientation = room.DecorationGridMap.GetCellItemOrientation(rotatedCell);
 		Basis actualBasis = room.DecorationGridMap.GetBasisWithOrthogonalIndex(rotatedOrientation);
 
-		room.QueueFree();
+		room.Free();
 
 		AssertBool(BasisApproxEquals(expectedBasis, actualBasis))
 			.OverrideFailureMessage("A non-upright GridMap cell orientation was not rotated correctly. "
@@ -114,20 +85,16 @@ public class RoomRotationTest
 			.IsTrue();
 	}
 
-	/// <summary>A room assembled from the pool's types (entrances and exits included), cycling through them by seed.</summary>
-	private static RoomBlueprint Build(ulong seed, bool withDoors = false)
-	{
-		var factory = withDoors ? TestFactories.RoomPoolWithDoors() : TestFactories.RoomPool();
-		RoomType[] types = [.. factory.RoomTypes, .. factory.EntranceTypes, .. factory.ExitTypes];
-		return RoomAssembler.Build(types[(int)(seed % (ulong)types.Length)], seed);
-	}
+	/// <summary>An unfurnished storeroom: any room will do for composing child orientations.</summary>
+	private static Room BuildRoom() => RoomAssembler.Build(TestFactories.Load<RoomType>("res://scenes/levels/rooms/room_types/storage.tres"), 1,
+		new RoomAssemblyOptions { Furnish = false, Realm = "garrison" }).Room;
 
 	/// <summary>
 	/// Rotates an assembled room through all 4 cumulative quarter-turn states (90/180/270/360)
 	/// from its original orientation, checking invariants at every step and a full
 	/// original-state match once back at 360 (== 0).
 	/// </summary>
-	private static void CheckRotationSweep(RoomBlueprint blueprint, string label, List<string> failures)
+	internal static void CheckRotationSweep(RoomBlueprint blueprint, string label, List<string> failures)
 	{
 		Room room = blueprint.Room;
 		var originalFloor = SnapshotCells(room.FloorGridMap);

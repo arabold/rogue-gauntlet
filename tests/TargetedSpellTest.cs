@@ -9,65 +9,12 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Targeted deliveries preserve owner selection and delayed-hit cancellation. Cases cover each
-/// <see cref="TargetDeliveryKind"/> once; spells that share a delivery share its code path.
+/// Targeted deliveries preserve owner selection and delayed-hit cancellation. Cases cover the delivery kinds whose
+/// code paths differ; Rockfall and Meteor share the area-impact path and differ only in their falling visual.
 /// </summary>
 [TestSuite, RequireGodotRuntime]
 public partial class TargetedSpellTest
 {
-	[TestCase("Fireball")]
-	[TestCase("Lightning Orb")]
-	[TestCase("Chain Lightning")]
-	public async Task SingleAvailableEnemyReceivesOneHit(string name)
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var target = await SpawnTarget(runner, new Vector3(0, 0, -3));
-		var spell = TestFactories.GetSpell<TargetedSpell>(harness, name);
-		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(160);
-		// Under the single-target-per-cast rule, one target receives only 1 strike.
-		AssertFloat(target.HealthComponent.CurrentHealth).IsEqualApprox(50 - 1 * TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]), .01);
-	}
-
-	[TestCase("Rockfall")]
-	[TestCase("Meteor")]
-	public async Task AreaTargetingDoesNotAimMultipleStrikesAtSameTarget(string name)
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var target = await SpawnTarget(runner, new Vector3(0, 0, -3));
-		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue();
-		var strikes = runner.Scene().FindChildren("*", "", true, false).OfType<Node3D>().Where(node => node switch
-		{
-			EarthSpellVisual { Cosmetic: false } => true,
-			FireSpellVisual { Cosmetic: false } => true,
-			_ => false,
-		}).ToArray();
-		AssertInt(strikes.Length).IsEqual(3);
-		// Exactly one strike is aimed directly at the target's position; excess strikes are random drops.
-		int aimedAtTarget = strikes.Count(s => s.GlobalPosition.DistanceTo(target.GlobalPosition) < 0.1f);
-		AssertInt(aimedAtTarget).IsEqual(1);
-	}
-
-	[TestCase("Fireball")]
-	[TestCase("Lightning Orb")]
-	[TestCase("Rockfall")]
-	[TestCase("Meteor")]
-	public async Task MovingAwayOrCancelingPreventsDelayedHits(string name)
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var target = await SpawnTarget(runner, new Vector3(0, 0, -4));
-		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3);
-		target.GlobalPosition = new Vector3(0, 0, -15);
-		await runner.SimulateFrames(90);
-		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
-		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3);
-		TestFactories.GetSpell<TargetedSpell>(harness, name).Cancel();
-		await runner.SimulateFrames(90);
-		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
-	}
-
 	[TestCase("Fireball")]
 	[TestCase("Lightning Orb")]
 	[TestCase("Chain Lightning")]
@@ -79,9 +26,37 @@ public partial class TargetedSpellTest
 		var spell = TestFactories.GetSpell<TargetedSpell>(harness, name);
 		int hits = 0;
 		target.HurtBoxComponent.DamageResolved += (_, _, _) => hits++;
-		AssertBool(TestFactories.CastSpell(harness, name, 3)).IsTrue(); await runner.SimulateFrames(160);
-		// Never hits the same enemy twice in a single cast; excess projectiles scatter forward.
+		AssertBool(TestFactories.CastSpell(harness, name, 3)).IsTrue();
+		await TestFactories.AwaitTargetedSpellSettled(runner, spell);
+		// Three shots, one enemy: it takes exactly one strike; the excess shots scatter forward.
 		AssertInt(hits).IsEqual(1);
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqualApprox(50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[2]), .01);
+	}
+
+	[TestCase("Fireball")]
+	[TestCase("Lightning Orb")]
+	[TestCase("Meteor")]
+	public async Task MovingAwayOrCancelingPreventsDelayedHits(string name)
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var start = new Vector3(0, 0, -4);
+		var target = await SpawnTarget(runner, start);
+		var spell = TestFactories.GetSpell<TargetedSpell>(harness, name);
+
+		ulong cast = Engine.GetPhysicsFrames();
+		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3, 20);
+		target.GlobalPosition = new Vector3(0, 0, -15);
+		await TestFactories.AwaitTargetedSpellSettled(runner, spell);
+		float flight = (Engine.GetPhysicsFrames() - cast) / (float)Engine.PhysicsTicksPerSecond;
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
+
+		// A canceled cast at a target that stays put deals nothing over the time a strike took to land.
+		target.GlobalPosition = start;
+		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3, 20);
+		spell.Cancel();
+		await TestFactories.AwaitPhysicsSeconds(runner, flight);
+		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
 	}
 
 	[TestCase]
@@ -93,7 +68,7 @@ public partial class TargetedSpellTest
 		var targetSide = await SpawnTarget(runner, new Vector3(2, 0, -2), "SideTarget");
 
 		AssertBool(TestFactories.CastSpell(harness, "Fireball", 1)).IsTrue();
-		await runner.SimulateFrames(160);
+		await TestFactories.AwaitTargetedSpellSettled(runner, TestFactories.GetSpell<TargetedSpell>(harness, "Fireball"));
 		// Level 1 Fireball has 1 projectile and must target the front enemy.
 		AssertFloat(targetFront.HealthComponent.CurrentHealth).IsLess(50);
 		AssertFloat(targetSide.HealthComponent.CurrentHealth).IsEqual(50);
@@ -104,61 +79,53 @@ public partial class TargetedSpellTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var targetA = await SpawnTarget(runner, new Vector3(0, 0, -3), "TargetA");
-		var targetB = await SpawnTarget(runner, new Vector3(1.5f, 0, -3), "TargetB");
-		var targetC = await SpawnTarget(runner, new Vector3(-1.5f, 0, -3), "TargetC");
+		var targets = new[]
+		{
+			await SpawnTarget(runner, new Vector3(0, 0, -3), "TargetA"),
+			await SpawnTarget(runner, new Vector3(1.5f, 0, -3), "TargetB"),
+			await SpawnTarget(runner, new Vector3(-1.5f, 0, -3), "TargetC"),
+		};
+		var spell = TestFactories.GetSpell<TargetedSpell>(harness, "Fireball");
 
 		AssertBool(TestFactories.CastSpell(harness, "Fireball", 3)).IsTrue();
-		await runner.SimulateFrames(160);
-		AssertFloat(targetA.HealthComponent.CurrentHealth).IsLess(50);
-		AssertFloat(targetB.HealthComponent.CurrentHealth).IsLess(50);
-		AssertFloat(targetC.HealthComponent.CurrentHealth).IsLess(50);
+		await TestFactories.AwaitTargetedSpellSettled(runner, spell);
+		float oneStrike = 50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[2]);
+		foreach (var target in targets) AssertFloat(target.HealthComponent.CurrentHealth).IsEqualApprox(oneStrike, .01);
 	}
 
 	[TestCase("Rockfall")]
 	[TestCase("Meteor")]
-	public async Task FallingStrikesDamageWhenTheirVisualLands(string name)
+	public async Task FallingStrikesAimOnceAtATargetAndDamageWhenTheyLand(string name)
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = await SpawnTarget(runner, new Vector3(2, 0, 0));
+		var spell = TestFactories.GetSpell<TargetedSpell>(harness, name);
 		var hits = new List<(ulong Frame, ulong Tick)>();
 		var impacts = new List<(ulong Frame, ulong Tick)>();
 		target.HurtBoxComponent.DamageResolved += (_, _, _) => hits.Add(Now());
 
 		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue();
-		// Damage is scheduled on the physics clock from the visual's authored delay and flight time; the visual lands
-		// on its own timeline. Strikes are the non-cosmetic falls; debris never deals damage.
+		// Strikes are the non-cosmetic falls; debris never deals damage.
 		var strikes = runner.Scene().FindChildren("*", "", true, false).Select(node => node switch
 		{
-			EarthSpellVisual { Cosmetic: false, Fall: { } fall } => fall,
-			FireSpellVisual { Cosmetic: false, Meteor.Fall: { } fall } => fall,
-			_ => null,
-		}).Where(fall => fall != null).ToArray();
-		foreach (var fall in strikes) fall.Impact += () => impacts.Add(Now());
-		await runner.SimulateFrames(160);
+			EarthSpellVisual { Cosmetic: false, Fall: { } fall } earth => (Visual: (Node3D)earth, Fall: fall),
+			FireSpellVisual { Cosmetic: false, Meteor.Fall: { } fall } fire => (fire, fall),
+			_ => default,
+		}).Where(strike => strike.Visual != null).ToArray();
+		AssertInt(strikes.Length).IsEqual(spell.Definition.TargetsByLevel[0]);
+		// Exactly one strike is aimed at the target; the excess strikes drop at random.
+		AssertInt(strikes.Count(strike => strike.Visual.GlobalPosition.DistanceTo(target.GlobalPosition) < .1f)).IsEqual(1);
 
-		AssertInt(strikes.Length).IsGreater(0);
-		AssertInt(impacts.Count).IsEqual(strikes.Length);
+		// Damage is scheduled on the physics clock from the visual's authored delay and flight time; the visual lands
+		// on its own timeline.
+		foreach (var (_, fall) in strikes) fall.Impact += () => impacts.Add(Now());
+		await TestFactories.AwaitPhysicsUntil(runner, () => impacts.Count == strikes.Length && !spell.IsPhysicsProcessing());
+
 		AssertInt(hits.Count).IsGreater(0);
 		// Strike 0 targeted the monster and lands directly on it.
 		bool inSync = hits[0].Frame == impacts[0].Frame || Math.Abs((long)hits[0].Tick - (long)impacts[0].Tick) <= 1;
 		AssertBool(inSync).OverrideFailureMessage($"strike 0 hit at {hits[0]} but landed at {impacts[0]} (frame, tick)").IsTrue();
-	}
-
-	[TestCase]
-	public async Task ClusteredEnemiesBothTakeDamageFromSingleMeteorImpact()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var targetA = await SpawnTarget(runner, new Vector3(0, 0, -3), "ClusterA");
-		var targetB = await SpawnTarget(runner, new Vector3(1.2f, 0, -3), "ClusterB");
-
-		AssertBool(TestFactories.CastSpell(harness, "Meteor", 1)).IsTrue();
-		await runner.SimulateFrames(160);
-		// Both targets were inside the 2.5m impact blast of the meteor and both take damage.
-		AssertFloat(targetA.HealthComponent.CurrentHealth).IsLess(50);
-		AssertFloat(targetB.HealthComponent.CurrentHealth).IsLess(50);
 	}
 
 	[TestCase]
@@ -168,26 +135,10 @@ public partial class TargetedSpellTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = await SpawnTarget(runner, new Vector3(0, 0, -3));
 		AssertBool(TestFactories.CastSpell(harness, "Meteor", 1)).IsTrue();
-		await runner.SimulateFrames(3);
-		// Monster moves 1.5m sideways while the meteor is in flight.
+		await runner.SimulateFrames(3, 20);
+		// Monster moves 1.5m sideways while the meteor is in flight; still within the 2.5m impact blast.
 		target.GlobalPosition = new Vector3(1.5f, 0, -3);
-		await runner.SimulateFrames(160);
-		// Still within the 2.5m AoE, so it takes damage despite moving.
-		AssertFloat(target.HealthComponent.CurrentHealth).IsLess(50);
-	}
-
-	[TestCase]
-	public async Task MonsterFarOutsideAoEDoesNotTakeDamage()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		var target = await SpawnTarget(runner, new Vector3(0, 0, -3));
-		AssertBool(TestFactories.CastSpell(harness, "Meteor", 1)).IsTrue();
-		await runner.SimulateFrames(3);
-		// Monster moves far away, completely outside the spell radius and impact area.
-		target.GlobalPosition = new Vector3(15, 0, -3);
-		await runner.SimulateFrames(160);
-		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
+		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < 50);
 	}
 
 	[TestCase]
@@ -229,7 +180,7 @@ public partial class TargetedSpellTest
 	{
 		TestFactories.MovePracticeTargetAway(runner.Scene().GetNode<CombatHarness>("Instructions"));
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), position, name);
-		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(target);
+		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(target);
 		// Rear and sneak bonuses would scale projectile damage; these cases check strike counts only.
 		target.HurtBoxComponent.Awareness = null; target.HurtBoxComponent.Vulnerability = null;
 		return target;

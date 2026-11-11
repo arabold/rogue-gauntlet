@@ -23,7 +23,7 @@ public partial class AreaDamageSpellTest
 		var blocked = TestFactories.SpawnCombatMonster(root, new Vector3(-2, 0, 0), "Blocked");
 		var distant = TestFactories.SpawnCombatMonster(root, new Vector3(10, 0, 0), "Distant");
 		AddWall(root, new Vector3(-1, 1, 0));
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		foreach (var actor in new[] { hit, blocked, distant }) TestFactories.PrepareCombatMonster(actor);
 		float playerHealth = harness.Player.HealthComponent.CurrentHealth;
 		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Fire Nova");
@@ -44,7 +44,7 @@ public partial class AreaDamageSpellTest
 		var harness = await SettleAtOrigin(runner);
 		var near = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(1, 0, 0), "Near");
 		var far = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-3, 0, 0), "Far");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(near); TestFactories.PrepareCombatMonster(far);
 		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Tremor");
 		float hit = TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]);
@@ -70,7 +70,7 @@ public partial class AreaDamageSpellTest
 		var harness = await SettleAtOrigin(runner);
 		var leaving = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Leaving");
 		var entering = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-10, 0, 0), "Entering");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(leaving); TestFactories.PrepareCombatMonster(entering);
 		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Stone Spears");
 		AssertFloat(spell.Definition.ContactDelay).IsGreater(0);
@@ -99,7 +99,7 @@ public partial class AreaDamageSpellTest
 		// Contacts resolve in node-path order, so the first actor is hit before the second.
 		var first = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "AFirst");
 		var second = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(0, 0, 2), "BSecond");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
 		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Fire Nova");
 		first.HurtBoxComponent.DamageResolved += (_, _, _) => spell.Cancel();

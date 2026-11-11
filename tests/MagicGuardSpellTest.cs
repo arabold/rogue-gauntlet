@@ -19,7 +19,7 @@ public partial class MagicGuardSpellTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var first = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "First");
 		var second = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(-2, 0, 0), "Second");
-		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
+		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(first); TestFactories.PrepareCombatMonster(second);
 		harness.Player.HurtBoxComponent.Armor = 0;
 		AssertBool(TestFactories.CastSpell(harness, "Stone Ward", 1)).IsTrue();
 		float health = harness.Player.HealthComponent.CurrentHealth;
@@ -35,7 +35,7 @@ public partial class MagicGuardSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var attacker = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Attacker");
-		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
+		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(attacker);
 		harness.Player.HurtBoxComponent.Armor = 0;
 		var guard = TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Ward").Definition;
 		float capacity = TestFactories.SpellAmount(guard.CapacityScaleByLevel[0]);
@@ -54,7 +54,7 @@ public partial class MagicGuardSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var attacker = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Attacker");
-		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
+		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(attacker);
 		harness.Player.HurtBoxComponent.Armor = 0;
 		harness.Player.HealthComponent.SetHealth(4, 100);
 		var guard = TestFactories.GetSpell<MagicGuardSpell>(harness, "Ember Ward").Definition;
@@ -70,7 +70,7 @@ public partial class MagicGuardSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var attacker = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Attacker");
-		await runner.SimulateFrames(5); TestFactories.PrepareCombatMonster(attacker);
+		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(attacker);
 		harness.Player.HurtBoxComponent.Armor = 0;
 		AssertBool(TestFactories.CastSpell(harness, "Ember Ward", 1)).IsTrue();
 		AssertBool(TestFactories.CastSpell(harness, "Stone Ward", 1)).IsTrue();

@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 /// <summary>
 /// Controls player combat attacks by coordinating equipped weapons with the animation-synchronized AttackController.
@@ -32,6 +33,8 @@ public partial class PlayerAttackController : AttackController
 	/// </summary>
 	private Node3D _aimAssistTarget;
 	private Weapon _activeWeapon;
+	public Weapon ActiveWeapon => _activeWeapon;
+	private Weapon _activeOffhandWeapon;
 
 	/// <summary>Index of the last started step of the current primary combo; -1 when no combo is in progress.</summary>
 	public int ComboStep { get; private set; } = -1;
@@ -44,6 +47,10 @@ public partial class PlayerAttackController : AttackController
 	/// <summary>True while a primary press may cancel the current step's recovery into the next combo step.</summary>
 	public bool CanChainPrimary => IsAttacking && Phase == ActorActionPhase.Recovery && HasNextComboStep;
 	private bool HasNextComboStep => ComboStep >= 0 && _chainRemaining > 0 && ComboStep + 1 < _combo.Steps.Count;
+
+	/// <summary>True when idle or when an active spell cast has released into recovery and a different wand is casting.</summary>
+	public bool CanHandoffSpell(Weapon incomingFocus) =>
+		!IsAttacking || (Phase == ActorActionPhase.Recovery && !ReferenceEquals(incomingFocus, _activeWeapon));
 
 	public override void _Ready()
 	{
@@ -106,16 +113,39 @@ public partial class PlayerAttackController : AttackController
 		var step = comboStep >= 0 ? weapon.PrimaryCombo.Steps[comboStep] : null;
 		var definition = (!isSpecial ? weapon?.PrimaryAttackDefinition : weapon?.SecondaryCustomAttackDefinition)
 			?? CreateDefaultDefinition(weapon, isSpecial);
-		SoundCueProfile weaponReleaseCue = isSpecial ? weapon?.SecondaryReleaseCue : weapon?.PrimaryReleaseCue;
-		bool setReleaseCue = definition.ReleaseCue == null && weaponReleaseCue != null;
-		bool setStepStyle = !string.IsNullOrEmpty(step?.AttackStyle);
-		if (setReleaseCue || setStepStyle)
-		{
-			definition = (AttackDefinition)definition.Duplicate();
-			if (setReleaseCue) definition.ReleaseCue = weaponReleaseCue;
-			if (setStepStyle) definition.AttackStyle = step.AttackStyle;
-		}
 		var style = isSpecial ? (weapon?.GetEffectiveSecondaryStyle() ?? "unarmed.kick") : (weapon?.AttackStyle ?? "unarmed.punch");
+		if (!string.IsNullOrEmpty(step?.AttackStyle))
+		{
+			// A definition's own style wins over the weapon's, so the step's motion goes on a copy.
+			definition = (AttackDefinition)definition.Duplicate();
+			definition.AttackStyle = step.AttackStyle;
+		}
+		Weapon offhand = Player?.Inventory?.EquippedOffhandWeapon;
+		if (PlayerStats.IsEligibleMeleePair(weapon, offhand))
+		{
+			StringName baseStyle = !string.IsNullOrEmpty(definition?.AttackStyle) ? definition.AttackStyle : style;
+			if (AnimationComponent?.Profile == null
+				|| !AnimationComponent.Profile.TryGetBinding(baseStyle, out var binding)
+				|| string.IsNullOrEmpty(binding.DualWieldStyle)
+				|| !AnimationComponent.Profile.TryGetBinding(binding.DualWieldStyle, out _))
+			{
+				attack = null;
+				return false;
+			}
+			style = binding.DualWieldStyle;
+			if (!string.IsNullOrEmpty(definition?.AttackStyle))
+			{
+				if (!ReferenceEquals(definition, weapon?.PrimaryAttackDefinition) && !ReferenceEquals(definition, weapon?.SecondaryCustomAttackDefinition))
+				{
+					definition.AttackStyle = style;
+				}
+				else
+				{
+					definition = (AttackDefinition)definition.Duplicate();
+					definition.AttackStyle = style;
+				}
+			}
+		}
 		if (duration <= 0)
 		{
 			duration = isSpecial ? (weapon?.SecondaryPerformDuration ?? 0.6) : (weapon?.PerformDuration ?? 0.5);
@@ -123,6 +153,11 @@ public partial class PlayerAttackController : AttackController
 		duration *= step?.DurationScale ?? 1;
 		var contact = isSpecial ? (weapon?.GetEffectiveSecondaryMeleeContact(SpecialMeleeContact) ?? SpecialMeleeContact) : weapon?.MeleeContact;
 		if (!TryPrepareAttack(definition, style, duration, out attack, contact)) return false;
+		if (weapon?.OnHitStatuses is { Length: > 0 } weaponStatuses)
+		{
+			if (!PreparedHitStatus.TryCapture(weaponStatuses, out var captured)) return false;
+			attack = attack with { OnHitStatuses = (attack.OnHitStatuses ?? []).Concat(captured).ToArray() };
+		}
 		if (attack.Feedback == null)
 		{
 			var profile = isSpecial ? SecondaryFeedbackProfile : PrimaryFeedbackProfile;
@@ -139,10 +174,12 @@ public partial class PlayerAttackController : AttackController
 	public bool StartPreparedWeaponAttack(PreparedAttack attack, Weapon weapon = null, bool isSpecial = false, ActorActionLease lease = default)
 	{
 		if (Player.IsDead || Player.IsHit || IsAttacking) return false;
+		Weapon offhand = Player?.Inventory?.EquippedOffhandWeapon;
 		_activeWeapon = weapon;
+		_activeOffhandWeapon = PlayerStats.IsEligibleMeleePair(weapon, offhand) ? offhand : null;
 		_aimAssistTarget = FindMeleeAimAssistTarget();
 		float multiplier = (isSpecial ? (weapon?.SecondaryDamageMultiplier ?? 1.5f) : 1.0f) * (attack?.DamageScale ?? 1);
-		if (!StartAttack(attack, Player.Stats.ResolveAttack(weapon).Scaled(multiplier), 24, lease)) return false;
+		if (!StartAttack(attack, Player.Stats.ResolveAttack(weapon, _activeOffhandWeapon).Scaled(multiplier), 24, lease)) return false;
 		ResetCombo();
 		if (attack.ComboStep >= 0)
 		{
@@ -160,19 +197,36 @@ public partial class PlayerAttackController : AttackController
 	/// </summary>
 	public bool StartPreparedSpellCast(PreparedAttack attack, Weapon focus, ActorActionLease lease = default)
 	{
-		if (Player.IsDead || Player.IsHit || IsAttacking || attack?.Spell == null) return false;
+		if (Player.IsDead || Player.IsHit || attack?.Spell == null) return false;
+		if (IsAttacking)
+		{
+			if (!CanHandoffSpell(focus)) return false;
+			CancelAttack();
+		}
 		_activeWeapon = focus;
+		_activeOffhandWeapon = null;
 		_aimAssistTarget = null;
-		if (!StartAttack(attack, attack.Spell.Power.Hit, 24, lease)) return false;
+		if (!StartAttack(attack, attack.Spell.Context.Power.Hit, 24, lease)) return false;
 		ResetCombo();
 		return true;
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (IsAttacking && _activeWeapon != null && !ReferenceEquals(Player.Inventory.EquippedWeapon, _activeWeapon))
+		if (IsAttacking)
 		{
-			CancelAttack();
+			var offhand = Player.Inventory?.EquippedOffhandWeapon;
+			bool mainEquipped = _activeWeapon == null
+				|| ReferenceEquals(Player.Inventory?.EquippedWeapon, _activeWeapon)
+				|| ReferenceEquals(offhand, _activeWeapon);
+			if (!mainEquipped)
+			{
+				CancelAttack();
+			}
+			else if (_activeOffhandWeapon != null && !ReferenceEquals(offhand, _activeOffhandWeapon))
+			{
+				CancelAttack();
+			}
 		}
 		if (IsAttacking) base._PhysicsProcess(delta);
 		UpdateChainWindow(delta);
@@ -202,6 +256,8 @@ public partial class PlayerAttackController : AttackController
 
 	private void OnAttackFinished(AttackIdentity execution, bool interrupted)
 	{
+		_activeWeapon = null;
+		_activeOffhandWeapon = null;
 		if (ComboStep < 0) return;
 		// A chain also interrupts the previous step; the new step was already prepared and restarts tracking.
 		if (interrupted || ComboStep + 1 >= _combo.Steps.Count) { ResetCombo(); return; }

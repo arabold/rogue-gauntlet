@@ -50,7 +50,7 @@ public class NameplateTest
 	public async Task NameShowsOnlyWhileThePlayerIsNearAndTheActorIsAlive()
 	{
 		using var runner = LoadHarness();
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var player = TestFactories.AddStandInPlayer();
 		var (plate, health) = AddActor();
 		Label3D label = plate.NameLabel;
@@ -91,7 +91,7 @@ public class NameplateTest
 	public async Task PlateStaysUnderFogUntilItsOwnTileIsExplored()
 	{
 		using var runner = LoadHarness();
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var (level, map) = TestFactories.UngeneratedLevel();
 		var plate = NewPlate();
 		plate.Position = new Vector3(8, 3, 8);
@@ -135,7 +135,7 @@ public class NameplateTest
 	public async Task HealthBarFadesWithTheNameAtFullHealth()
 	{
 		using var runner = LoadHarness();
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var player = TestFactories.AddStandInPlayer();
 		var bar = TestFactories.Load<PackedScene>("res://scenes/components/floating_health_bar.tscn").Instantiate<FloatingHealthBar>();
 		var (plate, health) = AddActor(bar);
@@ -166,13 +166,13 @@ public class NameplateTest
 	public async Task PickupNamesItselfInItsLootColorOnTopOfItsModel()
 	{
 		using var runner = LoadHarness();
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var potion = TestFactories.Pickup("res://scenes/items/potions/potion_healing_small.tres", 3);
 		var sword = TestFactories.Pickup("res://scenes/items/weapons/sword_rare.tres");
 		potion.Animate = sword.Animate = false;
 		runner.Scene().AddChild(potion);
 		runner.Scene().AddChild(sword);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 
 		AssertString(potion.Nameplate.NameLabel.Text).IsEqual($"{ItemIdentity.ResolveDisplayName(potion.Item)} (3)");
 		AssertString(sword.Nameplate.NameLabel.Text).IsEqual(ItemIdentity.ResolveDisplayName(sword.Item));

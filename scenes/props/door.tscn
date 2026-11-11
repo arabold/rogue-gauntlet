@@ -28,7 +28,7 @@ albedo_color = Color(1, 0.7, 0.15, 1)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xy2m3"]
 resource_name = "texture"
 albedo_texture = ExtResource("2_yt2ch")
-roughness = 0.45
+roughness = 0.85
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_l0def"]
 _surfaces = [{

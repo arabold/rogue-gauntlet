@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
 [ext_resource type="Script" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
 [ext_resource type="Script" path="res://scenes/enemies/EnemyDefenseController.cs" id="defense_script"]
+[ext_resource type="Script" path="res://scenes/enemies/HealthPhaseComponent.cs" id="phase_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_guard.tres" id="guard"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_defense_animation.tres" id="defense_animation"]
 
@@ -100,13 +101,14 @@ height = 4.5
 radius = 1.0
 height = 4.5
 
-[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "GuardComponent", "DefenseController", "BodyShape", "EncounterNotifier")]
-BodyShape = NodePath("CollisionShape3D")
+[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("EncounterNotifier", "ActionGate", "GuardComponent", "DefenseController", "BodyShape", "HealthPhases")]
 EncounterNotifier = NodePath("EncounterNotifier")
+BodyShape = NodePath("CollisionShape3D")
 Definition = ExtResource("definition")
 ActionGate = NodePath("ActorActionGateComponent")
 GuardComponent = NodePath("GuardComponent")
 DefenseController = NodePath("EnemyDefenseController")
+HealthPhases = NodePath("HealthPhaseComponent")
 
 [node name="WardenModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -197,6 +199,11 @@ Profile = ExtResource("movement_profile")
 
 [node name="WallClipComponent" parent="." node_paths=PackedStringArray("Target") instance=ExtResource("wall_clip")]
 Target = NodePath("../Pivot")
+
+[node name="HealthPhaseComponent" type="Node" parent="." node_paths=PackedStringArray("Health")]
+script = ExtResource("phase_script")
+Health = NodePath("../HealthComponent")
+EnterHealthFractions = PackedFloat32Array(0.65, 0.3)
 
 [node name="EncounterNotifier" type="VisibleOnScreenNotifier3D" parent="."]
 aabb = AABB(-2, -0.5, -2, 4, 6.5, 4)

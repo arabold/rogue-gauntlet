@@ -8,6 +8,8 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
+	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
+		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
 	[Export] public FrostNovaDefinition Definition { get; set; }
 	[Export] public PackedScene VisualScene { get; set; }
 	[Export] public Node3D VisualRoot { get; set; }
@@ -19,10 +21,12 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 	public void StatusRestored(BuffController target) => _affected.Add(target);
 
 	/// <summary>Release one area contact per visible hostile actor as the wave reaches it; visual failure never causes damage.</summary>
-	public bool Cast(Node3D caster, in SpellPower power, RandomNumberGenerator random)
+	public bool Cast(in SpellCastContext context, RandomNumberGenerator random)
 	{
+		Node3D caster = context.Caster;
+		SpellPower power = context.Power;
 		int level = power.Level;
-		if (Definition?.IsValidLevel(level) != true || VisualScene == null) return false;
+		if (!CanCast(in context)) return false;
 		float radius = Definition.RadiusByLevel[level - 1];
 		if (!AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, radius, out var cast)) return false;
 		var node = VisualScene.Instantiate();

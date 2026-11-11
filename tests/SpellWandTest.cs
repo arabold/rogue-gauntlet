@@ -66,7 +66,7 @@ public partial class SpellWandTest
 		harness.Player.Inventory.Unequip(EquipmentSlot.WeaponHand);
 		await TestFactories.AwaitPhysicsSeconds(runner, 1.5f);
 
-		AssertObject(harness.Player.SpellCaster.Current).IsNull();
+		AssertBool(harness.Player.SpellCaster.TryGetSpell(wand, out _)).IsFalse();
 		AssertBool(harness.Player.AttackController.IsAttacking).IsFalse();
 		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
 		AssertFloat(mana.CurrentMana).IsEqual(50 - wand.BoundSpell.ManaCost(wand.SpellLevel));
@@ -78,10 +78,11 @@ public partial class SpellWandTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var (harness, wand) = await EquipWand(runner, FireNovaPath);
 		var target = await SpawnTarget(runner, new Vector3(2, 0, 0));
-		var spell = (AreaDamageSpell)harness.Player.SpellCaster.Current;
+		AssertBool(harness.Player.SpellCaster.TryGetSpell(wand, out var combatSpell)).IsTrue();
+		var spell = (AreaDamageSpell)combatSpell;
 		var certainCritical = new AttackStats(8, 8, 1);
 
-		AssertBool(spell.Cast(harness.Player, new SpellPower(1, certainCritical), new RandomNumberGenerator { Seed = 3 })).IsTrue();
+		AssertBool(spell.Cast(TestFactories.CastContext(harness.Player, new SpellPower(1, certainCritical)), new RandomNumberGenerator { Seed = 3 })).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < 50);
 
 		float scale = spell.Definition.DamageScaleByLevel[0];
@@ -147,8 +148,10 @@ public partial class SpellWandTest
 		var (harness, _) = await EquipWand(runner, EmberWardPath);
 		var player = harness.Player;
 		var attacker = await SpawnTarget(runner, new Vector3(2, 0, 0));
-		var ward = (MagicGuardSpell)player.SpellCaster.Current;
-		AssertBool(ward.Cast(player, TestFactories.SpellPower(1), new RandomNumberGenerator { Seed = 1 })).IsTrue();
+		var wand = (MagicStaff)player.Inventory.EquippedWeapon;
+		AssertBool(player.SpellCaster.TryGetSpell(wand, out var boundSpell)).IsTrue();
+		var ward = (MagicGuardSpell)boundSpell;
+		AssertBool(ward.Cast(TestFactories.CastContext(player, TestFactories.SpellPower(1)), new RandomNumberGenerator { Seed = 1 })).IsTrue();
 		float full = ward.RemainingCapacity;
 		var contact = new DamageContext { OwnerNode = attacker, SourceNode = attacker, Faction = DamageSourceFlags.Enemy,
 			Amount = 4, IncomingDirection = Vector3.Left, DeliveryKind = DamageDeliveryKind.DirectMelee };
@@ -158,32 +161,32 @@ public partial class SpellWandTest
 
 		var saved = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, false)));
 		PlayerSaveCodec.Apply(player, saved);
-		AssertFloat(((MagicGuardSpell)player.SpellCaster.Current).RemainingCapacity).IsEqual(remaining);
+		var restoredWand = (MagicStaff)player.Inventory.EquippedWeapon;
+		AssertBool(player.SpellCaster.TryGetSpell(restoredWand, out var restoredSpell)).IsTrue();
+		AssertFloat(((MagicGuardSpell)restoredSpell).RemainingCapacity).IsEqual(remaining);
 
 		// A ward with no spell weapon to rise on is rejected before the player changes.
 		saved.Inventory.EquippedItems.RemoveAll(entry => entry.Slot == nameof(EquipmentSlot.WeaponHand));
 		bool rejected = false;
 		try { PlayerSaveCodec.Apply(player, saved); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
-		AssertFloat(((MagicGuardSpell)player.SpellCaster.Current).RemainingCapacity).IsEqual(remaining);
+		AssertBool(player.SpellCaster.TryGetSpell(restoredWand, out var afterFailSpell)).IsTrue();
+		AssertFloat(((MagicGuardSpell)afterFailSpell).RemainingCapacity).IsEqual(remaining);
 	}
 
 	[TestCase]
-	public async Task TheHarnessSpellSelectorRebindsTheEquippedStaff()
+	public async Task TheHarnessSpellCommandRebindsTheEquippedStaff()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		int staff = Array.FindIndex(harness.Weapons, weapon => weapon is MagicStaff { IsTwoHanded: true });
-		harness.EquipPreview(staff);
-		var selector = harness.GetNode<OptionButton>("%Controls/Spell");
-		int iceLance = Array.FindIndex(harness.SpellPool.Spells, spell => spell.DisplayName == "Ice Lance");
-		selector.Select(iceLance);
-		selector.EmitSignal(OptionButton.SignalName.ItemSelected, iceLance);
+		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/staff_common.tres")).IsTrue();
+		var iceLance = TestFactories.Tool<SpellCastTool>(harness.Arena).Spells.Spells.Single(spell => spell.DisplayName == "Ice Lance");
+		AssertBool(harness.ExecuteCommand("spell", iceLance.ResourcePath)).IsTrue();
 
 		var equipped = (MagicStaff)harness.Player.Inventory.EquippedWeapon;
 		AssertString(equipped.BoundSpell.DisplayName).IsEqual("Ice Lance");
-		AssertBool(harness.Player.SpellCaster.IsBoundTo(equipped)).IsTrue();
-		AssertString(harness.Player.SpellCaster.Current.DisplayName).IsEqual("Ice Lance");
+		AssertBool(harness.Player.SpellCaster.TryGetSpell(equipped, out var lanceSpell)).IsTrue();
+		AssertString(lanceSpell.DisplayName).IsEqual("Ice Lance");
 	}
 
 	[TestCase]
@@ -200,6 +203,112 @@ public partial class SpellWandTest
 		bool rejected = false;
 		try { ItemSaveCodec.Restore(data); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
+	}
+
+	[TestCase]
+	public async Task EitherHandWandCastsFromOffhandSlotWithL()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var player = harness.Player;
+		player.Stats.ManaRegenRate = 0;
+		player.ManaComponent.CurrentMana = 50;
+
+		var sword = (Weapon)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/weapons/sword_common.tres"));
+		var wand = Wand(TestFactories.Load<SpellDefinition>(FireNovaPath));
+		EquipBoth(player, sword, wand);
+		AssertObject(player.Inventory.EquippedWeapon).IsEqual(sword);
+		AssertObject(player.Inventory.EquippedOffhandWeapon).IsEqual(wand);
+
+		var target = await SpawnTarget(runner, new Vector3(2, 0, 0));
+		float cost = wand.BoundSpell.ManaCost(wand.SpellLevel);
+
+		AssertBool(player.ActionManager.TryPerformOffhand()).IsTrue();
+		AssertFloat(player.ManaComponent.CurrentMana).IsEqual(50 - cost);
+		await TestFactories.AwaitPhysicsUntil(runner, () => !player.AttackController.IsAttacking);
+		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < 50);
+
+		AssertString(player.AttackController.LastResult).IsEqual("Cast");
+	}
+
+	[TestCase]
+	public async Task ReleasedCastHandoffBetweenHandsKeepsEachWandsCooldown()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var player = harness.Player;
+		var actions = player.ActionManager;
+		player.Stats.ManaRegenRate = 0;
+		player.ManaComponent.CurrentMana = 100;
+		EquipBoth(player, Wand(CooldownSpell(FireballPath, 1.5f)), Wand(CooldownSpell(FireNovaPath, 1.5f)));
+
+		// The off-hand wand (L) casts; the main-hand wand (K) cannot interrupt its wind-up.
+		AssertBool(actions.TryPerformOffhand()).IsTrue();
+		AssertBool(actions.OffhandActionSlot.IsPerformingAction).IsTrue();
+		AssertBool(actions.SecondaryTechniqueSlot.IsPerformingAction).IsFalse();
+		AssertBool(actions.TryPerformSecondary()).IsFalse();
+
+		// Once L's spell is released, K takes over while L cools down on its own clock.
+		await TestFactories.AwaitPhysicsUntil(runner, () => player.AttackController.Phase == ActorActionPhase.Recovery);
+		AssertBool(actions.SecondaryTechniqueSlot.IsOnCooldown).IsFalse();
+		AssertBool(actions.TryPerformSecondary()).IsTrue();
+		AssertBool(actions.OffhandActionSlot.IsOnCooldown).IsTrue();
+		AssertFloat((float)actions.OffhandActionSlot.RemainingTime).IsGreater(0);
+		AssertBool(actions.SecondaryTechniqueSlot.IsPerformingAction).IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => actions.SecondaryTechniqueSlot.IsOnCooldown);
+		AssertBool(actions.OffhandActionSlot.IsOnCooldown).IsTrue();
+	}
+
+	[TestCase]
+	public async Task WandCooldownPersistsThroughSaveAndLoad()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner, 5);
+		var player = harness.Player;
+		player.Stats.ManaRegenRate = 0;
+		player.ManaComponent.CurrentMana = 100;
+
+		var wand = Wand(CooldownSpell(FireballPath, 2));
+		player.Inventory.TryAdd(wand);
+		player.Inventory.Equip(player.Inventory.Items[^1], EquipmentSlot.WeaponHand);
+
+		AssertBool(player.ActionManager.TryPerformSecondary()).IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => player.ActionManager.SecondaryTechniqueSlot.IsOnCooldown);
+		AssertBool(player.ActionManager.IsWandOnCooldown(wand.InstanceId)).IsTrue();
+
+		var saved = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, false)));
+		PlayerSaveCodec.Apply(player, saved);
+
+		AssertBool(player.ActionManager.IsWandOnCooldown(wand.InstanceId)).IsTrue();
+		AssertBool(player.ActionManager.TryPerformSecondary()).IsFalse();
+	}
+
+	/// <summary>
+	/// A private copy of a spell with a cooldown: authored spells have none, and the cached definition is shared by every
+	/// suite. Loading it uncached keeps its path, so saves still resolve it.
+	/// </summary>
+	private static SpellDefinition CooldownSpell(string path, float cooldown)
+	{
+		var spell = TestFactories.Load<SpellDefinition>(path, ResourceLoader.CacheMode.Ignore);
+		spell.Cooldown = cooldown;
+		return spell;
+	}
+
+	private static MagicStaff Wand(SpellDefinition spell)
+	{
+		var wand = (MagicStaff)ItemFactory.Create(TestFactories.Load<Item>(WandPath));
+		wand.BoundSpell = spell;
+		return wand;
+	}
+
+	/// <summary>Equips <paramref name="main"/> in the weapon hand and <paramref name="offhand"/> in the shield hand.</summary>
+	private static void EquipBoth(Player player, Item main, Item offhand)
+	{
+		player.Inventory.TryAdd(main);
+		player.Inventory.TryAdd(offhand);
+		player.Inventory.Equip(player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, main)), EquipmentSlot.WeaponHand);
+		player.Inventory.Equip(player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, offhand)), EquipmentSlot.ShieldHand);
+		AssertBool(player.SpellCaster.IsBoundTo(offhand as MagicStaff)).IsTrue();
 	}
 
 	/// <summary>Equips a fresh tier-1 wand bound to <paramref name="spellPath"/> on a harness hero held at the origin.</summary>
@@ -232,7 +341,7 @@ public partial class SpellWandTest
 	private static async Task<EnemyBase> SpawnTarget(ISceneRunner runner, Vector3 position)
 	{
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), position, "Target");
-		await runner.SimulateFrames(5);
+		await runner.SimulateFrames(2, 20);
 		TestFactories.PrepareCombatMonster(target);
 		return target;
 	}

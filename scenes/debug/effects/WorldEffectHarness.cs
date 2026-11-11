@@ -3,10 +3,12 @@ using static EffectPreviewControls;
 
 public enum WorldEffectPreview { TrapDiscovery, SecretDiscovery, Loot, Blood, DoorXray, ChestXray }
 
-/// <summary>Repeatable previews of production effects, without dungeon generation or combat requirements.</summary>
-public partial class WorldEffectHarness : Node3D
+/// <summary>Repeatable previews of production effects, without dungeon generation or combat requirements, lit like the game.</summary>
+public partial class WorldEffectHarness : Node3D, ILitWorld
 {
 	[Export] public Node3D PreviewRoot { get; set; }
+	/// <summary>The game's lighting; the stand-in hero light and the previewed fixtures follow its darkness.</summary>
+	[Export] public WorldLighting Lighting { get; set; }
 	[Export] public Camera3D PreviewCamera { get; set; }
 	[Export] public Container Controls { get; set; }
 	[Export] public PackedScene TrapScene { get; set; }
@@ -54,7 +56,8 @@ public partial class WorldEffectHarness : Node3D
 		wall.ItemSelected += index => { _wallItem = wall.GetItemId((int)index); RequestReset(); };
 		_wallRow = Row(Controls, "Wall variant", wall, 130);
 		_replayButton = Button(Controls, "Replay", Replay);
-		CameraHelp(Controls);
+		DarkLighting(Controls, Lighting);
+		CameraControls(Controls, PreviewCamera as EffectPreviewCamera);
 		_status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart }; Controls.AddChild(_status);
 	}
 	public void SelectEffect(int index)

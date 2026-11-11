@@ -5,38 +5,13 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Production catalogs offer furnished compact and medium rooms, alongside their larger landmark spaces.</summary>
+/// <summary>
+/// Compact rooms still fit their defining content. The realms' mix of compact, medium and large rooms is checked over
+/// every assembled room in <see cref="RoomAssemblyTest"/>.
+/// </summary>
 [TestSuite, RequireGodotRuntime]
 public class RoomSizeMixTest
 {
-	[TestCase("garrison")]
-	[TestCase("sewer")]
-	[TestCase("jungle")]
-	public void EveryRealmProducesSmallAndMediumRoomsAfterFurnishing(string realm)
-	{
-		using var factory = (AssembledRoomFactory)TestFactories.RoomPool().ForRealm(realm);
-		int small = 0, medium = 0, large = 0;
-		foreach (var type in factory.RoomTypes)
-		for (ulong seed = 1; seed <= 12; seed++)
-		{
-			RoomBlueprint blueprint = null;
-			try
-			{
-				blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Realm = realm });
-				AssertBool(blueprint.IsAcceptable).OverrideFailureMessage($"{type.Id} seed {seed}").IsTrue();
-				if (blueprint.Footprint.Count <= 9) small++;
-				else if (blueprint.Footprint.Count <= 16) medium++;
-				else large++;
-			}
-			finally { blueprint?.Room.Free(); }
-		}
-		int total = small + medium + large;
-		string label = $"{realm}: small={small}, medium={medium}, large={large}";
-		AssertFloat(small / (float)total).OverrideFailureMessage(label).IsGreaterEqual(.2f);
-		AssertFloat(medium / (float)total).OverrideFailureMessage(label).IsGreaterEqual(.25f);
-		AssertFloat(large / (float)total).OverrideFailureMessage(label).IsLessEqual(.4f);
-	}
-
 	/// <summary>The crypt's required tombs and lights get space before optional altar decoration.</summary>
 	[TestCase]
 	public void CompactCryptKeepsItsSarcophagiAndCandles()

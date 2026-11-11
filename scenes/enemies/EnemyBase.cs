@@ -3,8 +3,11 @@ using Godot;
 /// <summary>
 /// Represents an enemy character in the game.
 /// </summary>
-public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IStatusActor, IShieldOwner, ISlowActor, IBurningActor
+public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IStatusActor, IShieldOwner, ISlowActor, IBurningActor, IBuffTarget
 {
+	HealthComponent IBuffTarget.Health => HealthComponent;
+	BuffController IBuffTarget.Buffs => BuffController;
+	IStatModifierTarget IBuffTarget.Modifiers => Stats;
 	HurtBoxComponent IShieldOwner.ShieldHurtBox => HurtBoxComponent;
 	public Node3D Pivot;
 	/// <summary>The body's collision shape (a capsule, cylinder or sphere): its radius is the monster's size for navigation.</summary>
@@ -62,7 +65,13 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public DodgeComponent DodgeComponent { get; set; }
 	[Export] public EnemyDefenseController DefenseController { get; set; }
 	[Export] public AttackController AttackController { get; set; }
-	[Export] public ActorAudioComponent ActorAudioComponent { get; set; }
+	[Export] public SpellCaster SpellCaster { get; set; }
+	[Export] public ActorStatsComponent Stats { get; set; }
+	[Export] public ManaComponent ManaComponent { get; set; }
+	/// <summary>Optional: committed displacement for dash actions (rushes, hop-backs).</summary>
+	[Export] public DashComponent DashComponent { get; set; }
+	/// <summary>Optional: health phases that actions can be gated and weighted by.</summary>
+	[Export] public HealthPhaseComponent HealthPhases { get; set; }
 
 	/// <summary>Optional: shows <see cref="MonsterDefinition.DisplayName"/> above the monster while the player is near.</summary>
 	[Export] public Nameplate Nameplate { get; set; }
@@ -88,11 +97,11 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 			ProcessMode = ProcessModeEnum.Disabled;
 			return;
 		}
-		HealthComponent.SetHealth(Definition.MaxHealth, Definition.MaxHealth);
-		MovementComponent.Speed = Definition.MoveSpeed;
+		Stats.Initialize(Definition);
+		ManaComponent.SetMana(Definition.MaxMana, Definition.MaxMana);
+		ManaComponent.RegenPerSecond = Definition.ManaRegenPerSecond;
 		DeathComponent.Xp = Definition.XpReward;
 		DeathComponent.DeathCue = Definition.DeathCue;
-		if (ActorAudioComponent != null) ActorAudioComponent.AttackVoiceCue = Definition.AttackVoiceCue;
 		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
 		if (Nameplate != null) Nameplate.NameLabel.Text = Definition.DisplayName;
@@ -117,7 +126,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		if (_initialStoneSkin) StoneSkinStatus?.SetActive(true);
 		Pivot = GetNode<Node3D>("Pivot");
 
-		HealthComponent.Died += () => ActionGate.Disable();
+		HealthComponent.Died += () => { ActionGate.Disable(); SpellCaster?.CancelInnate(); };
 
 		// An enemy outside a level (previews, harnesses) plays the default run; each still gets its own combat streams.
 		ConfigureCombatRandom(_level?.Seed ?? RunState.DefaultSeed, GetMeta("persistent_id", GetPath().ToString()).AsString());
@@ -153,7 +162,9 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	public void ConfigureCombatRandom(ulong levelSeed, string sourceId)
 	{
 		AttackController?.ConfigureRandom(GenerationRandom.DeriveSeed(levelSeed, "combat.attack", sourceId));
+		SpellCaster?.ConfigureRandom(GenerationRandom.DeriveSeed(levelSeed, "combat.spell", sourceId));
 		DefenseController?.ConfigureRandom(GenerationRandom.DeriveSeed(levelSeed, "combat.defense", sourceId));
+		EnemyBehaviorComponent?.ConfigureActionRandom(GenerationRandom.DeriveSeed(levelSeed, "combat.action", sourceId));
 	}
 
 	public override void _PhysicsProcess(double delta)

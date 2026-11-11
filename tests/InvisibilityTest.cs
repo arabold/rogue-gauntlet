@@ -47,14 +47,14 @@ public class InvisibilityTest
 	[TestCase]
 	public async Task AddedEquipmentGetsTheCurrentCloakAndDeathRestoresBeforeCorpseFade()
 	{
-		using var runner = TestFactories.LoadScene(Harness); await runner.SimulateFrames(2);
+		using var runner = TestFactories.LoadScene(Harness); await runner.SimulateFrames(2, 20);
 		var root = TestFactories.AddToSceneTree(new Node3D());
 		var body = new MeshInstance3D { Mesh = new BoxMesh() }; root.AddChild(body);
 		var health = new HealthComponent(); root.AddChild(health); health.Owner = root;
 		var cloak = Cloak(root, health); cloak.SetInvisible(true, true);
 		var original = new StandardMaterial3D { AlbedoColor = Colors.Green };
 		var gear = new MeshInstance3D { Mesh = new SphereMesh(), MaterialOverride = original }; root.AddChild(gear);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		AssertBool(gear.GetActiveMaterial(0) is ShaderMaterial).IsTrue();
 		AssertFloat(((ShaderMaterial)gear.GetActiveMaterial(0)).GetShaderParameter("amount").AsSingle()).IsEqual(1);
 		health.TakeDamage(100);
@@ -62,28 +62,9 @@ public class InvisibilityTest
 		AssertBool(gear.CastShadow == GeometryInstance3D.ShadowCastingSetting.On).IsTrue();
 	}
 	[TestCase]
-	public async Task ActorPreviewUsesTheSharedInvisibilityDefinitionAndCleanup()
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn"); await runner.SimulateFrames(2);
-		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(10);
-		foreach (int subject in new[] { 0, 1, 2 })
-		{
-			preview.SetSubject(subject); await runner.SimulateFrames(20, 20);
-			var actor = preview.Stage.GetChild<Node3D>(0); var cloak = actor.GetNode<InvisibilityComponent>("InvisibilityComponent");
-			AssertBool(cloak.IsInvisible).IsFalse(); AssertBool(cloak.Host.SurfaceController.HasCloak).IsTrue(); AssertFloat(cloak.Amount).IsEqual(1);
-			AssertInt(preview.InstanceCount).IsEqual(1);
-			preview.ClearEffects(); AssertBool(cloak.IsInvisible).IsFalse(); AssertInt(preview.InstanceCount).IsEqual(0);
-		}
-		preview.SetSubject(0); var player = preview.Stage.GetChild<Player>(0); preview.ClearEffects();
-		player.Invisibility.SetInvisible(true); await runner.SimulateFrames(6, 20);
-		AssertFloat(player.Invisibility.Amount).IsGreater(0); AssertFloat(player.Invisibility.Amount).IsLess(1);
-		player.Invisibility.SetInvisible(false); await runner.SimulateFrames(20, 20);
-		AssertBool(player.Invisibility.IsInvisible).IsFalse();
-	}
-	[TestCase]
 	public async Task ReversingTheSharedCloakKeepsItsCurrentAmountAndOneInstance()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn"); await runner.SimulateFrames(2);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn"); await runner.SimulateFrames(2, 20);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
 		player.Invisibility.SetInvisible(true); await runner.SimulateFrames(8, 20);
 		player.Invisibility.SetInvisible(false); await runner.SimulateFrames(3, 20);

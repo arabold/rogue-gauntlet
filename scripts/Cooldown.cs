@@ -16,6 +16,9 @@ public struct Cooldown
 	/// <summary>True once the cooldown has elapsed (or was never started).</summary>
 	public readonly bool IsReady => _remaining <= 0f;
 
+	/// <summary>Seconds left; 0 once ready.</summary>
+	public readonly float Remaining => _remaining > 0f ? _remaining : 0f;
+
 	/// <summary>(Re)starts the cooldown with the given duration in seconds.</summary>
 	public void Start(float seconds)
 	{

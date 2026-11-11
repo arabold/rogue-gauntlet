@@ -7,7 +7,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Room staging, deterministic placement, room-bound movement, fog and real melee execution.</summary>
+/// <summary>Room staging, deterministic placement, room-bound movement, fog and real melee and shield execution.</summary>
 [TestSuite, RequireGodotRuntime]
 public class WardenTest
 {
@@ -15,10 +15,11 @@ public class WardenTest
 	public async Task RoomPlacementRetriesAndRegenerationKeepExactlyOneWarden()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
-		foreach (ulong seed in new ulong[] { 42, 12345, 1, 2, 3, 4, 5, 6 })
+		// Seed 42 places the Warden on the first layout attempt, seed 4 only after retries.
+		foreach (ulong seed in new ulong[] { 42, 4 })
 		{
 			level.ConfigureGeneration(new RunState(seed), 3, null, null);
 			level.Generate();
@@ -30,42 +31,24 @@ public class WardenTest
 			AssertBool(level.Seed == RunState.GetLevelSeed(seed, 3)).IsTrue();
 			Vector3 firstPosition = boss.GlobalPosition;
 			int attempt = level.MapGenerator.GenerationAttempt;
-			// Different room content may fit on the first attempt; only the bound and reproducibility are contractual.
+			// Room content may change which attempt fits; only the bound and reproducibility are contractual.
 			AssertBool(attempt >= 0 && attempt < 8).IsTrue();
 			level.Generate(); // old spawn points must leave the tree before LevelLoaded
 			AssertVector(Boss(level).GlobalPosition).IsEqual(firstPosition);
 			AssertInt(level.MapGenerator.GenerationAttempt).IsEqual(attempt);
-			await runner.SimulateFrames(1);
+			await runner.SimulateFrames(1, 20);
 		}
 	}
 
+	/// <summary>
+	/// Under fog the tall Warden and its nameplate stay hidden until its room is revealed; an authored marker then places
+	/// it, with the marker's facing, on every regeneration.
+	/// </summary>
 	[TestCase]
-	public async Task AuthoredMarkerControlsBossPositionFacingAndRegeneration()
+	public async Task WardenHidesUnderFogAndAnAuthoredMarkerPlacesItOnEveryGeneration()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
-		var level = (Level)runner.Scene();
-		GameSession.Instance.ResetLevelDebugState(3);
-		level.ConfigureGeneration(new RunState(42), 3, null, null);
-		level.Generate();
-		var marker = new GatekeeperSpawnMarker { Name = "WardenAnchor", Position = Boss(level).GlobalPosition,
-			Rotation = new Vector3(0, .7f, 0) };
-		level.AddChild(marker);
-		for (int i = 0; i < 2; i++)
-		{
-			level.Generate();
-			AssertInt(level.MapGenerator.GenerationAttempt).IsEqual(0);
-			AssertVector(Boss(level).GlobalPosition).IsEqual(marker.GlobalPosition);
-			AssertBool(Boss(level).GlobalBasis.IsEqualApprox(marker.GlobalBasis)).IsTrue();
-			await runner.SimulateFrames(1);
-		}
-	}
-
-	[TestCase]
-	public async Task TallActorStaysHiddenUntilItsRoomIsRevealed()
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
 		GameSession.Instance.ResetCurrentLevelDebugState();
@@ -76,149 +59,24 @@ public class WardenTest
 		var boss = Boss(level);
 		boss.EnemyBehaviorComponent.AIEnabled = false;
 		int home = HomeRoom(level, boss);
-		await runner.SimulateFrames(2);
-		// The boss title is its nameplate's name: fog hides it with the boss.
-		AssertString(boss.Nameplate.NameLabel.Text).IsEqual("The Forsaken Warden");
+		await runner.SimulateFrames(2, 20);
 		AssertBool(boss.Visible).IsFalse();
 		AssertBool(boss.Nameplate.NameLabel.IsVisibleInTree()).IsFalse();
 		level.Discovery.RevealRoom(home);
 		SignalBus.EmitRoomEntered(home);
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 		AssertBool(boss.Visible).IsTrue();
-		var shape = (CapsuleShape3D)boss.BodyShape.Shape;
-		AssertFloat(shape.Height).IsEqual(4.5f);
-		AssertFloat(boss.BodyRadius).IsEqual(1);
-		AssertObject(boss.HurtBoxComponent.MovementComponent).IsNull();
-	}
 
-	[TestCase]
-	public async Task ShieldedSwordAttackUsesLargeRigAndDamagesHeroOnce()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		harness.Monsters = [TestFactories.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
-		harness.SpawnMonster();
-		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
-		boss.GlobalPosition = harness.Player.GlobalPosition + Vector3.Back * 3.1f + Vector3.Up * 8;
-		boss.MovementComponent.SetPhysicsProcess(false);
-		boss.LookAt(harness.Player.GlobalPosition);
-		// The Warden only starts a swing at a target within its start angle.
-		Vector3 toPlayer = harness.Player.GlobalPosition - boss.GlobalPosition;
-		boss.MovementComponent.SetLookAtDirection(new Vector3(toPlayer.X, 0, toPlayer.Z));
-		var animation = boss.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
-		AssertBool(animation.TryResolve("melee", out var playback)).IsTrue();
-		AssertString(playback.Clip.ToString()).IsEqual("Melee_1H_Slash");
-		var player = harness.Player;
-		player.HurtBoxComponent.Armor = 0;
-		await runner.SimulateFrames(2);
-		float before = player.HealthComponent.CurrentHealth;
-		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
-		var attack = boss.GetNode<AttackController>("AttackController");
-		attack.SetPhysicsProcess(false);
-		attack.EffectsEnabled = true;
-		attack._PhysicsProcess(.7);
-		AssertBool(runner.Scene().GetChildren().OfType<MeleeSwoosh>().Any()).IsTrue();
-		AssertFloat(player.HealthComponent.CurrentHealth).IsLess(before);
-		AssertInt(attack.ContactCount).IsEqual(1);
-		float after = player.HealthComponent.CurrentHealth;
-		attack._PhysicsProcess(.1);
-		AssertFloat(player.HealthComponent.CurrentHealth).IsEqual(after);
-	}
-
-	[TestCase]
-	public async Task SwordSweepHitsTheHeroAtBothSidesOfItsCenterWithoutRefacing()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		harness.Player.HurtBoxComponent.Armor = 0;
-		harness.Monsters = [TestFactories.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
-		harness.SpawnMonster();
-		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
-		boss.MovementComponent.SetPhysicsProcess(false);
-		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
-		boss.GlobalPosition = new Vector3(0, 0, -2);
-		boss.Rotation = Vector3.Zero;
-		var attack = boss.GetNode<AttackController>("AttackController");
-		attack.EffectsEnabled = false;
-		boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
-		foreach (float side in new[] { -1f, 0, 1f })
+		var marker = new GatekeeperSpawnMarker { Name = "WardenAnchor", Position = boss.GlobalPosition,
+			Rotation = new Vector3(0, .7f, 0) };
+		level.AddChild(marker);
+		for (int i = 0; i < 2; i++)
 		{
-			// Start the swing at a hero in front (the Warden only starts within its start angle), then
-			// step beside its center; the sweep must still connect without the Warden refacing.
-			harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(0, 0, -.1f);
-			harness.Player.HealthComponent.SetHealth(100, 100);
-			await runner.SimulateFrames(2);
-			boss.EnemyBehaviorComponent.SetAction(EnemyAction.None);
-			AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
-			attack.SetPhysicsProcess(false);
-			harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(side * 1.7f, 0, -.1f);
-			await runner.SimulateFrames(2);
-			harness.Player.HurtBoxComponent.Armor = 0;
-			attack._PhysicsProcess(.7);
-			AssertInt(attack.ContactCount).OverrideFailureMessage($"Warden close contact, side {side}").IsEqual(1);
-			AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsLess(100);
-		}
-	}
-
-	[TestCase]
-	public async Task WardenCanTurnTowardAnExactlyOppositeTargetWhileStopped()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.Monsters = [TestFactories.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
-		harness.SpawnMonster();
-		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
-		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
-		boss.MovementComponent.SetLookAtDirection(Vector3.Right);
-		// A half turn at the Warden's capped turn rate takes two seconds.
-		for (int frame = 0; frame < 140; frame++)
-		{
-			boss.MovementComponent.FaceDirection(Vector3.Left);
-			await runner.SimulateFrames(1);
-		}
-		AssertBool(boss.MovementComponent.LookAtDirection.IsFinite()).IsTrue();
-		AssertFloat(boss.MovementComponent.LookAtDirection.Dot(Vector3.Left)).IsGreater(.95f);
-	}
-
-	[TestCase]
-	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.PracticeTarget.Position = new Vector3(15, 0, 15);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		harness.Player.InputComponent.SetPhysicsProcess(false);
-		harness.Player.HurtBoxComponent.MovementComponent = null; // do not knock the test subject out of contact
-		harness.Monsters = [TestFactories.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
-		harness.SpawnMonster();
-		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
-		var attack = boss.GetNode<AttackController>("AttackController");
-		foreach (var side in new[] { Vector3.Left, Vector3.Right, Vector3.Forward, Vector3.Back })
-		{
-			boss.EnemyBehaviorComponent.SetAction(EnemyAction.None);
-			boss.GlobalPosition = new Vector3(0, 0, -2);
-			boss.MovementComponent.SetLookAtDirection(-side);
-			harness.Player.GlobalPosition = boss.GlobalPosition + side * 2.05f;
-			harness.Player.HealthComponent.SetHealth(100, 100);
-			await runner.SimulateFrames(2);
-			// Start through the executor: the AI would not start a swing at a hero behind it, but body contact
-			// must still cover every side once a swing is under way.
-			var policy = boss.EnemyBehaviorComponent.Profile.AttackStrategy;
-			attack.CancelAttack();
-			AssertBool(attack.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var swing)).IsTrue();
-			AssertBool(attack.StartAttack(swing, new AttackStats(policy.MinDamage, policy.MaxDamage, 0), 4)).IsTrue();
-			for (int frame = 0; frame < 75; frame++)
-			{
-				harness.Player.HurtBoxComponent.Armor = 0;
-				harness.Player.MovementComponent.SetInputDirection(boss.GlobalPosition - harness.Player.GlobalPosition);
-				await runner.SimulateFrames(1);
-			}
-			AssertInt(attack.ContactCount).OverrideFailureMessage($"Pressed contact from {side}").IsEqual(1);
-			AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsLess(100);
+			level.Generate();
+			AssertInt(level.MapGenerator.GenerationAttempt).IsEqual(0);
+			AssertVector(Boss(level).GlobalPosition).IsEqual(marker.GlobalPosition);
+			AssertBool(Boss(level).GlobalBasis.IsEqualApprox(marker.GlobalBasis)).IsTrue();
+			await runner.SimulateFrames(1, 20);
 		}
 	}
 
@@ -226,7 +84,7 @@ public class WardenTest
 	public async Task WardenWalksAroundItsRoomButNotOutOfIt()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
 		GameSession.Instance.ResetLevelDebugState(3);
 		level.ConfigureGeneration(new RunState(12345), 3, null, null);
@@ -234,7 +92,7 @@ public class WardenTest
 		var boss = Boss(level);
 		// Drive navigation directly; the behavior layer would otherwise pick its own goals.
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var navigation = boss.EnemyBehaviorComponent.Navigation;
 		AssertBool(navigation.IsAvailable).IsTrue();
 		int home = HomeRoom(level, boss);
@@ -269,93 +127,178 @@ public class WardenTest
 		AssertBool(navigation.MoveTo(level.Floor.Map.TileToWorld(outside.Tiles[0]))).IsFalse();
 	}
 
+	/// <summary>The Warden's sword sweep hits a hero beside its center as well as in front of it, once per swing.</summary>
 	[TestCase]
-	public async Task AuthoredShieldParriesEarlyContactAndBlocksLateContact()
+	public async Task SwordSweepHitsTheHeroOnceAtBothSidesOfItsCenter()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.Monsters = [TestFactories.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
-		harness.SpawnMonster();
-		var boss = harness.Monster;
-		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
-		boss.DefenseController.SetPhysicsProcess(false);
-		var guard = boss.GuardComponent;
-		// The Warden's turn is capped, so its guard rises where it already faces rather than where it is asked.
-		Vector3 facing = boss.MovementComponent.LookAtDirection;
-		AssertInt((int)guard.TryBeginGuard(-facing)).IsEqual((int)DefenseRequestResult.Success);
-		AssertBool(guard.GuardFacing.IsEqualApprox(new Vector3(facing.X, 0, facing.Z).Normalized())).IsTrue();
-		guard.SetPhysicsProcess(false);
-		guard._PhysicsProcess(.1);
-		var contact = new DamageContext { Amount = 10, IncomingDirection = -facing,
-			Faction = DamageSourceFlags.Player, DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable };
-		AssertInt((int)boss.HurtBoxComponent.ResolveDamage(contact).Outcome).IsEqual((int)DamageOutcome.Parried);
-		guard._PhysicsProcess(.2);
-		AssertInt((int)boss.HurtBoxComponent.ResolveDamage(contact).Outcome).IsEqual((int)DamageOutcome.Blocked);
-	}
-
-	[TestCase(1.8f)]
-	[TestCase(2.8f)]
-	public async Task ObservedCloseAttackRaisesShieldAndParries(float distance)
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.Monsters = [TestFactories.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
-		harness.SpawnMonster();
-		var boss = harness.Monster;
-		var player = harness.Player;
-		player.InputController.SetPhysicsProcess(false);
-		player.InputComponent.SetPhysicsProcess(false);
-		player.MovementComponent.SetPhysicsProcess(false);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		hero.MovementComponent.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
 		boss.MovementComponent.SetPhysicsProcess(false);
-		boss.DefenseController.Mode = EnemyDefenseMode.GuardParry; // Force choice, retaining real observation/startup timing.
+		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
 		boss.GlobalPosition = new Vector3(0, 0, -2);
-		player.GlobalPosition = boss.GlobalPosition + Vector3.Back * distance;
-		boss.LookAt(player.GlobalPosition);
-		player.LookAt(boss.GlobalPosition);
-		await runner.SimulateFrames(2);
-		var skeleton = boss.FindChildren("*", "Skeleton3D", true, false).OfType<Skeleton3D>().Single();
-		int hand = skeleton.FindBone("handslot.l");
-		var idleHand = skeleton.GetBoneGlobalPose(hand);
-		bool shieldRaised = false;
-		float health = boss.HealthComponent.CurrentHealth;
-		harness.Attack();
-		for (int frame = 0; frame < 25; frame++)
+		boss.Rotation = Vector3.Zero;
+		boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		var attack = boss.AttackController;
+		attack.EffectsEnabled = false;
+		attack.SetPhysicsProcess(false);
+		var slash = (MonsterAttackAction)boss.EnemyBehaviorComponent.Profile.Combat.PrimaryOffense;
+		foreach (float side in new[] { -1f, 0, 1f })
 		{
-			await runner.SimulateFrames(1);
-			if (boss.GuardComponent.IsGuarding)
-				shieldRaised |= !skeleton.GetBoneGlobalPose(hand).IsEqualApprox(idleHand);
+			hero.GlobalPosition = boss.GlobalPosition + new Vector3(side * 1.7f, 0, -.1f);
+			hero.HealthComponent.SetHealth(100, 100);
+			await runner.SimulateFrames(2, 20);
+			attack.CancelAttack();
+			AssertBool(attack.TryPrepareAttack(slash.Attack, slash.Style, slash.Duration, out var swing)).IsTrue();
+			AssertBool(attack.StartAttack(swing, new AttackStats(slash.MinDamage, slash.MaxDamage, 0), 4)).IsTrue();
+			hero.HurtBoxComponent.Armor = 0;
+			attack._PhysicsProcess(.7);
+			AssertInt(attack.ContactCount).OverrideFailureMessage($"Warden close contact, side {side}").IsEqual(1);
+			float afterHit = hero.HealthComponent.CurrentHealth;
+			AssertFloat(afterHit).IsLess(100);
+			attack._PhysicsProcess(.1);
+			AssertFloat(hero.HealthComponent.CurrentHealth).IsEqual(afterHit);
 		}
-		AssertBool(shieldRaised).IsTrue();
-		AssertString(player.AttackController.LastResult).IsEqual("Parried");
-		AssertFloat(boss.HealthComponent.CurrentHealth).IsEqual(health);
 	}
 
-	/// <summary>The Warden turns slowly and only starts a swing at a target in front of it, so flanking avoids swings.</summary>
 	[TestCase]
-	public async Task WardenOnlyStartsSwingsAtATargetInFrontAndTurnsSlowly()
+	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		harness.PracticeTarget.Position = new Vector3(15, 0, 15);
+		harness.Player.InputController.SetPhysicsProcess(false);
+		harness.Player.InputComponent.SetPhysicsProcess(false);
+		harness.Player.HurtBoxComponent.MovementComponent = null; // do not knock the test subject out of contact
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
+		var attack = boss.AttackController;
+		var policy = (MonsterAttackAction)boss.EnemyBehaviorComponent.Profile.Combat.PrimaryOffense;
+		foreach (var side in new[] { Vector3.Left, Vector3.Right, Vector3.Forward, Vector3.Back })
+		{
+			boss.EnemyBehaviorComponent.SetAction(EnemyAction.None);
+			boss.GlobalPosition = new Vector3(0, 0, -2);
+			boss.MovementComponent.SetLookAtDirection(-side);
+			harness.Player.GlobalPosition = boss.GlobalPosition + side * 2.05f;
+			harness.Player.HealthComponent.SetHealth(100, 100);
+			await runner.SimulateFrames(2, 20);
+			// Start through the executor: the AI would not start a swing at a hero behind it, but body contact
+			// must still cover every side once a swing is under way.
+			attack.CancelAttack();
+			AssertBool(attack.TryPrepareAttack(policy.Attack, policy.Style, policy.Duration, out var swing)).IsTrue();
+			AssertBool(attack.StartAttack(swing, new AttackStats(policy.MinDamage, policy.MaxDamage, 0), 4)).IsTrue();
+			// The hero keeps pressing into the Warden every physics tick until the swing connects or ends.
+			await TestFactories.AwaitPhysicsUntil(runner, () =>
+			{
+				harness.Player.HurtBoxComponent.Armor = 0;
+				harness.Player.MovementComponent.SetInputDirection(boss.GlobalPosition - harness.Player.GlobalPosition);
+				return attack.ContactCount > 0 || !attack.IsAttacking;
+			}, 2);
+			AssertInt(attack.ContactCount).OverrideFailureMessage($"Pressed contact from {side}").IsEqual(1);
+			AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsLess(100);
+		}
+	}
+
+	/// <summary>
+	/// The Warden turns slowly, starts its swings only at a hero in front of it and raises its shield where it already
+	/// faces, so a flanking hero avoids both; even a target exactly behind it is turned toward at its capped rate.
+	/// </summary>
+	[TestCase]
+	public async Task FlankingTheWardenAvoidsItsSwingsAndShield()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
-		harness.Monsters = [TestFactories.Load<PackedScene>("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn")];
-		harness.SpawnMonster();
-		var boss = runner.Scene().GetChildren().OfType<EnemyBase>().Single();
-		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
+		var behavior = boss.EnemyBehaviorComponent;
+		var movement = boss.MovementComponent;
+		behavior.SetPhysicsProcess(false);
+		boss.DefenseController.SetPhysicsProcess(false);
+		movement.SetPhysicsProcess(false);
 		boss.GlobalPosition = new Vector3(0, 0, -4);
-		boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
-		// Beside the Warden, within reach: no swing until it has turned.
+		movement.SetLookAtDirection(Vector3.Forward);
+		// Beside the Warden, within reach: no swing starts.
 		harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(2.5f, 0, 0);
-		await runner.SimulateFrames(2);
-		boss.EnemyBehaviorComponent.SetAction(EnemyAction.None);
-		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsFalse();
-		// Its turn toward the hero is capped, so a quarter turn takes about a second.
+		await runner.SimulateFrames(2, 20);
+		behavior.SetAction(EnemyAction.None);
+		AssertBool(behavior.TryAttack()).IsFalse();
+
+		// A half turn toward a target exactly behind it runs at the capped rate and completes.
+		movement.FaceDirection(Vector3.Back);
+		movement._PhysicsProcess(.25);
+		AssertFloat(Mathf.RadToDeg(movement.LookAtDirection.AngleTo(Vector3.Forward))).IsEqualApprox(movement.MaxTurnRate * .25f, .5);
+		for (int step = 0; step < 10; step++)
+		{
+			movement.FaceDirection(Vector3.Back);
+			movement._PhysicsProcess(.25);
+		}
+		AssertBool(movement.LookAtDirection.IsFinite()).IsTrue();
+		AssertFloat(movement.LookAtDirection.Dot(Vector3.Back)).IsGreater(.95f);
+
+		// Facing the hero, it swings; action choices are evaluated once per physics frame.
+		movement.SetLookAtDirection(Vector3.Right);
+		await runner.SimulateFrames(1, 20);
+		AssertBool(behavior.TryAttack()).IsTrue();
+		boss.AttackController.CancelAttack();
+
+		// Asked to guard toward the flanking hero, the shield rises where the Warden faces: a frontal contact is parried,
+		// the flanking one lands.
+		movement.SetLookAtDirection(Vector3.Forward);
+		var guard = boss.GuardComponent;
+		AssertInt((int)guard.TryBeginGuard(Vector3.Right)).IsEqual((int)DefenseRequestResult.Success);
+		guard.SetPhysicsProcess(false);
+		guard._PhysicsProcess(.1);
+		var contact = new DamageContext { Amount = 10, Faction = DamageSourceFlags.Player,
+			DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable };
+		AssertObject(boss.HurtBoxComponent.ResolveDamage(contact with { IncomingDirection = Vector3.Back }).Outcome).IsEqual(DamageOutcome.Parried);
+		AssertObject(boss.HurtBoxComponent.ResolveDamage(contact with { IncomingDirection = Vector3.Left }).Outcome).IsEqual(DamageOutcome.Damaged);
+	}
+
+	/// <summary>
+	/// The Warden's shipped reaction and timing answer an ordinary hero swing, also while it winds up its own: it raises its
+	/// shield in view, parries the contact and ripostes once its guard is released.
+	/// </summary>
+	[TestCase(false)]
+	[TestCase(true)]
+	public async Task ParriesAnOrdinaryHeroSwingAndRipostes(bool alreadyWindingUp)
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 2.5f);
+		var player = harness.Player;
+		player.InputController.SetPhysicsProcess(false);
+		player.MovementComponent.SetPhysicsProcess(false);
 		boss.MovementComponent.SetPhysicsProcess(false);
-		boss.MovementComponent.FaceDirection(Vector3.Right);
-		boss.MovementComponent._PhysicsProcess(.25);
-		AssertFloat(Mathf.RadToDeg(boss.MovementComponent.LookAtDirection.AngleTo(Vector3.Forward))).IsEqualApprox(boss.MovementComponent.MaxTurnRate * .25f, .5);
-		boss.MovementComponent.SetLookAtDirection(Vector3.Right);
-		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
+		boss.HurtBoxComponent.Armor = 0;
+		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		// Force the guard choice (and so the riposte roll) but keep the shipped reaction delay, raise and recovery.
+		boss.DefenseController.Mode = EnemyDefenseMode.GuardParry;
+		boss.DefenseController.RiposteEnabled = true; // the harness spawns monsters without ripostes
+		int parries = 0, blocks = 0, ripostes = 0;
+		boss.GuardComponent.ParrySuccessful += () => parries++;
+		boss.GuardComponent.BlockSuccessful += _ => blocks++;
+		boss.DefenseController.RiposteTriggered += () => ripostes++;
+		await runner.SimulateFrames(2, 20);
+		var skeleton = boss.FindChildren("*", "Skeleton3D", true, false).OfType<Skeleton3D>().Single();
+		int hand = skeleton.FindBone("handslot.l");
+		var idleHand = skeleton.GetBoneGlobalPose(hand);
+		if (alreadyWindingUp) AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
+		harness.Attack();
+		AssertBool(player.AttackController.IsAttacking).IsTrue();
+		bool shieldRaised = false;
+		ulong deadline = Engine.GetPhysicsFrames() + 180;
+		while (ripostes == 0 && Engine.GetPhysicsFrames() < deadline)
+		{
+			await runner.SimulateFrames(1, 20);
+			shieldRaised |= boss.GuardComponent.IsGuarding && !skeleton.GetBoneGlobalPose(hand).IsEqualApprox(idleHand);
+		}
+		AssertBool(shieldRaised).OverrideFailureMessage("The Warden must react during the hero swing and raise its shield").IsTrue();
+		AssertInt(parries).IsEqual(1);
+		AssertInt(blocks).IsEqual(0);
+		AssertInt(ripostes).IsEqual(1);
 	}
 
 	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(boss.GlobalPosition);

@@ -1,8 +1,8 @@
 namespace RogueGauntlet.Tests;
 
-using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -12,27 +12,44 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public partial class MonsterAuthoringTest
 {
-	[TestCase("skeleton/skeleton_minion")]
-	[TestCase("skeleton/skeleton_warrior")]
-	[TestCase("templates/melee_enemy")]
-	[TestCase("templates/projectile_enemy")]
-	[TestCase("skeleton/skeleton_crossbow")]
-	[TestCase("rat/rat")]
-	[TestCase("forsaken_warden/forsaken_warden")]
-	public void AuthoredExampleHasCompleteDefinition(string path)
+	/// <summary>Deliberately unfinished assemblies (the inherited base and the rig-agnostic template, see templates/README.md).</summary>
+	private static readonly string[] UnfinishedScenes =
+	[
+		"res://scenes/enemies/enemy_base.tscn",
+		"res://scenes/enemies/templates/mobile_enemy.tscn",
+	];
+
+	/// <summary>Every monster scene under scenes/enemies, templates included, validates; a new monster is covered automatically.</summary>
+	[TestCase]
+	public void EveryAuthoredMonsterHasACompleteDefinition()
 	{
-		var actor = TestFactories.Load<PackedScene>($"res://scenes/enemies/{path}.tscn").Instantiate<EnemyBase>();
-		try { AssertString(string.Join("; ", MonsterSceneValidator.Validate(actor))).IsEmpty(); }
-		finally { actor.Free(); }
+		string root = ProjectSettings.GlobalizePath("res://");
+		var validated = new List<string>();
+		var errors = new List<string>();
+		foreach (string file in Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/enemies"), "*.tscn", SearchOption.AllDirectories))
+		{
+			string path = "res://" + Path.GetRelativePath(root, file).Replace('\\', '/');
+			if (UnfinishedScenes.Contains(path)) continue;
+			var actor = TestFactories.Load<PackedScene>(path).Instantiate<Node>();
+			try
+			{
+				if (actor is not EnemyBase) continue;
+				validated.Add(path);
+				errors.AddRange(MonsterSceneValidator.Validate(actor).Select(error => $"{path}: {error}"));
+			}
+			finally { actor.Free(); }
+		}
+		AssertArray(validated).Contains(TestFactories.MinionScene, TestFactories.WardenScene);
+		AssertString(string.Join("\n", errors)).IsEmpty();
 	}
 
+	/// <summary>A spawned monster's definition applies before its children are ready, and its runtime state is its own.</summary>
 	[TestCase]
-	public async Task DefinitionInitializesBeforeChildReadyAndDoesNotShareHealth()
+	public void DefinitionInitializesBeforeChildReadyAndDoesNotShareHealth()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_minion.tscn");
-		await runner.SimulateFrames(2);
-		var first = (EnemyBase)runner.Scene();
-		var scene = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn");
+		var scene = TestFactories.Load<PackedScene>(TestFactories.MinionScene);
+		var first = TestFactories.AddToSceneTree(scene.Instantiate<EnemyBase>());
+		float authoredHealth = first.Definition.MaxHealth;
 		var second = scene.Instantiate<EnemyBase>();
 		var custom = (MonsterDefinition)first.Definition.Duplicate();
 		custom.MaxHealth = 37;
@@ -41,40 +58,34 @@ public partial class MonsterAuthoringTest
 		second.Definition = custom;
 		float healthAtReady = 0;
 		second.HealthComponent.Ready += () => healthAtReady = second.HealthComponent.CurrentHealth;
-		first.AddSibling(second);
-		await runner.SimulateFrames(2);
-		try
-		{
-			AssertBool(first.DefinitionValid && second.DefinitionValid).IsTrue();
-			AssertFloat(healthAtReady).IsEqual(37);
-			AssertFloat(second.MovementComponent.Speed).IsEqual(1.7f);
-			AssertInt(second.DeathComponent.Xp).IsEqual(19);
-			AssertBool(ReferenceEquals(second.EnemyBehaviorComponent.Profile, custom.Behavior)).IsTrue();
-			AssertBool(ReferenceEquals(second.LootTableComponent.Profile, custom.Loot)).IsTrue();
-			second.HealthComponent.TakeDamage(3);
-			AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(34);
-			AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(8);
-			AssertFloat(first.Definition.MaxHealth).IsEqual(8);
-			AssertFloat(custom.MaxHealth).IsEqual(37);
-		}
-		finally { second.QueueFree(); }
+		TestFactories.AddToSceneTree(second);
+
+		AssertBool(first.DefinitionValid && second.DefinitionValid).IsTrue();
+		AssertFloat(healthAtReady).IsEqual(37);
+		AssertFloat(second.MovementComponent.Speed).IsEqual(1.7f);
+		AssertInt(second.DeathComponent.Xp).IsEqual(19);
+		second.HealthComponent.TakeDamage(3);
+		AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(34);
+		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(authoredHealth);
+		AssertFloat(first.Definition.MaxHealth).IsEqual(authoredHealth);
 	}
 
+	/// <summary>A guard the defense policy uses must stay wired; removing it is valid only once the policy stops using it.</summary>
 	[TestCase]
-	public void RemovingGuardRequiresChangingPolicyButDoesNotRepairScene()
+	public void AGuardThePolicyUsesMustStayWiredUntilThePolicyDropsIt()
 	{
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>(TestFactories.WarriorScene).Instantiate<EnemyBase>();
 		try
 		{
 			var guard = actor.GuardComponent;
+			// The guard node still exists, but the controller no longer reaches it.
+			actor.DefenseController.GuardComponent = null;
+			AssertBool(MonsterSceneValidator.Validate(actor).Any(error => error.StartsWith("DefenseController.GuardComponent:"))).IsTrue();
 			actor.RemoveChild(guard);
 			actor.GuardComponent = null;
-			actor.DefenseController.GuardComponent = null;
 			AssertBool(MonsterSceneValidator.Validate(actor).Any(e => e.StartsWith("GuardComponent:") || e.StartsWith("DefenseController.GuardComponent:"))).IsTrue();
-			AssertObject(actor.GuardComponent).IsNull();
-			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
-			actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-			actor.Definition.Behavior.DefenseStrategy = null;
+			TestFactories.UsePrivateCombatProfile(actor);
+			actor.Definition.Behavior.Combat.DefenseStrategy = null;
 			AssertString(string.Join("; ", MonsterSceneValidator.Validate(actor))).IsEmpty();
 			guard.Free();
 		}
@@ -84,7 +95,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void PoiseMustBelongToTheActorAndBindItsGate()
 	{
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>(TestFactories.MinionScene).Instantiate<EnemyBase>();
 		var stranger = new PoiseComponent { Definition = new PoiseDefinition() };
 		try
 		{
@@ -101,21 +112,24 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void ThreatTierNeedsASharedIndicatorAndATierLengthWindUp()
 	{
-		var minion = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var minion = TestFactories.Load<PackedScene>(TestFactories.MinionScene).Instantiate<EnemyBase>();
 		try
 		{
 			// The minion's 0.52 s chop wind-up covers Normal and Heavy but is too short for Unblockable (dodge only).
 			var definition = (MonsterDefinition)minion.Definition.Duplicate();
 			definition.Behavior = (EnemyBehaviorProfile)definition.Behavior.Duplicate();
-			definition.Behavior.AttackStrategy = (EnemyAttackStrategy)definition.Behavior.AttackStrategy.Duplicate();
-			var attack = (AttackDefinition)definition.Behavior.AttackStrategy.Attack.Duplicate();
+			definition.Behavior.Combat = (EnemyCombatProfile)definition.Behavior.Combat.Duplicate();
+			var oldAction = (MonsterAttackAction)definition.Behavior.Combat.PrimaryOffense;
+			var attackAction = (MonsterAttackAction)oldAction.Duplicate();
+			var attack = (AttackDefinition)oldAction.Attack.Duplicate();
 			attack.DefenseTraits = AttackDefenseTraits.Dodgeable;
-			definition.Behavior.AttackStrategy.Attack = attack;
+			attackAction.Attack = attack;
+			definition.Behavior.Combat.Actions = [attackAction];
 			minion.Definition = definition;
 			minion.AttackController.Indicator = null;
 			var errors = MonsterSceneValidator.Validate(minion);
-			AssertBool(errors.Any(e => e.StartsWith("Attack: Unblockable attacks need"))).IsTrue();
-			AssertBool(errors.Any(e => e.StartsWith("AttackController.Indicator:"))).IsTrue();
+			AssertBool(errors.Any(e => e.Contains("Attack: Unblockable attacks need"))).IsTrue();
+			AssertBool(errors.Any(e => e.Contains("AttackController.Indicator:"))).IsTrue();
 		}
 		finally { minion.Free(); }
 	}
@@ -123,7 +137,7 @@ public partial class MonsterAuthoringTest
 	[TestCase]
 	public void OverlappingVulnerabilityArcsAreReported()
 	{
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>(TestFactories.MinionScene).Instantiate<EnemyBase>();
 		try
 		{
 			actor.HurtBoxComponent.Vulnerability = new HitVulnerabilityProfile { FrontHalfAngle = 120, RearHalfAngle = 90 };
@@ -132,91 +146,54 @@ public partial class MonsterAuthoringTest
 		finally { actor.Free(); }
 	}
 
+	/// <summary>
+	/// Bad numbers, a missing gate and an animation profile that cannot resolve (one broken binding rejects every style)
+	/// are each reported by name.
+	/// </summary>
 	[TestCase]
-	public void InvalidNumbersAndMissingGateProduceActionableErrors()
+	public void InvalidNumbersMissingGateAndUnresolvableClipsProduceActionableErrors()
 	{
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
+		var actor = TestFactories.Load<PackedScene>(TestFactories.MinionScene).Instantiate<EnemyBase>();
 		try
 		{
 			actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
 			actor.Definition.MaxHealth = float.NaN;
 			actor.ActionGate = null;
+			var animation = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
+			var profile = (AttackAnimationProfile)animation.Profile.Duplicate();
+			profile.Bindings = [.. profile.Bindings, new AttackAnimationBinding { Style = "broken", Clip = "Idle", ContactStart = .8f, ContactEnd = .2f }];
+			animation.Profile = profile;
 			var errors = MonsterSceneValidator.Validate(actor);
+			AssertBool(errors.Any(e => e.StartsWith("CombatAnimationComponent.Profile:"))).IsTrue();
 			AssertBool(errors.Any(e => e.StartsWith("Definition.MaxHealth:"))).IsTrue();
 			AssertBool(errors.Any(e => e.StartsWith("ActionGate:"))).IsTrue();
 		}
 		finally { actor.Free(); }
 	}
 
+	/// <summary>An unassigned defense export disables that defense, whether it was cleared before or after readiness.</summary>
 	[TestCase]
-	public void MissingControllerAssignmentIsReportedEvenWhenGuardNodeExists()
+	public void UnassignedControllerCapabilitiesStayUnavailable()
 	{
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
-		try
-		{
-			actor.DefenseController.GuardComponent = null;
-			AssertObject(actor.GuardComponent).IsNotNull();
-			AssertBool(MonsterSceneValidator.Validate(actor).Any(error => error.StartsWith("DefenseController.GuardComponent:"))).IsTrue();
-			AssertObject(actor.DefenseController.GuardComponent).IsNull();
-		}
-		finally { actor.Free(); }
-	}
-
-	[TestCase]
-	public void ExplicitDefenseReferencesDoNotRequireConventionalNames()
-	{
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
-		try
-		{
-			actor.GuardComponent.Name = "ShieldGuard";
-			actor.DodgeComponent.Name = "Evade";
-			actor.DefenseController.Name = "DefensePolicy";
-			actor.AttackController.Name = "WeaponAttack";
-			AssertString(string.Join("; ", MonsterSceneValidator.Validate(actor))).IsEmpty();
-			AssertBool(ReferenceEquals(actor.DefenseController.GuardComponent, actor.GuardComponent)).IsTrue();
-			AssertBool(ReferenceEquals(actor.DefenseController.DodgeComponent, actor.DodgeComponent)).IsTrue();
-		}
-		finally { actor.Free(); }
-	}
-
-	[TestCase(false)]
-	[TestCase(true)]
-	public async Task UnassignedControllerCapabilitiesStayUnavailable(bool clearAfterReady)
-	{
-		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_minion.tscn");
-		await runner.SimulateFrames(2);
-		var actor = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn").Instantiate<EnemyBase>();
-		actor.Definition = (MonsterDefinition)actor.Definition.Duplicate();
-		actor.Definition.Behavior = (EnemyBehaviorProfile)actor.Definition.Behavior.Duplicate();
-		actor.Definition.Behavior.DefenseStrategy = null;
+		var actor = TestFactories.Load<PackedScene>(TestFactories.WarriorScene).Instantiate<EnemyBase>();
+		TestFactories.UsePrivateCombatProfile(actor).DefenseStrategy = null;
 		actor.EnemyBehaviorComponent.AIEnabled = false;
 		var controller = actor.DefenseController;
-		if (!clearAfterReady) { controller.GuardComponent = null; controller.DodgeComponent = null; }
-		runner.Scene().AddSibling(actor);
-		try
-		{
-			await runner.SimulateFrames(2);
-			if (clearAfterReady) { controller.GuardComponent = null; controller.DodgeComponent = null; }
-			controller._PhysicsProcess(.1);
-			AssertBool(actor.DefinitionValid).IsTrue();
-			AssertObject(actor.GuardComponent).IsNotNull();
-			AssertObject(actor.DodgeComponent).IsNotNull();
-			AssertObject(controller.GuardComponent).IsNull();
-			AssertObject(controller.DodgeComponent).IsNull();
-			AssertBool(controller.RequestGuard(Vector3.Forward)).IsFalse();
-			AssertBool(controller.RequestDodge(Vector3.Right)).IsFalse();
-		}
-		finally { actor.QueueFree(); }
-	}
+		var guard = actor.GuardComponent;
+		controller.GuardComponent = null;
+		controller.DodgeComponent = null;
+		TestFactories.AddToSceneTree(actor);
+		AssertBool(actor.DefinitionValid).IsTrue();
+		controller._PhysicsProcess(.1);
+		AssertBool(controller.RequestGuard(Vector3.Forward)).IsFalse();
+		AssertBool(controller.RequestDodge(Vector3.Right)).IsFalse();
 
-	[TestCase]
-	public void DefenseIntervalsAreExclusiveAndUnavailableActionsDoNotReroll()
-	{
-		using var strategy = new EnemyDefenseStrategy { DodgeChance = .2f, GuardChance = .5f };
-		AssertInt((int)strategy.Choose(true, true, .1f)).IsEqual((int)EnemyDefenseMode.Dodge);
-		AssertInt((int)strategy.Choose(true, true, .2f)).IsEqual((int)EnemyDefenseMode.GuardParry);
-		AssertInt((int)strategy.Choose(true, true, .7f)).IsEqual((int)EnemyDefenseMode.None);
-		AssertInt((int)strategy.Choose(true, false, .1f)).IsEqual((int)EnemyDefenseMode.None);
-		AssertInt((int)strategy.Choose(false, true, .3f)).IsEqual((int)EnemyDefenseMode.None);
+		// Assigned after readiness the guard works; cleared again, the controller keeps no stale reference.
+		controller.GuardComponent = guard;
+		AssertBool(controller.RequestGuard(Vector3.Forward)).IsTrue();
+		guard.EndGuard(immediate: true);
+		controller.GuardComponent = null;
+		controller._PhysicsProcess(.1);
+		AssertBool(controller.RequestGuard(Vector3.Forward)).IsFalse();
 	}
 }

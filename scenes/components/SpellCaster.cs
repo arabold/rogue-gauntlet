@@ -1,43 +1,120 @@
 using Godot;
+using System.Collections.Generic;
 
-/// <summary>
-/// Owns the spell node of the actor's current focus, the spell weapon it wields. Binding instantiates the focus's
-/// self-contained spell scene as a child; releasing that focus cancels the spell, which ends every effect it still has
-/// in the world, and frees it. Only one focus is bound at a time. The actor's attack controller casts the bound spell
-/// at the release time of the cast attack, with the actor as caster.
-/// </summary>
+/// <summary>Owns spells bound to equipped foci and reusable innate spell instances for one actor.</summary>
 [GlobalClass]
 public partial class SpellCaster : Node
 {
-	/// <summary>The bound spell, or null when no focus is bound.</summary>
-	public ICombatSpell Current { get; private set; }
-	private GodotObject _focus;
+	private sealed record BoundSpell(SpellDefinition Definition, ICombatSpell Spell);
 
-	public bool IsBoundTo(GodotObject focus) => focus != null && ReferenceEquals(focus, _focus);
+	private readonly Dictionary<GodotObject, BoundSpell> _boundSpells = [];
+	private readonly Dictionary<ulong, ICombatSpell> _innate = [];
+	private readonly RandomNumberGenerator _random = new();
 
-	/// <summary>Replaces any bound focus with <paramref name="focus"/> casting <paramref name="spell"/>.</summary>
+	public void ConfigureRandom(ulong seed) => _random.Seed = seed;
+
+	public bool IsBoundTo(GodotObject focus) => focus != null && _boundSpells.ContainsKey(focus);
+
+	public bool TryGetSpell(GodotObject focus, out ICombatSpell spell)
+	{
+		if (focus != null && _boundSpells.TryGetValue(focus, out var bound))
+		{
+			spell = bound.Spell;
+			return true;
+		}
+		spell = null;
+		return false;
+	}
+
+	/// <summary>Binds <paramref name="focus"/> to its own instance of <paramref name="spell"/>.</summary>
 	public bool Bind(SpellDefinition spell, GodotObject focus)
 	{
-		Release(_focus);
+		if (focus == null) return false;
+		Release(focus);
 		if (spell?.Instantiate() is not { } instance)
 		{
 			GD.PushError($"{Name}: {spell?.ResourcePath ?? "missing spell"} has no ICombatSpell scene.");
 			return false;
 		}
 		AddChild((Node)instance);
-		Current = instance;
-		_focus = focus;
+		_boundSpells[focus] = new BoundSpell(spell, instance);
 		return true;
 	}
 
-	/// <summary>Ends the bound spell if <paramref name="focus"/> is the bound focus; any other item is ignored.</summary>
+	/// <summary>
+	/// The spell instance a source casts: the one bound to <paramref name="source"/> when it is a focus of this
+	/// definition, otherwise the actor's innate instance of it (created once per definition).
+	/// </summary>
+	public bool TryResolve(SpellDefinition definition, GodotObject source, int level, out ICombatSpell spell)
+	{
+		spell = null;
+		if (definition?.IsValidLevel(level) != true) return false;
+		spell = source != null && _boundSpells.TryGetValue(source, out var bound) && ReferenceEquals(definition, bound.Definition)
+			? bound.Spell : GetOrCreateInnate(definition);
+		return spell != null && spell.LevelCount >= level;
+	}
+
+	/// <summary>Prepares bound, item or innate activations through the same scene-composed spell and target rules.</summary>
+	public bool TryPrepare(SpellDefinition definition, GodotObject source, in SpellCastContext context, out SpellRelease release)
+	{
+		release = null;
+		if (!TryResolve(definition, source, context.Power.Level, out var spell) || !spell.CanCast(in context)) return false;
+		release = new SpellRelease(spell, context);
+		return true;
+	}
+
+	/// <summary>Releases an item or other non-combat activation at its existing source-owned commit boundary.</summary>
+	public bool CastImmediate(SpellDefinition definition, GodotObject source, in SpellCastContext context)
+	{
+		if (!TryPrepare(definition, source, in context, out var release)) return false;
+		var preparedContext = release.Context;
+		return release.Spell.Cast(in preparedContext, _random);
+	}
+
+	/// <summary>Returns the actor-local spell instance, creating at most one per definition used by this actor.</summary>
+	private ICombatSpell GetOrCreateInnate(SpellDefinition definition)
+	{
+		ulong id = definition.GetInstanceId();
+		if (_innate.TryGetValue(id, out var existing) && existing is GodotObject current && GodotObject.IsInstanceValid(current))
+			return existing;
+		if (definition.Instantiate() is not { } spell) return null;
+		AddChild((Node)spell);
+		_innate[id] = spell;
+		return spell;
+	}
+
+	/// <summary>Cancels cached innate spell effects when their actor dies.</summary>
+	public void CancelInnate()
+	{
+		foreach (var spell in _innate.Values)
+		{
+			if (spell is not GodotObject node || !GodotObject.IsInstanceValid(node)) continue;
+			spell.Cancel();
+			if (node is Node scene) scene.QueueFree();
+		}
+		_innate.Clear();
+	}
+
+	/// <summary>Ends the bound spell for <paramref name="focus"/>; other foci are unaffected.</summary>
 	public void Release(GodotObject focus)
 	{
-		if (focus == null || !ReferenceEquals(focus, _focus)) return;
-		var spell = Current;
-		Current = null;
-		_focus = null;
-		spell.Cancel();
-		if (spell is Node node && IsInstanceValid(node)) node.QueueFree();
+		if (focus == null || !_boundSpells.TryGetValue(focus, out var bound)) return;
+		_boundSpells.Remove(focus);
+		bound.Spell.Cancel();
+		if (bound.Spell is Node node && IsInstanceValid(node)) node.QueueFree();
 	}
+
+	/// <summary>Releases every bound spell and cancels all actor-owned spell effects.</summary>
+	public void Clear()
+	{
+		foreach (var bound in _boundSpells.Values)
+		{
+			bound.Spell.Cancel();
+			if (bound.Spell is Node node && IsInstanceValid(node)) node.QueueFree();
+		}
+		_boundSpells.Clear();
+		CancelInnate();
+	}
+
+	public override void _ExitTree() => Clear();
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 74;
+	public const int CurrentVersion = 76;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -68,6 +68,10 @@ public sealed class PlayerSaveData
 	public PlayerActionSaveData Actions { get; set; } = new();
 	public List<ActiveBuffSaveData> Buffs { get; set; } = [];
 	/// <summary>
+	/// Item instance ID of the equipped spell weapon owning the active ward, or empty without one.
+	/// </summary>
+	public string WardSourceItemInstanceId { get; set; } = string.Empty;
+	/// <summary>
 	/// Remaining capacity of the equipped spell weapon's active ward, or 0 without one. The weapon restores the spell
 	/// and its level, so the capacity is the only state the ward adds.
 	/// </summary>
@@ -80,6 +84,8 @@ public sealed class ActiveBuffSaveData
 	public string Kind { get; set; } = "";
 	public string Name { get; set; } = "";
 	public string ConditionPath { get; set; } = "";
+	/// <summary>A refreshing buff's definition file, restored as that shared definition; empty for stacking buffs.</summary>
+	public string BuffPath { get; set; } = "";
 	public string SourcePath { get; set; } = "";
 	public bool HasSource { get; set; }
 	public bool Permanent { get; set; }
@@ -95,6 +101,7 @@ public sealed class PlayerActionSaveData
 {
 	public List<QuickItemBindingSaveData> QuickSlots { get; set; } = [];
 	public Dictionary<string, float> VarietyCooldowns { get; set; } = [];
+	public Dictionary<string, float> WandCooldowns { get; set; } = [];
 	public int DodgeChargesRemaining { get; set; }
 	public float DodgeRechargeRemaining { get; set; }
 	public float DodgeIntervalRemaining { get; set; }
@@ -108,6 +115,15 @@ public sealed class PlayerActionSaveData
 			|| !float.IsFinite(ParryRearmRemaining) || ParryRearmRemaining < 0
 			|| !float.IsFinite(RecoveryLockoutRemaining) || RecoveryLockoutRemaining < 0)
 			throw new System.Text.Json.JsonException("Invalid combat cooldown or recovery duration in current-version save.");
+
+		if (WandCooldowns != null)
+		{
+			foreach (var (id, duration) in WandCooldowns)
+			{
+				if (string.IsNullOrEmpty(id) || !float.IsFinite(duration) || duration < 0)
+					throw new System.Text.Json.JsonException("Invalid wand cooldown in current-version save.");
+			}
+		}
 	}
 }
 

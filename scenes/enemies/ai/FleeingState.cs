@@ -5,7 +5,7 @@ public sealed class FleeingState : IEnemyState
 	public void Enter(EnemyContext context) { }
 	public EnemyBehaviorState? Update(EnemyContext context, double delta)
 	{
-		if (context.Target == null || context.Profile.RetreatCondition == null) return EnemyBehaviorState.Idle;
+		if (context.Target == null || context.CombatProfile.RetreatCondition == null) return EnemyBehaviorState.Idle;
 		var intent = context.EvaluateMovement();
 		if (intent.Goal != EnemyMovementGoal.Retreat) return EnemyBehaviorState.Chasing;
 		context.ExecuteTactics(intent);

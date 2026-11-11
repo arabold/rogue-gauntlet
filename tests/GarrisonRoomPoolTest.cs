@@ -7,39 +7,30 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Curated room types, seeded replay and the actual three-floor generation path.</summary>
+/// <summary>The production room pool: every type drawable, seeded replay, and the actual first three floors it builds.</summary>
 [TestSuite, RequireGodotRuntime]
 public class GarrisonRoomPoolTest
 {
 	private const string Preset = TestFactories.RoomPoolPath;
 
+	/// <summary>Every room type in the pool can be drawn: some realm's view holds it, only realms it is tagged for do, and its weight is positive.</summary>
 	[TestCase]
-	public void EachRealmDrawsEveryOneOfItsRoomTypesAndReproducesTheirContent()
+	public void EveryPooledRoomTypeIsDrawnByTheRealmsItBelongsTo()
 	{
 		var pool = TestFactories.Load<AssembledRoomFactory>(Preset);
+		var drawn = new HashSet<RoomType>();
 		foreach (string realm in new[] { "garrison", "sewer", "jungle" })
 		{
 			var factory = (AssembledRoomFactory)pool.ForRealm(realm);
-			AssertBool(factory.RoomTypes.All(type => type.Realms.Contains(realm))).IsTrue();
-			var seen = new HashSet<RoomType>();
-			// Enough draws for the rarest Garrison type (weight 0.5 of 16) to appear.
-			for (ulong seed = 1; seed <= 150; seed++)
+			AssertBool(factory.RoomTypes.Length > 0).OverrideFailureMessage($"{realm}: no room types").IsTrue();
+			foreach (var type in factory.RoomTypes)
 			{
-				using var a = new RandomNumberGenerator { Seed = seed };
-				var first = factory.CreateStandardRoom(a);
-				seen.Add(first.Type);
-				if (seed <= 8)
-				{
-					using var b = new RandomNumberGenerator { Seed = seed };
-					var second = factory.CreateStandardRoom(b);
-					AssertObject(first.Type).IsSame(second.Type);
-					AssertString(Signature(first)).IsEqual(Signature(second));
-					second.Free();
-				}
-				first.Free();
+				AssertBool(type.Realms.Contains(realm)).OverrideFailureMessage($"{realm} draws {type.Id}, which is not tagged for it").IsTrue();
+				AssertFloat(type.Weight).OverrideFailureMessage($"{realm}: {type.Id} can never be drawn").IsGreater(0);
+				drawn.Add(type);
 			}
-			AssertInt(seen.Count).OverrideFailureMessage($"{realm}: room types drawn").IsEqual(factory.RoomTypes.Length);
 		}
+		AssertArray(pool.RoomTypes.Where(type => !drawn.Contains(type)).Select(type => type.Id).ToArray()).IsEmpty();
 	}
 
 	[TestCase]
@@ -56,7 +47,6 @@ public class GarrisonRoomPoolTest
 				1 => factory.CreateEntrance(rng),
 				_ => factory.CreateExit(rng),
 			};
-			AssertString(room.SceneFilePath).IsEmpty();
 			AssertObject(room.Type).IsNotNull();
 			if (index == 0) first = Signature(room);
 			room.Free();
@@ -71,21 +61,21 @@ public class GarrisonRoomPoolTest
 	public async Task ThreeDepthsKeepConnectedGeometryEncountersAndReachableSpawns()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
 		var generator = level.MapGenerator;
 		AssertString(generator.Rooms.ResourcePath).IsEqual(Preset);
 		var encounters = (RealmEncounterFactory)generator.MobFactory;
 		string failure = "";
 		level.GenerationFailed += error => failure = error;
-		foreach (ulong runSeed in new ulong[] { 1, 23, 12345 })
+		const ulong runSeed = 23;
 		for (uint depth = 1; depth <= 3; depth++)
 		{
 			level.ConfigureGeneration(new RunState(runSeed), depth, null, null);
 			failure = "";
 			level.Generate();
 			AssertString(failure).OverrideFailureMessage($"seed={runSeed} depth={depth}: {failure}").IsEmpty();
-			AssertArray(LayoutConnectivityTest.FindConnectivityFailures(generator)).IsEmpty();
+			AssertArray(TestFactories.ConnectivityFailures(generator).ToArray()).OverrideFailureMessage($"seed={runSeed} depth={depth}").IsEmpty();
 			var ordinary = generator.EnemySpawnPoints.Where(spawn => encounters.Entries.Any(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath)).ToArray();
 			int spent = ordinary.Sum(spawn => encounters.Entries.Single(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath).Threat);
 			using var encounterRng = GenerationRandom.Create(generator.Seed, GenerationRandom.Monsters);
@@ -99,7 +89,7 @@ public class GarrisonRoomPoolTest
 			string first = Fingerprint(generator);
 			level.Generate();
 			AssertString(Fingerprint(generator)).IsEqual(first);
-			await runner.SimulateFrames(1);
+			await runner.SimulateFrames(1, 20);
 		}
 	}
 

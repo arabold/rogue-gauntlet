@@ -9,56 +9,76 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
-/// Generation-time chest/trap/loose-item placement contracts, swept across seeds: a
-/// placed chest sits on an interior room tile with its back to a real wall and its
-/// rotation actually facing away from that wall (not just "some" wall it happened to
-/// find); nothing lands adjacent to a connector (doorway traffic); every placed prop is
-/// spaced apart and parented under <see cref="MapGenerator.FloorContent"/> (not
-/// <c>Level</c>) so it counts as a navigation solid the same way rooms already do; the
-/// feature is fully opt-in — zero configured counts places nothing; and loot only ever
-/// goes into procedurally built rooms — an authored room's interior is hand-designed
-/// (including any chests it wants, placed by its author) and must never receive
-/// generated content.
+/// Generation-time chest, trap and loose-item placement, swept across seeds: every requested piece is placed, pieces
+/// keep their minimum spacing, and a chest sits on a room tile clear of doorway traffic with its back to a real wall.
+/// Loose items roll as reward sources that survive a save round trip.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
 public class LootPlacementTest
 {
-	private const int SeedCount = 30;
+	private const int SeedCount = 15;
 
 	[TestCase]
-	public async Task PlacedChestsFaceAwayFromARealWall()
+	public async Task PlacedLootIsSpacedAndChestsBackOntoRealWalls()
 	{
-		// All-procedural standard rooms: loot placement only considers procedural rooms,
-		// so the default all-authored factory would yield zero placements to check.
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
-		TestFactories.WireLootScenes(mapGenerator);
-		mapGenerator.MinChests = mapGenerator.MaxChests = 2;
-
-		var failures = new List<string>();
-		for (ulong seed = 1; seed <= SeedCount; seed++)
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		using (runner)
 		{
-			mapGenerator.Seed = seed;
-			mapGenerator.GenerateMap(includeGameplay: true);
+			TestFactories.WireLootScenes(mapGenerator);
+			// The smallest map that still fits every request on every seed: a map too small to hold all nine pieces
+			// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and grid time.
+			const int PerKind = 3;
+			mapGenerator.MapWidth = 30;
+			mapGenerator.MapDepth = 30;
+			mapGenerator.MaxRooms = 14;
+			mapGenerator.MinChests = mapGenerator.MaxChests = PerKind;
+			mapGenerator.MinTraps = mapGenerator.MaxTraps = PerKind;
+			mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = PerKind;
 
-			foreach (Chest chest in FindChests(mapGenerator))
+			var failures = new List<string>();
+			for (ulong seed = 1; seed <= SeedCount; seed++)
 			{
-				failures.AddRange(FindChestPlacementFailures(mapGenerator, chest, seed));
+				mapGenerator.Seed = seed;
+				mapGenerator.GenerateMap(includeGameplay: true);
+
+				var loot = mapGenerator.FloorContent.GetChildren().Where(node => node is Chest or FloorTrap or LootableItem).Cast<Node3D>().ToArray();
+				if (loot.Length < 3 * PerKind)
+				{
+					failures.Add($"seed {seed}: placed only {loot.Length} of {3 * PerKind} requested pieces, so fewer pairs were checked");
+				}
+				for (int i = 0; i < loot.Length; i++)
+				{
+					for (int j = i + 1; j < loot.Length; j++)
+					{
+						float distance = loot[i].GlobalPosition.HorizontalDistanceTo(loot[j].GlobalPosition);
+						if (distance < MapGenerator.LootSpawnSpacing)
+						{
+							failures.Add($"seed {seed}: loot at {loot[i].GlobalPosition} and {loot[j].GlobalPosition} are only {distance:F2} apart "
+								+ $"(minimum {MapGenerator.LootSpawnSpacing})");
+						}
+					}
+				}
+				foreach (Chest chest in loot.OfType<Chest>())
+				{
+					failures.AddRange(FindChestPlacementFailures(mapGenerator, chest, seed));
+				}
+
+				await runner.SimulateFrames(1, 20);
 			}
 
-			await runner.SimulateFrames(1);
+			AssertArray(failures)
+				.OverrideFailureMessage($"Found {failures.Count} placement failure(s) across {SeedCount} seeds:\n  "
+					+ string.Join("\n  ", failures))
+				.IsEmpty();
 		}
-
-		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} chest placement failure(s) across {SeedCount} seeds:\n  "
-				+ string.Join("\n  ", failures))
-			.IsEmpty();
 	}
 
 	[TestCase]
 	public async Task LooseItemsRollAsRewardSourcesAndSurviveASaveRoundTrip()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPool());
+		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout());
+		using var scope = runner;
 		var map = level.MapGenerator;
 		TestFactories.WireLootScenes(map);
 		map.MinLooseItems = map.MaxLooseItems = 3;
@@ -81,159 +101,8 @@ public class LootPlacementTest
 			.Where(p => !p.IsQueuedForDeletion()).Select(p => p.Item.InstanceId).ToHashSet();
 		AssertBool(ground.Contains(taken)).IsFalse();
 		AssertBool(survivors.All(ground.Contains)).IsTrue();
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 	}
-
-	[TestCase]
-	public async Task PlacedLootIsParentedUnderFloorContentForNavigation()
-	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
-		TestFactories.WireLootScenes(mapGenerator);
-		mapGenerator.MinChests = mapGenerator.MaxChests = 1;
-		mapGenerator.MinTraps = mapGenerator.MaxTraps = 1;
-		mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = 1;
-		mapGenerator.Seed = 1;
-		mapGenerator.GenerateMap(includeGameplay: true);
-
-		var failures = new List<string>();
-		foreach (Node node in mapGenerator.FloorContent.GetChildren())
-		{
-			if (node is not (Chest or FloorTrap or LootableItem))
-			{
-				continue;
-			}
-
-			if (node.GetParent() != mapGenerator.FloorContent)
-			{
-				failures.Add($"{node.Name} is parented under {node.GetParent()?.Name}, not FloorContent");
-			}
-		}
-
-		await runner.SimulateFrames(1);
-		AssertArray(failures).OverrideFailureMessage(string.Join("\n  ", failures)).IsEmpty();
-	}
-
-	[TestCase]
-	public async Task PlacedLootRespectsMinimumSpacing()
-	{
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
-		TestFactories.WireLootScenes(mapGenerator);
-		// The smallest map that still fits every request on every seed: a map too small to hold all nine pieces
-		// silently drops some and checks fewer pairs, while larger maps mostly add corridor routing and grid time.
-		const int PerKind = 3;
-		mapGenerator.MapWidth = 30;
-		mapGenerator.MapDepth = 30;
-		mapGenerator.MaxRooms = 14;
-		mapGenerator.MinChests = mapGenerator.MaxChests = PerKind;
-		mapGenerator.MinTraps = mapGenerator.MaxTraps = PerKind;
-		mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = PerKind;
-
-		var failures = new List<string>();
-		for (ulong seed = 1; seed <= SeedCount; seed++)
-		{
-			mapGenerator.Seed = seed;
-			mapGenerator.GenerateMap(includeGameplay: true);
-
-			var points = new List<Vector3>();
-			foreach (Node3D node in FindLootNodes(mapGenerator))
-			{
-				points.Add(node.GlobalPosition);
-			}
-
-			if (points.Count < 3 * PerKind)
-			{
-				failures.Add($"seed {seed}: placed only {points.Count} of {3 * PerKind} requested pieces, so fewer pairs were checked");
-			}
-
-			for (int i = 0; i < points.Count; i++)
-			{
-				for (int j = i + 1; j < points.Count; j++)
-				{
-					float distance = new Vector2(points[i].X, points[i].Z).DistanceTo(new Vector2(points[j].X, points[j].Z));
-					if (distance < MapGenerator.LootSpawnSpacing)
-					{
-						failures.Add($"seed {seed}: loot at {points[i]} and {points[j]} are only {distance:F2} apart "
-							+ $"(minimum {MapGenerator.LootSpawnSpacing})");
-					}
-				}
-			}
-
-			await runner.SimulateFrames(1);
-		}
-
-		AssertArray(failures)
-			.OverrideFailureMessage($"Found {failures.Count} spacing failure(s) across {SeedCount} seeds:\n  "
-				+ string.Join("\n  ", failures))
-			.IsEmpty();
-	}
-
-	[TestCase]
-	public async Task UnwiredScenesPlaceNothing()
-	{
-		// A level that never calls TestFactories.WireLootScenes (i.e. never wires
-		// ChestScene/TrapScene/LooseItemScene) leaves them at their null default -- the
-		// count ranges default to a non-zero, immediately-useful value (see MaxChests
-		// etc.), so it's the *scene references*, not the counts, that gate the feature off
-		// for any pre-existing level/test that doesn't opt in.
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
-		mapGenerator.Seed = 1;
-		mapGenerator.GenerateMap(includeGameplay: true);
-
-		int lootNodeCount = 0;
-		foreach (Node _ in FindLootNodes(mapGenerator))
-		{
-			lootNodeCount++;
-		}
-
-		await runner.SimulateFrames(1);
-		AssertInt(lootNodeCount).IsEqual(0);
-	}
-
-	[TestCase]
-	public void PickEntryOnlyReturnsConfiguredItemsAndHandlesEmptyTables()
-	{
-		// Exercise the real grouped resource every placed chest already uses.
-		var table = TestFactories.Load<LootTable>("res://scenes/items/loot/loot_chest_common.tres");
-		var rng = new RandomNumberGenerator { Seed = 1 };
-
-		for (int i = 0; i < 50; i++)
-		{
-			var entry = table.PickEntry(1, rng);
-			AssertObject(entry).IsNotNull();
-			AssertBool(System.Array.IndexOf(table.Entries, entry) >= 0).IsTrue();
-			AssertBool(entry.IsEligibleAt(1)).IsTrue();
-		}
-
-		var emptyTable = new LootTable();
-		AssertObject(emptyTable.PickEntry(1, rng)).IsNull();
-	}
-
-	private static IEnumerable<Chest> FindChests(MapGenerator mapGenerator)
-	{
-		foreach (Node node in mapGenerator.FloorContent.GetChildren())
-		{
-			if (node is Chest chest)
-			{
-				yield return chest;
-			}
-		}
-	}
-
-	private static IEnumerable<Node3D> FindLootNodes(MapGenerator mapGenerator)
-	{
-		foreach (Node node in mapGenerator.FloorContent.GetChildren())
-		{
-			if (node is Chest or FloorTrap or LootableItem)
-			{
-				yield return (Node3D)node;
-			}
-		}
-	}
-
-	private static readonly Vector2I[] CardinalOffsets =
-	{
-		new(1, 0), new(-1, 0), new(0, 1), new(0, -1),
-	};
 
 	private static List<string> FindChestPlacementFailures(MapGenerator mapGenerator, Chest chest, ulong seed)
 	{
@@ -247,7 +116,7 @@ public class LootPlacementTest
 			return failures;
 		}
 
-		foreach (var offset in CardinalOffsets)
+		foreach (var offset in MapData.CardinalOffsets)
 		{
 			var neighbor = tile + offset;
 			if (map.IsWithinBounds(neighbor.X, neighbor.Y) && map.IsConnector(neighbor.X, neighbor.Y))

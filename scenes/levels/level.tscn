@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=22 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -21,6 +21,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/realms/sewer.tres" id="realm_sewer"]
 [ext_resource type="Resource" path="res://scenes/levels/realms/jungle.tres" id="realm_jungle"]
 [ext_resource type="PackedScene" path="res://scenes/levels/floor_discovery.tscn" id="floor_discovery"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="world_lighting"]
 
 [sub_resource type="Resource" id="Resource_mbbpy"]
 script = ExtResource("3_xog87")
@@ -32,11 +33,12 @@ metadata/_custom_type_script = ExtResource("3_xog87")
 script = ExtResource("4_mssmn")
 metadata/_custom_type_script = ExtResource("4_mssmn")
 
-[node name="Level" type="Node3D" node_paths=PackedStringArray("MapGenerator", "ItemPersistence", "Discovery")]
+[node name="Level" type="Node3D" node_paths=PackedStringArray("MapGenerator", "ItemPersistence", "Discovery", "Lighting")]
 script = ExtResource("1_37vyo")
 MapGenerator = NodePath("MapGenerator")
 ItemPersistence = NodePath("ItemPersistence")
 Discovery = NodePath("FloorDiscovery")
+Lighting = NodePath("WorldLighting")
 NavigationProfile = ExtResource("13_navigation")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
@@ -58,3 +60,5 @@ script = ExtResource("13_persistence")
 PickupScene = ExtResource("10_lootitem")
 
 [node name="FloorDiscovery" parent="." instance=ExtResource("floor_discovery")]
+
+[node name="WorldLighting" parent="." instance=ExtResource("world_lighting")]

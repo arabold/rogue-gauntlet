@@ -49,19 +49,24 @@ public class EnemyStateMachineTest
 		AssertArray(log).IsEmpty();
 	}
 
+	/// <summary>Staying put, a tick that requests the current state and a forced change to it run neither Enter nor Exit.</summary>
 	[TestCase]
-	public void StayingInStateRunsNeitherEnterNorExit()
+	public void NoTransitionRunsNeitherEnterNorExit()
 	{
 		var log = new List<string>();
-		// Idle.Update returns null => stay.
-		var machine = new EnemyStateMachine(
-			null,
-			new IEnemyState[] { new RecordingState(EnemyBehaviorState.Idle, log) },
-			EnemyBehaviorState.Idle);
+		var staying = new EnemyStateMachine(null, new IEnemyState[] { new RecordingState(EnemyBehaviorState.Idle, log) }, EnemyBehaviorState.Idle);
+		var requestingItself = new EnemyStateMachine(null,
+			new IEnemyState[] { new RecordingState(EnemyBehaviorState.Idle, log, nextOnUpdate: EnemyBehaviorState.Idle) }, EnemyBehaviorState.Idle);
+		var forced = new EnemyStateMachine(null,
+			new IEnemyState[] { new RecordingState(EnemyBehaviorState.Patrolling, log) }, EnemyBehaviorState.Patrolling);
 
-		machine.Tick(0.016);
+		staying.Tick(0.016);
+		requestingItself.Tick(0.016);
+		forced.ChangeState(EnemyBehaviorState.Patrolling);
 
-		AssertObject(machine.CurrentId).IsEqual(EnemyBehaviorState.Idle);
+		AssertObject(staying.CurrentId).IsEqual(EnemyBehaviorState.Idle);
+		AssertObject(requestingItself.CurrentId).IsEqual(EnemyBehaviorState.Idle);
+		AssertObject(forced.CurrentId).IsEqual(EnemyBehaviorState.Patrolling);
 		AssertArray(log).IsEmpty();
 	}
 
@@ -82,36 +87,6 @@ public class EnemyStateMachineTest
 
 		AssertObject(machine.CurrentId).IsEqual(EnemyBehaviorState.Chasing);
 		AssertArray(log).ContainsExactly("Idle:Exit", "Chasing:Enter");
-	}
-
-	[TestCase]
-	public void RequestingTheCurrentStateIsANoOp()
-	{
-		var log = new List<string>();
-		// Idle.Update returns Idle (its own id) => no transition.
-		var machine = new EnemyStateMachine(
-			null,
-			new IEnemyState[] { new RecordingState(EnemyBehaviorState.Idle, log, nextOnUpdate: EnemyBehaviorState.Idle) },
-			EnemyBehaviorState.Idle);
-
-		machine.Tick(0.016);
-
-		AssertObject(machine.CurrentId).IsEqual(EnemyBehaviorState.Idle);
-		AssertArray(log).IsEmpty();
-	}
-
-	[TestCase]
-	public void ChangeStateToSameStateDoesNothing()
-	{
-		var log = new List<string>();
-		var machine = new EnemyStateMachine(
-			null,
-			new IEnemyState[] { new RecordingState(EnemyBehaviorState.Patrolling, log) },
-			EnemyBehaviorState.Patrolling);
-
-		machine.ChangeState(EnemyBehaviorState.Patrolling);
-
-		AssertArray(log).IsEmpty();
 	}
 
 	[TestCase]

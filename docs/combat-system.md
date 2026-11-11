@@ -4,13 +4,15 @@ Implemented rules for players and monsters. See [weapon attacks](weapon-attack-s
 
 ## Action ownership
 
-Each actor can own one committed action: attack, dodge, guard, item use, interaction or forced reaction. Executors receive the actor's gate through explicit `ActionGate` references, including `AttackController`. Rejected requests change nothing. Dodge or guard can replace attack startup, and dodge can replace attack recovery. A gate with `RecoveryCancels` (the player's) also lets guard replace attack recovery, and the next [combo step](weapon-attack-system.md#primary-combos) replace primary recovery. Monsters keep their recovery committed, so it stays the window in which they can be punished. Active contact remains committed. Committed item use prevents voluntary replacement. Stagger interrupts voluntary actions; death cancels and disables them. Ordinary movement remains separate but obeys the current action's restrictions. The current action may also report hyper-armor (see [poise](#poise-and-hit-reactions)); any change of ownership clears it.
+Each actor can own one committed action: attack, dodge, guard, item use, interaction or forced reaction. Executors receive the actor's gate through explicit `ActionGate` references, including `AttackController`. Rejected requests change nothing. Dodge or guard can replace attack startup, and dodge can replace attack recovery. A gate with `RecoveryCancels` (the player's) also lets guard replace attack recovery, the next [combo step](weapon-attack-system.md#primary-combos) replace primary recovery, and alternate spell casting between primary and off-hand wands hand off as soon as a spell releases without waiting for recovery. Monsters keep their recovery committed, so it stays the window in which they can be punished. Active contact remains committed. Committed item use prevents voluntary replacement. Stagger interrupts voluntary actions; death cancels and disables them. Ordinary movement remains separate but obeys the current action's restrictions. The current action may also report hyper-armor (see [poise](#poise-and-hit-reactions)); any change of ownership clears it.
 
 Player presses of primary, secondary, dodge and guard wait 0.2 seconds (`PlayerInputController.InputBufferWindow`) for an action that can accept them. A press made during an attack's contact therefore runs as soon as its recovery begins instead of being dropped. An accepted dodge or guard drops older presses, and a buffered guard press still needs the button held. Holding primary repeats complete attacks without cancelling recovery.
 
 The executor owns its timing and releases ownership on completion or interruption. Movement and animation follow that same commitment; stale callbacks cannot complete an old action or cancel a newer one. Shared authored Resources are definitions. Accepted actions snapshot their settings so live edits cannot change an action halfway through.
 
 `AttackExecution` owns the attack phase and elapsed clock (`WindUp`, `Active`, `Recovery`), including the existing once-per-execution attacker hit stop. `AttackController` remains responsible for action-gate leases, contact sampling, projectile release and interruption. Effects and debug switches observe the execution; they do not drive phase transitions.
+
+Dashes (a monster rush or hop-back) use a `DashComponent` beside `MovementComponent`, like `DodgeComponent`. It acquires the shared action gate, owns wind-up, travel and recovery through an `AttackExecution`, and drives the mover through a locomotion override; `MoveAndSlide` resolves travel against the world, a blocked dash stops instead of extending, navigation checks a clear corridor first, and pushes, status locks, stagger and death interrupt it. A dash grants no immunity and deals no damage.
 
 ## Contact feedback
 
@@ -28,7 +30,7 @@ The player resolves a dodge heading from current processed movement input, then 
 
 The player's dodge travels 6 units over 0.15 seconds, protects against eligible weapon/projectile contact throughout travel, and has 0.05 seconds of recovery. It has two charges (`MaxCharges`). Each spent charge refills after 1.2 seconds (`ChargeRechargeDuration`), one at a time, and dodges are at least 0.25 seconds apart (`CooldownDuration`). Evading a contact within 0.1 seconds of the dodge starting (`PerfectWindow`) refunds its charge once. Monster dodges keep one charge without a recharge, so only their cooldown applies. Hazards and environmental damage bypass dodge, including existing damage-over-time effects; elemental projectiles remain eligible attacks. The 0.04/0.08-second input windows and combat values are initial playtest tuning.
 
-Guard commits to a frontal facing and progresses through raising, held protection and release recovery. Its optional opening parry window is single-use. Shields take precedence over an eligible one-handed weapon, then innate guard; two-handed weapons suppress the offhand source. A shield visual alone grants no protection. Rebinding equipment cancels guard while retaining defensive cooldowns.
+Guard commits to a frontal facing and progresses through raising, held protection and release recovery. Its optional opening parry window is single-use. Shields provide primary defensive guard; portable lights in the off hand provide a makeshift guard (35% mitigation). When the off hand is empty, guard falls back to the equipped one-handed weapon's guard or the actor's innate guard. Two-handed weapons and paired melee weapons suppress guard entirely, disabling the guard input on L. A shield visual alone grants no protection. Rebinding equipment cancels guard while retaining defensive cooldowns.
 
 Guard pressure can prolong a response within its maximum hold. Normal release finishes the current reaction and recovery before an enemy may riposte. A riposte uses the actor's ordinary attack, rechecking range, sight and availability. It grants no extra action or immunity.
 
@@ -85,6 +87,8 @@ Dodged/parried contacts suppress ordinary damage and hit reactions. Blocks repor
 
 Defense eligibility is authored per attack: ordinary melee allows dodge, guard and parry; ordinary projectiles allow dodge/guard; area impacts have independent flags. Environmental damage does not automatically grant defense eligibility. Unavoidable content needs clear presentation.
 
+Attack profiles may carry on-hit status payloads. The hurtbox rolls each payload only after direct contact resolves as damaging and leaves the target alive. Chance uses the attack or projectile RNG; a full chance consumes no draw. Venom and poison share the same periodic buff, with authored refresh identity for repeated applications. Defended, filtered, absorbed, splash and lethal contacts do not apply it. See [status conditions](stats-and-itemization.md#buffs-and-status-conditions).
+
 ## Facing and sneak attacks
 
 A hurtbox may assign a `HitVulnerabilityProfile` (monsters use `humanoid_vulnerability.tres`; the player has none). Direct melee and projectile contacts are classified by where they come from relative to the defender's facing: front within `FrontHalfAngle` (60°), rear within `RearHalfAngle` (45°) of directly behind, side otherwise. Area, hazard and environmental damage have no zone.
@@ -111,7 +115,7 @@ Monster melee wind-ups track their target no faster than the attack's `WindUpTur
 Heavy actors can be outmaneuvered:
 
 - **Turn cap.** `MovementComponent.MaxTurnRate` caps all smooth turning (degrees per second). Only explicit facing snaps ignore it, and monster defenses no longer use them.
-- **Start angle.** A melee policy's `MaxStartAngle` only lets a swing start when the target is within that angle of the monster's facing.
+- **Start angle.** An action's `MaximumStartAngle` only lets it start when the target is within that angle of the monster's facing.
 - **Holding.** A monster in reach but not facing its target holds and turns toward it instead of swinging.
 - **Defenses.** A monster raises its guard along its current facing and does not guard against an attacker outside the guard's frontal sector. Any turn-capped actor raises its guard where it already faces instead of snapping toward the requested direction. A riposte turns at the normal rate and is rejected if the target is not yet in front.
 - **The Warden.** It turns at 90°/s, starts swings only within 45° and tracks a wind-up at 60°/s until 0.4 s before contact. A player who gets behind it and stays there draws no swings, but running full circles laps back through its front.

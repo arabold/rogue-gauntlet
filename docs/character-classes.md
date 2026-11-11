@@ -90,7 +90,7 @@ a full-length staff, until `IsTwoHanded` was corrected to route them to the alre
 `2H_Staff` bone). `IsTwoHanded` is also not cosmetic-only: `Inventory.Equip` auto-unequips the
 shield slot when a two-handed weapon goes on (and vice versa), so it's a real gameplay/balance
 lever. When authoring a new weapon, check its actual model size against sibling items on the
-same bone (see the `assets` skill's in-hand verification section) rather than guessing from the
+same bone (see the `godot-mcp` skill's in-hand verification section) rather than guessing from the
 name alone.
 
 Import detail: Idle/Walking loop modes are per-GLB import settings (`_subresources` in the

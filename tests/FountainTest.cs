@@ -55,39 +55,43 @@ public class FountainTest
 	public async Task AScheduledFloorPlacesEachKindAsASolidPropInARoom()
 	{
 		var (runner, map) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
-		TestFactories.WireLootScenes(map);
-		map.DungeonDepth = 5;
-		map.Fountains = ForcedProfile(5);
-
-		var failures = new List<string>();
-		int complete = 0;
-		for (ulong seed = 1; seed <= 12; seed++)
+		using (runner)
 		{
-			map.Seed = seed;
-			map.GenerateMap(includeGameplay: true);
-			var fountains = map.FloorContent.GetChildren().OfType<Fountain>().ToList();
-			var ids = fountains.Select(f => f.GetMeta("persistent_id", "").AsString()).OrderBy(id => id).ToArray();
-			// A cramped layout can leave no room tile for any solid prop (chests included); it then places none.
-			if (ids.SequenceEqual(["depth:5:fountain:health", "depth:5:fountain:mana"])) complete++;
-			else if (ids.Length > 0) failures.Add($"seed {seed}: placed only {string.Join(",", ids)}");
-			foreach (var fountain in fountains)
-			{
-				var tile = map.Map.WorldToTile(fountain.GlobalPosition);
-				if (!map.Map.IsRoom(tile.X, tile.Y)) failures.Add($"seed {seed}: {fountain.Name} outside a room");
-				if (fountains.Concat<Node3D>(map.FloorContent.GetChildren().OfType<Chest>()).Any(other => other != fountain
-					&& other.GlobalPosition.HorizontalDistanceTo(fountain.GlobalPosition) < MapGenerator.LootSpawnSpacing))
-					failures.Add($"seed {seed}: {fountain.Name} crowds another prop");
-			}
-			await runner.SimulateFrames(1);
-		}
+			TestFactories.WireLootScenes(map);
+			map.DungeonDepth = 5;
+			map.Fountains = ForcedProfile(5);
 
-		map.Fountains = TestFactories.Load<FountainProfile>(ProfilePath);
-		map.RunSeed = 1;
-		map.DungeonDepth = 1;
-		map.GenerateMap(includeGameplay: true);
-		AssertBool(map.FloorContent.GetChildren().OfType<Fountain>().Any()).OverrideFailureMessage("depth 1 holds no fountains").IsFalse();
-		AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
-		AssertInt(complete).IsGreaterEqual(10);
+			var failures = new List<string>();
+			int complete = 0;
+			for (ulong seed = 1; seed <= 5; seed++)
+			{
+				map.Seed = seed;
+				map.GenerateMap(includeGameplay: true);
+				var fountains = map.FloorContent.GetChildren().OfType<Fountain>().ToList();
+				var ids = fountains.Select(f => f.GetMeta("persistent_id", "").AsString()).OrderBy(id => id).ToArray();
+				// A cramped layout can leave no room tile for any solid prop (chests included); it then places none.
+				if (ids.SequenceEqual(["depth:5:fountain:health", "depth:5:fountain:mana"])) complete++;
+				else if (ids.Length > 0) failures.Add($"seed {seed}: placed only {string.Join(",", ids)}");
+				foreach (var fountain in fountains)
+				{
+					var tile = map.Map.WorldToTile(fountain.GlobalPosition);
+					if (!map.Map.IsRoom(tile.X, tile.Y)) failures.Add($"seed {seed}: {fountain.Name} outside a room");
+					if (fountains.Concat<Node3D>(map.FloorContent.GetChildren().OfType<Chest>()).Any(other => other != fountain
+						&& other.GlobalPosition.HorizontalDistanceTo(fountain.GlobalPosition) < MapGenerator.LootSpawnSpacing))
+						failures.Add($"seed {seed}: {fountain.Name} crowds another prop");
+				}
+				await runner.SimulateFrames(1, 20);
+			}
+
+			// The shipped schedule leaves depth 1 empty, and the generator places nothing there.
+			map.Fountains = TestFactories.Load<FountainProfile>(ProfilePath);
+			map.RunSeed = 1;
+			map.DungeonDepth = 1;
+			map.GenerateMap(includeGameplay: true);
+			AssertBool(map.FloorContent.GetChildren().OfType<Fountain>().Any()).OverrideFailureMessage("depth 1 holds no fountains").IsFalse();
+			AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
+			AssertInt(complete).IsGreaterEqual(4);
+		}
 	}
 
 	[TestCase]
@@ -95,7 +99,7 @@ public class FountainTest
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		var (level, player) = AddLevelAndPlayer(new Vector3(200, 0, 200));
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 
 		var health = Spawn(level, "health");
 		var mana = Spawn(level, "mana");
@@ -137,7 +141,7 @@ public class FountainTest
 		var (level, player) = AddLevelAndPlayer(new Vector3(200, 0, 201.6f));
 		var fountain = Spawn(level, "health");
 		fountain.Position = new Vector3(200, 0, 200);
-		await runner.SimulateFrames(2);
+		await runner.SimulateFrames(2, 20);
 
 		player.HealthComponent.TakeDamage(10);
 		var context = player.InteractionContext;

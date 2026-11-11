@@ -23,6 +23,9 @@ public partial class StatModifier : Resource
 	[Export] public ModifierOp Op { get; set; } = ModifierOp.Flat;
 	[Export] public float Value { get; set; }
 
+	/// <summary>A defined stat and operation with a finite value.</summary>
+	public bool IsValid => Enum.IsDefined(Stat) && Enum.IsDefined(Op) && float.IsFinite(Value);
+
 	/// <summary>True when <see cref="Value"/> is a fraction shown as a percentage, e.g. 0.1 for +10%.</summary>
 	public bool IsFraction => Op == ModifierOp.Percent || Stat == StatType.CritChance;
 

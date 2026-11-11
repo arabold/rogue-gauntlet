@@ -1,35 +1,20 @@
 using Godot;
 using System.Linq;
 
+/// <summary>
+/// The gameplay scene: has the session configure and generate the level, binds the screen effects to the hero, and opens
+/// the character dialog. The <see cref="GameCameraRig"/> follows the hero on its own.
+/// </summary>
 public partial class Main : Node
 {
-	private const int FollowModeNone = 0;
-	private const float CameraRotationSpeed = Mathf.Pi;
-	private const float CameraZoomSpeed = 12f;
-	private const float CameraMinSize = 10f;
-	private const float CameraMaxSize = 32f;
-
-	// TODO: There's no PhantomCamera3D in C# API
-	private Node3D _pcam;
 	private Player _player;
 
 	/// <summary>Full-screen status overlays bound to the player when it spawns. Optional: unassigned means no screen effects.</summary>
 	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
 
-	/// <summary>Orthographic gameplay camera whose visible area is adjusted by zoom input.</summary>
-	[Export] public Camera3D GameCamera { get; set; }
-	/// <summary>Player-centered listener whose orientation follows the gameplay camera for stable stereo placement.</summary>
-	[Export] public AudioListener3D AudioListener { get; set; }
-
-
 	public override void _Ready()
 	{
 		GD.Print("Main scene is ready");
-		if (AudioListener == null) GD.PushError("Main requires an explicitly wired AudioListener3D.");
-		else AudioListener.MakeCurrent();
-		_pcam = GetNode<Node3D>("PhantomCamera3D");
-		_pcam.Set("follow_mode", FollowModeNone);
-
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
 			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
@@ -48,68 +33,9 @@ public partial class Main : Node
 
 	private void OnPlayerSpawned(Player player)
 	{
-		GD.Print($"{player.Name} spawned. Setting camera target...");
 		// Spawning can report the same player more than once; rebind so each signal connects only once.
 		_player = player;
 		ScreenEffects?.Bind(player);
-		AudioListener?.MakeCurrent();
-		CenterCameraOnPlayer();
-		UpdateAudioListener();
-		_pcam.ResetPhysicsInterpolation();
-	}
-
-	public override void _Process(double delta)
-	{
-		if (!GodotObject.IsInstanceValid(_player))
-		{
-			return;
-		}
-
-		float rotationInput = Input.GetAxis("camera_rotate_left", "camera_rotate_right");
-		if (!Mathf.IsZeroApprox(rotationInput))
-		{
-			UpdateCameraRotation(rotationInput * CameraRotationSpeed * (float)delta);
-		}
-
-		float zoomInput = Input.GetAxis("camera_zoom_in", "camera_zoom_out");
-		if (GameCamera != null && !Mathf.IsZeroApprox(zoomInput))
-		{
-			// Orthographic zoom changes the visible area; moving the camera would not change scale.
-			GameCamera.Size = Mathf.Clamp(
-				GameCamera.Size + zoomInput * CameraZoomSpeed * (float)delta,
-				CameraMinSize, CameraMaxSize);
-		}
-
-		CenterCameraOnPlayer();
-		UpdateAudioListener();
-	}
-
-	private void UpdateAudioListener()
-	{
-		if (AudioListener == null || !GodotObject.IsInstanceValid(_player) || GameCamera == null) return;
-		AudioListener.GlobalTransform = new Transform3D(GameCamera.GlobalBasis, _player.GlobalPosition + Vector3.Up * 1.4f);
-	}
-
-	private void CenterCameraOnPlayer()
-	{
-		Basis basis = _pcam.GlobalTransform.Basis.Orthonormalized();
-		Vector3 offset = basis.Z * (float)_pcam.Get("follow_distance");
-		_pcam.GlobalTransform = new Transform3D(basis, _player.GlobalPosition + offset);
-	}
-
-	private void UpdateCameraRotation(float yawDelta)
-	{
-		if (!GodotObject.IsInstanceValid(_player))
-		{
-			return;
-		}
-
-		var rotation = new Basis(Vector3.Up, yawDelta);
-		Basis basis = (rotation * _pcam.GlobalTransform.Basis).Orthonormalized();
-		Vector3 offset = rotation * (_pcam.GlobalPosition - _player.GlobalPosition);
-		_pcam.GlobalTransform = new Transform3D(
-			basis,
-			_player.GlobalPosition + offset);
 	}
 
 	public override void _UnhandledInput(InputEvent @event)

@@ -1,11 +1,8 @@
-[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="1_profile"]
 
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_attack.tres" id="attack_strategy"]
-[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_ring.tres" id="movement_strategy"]
-
-[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_combat.tres" id="combat"]
 
 [resource]
 script = ExtResource("1_profile")
@@ -24,7 +21,4 @@ StandingUpActionDuration = 2.33
 HitActionDuration = 0.35
 DyingActionDuration = 2.0
 
-MovementStrategy = ExtResource("movement_strategy")
-AttackStrategy = ExtResource("attack_strategy")
-
-TacticalStrategy = ExtResource("tactics")
+Combat = ExtResource("combat")

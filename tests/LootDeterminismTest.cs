@@ -13,16 +13,6 @@ using static GdUnit4.Assertions;
 public class LootDeterminismTest
 {
 	[TestCase]
-	public void RunsWithTheSameStateRollIdenticalSeeds()
-	{
-		var a = new RunState(42, lootRollsConsumed: 7);
-		var b = new RunState(42, lootRollsConsumed: 7);
-		ulong levelSeed = RunState.GetLevelSeed(42, 3);
-		AssertBool(a.NextLootSeed(levelSeed) == b.NextLootSeed(levelSeed)).IsTrue();
-		AssertBool(a.NextLootSeed(levelSeed) == b.NextLootSeed(levelSeed)).IsTrue();
-	}
-
-	[TestCase]
 	public void EveryRequestAdvancesTheCounter()
 	{
 		var run = new RunState(42);

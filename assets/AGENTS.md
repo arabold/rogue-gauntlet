@@ -142,6 +142,8 @@ When authoring smaller or larger monsters on a shared rig (e.g., Goblins at `0.7
 5. **Import into Godot** so `.glb/.gltf/.png/.svg/.ogg/.wav` get import caches + UIDs:
    `.agents/skills/godot-mcp/scripts/godot.sh --headless --path "$PWD" --import`
    (run from the project/worktree root, not from `assets/`).
+   For a KayKit pack, first point each model's `import_script/path` at `res://assets/kaykit_matte_import.gd`: KayKit
+   exports stone and wood semi-glossy, and the script imports non-metal surfaces matte like the rest of the world.
 6. **Compile + smoke check:** `/usr/local/share/dotnet/dotnet build "Rogue Gauntlet.sln"`, then
    validate a sample model loads (`scripts/inspect_resource.gd`) or boot `res://scenes/main/main.tscn`.
 7. **For a new creator only:** do the in-engine visual side-by-side and attach a screenshot.

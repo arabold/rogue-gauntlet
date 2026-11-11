@@ -121,29 +121,6 @@ public partial class CombatDefenseTest
 	}
 
 	[TestCase]
-	public void DodgeInitialStateIsIdleAndReady()
-	{
-		var (_, _, _, gate, dodge, _) = CreateDodgeActor();
-		AssertBool(dodge.IsDodging).IsFalse();
-		AssertFloat(dodge.CooldownRemaining).IsEqual(0f);
-		AssertBool(gate.IsBusy).IsFalse();
-	}
-
-	[TestCase]
-	public void DodgeAcquiresGateAndStartsDisplacement()
-	{
-		var (_, movement, _, gate, dodge, _) = CreateDodgeActor();
-		var result = dodge.TryDodge(new Vector3(0, 0, -1));
-
-		AssertInt((int)result).IsEqual((int)DefenseRequestResult.Success);
-		AssertBool(dodge.IsDodging).IsTrue();
-		AssertBool(gate.IsBusy).IsTrue();
-		AssertInt((int)gate.CurrentKind).IsEqual((int)ActorActionKind.Dodge);
-		AssertInt((int)gate.CurrentPhase).IsEqual((int)ActorActionPhase.Active);
-		AssertBool(movement.HasOverrideVelocity).IsTrue();
-	}
-
-	[TestCase]
 	public void StartupCorrectionChangesHeadingWithoutRestartingTheAction()
 	{
 		var (actor, movement, _, gate, dodge, _) = CreateDodgeActor();
@@ -302,8 +279,9 @@ public partial class CombatDefenseTest
 		AssertInt((int)dodge.TryDodge(Vector3.Forward)).IsEqual((int)DefenseRequestResult.Success);
 	}
 
+	/// <summary>An evasion inside the perfect window refunds the dodge's charge, once; a later evasion keeps it spent.</summary>
 	[TestCase]
-	public void PerfectDodgeRefundsItsChargeOnce()
+	public void OnlyAPerfectDodgeRefundsItsChargeAndOnlyOnce()
 	{
 		var (_, _, hurtbox, _, dodge, _) = CreateDodgeActor(d => Charges(d));
 		dodge.TryDodge(Vector3.Forward);
@@ -315,16 +293,12 @@ public partial class CombatDefenseTest
 		// A second evasion in the same dodge refunds nothing more.
 		AssertInt((int)hurtbox.ResolveDamage(DodgeableContact()).Outcome).IsEqual((int)DamageOutcome.Dodged);
 		AssertInt(dodge.ChargesRemaining).IsEqual(2);
-	}
 
-	[TestCase]
-	public void LateEvasionKeepsTheSpentCharge()
-	{
-		var (_, _, hurtbox, _, dodge, _) = CreateDodgeActor(d => Charges(d));
-		dodge.TryDodge(Vector3.Forward);
-		dodge._PhysicsProcess(0.15);
-		AssertInt((int)hurtbox.ResolveDamage(DodgeableContact()).Outcome).IsEqual((int)DamageOutcome.Dodged);
-		AssertInt(dodge.ChargesRemaining).IsEqual(1);
+		var (_, _, lateHurtbox, _, lateDodge, _) = CreateDodgeActor(d => Charges(d));
+		lateDodge.TryDodge(Vector3.Forward);
+		lateDodge._PhysicsProcess(0.15);
+		AssertInt((int)lateHurtbox.ResolveDamage(DodgeableContact()).Outcome).IsEqual((int)DamageOutcome.Dodged);
+		AssertInt(lateDodge.ChargesRemaining).IsEqual(1);
 	}
 
 	[TestCase]
@@ -340,11 +314,15 @@ public partial class CombatDefenseTest
 		AssertFloat(dodge.RechargeRemaining).IsEqual(0);
 	}
 
+	/// <summary>A dodge owns the action gate through its travel and recovery, then hands it back.</summary>
 	[TestCase]
-	public void DodgeCompletesThroughRecoveryAndReleasesGate()
+	public void DodgeHoldsTheGateThroughTravelAndRecoveryThenReleasesIt()
 	{
-		var (_, movement, _, gate, dodge, _) = CreateDodgeActor();
-		dodge.TryDodge(new Vector3(0, 0, -1));
+		var (_, _, _, gate, dodge, _) = CreateDodgeActor();
+		AssertInt((int)dodge.TryDodge(new Vector3(0, 0, -1))).IsEqual((int)DefenseRequestResult.Success);
+		AssertBool(dodge.IsDodging).IsTrue();
+		AssertInt((int)gate.CurrentKind).IsEqual((int)ActorActionKind.Dodge);
+		AssertInt((int)gate.CurrentPhase).IsEqual((int)ActorActionPhase.Active);
 
 		// Advance past travel into recovery
 		dodge._PhysicsProcess(0.22f);
@@ -354,15 +332,6 @@ public partial class CombatDefenseTest
 		// Advance past recovery
 		dodge._PhysicsProcess(0.10f);
 		AssertBool(dodge.IsDodging).IsFalse();
-		AssertBool(gate.IsBusy).IsFalse();
-	}
-
-	[TestCase]
-	public void GuardInitialStateIsIdleAndReady()
-	{
-		var (_, _, _, gate, guard, _) = CreateGuardActor();
-		AssertBool(guard.IsGuarding).IsFalse();
-		AssertFloat(guard.ParryRearmRemaining).IsEqual(0f);
 		AssertBool(gate.IsBusy).IsFalse();
 	}
 
@@ -406,8 +375,10 @@ public partial class CombatDefenseTest
 		AssertFloat(health.CurrentHealth).IsEqual(90f);
 	}
 
-	[TestCase]
-	public void FlankAttackAt90DegreesBypassesGuard()
+	/// <summary>A guard covers only its frontal sector: attacks from the flank (90°) or the rear land in full.</summary>
+	[TestCase(-1f, 0f)]
+	[TestCase(0f, -1f)]
+	public void FlankAndRearAttacksBypassAFrontalGuard(float x, float z)
 	{
 		var (_, _, hurtbox, _, guard, health) = CreateGuardActor();
 		guard.TryBeginGuard(new Vector3(0, 0, -1));
@@ -416,34 +387,14 @@ public partial class CombatDefenseTest
 		var context = new DamageContext
 		{
 			Amount = 40f,
-			IncomingDirection = new Vector3(-1, 0, 0), // 90 degrees flank
+			IncomingDirection = new Vector3(x, 0, z),
 			Faction = DamageSourceFlags.Enemy,
 			DefenseTraits = AttackDefenseTraits.Guardable
 		};
 
 		var res = hurtbox.ResolveDamage(context);
 		AssertInt((int)res.Outcome).IsEqual((int)DamageOutcome.Damaged);
-		AssertFloat(health.CurrentHealth).IsEqual(60f); // Full 40 damage!
-	}
-
-	[TestCase]
-	public void RearAttackBypassesGuard()
-	{
-		var (_, _, hurtbox, _, guard, health) = CreateGuardActor();
-		guard.TryBeginGuard(new Vector3(0, 0, -1));
-		guard._PhysicsProcess(0.25f);
-
-		var context = new DamageContext
-		{
-			Amount = 40f,
-			IncomingDirection = new Vector3(0, 0, -1), // Arriving from rear (180 deg)
-			Faction = DamageSourceFlags.Enemy,
-			DefenseTraits = AttackDefenseTraits.Guardable
-		};
-
-		var res = hurtbox.ResolveDamage(context);
-		AssertInt((int)res.Outcome).IsEqual((int)DamageOutcome.Damaged);
-		AssertFloat(health.CurrentHealth).IsEqual(60f); // Full 40 damage!
+		AssertFloat(health.CurrentHealth).IsEqual(60f);
 	}
 
 	[TestCase]

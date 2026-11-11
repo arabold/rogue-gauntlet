@@ -5,34 +5,39 @@ public partial class ActiveBuff : Node
 {
 	[Signal] public delegate void BuffExpiredEventHandler(ActiveBuff buff);
 
-	public Player Player { get; private set; }
+	public IBuffTarget Target { get; private set; }
 	public Buff Buff { get; private set; }
 	public object Source { get; private set; }
+	/// <summary>The refresh identity this activation was applied under; empty for stacking buffs.</summary>
+	public string StackKey { get; private set; } = "";
 	public double RemainingDuration { get; private set; }
 	public double TickProgress => _tickAccumulator;
 
 	/// <summary>A non-positive duration means the buff lasts until it is explicitly removed.</summary>
-	public bool IsPermanent => Buff.Duration <= 0;
+	public bool IsPermanent => _isPermanent;
 	public bool IsExpired => !IsPermanent && RemainingDuration <= 0;
 
 	private double _tickAccumulator = 0;
 	private bool _removed;
+	private bool _isPermanent;
 
 	public override void _Ready() => UpdateProcessing();
 
-	public void Initialize(Player player, Buff buff)
+	public void Initialize(IBuffTarget target, Buff buff)
 	{
-		Player = player;
+		Target = target;
 		Buff = buff;
+		StackKey = buff.RefreshKey;
+		_isPermanent = buff.Duration <= 0;
 		RemainingDuration = buff.Duration;
 
 		Buff.OnApply(this);
 	}
 
 	/// <summary>Refreshes a condition activation without disturbing other sources.</summary>
-	public void RefreshStatus(float duration)
+	public void Refresh(float duration)
 	{
-		Buff.Duration = duration;
+		_isPermanent = duration <= 0;
 		RemainingDuration = duration;
 		if (IsInsideTree()) UpdateProcessing();
 	}
@@ -41,6 +46,7 @@ public partial class ActiveBuff : Node
 	public void RestoreClock(double remaining, double tickProgress)
 	{
 		RemainingDuration = remaining;
+		_isPermanent = Buff.Duration <= 0;
 		_tickAccumulator = tickProgress;
 	}
 
@@ -84,7 +90,8 @@ public partial class ActiveBuff : Node
 			_tickAccumulator += step;
 			while (_tickAccumulator >= interval)
 			{
-				periodicBuff.OnTick(Player);
+				periodicBuff.OnTick(Target);
+				if (_removed || Target?.Health?.IsDead == true) return;
 				_tickAccumulator -= interval;
 			}
 		}

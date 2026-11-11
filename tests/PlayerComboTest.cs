@@ -15,13 +15,13 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public partial class PlayerComboTest
 {
-	private const int Sword = 0, Axe = 1;
+	private const string Sword = "res://scenes/items/weapons/sword_common.tres", Axe = "res://scenes/items/weapons/axe_common.tres";
 
-	private static async Task<(ISceneRunner, CombatHarness)> Load(int weapon = Sword)
+	private static async Task<(ISceneRunner, CombatHarness)> Load(string weapon = Sword)
 	{
 		var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		AssertBool(harness.ExecuteCommand("equip", weapon, Vector3.Zero)).IsTrue();
+		AssertBool(harness.ExecuteCommand("equip", weapon)).IsTrue();
 		await Frames(runner, 2);
 		return (runner, harness);
 	}
@@ -59,6 +59,8 @@ public partial class PlayerComboTest
 			harness.Player.InputController.PushIntent(PlayerIntent.Primary);
 			await Until(runner, () => Attack(harness).ComboStep == 0, "the opener");
 			AssertString(Attack(harness).CurrentStyle.ToString()).IsEqual("sword.1h.slash");
+			float openerPoise = Attack(harness).CurrentAttack.PoiseDamage;
+			double openerDuration = Attack(harness).PerformDuration;
 
 			// A press during contact is buffered and cancels the opener's recovery as soon as it begins.
 			await PressPrimaryDuringContact(runner, harness, 0);
@@ -69,9 +71,10 @@ public partial class PlayerComboTest
 			await PressPrimaryDuringContact(runner, harness, 1);
 			await Until(runner, () => Attack(harness).ComboStep == 2, "the finisher");
 			AssertString(Attack(harness).CurrentStyle.ToString()).IsEqual("sword.1h.combo3");
-			var finisher = Attack(harness).CurrentAttack;
-			AssertFloat(finisher.PoiseDamage).IsEqualApprox(Attack(harness).PrimaryPoiseDamage * 1.8f, .001);
-			AssertFloat(Attack(harness).PerformDuration).IsEqualApprox(0.5 * 1.3, .001);
+			// The finisher scales the opener by its own step's authored poise and duration.
+			var step = ((Weapon)harness.Player.Inventory.EquippedItems[EquipmentSlot.WeaponHand].Item).PrimaryCombo.Steps[^1];
+			AssertFloat(Attack(harness).CurrentAttack.PoiseDamage).IsEqualApprox(openerPoise * step.PoiseDamageScale, .001);
+			AssertFloat(Attack(harness).PerformDuration).IsEqualApprox(openerDuration * step.DurationScale, .001);
 
 			// The finisher has no next step: its recovery plays out and the combo starts over.
 			harness.Player.InputController.PushIntent(PlayerIntent.Primary);
@@ -101,8 +104,9 @@ public partial class PlayerComboTest
 		}
 	}
 
+	/// <summary>Recovery yields only to a chain request (a fresh press) or a guard; a plain request is still busy.</summary>
 	[TestCase]
-	public async Task NoRecoveryCancelWithoutAFreshPress()
+	public async Task RecoveryYieldsOnlyToAFreshPressOrAGuard()
 	{
 		var (runner, harness) = await Load();
 		using (runner)
@@ -110,11 +114,15 @@ public partial class PlayerComboTest
 			AssertBool(harness.Player.ActionManager.TryPerformPrimary()).IsTrue();
 			await Until(runner, () => Attack(harness).Phase == ActorActionPhase.Recovery, "recovery");
 			AssertBool(Attack(harness).CanChainPrimary).IsTrue();
-			// Only the chain request may replace recovery; a plain request is still busy.
 			AssertBool(harness.Player.ActionManager.TryPerformPrimary()).IsFalse();
 			AssertBool(harness.Player.ActionManager.TryPerformSecondary()).IsFalse();
 			AssertBool(harness.Player.ActionManager.TryChainPrimary()).IsTrue();
 			AssertInt(Attack(harness).ComboStep).IsEqual(1);
+
+			await Until(runner, () => Attack(harness).Phase == ActorActionPhase.Recovery, "the follow-up's recovery");
+			AssertBool(harness.RequestHeroGuard(true)).IsTrue();
+			AssertBool(Attack(harness).IsAttacking).IsFalse();
+			AssertInt(Attack(harness).ComboStep).IsEqual(-1);
 		}
 	}
 
@@ -148,20 +156,6 @@ public partial class PlayerComboTest
 	}
 
 	[TestCase]
-	public async Task GuardCancelsPlayerRecovery()
-	{
-		var (runner, harness) = await Load();
-		using (runner)
-		{
-			AssertBool(harness.Player.ActionManager.TryPerformPrimary()).IsTrue();
-			await Until(runner, () => Attack(harness).Phase == ActorActionPhase.Recovery, "recovery");
-			AssertBool(harness.RequestHeroGuard(true)).IsTrue();
-			AssertBool(Attack(harness).IsAttacking).IsFalse();
-			AssertInt(Attack(harness).ComboStep).IsEqual(-1);
-		}
-	}
-
-	[TestCase]
 	public async Task SwitchingWeaponsRestartsTheCombo()
 	{
 		var (runner, harness) = await Load();
@@ -169,7 +163,7 @@ public partial class PlayerComboTest
 		{
 			AssertBool(harness.Player.ActionManager.TryPerformPrimary()).IsTrue();
 			await Until(runner, () => !harness.Player.IsPerformingAction, "the opener to end");
-			AssertBool(harness.ExecuteCommand("equip", Axe, Vector3.Zero)).IsTrue();
+			AssertBool(harness.ExecuteCommand("equip", Axe)).IsTrue();
 			await Frames(runner, 1);
 			AssertBool(harness.Player.ActionManager.TryPerformPrimary()).IsTrue();
 			AssertInt(Attack(harness).ComboStep).IsEqual(0);

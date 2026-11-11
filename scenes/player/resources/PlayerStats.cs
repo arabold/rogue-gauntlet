@@ -2,12 +2,12 @@ using Godot;
 using System.Collections.Generic;
 
 [GlobalClass]
-public partial class PlayerStats : ObservableResource
+public partial class PlayerStats : ObservableResource, IStatModifierTarget
 {
 	// Active stat modifiers contributed by buffs and equipped items, keyed by the object
 	// that registered them so each source can be reversed cleanly without float drift.
 	// Hand-local entries are a weapon's attack stats, which count only for attacks made with that weapon.
-	private readonly List<(object Source, StatModifier Modifier, bool HandLocal)> _modifiers = new();
+	private readonly StatModifierLedger _modifiers = new();
 
 	/// <summary>Registers a single modifier under <paramref name="source"/>.</summary>
 	public void AddModifier(object source, StatModifier modifier)
@@ -17,12 +17,17 @@ public partial class PlayerStats : ObservableResource
 			return;
 		}
 
-		_modifiers.Add((source, modifier, false));
+		_modifiers.Register(source, [modifier]);
 		EmitChanged();
 	}
 
 	/// <summary>Registers all non-null modifiers under <paramref name="source"/>.</summary>
-	public void AddModifiers(object source, IEnumerable<StatModifier> modifiers) => Register(source, modifiers, false);
+	public bool AddModifiers(object source, IEnumerable<StatModifier> modifiers)
+	{
+		if (!SupportsModifiers(modifiers)) return false;
+		Register(source, modifiers, false);
+		return true;
+	}
 
 	/// <summary>
 	/// Registers a worn weapon's modifiers. Its attack stats (damage range and crit chance) stay out of the character's
@@ -38,28 +43,25 @@ public partial class PlayerStats : ObservableResource
 			return;
 		}
 
-		bool added = false;
-		foreach (StatModifier modifier in modifiers)
-		{
-			if (modifier != null)
-			{
-				_modifiers.Add((source, modifier, isWeapon && IsAttackStat(modifier.Stat)));
-				added = true;
-			}
-		}
-
-		if (added)
+		if (_modifiers.Register(source, modifiers, isWeapon) > 0)
 		{
 			EmitChanged();
 		}
 	}
 
-	private static bool IsAttackStat(StatType stat) => stat is StatType.MinDamage or StatType.MaxDamage or StatType.CritChance;
+	public bool SupportsModifiers(IEnumerable<StatModifier> modifiers)
+	{
+		if (modifiers == null) return false;
+		foreach (var modifier in modifiers)
+			if (modifier?.IsValid != true) return false;
+		return true;
+	}
+
 
 	/// <summary>Removes every modifier registered under <paramref name="source"/>.</summary>
 	public void RemoveModifiersFrom(object source)
 	{
-		int removed = _modifiers.RemoveAll(entry => ReferenceEquals(entry.Source, source));
+		int removed = _modifiers.Remove(source);
 		if (removed > 0)
 		{
 			EmitChanged();
@@ -73,26 +75,7 @@ public partial class PlayerStats : ObservableResource
 	/// </summary>
 	private float ResolveStat(StatType stat, float baseValue, Weapon weapon = null)
 	{
-		float flat = 0f;
-		float percent = 0f;
-		foreach ((object source, StatModifier modifier, bool handLocal) in _modifiers)
-		{
-			if (modifier.Stat != stat || (handLocal && !ReferenceEquals(source, weapon)))
-			{
-				continue;
-			}
-
-			if (modifier.Op == ModifierOp.Percent)
-			{
-				percent += modifier.Value;
-			}
-			else
-			{
-				flat += modifier.Value;
-			}
-		}
-
-		return (baseValue + flat) * (1f + percent);
+		return _modifiers.Resolve(stat, baseValue, weapon);
 	}
 
 	// Rules that turn primary attributes into secondary stats. Null = no derivation.
@@ -153,14 +136,68 @@ public partial class PlayerStats : ObservableResource
 	public float MaxDamage => ResolveAttack(null).MaxDamage;
 	public float CritChance => ResolveAttack(null).CritChance;
 
+	/// <summary>Checks whether main and off-hand weapons form an eligible melee pair for dual-wield attacks.</summary>
+	public static bool IsEligibleMeleePair(Weapon main, Weapon offhand)
+	{
+		return main != null && !main.IsTwoHanded && main is not RangedWeapon
+			&& offhand != null && !offhand.IsTwoHanded && offhand is not RangedWeapon
+			&& offhand.OffhandDamageScale > 0f;
+	}
+
 	/// <summary>
-	/// Damage range and crit chance for an attack made with <paramref name="weapon"/>, or unarmed when null: the
-	/// character's stats with only that weapon's attack stats folded into the same sums.
+	/// Resolves the local min/max damage contributed by a weapon in a single pass without folding in character-wide base attributes or global modifiers.
 	/// </summary>
-	public AttackStats ResolveAttack(Weapon weapon) => new(
-		ResolveStat(StatType.MinDamage, BaseMinDamage + DamageFromAttributes, weapon),
-		ResolveStat(StatType.MaxDamage, BaseMaxDamage + DamageFromAttributes, weapon),
-		ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon));
+	private void ResolveWeaponDamageContribution(Weapon weapon, out float min, out float max)
+	{
+		if (weapon == null)
+		{
+			min = 0f;
+			max = 0f;
+			return;
+		}
+		float minFlat = 0f, minPercent = 0f;
+		float maxFlat = 0f, maxPercent = 0f;
+		foreach (var entry in _modifiers.Entries)
+		{
+			if (!ReferenceEquals(entry.Source, weapon)) continue;
+			var modifier = entry.Modifier;
+			if (modifier.Stat == StatType.MinDamage)
+			{
+				if (modifier.Op == ModifierOp.Percent) minPercent += modifier.Value;
+				else minFlat += modifier.Value;
+			}
+			else if (modifier.Stat == StatType.MaxDamage)
+			{
+				if (modifier.Op == ModifierOp.Percent) maxPercent += modifier.Value;
+				else maxFlat += modifier.Value;
+			}
+		}
+		min = minFlat * (1f + minPercent);
+		max = maxFlat * (1f + maxPercent);
+	}
+
+	/// <summary>
+	/// Damage range and crit chance for an attack made with <paramref name="weapon"/> (and optional paired
+	/// <paramref name="offhand"/> weapon), or unarmed when null: the character's stats with weapon attack stats
+	/// folded into the same sums.
+	/// </summary>
+	public AttackStats ResolveAttack(Weapon weapon, Weapon offhand = null)
+	{
+		float attrDamage = DamageFromAttributes;
+		float min = ResolveStat(StatType.MinDamage, BaseMinDamage + attrDamage, weapon);
+		float max = ResolveStat(StatType.MaxDamage, BaseMaxDamage + attrDamage, weapon);
+		float crit = ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon);
+
+		if (IsEligibleMeleePair(weapon, offhand))
+		{
+			float scale = offhand.OffhandDamageScale;
+			ResolveWeaponDamageContribution(offhand, out float offMin, out float offMax);
+			min += offMin * scale;
+			max += offMax * scale;
+		}
+
+		return new AttackStats(min, max, crit);
+	}
 
 	/// <summary>
 	/// The hit <paramref name="weapon"/> would deal wielded in place of the current weapon while granting
@@ -170,7 +207,7 @@ public partial class PlayerStats : ObservableResource
 	public AttackStats PreviewAttack(Weapon weapon, IEnumerable<StatModifier> modifiers)
 	{
 		var preview = CreateRuntimeCopy();
-		preview._modifiers.AddRange(_modifiers.FindAll(entry => entry.Source is not Weapon));
+		_modifiers.CopyTo(preview._modifiers, entry => entry.Source is not Weapon);
 		preview.AddWeaponModifiers(weapon, modifiers);
 		return preview.ResolveAttack(weapon);
 	}

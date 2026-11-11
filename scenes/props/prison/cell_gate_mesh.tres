@@ -3,12 +3,12 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xqjn6"]
 resource_name = "StoneDark"
 albedo_color = Color(0.35073838, 0.3784046, 0.39284027, 1)
-roughness = 0.5
+roughness = 0.85
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2kr8e"]
 resource_name = "Black"
 albedo_color = Color(0.15081395, 0.19666731, 0.21332152, 1)
-roughness = 0.5
+roughness = 0.85
 
 [resource]
 resource_name = "Barred cell gate"

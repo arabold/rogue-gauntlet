@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Shared blackboard and service references handed to every <see cref="IEnemyState"/>. It owns the
@@ -10,7 +11,7 @@ using System;
 /// <remarks>
 /// States read and mutate this context; the host <see cref="EnemyBehaviorComponent"/> ticks the
 /// throttle timers each physics frame and bridges the timed-action layer through
-/// <see cref="RequestAttack"/> so states never poke <c>CurrentAction</c> directly. Detection
+/// <see cref="RequestAction"/> so states never poke <c>CurrentAction</c> directly. Detection
 /// and locomotion themselves live in the perception/navigation components - this only coordinates
 /// them; see docs/level-design.md for the authoritative behavior description.
 /// </remarks>
@@ -23,13 +24,19 @@ public sealed class EnemyContext
 	// How often a monster waiting for an attack slot recomputes its ring point.
 	private const float RingRefreshInterval = 0.3f;
 
-	public CharacterBody3D Actor { get; }
+	private static readonly StringName EnemyGroup = "enemy";
+
+	/// <summary>The monster this context decides for; its required components are validated at spawn.</summary>
+	public EnemyBase Actor { get; }
 	public MovementComponent Movement { get; }
 	public PerceptionComponent Perception { get; }
 	public NavigationComponent Navigation { get; }
 	public EnemyBehaviorProfile Profile { get; }
+	public EnemyCombatProfile CombatProfile => Profile.Combat;
 	public EnemyTacticsState Tactics { get; } = new();
 	public EnemyTacticalSelector TacticalSelector { get; }
+	/// <summary>Cooldowns, condition memory and the per-frame evaluation of this actor's actions.</summary>
+	public MonsterActionRuntime Actions { get; }
 	private EnemyTacticalDecision? _lastDecision;
 	public string TacticalDecisionReason => _lastDecision?.Reason ?? "inactive";
 	public double Delta { get; private set; }
@@ -39,6 +46,10 @@ public sealed class EnemyContext
 	private ulong _sightFrame = ulong.MaxValue;
 	private Node3D _sightTarget;
 	private bool _sightResult;
+	private ulong _queryFrame = ulong.MaxValue;
+	private readonly Dictionary<Node3D, bool> _sight = [];
+	private readonly List<Node3D> _allies = [];
+	private bool _alliesCollected;
 	public float HorizontalTargetDistance
 	{
 		get
@@ -50,26 +61,91 @@ public sealed class EnemyContext
 		}
 	}
 
-	public Action RequestAttack { get; }
-
-	/// <summary>Degrees between the actor's facing and the horizontal direction to its target; 0 without a target.</summary>
-	public float AngleToTarget => Target == null ? 0 : Movement.LookAtDirection.HorizontalAngleTo(Target.GlobalPosition - Actor.GlobalPosition);
+	/// <summary>Bridge to the host's action layer, so states never poke <c>CurrentAction</c> directly.</summary>
+	public Action<MonsterActionFilter> RequestAction { get; }
 
 	/// <summary>Attack slots of the current target; null when the target lets every attacker strike.</summary>
 	public AttackSlotsComponent TargetSlots => (Target as IAttackSlotHost)?.AttackSlots;
 
-	/// <summary>Slots this actor's attack policy must take turns through; null when it opts out or the target has none.</summary>
-	public AttackSlotsComponent PolicySlots => Profile.AttackStrategy?.UsesAttackSlot == true ? TargetSlots : null;
+	/// <summary>The actor's latched health phase; 0 without a <see cref="HealthPhaseComponent"/>.</summary>
+	public int Phase => Actor.HealthPhases?.CurrentPhase ?? 0;
 
-	/// <summary>Whether this actor may start its attack now as far as the target's slots are concerned.</summary>
-	public bool CanTakeAttackSlot() => PolicySlots?.CanReserve(Actor, Profile.AttackStrategy.SlotKind) != false;
+	/// <summary>Whether this actor can reserve a turn of <paramref name="kind"/> against its target now.</summary>
+	public bool CanTakeSlot(AttackSlotKind kind) => TargetSlots?.CanReserve(Actor, kind) != false;
+
+	/// <summary>
+	/// Reserve a turn of <paramref name="kind"/>; a null kind or a target without slots needs none. The caller releases
+	/// the returned slots (without yielding) if its start fails afterwards.
+	/// </summary>
+	public bool TryReserveSlot(AttackSlotKind? kind, out AttackSlotsComponent slots)
+	{
+		slots = kind != null ? TargetSlots : null;
+		if (slots == null) return true;
+		if (slots.TryReserve(Actor, kind.Value)) return true;
+		slots = null;
+		return false;
+	}
+
+	/// <summary>Tell stateful tactics an attack was committed; rejected requests never reach them.</summary>
+	public void NotifyAttackAccepted(AttackIdentity identity)
+	{
+		TacticalSelector?.AttackAccepted(identity);
+		CombatProfile?.MovementStrategy?.AttackAccepted(this, identity);
+	}
 
 	/// <summary>The player currently being chased, or null when the enemy has no target.</summary>
 	private Node3D _target;
 	public Node3D Target
 	{
 		get => _target;
-		set { if (_target != value) { Tactics.ClearTarget(); TacticalSelector?.ClearTarget(); _lastDecision = null; _hasRingPoint = false; } _target = value; }
+		set
+		{
+			if (_target != value)
+			{
+				Tactics.ClearTarget();
+				TacticalSelector?.ClearTarget();
+				Actions.ClearTargetMemory();
+				_lastDecision = null;
+				_hasRingPoint = false;
+			}
+			_target = value;
+		}
+	}
+
+	/// <summary>Fellow living monsters in the scene, this actor included; collected once per physics frame.</summary>
+	public IReadOnlyList<Node3D> Allies
+	{
+		get
+		{
+			BeginQueryFrame();
+			if (_alliesCollected) return _allies;
+			_alliesCollected = true;
+			foreach (Node node in Actor.GetTree().GetNodesInGroup(EnemyGroup))
+				if (node is EnemyBase ally && !ally.IsDead && ally.IsInsideTree()) _allies.Add(ally);
+			return _allies;
+		}
+	}
+
+	/// <summary>Unobstructed sight to any node, raycast at most once per node per physics frame.</summary>
+	public bool CanSee(Node3D target)
+	{
+		if (!GodotObject.IsInstanceValid(target) || !target.IsInsideTree()) return false;
+		if (ReferenceEquals(target, Target)) return HasLineOfSightToTarget();
+		BeginQueryFrame();
+		if (_sight.TryGetValue(target, out bool visible)) return visible;
+		visible = WorldSight.IsClear(Actor.GetWorld3D(), Actor.GlobalPosition + Vector3.Up, target.GlobalPosition + Vector3.Up);
+		_sight[target] = visible;
+		return visible;
+	}
+
+	private void BeginQueryFrame()
+	{
+		ulong frame = Engine.GetPhysicsFrames();
+		if (frame == _queryFrame) return;
+		_queryFrame = frame;
+		_sight.Clear();
+		_allies.Clear();
+		_alliesCollected = false;
 	}
 
 	/// <summary>
@@ -87,12 +163,12 @@ public sealed class EnemyContext
 	private readonly Action<Player> _playerTargetAcquired;
 
 	public EnemyContext(
-		CharacterBody3D actor,
+		EnemyBase actor,
 		MovementComponent movement,
 		PerceptionComponent perception,
 		NavigationComponent navigation,
 		EnemyBehaviorProfile profile,
-		Action requestAttack,
+		Action<MonsterActionFilter> requestAction,
 		Action<Player> playerTargetAcquired = null)
 	{
 		Actor = actor;
@@ -100,20 +176,14 @@ public sealed class EnemyContext
 		Perception = perception;
 		Navigation = navigation;
 		Profile = profile;
-		TacticalSelector = profile.TacticalStrategy?.CreateRuntime();
-		RequestAttack = requestAttack;
+		TacticalSelector = profile.Combat?.TacticalStrategy?.CreateRuntime();
+		Actions = new MonsterActionRuntime(this);
+		RequestAction = requestAction;
 		_playerTargetAcquired = playerTargetAcquired;
 		HomePosition = actor.GlobalPosition;
 	}
 
-	/// <summary>
-	/// True when the enemy currently has an unobstructed line of sight to its target. Reuses the
-	/// perception line-of-sight test so ranged enemies do not fire through walls.
-	/// </summary>
-	/// <summary>
-	/// Sight to the current target, raycast at most once per physics frame: reach, attack and positioning checks
-	/// in one tick share the answer (raycasts see physics state as of the last step anyway).
-	/// </summary>
+	/// <summary>Reuses one perception ray result per physics frame for reach, attack and positioning checks.</summary>
 	public bool HasLineOfSightToTarget()
 	{
 		if (Target == null || !GodotObject.IsInstanceValid(Target)) return false;
@@ -135,6 +205,7 @@ public sealed class EnemyContext
 	{
 		Delta = delta;
 		TacticalSelector?.Tick(delta);
+		Actions.Tick(delta);
 		_ringRefresh.Tick(delta);
 		_scanCooldown.Tick(delta);
 		_reachabilityCooldown.Tick(delta);
@@ -224,27 +295,30 @@ public sealed class EnemyContext
 	/// <summary>Low-health movement temporarily overrides ordinary tactics after action commitment permits it.</summary>
 	public EnemyMovementIntent EvaluateMovement()
 	{
-		var retreat = Profile.RetreatCondition;
+		var retreat = CombatProfile.RetreatCondition;
 		if (retreat != null)
 		{
-			var health = (Actor as EnemyBase)?.HealthComponent;
-			float fraction = health != null && health.MaxHealth > 0 ? health.CurrentHealth / health.MaxHealth : 1;
-			if (Tactics.EvaluateLowHealth(Delta, fraction, Target != null, retreat.EnterHealthFraction,
+			if (Tactics.EvaluateLowHealth(Delta, Actor.HealthComponent.Fraction, Target != null, retreat.EnterHealthFraction,
 				retreat.ExitHealthFraction, retreat.MaximumDuration))
 				return HorizontalTargetDistance < retreat.DesiredDistance
 					? new(EnemyMovementGoal.Retreat, false, retreat.DesiredDistance) : new(EnemyMovementGoal.Hold, false);
 		}
-		return Profile.MovementStrategy.Evaluate(this);
+		return CombatProfile.MovementStrategy.Evaluate(this);
 	}
 
-	/// <summary>Resolve tactical priorities and navigation failure before submitting an ordinary attack request.</summary>
+	/// <summary>
+	/// Resolve tactical priorities and navigation, then request an action. Offensive actions are requested only when the
+	/// decision allows attacking, so retreating, fleeing and encircling monsters never attack; support actions always may.
+	/// </summary>
 	public void ExecuteTactics(EnemyMovementIntent? preference = null)
 	{
-		var decision = TacticalSelector.Select(preference ?? EvaluateMovement(), HorizontalTargetDistance, Profile.AttackStrategy.CanAttack(this));
+		// Whether the actor could attack instead only matters when a retreat is refused, so evaluate it only then.
+		var intent = preference ?? EvaluateMovement();
+		var decision = TacticalSelector.Select(intent, HorizontalTargetDistance, intent.Goal == EnemyMovementGoal.Retreat && Actions.CanActNow);
 		if (decision.Intent.Goal == EnemyMovementGoal.Retreat && !FollowRetreat())
-			decision = TacticalSelector.RetreatBlocked(Profile.AttackStrategy.CanAttack(this));
+			decision = TacticalSelector.RetreatBlocked(Actions.CanActNow);
 		// An approach that is already in reach (but not yet facing or eligible) holds and turns instead.
-		bool approaching = decision.Intent.Goal == EnemyMovementGoal.Approach && !Profile.AttackStrategy.IsInReach(this);
+		bool approaching = decision.Intent.Goal == EnemyMovementGoal.Approach && !Actions.IsPrimaryInReach;
 		if (approaching)
 		{
 			RecordTargetPosition();
@@ -261,7 +335,7 @@ public sealed class EnemyContext
 			if (CombatTrace.Enabled) CombatTrace.Write(Actor, "ai.tactical_decision", ("goal", decision.Intent.Goal.ToString()),
 				("reason", decision.Reason), ("allow_attack", decision.Intent.AllowAttack));
 		}
-		if (decision.Intent.AllowAttack) RequestAttack();
+		RequestAction(decision.Intent.AllowAttack ? MonsterActionFilter.All : MonsterActionFilter.SupportOnly);
 	}
 
 	/// <summary>Chase the target down its shared field. A stall only restarts progress tracking: the field updates as the target moves.</summary>
@@ -279,11 +353,11 @@ public sealed class EnemyContext
 	private void FollowEngagementRing(float distance, bool preferRear)
 	{
 		var slots = TargetSlots;
-		if (Target == null || slots == null || Profile.AttackStrategy == null) { Navigation.Stop(); return; }
+		if (Target == null || slots == null || Actions.PrimaryOffense?.ReservedSlot is not { } kind) { Navigation.Stop(); return; }
 		if (_ringRefresh.IsReady || !_hasRingPoint)
 		{
 			_ringRefresh.Start(RingRefreshInterval);
-			Vector3 ring = slots.GetRingPoint(Actor, Profile.AttackStrategy.SlotKind, distance, preferRear);
+			Vector3 ring = slots.GetRingPoint(Actor, kind, distance, preferRear);
 			_hasRingPoint = Navigation.TryFindTraversable(ring, distance, out _ringPoint);
 		}
 		if (!_hasRingPoint || !Navigation.MoveTo(_ringPoint) || Navigation.IsStuck) Navigation.Stop();

@@ -1,0 +1,6 @@
+[
+  { "Frame": 0, "Command": "move", "X": 1 },
+  { "Frame": 54, "Command": "move" },
+  { "Frame": 75, "Command": "dodge", "X": 1 },
+  { "Frame": 132, "Command": "move" }
+]

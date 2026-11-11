@@ -5,16 +5,6 @@ using System.Collections.Generic;
 /// <summary>Small shared controls for the visual workbenches, including playback and camera instructions.</summary>
 public static class EffectPreviewControls
 {
-	/// <summary>Add the shared arrangement, level, target-count and spell selectors.</summary>
-	public static void SpellSelectors(Container parent, DebugStage stage, IEnumerable<string> spells,
-		Action<int> setLevel, Action<int> setTargetCount, Action<int> selectSpell)
-	{
-		Row(parent, "Arrangement", Choice(stage.ArrangementNames, 0, stage.SetArrangement));
-		Row(parent, "Spell level", Choice(new[] { "1", "2", "3" }, 0, i => setLevel(i + 1)));
-		Row(parent, "Targets", Choice(new[] { "0", "1", "2", "3", "4", "5" }, 3, setTargetCount));
-		Row(parent, "Spell", Choice(spells, 0, selectSpell));
-	}
-
 	public static OptionButton Choice(IEnumerable<string> values, int selected, Action<int> callback)
 	{
 		var choice = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
@@ -37,15 +27,18 @@ public static class EffectPreviewControls
 		var choice = Choice(new[] { "Paused", "0.25×", "0.5×", "1×" }, 3, i => callback(speeds[i]));
 		Row(parent, "Playback", choice); return choice;
 	}
-	public static void CameraHelp(Container parent)
+	/// <summary>Orbit help and a button that returns the camera to the game's view of the subject.</summary>
+	public static void CameraControls(Container parent, EffectPreviewCamera camera)
 	{
 		parent.AddChild(new Label { Text = "Right-drag to orbit · wheel zoom\nCamera keys follow game bindings.", AutowrapMode = TextServer.AutowrapMode.WordSmart });
+		if (camera?.GameView != null) Button(parent, "Game view", camera.ApplyGameView);
 	}
-	/// <summary>Add the common bright/dark lighting toggle.</summary>
-	public static void DarkLighting(Container parent, WorldEnvironment lighting, DirectionalLight3D keyLight)
+	/// <summary>Add the lit/dark toggle, which darkens the scene's lighting exactly as a dark dungeon floor does.</summary>
+	public static CheckBox DarkLighting(Container parent, WorldLighting lighting)
 	{
-		var dark = new CheckBox { Text = "Dark lighting" };
-		dark.Toggled += enabled => { lighting.Environment.AmbientLightEnergy = enabled ? .06f : .65f; keyLight.LightEnergy = enabled ? .12f : .9f; };
+		var dark = new CheckBox { Text = "Dark level", ButtonPressed = lighting?.IsDark == true };
+		dark.Toggled += enabled => { if (lighting != null) lighting.IsDark = enabled; };
 		parent.AddChild(dark);
+		return dark;
 	}
 }

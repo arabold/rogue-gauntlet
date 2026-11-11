@@ -28,6 +28,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Signal] public delegate void HitReactedEventHandler(int reaction);
 
 	[Export] public HealthComponent HealthComponent { get; set; }
+	[Export] public BuffController Buffs { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
 	/// <summary>Optional hit-reaction meter. Unassigned keeps the poise-free rule: every damaging hit interrupts unless hyper-armored.</summary>
 	[Export] public PoiseComponent Poise { get; set; }
@@ -227,8 +228,33 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			reaction = ReactToHit(contact, poiseDamage);
 		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && HealthComponent?.IsDead != true)
 			MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
+		if (!isDefended && HealthComponent?.IsDead != true
+			&& contact.DeliveryKind is DamageDeliveryKind.DirectMelee or DamageDeliveryKind.Projectile)
+			ApplyOnHitStatuses(contact, random);
 
 		return isDefended ? Complete(defenseEval.Outcome, finalDamage) : Complete(DamageOutcome.Damaged, finalDamage);
+	}
+
+	/// <summary>Roll authored payloads only after damage has survived defenses, armor, shields and death.</summary>
+	private void ApplyOnHitStatuses(in DamageContext contact, RandomNumberGenerator random)
+	{
+		if (Buffs == null || contact.OnHitStatuses == null) return;
+		foreach (var status in contact.OnHitStatuses)
+		{
+			if (status?.Effect == null) continue;
+			float roll = status.Chance >= 1 ? 0 : random?.Randf() ?? 1;
+			bool chancePassed = status.Chance >= 1 || (random != null && roll < status.Chance);
+			BuffApplication application = chancePassed
+				? Buffs.ApplyBuff(status.Effect)
+				: BuffApplication.Rejected;
+			if (CombatTrace.Enabled)
+				CombatTrace.Write(this, "status.resolved", ("execution_source", contact.ExecutionId.SourceInstanceId),
+					("execution", contact.ExecutionId.Sequence),
+					("key", status.Effect.RefreshKey), ("chance", status.Chance), ("roll", roll),
+					("chance_passed", chancePassed),
+					("applied", application is BuffApplication.Applied or BuffApplication.Refreshed),
+					("result", application.ToString()));
+		}
 	}
 
 	/// <summary>The actor's facing: its movement's look direction, or the hurtbox's own forward without one.</summary>

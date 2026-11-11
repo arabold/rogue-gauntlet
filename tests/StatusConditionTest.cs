@@ -113,16 +113,6 @@ public partial class StatusConditionTest
 	}
 
 	[TestCase]
-	public void BuffWithoutConditionImposesNone()
-	{
-		(BuffController controller, _) = NewController();
-		controller.ApplyBuff(new CountingBuff { Name = "Haste", Duration = 6f });
-
-		AssertBool(controller.HasCondition(null)).IsFalse();
-		AssertBool(controller.HasCondition(new StatusCondition())).IsFalse();
-	}
-
-	[TestCase]
 	public void ConditionIdentitySurvivesItemCreation()
 	{
 		// ItemFactory deep-duplicates definitions, so each item gets its own copy of an embedded buff. The

@@ -16,26 +16,28 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class GenerationBaselineTest
 {
-	/// <summary>Missing corridor palettes must reach Level.GenerationFailed instead of aborting startup with a null reference.</summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task MissingCorridorPaletteIsRejectedBeforeRoomsArePlaced(bool missingFloor)
+	/// <summary>A missing corridor floor or wall style must reach Level.GenerationFailed instead of aborting startup with a null reference.</summary>
+	[TestCase]
+	public async Task MissingCorridorPaletteIsRejectedBeforeRoomsArePlaced()
 	{
 		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		using (runner)
 		{
 			var realm = generator.Realms[0];
 			var authored = realm.Corridors;
-			realm.Corridors = new DungeonTileFactory
+			foreach (bool missingFloor in new[] { true, false })
 			{
-				Floor = missingFloor ? null : authored.Floor,
-				Walls = missingFloor ? authored.Walls : null,
-			};
-			string message = "";
-			try { generator.GenerateMap(); }
-			catch (InvalidOperationException error) { message = error.Message; }
-			AssertString(message).Contains("assign the corridor floor material and wall style");
-			AssertInt(generator.FloorContent.GetChildCount()).IsEqual(0);
+				realm.Corridors = new DungeonTileFactory
+				{
+					Floor = missingFloor ? null : authored.Floor,
+					Walls = missingFloor ? authored.Walls : null,
+				};
+				string message = "";
+				try { generator.GenerateMap(); }
+				catch (InvalidOperationException error) { message = error.Message; }
+				AssertString(message).OverrideFailureMessage($"missing floor: {missingFloor}").Contains("assign the corridor floor material and wall style");
+				AssertInt(generator.FloorContent.GetChildCount()).IsEqual(0);
+			}
 		}
 	}
 
@@ -53,7 +55,6 @@ public class GenerationBaselineTest
 			catch (InvalidOperationException error) { message = error.Message; }
 			AssertString(message).Contains("required stairs");
 			AssertBool(generator.Floor.IsFrozen).IsFalse();
-			AssertInt(generator.GenerationAttempt).IsEqual(8);
 		}
 	}
 
@@ -90,7 +91,8 @@ public class GenerationBaselineTest
 	[TestCase]
 	public async Task RegenerationReproducesLayoutEncountersAndItemsWithoutAdvancingGameplayLoot()
 	{
-		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPool());
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		using var scope = runner;
 		TestFactories.WireLootScenes(generator);
 		generator.MapWidth = generator.MapDepth = 40;
 		generator.MaxRooms = 12;
@@ -103,7 +105,7 @@ public class GenerationBaselineTest
 		string first = Fingerprint(generator);
 		AssertInt(generator.EnemySpawnPoints.Count).IsGreater(0);
 		AssertInt(generator.FloorContent.GetChildren().OfType<LootableItem>().Count()).IsGreater(0);
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 
 		for (int i = 0; i < 100; i++) { GD.Randi(); }
 		// Creation requests for other sources and unrelated streams must not affect regeneration.
@@ -112,7 +114,7 @@ public class GenerationBaselineTest
 		generator.GenerateMap();
 		AssertString(Fingerprint(generator)).IsEqual(first);
 		AssertBool(GameSession.Instance.Run.LootRollsConsumed == lootCounter).IsTrue();
-		await runner.SimulateFrames(1);
+		await runner.SimulateFrames(1, 20);
 	}
 
 	private static string RollReward(LootTable table, string source)

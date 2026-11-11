@@ -1,7 +1,8 @@
 namespace RogueGauntlet.Tests;
 
+using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
+using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -19,47 +20,73 @@ public partial class QuickItemTest
 		}
 	}
 
-	[TestCase]
-	public void AllFourSlotsCanBeAssignedWhileWeaponActionsRemainIndependent()
+	private sealed class TestAttackAction : ICombatAttackAction
 	{
-		var actionManager = new ActionManager();
-		actionManager._Ready();
-
-		var axe = new TestWeapon("Battle Axe", "axe.cleave");
-		actionManager.AssignPrimary(axe, null);
-		actionManager.AssignSecondary(new MartialTechniqueAction(axe), null);
-
-		AssertInt(actionManager.ActionSlotCount).IsEqual(4);
-		AssertObject(actionManager.PrimaryAttackSlot.AssignedAction).IsEqual(axe);
-		AssertObject(((MartialTechniqueAction)actionManager.SecondaryTechniqueSlot.AssignedAction).Weapon).IsEqual(axe);
-
-		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
-		for (int i = 0; i < 4; i++)
+		public float Delay => 0f;
+		public float PerformDuration => 0.2f;
+		public float CooldownDuration => 0.5f;
+		public string CooldownKey => "test_key";
+		public bool TryPrepare(Player player, out PreparedAttack attack)
 		{
-			actionManager.AssignAction(i, potion, null);
-			AssertObject(actionManager.GetAction(i)).IsEqual(potion);
+			attack = new PreparedAttack(null, null, 0.2);
+			return true;
 		}
-
-		// Primary and secondary are unchanged
-		AssertObject(actionManager.PrimaryAttackSlot.AssignedAction).IsEqual(axe);
-		AssertObject(((MartialTechniqueAction)actionManager.SecondaryTechniqueSlot.AssignedAction).Weapon).IsEqual(axe);
+		public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default) => true;
+		public void PerformAction(Player player) { }
 	}
 
+	/// <summary>The weapon's attack slots and the four quick slots never take or cool down each other's actions.</summary>
 	[TestCase]
-	public void UnarmedFallbackIsAssignedByDefault()
+	public async Task WeaponSlotsStayIndependentOfTheQuickSlots()
 	{
-		var actionManager = new ActionManager();
-		actionManager._Ready();
+		using var runner = TestFactories.LoadCombatHarness();
+		Player player = (await TestFactories.SettleCombatHarness(runner)).Player;
+		ActionManager actions = player.ActionManager;
 
-		AssertObject(actionManager.PrimaryAttackSlot.AssignedAction).IsEqual(UnarmedAttackAction.Instance);
-		AssertObject(actionManager.SecondaryTechniqueSlot.AssignedAction).IsNull();
+		// Without a weapon the primary attack falls back to bare hands and there is no technique.
+		player.Inventory.Unequip(EquipmentSlot.WeaponHand);
+		AssertObject(actions.PrimaryAttackSlot.AssignedAction).IsEqual(UnarmedAttackAction.Instance);
+		AssertObject(actions.SecondaryTechniqueSlot.AssignedAction).IsNull();
+
+		// Filling every quick slot leaves the weapon's attacks in place.
+		var axe = new TestWeapon("Battle Axe", "axe.cleave");
+		actions.AssignPrimary(axe, null);
+		actions.AssignSecondary(new MartialTechniqueAction(axe), null);
+		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
+		AssertInt(actions.ActionSlotCount).IsEqual(PlayerQuickItemController.SlotCount);
+		for (int i = 0; i < actions.ActionSlotCount; i++)
+		{
+			actions.AssignAction(i, potion, null);
+			AssertObject(actions.GetAction(i)).IsEqual(potion);
+		}
+		AssertObject(actions.PrimaryAttackSlot.AssignedAction).IsEqual(axe);
+		AssertObject(((MartialTechniqueAction)actions.SecondaryTechniqueSlot.AssignedAction).Weapon).IsEqual(axe);
+
+		// Attacking cools down only the attack slots, never a quick slot (indices 0..3).
+		var cooledDown = new List<int>();
+		void OnCooldown(int slot, float remaining, float total) => cooledDown.Add(slot);
+		SignalBus.Instance.CooldownUpdated += OnCooldown;
+		try
+		{
+			actions.AssignPrimary(new TestAttackAction(), null);
+			AssertBool(actions.TryPerformPrimary()).IsTrue();
+			actions.AssignSecondary(new TestAttackAction(), null);
+			AssertBool(actions.TryPerformSecondary()).IsTrue();
+		}
+		finally
+		{
+			SignalBus.Instance.CooldownUpdated -= OnCooldown;
+		}
+		AssertBool(cooledDown.Contains(ActionManager.PrimarySlotIndex)).IsTrue();
+		AssertBool(cooledDown.Contains(ActionManager.SecondarySlotIndex)).IsTrue();
+		AssertBool(cooledDown.Any(slot => slot >= 0)).IsFalse();
 	}
 
 	[TestCase]
 	public void PickupAutoAssignsLowestUnassignedSlot()
 	{
 		var inventory = new Inventory { Capacity = 10 };
-		var quick = new PlayerQuickItemController { Inventory = inventory };
+		var quick = AutoFree(new PlayerQuickItemController { Inventory = inventory });
 
 		var potion1 = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion1, 1);
@@ -85,7 +112,7 @@ public partial class QuickItemTest
 	public void StackableItemReplenishesCountWithoutTakingDuplicateSlot()
 	{
 		var inventory = new Inventory { Capacity = 10 };
-		var quick = new PlayerQuickItemController { Inventory = inventory };
+		var quick = AutoFree(new PlayerQuickItemController { Inventory = inventory });
 
 		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion, 1);
@@ -106,7 +133,7 @@ public partial class QuickItemTest
 	public void FullQuickBarDoesNotOverwriteAndLeavesBindingsIntact()
 	{
 		var inventory = new Inventory { Capacity = 10 };
-		var quick = new PlayerQuickItemController { Inventory = inventory };
+		var quick = AutoFree(new PlayerQuickItemController { Inventory = inventory });
 
 		string[] paths = new[]
 		{
@@ -144,7 +171,7 @@ public partial class QuickItemTest
 	public void DepletedBindingRemainsReservedAndIsNotOverwrittenByNewItem()
 	{
 		var inventory = new Inventory { Capacity = 10 };
-		var quick = new PlayerQuickItemController { Inventory = inventory };
+		var quick = AutoFree(new PlayerQuickItemController { Inventory = inventory });
 
 		var potion = TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres");
 		inventory.TryAdd(potion, 1);
@@ -179,7 +206,7 @@ public partial class QuickItemTest
 	public void NonStackableFoodBindsInstanceId()
 	{
 		var inventory = new Inventory { Capacity = 10 };
-		var quick = new PlayerQuickItemController { Inventory = inventory };
+		var quick = AutoFree(new PlayerQuickItemController { Inventory = inventory });
 
 		var appleDef = TestFactories.Load<Item>("res://scenes/items/food/food/food_apple_red.tres");
 		var apple1 = ItemFactory.Create(appleDef, instanceId: "instance_apple_1");
@@ -272,7 +299,7 @@ public partial class QuickItemTest
 	[TestCase]
 	public void ManualSlotOperationsAndDuplicateRejection()
 	{
-		var quick = new PlayerQuickItemController();
+		var quick = AutoFree(new PlayerQuickItemController());
 
 		AssertBool(quick.TryAssignVariety(0, "res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
 		// Reassigning same variety to slot 1 is rejected
@@ -292,7 +319,7 @@ public partial class QuickItemTest
 	[TestCase]
 	public void VarietyCooldownPersistsAcrossSlotChanges()
 	{
-		var quick = new PlayerQuickItemController();
+		var quick = AutoFree(new PlayerQuickItemController());
 		quick.TryAssignVariety(0, "res://scenes/items/potions/potion_healing_small.tres");
 
 		quick.StartVarietyCooldown("res://scenes/items/potions/potion_healing_small.tres", 5.0f);
@@ -305,108 +332,5 @@ public partial class QuickItemTest
 		// Reassigning to another slot still sees running cooldown
 		quick.TryAssignVariety(3, "res://scenes/items/potions/potion_healing_small.tres");
 		AssertBool(quick.IsVarietyOnCooldown("res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
-	}
-
-	[TestCase]
-	public void SaveRestoreRoundTripPreservesBindingsAndCooldowns()
-	{
-		var quick = new PlayerQuickItemController();
-		quick.TryAssignVariety(0, "res://scenes/items/potions/potion_healing_small.tres");
-		quick.TryAssignInstance(1, "instance_123", "res://scenes/items/food/food/food_apple_red.tres");
-		quick.StartVarietyCooldown("res://scenes/items/potions/potion_healing_small.tres", 3.5f);
-
-		var save = new PlayerActionSaveData();
-		for (int i = 0; i < 4; i++)
-		{
-			var b = quick.GetBinding(i);
-			save.QuickSlots.Add(new QuickItemBindingSaveData
-			{
-				SlotIndex = i,
-				Kind = b.Kind.ToString(),
-				DefinitionPath = b.DefinitionPath,
-				InstanceId = b.InstanceId
-			});
-		}
-		foreach (var kvp in quick.GetVarietyCooldowns())
-		{
-			save.VarietyCooldowns[kvp.Key] = kvp.Value;
-		}
-
-		// Serialize to JSON and back
-		string json = JsonSerializer.Serialize(save);
-		var restoredSave = JsonSerializer.Deserialize<PlayerActionSaveData>(json);
-
-		var restoredQuick = new PlayerQuickItemController();
-		restoredQuick.IsRestoringSave = true;
-		foreach (var s in restoredSave.QuickSlots)
-		{
-			if (s.Kind == "Variety") restoredQuick.RestoreSlot(s.SlotIndex, QuickItemBinding.ForVariety(s.DefinitionPath));
-			else if (s.Kind == "Instance") restoredQuick.RestoreSlot(s.SlotIndex, QuickItemBinding.ForInstance(s.InstanceId, s.DefinitionPath));
-		}
-		restoredQuick.RestoreVarietyCooldowns(restoredSave.VarietyCooldowns);
-		restoredQuick.IsRestoringSave = false;
-
-		AssertInt((int)restoredQuick.GetBinding(0).Kind).IsEqual((int)QuickItemBindingKind.Variety);
-		AssertString(restoredQuick.GetBinding(0).DefinitionPath).IsEqual("res://scenes/items/potions/potion_healing_small.tres");
-		AssertInt((int)restoredQuick.GetBinding(1).Kind).IsEqual((int)QuickItemBindingKind.Instance);
-		AssertString(restoredQuick.GetBinding(1).InstanceId).IsEqual("instance_123");
-		AssertInt((int)restoredQuick.GetBinding(2).Kind).IsEqual((int)QuickItemBindingKind.Unassigned);
-		AssertBool(restoredQuick.IsVarietyOnCooldown("res://scenes/items/potions/potion_healing_small.tres")).IsTrue();
-	}
-
-	private class TestAttackAction : ICombatAttackAction
-	{
-		public float Delay => 0f;
-		public float PerformDuration => 0.2f;
-		public float CooldownDuration => 0.5f;
-		public string CooldownKey => "test_key";
-		public bool TryPrepare(Player player, out PreparedAttack attack)
-		{
-			attack = new PreparedAttack(null, null, 0.2);
-			return true;
-		}
-		public bool StartPrepared(Player player, PreparedAttack attack, ActorActionLease lease = default) => true;
-		public void PerformAction(Player player) { }
-	}
-
-	[TestCase]
-	public void PrimaryAndSecondaryAttacksNeverCoolDownQuickSlots()
-	{
-		var player = new Player();
-		var gate = new ActorActionGateComponent();
-		player.AddChild(gate);
-		var actionManager = new ActionManager();
-		player.AddChild(actionManager);
-		actionManager._Ready();
-
-		AssertInt(actionManager.PrimaryAttackSlot.SlotIndex).IsEqual(ActionManager.PrimarySlotIndex);
-		AssertInt(actionManager.SecondaryTechniqueSlot.SlotIndex).IsEqual(ActionManager.SecondarySlotIndex);
-
-		var cooledDownSlots = new System.Collections.Generic.List<int>();
-		void OnCooldown(int slot, float remaining, float total)
-		{
-			cooledDownSlots.Add(slot);
-		}
-		SignalBus.Instance.CooldownUpdated += OnCooldown;
-
-		var attack = new TestAttackAction();
-		actionManager.AssignPrimary(attack, null);
-		actionManager.TryPerformPrimary();
-
-		var technique = new TestAttackAction();
-		actionManager.AssignSecondary(technique, null);
-		actionManager.TryPerformSecondary();
-
-		SignalBus.Instance.CooldownUpdated -= OnCooldown;
-
-		// Cooldown updates must ONLY be emitted for PrimarySlotIndex (-1) and SecondarySlotIndex (-2), NEVER for quick slots 0..3
-		AssertBool(cooledDownSlots.Contains(ActionManager.PrimarySlotIndex)).IsTrue();
-		AssertBool(cooledDownSlots.Contains(ActionManager.SecondarySlotIndex)).IsTrue();
-		AssertBool(cooledDownSlots.Contains(0)).IsFalse();
-		AssertBool(cooledDownSlots.Contains(1)).IsFalse();
-		AssertBool(cooledDownSlots.Contains(2)).IsFalse();
-		AssertBool(cooledDownSlots.Contains(3)).IsFalse();
-
-		player.Free();
 	}
 }

@@ -1,6 +1,6 @@
 # Magic missile
 
-**In progress.** Slices 1 and 2 are implemented: the flight contract is described in [weapon attacks](../weapon-attack-system.md), and every wand now fires a first-pass missile volley of its element. Slice 3, the finished look and acceptance, remains. Every wand's free primary attack becomes the same seeker volley of small homing missiles, tinted by the wand's element. The mana-costing spell on a wand's alternate attack and the wand/staff progression belong to the [magic rework plan](magic-rework-plan.md), which also gives staves a heavier volley; dual wielding is separate. This plan only replaces the wand primary. Current ranged attacks are described in [weapon attacks](../weapon-attack-system.md), poise and defenses in [combat](../combat-system.md), and the toon effect language in the [elemental spell plan](elemental-spells-plan.md#visual-direction).
+**In progress.** Slices 1 and 2 are implemented: the flight contract is described in [weapon attacks](../weapon-attack-system.md), and every wand now fires a first-pass missile volley of its element. Slice 3, the finished look and acceptance, remains. Every wand's free primary attack becomes the same seeker volley of small homing missiles, tinted by the wand's element. The mana-costing spell on a wand's alternate attack and the wand/staff progression belong to [weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves), which also gives staves a heavier volley; dual wielding is separate. This plan only replaces the wand primary. Current ranged attacks are described in [weapon attacks](../weapon-attack-system.md), poise and defenses in [combat](../combat-system.md), and the toon effect language in the [elemental spell plan](elemental-spells-plan.md#visual-direction).
 
 ## Gameplay rules
 
@@ -95,7 +95,7 @@ Projectile._PhysicsProcess
 
 - One shared `AttackDefinition` per element holds the values above, its element and projectile scene. The prepared attack duplicates it, so wands can share it.
 - One base projectile scene owns the hitbox, missile body, trail, garnish emitter and impact scene, in a neutral arcane palette. Four inherited scenes swap only the ramp, garnish particles and impact variant; `ScenePool` pools each separately. The impact reuses the `FireballImpact` driver for its flash, ring and spark burst, without scorch, ground layers or light.
-- Wands pick their element's shared definition through the [magic rework](magic-rework-plan.md)'s `MissileSet`, by their bound spell's element, and take the new cast timing.
+- Wands pick their element's shared definition through [weapon attacks](../weapon-attack-system.md#spell-weapons-wands-and-staves)'s `MissileSet`, by their bound spell's element, and take the new cast timing.
 - Staffs keep their current primaries until the wand/staff progression decides their role.
 
 ```text
@@ -109,7 +109,6 @@ Projectile._PhysicsProcess
 ~ scenes/items/weapons/wand.tres, wand/wand_ruby.tres, wand/wand_celestial.tres
 ~ scenes/debug/combat/combat_harness.tscn     wands in the hero weapon list
 + scenes/debug/combat/scenarios/magic_missile_practice.json
-+ scenes/debug/effects/                        magic missile workbench page
 + tests/ProjectileFlightTest.cs               steering, lock loss, ramp, pooled reset
 ~ tests/ (attack controller release tests), tests/ItemCatalogTest.cs
 ~ docs/weapon-attack-system.md, docs/combat-harness.md, docs/item-catalog.md   when delivered
@@ -121,7 +120,7 @@ Hybrid: the flight contract is the risky part (convergence at short range, pooli
 
 1. **Flight contract (done).** Add the exports, validation, `ProjectileFlight`, staggered release, release target, element override and projectile steering. Existing attacks keep their defaults and behave as before. Runtime tests with a fixed physics delta: turning never exceeds the rate per tick; a volley from each fan angle hits a stationary target from 2 to 16 m; lock is lost on a freed or dead target and on overshoot; no steering before the delay; the launch ramp's distance; a pooled projectile reused without a target flies straight; stagger releases at the expected times, a skipped tick releases every due missile, and cancellation releases no more; invalid flights are rejected without side effects.
 2. **Playable missile (done).** Author the four definitions, the base and element scenes with a first-pass look, the earth ramp and the rewired wands; add the fire and air wands to the combat harness and a practice scenario. Catalog test: every wand references a missile definition with homing and the element matching its `MagicElement`; a flight test checks that the authored fan edges reach a minion-sized target from 1.5 to 16 m. A hands-on Mage run in `main.tscn` and a wand-versus-crossbow comparison remain for the user; only the headless smoke test and harness scenario have exercised it.
-3. **Look and acceptance.** Add a workbench page that fires each element's production projectile scene, with moving targets, wall impacts, slow motion and dark lighting. Finish garnish, launch sparkle, rune flash and impacts. The first pass showed that water and air read as two similar blues, and that the staff muzzle burst dwarfs the darts. Review all four elements in bright and dark rooms, next to walls and in long held streams. Check the particle and draw budget with several casters on target hardware, then fold the delivered behavior into [weapon attacks](../weapon-attack-system.md) and remove this plan.
+3. **Look and acceptance.** Review each element's production volley in the combat harness: equip each wand from **Items**, fire at a ring of moving targets with walls, slow motion and **Dark level**. Finish garnish, launch sparkle, rune flash and impacts. The first pass showed that water and air read as two similar blues, and that the staff muzzle burst dwarfs the darts. Review all four elements in bright and dark rooms, next to walls and in long held streams. Check the particle and draw budget with several casters on target hardware, then fold the delivered behavior into [weapon attacks](../weapon-attack-system.md) and remove this plan.
 
 Each slice runs `dotnet build "Rogue Gauntlet.sln"`, its focused GdUnit4 tests with `GODOT_BIN` and `.runsettings`, and the [Godot workflow](../../.agents/skills/godot-mcp/SKILL.md) import and resource validation for new scenes and definitions. Visual quality and feel need manual acceptance; passing tests do not establish them.
 

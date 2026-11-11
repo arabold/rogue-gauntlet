@@ -19,6 +19,8 @@ public partial class SpellDefinition : Resource
 	[Export] public MagicElement Element { get; set; }
 	/// <summary>A self-contained scene whose root implements <see cref="ICombatSpell"/>.</summary>
 	[Export] public PackedScene SpellScene { get; set; }
+	/// <summary>Optional shared effect strategy assigned to the common effect spell scene.</summary>
+	[Export] public SpellEffect Effect { get; set; }
 	/// <summary>Mana per cast, one entry per level; the spell has as many levels as entries.</summary>
 	[Export] public float[] ManaCostByLevel { get; set; } = [];
 	/// <summary>Seconds before the secondary action can cast again; 0 leaves the spell limited by mana alone.</summary>
@@ -30,6 +32,7 @@ public partial class SpellDefinition : Resource
 
 	/// <summary>Whether the definition can cast at <paramref name="level"/>; the spell scene validates its own levels on cast.</summary>
 	public bool IsValidLevel(int level) => level >= 1 && level <= LevelCount && SpellScene != null && Cast != null
+		&& (Effect == null || level <= Effect.LevelCount)
 		&& float.IsFinite(ManaCostByLevel[level - 1]) && ManaCostByLevel[level - 1] >= 0 && float.IsFinite(Cooldown) && Cooldown >= 0;
 
 	public float ManaCost(int level) => ManaCostByLevel[level - 1];
@@ -56,6 +59,7 @@ public partial class SpellDefinition : Resource
 	public ICombatSpell Instantiate()
 	{
 		Node node = SpellScene?.Instantiate();
+		if (node is EffectSpell effectSpell) effectSpell.Effect = Effect;
 		if (node is ICombatSpell spell) return spell;
 		node?.Free();
 		return null;

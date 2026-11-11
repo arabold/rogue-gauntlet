@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="HeroBuildProfile" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/player/classes/HeroBuildProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/player/classes/HeroBuildItem.cs" id="item"]
+[ext_resource type="Resource" path="res://scenes/player/classes/class_barbarian.tres" id="class"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe_common.tres" id="res_0"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_health.tres" id="res_1"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="res_2"]
+
+[sub_resource type="Resource" id="Equipment_0"]
+script = ExtResource("item")
+Definition = ExtResource("res_0")
+Quality = 2
+
+[sub_resource type="Resource" id="Equipment_1"]
+script = ExtResource("item")
+Definition = ExtResource("res_1")
+Quality = 3
+Slot = 32
+
+[sub_resource type="Resource" id="Backpack_0"]
+script = ExtResource("item")
+Definition = ExtResource("res_2")
+Quantity = 2
+
+[resource]
+script = ExtResource("profile")
+DisplayName = "Barbarian: battleaxe"
+CharacterClass = ExtResource("class")
+Equipment = Array[ExtResource("item")]([SubResource("Equipment_0"), SubResource("Equipment_1")])
+Backpack = Array[ExtResource("item")]([SubResource("Backpack_0")])

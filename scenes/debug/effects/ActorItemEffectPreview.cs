@@ -3,20 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using static EffectPreviewControls;
 
-/// <summary>One subject and one production effect, with simple replay and viewing controls.</summary>
-public partial class ActorItemEffectPreview : Node3D
+/// <summary>One subject and one production effect, with simple replay and viewing controls, lit like the game.</summary>
+public partial class ActorItemEffectPreview : Node3D, ILitWorld
 {
 	[Export] public WorldEffectDefinition[] Effects { get; set; } = [];
 	[Export] public WorldEffectDefinition TeleportDeparture { get; set; }
 	[Export] public WorldEffectDefinition TeleportArrival { get; set; }
 	[Export] public Godot.Collections.Dictionary<string, PackedScene> Subjects { get; set; } = [];
 	[Export] public PackedScene ItemHostScene { get; set; }
-	[Export] public GridMap FloorTiles { get; set; }
 	[Export] public Node3D Stage { get; set; }
 	[Export] public Camera3D Camera { get; set; }
 	[Export] public Container Controls { get; set; }
-	[Export] public DirectionalLight3D KeyLight { get; set; }
-	[Export] public WorldEnvironment Lighting { get; set; }
+	/// <summary>The game's lighting; the stand-in hero light follows its darkness.</summary>
+	[Export] public WorldLighting Lighting { get; set; }
 	public int SelectedEffect { get; private set; } = 2;
 	public int SelectedSubject { get; private set; }
 	public string LastResult { get; private set; } = "";
@@ -35,7 +34,6 @@ public partial class ActorItemEffectPreview : Node3D
 	private float _speed = 1;
 	public override void _Ready()
 	{
-		DebugStage.PopulateFloor(FloorTiles);
 		BuildControls(); Rebuild();
 	}
 	private void BuildControls()
@@ -51,8 +49,8 @@ public partial class ActorItemEffectPreview : Node3D
 		Button(Controls, "Clear effect", ClearEffects);
 		_teleportButton = Button(Controls, "Preview full teleport", PreviewTeleport);
 		Playback(Controls, SetPlaybackSpeed);
-		var dark = new CheckBox { Text = "Dark lighting" }; dark.Toggled += SetDarkLighting; Controls.AddChild(dark);
-		CameraHelp(Controls);
+		DarkLighting(Controls, Lighting);
+		CameraControls(Controls, Camera as EffectPreviewCamera);
 		_status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart }; Controls.AddChild(_status);
 	}
 	public void SelectEffect(int index)
@@ -66,7 +64,6 @@ public partial class ActorItemEffectPreview : Node3D
 		SelectedSubject = index; _subjectSelection.Selected = index; Rebuild();
 	}
 	public void SetAnimation(int index) { _animation = Mathf.Clamp(index, 0, 2); PlayAnimations(); }
-	public void SetDarkLighting(bool dark) { Lighting.Environment.AmbientLightEnergy = dark ? .06f : .65f; KeyLight.LightEnergy = dark ? .12f : 1.2f; }
 	public void SetPlaybackSpeed(float speed)
 	{
 		_speed = Mathf.Clamp(speed, 0, 1);
@@ -108,8 +105,9 @@ public partial class ActorItemEffectPreview : Node3D
 	private void ApplySurfaceStyle()
 	{
 		if (_subject == null || !_facetChoice.Visible) return;
+		// Runtime meshes such as the dodge ribbon have no mesh while idle.
 		foreach (var mesh in _subject.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
-			for (int i = 0; i < mesh.Mesh.GetSurfaceCount(); i++)
+			for (int i = 0; i < (mesh.Mesh?.GetSurfaceCount() ?? 0); i++)
 				if (mesh.GetActiveMaterial(i) is ShaderMaterial material && material.GetShaderParameter("skin_kind").VariantType == Variant.Type.Int)
 				{ material.SetShaderParameter("faceted", _faceted); material.SetShaderParameter("polish", _polished ? 1f : 0f); }
 	}

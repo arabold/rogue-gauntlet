@@ -13,6 +13,8 @@ public partial class AreaDamageDefinition : Resource
 	[Export] public float[] PushByLevel { get; set; } = [];
 	/// <summary>Seconds between the visual's release and its contact, for delayed eruptions.</summary>
 	[Export(PropertyHint.Range, "0,10,0.05")] public float ContactDelay { get; set; }
+	/// <summary>Optional camera shake requested each time the area reaches a target.</summary>
+	[Export] public CameraShakeProfile CameraShake { get; set; }
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 	[Export] public DamageElement Element { get; set; }
 	public int LevelCount => System.Math.Min(SpellLevels.Max, System.Math.Min(RadiusByLevel?.Length ?? 0, DamageScaleByLevel?.Length ?? 0));
@@ -24,7 +26,8 @@ public partial class AreaDamageDefinition : Resource
 			&& float.IsFinite(RadiusByLevel[i]) && RadiusByLevel[i] > 0
 			&& float.IsFinite(DamageScaleByLevel[i]) && DamageScaleByLevel[i] > 0
 			&& (PushByLevel is not { Length: > 0 } || i < PushByLevel.Length && float.IsFinite(PushByLevel[i]) && PushByLevel[i] >= 0)
-			&& float.IsFinite(ContactDelay) && ContactDelay >= 0;
+			&& float.IsFinite(ContactDelay) && ContactDelay >= 0
+			&& CameraShake?.IsValid != false;
 	}
 
 	/// <summary>Damage per contact.</summary>
