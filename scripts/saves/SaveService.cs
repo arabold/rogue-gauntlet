@@ -10,7 +10,10 @@ public static class SaveService
 {
 	public const int SlotCount = 4;
 
-	private const string SaveDirectory = "user://saves";
+	/// <summary>Where the slots live; tests point it at a scratch folder so they never touch real saves.</summary>
+	internal static string SaveDirectory { get; set; } = "user://saves";
+	/// <summary>Suffix of the half-written file an atomic write replaces its slot with.</summary>
+	private const string TemporarySuffix = ".tmp";
 	private static readonly JsonSerializerOptions JsonOptions = new()
 	{
 		WriteIndented = true,
@@ -92,10 +95,32 @@ public static class SaveService
 		}
 	}
 
+	/// <summary>
+	/// Empties a slot, together with any half-written replacement. Permadeath's last resort when the fallen run cannot
+	/// be recorded over its playable save. An empty slot counts as deleted.
+	/// </summary>
+	public static bool Delete(int slotId)
+	{
+		string path = ProjectSettings.GlobalizePath(GetSlotPath(slotId));
+		try
+		{
+			foreach (string file in new[] { path + TemporarySuffix, path })
+			{
+				if (System.IO.File.Exists(file)) System.IO.File.Delete(file);
+			}
+			return true;
+		}
+		catch (Exception error)
+		{
+			GD.PushError($"Could not delete save slot {slotId}: {error.Message}");
+			return false;
+		}
+	}
+
 	/// <summary>Same-directory replacement keeps the last valid slot intact if preparation fails.</summary>
 	internal static void WriteAtomically(string absolutePath, string json)
 	{
-		string temporaryPath = absolutePath + ".tmp";
+		string temporaryPath = absolutePath + TemporarySuffix;
 		using (var stream = new System.IO.FileStream(temporaryPath, System.IO.FileMode.Create, System.IO.FileAccess.Write))
 		{
 			byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json);
@@ -117,7 +142,8 @@ public static class SaveService
 		return slots;
 	}
 
-	private static SaveSlotMetadata ToMetadata(int slotId, SaveGame saveGame)
+	/// <summary>Summarizes <paramref name="saveGame"/>, or an empty or unreadable slot when it is null.</summary>
+	public static SaveSlotMetadata ToMetadata(int slotId, SaveGame saveGame)
 	{
 		if (saveGame == null)
 		{
@@ -131,6 +157,7 @@ public static class SaveService
 			SlotId = slotId,
 			HasSave = true,
 			CanLoad = true,
+			Outcome = saveGame.Outcome,
 			RunId = saveGame.RunId,
 			CharacterClassId = saveGame.CharacterClassId,
 			SavedAtUtc = saveGame.SavedAtUtc,

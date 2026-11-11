@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public partial class MainMenu : Control
@@ -9,6 +10,9 @@ public partial class MainMenu : Control
 		NewGame,
 		LoadGame,
 	}
+
+	/// <summary>Shows the record of a slot whose hero has died, the same screen the death itself showed.</summary>
+	[Export] public DeathScreen DeathScreen { get; set; }
 
 	private Button _newGameButton;
 	private Button _loadGameButton;
@@ -22,6 +26,8 @@ public partial class MainMenu : Control
 	private CharacterPanel _characterPanel;
 	private Button[] _slotButtons;
 	private SlotMode _slotMode;
+	/// <summary>The slots as the panel last listed them, indexed by slot id - 1.</summary>
+	private IReadOnlyList<SaveSlotMetadata> _slots = [];
 	private int _pendingSlotId;
 
 	public override void _Ready()
@@ -60,6 +66,12 @@ public partial class MainMenu : Control
 			_menuPanel.Visible = true;
 			ShowNewGameSlots();
 		};
+		DeathScreen.Dismissed += () =>
+		{
+			DeathScreen.Close();
+			_menuPanel.Visible = true;
+			ShowLoadGameSlots();
+		};
 
 		for (int i = 0; i < _slotButtons.Length; i++)
 		{
@@ -96,7 +108,8 @@ public partial class MainMenu : Control
 	{
 		_mainButtons.Visible = false;
 		_slotPanel.Visible = true;
-		foreach (SaveSlotMetadata slot in SaveService.ListSlots())
+		_slots = SaveService.ListSlots();
+		foreach (SaveSlotMetadata slot in _slots)
 		{
 			Button button = _slotButtons[slot.SlotId - 1];
 			button.Text = FormatSlotLabel(slot);
@@ -120,16 +133,26 @@ public partial class MainMenu : Control
 
 	private void SelectSlot(int slotId)
 	{
+		SaveSlotMetadata slot = _slots[slotId - 1];
 		if (_slotMode == SlotMode.LoadGame)
 		{
+			// A fallen run cannot be continued; loading it shows how it ended.
+			if (slot.Outcome == RunOutcome.Died)
+			{
+				_menuPanel.Visible = false;
+				DeathScreen.Open(slot, ClassName(slot));
+				return;
+			}
 			GameSession.Instance.LoadGame(slotId);
 			return;
 		}
 
 		_pendingSlotId = slotId;
-		if (SaveService.HasSave(slotId))
+		if (slot.HasSave)
 		{
-			_overwriteDialog.DialogText = $"Slot {slotId} already has a game. Start a new game and overwrite it?";
+			_overwriteDialog.DialogText = slot.Outcome == RunOutcome.Died
+				? $"Slot {slotId} holds a fallen hero's record. Start a new game and overwrite it?"
+				: $"Slot {slotId} already has a game. Start a new game and overwrite it?";
 			_overwriteDialog.PopupCentered();
 			return;
 		}
@@ -154,12 +177,18 @@ public partial class MainMenu : Control
 			return $"Slot {slot.SlotId}\nEmpty";
 		}
 
-		string className = _characterPanel.Catalog?.FindById(slot.CharacterClassId)?.DisplayName;
+		string className = ClassName(slot);
 		string title = className != null ? $"Slot {slot.SlotId} - {className}" : $"Slot {slot.SlotId}";
+		if (slot.Outcome == RunOutcome.Died)
+		{
+			title += " (fallen)";
+		}
 		string savedAt = FormatSavedAt(slot.SavedAtUtc);
 		string playTime = TimeSpan.FromSeconds(slot.PlayTimeSeconds).ToString(@"h\:mm\:ss");
 		return $"{title}\nDepth {slot.DungeonDepth}  Level {slot.XpLevel}  Gold {slot.Gold}\n{playTime}  {savedAt}";
 	}
+
+	private string ClassName(SaveSlotMetadata slot) => _characterPanel.Catalog?.FindById(slot.CharacterClassId)?.DisplayName;
 
 	private static string FormatSavedAt(string savedAtUtc)
 	{

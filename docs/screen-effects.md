@@ -4,7 +4,7 @@ Full-screen status overlays such as blindness, poison and near death. Each effec
 
 ## Composition
 
-- `ScreenEffect` (`Control`) owns `Intensity` and `FadeTo`/`FadeIn`/`FadeOut`. At zero it hides itself, so an idle effect costs nothing. Its exported `Surface` is a full-rect `ColorRect` whose `ShaderMaterial` is local to scene, so each instance has its own parameters.
+- `ScreenEffect` (`Control`) owns `Intensity` and `FadeTo`/`FadeIn`/`FadeOut`. At zero it hides itself, so an idle effect costs nothing. `Motion` scales a shader's `motion` uniform (the near-death heartbeat); `StopMotion` fades it to zero and keeps the look, even while the game is paused, since shader time keeps running then. Its exported `Surface` is a full-rect `ColorRect` whose `ShaderMaterial` is local to scene, so each instance has its own parameters.
 - Each effect scene has a `BackBufferCopy` before its surface, so stacked effects see the output of the effects drawn before them.
 - `screen_effects.tscn` is a `CanvasLayer` with `layer = -1` and the `ScreenEffectsLayer` script. It draws over the 3D world but under the default canvas (HUD, menus), so the UI stays readable. The order is blindness → poison → near death.
 - Look parameters (tint, tilt, heartbeat rate, …) are shader uniforms. Tune them on each effect scene's material in the Inspector. Code only drives intensity and runtime context.
@@ -19,7 +19,7 @@ Full-screen status overlays such as blindness, poison and near death. Each effec
 
 `main.tscn` instances `screen_effects.tscn`, and `Main.ScreenEffects` references it. When the player spawns, `Main` calls `ScreenEffectsLayer.Bind(player)`. The layer is the only adapter between the player and the effects: it sets the blindness `Focus` and hands the player's `HealthComponent` and `BuffController` to the drivers listed in its `HealthDrivers` and `StatusDrivers`. Each driver syncs to the new player's state immediately. Floor travel reloads the gameplay scene, so effects start clean on every floor.
 
-- `HealthScreenEffectDriver` maps health to an effect. The effect stays off above `Threshold` (35% health by default) and reaches full intensity at zero health. It stays on at death; there is no game-over screen yet.
+- `HealthScreenEffectDriver` maps health to an effect. The effect stays off above `Threshold` (35% health by default) and reaches full intensity at zero health. It stays on at death. When the [death screen](run-lifecycle.md#death) appears, `Main` calls `ScreenEffectsLayer.StopMotion`: the heartbeat fades out as the screen fades in, and the red holds.
 - `StatusScreenEffectDriver` maps `Conditions` (condition → intensity) to an effect and follows the strongest active one. It fades up (`FadeInTime`) when a condition starts or a stronger one takes over, and fades down (`FadeOutTime`) after one ends. This is how confusion shows a faint version of the poison overlay without a separate effect.
 
 Status sources never touch effects. A buff declares the condition it imposes in `Buff.Condition`, and `BuffController` notifies observers whenever its buffs change (see [stats and itemization](stats-and-itemization.md#buffs-and-status-conditions)). Poison potions and poisoned food carry `poisoned`, Potions of Blindness carry `blinded` and Potions of Confusion carry `confused`, all under `scenes/buffs/conditions/`. Each overlay therefore appears exactly when its status applies; an unidentified potion or a poisoned apple reveals nothing before it is used. Healing cures blindness, which fades the blindness overlay out.

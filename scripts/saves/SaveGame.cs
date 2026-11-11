@@ -1,17 +1,26 @@
 using System.Collections.Generic;
 
+/// <summary>How a run stands: still playable, or ended.</summary>
+public enum RunOutcome
+{
+	InProgress = 0,
+	/// <summary>The hero died. The slot keeps the run as a record (seed, class and what it reached) but cannot resume it.</summary>
+	Died = 1,
+}
+
 /// <summary>
 /// Versioned save payload for one independent game slot.
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 76;
+	public const int CurrentVersion = 77;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
 
 	public int Version { get; set; } = CurrentVersion;
 	public int SlotId { get; set; }
+	public RunOutcome Outcome { get; set; }
 	public string RunId { get; set; } = string.Empty;
 	public string CreatedAtUtc { get; set; } = string.Empty;
 	public string SavedAtUtc { get; set; } = string.Empty;
@@ -44,11 +53,14 @@ public sealed class AppearanceAssignmentSaveData
 	public string AppearanceDescriptor { get; set; } = string.Empty;
 }
 
+/// <summary>What a slot holds, for the menu and the death screen.</summary>
 public sealed class SaveSlotMetadata
 {
 	public int SlotId { get; set; }
 	public bool HasSave { get; set; }
+	/// <summary>The slot reads as a current-version save, playable or ended.</summary>
 	public bool CanLoad { get; set; }
+	public RunOutcome Outcome { get; set; }
 	public string RunId { get; set; } = string.Empty;
 	public string CharacterClassId { get; set; } = string.Empty;
 	public string SavedAtUtc { get; set; } = string.Empty;

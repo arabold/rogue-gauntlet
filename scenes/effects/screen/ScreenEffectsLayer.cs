@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using System.Linq;
 
 /// <summary>
 /// Root of <c>screen_effects.tscn</c>: the full-screen status overlays drawn above the 3D world and below the HUD.
@@ -18,6 +19,18 @@ public partial class ScreenEffectsLayer : CanvasLayer
 
 	/// <summary>Drivers that observe the bound player's <see cref="BuffController"/>, e.g. poison.</summary>
 	[Export] public Array<StatusScreenEffectDriver> StatusDrivers { get; set; } = [];
+
+	/// <summary>
+	/// Fades out the motion of every effect on the layer over <paramref name="duration"/>, keeping its look: under the
+	/// death screen the near-death red stays but its heartbeat stops. Effects whose shader has no motion are unaffected.
+	/// </summary>
+	public void StopMotion(float duration)
+	{
+		foreach (ScreenEffect effect in GetChildren().OfType<ScreenEffect>())
+		{
+			effect.StopMotion(duration);
+		}
+	}
 
 	/// <summary>
 	/// Injects <paramref name="player"/> as runtime context. Binding the same player again changes nothing; binding
