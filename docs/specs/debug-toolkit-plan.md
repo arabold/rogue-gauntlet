@@ -7,7 +7,6 @@ This document keeps only what remains open.
 ## Deferred
 
 - **Class switching.** A hero build applies its class's stat profile and attributes in place and keeps the hero's model. Swapping the model needs a respawn, because `Player._EnterTree` applies the class and the model swap only works before `_Ready`: a new player node with a `Player.CharacterClass` export, then every holder of the old player rebinding on `PlayerSpawned` (camera, HUD, debug menu, harness, spawned monsters' targets). Nothing needs it yet.
-- **Arena darkness and the hero's light.** **Dark level** in the arena lowers the ambient and key light, but `PlayerLight` follows only a `Level`'s darkness, so the hero's light stays at its lit range and the walled room barely darkens. Making darkness a contract both worlds implement would let the light follow either.
 - **Capturing builds.** "Save the current hero as a build" needs fixed affixes on `HeroBuildItem`; wait until a bug report needs an exact item.
 
 ## Open decisions

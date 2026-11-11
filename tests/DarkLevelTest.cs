@@ -18,7 +18,7 @@ public class DarkLevelTest
 		await runner.SimulateFrames(5, 20);
 		var scene = runner.Scene();
 		var level = scene.GetNode<Level>("Level");
-		var environment = scene.GetNode<WorldEnvironment>("WorldEnvironment").Environment;
+		var environment = level.Lighting.Environment;
 		float ambient = environment.AmbientLightEnergy;
 		AssertBool(ambient > 0).IsTrue();
 		var fixtures = level.MapGenerator.FindChildren("*", nameof(EnvironmentalLightComponent), true, false)
@@ -35,7 +35,7 @@ public class DarkLevelTest
 		var popup = menu.GetTool<LevelTool>().Popup;
 		int index = Enumerable.Range(0, popup.ItemCount).Single(i => popup.GetItemText(i) == "Dark level");
 		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
-		AssertBool(level.IsDark).IsTrue();
+		AssertBool(level.Lighting.IsDark).IsTrue();
 		AssertBool(popup.IsItemChecked(index)).IsTrue();
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(0f);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
@@ -55,7 +55,7 @@ public class DarkLevelTest
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
 
 		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
-		AssertBool(level.IsDark).IsFalse();
+		AssertBool(level.Lighting.IsDark).IsFalse();
 		AssertBool(popup.IsItemChecked(index)).IsFalse();
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(ambient);
 		AssertArray(fixtures.Select(f => f.Light.Visible).ToArray()).IsEqual(lights);

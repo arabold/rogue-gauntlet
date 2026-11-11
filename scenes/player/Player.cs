@@ -159,8 +159,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 		_animationStateMachine.Start("Idle");
 
 		// A player outside a level (previews, harnesses) plays the default run.
-		AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run.RunSeed ?? RunState.DefaultSeed, "combat.attack", "player"));
-		SpellCaster.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run.RunSeed ?? RunState.DefaultSeed, "combat.spell", "player"));
+		AttackController.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run?.RunSeed ?? RunState.DefaultSeed, "combat.attack", "player"));
+		SpellCaster.ConfigureRandom(GenerationRandom.DeriveSeed(_level?.Run?.RunSeed ?? RunState.DefaultSeed, "combat.spell", "player"));
 		HealthComponent.Died += () => ActionGate.Disable();
 		HurtBoxComponent?.RegisterDefenseEvaluator(DodgeComponent);
 		HurtBoxComponent?.RegisterDefenseEvaluator(GuardComponent);

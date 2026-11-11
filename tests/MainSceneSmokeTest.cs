@@ -22,9 +22,10 @@ public class MainSceneSmokeTest
 		var main = (Main)runner.Scene();
 		var player = (Node3D)main.GetTree().GetFirstNodeInGroup("player");
 		AssertObject(player).OverrideFailureMessage("Generation spawned no player").IsNotNull();
-		main.SetProcess(false);
-		Camera3D camera = main.GameCamera;
-		var pcam = main.GetNode<Node3D>("PhantomCamera3D");
+		var rig = main.GetNode<GameCameraRig>("GameCamera");
+		rig.SetProcess(false);
+		Camera3D camera = rig.Camera;
+		var pcam = rig.PhantomCamera;
 		AssertFloat(camera.Size).IsEqualApprox(20f, 0.001f);
 
 		try
@@ -32,23 +33,23 @@ public class MainSceneSmokeTest
 			Basis before = pcam.GlobalBasis;
 			Input.ActionPress("camera_zoom_in");
 			Input.ActionPress("camera_rotate_right");
-			main._Process(0.25);
+			rig._Process(0.25);
 			AssertFloat(camera.Size).IsEqualApprox(17f, 0.001f);
 			AssertBool(pcam.GlobalBasis.IsEqualApprox(before)).IsFalse();
-			main._Process(2);
+			rig._Process(2);
 			AssertFloat(camera.Size).IsEqualApprox(10f, 0.001f);
 			Input.ActionRelease("camera_rotate_right");
 			Input.ActionPress("camera_zoom_out");
-			main._Process(0.25);
+			rig._Process(0.25);
 			AssertFloat(camera.Size).IsEqualApprox(10f, 0.001f);
 			Input.ActionRelease("camera_zoom_in");
-			main._Process(0.25);
+			rig._Process(0.25);
 			AssertFloat(camera.Size).IsEqualApprox(13f, 0.001f);
-			main._Process(3);
+			rig._Process(3);
 			AssertFloat(camera.Size).IsEqualApprox(32f, 0.001f);
 			Input.ActionRelease("camera_zoom_out");
 			AssertBool((pcam.GlobalPosition - player.GlobalPosition).Normalized().IsEqualApprox(pcam.GlobalBasis.Z)).IsTrue();
-			main.SetProcess(true);
+			rig.SetProcess(true);
 			await runner.SimulateFrames(3, 20);
 			AssertFloat(camera.Size).IsEqualApprox(32f, 0.001f);
 		}

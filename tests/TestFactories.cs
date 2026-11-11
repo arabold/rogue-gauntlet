@@ -342,9 +342,11 @@ public static partial class TestFactories
 	{
 		var map = Load<PackedScene>("res://scenes/levels/generators/map_generator.tscn").Instantiate<MapGenerator>();
 		var discovery = Load<PackedScene>("res://scenes/levels/floor_discovery.tscn").Instantiate<FloorDiscovery>();
-		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map, Discovery = discovery };
+		var lighting = Load<PackedScene>("res://scenes/levels/lighting/world_lighting.tscn").Instantiate<WorldLighting>();
+		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map, Discovery = discovery, Lighting = lighting };
 		level.AddChild(map);
 		level.AddChild(discovery);
+		level.AddChild(lighting);
 		return (level, map);
 	}
 

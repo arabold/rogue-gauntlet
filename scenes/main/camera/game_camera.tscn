@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/main/camera/GameCameraRig.cs" id="1_rig"]
+[ext_resource type="Resource" path="res://scenes/main/camera/game_camera_profile.tres" id="2_profile"]
+[ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="3_host"]
+[ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="4_pcam"]
+[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="5_tween"]
+[ext_resource type="Script" uid="uid://ccmiitq0sdh7j" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_3d.gd" id="6_noise_emitter"]
+[ext_resource type="Script" uid="uid://cuffvge5ad4aa" path="res://addons/phantom_camera/scripts/resources/phantom_camera_noise_3d.gd" id="7_noise"]
+[ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="8_feedback"]
+
+[sub_resource type="Resource" id="Resource_tween"]
+script = ExtResource("5_tween")
+
+[sub_resource type="Resource" id="hit_noise"]
+script = ExtResource("7_noise")
+amplitude = 7.5
+frequency = 30.0
+rotational_noise = false
+positional_noise = true
+
+[node name="GameCamera" type="Node" node_paths=PackedStringArray("Camera", "PhantomCamera")]
+script = ExtResource("1_rig")
+Profile = ExtResource("2_profile")
+Camera = NodePath("Camera3D")
+PhantomCamera = NodePath("PhantomCamera3D")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.70710677, -0.54167503, 0.4545197, 0, 0.6427879, 0.7660442, -0.70710677, -0.54167503, 0.4545197, 6.817575, 11.4903, 6.817575)
+projection = 1
+current = true
+size = 20.0
+
+[node name="PhantomCameraHost" type="Node" parent="Camera3D"]
+process_priority = 300
+process_physics_priority = 300
+script = ExtResource("3_host")
+
+[node name="PhantomCamera3D" type="Node3D" parent="."]
+transform = Transform3D(0.707087, -0.541665, 0.454505, 0, 0.642776, 0.76602, -0.707087, -0.541665, 0.454505, 6.817575, 11.4903, 6.817575)
+top_level = true
+script = ExtResource("4_pcam")
+tween_resource = SubResource("Resource_tween")
+tween_on_load = false
+noise_emitter_layer = 1
+
+[node name="HitNoiseEmitter" type="Node3D" parent="."]
+script = ExtResource("6_noise_emitter")
+noise = SubResource("hit_noise")
+duration = 0.0
+decay_time = 0.18
+noise_emitter_layer = 1
+
+[node name="CombatCameraFeedbackController" type="Node" parent="." node_paths=PackedStringArray("NoiseEmitter")]
+script = ExtResource("8_feedback")
+NoiseEmitter = NodePath("../HitNoiseEmitter")

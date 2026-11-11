@@ -1,54 +1,16 @@
-[gd_scene load_steps=15 format=3 uid="uid://ds1fgmaafnkkj"]
+[gd_scene format=3 uid="uid://ds1fgmaafnkkj"]
 
 [ext_resource type="Script" uid="uid://cdal8n3nlw3ng" path="res://scenes/main/Main.cs" id="1_dl2xl"]
-[ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="combat_camera_feedback"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
 [ext_resource type="PackedScene" uid="uid://b1b1kyg5ak1kw" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
-[ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="6_g3uvw"]
 [ext_resource type="PackedScene" uid="uid://bgq1h0jm4ybvw" path="res://scenes/ui/character_dialog.tscn" id="7_hujxm"]
-[ext_resource type="Script" uid="uid://csjccrhj5wnx7" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="7_wl18x"]
-[ext_resource type="Script" uid="uid://8umksf8e80fw" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="8_qd7vr"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="10_effects"]
-[ext_resource type="Script" uid="uid://ccmiitq0sdh7j" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_3d.gd" id="noise_emitter"]
-[ext_resource type="Script" uid="uid://cuffvge5ad4aa" path="res://addons/phantom_camera/scripts/resources/phantom_camera_noise_3d.gd" id="noise_resource"]
+[ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="11_camera"]
 
-[sub_resource type="Environment" id="Environment_cxo8v"]
-background_mode = 1
-ambient_light_source = 2
-ambient_light_color = Color(0.6, 0.6, 0.6, 1)
-ambient_light_energy = 0.38
-tonemap_mode = 3
-tonemap_exposure = 1.05
-glow_enabled = true
-glow_bloom = 0.1
-ssao_enabled = true
-ssao_radius = 1.0
-ssao_intensity = 1.8
-ssao_power = 1.5
-ssao_detail = 0.0
-ssao_horizon = 0.06
-ssao_sharpness = 0.98
-ssao_light_affect = 0.1
-ssil_enabled = false
-adjustment_enabled = true
-adjustment_contrast = 1.03
-adjustment_saturation = 1.0
-
-[sub_resource type="Resource" id="Resource_3h1r8"]
-script = ExtResource("8_qd7vr")
-
-[sub_resource type="Resource" id="hit_noise"]
-script = ExtResource("noise_resource")
-amplitude = 7.5
-frequency = 30.0
-rotational_noise = false
-positional_noise = true
-
-[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "GameCamera")]
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects")]
 script = ExtResource("1_dl2xl")
 ScreenEffects = NodePath("ScreenEffects")
-GameCamera = NodePath("Camera3D")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 
@@ -57,54 +19,13 @@ World = NodePath("../../Level")
 
 [node name="ScreenEffects" parent="." instance=ExtResource("10_effects")]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=51815958]
-environment = SubResource("Environment_cxo8v")
-
-[node name="Level" parent="." unique_id=1654143163 node_paths=PackedStringArray("LightingEnvironment") instance=ExtResource("5_nxjfc")]
-LightingEnvironment = NodePath("../WorldEnvironment")
+[node name="Level" parent="." unique_id=1654143163 instance=ExtResource("5_nxjfc")]
 AutoGenerateOnReady = false
 
 [node name="MapGenerator" parent="Level" index="0"]
 Seed = 30
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=1247339692]
-transform = Transform3D(0.70710677, -0.54167503, 0.4545197, 0, 0.6427879, 0.7660442, -0.70710677, -0.54167503, 0.4545197, 6.817575, 11.4903, 6.817575)
-projection = 1
-current = true
-size = 20.0
-
-[node name="PhantomCameraHost" type="Node" parent="Camera3D" unique_id=581853234]
-process_priority = 300
-process_physics_priority = 300
-script = ExtResource("6_g3uvw")
-
-[node name="PhantomCamera3D" type="Node3D" parent="." unique_id=102596580 node_paths=PackedStringArray("follow_target")]
-transform = Transform3D(0.707087, -0.541665, 0.454505, 0, 0.642776, 0.76602, -0.707087, -0.541665, 0.454505, 6.817575, 11.4903, 6.817575)
-top_level = true
-script = ExtResource("7_wl18x")
-follow_mode = 5
-follow_target = NodePath("../CameraTargetPlaceholder")
-tween_resource = SubResource("Resource_3h1r8")
-tween_on_load = false
-follow_damping = true
-follow_distance = 15.0
-dead_zone_width = 0.3
-dead_zone_height = 0.3
-spring_length = 15.0
-noise_emitter_layer = 1
-
-[node name="HitNoiseEmitter" type="Node3D" parent="."]
-script = ExtResource("noise_emitter")
-noise = SubResource("hit_noise")
-duration = 0.0
-decay_time = 0.18
-noise_emitter_layer = 1
-
-[node name="CombatCameraFeedbackController" type="Node" parent="." node_paths=PackedStringArray("NoiseEmitter")]
-script = ExtResource("combat_camera_feedback")
-NoiseEmitter = NodePath("../HitNoiseEmitter")
-
-[node name="CameraTargetPlaceholder" type="Node3D" parent="." unique_id=2113066232]
+[node name="GameCamera" parent="." instance=ExtResource("11_camera")]
 
 [node name="CharacterDialog" parent="." unique_id=237802221 instance=ExtResource("7_hujxm")]
 unique_name_in_owner = true

@@ -2,9 +2,10 @@ using Godot;
 
 /// <summary>
 /// The world debug tools act in: where spawned nodes go, the navigation monsters use, the depth spawned equipment rolls at,
-/// and the lighting override. A generated <see cref="Level"/> is one, so the tools never assume a particular scene layout.
+/// and its lighting, whose darkness the tools toggle. A generated <see cref="Level"/> is one, so the tools never assume a
+/// particular scene layout.
 /// </summary>
-public interface IDebugWorld
+public interface IDebugWorld : ILitWorld
 {
 	/// <summary>Depth spawned equipment is rolled at.</summary>
 	uint Depth { get; }
@@ -14,11 +15,6 @@ public interface IDebugWorld
 
 	/// <summary>Monster navigation; null until the world has one.</summary>
 	FloorNavigation Navigation { get; }
-
-	bool IsDark { get; }
-
-	/// <summary>Turns the world's lights off or back on without changing exploration.</summary>
-	void SetDark(bool isDark);
 
 	/// <summary>Adds a runtime node to the world at <paramref name="globalPosition"/>.</summary>
 	void AddWorldNode(Node3D node, Vector3 globalPosition);

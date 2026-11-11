@@ -6,20 +6,14 @@
 [ext_resource type="Script" path="res://scenes/debug/stage/DebugArena.cs" id="arena"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="hud"]
 [ext_resource type="PackedScene" path="res://scenes/debug/stage/debug_stage.tscn" id="stage"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="lighting"]
+[ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="camera"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="starting_weapon"]
 
 [ext_resource type="Script" path="res://scenes/debug/combat/CombatTraceRecorder.cs" id="recorder"]
-[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_3d.gd" id="noise_emitter"]
-[ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/phantom_camera_noise_3d.gd" id="noise_resource"]
-[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="phantom_camera_host"]
-[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="phantom_camera"]
-[ext_resource type="Script" path="res://scenes/effects/combat/CombatCameraFeedbackController.cs" id="camera_feedback"]
 [ext_resource type="Resource" path="res://scenes/levels/navigation/navigation_profiles/default.tres" id="navigation_profile"]
 
 [sub_resource type="BoxShape3D" id="floor_shape"]
-size = Vector3(40, 1, 40)
-
-[sub_resource type="BoxMesh" id="floor_mesh"]
 size = Vector3(40, 1, 40)
 
 [sub_resource type="BoxShape3D" id="north_boundary_shape"]
@@ -28,22 +22,8 @@ size = Vector3(40, 2, 1)
 [sub_resource type="BoxShape3D" id="east_boundary_shape"]
 size = Vector3(1, 2, 40)
 
-[sub_resource type="Environment" id="environment"]
-background_mode = 1
-background_color = Color(0.09, 0.1, 0.13, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.7, 0.75, 0.8, 1)
-ambient_light_energy = 0.7
-
 [sub_resource type="Theme" id="controls_theme"]
 default_font_size = 16
-
-[sub_resource type="Resource" id="combat_noise"]
-script = ExtResource("noise_resource")
-amplitude = 7.5
-frequency = 30.0
-rotational_noise = false
-positional_noise = true
 
 [sub_resource type="StyleBoxFlat" id="panel_style"]
 content_margin_left = 12.0
@@ -56,59 +36,21 @@ corner_radius_top_right = 8
 corner_radius_bottom_left = 8
 corner_radius_bottom_right = 8
 
-[node name="CombatHarness" type="Node3D" node_paths=PackedStringArray("Stage", "Lighting", "KeyLight")]
+[node name="CombatHarness" type="Node3D" node_paths=PackedStringArray("Stage", "Lighting")]
 script = ExtResource("arena")
 NavigationProfile = ExtResource("navigation_profile")
 Stage = NodePath("DebugStage")
-Lighting = NodePath("WorldEnvironment")
-KeyLight = NodePath("DirectionalLight3D")
+Lighting = NodePath("WorldLighting")
 
-[node name="Camera3D" type="Camera3D" parent="."]
-position = Vector3(-4, 14, 7)
-rotation_degrees = Vector3(-55, 0, 0)
-current = true
-projection = 1
-size = 18.0
+[node name="WorldLighting" parent="." instance=ExtResource("lighting")]
 
-[node name="PhantomCameraHost" type="Node" parent="Camera3D"]
-process_priority = 300
-process_physics_priority = 300
-script = ExtResource("phantom_camera_host")
-
-[node name="PhantomCamera3D" type="Node3D" parent="."]
-position = Vector3(-4, 14, 7)
-rotation_degrees = Vector3(-55, 0, 0)
-top_level = true
-script = ExtResource("phantom_camera")
-follow_mode = 0
-noise_emitter_layer = 1
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("environment")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-45, 30, 0)
-light_energy = 1.3
-
-[node name="HitNoiseEmitter" type="Node3D" parent="."]
-script = ExtResource("noise_emitter")
-noise = SubResource("combat_noise")
-duration = 0.0
-decay_time = 0.18
-noise_emitter_layer = 1
-
-[node name="CombatCameraFeedbackController" type="Node" parent="." node_paths=PackedStringArray("NoiseEmitter")]
-script = ExtResource("camera_feedback")
-NoiseEmitter = NodePath("../HitNoiseEmitter")
+[node name="GameCamera" parent="." instance=ExtResource("camera")]
 
 [node name="Floor" type="StaticBody3D" parent="."]
 position = Vector3(0, -0.5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
 shape = SubResource("floor_shape")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
-mesh = SubResource("floor_mesh")
 
 [node name="BoundaryNorth" type="StaticBody3D" parent="."]
 position = Vector3(0, 1, -19.5)
@@ -138,8 +80,8 @@ shape = SubResource("east_boundary_shape")
 InitialArrangement = 2
 
 [node name="FloorTiles" parent="DebugStage" index="3"]
-visible = false
 collision_layer = 0
+HalfExtent = 18
 
 [node name="Ground" parent="DebugStage" index="4"]
 visible = false
@@ -213,7 +155,6 @@ tooltip_text = "Restore health for the hero, practice target and living monster;
 [node name="HeroSectionSeparator" type="HSeparator" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 
-
 [node name="HeroSection" type="Label" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Hero"
@@ -238,7 +179,6 @@ custom_minimum_size = Vector2(0, 30)
 [node name="MonsterSectionSeparator" type="HSeparator" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 
-
 [node name="MonsterSection" type="Label" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
 text = "Monster"
@@ -252,7 +192,6 @@ text = "Monster actions appear here."
 
 [node name="LogSectionSeparator" type="HSeparator" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2
-
 
 [node name="LogSection" type="Label" parent="Instructions/Panel/Scroll/Controls"]
 layout_mode = 2

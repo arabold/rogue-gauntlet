@@ -5,7 +5,7 @@ public static class NodeTreeExtensions
 	/// <summary>
 	/// Returns the closest ancestor of the requested type, or null when none exists.
 	/// </summary>
-	public static T GetAncestorOrNull<T>(this Node node) where T : Node
+	public static T GetAncestorOrNull<T>(this Node node) where T : class
 	{
 		Node current = node.GetParent();
 		while (current != null)

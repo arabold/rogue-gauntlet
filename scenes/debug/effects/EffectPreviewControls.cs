@@ -27,15 +27,18 @@ public static class EffectPreviewControls
 		var choice = Choice(new[] { "Paused", "0.25×", "0.5×", "1×" }, 3, i => callback(speeds[i]));
 		Row(parent, "Playback", choice); return choice;
 	}
-	public static void CameraHelp(Container parent)
+	/// <summary>Orbit help and a button that returns the camera to the game's view of the subject.</summary>
+	public static void CameraControls(Container parent, EffectPreviewCamera camera)
 	{
 		parent.AddChild(new Label { Text = "Right-drag to orbit · wheel zoom\nCamera keys follow game bindings.", AutowrapMode = TextServer.AutowrapMode.WordSmart });
+		if (camera?.GameView != null) Button(parent, "Game view", camera.ApplyGameView);
 	}
-	/// <summary>Add the common bright/dark lighting toggle.</summary>
-	public static void DarkLighting(Container parent, WorldEnvironment lighting, DirectionalLight3D keyLight)
+	/// <summary>Add the lit/dark toggle, which darkens the scene's lighting exactly as a dark dungeon floor does.</summary>
+	public static CheckBox DarkLighting(Container parent, WorldLighting lighting)
 	{
-		var dark = new CheckBox { Text = "Dark lighting" };
-		dark.Toggled += enabled => { lighting.Environment.AmbientLightEnergy = enabled ? .06f : .65f; keyLight.LightEnergy = enabled ? .12f : .9f; };
+		var dark = new CheckBox { Text = "Dark level", ButtonPressed = lighting?.IsDark == true };
+		dark.Toggled += enabled => { if (lighting != null) lighting.IsDark = enabled; };
 		parent.AddChild(dark);
+		return dark;
 	}
 }

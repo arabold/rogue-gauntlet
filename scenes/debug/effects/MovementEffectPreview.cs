@@ -1,9 +1,11 @@
 using Godot;
 
-/// <summary>Runs a production player through manual and scripted movement for effect tuning.</summary>
-public partial class MovementEffectPreview : Node3D
+/// <summary>Runs a production player through manual and scripted movement for effect tuning, lit like the game.</summary>
+public partial class MovementEffectPreview : Node3D, ILitWorld
 {
 	[Export] public PackedScene PlayerScene { get; set; }
+	/// <summary>The game's lighting; the player's own light follows its darkness.</summary>
+	[Export] public WorldLighting Lighting { get; set; }
 	[Export] public Node3D ActorSlot { get; set; }
 	[Export] public CheckButton EffectsToggle { get; set; }
 	[Export] public Button DemoButton { get; set; }

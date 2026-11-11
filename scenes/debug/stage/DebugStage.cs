@@ -1,11 +1,10 @@
 using Godot;
 using System.Linq;
 
-/// <summary>Reusable tiled test stage with selectable, authored wall arrangements.</summary>
+/// <summary>Reusable test stage on a sample dungeon floor, with selectable, authored wall arrangements.</summary>
 public partial class DebugStage : Node3D
 {
 	[Signal] public delegate void ArrangementChangedEventHandler();
-	[Export] public GridMap FloorTiles { get; set; }
 	[Export] public StaticBody3D WestWall { get; set; }
 	[Export] public StaticBody3D[] DefaultWalls { get; set; } = [];
 	[Export] public StaticBody3D[] RoomWalls { get; set; } = [];
@@ -25,15 +24,7 @@ public partial class DebugStage : Node3D
 	public override void _Ready()
 	{
 		_walls = new[] { WestWall }.Concat(DefaultWalls).Concat(RoomWalls).ToArray();
-		PopulateFloor(FloorTiles);
 		SetArrangement(InitialArrangement);
-	}
-
-	/// <summary>Populates the common floor grid for test scenes.</summary>
-	public static void PopulateFloor(GridMap floor)
-	{
-		for (int x = -8; x <= 8; x += 4)
-			for (int z = -8; z <= 8; z += 4) floor.SetCellItem(new Vector3I(x, 0, z), 0);
 	}
 
 	/// <summary>Changes visible geometry and physics together; unknown indices are ignored.</summary>

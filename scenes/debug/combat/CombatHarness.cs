@@ -68,7 +68,6 @@ public partial class CombatHarness : CanvasLayer
 		ProcessPhysicsPriority = CombatPhysics.Input - 1;
 		DisableHarnessKeyboardFocus(GetNode<Control>("%Controls"));
 		_startFrame = Engine.GetPhysicsFrames();
-		Arena.GetNodeOrNull<CombatCameraFeedbackController>("CombatCameraFeedbackController")?.Bind(Player);
 		foreach (string arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg.StartsWith("--combat-seed=")) Seed = ulong.Parse(arg[14..]);

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using static EffectPreviewControls;
 
-/// <summary>Preview the production scroll-reading effect beside its assigned paper appearance.</summary>
-public partial class ScrollRuneStudy : Node3D
+/// <summary>Preview the production scroll-reading effect beside its assigned paper appearance, lit like the game.</summary>
+public partial class ScrollRuneStudy : Node3D, ILitWorld
 {
 	[Export] public IdentityCatalog Catalog { get; set; }
 	[Export] public PackedScene PlayerScene { get; set; }
@@ -13,8 +13,8 @@ public partial class ScrollRuneStudy : Node3D
 	[Export] public Node3D PaperRoot { get; set; }
 	[Export] public Camera3D Camera { get; set; }
 	[Export] public Container Controls { get; set; }
-	[Export] public WorldEnvironment Lighting { get; set; }
-	[Export] public DirectionalLight3D KeyLight { get; set; }
+	/// <summary>The game's lighting; the stand-in hero light follows its darkness.</summary>
+	[Export] public WorldLighting Lighting { get; set; }
 	[Export] public PackedScene EffectHostScene { get; set; }
 	[Export] public WorldEffectDefinition ReadingEffect { get; set; }
 	public ItemAppearance Appearance { get; private set; }
@@ -48,8 +48,8 @@ public partial class ScrollRuneStudy : Node3D
 		_speedChoice = Playback(Controls, SetSpeed);
 		_playhead = new HSlider { MinValue = 0, MaxValue = .9, Step = .01, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
 		_playhead.ValueChanged += v => SetTime((float)v); Row(Controls, "Still frame", _playhead);
-		var dark = new CheckBox { Text = "Dark lighting" }; dark.Toggled += SetDark; Controls.AddChild(dark);
-		CameraHelp(Controls);
+		DarkLighting(Controls, Lighting);
+		CameraControls(Controls, Camera as EffectPreviewCamera);
 		_status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart }; Controls.AddChild(_status);
 	}
 	public void SelectScroll(int index)
@@ -67,7 +67,7 @@ public partial class ScrollRuneStudy : Node3D
 	public void Replay() { _clock = 0; foreach (var animation in _animations) animation.Seek(0, true); ApplyFrame(); }
 	public void SetSpeed(float speed) { _speed = Mathf.Clamp(speed, 0, 1); foreach (var animation in _animations) animation.SpeedScale = _speed; }
 	public void SetTime(float time) { SetSpeed(0); _speedChoice.Selected = 0; _clock = Mathf.Clamp(time, 0, .9f); ApplyFrame(); }
-	public void SetDark(bool dark) { Lighting.Environment.AmbientLightEnergy = dark ? .07f : .55f; KeyLight.LightEnergy = dark ? .16f : 1.1f; }
+	public void SetDark(bool dark) => Lighting.IsDark = dark;
 	public void Rebuild()
 	{
 		RuneRing = null; _animations.Clear(); EffectPreviewStage.ClearChildren(Stage); EffectPreviewStage.ClearChildren(PaperRoot);

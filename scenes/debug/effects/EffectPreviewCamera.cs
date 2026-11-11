@@ -1,11 +1,35 @@
 using Godot;
 
-/// <summary>Mouse orbit plus the game's existing camera actions, shared by all effect previews.</summary>
+/// <summary>
+/// Mouse orbit plus the game's existing camera actions, shared by all effect previews. With a <see cref="GameView"/> it
+/// starts at the game camera's angle, so a workbench shows its subject from the game's perspective, and
+/// <see cref="ApplyGameView"/> also takes the game's zoom.
+/// </summary>
 public partial class EffectPreviewCamera : Camera3D
 {
 	[Export] public Vector3 Focus { get; set; } = new(1.6f, 1, 0);
+	/// <summary>The game camera's angle and zoom; unassigned, the preview keeps its own starting view.</summary>
+	[Export] public GameCameraProfile GameView { get; set; }
 	private float _yaw = .55f, _elevation = .64f;
-	public override void _Ready() => UpdateView();
+	/// <summary>Starts at the game's heading and downward angle; the authored zoom stays closer for inspection.</summary>
+	public override void _Ready()
+	{
+		if (GameView != null)
+		{
+			_yaw = Mathf.DegToRad(GameView.YawDegrees);
+			_elevation = Mathf.DegToRad(GameView.PitchDegrees);
+		}
+		UpdateView();
+	}
+	/// <summary>Returns to the game camera's heading, downward angle and zoom around <see cref="Focus"/>.</summary>
+	public void ApplyGameView()
+	{
+		if (GameView == null) return;
+		_yaw = Mathf.DegToRad(GameView.YawDegrees);
+		_elevation = Mathf.DegToRad(GameView.PitchDegrees);
+		Size = GameView.Size;
+		UpdateView();
+	}
 	public override void _Process(double delta)
 	{
 		if (!Current) return;

@@ -1,4 +1,8 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene format=3]
+[ext_resource type="Resource" path="res://scenes/main/camera/game_camera_profile.tres" id="game_view"]
+[ext_resource type="PackedScene" path="res://scenes/debug/stage/sample_floor.tscn" id="sample_floor"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_light.tscn" id="hero_light"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="world_lighting"]
 [ext_resource type="Script" path="res://scenes/debug/effects/ActorItemEffectPreview.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/effects/world/actor_world_effects.tscn" id="host"]
 [ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen"]
@@ -22,7 +26,6 @@
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/sword/sword_knight.tscn" id="subject3"]
 [ext_resource type="PackedScene" path="res://assets/custom-items/jewelry/ring/ring_gold_emerald.glb" id="subject4"]
 
-[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="floor_library"]
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_departure/teleport_departure.tres" id="teleport_departure"]
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="teleport_arrival"]
 [ext_resource type="Script" path="res://scenes/debug/effects/EffectPreviewCamera.cs" id="orbit_camera"]
@@ -30,29 +33,12 @@
 [ext_resource type="Resource" path="res://scenes/effects/world/invisibility/invisibility.tres" id="invisibility_effect"]
 [sub_resource type="Theme" id="Theme"]
 default_font_size = 16
-[sub_resource type="Environment" id="Environment"]
-resource_local_to_scene = true
-background_mode = 1
-background_color = Color(0.06, 0.08, 0.11, 1)
-ambient_light_source = 3
-ambient_light_color = Color(0.8, 0.85, 0.95, 1)
-ambient_light_energy = 0.65
-glow_enabled = true
-glow_intensity = 0.55
-glow_bloom = 0.04
-[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
-albedo_color = Color(0.19, 0.22, 0.25, 1)
-[sub_resource type="PlaneMesh" id="Ground"]
-size = Vector2(20, 20)
-material = SubResource("GroundMaterial")
-[node name="ActorItemEffectPreview" type="Node3D" node_paths=PackedStringArray("Stage", "Camera", "Controls", "Lighting", "KeyLight", "FloorTiles")]
+[node name="ActorItemEffectPreview" type="Node3D" node_paths=PackedStringArray("Stage", "Camera", "Controls", "Lighting")]
 script = ExtResource("script")
-FloorTiles = NodePath("FloorTiles")
 Stage = NodePath("Stage")
 Camera = NodePath("Camera3D")
 Controls = NodePath("UI/Panel/Scroll/Margin/Controls")
-Lighting = NodePath("WorldEnvironment")
-KeyLight = NodePath("DirectionalLight3D")
+Lighting = NodePath("WorldLighting")
 ItemHostScene = ExtResource("host")
 TeleportDeparture = ExtResource("teleport_departure")
 TeleportArrival = ExtResource("teleport_arrival")
@@ -60,26 +46,16 @@ Effects = [ExtResource("iron_skin"), ExtResource("stone_skin"), ExtResource("hea
 Subjects = Dictionary[String, PackedScene]({"Player": ExtResource("subject0"), "Skeleton": ExtResource("subject1"), "Warden": ExtResource("subject2"), "Sword": ExtResource("subject3"), "Ring": ExtResource("subject4")})
 [node name="SceneDebugEnvironment" type="Node" parent="."]
 [node name="Stage" type="Node3D" parent="."]
-[node name="FloorTiles" type="GridMap" parent="."]
-mesh_library = ExtResource("floor_library")
-cell_size = Vector3(1, 1, 1)
-cell_center_x = false
-cell_center_y = false
-cell_center_z = false
-[node name="Ground" type="MeshInstance3D" parent="."]
-position = Vector3(0, -0.3, 0)
-mesh = SubResource("Ground")
+[node name="SampleFloor" parent="." instance=ExtResource("sample_floor")]
+HalfExtent = 16
+[node name="WorldLighting" parent="." instance=ExtResource("world_lighting")]
+[node name="HeroLight" parent="." instance=ExtResource("hero_light")]
 [node name="Camera3D" type="Camera3D" parent="."]
 script = ExtResource("orbit_camera")
+GameView = ExtResource("game_view")
 projection = 1
 size = 12.0
 current = true
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment")
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-50, -30, 0)
-light_energy = 1.2
-shadow_enabled = true
 [node name="UI" type="CanvasLayer" parent="."]
 layer = 11
 [node name="Panel" type="PanelContainer" parent="UI"]

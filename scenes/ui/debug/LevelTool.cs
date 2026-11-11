@@ -96,9 +96,9 @@ public partial class LevelTool : DebugTool
 		SetChecked(menu, DoorXrayId, DoorXrayEnabled);
 		SetChecked(menu, MonsterXrayId, MonsterXrayEnabled);
 		SetChecked(menu, LootXrayId, LootXrayEnabled);
-		SetChecked(menu, DarkId, world?.IsDark == true);
+		SetChecked(menu, DarkId, world?.Lighting?.IsDark == true);
 		SetDisabled(menu, NavigationId, world == null);
-		SetDisabled(menu, DarkId, world == null);
+		SetDisabled(menu, DarkId, world?.Lighting == null);
 		bool noLevel = Menu?.Level == null;
 		SetDisabled(menu, RevealMapId, noLevel);
 		SetDisabled(menu, RestartLevelId, noLevel);
@@ -120,7 +120,10 @@ public partial class LevelTool : DebugTool
 	}
 
 	/// <summary>Turns the world's lights off or back on; exploration is unchanged.</summary>
-	public void SetDark(bool isDark) => Menu?.DebugWorld?.SetDark(isDark);
+	public void SetDark(bool isDark)
+	{
+		if (Menu?.DebugWorld?.Lighting is { } lighting) { lighting.IsDark = isDark; }
+	}
 
 	/// <summary>Reveals the whole floor in the fog of war.</summary>
 	public void RevealMap() => Menu?.Level?.Discovery?.RevealAll();
@@ -143,7 +146,7 @@ public partial class LevelTool : DebugTool
 			case DoorXrayId: DoorXrayEnabled = !DoorXrayEnabled; break;
 			case MonsterXrayId: MonsterXrayEnabled = !MonsterXrayEnabled; break;
 			case LootXrayId: LootXrayEnabled = !LootXrayEnabled; break;
-			case DarkId: SetDark(Menu?.DebugWorld?.IsDark != true); break;
+			case DarkId: SetDark(Menu?.DebugWorld?.Lighting?.IsDark != true); break;
 			case RevealMapId: RevealMap(); break;
 			case RestartLevelId: RestartLevel(); break;
 			case CopyRunSeedId:

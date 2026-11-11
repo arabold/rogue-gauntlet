@@ -1,9 +1,9 @@
 using Godot;
 
 /// <summary>
-/// Extinguishes an authored fixture's light and flame on dark floors. Local visibility is
+/// Extinguishes an authored fixture's light and flame while its world is dark. Local visibility is
 /// independent of the parent exploration gate, so revealing a room cannot relight a dark floor.
-/// Standalone previews retain their authored state when there is no enclosing level.
+/// A fixture outside any lit world keeps its authored state.
 /// </summary>
 [Tool, GlobalClass]
 public partial class EnvironmentalLightComponent : Node
@@ -13,7 +13,7 @@ public partial class EnvironmentalLightComponent : Node
 
 	private bool _lightVisible = true;
 	private bool _flameVisible = true;
-	private Level _level;
+	private WorldLighting _lighting;
 
 	public override void _Ready()
 	{
@@ -26,13 +26,13 @@ public partial class EnvironmentalLightComponent : Node
 
 		_lightVisible = Light.Visible;
 		_flameVisible = Flame.Visible;
-		_level = this.GetAncestorOrNull<Level>();
-		if (_level == null) { return; }
+		_lighting = this.GetAncestorOrNull<ILitWorld>()?.Lighting;
+		if (_lighting == null) { return; }
 
-		this.SubscribeUntilExit(_level,
+		this.SubscribeUntilExit(_lighting,
 			source => source.DarknessChanged += ApplyDarkness,
 			source => source.DarknessChanged -= ApplyDarkness);
-		ApplyDarkness(_level.IsDark);
+		ApplyDarkness(_lighting.IsDark);
 	}
 
 	/// <summary>
@@ -42,7 +42,7 @@ public partial class EnvironmentalLightComponent : Node
 	{
 		_lightVisible = isLit;
 		_flameVisible = isLit;
-		ApplyDarkness(_level?.IsDark ?? false);
+		ApplyDarkness(_lighting?.IsDark ?? false);
 	}
 
 	private void ApplyDarkness(bool isDark)

@@ -90,7 +90,7 @@ public class PortableLightTest
 			AssertFloat(playerLight.Highlight.OmniRange).OverrideFailureMessage($"{context}: highlight range").IsEqual(profile.HighlightRange);
 		}
 		AssertBurns(lit, "normal floor");
-		level.SetDark(true);
+		level.Lighting.IsDark = true;
 		AssertBurns(dark, "dark floor");
 
 		foreach (string name in Lights)
@@ -107,9 +107,9 @@ public class PortableLightTest
 			AssertInt(offhand.GetChildCount()).IsGreater(0);
 			AssertInt(offhand.FindChildren("*", "Light3D", true, false).Count).OverrideFailureMessage($"{name} carries its own light").IsEqual(0);
 			AssertBurns(lit, $"{name} on a dark floor");
-			level.SetDark(false);
+			level.Lighting.IsDark = false;
 			AssertBurns(lit, $"{name} on a normal floor");
-			level.SetDark(true);
+			level.Lighting.IsDark = true;
 			AssertBool(player.InventoryController.TryUnequip(entry).Success).IsTrue();
 			AssertInt(offhand.GetChildCount()).IsEqual(0);
 			AssertBurns(dark, $"{name} put away on a dark floor");

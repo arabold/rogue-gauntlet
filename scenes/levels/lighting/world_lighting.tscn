@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/lighting/WorldLighting.cs" id="1_lighting"]
+[ext_resource type="Environment" path="res://scenes/levels/lighting/game_environment.tres" id="2_environment"]
+
+[node name="WorldLighting" type="WorldEnvironment"]
+environment = ExtResource("2_environment")
+script = ExtResource("1_lighting")

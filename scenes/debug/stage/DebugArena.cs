@@ -4,7 +4,7 @@ using System.Linq;
 /// <summary>
 /// The root of a harness arena: a flat floor outside any generated level that the debug tools act in. Monster navigation
 /// is a clearance grid over <see cref="Bounds"/> built from the arena's static collision, rebuilt when an optional
-/// <see cref="Stage"/> changes its wall arrangement. Darkness lowers the ambient and key light.
+/// <see cref="Stage"/> changes its wall arrangement. It lights through the game's <see cref="WorldLighting"/>.
 /// </summary>
 public partial class DebugArena : Node3D, IDebugWorld
 {
@@ -22,11 +22,8 @@ public partial class DebugArena : Node3D, IDebugWorld
 	/// <summary>Optional stage whose arrangements toggle walls; navigation follows each change.</summary>
 	[Export] public DebugStage Stage { get; set; }
 
-	/// <summary>Environment whose ambient light darkness turns off; unassigned, darkness only dims the key light.</summary>
-	[Export] public WorldEnvironment Lighting { get; set; }
-
-	/// <summary>The arena's main light, dimmed while dark.</summary>
-	[Export] public DirectionalLight3D KeyLight { get; set; }
+	/// <summary>The arena's illumination, the game's own, so the arena looks and darkens like a dungeon floor.</summary>
+	[Export] public WorldLighting Lighting { get; set; }
 
 	/// <summary>Depth equipment spawned here rolls at.</summary>
 	[Export] public uint Depth { get; set; } = 1;
@@ -34,27 +31,10 @@ public partial class DebugArena : Node3D, IDebugWorld
 	/// <summary>Seeds spawned monsters' combat streams; a harness sets it from its own seed so runs replay.</summary>
 	[Export] public ulong RunSeed { get; set; } = RunState.DefaultSeed;
 
-	/// <summary>Fraction of the key light's energy left while dark.</summary>
-	[Export(PropertyHint.Range, "0,1,0.01")] public float DarkKeyLightScale { get; set; } = .12f;
-
 	public FloorNavigation Navigation { get; private set; }
-
-	public bool IsDark { get; private set; }
-
-	private Environment _environment;
-	private float _normalAmbient;
-	private float _normalKeyLight;
 
 	public override void _Ready()
 	{
-		if (Lighting?.Environment != null)
-		{
-			// Own the runtime copy so darkness never mutates the shared environment resource.
-			_environment = (Environment)Lighting.Environment.Duplicate();
-			Lighting.Environment = _environment;
-			_normalAmbient = _environment.AmbientLightEnergy;
-		}
-		_normalKeyLight = KeyLight?.LightEnergy ?? 0;
 		if (NavigationProfile == null)
 		{
 			GD.PushError($"{Name}: assign a NavigationProfile; spawned monsters cannot navigate.");
@@ -64,13 +44,6 @@ public partial class DebugArena : Node3D, IDebugWorld
 			Stage.ArrangementChanged += RebuildNavigation;
 		}
 		RebuildNavigation();
-	}
-
-	public void SetDark(bool isDark)
-	{
-		IsDark = isDark;
-		if (_environment != null) { _environment.AmbientLightEnergy = isDark ? 0 : _normalAmbient; }
-		if (KeyLight != null) { KeyLight.LightEnergy = isDark ? _normalKeyLight * DarkKeyLightScale : _normalKeyLight; }
 	}
 
 	/// <summary>Adds <paramref name="node"/> as a direct child, positioned before it enters the tree as spawn points do.</summary>

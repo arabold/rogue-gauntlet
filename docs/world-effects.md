@@ -74,9 +74,9 @@ Each pool effect sits under the prop's `Pools` node, hidden by an `ExplorationGa
 
 Open any preview with F6. Shared tabs switch between **World effects**, **Actor / item effects**, and **Scroll reading**. The scene paths and titles are authored once in `effect_harness_navigation.tscn`; the shared mouse camera is `EffectPreviewCamera`. Each preview owns its content and uses the production effect code. Shared helpers prepare actors and build consistent controls; the world harness contains only world effects, with scene switching handled solely by the tabs.
 
-Actor/item controls show one subject and one effect: select the effect and player/skeleton/Warden/sword/ring, choose an actor pose, then replay, fade or clear. Fade uses the normal exit envelope; clear removes effects immediately. Replay restarts sustained effects as well as bursts. Playback supports pause/slow motion; dark lighting helps inspect emission and light spill. There are no comparison, crowd, auto-replay, seed, combination, curse-knowledge or lifecycle controls. Lifecycle combinations and multiple owners remain covered by automated tests.
+Actor/item controls show one subject and one effect: select the effect and player/skeleton/Warden/sword/ring, choose an actor pose, then replay, fade or clear. Fade uses the normal exit envelope; clear removes effects immediately. Replay restarts sustained effects as well as bursts. Playback supports pause/slow motion; **Dark level** darkens the workbench as a dark floor does, which helps inspect emission and light spill. There are no comparison, crowd, auto-replay, seed, combination, curse-knowledge or lifecycle controls. Lifecycle combinations and multiple owners remain covered by automated tests.
 
-Right-drag orbits horizontally and vertically; the wheel zooms. Keyboard and gamepad camera controls use the same `camera_rotate_left/right` and `camera_zoom_in/out` InputMap actions as gameplay (comma/period and apostrophe/slash by default). The previews do not define separate Q/E camera bindings.
+The camera starts at the game camera's angle; right-drag orbits horizontally and vertically, the wheel zooms, and **Game view** returns to the game's angle and zoom. Keyboard and gamepad camera controls use the same `camera_rotate_left/right` and `camera_zoom_in/out` InputMap actions as gameplay (comma/period and apostrophe/slash by default). The previews do not define separate Q/E camera bindings.
 
 For skins, **Faceted shading** uses derivative face normals to shade existing triangles flat without changing the mesh. **Polished steel** reduces roughness and strengthens metallic reflections; a preview reflection probe captures the floor. Both options affect private preview materials, leaving authored defaults intact.
 
@@ -90,7 +90,7 @@ Weapons with emissive surfaces (such as the Flame Sword, Storm Trident, Stone Ma
 
 ## Scroll reading preview
 
-The **Scroll reading** tab shows only the approved production ring, beside the selected scroll's assigned paper appearance. Scroll selection, replay, playback speed, a still-frame slider and dark lighting support inspection. The preview copies the current run's saved appearance assignment when available; test commands can use a private seeded assignment without mutating the run.
+The **Scroll reading** tab shows only the approved production ring, beside the selected scroll's assigned paper appearance. Scroll selection, replay, playback speed, a still-frame slider and **Dark level** support inspection. The preview copies the current run's saved appearance assignment when available; test commands can use a private seeded assignment without mutating the run.
 
 Scroll appearances pair `ItemAppearance.GlyphId`, `GlyphMesh` and luminous `GlyphColor`. The twelve flat OBJ counterparts live in `scenes/effects/world/runes/glyphs/`; `scroll_appearances.tres` assigns them next to the paper models. No mesh extraction, image analysis or filename-based matching occurs at runtime. Missing glyph mappings make playback unavailable.
 
