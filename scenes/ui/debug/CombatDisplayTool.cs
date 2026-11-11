@@ -2,8 +2,9 @@ using Godot;
 using System;
 
 /// <summary>
-/// Combat diagnostics and presentation: attack hit volumes and helper meshes, hurtboxes, hit effects, camera shake, slow
-/// motion, and the combat and AI logs. Each toggle applies at once, to actors already in the scene and to any added later.
+/// Combat diagnostics and presentation: attack hit volumes and helper meshes, hurtboxes, hit effects, movement dust and
+/// dash trails, camera shake, slow motion, and the combat and AI logs. Each toggle applies at once, to actors already in
+/// the scene and to any added later.
 /// </summary>
 [GlobalClass]
 public partial class CombatDisplayTool : DebugTool
@@ -47,6 +48,18 @@ public partial class CombatDisplayTool : DebugTool
 		}
 	} = true;
 
+	/// <summary>Footstep dust, stop and turn puffs and the dash trail; off shows bare movement.</summary>
+	[Export]
+	public bool MovementEffectsEnabled
+	{
+		get;
+		set
+		{
+			field = value;
+			ApplyToScene();
+		}
+	} = true;
+
 	/// <summary>Camera shake on the player's resolved contacts.</summary>
 	[Export]
 	public bool CameraShakeEnabled
@@ -77,7 +90,7 @@ public partial class CombatDisplayTool : DebugTool
 	private Action _stopWatching;
 
 	/// <summary>Whether actors need this tool's settings: only while one differs from the game's.</summary>
-	private bool OverridesActors => DebugMeshesEnabled || HurtboxesEnabled || !EffectsEnabled || !CameraShakeEnabled;
+	private bool OverridesActors => DebugMeshesEnabled || HurtboxesEnabled || !EffectsEnabled || !MovementEffectsEnabled || !CameraShakeEnabled;
 
 	public override void _EnterTree() => ApplySlowMotion();
 
@@ -102,6 +115,7 @@ public partial class CombatDisplayTool : DebugTool
 		AddToggle(menu, "Debug meshes", () => DebugMeshesEnabled, value => DebugMeshesEnabled = value);
 		AddToggle(menu, "Hurtboxes", () => HurtboxesEnabled, value => HurtboxesEnabled = value);
 		AddToggle(menu, "Hit effects", () => EffectsEnabled, value => EffectsEnabled = value);
+		AddToggle(menu, "Movement effects", () => MovementEffectsEnabled, value => MovementEffectsEnabled = value);
 		AddToggle(menu, "Camera shake", () => CameraShakeEnabled, value => CameraShakeEnabled = value);
 		AddToggle(menu, "Slow motion", () => SlowMotionEnabled, value => SlowMotionEnabled = value);
 		menu.AddSeparator();
@@ -154,6 +168,9 @@ public partial class CombatDisplayTool : DebugTool
 				break;
 			case CombatFeedbackController feedback:
 				feedback.Enabled = EffectsEnabled;
+				break;
+			case MovementEffectsComponent movement:
+				movement.Enabled = MovementEffectsEnabled;
 				break;
 			case CombatCameraFeedbackController camera:
 				camera.Enabled = CameraShakeEnabled;

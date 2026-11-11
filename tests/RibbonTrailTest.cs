@@ -42,17 +42,15 @@ public class RibbonTrailTest
 	[TestCase]
 	public async Task ProductionPlayerDodgeBuildsDashRibbon()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/movement_effect_preview.tscn");
-		await runner.SimulateFrames(2, 20);
-		var preview = (MovementEffectPreview)runner.Scene();
-		preview.AutoPlayDemo = false;
-		var player = preview.ActorSlot.GetChild<Player>(0);
+		using var runner = TestFactories.LoadCombatHarness();
+		var player = (await TestFactories.SettleCombatHarness(runner)).Player;
 		var effects = player.GetNode<MovementEffectsComponent>("MovementEffectsComponent");
 		var screenVisibility = effects.ScreenVisibility;
 		effects.ScreenVisibility = null;
 
 		AssertBool(player.IsOnFloor()).IsTrue();
-		AssertObject(player.DodgeComponent.TryDodge(Vector3.Forward)).IsEqual(DefenseRequestResult.Success);
+		// Sideways, clear of the practice dummy ahead.
+		AssertObject(player.DodgeComponent.TryDodge(Vector3.Right)).IsEqual(DefenseRequestResult.Success);
 		await runner.SimulateFrames(3, 20);
 
 		AssertObject(effects.Streak.Mesh).IsNotNull();
