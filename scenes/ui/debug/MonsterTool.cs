@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Spawns monsters, or the practice dummy, in a ring around the player, and tunes what it spawned: AI, forced defense,
-/// invulnerability and kill rewards. Spawns are the production actor scenes on the world's navigation. They carry no
-/// persistent id, so a floor never saves them and killing one clears nothing.
+/// Spawns monsters, or the practice dummy, in a ring around the player, and tunes what it spawned: AI, counterattacks,
+/// forced defense, invulnerability and kill rewards. By default a spawn plays like a regular monster: it targets the
+/// player at once, attacks, defends and drops its rewards; the combat arena authors the passive settings it needs.
+/// Spawns are the production actor scenes on the world's navigation. They carry no persistent id, so a floor never
+/// saves them and killing one clears nothing.
 /// </summary>
 [GlobalClass]
 public partial class MonsterTool : DebugTool
@@ -15,6 +17,7 @@ public partial class MonsterTool : DebugTool
 	private const int AIId = 2;
 	private const int InvulnerableId = 3;
 	private const int RewardsId = 4;
+	private const int RiposteId = 5;
 	private static readonly int[] Counts = [1, 3, 5];
 	private static readonly (string Label, EnemyDefenseMode Mode)[] DefenseModes =
 	[
@@ -34,8 +37,8 @@ public partial class MonsterTool : DebugTool
 	[Export] public PackedScene PracticeTargetScene { get; set; }
 
 	/// <summary>
-	/// Whether spawned monsters make their own decisions. Off, they stand still and act only when told to, as the combat
-	/// harness expects; their attack and defense execution stays live either way.
+	/// Whether spawned monsters make their own decisions: chasing, attacking and choosing defenses. Off, they stand still
+	/// and act only when told to, as the combat harness expects; their attack and defense execution stays live either way.
 	/// </summary>
 	[Export]
 	public bool AIEnabled
@@ -46,7 +49,19 @@ public partial class MonsterTool : DebugTool
 			field = value;
 			foreach (EnemyBase monster in SpawnedMonsters) { ApplyAI(monster); }
 		}
-	}
+	} = true;
+
+	/// <summary>Spawned monsters may counterattack after a guard, as their defense profile allows; off disables it.</summary>
+	[Export]
+	public bool RiposteEnabled
+	{
+		get;
+		set
+		{
+			field = value;
+			foreach (EnemyBase monster in SpawnedMonsters) { ApplyRiposte(monster); }
+		}
+	} = true;
 
 	/// <summary>Defense forced onto spawned monsters; the default leaves each monster's authored chances.</summary>
 	[Export]
@@ -78,8 +93,20 @@ public partial class MonsterTool : DebugTool
 		}
 	}
 
-	/// <summary>Spawned monsters drop loot and award experience when killed. Applies to later spawns only.</summary>
-	[Export] public bool RewardsEnabled { get; set; }
+	/// <summary>Spawned monsters drop loot and award experience when killed, on a floor that can hold the drops.</summary>
+	[Export]
+	public bool RewardsEnabled
+	{
+		get;
+		set
+		{
+			field = value;
+			foreach (EnemyBase monster in SpawnedMonsters)
+			{
+				if (monster.DeathComponent != null) { monster.DeathComponent.RewardsEnabled = value; }
+			}
+		}
+	} = true;
 
 	/// <summary>How many copies one spawn places, evenly around the player starting straight ahead.</summary>
 	[Export(PropertyHint.Range, "1,8")] public int Count { get; set => field = Mathf.Max(1, value); } = 1;
@@ -124,6 +151,7 @@ public partial class MonsterTool : DebugTool
 		menu.AddSubmenuNodeItem("Defense", _defenseMenu);
 
 		menu.AddCheckItem("Monster AI", AIId);
+		menu.AddCheckItem("Riposte", RiposteId);
 		menu.AddCheckItem("Invulnerable", InvulnerableId);
 		menu.AddCheckItem("Rewards", RewardsId);
 		menu.AddSeparator();
@@ -135,6 +163,7 @@ public partial class MonsterTool : DebugTool
 	public override void RefreshMenu(PopupMenu menu)
 	{
 		SetChecked(menu, AIId, AIEnabled);
+		SetChecked(menu, RiposteId, RiposteEnabled);
 		SetChecked(menu, InvulnerableId, Invulnerable);
 		SetChecked(menu, RewardsId, RewardsEnabled);
 		SetDisabled(menu, ClearId, Spawned.Count == 0);
@@ -144,8 +173,8 @@ public partial class MonsterTool : DebugTool
 
 	/// <summary>
 	/// Places <see cref="Count"/> copies of <paramref name="scene"/> around the player at <paramref name="distance"/>, or
-	/// at the distance a monster's movement and opening action are designed for. Each faces and targets the player, with
-	/// riposte off and this tool's settings applied. Returns the copy straight ahead; null when nothing could spawn.
+	/// at the distance a monster's movement and opening action are designed for. Each faces and targets the player with
+	/// this tool's settings applied. Returns the copy straight ahead; null when nothing could spawn.
 	/// </summary>
 	public Node3D Spawn(PackedScene scene, float? distance = null)
 	{
@@ -211,7 +240,7 @@ public partial class MonsterTool : DebugTool
 		{
 			case EnemyBase monster:
 				monster.EnemyBehaviorComponent.AIEnabled = false;
-				if (monster.DefenseController != null) { monster.DefenseController.RiposteEnabled = false; }
+				ApplyRiposte(monster);
 				if (monster.DeathComponent != null) { monster.DeathComponent.RewardsEnabled = RewardsEnabled; }
 				return monster;
 			case CombatPracticeTarget:
@@ -270,6 +299,12 @@ public partial class MonsterTool : DebugTool
 		}
 	}
 
+	/// <summary>Counterattacks follow the toggle; whether a monster can riposte at all is its defense profile's call.</summary>
+	private void ApplyRiposte(EnemyBase monster)
+	{
+		if (monster.DefenseController != null) { monster.DefenseController.RiposteEnabled = RiposteEnabled; }
+	}
+
 	/// <summary>The distance a monster's movement and opening action are designed for; the dummy stands at arm's length.</summary>
 	private static float PreferredDistance(Node3D target)
 	{
@@ -320,6 +355,7 @@ public partial class MonsterTool : DebugTool
 			case KillAllId: KillAll(); break;
 			case ClearId: Clear(); break;
 			case AIId: AIEnabled = !AIEnabled; break;
+			case RiposteId: RiposteEnabled = !RiposteEnabled; break;
 			case InvulnerableId: Invulnerable = !Invulnerable; break;
 			case RewardsId: RewardsEnabled = !RewardsEnabled; break;
 		}

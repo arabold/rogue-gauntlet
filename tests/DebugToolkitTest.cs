@@ -46,11 +46,13 @@ public class DebugToolkitTest
 	}
 
 	/// <summary>
-	/// A monster spawned on a generated floor with AI on chases the player over the floor's navigation, and killing it
-	/// records no cleared entity, so the floor's save never claims a monster it did not generate.
+	/// A monster spawned on a generated floor with the game's default settings plays like a regular monster: it chases
+	/// the player over the floor's navigation, attacks them and keeps its counterattacks. Invulnerable, it takes hits without losing
+	/// health. Killed, it awards its experience and records no cleared entity, so the floor's save never claims a
+	/// monster it did not generate.
 	/// </summary>
 	[TestCase]
-	public async Task ASpawnedMonsterChasesThePlayerAndClearsNothingWhenKilled()
+	public async Task ASpawnedMonsterPlaysLikeARegularMonsterAndClearsNothingWhenKilled()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		await runner.SimulateFrames(5, 20);
@@ -64,15 +66,32 @@ public class DebugToolkitTest
 		await runner.SimulateFrames(1, 20);
 		var cleared = level.Run.CaptureClearedIds();
 		var tool = scene.FindChildren("*", "HBoxContainer", true, false).OfType<DebugMenu>().Single().GetTool<MonsterTool>();
-		tool.AIEnabled = true;
 
-		var monster = (EnemyBase)tool.Spawn(TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn"), 7);
+		var monster = (EnemyBase)tool.Spawn(TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn"), 7);
 		AssertObject(monster).IsNotNull();
+		AssertBool(monster.DefenseController.RiposteEnabled).IsTrue();
 		AssertFloat(monster.GlobalPosition.HorizontalDistanceTo(player.GlobalPosition)).IsGreater(4);
-		await TestFactories.AwaitPhysicsUntil(runner, () => monster.GlobalPosition.HorizontalDistanceTo(player.GlobalPosition) < 2.5f, 10);
+		// It closes in over the floor's navigation and swings at the player without being told to.
+		await TestFactories.AwaitPhysicsUntil(runner, () => monster.AttackController.IsAttacking, 10);
+		AssertFloat(monster.GlobalPosition.HorizontalDistanceTo(player.GlobalPosition)).IsLess(4);
 
+		DamageResolution Hit() => monster.ResolveDamage(new DamageContext
+		{
+			Amount = 5, Faction = DamageSourceFlags.Player, DeliveryKind = DamageDeliveryKind.DirectMelee,
+			IncomingDirection = Vector3.Forward,
+		});
+		float health = monster.HealthComponent.CurrentHealth;
+		tool.Invulnerable = true;
+		AssertObject(Hit().Outcome).IsEqual(DamageOutcome.Invulnerable);
+		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(health);
+		tool.Invulnerable = false;
+		AssertObject(Hit().Outcome).IsEqual(DamageOutcome.Damaged);
+		AssertFloat(monster.HealthComponent.CurrentHealth).IsLess(health);
+
+		int xp = player.Stats.Xp;
 		tool.KillAll();
 		AssertBool(monster.IsDead).IsTrue();
+		AssertInt(player.Stats.Xp).IsGreater(xp);
 		AssertArray(level.Run.CaptureClearedIds()).IsEqual(cleared);
 	}
 

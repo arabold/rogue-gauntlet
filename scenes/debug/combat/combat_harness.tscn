@@ -98,6 +98,11 @@ World = NodePath("../../..")
 [node name="ItemSpawnTool" parent="UI/HUD/DebugMenu" index="2"]
 Delivery = 2
 
+[node name="MonsterTool" parent="UI/HUD/DebugMenu" index="4"]
+AIEnabled = false
+RiposteEnabled = false
+RewardsEnabled = false
+
 [node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "Arena", "Items", "Monsters", "Spells", "Hero", "Display", "Recorder")]
 layer = 2
 script = ExtResource("harness")
