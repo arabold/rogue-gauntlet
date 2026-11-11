@@ -15,6 +15,11 @@ using Godot;
 [GlobalClass]
 public partial class DashComponent : Node
 {
+	/// <summary>Reports an accepted dash after its action and pose have started.</summary>
+	[Signal] public delegate void DashStartedEventHandler(DashProfile profile);
+	/// <summary>Clears pending presentation on completion, interruption or tree exit.</summary>
+	[Signal] public delegate void DashEndedEventHandler();
+
 	private const float PoseBlend = 0.08f;
 	/// <summary>Travel slower than this share of the commanded speed counts as blocked.</summary>
 	private const float BlockedSpeedShare = 0.85f;
@@ -94,6 +99,7 @@ public partial class DashComponent : Node
 		SetPhysicsProcess(true);
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "dash.started", ("execution", Execution.Sequence),
 			("distance", profile.Distance), ("direction", CombatTrace.Vector(_heading)));
+		EmitSignalDashStarted(profile);
 		return ActorActionRequestResult.Success;
 	}
 
@@ -221,5 +227,6 @@ public partial class DashComponent : Node
 		if (releaseGate && GodotObject.IsInstanceValid(ActionGate) && ActionGate.IsLeaseCurrent(lease)) ActionGate.Release(lease);
 		SetPhysicsProcess(false);
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "dash.finished", ("execution", execution.Sequence), ("interrupted", interrupted));
+		EmitSignalDashEnded();
 	}
 }

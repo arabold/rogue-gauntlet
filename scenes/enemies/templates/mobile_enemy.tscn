@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=37 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -45,6 +45,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/components/editor_status_preview.tscn" id="editor_status_preview"]
 [ext_resource type="PackedScene" path="res://scenes/components/nameplate.tscn" id="nameplate"]
+
+[ext_resource type="Script" path="res://scenes/audio/ActorAudioComponent.cs" id="audio_component_script"]
 
 [node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "ActionGate", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent", "SpellCaster", "ManaComponent", "Stats") groups=["enemy"]]
 Nameplate = NodePath("Nameplate")
@@ -203,3 +205,10 @@ HurtBox = NodePath("../HurtBoxComponent")
 NumberScene = ExtResource("damage_number")
 Anchor = NodePath("../Nameplate/FloatingHealthBar")
 Invisibility = NodePath("../InvisibilityComponent")
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Movement", "Attack", "ActionGate")]
+script = ExtResource("audio_component_script")
+Actor = NodePath("..")
+Movement = NodePath("../MovementComponent")
+Attack = NodePath("../AttackController")
+ActionGate = NodePath("../ActorActionGateComponent")

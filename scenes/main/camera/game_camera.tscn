@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/camera/GameCameraRig.cs" id="1_rig"]
 [ext_resource type="Resource" path="res://scenes/main/camera/game_camera_profile.tres" id="2_profile"]
@@ -19,11 +19,13 @@ frequency = 30.0
 rotational_noise = false
 positional_noise = true
 
-[node name="GameCamera" type="Node" node_paths=PackedStringArray("Camera", "PhantomCamera")]
+[node name="GameCamera" type="Node" node_paths=PackedStringArray("Camera", "PhantomCamera", "AudioListener")]
 script = ExtResource("1_rig")
 Profile = ExtResource("2_profile")
 Camera = NodePath("Camera3D")
 PhantomCamera = NodePath("PhantomCamera3D")
+AudioListener = NodePath("AudioListener3D")
+
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.70710677, -0.54167503, 0.4545197, 0, 0.6427879, 0.7660442, -0.70710677, -0.54167503, 0.4545197, 6.817575, 11.4903, 6.817575)
@@ -54,3 +56,5 @@ noise_emitter_layer = 1
 [node name="CombatCameraFeedbackController" type="Node" parent="." node_paths=PackedStringArray("NoiseEmitter")]
 script = ExtResource("8_feedback")
 NoiseEmitter = NodePath("../HitNoiseEmitter")
+
+[node name="AudioListener3D" type="AudioListener3D" parent="."]

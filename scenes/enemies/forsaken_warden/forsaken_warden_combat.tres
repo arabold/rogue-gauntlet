@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=27 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
@@ -13,6 +13,14 @@
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/forsaken_warden.tres" id="swing_contact"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/forsaken_warden_overhead.tres" id="overhead_contact"]
 [ext_resource type="Resource" path="res://scenes/magic/spells/tremor.tres" id="tremor_spell"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/warden_attack_voice.tres" id="action_voice"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="release_audio"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/warden_windup.tres" id="windup_audio"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/warden_overhead_release.tres" id="overhead_audio"]
 
 [sub_resource type="Resource" id="phase_two"]
 script = ExtResource("phase")
@@ -62,6 +70,9 @@ HyperArmorEnd = 0.5
 HitStopDuration = 0.05
 FacingLockLead = 0.4
 WindUpTurnRate = 60.0
+ReleaseCue = ExtResource("release_audio")
+WindUpCue = ExtResource("windup_audio")
+
 
 [sub_resource type="Resource" id="overhead_swing"]
 script = ExtResource("attack_definition")
@@ -74,6 +85,9 @@ HyperArmorEnd = 0.38
 HitStopDuration = 0.06
 FacingLockLead = 0.3
 WindUpTurnRate = 45.0
+ReleaseCue = ExtResource("overhead_audio")
+WindUpCue = ExtResource("windup_audio")
+
 
 [sub_resource type="Resource" id="slash"]
 resource_name = "slash"
@@ -89,6 +103,8 @@ Style = &"melee"
 Duration = 1.6
 MinDamage = 10.0
 MaxDamage = 18.0
+VoiceCue = ExtResource("action_voice")
+
 
 [sub_resource type="Resource" id="overhead"]
 resource_name = "overhead"
@@ -105,6 +121,8 @@ Style = &"overhead"
 Duration = 1.8
 MinDamage = 15.0
 MaxDamage = 24.0
+VoiceCue = ExtResource("action_voice")
+
 
 [sub_resource type="Resource" id="tremor"]
 resource_name = "tremor"
@@ -119,6 +137,8 @@ Style = &"stomp"
 Duration = 2.65
 MinDamage = 18.0
 MaxDamage = 27.0
+VoiceCue = ExtResource("action_voice")
+
 
 [resource]
 script = ExtResource("profile")

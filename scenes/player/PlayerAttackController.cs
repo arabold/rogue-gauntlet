@@ -7,6 +7,10 @@ using System.Linq;
 public partial class PlayerAttackController : AttackController
 {
 	[Export] public Player Player { get; set; }
+	[ExportGroup("Unarmed audio")]
+	[Export] public SoundCueProfile UnarmedPrimaryReleaseCue { get; set; }
+	[Export] public SoundCueProfile UnarmedSecondaryReleaseCue { get; set; }
+	[ExportGroup("")]
 	[Export] public MeleeAttackProfile SpecialMeleeContact { get; set; }
 	[ExportGroup("Combat feedback")]
 	[Export] public CombatFeedbackProfile PrimaryFeedbackProfile { get; set; }
@@ -153,6 +157,8 @@ public partial class PlayerAttackController : AttackController
 		duration *= step?.DurationScale ?? 1;
 		var contact = isSpecial ? (weapon?.GetEffectiveSecondaryMeleeContact(SpecialMeleeContact) ?? SpecialMeleeContact) : weapon?.MeleeContact;
 		if (!TryPrepareAttack(definition, style, duration, out attack, contact)) return false;
+		// Preparation owns this definition copy; resolve from the acting weapon before equipment can change.
+		attack.Definition.ReleaseCue ??= isSpecial ? weapon?.SecondaryReleaseCue : weapon?.PrimaryReleaseCue;
 		if (weapon?.OnHitStatuses is { Length: > 0 } weaponStatuses)
 		{
 			if (!PreparedHitStatus.TryCapture(weaponStatuses, out var captured)) return false;
@@ -310,6 +316,7 @@ public partial class PlayerAttackController : AttackController
 		else
 		{
 			def.AttackStyle = isSpecial ? "unarmed.kick" : "unarmed.punch";
+			def.ReleaseCue = isSpecial ? UnarmedSecondaryReleaseCue : UnarmedPrimaryReleaseCue;
 			def.HitWindowStart = 0.2f;
 			def.HitWindowEnd = 0.6f;
 		}

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=26 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterSpellAction.cs" id="spell_action"]
@@ -16,6 +16,10 @@
 [ext_resource type="Resource" path="res://scenes/magic/instant_heal.tres" id="heal_spell"]
 [ext_resource type="Resource" path="res://scenes/magic/rage_scroll.tres" id="rage_spell"]
 
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/undead_attack_voice.tres" id="action_voice"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/magic_missile_release.tres" id="release_audio"]
+
 [sub_resource type="Resource" id="volley_attack"]
 script = ExtResource("attack_definition")
 IsRanged = true
@@ -30,6 +34,8 @@ ProjectileAimLockDuration = 0.25
 Range = 14.0
 Element = 1
 PoiseDamage = 4.0
+ReleaseCue = ExtResource("release_audio")
+
 
 [sub_resource type="Resource" id="volley"]
 resource_name = "missile volley"
@@ -42,6 +48,8 @@ Style = &"staff.cast"
 Duration = 1.1
 MinDamage = 2.0
 MaxDamage = 4.0
+VoiceCue = ExtResource("action_voice")
+
 
 [sub_resource type="Resource" id="allies"]
 script = ExtResource("ally")
@@ -70,6 +78,8 @@ Duration = 1.2
 MinDamage = 3.0
 MaxDamage = 6.0
 CritChance = 0.05
+VoiceCue = ExtResource("action_voice")
+
 
 [sub_resource type="Resource" id="regenerate"]
 resource_name = "regenerate"

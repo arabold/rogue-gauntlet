@@ -10,7 +10,7 @@ public enum SoundCueCategory
 /// <summary>
 /// Immutable authored playback settings for one semantic sound cue.
 /// </summary>
-[GlobalClass]
+[Tool, GlobalClass]
 public partial class SoundCueProfile : Resource
 {
 	[Export] public AudioStream[] Variants { get; set; } = [];

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3 uid="uid://c2aj2q6oitlgh"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=8 format=3 uid="uid://c2aj2q6oitlgh"]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_2h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
@@ -6,6 +6,9 @@
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_6vmda"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 [ext_resource type="Resource" path="res://scenes/attacks/combos/blunt_2h.tres" id="primary_combo"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="release_audio"]
+
 
 [resource]
 script = ExtResource("2_6vmda")
@@ -31,3 +34,5 @@ ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
 metadata/_custom_type_script = ExtResource("2_6vmda")
+PrimaryReleaseCue = ExtResource("release_audio")
+SecondaryReleaseCue = ExtResource("release_audio")

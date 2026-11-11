@@ -43,7 +43,7 @@ public partial class MonsterSpellAction : MonsterTimedAction
 		if (!context.TryReserveSlot(ReservedSlot, out var slots)) return ActorActionRequestResult.Busy;
 		release = release with { Revalidate = released => CanRelease(context, released) };
 		if (!controller.TryPrepareAttack(Spell.Cast, Style, Duration, out var prepared)
-			|| !controller.StartAttack(prepared with { Spell = release }, power, HostileMask))
+			|| !controller.StartAttack(prepared with { Spell = release, VoiceCue = VoiceCue }, power, HostileMask))
 		{
 			slots?.Release(actor, yield: false);
 			return ActorActionRequestResult.InvalidDefinition;

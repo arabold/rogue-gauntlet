@@ -34,6 +34,8 @@ Components execute capabilities; strategies and actions request them; the [share
 
 ### Actions
 
+Audio follows the selected action: mechanical wind-up/release cues belong to its attack definition or shared spell cast, and `MonsterTimedAction.VoiceCue` supplies an optional creature vocal. Death stays on `MonsterDefinition.DeathCue`. See [audio authoring](audio-system.md#cue-authoring) for component wiring and committed-release rules.
+
 An `EnemyCombatProfile` lists its actions in order. Each action is a Resource that knows when it may start and how: a new kind of action is a new `MonsterAction` subclass, never an edit to the behavior host. Monster-only actions live as sub-resources inside the monster's `*_combat.tres`; shared strategies, spells, buffs and contact profiles stay separate files.
 
 - **Selection.** Among actions that are off cooldown, have a free attack slot, are in position and meet their conditions, only the highest `Priority` competes; `Weight` × weight modifiers × the profile's repeat penalty choose within it, from the actor's seeded `combat.action` stream. Cooldown and history start only when the action actually starts.

@@ -33,6 +33,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Stats and itemization](stats-and-itemization.md) | Actor-neutral buffs/statuses, venom/poison, attributes, modifiers, equipment tiers, loot rolls and enchantment |
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Weapon attacks](weapon-attack-system.md) | Main/off-hand capabilities, paired melee, shared player/monster spell definitions, attack payloads, combos, weapon execution and contact resolution |
+| [Audio system](audio-system.md) | Playback/mixing, cue ownership, combat releases, per-action monster voices, either-hand casts, props and listener authoring |
 | [Combat actions and defense](combat-system.md) | Shared action ownership and execution, dashes, hit feedback, attack indicators, dodge, guard/parry/guard break, poise, hit reactions, threat tiers, attack slots, RNG and persistence |
 | [Combat harness and traces](combat-harness.md) | Arena on the game's debug menu, camera and lighting; passive target, hero builds, wall layouts, path-based scenarios, JSONL schema and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
@@ -53,8 +54,8 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat redesign](specs/combat-redesign-plan.md) | Warden phases, swings and Tremor slam are implemented; a guard-breaking attack, guard walking and open tuning risks remain |
 | [Monster action architecture](specs/monster-action-architecture-plan.md) | Landed; dodge on the dash component, editor badges, phase content and spell cast validation remain |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
-| [Audio system](specs/audio-system-plan.md) | Playback prototype, persistent category settings and first combat cues wired; remaining work covers mix acceptance and broader content |
-| [Audio combat integration](specs/audio-combat-integration-plan.md) | Proposed reconciliation with current main: per-action monster voices, successful release timing, paired melee, either-hand spells and the shared camera/arena |
+| [Audio direction and content](specs/audio-system-plan.md) | Remaining listening/mix acceptance, spell/material identities, items, ambience and music choices |
+| [Audio combat acceptance](specs/audio-combat-integration-plan.md) | Architecture integration delivered; production combat and stereo listening exercises remain |
 | [Shared debug toolkit](specs/debug-toolkit-plan.md) | Implemented; remaining class switching, captured builds and open harness decisions |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.

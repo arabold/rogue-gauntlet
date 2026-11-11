@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MagicStaff" format=3 uid="uid://b0npueya07rvp"]
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=11 format=3 uid="uid://b0npueya07rvp"]
 
 [ext_resource type="PackedScene" uid="uid://dwyvjmrj4xfmo" path="res://scenes/items/weapons/wand.tscn" id="1_staff"]
 [ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_xw82a"]
@@ -8,6 +8,10 @@
 [ext_resource type="Resource" path="res://scenes/magic/missile/wand_missiles.tres" id="missiles"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/magic_missile_release.tres" id="primary_audio"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/spell_release.tres" id="secondary_audio"]
 
 [resource]
 script = ExtResource("2_magic")
@@ -29,3 +33,5 @@ BoundSpell = ExtResource("bound_spell")
 SpellPool = ExtResource("spell_pool")
 Missiles = ExtResource("missiles")
 metadata/_custom_type_script = ExtResource("2_magic")
+PrimaryReleaseCue = ExtResource("primary_audio")
+SecondaryReleaseCue = ExtResource("secondary_audio")

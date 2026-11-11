@@ -1,10 +1,9 @@
-[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_behavior.tres" id="behavior"]
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_drop.tres" id="loot"]
 
-[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/warden_attack_voice.tres" id="attack_voice"]
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/warden_death.tres" id="death_voice"]
 
 [resource]
@@ -16,5 +15,4 @@ MoveSpeed = 3.0
 XpReward = 150
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
-AttackVoiceCue = ExtResource("attack_voice")
 DeathCue = ExtResource("death_voice")

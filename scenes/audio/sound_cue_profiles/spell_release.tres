@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStream" path="res://assets/artisticdude-rpg-sound-pack/battle/spell.wav" id="clip_0"]
+
+[resource]
+script = ExtResource("script")
+Variants = [ExtResource("clip_0")]
+Category = 0
+GainDb = -14
+PitchMinimum = 0.96
+PitchMaximum = 1.04
+PanningStrength = 0.2
+UnitSize = 3.0
+MaxDistance = 24.0
+Priority = 4
+MaxVoicesPerSource = 2
+MaxVoicesGlobal = 6
+MinIntervalSeconds = 0.05

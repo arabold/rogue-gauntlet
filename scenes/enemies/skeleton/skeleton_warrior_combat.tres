@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
@@ -7,6 +7,10 @@
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_ring.tres" id="movement"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_skeleton_warrior.tres" id="contact"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_defense.tres" id="defense"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/undead_attack_voice.tres" id="action_voice"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="release_audio"]
 
 [sub_resource type="Resource" id="strike_attack"]
 script = ExtResource("attack_definition")
@@ -17,6 +21,8 @@ PoiseDamage = 15.0
 HitStopDuration = 0.04
 FacingLockLead = 0.15
 WindUpTurnRate = 300.0
+ReleaseCue = ExtResource("release_audio")
+
 
 [sub_resource type="Resource" id="strike"]
 resource_name = "strike"
@@ -29,6 +35,8 @@ Style = &"melee"
 Duration = 1.0
 MinDamage = 1.0
 MaxDamage = 15.0
+VoiceCue = ExtResource("action_voice")
+
 
 [resource]
 script = ExtResource("profile")

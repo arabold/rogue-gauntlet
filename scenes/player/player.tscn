@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=115 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 [ext_resource type="PackedScene" path="res://scenes/player/player_light.tscn" id="player_light_scene"]
@@ -537,6 +537,9 @@ PrimaryFeedbackProfile = ExtResource("combat_feedback_profile")
 SecondaryFeedbackProfile = ExtResource("combat_feedback_profile")
 DefaultMeleeContact = ExtResource("melee_default")
 DefaultProjectileScene = ExtResource("19_projectile")
+UnarmedPrimaryReleaseCue = ExtResource("audio_attack_release")
+UnarmedSecondaryReleaseCue = ExtResource("audio_attack_release")
+
 
 [node name="MovementComponent" parent="." unique_id=956342266 node_paths=PackedStringArray("Actor", "StairsTrigger", "ActionGate") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")
@@ -692,5 +695,4 @@ Dodge = NodePath("../DodgeComponent")
 Guard = NodePath("../GuardComponent")
 FootstepCue = ExtResource("audio_footstep")
 RushCue = ExtResource("audio_rush")
-AttackReleaseCue = ExtResource("audio_attack_release")
 GuardCue = ExtResource("audio_guard")

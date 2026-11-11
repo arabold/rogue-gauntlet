@@ -29,8 +29,9 @@ public partial class AttackController : Node, IParryInterruptible
 	[Export] public MeleeHitDetector MeleeDetector { get; set; }
 	[Export] public MeleeAttackProfile DefaultMeleeContact { get; set; }
 	[Export] public bool EffectsEnabled { get; set; } = true;
-	[Signal] public delegate void AttackStartedEventHandler();
-	/// <summary>Reports the authored attack at its synchronized release point, before its projectile or spell begins.</summary>
+	/// <summary>Reports the accepted snapshot and optional action-owned creature vocal.</summary>
+	[Signal] public delegate void AttackStartedEventHandler(AttackDefinition definition, SoundCueProfile voiceCue);
+	/// <summary>Reports one committed release: melee contact opening, first projectile, or a successful spell cast.</summary>
 	[Signal] public delegate void AttackReleasedEventHandler(AttackDefinition definition);
 	[Signal] public delegate void AttackFeedbackEventHandler(string result, float damage);
 	/// <summary>Presentation hook (camera impulse, sound) when a contact pauses this execution.</summary>
@@ -194,8 +195,8 @@ public partial class AttackController : Node, IParryInterruptible
 			("poise_damage", def.PoiseDamage), ("facing_lock_lead", def.FacingLockLead), ("hyper_armor", $"{def.HyperArmorStart}-{def.HyperArmorEnd}"));
 		if (attack.Playback != null) AnimationComponent.Begin(attack.Playback);
 		UpdateIndicator(AttackIndicatorStage.Aiming);
-		EmitSignalAttackStarted();
 		SetPhysicsProcess(true);
+		EmitSignalAttackStarted(def, attack.VoiceCue);
 		return true;
 	}
 
@@ -268,13 +269,14 @@ public partial class AttackController : Node, IParryInterruptible
 		// A positive lead commits melee facing before contact, so a defender can step out of the swing.
 		if (!_currentAttack.IsRanged && !HasCommittedFacing && _elapsedTime >= _currentAttack.HitWindowStart - _currentAttack.FacingLockLead)
 			CommitMeleeFacing();
-		if (_preparedAttack.Spell != null)
+		var activeAttack = _preparedAttack;
+		if (activeAttack.Spell != null)
 		{
 			if (!_releaseStarted && _elapsedTime >= _currentAttack.HitWindowStart)
 			{
 				_releaseStarted = true;
-				EmitSignalAttackReleased(_currentAttack);
-				ReleaseSpell(_preparedAttack.Spell);
+				if (ReleaseSpell(activeAttack.Spell)) EmitSignalAttackReleased(activeAttack.Definition);
+				if (!ReferenceEquals(activeAttack, _preparedAttack)) return;
 			}
 		}
 		else if (_currentAttack.IsRanged)
@@ -293,11 +295,11 @@ public partial class AttackController : Node, IParryInterruptible
 				if (!_releaseStarted)
 				{
 					_releaseStarted = true;
-					EmitSignalAttackReleased(_currentAttack);
 					BeginRelease();
 					UpdateIndicator(AttackIndicatorStage.Released);
 				}
 				ReleaseDueProjectiles();
+				if (!ReferenceEquals(activeAttack, _preparedAttack)) return;
 			}
 		}
 		else if (_elapsedTime >= _currentAttack.HitWindowStart && previous <= _currentAttack.HitWindowEnd
@@ -305,11 +307,12 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			// Interval intersection, not just the current timestamp: even a whole skipped window queries once.
 			if (!HasCommittedFacing) CommitMeleeFacing();
-				if (!_releaseStarted)
-				{
-					_releaseStarted = true;
-					EmitSignalAttackReleased(_currentAttack);
-				}
+			if (!_releaseStarted)
+			{
+				_releaseStarted = true;
+				EmitSignalAttackReleased(activeAttack.Definition);
+				if (!ReferenceEquals(activeAttack, _preparedAttack)) return;
+			}
 			var profile = _currentAttack.MeleeContact;
 			var frame = new Transform3D(_contactBasis, _actor.GlobalPosition + Vector3.Up * profile.CenterHeight);
 			var execution = _preparedAttack;
@@ -566,16 +569,18 @@ public partial class AttackController : Node, IParryInterruptible
 	/// Casts the attack's spell once at its contact time; a spell freed with its focus no longer casts. Like a projectile,
 	/// the cast rolls from its own seeded stream, so its lingering contacts never shift this controller's later draws.
 	/// </summary>
-	private void ReleaseSpell(SpellRelease release)
+	private bool ReleaseSpell(SpellRelease release)
 	{
+		var identity = CurrentExecutionId;
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		var random = new RandomNumberGenerator { Seed = _random.Randi() };
 		var context = release.Context;
 		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
 			&& release.Revalidate?.Invoke(context) != false && release.Spell.Cast(in context, random);
 		ReportFeedback(cast ? "Cast" : "Fizzled");
-		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", identity.Sequence),
 			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level), ("cast", cast));
+		return cast;
 	}
 
 	/// <summary>
@@ -584,10 +589,14 @@ public partial class AttackController : Node, IParryInterruptible
 	/// </summary>
 	private void ReleaseDueProjectiles()
 	{
+		var attack = _preparedAttack;
 		while (_projectilesReleased < _releaseDirections.Count
 			&& _elapsedTime >= _currentAttack.HitWindowStart + _projectilesReleased * _currentAttack.ProjectileStagger)
 		{
+			bool first = _projectilesReleased == 0;
 			SpawnProjectile(_releaseDirections[_projectilesReleased++]);
+			if (first) EmitSignalAttackReleased(attack.Definition);
+			if (!ReferenceEquals(attack, _preparedAttack)) return;
 		}
 	}
 

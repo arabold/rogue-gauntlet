@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="Weapon" load_steps=8 format=3]
 
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="melee_contact"]
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_melee.tres" id="weapon_grip"]
@@ -6,6 +6,9 @@
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/club/club_wood_old.tscn" id="scene"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
 [ext_resource type="Resource" path="res://scenes/attacks/combos/blunt_1h.tres" id="primary_combo"]
+
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="release_audio"]
 
 
 [resource]
@@ -28,3 +31,5 @@ CritChance = 0
 IsTwoHanded = false
 PerformDuration = 0.55
 metadata/_custom_type_script = ExtResource("script")
+PrimaryReleaseCue = ExtResource("release_audio")
+SecondaryReleaseCue = ExtResource("release_audio")

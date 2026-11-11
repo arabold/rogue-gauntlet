@@ -1,9 +1,12 @@
-[gd_resource type="Resource" script_class="RangedWeapon" load_steps=5 format=3 uid="uid://biricifur5j8u"]
+[gd_resource type="Resource" script_class="RangedWeapon" load_steps=6 format=3 uid="uid://biricifur5j8u"]
 
 [ext_resource type="Resource" path="res://scenes/items/grips/kaykit_crossbow.tres" id="weapon_grip"]
 [ext_resource type="PackedScene" uid="uid://crtbmkjnx4oxe" path="res://scenes/items/weapons/crossbow_common.tscn" id="1_7ihye"]
 [ext_resource type="Script" uid="uid://ddieqpfh5m7w8" path="res://scenes/items/RangedWeapon.cs" id="2_cecn6"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/wooden_weapon.tres" id="roll_table"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/projectile_release.tres" id="release_audio"]
+
 
 [resource]
 script = ExtResource("2_cecn6")
@@ -30,3 +33,5 @@ ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
 metadata/_custom_type_script = ExtResource("2_cecn6")
+PrimaryReleaseCue = ExtResource("release_audio")
+SecondaryReleaseCue = ExtResource("release_audio")

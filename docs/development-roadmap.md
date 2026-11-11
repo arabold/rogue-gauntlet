@@ -70,9 +70,9 @@ The next consumable-feedback goal is [catalog-wide activation coverage](specs/co
 
 ## Audio
 
-Before expanding content, reconcile the prototype with main's multi-action monsters, either-hand spells and shared camera/debug toolkit using the [audio combat integration plan](specs/audio-combat-integration-plan.md). Its three slices establish captured cue selection and successful release timing, author the expanded roster/dashes, then accept synchronization and the mix in the production combat arena.
+The [audio system](audio-system.md) provides pooled positional cues, separate music/effects/UI mixing, saved volume/mono settings, looping exploration music and boss crossfades. It follows the shared combat executor, multi-action monster profiles, paired melee and either-hand spell casting; the production camera rig supplies the listener in gameplay and the arena. Footsteps follow authored floor materials, defense contacts use distinct impacts, and deaths/doors/chests/item pickup/drop have committed cues.
 
-The [audio concept and implementation plan](specs/audio-system-plan.md) now has a playable prototype: Kenney CC0 effects, MintoDog CC0 exploration/boss loops, separate audio buses, menu and pause clicks, persistent volume settings with mono output, exploration music that continues into gameplay, boss crossfades, a player-centered listener, player movement/defense/attack cues, door cues, resolved contact impacts and one-shot crossbow/Warden wind-up cues. The user has heard menu/workbench playback and selected the music pair. Distinct material/element impacts and the later spell/item/ambience batches remain planned; settings persistence, in-game audibility and stereo behavior still need a windowed playthrough.
+The [combat listening pass](specs/audio-combat-integration-plan.md) remains outstanding, including new spell/volley/support/Tremor defaults, Warden overhead weight, stereo and crowd clarity. [Remaining content](specs/audio-system-plan.md) covers material/element impacts, more spell/item signatures, ambience and realm music. Automated event/resource checks do not establish the final mix.
 
 ## Later delivery
 

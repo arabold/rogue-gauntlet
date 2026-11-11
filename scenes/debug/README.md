@@ -14,7 +14,9 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 
 ## Lighting, camera and floor
 
-Every harness except room generation shows its subject as the game does. It lights through `scenes/levels/lighting/world_lighting.tscn`, the game's own environment with the **Dark level** switch, and the hero carries `scenes/player/player_light.tscn`; workbenches without a playing hero place that light beside their subject. The combat arena uses the game camera (`scenes/main/camera/game_camera.tscn`, its angle and zoom in `game_camera_profile.tres`), and the workbench cameras start at the same angle. Subjects stand on `scenes/debug/stage/sample_floor.tscn`, paved with the dungeon's stone floor tile. Room generation keeps its bright top-down overview, set on its level's lighting node.
+The audio harness uses a diagnostic marker stage and listener for stereo/distance audition. Combat synchronization uses the production combat arena; see [audio authoring](../../docs/audio-system.md).
+
+Visual harnesses use the game's presentation. It lights through `scenes/levels/lighting/world_lighting.tscn`, the game's own environment with the **Dark level** switch, and the hero carries `scenes/player/player_light.tscn`; workbenches without a playing hero place that light beside their subject. The combat arena uses the game camera (`scenes/main/camera/game_camera.tscn`, its angle and zoom in `game_camera_profile.tres`), and the workbench cameras start at the same angle. Subjects stand on `scenes/debug/stage/sample_floor.tscn`, paved with the dungeon's stone floor tile. Room generation keeps its bright top-down overview, set on its level's lighting node.
 
 ## In-game debug menu
 

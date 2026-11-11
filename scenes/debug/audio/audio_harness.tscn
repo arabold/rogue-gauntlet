@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scenes/debug/audio/AudioHarness.cs" id="1_script"]
 [ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="2_cue_profile"]
@@ -17,10 +17,22 @@
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_pickup.tres" id="15_item_pickup"]
 [ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_drop.tres" id="16_item_drop"]
 
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/projectile_release.tres" id="audio_projectile_release"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/magic_missile_release.tres" id="audio_magic_missile_release"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/spell_release.tres" id="audio_spell_release"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/spell_support_release.tres" id="audio_spell_support_release"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/tremor_release.tres" id="audio_tremor_release"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/warden_overhead_release.tres" id="audio_warden_overhead_release"]
+
 [node name="AudioHarness" type="Node3D"]
 process_mode = 3
 script = ExtResource("1_script")
-Cues = Array[ExtResource("2_cue_profile")]([ExtResource("3_ui_click"), ExtResource("4_ui_rollover"), ExtResource("5_footstep"), ExtResource("8_rush"), ExtResource("9_attack_release"), ExtResource("10_guard_raise"), ExtResource("11_guard_block"), ExtResource("12_parry"), ExtResource("13_guard_break"), ExtResource("6_door_open"), ExtResource("14_door_close"), ExtResource("15_item_pickup"), ExtResource("16_item_drop")])
+Cues = Array[ExtResource("2_cue_profile")]([ExtResource("3_ui_click"), ExtResource("4_ui_rollover"), ExtResource("5_footstep"), ExtResource("8_rush"), ExtResource("9_attack_release"), ExtResource("10_guard_raise"), ExtResource("11_guard_block"), ExtResource("12_parry"), ExtResource("13_guard_break"), ExtResource("6_door_open"), ExtResource("14_door_close"), ExtResource("15_item_pickup"), ExtResource("16_item_drop"), ExtResource("audio_projectile_release"), ExtResource("audio_magic_missile_release"), ExtResource("audio_spell_release"), ExtResource("audio_spell_support_release"), ExtResource("audio_tremor_release"), ExtResource("audio_warden_overhead_release")])
 StressCue = ExtResource("7_stress")
 
 [node name="Camera3D" type="Camera3D" parent="."]

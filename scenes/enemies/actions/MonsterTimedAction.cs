@@ -11,6 +11,9 @@ public abstract partial class MonsterTimedAction : MonsterAction
 	/// <summary>Collision layer of the player's hurtbox, the only thing monster attacks can damage.</summary>
 	protected const uint HostileMask = 4;
 
+	/// <summary>Optional creature vocal layered on this action's accepted wind-up.</summary>
+	[Export] public SoundCueProfile VoiceCue { get; set; }
+
 	[ExportGroup("Timing and power")]
 	/// <summary>Animation style bound in the actor's attack animation profile; the definition's own style wins.</summary>
 	[Export] public StringName Style { get; set; } = "melee";
