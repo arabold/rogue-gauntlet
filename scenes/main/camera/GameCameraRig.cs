@@ -17,6 +17,9 @@ public partial class GameCameraRig : Node
 	/// <summary>The Phantom Camera node (GDScript, so it is addressed as a plain node) the rig positions every frame.</summary>
 	[Export] public Node3D PhantomCamera { get; set; }
 
+	private static readonly StringName RotateLeft = "camera_rotate_left", RotateRight = "camera_rotate_right";
+	private static readonly StringName ZoomIn = "camera_zoom_in", ZoomOut = "camera_zoom_out";
+
 	private Player _player;
 
 	public override void _Ready()
@@ -29,7 +32,7 @@ public partial class GameCameraRig : Node
 		}
 
 		Camera.Size = Profile.Size;
-		Basis basis = Profile.ViewBasis(Profile.YawDegrees);
+		Basis basis = Profile.ViewBasis;
 		PhantomCamera.GlobalTransform = new Transform3D(basis, Profile.ViewPosition(Vector3.Zero, basis));
 		Camera.GlobalTransform = PhantomCamera.GlobalTransform;
 		this.SubscribeUntilExit(SignalBus.Instance,
@@ -57,13 +60,15 @@ public partial class GameCameraRig : Node
 			return;
 		}
 
-		float rotation = Input.GetAxis("camera_rotate_left", "camera_rotate_right");
+		float rotation = Input.GetAxis(RotateLeft, RotateRight);
 		if (!Mathf.IsZeroApprox(rotation))
 		{
-			Rotate(Mathf.DegToRad(rotation * Profile.RotationDegreesPerSecond * (float)delta));
+			// Turns the view; recentring below puts it back over the hero.
+			var turn = new Basis(Vector3.Up, Mathf.DegToRad(rotation * Profile.RotationDegreesPerSecond * (float)delta));
+			PhantomCamera.GlobalBasis = (turn * PhantomCamera.GlobalBasis).Orthonormalized();
 		}
 
-		float zoom = Input.GetAxis("camera_zoom_in", "camera_zoom_out");
+		float zoom = Input.GetAxis(ZoomIn, ZoomOut);
 		if (!Mathf.IsZeroApprox(zoom))
 		{
 			// Orthographic zoom changes the visible area; moving the camera would not change scale.
@@ -76,13 +81,6 @@ public partial class GameCameraRig : Node
 	private void CenterOnPlayer()
 	{
 		Basis basis = PhantomCamera.GlobalBasis.Orthonormalized();
-		PhantomCamera.GlobalTransform = new Transform3D(basis, Profile.ViewPosition(_player.GlobalPosition, basis));
-	}
-
-	private void Rotate(float yaw)
-	{
-		var turn = new Basis(Vector3.Up, yaw);
-		Basis basis = (turn * PhantomCamera.GlobalBasis).Orthonormalized();
 		PhantomCamera.GlobalTransform = new Transform3D(basis, Profile.ViewPosition(_player.GlobalPosition, basis));
 	}
 }

@@ -5,16 +5,13 @@ using Godot;
 /// and its lighting, whose darkness the tools toggle. A generated <see cref="Level"/> is one, so the tools never assume a
 /// particular scene layout.
 /// </summary>
-public interface IDebugWorld : ILitWorld
+public interface IDebugWorld : ILitWorld, INavigableWorld
 {
 	/// <summary>Depth spawned equipment is rolled at.</summary>
 	uint Depth { get; }
 
 	/// <summary>Seeds the combat streams of spawned monsters, so a debug encounter replays the same way.</summary>
 	ulong RunSeed { get; }
-
-	/// <summary>Monster navigation; null until the world has one.</summary>
-	FloorNavigation Navigation { get; }
 
 	/// <summary>Adds a runtime node to the world at <paramref name="globalPosition"/>.</summary>
 	void AddWorldNode(Node3D node, Vector3 globalPosition);

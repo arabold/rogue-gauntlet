@@ -23,15 +23,6 @@ public partial class ItemSpawnTool : DebugTool
 {
 	/// <summary>How far a spawned item is thrown: the default monster drop distance.</summary>
 	private const float DropDistance = 1.5f;
-	private const int CursedId = 100;
-	private const int RandomQualityId = 101;
-	private const int FillBackpackId = 102;
-	private static readonly (string Label, ItemDelivery Delivery)[] Deliveries =
-	[
-		("Drop", ItemDelivery.Drop),
-		("Backpack", ItemDelivery.Backpack),
-		("Equip", ItemDelivery.Equip),
-	];
 
 	/// <summary>
 	/// Category label to the res:// folder its submenu lists: every <c>.tres</c> item in the folder or its subfolders, so an
@@ -80,19 +71,14 @@ public partial class ItemSpawnTool : DebugTool
 		("Staves", item => item is MagicStaff { IsTwoHanded: true }),
 	];
 
-	/// <summary>What each entry creates: a definition and, for a wand or staff, the spell it carries. Ids index this list.</summary>
-	private readonly List<(Item Definition, SpellDefinition Spell)> _spawnables = [];
-	private PopupMenu _qualityMenu;
-	private PopupMenu _deliveryMenu;
-
-	public override void BuildMenu(PopupMenu menu)
+	protected override void BuildMenu(PopupMenu menu)
 	{
 		var categories = new List<(string Label, IEnumerable<(Item Item, string Path)> Entries)>();
 		foreach (var (label, directory) in Categories)
 		{
-			var entries = DebugCatalog.Items(directory);
-			categories.Add((label, entries.Where(e => e.Item is not MagicStaff)));
-			categories.AddRange(SpellWeaponCategories.Select(c => (c.Label, entries.Where(e => c.Matches(e.Item)))));
+			var entries = DebugCatalog.Resources<Item>(directory);
+			categories.Add((label, entries.Where(e => e.Resource is not MagicStaff)));
+			categories.AddRange(SpellWeaponCategories.Select(c => (c.Label, entries.Where(e => c.Matches(e.Resource)))));
 		}
 		// Merges spell weapons found in several folders into one submenu, placed where they first appear.
 		foreach (var category in categories.GroupBy(c => c.Label, c => c.Entries))
@@ -103,35 +89,28 @@ public partial class ItemSpawnTool : DebugTool
 		menu.AddSeparator();
 		if (FillItem != null)
 		{
-			menu.AddItem($"Fill backpack with {FillItem.Name}", FillBackpackId);
-			menu.IdPressed += id => { if (id == FillBackpackId) { FillBackpack(FillItem); } };
+			AddAction(menu, $"Fill backpack with {FillItem.Name}", () => FillBackpack(FillItem));
 		}
-		_deliveryMenu = new PopupMenu { Name = "DeliveryMenu" };
-		foreach (var (label, delivery) in Deliveries) { _deliveryMenu.AddRadioCheckItem(label, (int)delivery); }
-		_deliveryMenu.IdPressed += id => { Delivery = (ItemDelivery)(int)id; RefreshMenu(menu); };
-		menu.AddChild(_deliveryMenu);
-		menu.AddSubmenuNodeItem("Delivery", _deliveryMenu);
+		PopupMenu deliveries = AddSubmenu(menu, "Delivery", "DeliveryMenu");
+		foreach (ItemDelivery delivery in System.Enum.GetValues<ItemDelivery>())
+		{
+			AddRadio(deliveries, delivery.ToString(), () => Delivery == delivery, () => Delivery = delivery);
+		}
 
 		if (CreationPolicy?.QualityLadder == null)
 		{
 			if (CreationPolicy != null) { GD.PushError($"{Name}: the creation policy needs a quality ladder."); }
 			return;
 		}
-		_qualityMenu = BuildQualityMenu();
-		menu.AddChild(_qualityMenu);
-		menu.AddSubmenuNodeItem("Quality", _qualityMenu);
-	}
-
-	public override void RefreshMenu(PopupMenu menu)
-	{
-		CheckRadio(_deliveryMenu, (int)Delivery);
-		if (_qualityMenu == null)
+		// "Random" rolls the quality like a drop; every other entry forces one.
+		PopupMenu qualities = AddSubmenu(menu, "Quality", "QualityMenu");
+		AddRadio(qualities, "Random", () => Quality == null, () => Quality = null);
+		foreach (ItemQuality quality in System.Enum.GetValues<ItemQuality>())
 		{
-			return;
+			AddRadio(qualities, quality.ToString(), () => Quality == quality, () => Quality = quality);
 		}
-
-		CheckRadio(_qualityMenu, Quality.HasValue ? (int)Quality.Value : RandomQualityId);
-		SetChecked(_qualityMenu, CursedId, Cursed);
+		qualities.AddSeparator();
+		AddToggle(qualities, "Cursed", () => Cursed, value => Cursed = value);
 	}
 
 	/// <summary>
@@ -203,8 +182,9 @@ public partial class ItemSpawnTool : DebugTool
 	}
 
 	/// <summary>
-	/// Puts <paramref name="item"/> in the player's backpack and, with <paramref name="equip"/>, equips it, interrupting the
-	/// current attack as a gear change does. False, with the item left out, when it does not fit or cannot be equipped.
+	/// Picks <paramref name="item"/> up into the player's backpack and, with <paramref name="equip"/>, equips it, through the
+	/// player's own inventory controller as a pickup and an equip from the inventory would. False when it does not fit or
+	/// cannot be equipped.
 	/// </summary>
 	public bool Give(Item item, bool equip)
 	{
@@ -219,7 +199,7 @@ public partial class ItemSpawnTool : DebugTool
 			GD.PrintErr($"{item.Name} cannot be equipped.");
 			return false;
 		}
-		if (!player.Inventory.TryAdd(item).Success)
+		if (!player.InventoryController.PickupItem(item))
 		{
 			GD.PrintErr($"{item.Name} does not fit in the backpack.");
 			return false;
@@ -230,8 +210,7 @@ public partial class ItemSpawnTool : DebugTool
 		}
 
 		InventoryItemSlot entry = player.Inventory.Items.First(slot => ReferenceEquals(slot.Item, item));
-		player.AttackController?.CancelAttack();
-		if (player.Inventory.Equip(entry).Success)
+		if (player.InventoryController.TryEquip(entry).Success)
 		{
 			return true;
 		}
@@ -272,103 +251,37 @@ public partial class ItemSpawnTool : DebugTool
 
 	/// <summary>
 	/// Adds one submenu listing <paramref name="entries"/> by name and tier; an empty one is left out. A wand or staff opens
-	/// its own spell submenu instead of spawning directly.
+	/// its own submenu of the spells its pool can roll, so the menu offers exactly the variants a dungeon drop can be.
 	/// </summary>
 	private void AddCategory(PopupMenu menu, string label, IEnumerable<(Item Item, string Path)> entries)
 	{
-		var sorted = DebugCatalog.InDisplayOrder(entries).ToList();
+		var sorted = entries.OrderBy(e => e.Item.Name, System.StringComparer.Ordinal)
+			.ThenBy(e => (e.Item as EquipableItem)?.Tier ?? 0)
+			.ThenBy(e => e.Path, System.StringComparer.Ordinal).ToList();
 		if (sorted.Count == 0)
 		{
 			return;
 		}
 
-		var categoryMenu = new PopupMenu { Name = $"Spawn{label}Menu" };
+		PopupMenu category = AddSubmenu(menu, label, $"Spawn{label}Menu");
 		string[] labels = DescribeEntries(sorted);
 		for (int i = 0; i < sorted.Count; i++)
 		{
 			var (item, path) = sorted[i];
 			if (item is MagicStaff { SpellPool: not null } staff)
 			{
-				PopupMenu spellMenu = BuildSpellWeaponMenu(staff);
-				categoryMenu.AddChild(spellMenu);
-				categoryMenu.AddSubmenuNodeItem(labels[i], spellMenu);
+				PopupMenu spells = AddSubmenu(category, labels[i]);
+				foreach (SpellDefinition spell in staff.SpellPool.Spells.Where(staff.CanBind))
+				{
+					AddAction(spells, spell.DisplayName, () => Deliver(Create(staff, spell)));
+				}
 			}
 			else
 			{
-				categoryMenu.AddItem(labels[i], AddSpawnable(item, null));
+				AddAction(category, labels[i], () => Deliver(Create(item)));
 			}
-			categoryMenu.SetItemTooltip(i, path);
+			category.SetItemTooltip(i, path);
 		}
-
-		categoryMenu.IdPressed += OnSpawnPressed;
-		menu.AddChild(categoryMenu);
-		menu.AddSubmenuNodeItem(label, categoryMenu);
-	}
-
-	/// <summary>
-	/// The spells <paramref name="staff"/> can roll: each entry spawns the weapon carrying that spell, so the menu offers
-	/// exactly the variants a dungeon drop can be.
-	/// </summary>
-	private PopupMenu BuildSpellWeaponMenu(MagicStaff staff)
-	{
-		var menu = new PopupMenu();
-		foreach (SpellDefinition spell in staff.SpellPool.Spells.Where(staff.CanBind))
-		{
-			menu.AddItem(spell.DisplayName, AddSpawnable(staff, spell));
-		}
-
-		menu.IdPressed += OnSpawnPressed;
-		return menu;
-	}
-
-	/// <summary>Registers what an entry creates and returns its menu id.</summary>
-	private int AddSpawnable(Item definition, SpellDefinition spell)
-	{
-		_spawnables.Add((definition, spell));
-		return _spawnables.Count - 1;
-	}
-
-	private void OnSpawnPressed(long id)
-	{
-		if (id < 0 || id >= _spawnables.Count)
-		{
-			return;
-		}
-
-		var (definition, spell) = _spawnables[(int)id];
-		Deliver(Create(definition, spell));
-	}
-
-	/// <summary>
-	/// Radio list of "Random", which rolls the quality like a drop, and every quality (ids are their
-	/// <see cref="ItemQuality"/>), plus a "Cursed" toggle.
-	/// </summary>
-	private PopupMenu BuildQualityMenu()
-	{
-		var menu = new PopupMenu { Name = "QualityMenu" };
-		menu.AddRadioCheckItem("Random", RandomQualityId);
-		foreach (ItemQuality quality in System.Enum.GetValues<ItemQuality>())
-		{
-			menu.AddRadioCheckItem(quality.ToString(), (int)quality);
-		}
-
-		menu.AddSeparator();
-		menu.AddCheckItem("Cursed", CursedId);
-		menu.IdPressed += OnQualityPressed;
-		return menu;
-	}
-
-	private void OnQualityPressed(long id)
-	{
-		if (id == CursedId)
-		{
-			Cursed = !Cursed;
-		}
-		else
-		{
-			Quality = id == RandomQualityId ? null : (ItemQuality)id;
-		}
-		RefreshMenu(Popup);
 	}
 
 	/// <summary>

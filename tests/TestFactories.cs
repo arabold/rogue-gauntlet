@@ -95,9 +95,7 @@ public static partial class TestFactories
 	/// </summary>
 	public static EnemyBase SpawnHarnessMonster(CombatHarness harness, string scenePath, float distance = 2)
 	{
-		// Held while the harness loads the same path, so the cached scene cannot be collected in between.
-		var scene = Load<PackedScene>(scenePath);
-		if (!harness.ExecuteCommand("spawn", scene.ResourcePath)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
+		if (!harness.ExecuteCommand("spawn", scenePath)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
 		var monster = harness.Monster;
 		monster.Position = harness.Player.Position + Vector3.Forward * distance;
 		monster.ResetPhysicsInterpolation();
@@ -105,8 +103,25 @@ public static partial class TestFactories
 	}
 
 	/// <summary>The hero's own instance of a spell in the arena's pool, found by its authored name; the debug menu casts the same one.</summary>
-	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell =>
-		(T)harness.Spells.Resolve(harness.Spells.Spells.Spells.Single(spell => spell.DisplayName == name));
+	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell
+	{
+		var spells = Tool<SpellCastTool>(harness.Arena);
+		return (T)spells.Resolve(spells.Spells.Spells.Single(spell => spell.DisplayName == name));
+	}
+
+	/// <summary>The debug tool of type <typeparamref name="T"/> in the debug menu under <paramref name="scene"/>.</summary>
+	public static T Tool<T>(Node scene) where T : DebugTool =>
+		scene.FindChildren("*", nameof(HBoxContainer), true, false).OfType<DebugMenu>().Single().GetTool<T>();
+
+	/// <summary>Presses the single entry of <paramref name="menu"/> that <paramref name="matches"/>, as a click on it would.</summary>
+	public static void Press(PopupMenu menu, Func<int, bool> matches)
+	{
+		int index = Enumerable.Range(0, menu.ItemCount).Single(matches);
+		menu.EmitSignal(PopupMenu.SignalName.IdPressed, menu.GetItemId(index));
+	}
+
+	/// <summary>Presses the entry of <paramref name="menu"/> labelled <paramref name="text"/>.</summary>
+	public static void Press(PopupMenu menu, string text) => Press(menu, index => menu.GetItemText(index) == text);
 
 	/// <summary>The hit test casts use: a steady 8 that never rolls a critical, so amounts are exact.</summary>
 	public static readonly AttackStats SpellHit = new(8, 8, 0);

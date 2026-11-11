@@ -9,37 +9,27 @@ using System.Linq;
 [GlobalClass]
 public partial class HeroTool : DebugTool
 {
-	private const int KillId = 0;
-	private const int ResetId = 1;
-
 	/// <summary>Folder whose build presets the Builds submenu lists, so a new preset shows up without a menu edit.</summary>
 	[Export] public string BuildDirectory { get; set; } = "res://scenes/debug/hero_build_profiles/";
 
 	/// <summary>Creates a build's items with its creation policy. Unassigned, builds are unavailable.</summary>
 	[Export] public ItemSpawnTool Items { get; set; }
 
-	private readonly List<HeroBuildProfile> _builds = [];
-
-	public override void BuildMenu(PopupMenu menu)
+	protected override void BuildMenu(PopupMenu menu)
 	{
 		var builds = DebugCatalog.Resources<HeroBuildProfile>(BuildDirectory);
 		if (Items != null && builds.Count > 0)
 		{
-			var buildMenu = new PopupMenu { Name = "BuildMenu" };
+			PopupMenu buildMenu = AddSubmenu(menu, "Builds", "BuildMenu");
 			foreach (var (build, path) in builds)
 			{
-				buildMenu.AddItem(string.IsNullOrEmpty(build.DisplayName) ? path.GetFile().GetBaseName() : build.DisplayName, _builds.Count);
+				AddAction(buildMenu, string.IsNullOrEmpty(build.DisplayName) ? path.GetFile().GetBaseName() : build.DisplayName, () => ApplyBuild(build));
 				buildMenu.SetItemTooltip(buildMenu.ItemCount - 1, path);
-				_builds.Add(build);
 			}
-			buildMenu.IdPressed += id => ApplyBuild(_builds[(int)id]);
-			menu.AddChild(buildMenu);
-			menu.AddSubmenuNodeItem("Builds", buildMenu);
 			menu.AddSeparator();
 		}
-		menu.AddItem("Restore health", ResetId);
-		menu.AddItem("Kill player", KillId);
-		menu.IdPressed += OnPressed;
+		AddAction(menu, "Restore health", Reset);
+		AddAction(menu, "Kill player", Kill);
 	}
 
 	/// <summary>
@@ -68,14 +58,7 @@ public partial class HeroTool : DebugTool
 	}
 
 	/// <summary>Kills the player through its health, as lethal damage would.</summary>
-	public void Kill()
-	{
-		HealthComponent health = Menu?.Player?.HealthComponent;
-		if (health != null && !health.IsDead)
-		{
-			health.TakeDamage(health.CurrentHealth);
-		}
-	}
+	public void Kill() => Kill(Menu?.Player?.HealthComponent);
 
 	/// <summary>
 	/// Replaces the player's attributes and inventory with <paramref name="build"/>'s, then refills health and mana.
@@ -91,19 +74,20 @@ public partial class HeroTool : DebugTool
 			GD.PrintErr("Cannot apply a hero build without a build, an active player and an item tool.");
 			return false;
 		}
-		if (Validate(build, player.Inventory.Capacity) is { } problem)
+		HeroBuildItem[] entries = [.. build.Equipment, .. build.Backpack];
+		if (Validate(build, entries, player.Inventory.Capacity) is { } problem)
 		{
 			GD.PrintErr($"{build.ResourcePath}: {problem}");
 			return false;
 		}
 
-		HeroBuildItem[] entries = [.. build.Equipment, .. build.Backpack];
 		var items = new Item[entries.Length];
+		ulong runSeed = Menu.DebugWorld?.RunSeed ?? RunState.DefaultSeed;
 		for (int index = 0; index < entries.Length; index++)
 		{
 			HeroBuildItem entry = entries[index];
-			ulong seed = GenerationRandom.DeriveSeed(Menu.DebugWorld?.RunSeed ?? RunState.DefaultSeed, "debug.hero_build", $"{build.ResourcePath}#{index}");
-			items[index] = Items.Create(entry.Definition, entry.Spell, entry.Quality, entry.Cursed, new RandomNumberGenerator { Seed = seed });
+			using var rng = GenerationRandom.Create(runSeed, "debug.hero_build", $"{build.ResourcePath}#{index}");
+			items[index] = Items.Create(entry.Definition, entry.Spell, entry.Quality, entry.Cursed, rng);
 			if (items[index] == null)
 			{
 				GD.PrintErr($"{build.ResourcePath}: {entry.Definition.Name} could not be created.");
@@ -112,7 +96,7 @@ public partial class HeroTool : DebugTool
 		}
 
 		player.AttackController.CancelAttack();
-		EmptyInventory(player.Inventory);
+		EmptyInventory(player);
 		ApplyAttributes(build, player.Stats);
 		for (int index = 0; index < entries.Length; index++)
 		{
@@ -125,17 +109,22 @@ public partial class HeroTool : DebugTool
 			if (equip)
 			{
 				InventoryItemSlot slot = player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, items[index]));
-				player.Inventory.Equip(slot, entries[index].Slot);
+				if (!player.Inventory.Equip(slot, entries[index].Slot).Success)
+				{
+					GD.PrintErr($"{build.ResourcePath}: {items[index].Name} could not be worn in {entries[index].Slot}.");
+				}
 			}
 		}
 		RefillPools(player);
 		return true;
 	}
 
-	/// <summary>The first reason <paramref name="build"/> cannot be applied, or null when every entry is valid.</summary>
-	private static string Validate(HeroBuildProfile build, int capacity)
+	/// <summary>
+	/// The first reason <paramref name="build"/> cannot be applied, or null when every entry is valid. Spells are checked
+	/// when the items are created; slots by the inventory's own rules, plus what only a whole build can get wrong.
+	/// </summary>
+	private static string Validate(HeroBuildProfile build, HeroBuildItem[] entries, int capacity)
 	{
-		HeroBuildItem[] entries = [.. build.Equipment, .. build.Backpack];
 		if (entries.Any(entry => entry?.Definition == null))
 		{
 			return "every entry needs an item definition.";
@@ -144,32 +133,21 @@ public partial class HeroTool : DebugTool
 		{
 			return $"{entries.Length} entries do not fit a backpack of {capacity}.";
 		}
-		foreach (HeroBuildItem entry in entries)
+		if (entries.FirstOrDefault(entry => entry.Quantity < 1 || entry.Quantity > 1 && !entry.Definition.CanStack) is { } stack)
 		{
-			if (entry.Spell != null && (entry.Definition is not MagicStaff staff || !staff.CanBind(entry.Spell)))
-			{
-				return $"{entry.Definition.Name} cannot carry {entry.Spell.DisplayName}.";
-			}
-			if (entry.Quantity < 1 || entry.Quantity > 1 && !entry.Definition.CanStack)
-			{
-				return $"{entry.Definition.Name} cannot be packed {entry.Quantity} times.";
-			}
+			return $"{stack.Definition.Name} cannot be packed {stack.Quantity} times.";
 		}
 
 		var slots = new HashSet<EquipmentSlot>();
 		foreach (HeroBuildItem entry in build.Equipment)
 		{
-			if (entry.Definition is not EquipableItem equipable || ((int)equipable.ValidSlots & (int)entry.Slot) == 0)
+			if (entry.Definition is not EquipableItem equipable || !Inventory.CanEquip(equipable, entry.Slot).Success)
 			{
 				return $"{entry.Definition.Name} cannot be worn in {entry.Slot}.";
 			}
 			if (!slots.Add(entry.Slot))
 			{
 				return $"two items are worn in {entry.Slot}.";
-			}
-			if (entry.Definition is Weapon { IsTwoHanded: true } && entry.Slot != EquipmentSlot.WeaponHand)
-			{
-				return $"{entry.Definition.Name} is two-handed and must be worn in {EquipmentSlot.WeaponHand}.";
 			}
 		}
 		if (build.Equipment.Any(entry => entry.Definition is Weapon { IsTwoHanded: true }) && slots.Contains(EquipmentSlot.ShieldHand))
@@ -179,18 +157,12 @@ public partial class HeroTool : DebugTool
 		return null;
 	}
 
-	/// <summary>Takes off and removes everything, curses included: a debug build replaces even what a curse holds on.</summary>
-	private static void EmptyInventory(Inventory inventory)
+	/// <summary>Takes off and removes everything, curses included, as restoring a save does.</summary>
+	private static void EmptyInventory(Player player)
 	{
-		foreach (InventoryItemSlot entry in inventory.Items.ToArray())
-		{
-			if (inventory.IsEquipped(entry))
-			{
-				(entry.Item as EquipableItem)?.LiftCurse();
-				inventory.Unequip(entry);
-			}
-			inventory.RemoveItem(entry, entry.Quantity);
-		}
+		player.ActionManager.ClearActions();
+		player.Inventory.ReleaseAll();
+		player.Inventory.Items.Clear();
 	}
 
 	private static void ApplyAttributes(HeroBuildProfile build, PlayerStats stats)
@@ -210,14 +182,5 @@ public partial class HeroTool : DebugTool
 	{
 		player.HealthComponent.SetHealth(player.Stats.MaxHealth, player.Stats.MaxHealth);
 		player.ManaComponent.SetMana(player.Stats.MaxMana, player.Stats.MaxMana);
-	}
-
-	private void OnPressed(long id)
-	{
-		switch (id)
-		{
-			case KillId: Kill(); break;
-			case ResetId: Reset(); break;
-		}
 	}
 }

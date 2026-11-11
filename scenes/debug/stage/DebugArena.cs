@@ -54,42 +54,23 @@ public partial class DebugArena : Node3D, IDebugWorld
 		node.ResetPhysicsInterpolation();
 	}
 
-	public Vector3 FindFreePositionNear(Vector3 origin)
-	{
-		if (IsFree(origin))
-		{
-			return origin;
-		}
-
-		const int samplesPerRing = 12;
-		for (float radius = 1; radius <= FreeSearchRadius; radius++)
-		{
-			for (int i = 0; i < samplesPerRing; i++)
-			{
-				float angle = Mathf.Tau * i / samplesPerRing;
-				Vector3 candidate = origin + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * radius;
-				if (IsFree(candidate))
-				{
-					return candidate;
-				}
-			}
-		}
-		return origin;
-	}
+	public Vector3 FindFreePositionNear(Vector3 origin) =>
+		IsFree(origin) ? origin
+		: Navigation.TryFindTraversable(origin, StandingRadius, FreeSearchRadius, out Vector3 spot) ? spot : origin;
 
 	public Vector3 FindDropLanding(Vector3 source, Vector3 direction, float distance)
 	{
-		Vector3 heading = direction with { Y = 0 };
-		if (heading.IsZeroApprox())
+		if (!direction.TryNormalizeHorizontal(out Vector3 heading))
 		{
 			return source;
 		}
-		Vector3 landing = source + heading.Normalized() * distance;
+		Vector3 landing = source + heading * distance;
 		return IsFree(landing) ? landing : source;
 	}
 
 	/// <summary>
-	/// Builds navigation from the arena's current static collision and moves every monster already in the arena onto it.
+	/// Builds navigation from the arena's static bodies and its stage's walls. Monsters in the arena read it from the
+	/// arena, so a rebuilt grid reaches them without being handed over.
 	/// </summary>
 	private void RebuildNavigation()
 	{
@@ -100,18 +81,18 @@ public partial class DebugArena : Node3D, IDebugWorld
 
 		var grid = new ClearanceGrid(Bounds);
 		grid.AddFloor(Bounds);
-		foreach (SolidOutline outline in CollisionOutlines.FromStaticBodies(this, GlobalTransform))
+		// Only the floor, the boundaries and the stage are solid: actors, the HUD and spawns never are.
+		foreach (Node3D solid in GetChildren().OfType<Node3D>().Where(child => child is StaticBody3D || child == Stage))
 		{
-			grid.AddObstacle(outline);
+			foreach (SolidOutline outline in CollisionOutlines.FromStaticBodies(solid, solid.GlobalTransform))
+			{
+				grid.AddObstacle(outline);
+			}
 		}
 		grid.Freeze();
 		Navigation = new FloorNavigation(grid, NavigationProfile);
-		foreach (EnemyBase monster in FindChildren("*", "", true, false).OfType<EnemyBase>())
-		{
-			monster.EnemyBehaviorComponent?.Navigation?.SetNavigationOverride(Navigation);
-		}
 	}
 
 	/// <summary>Whether a body can stand at <paramref name="point"/>; anywhere when the arena has no navigation.</summary>
-	private bool IsFree(Vector3 point) => Navigation == null || Navigation.Grid.ClearanceAt(new Vector2(point.X, point.Z)) >= StandingRadius;
+	private bool IsFree(Vector3 point) => Navigation == null || Navigation.IsTraversable(point, StandingRadius);
 }

@@ -30,13 +30,6 @@ public partial class CombatIntegrationTest
 		await scene.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
 	}
 
-	/// <summary>Presses the entry labelled <paramref name="text"/>, as a click on it would.</summary>
-	private static void Press(PopupMenu menu, string text)
-	{
-		int index = Enumerable.Range(0, menu.ItemCount).Single(i => menu.GetItemText(i) == text);
-		menu.EmitSignal(PopupMenu.SignalName.IdPressed, menu.GetItemId(index));
-	}
-
 	/// <summary>
 	/// The arena's authored display settings apply before any interaction, even when component defaults disagree, and
 	/// reach monsters spawned later; changing a setting updates the hero and the monster at once.
@@ -125,18 +118,16 @@ public partial class CombatIntegrationTest
 		{
 			const string axePath = "res://scenes/items/weapons/axe_common.tres";
 			var weapons = harness.Items.Popup.GetNode<PopupMenu>("SpawnWeaponsMenu");
-			int axe = Enumerable.Range(0, weapons.ItemCount).Single(i => weapons.GetItemTooltip(i) == axePath);
-			weapons.EmitSignal(PopupMenu.SignalName.IdPressed, weapons.GetItemId(axe));
+			TestFactories.Press(weapons, i => weapons.GetItemTooltip(i) == axePath);
 			AssertString(harness.Player.Inventory.EquippedWeapon?.Name).IsEqual(TestFactories.Load<Weapon>(axePath).Name);
 
 			var monsters = harness.Monsters.Popup;
-			Press(monsters, "Invulnerable");
+			TestFactories.Press(monsters, "Invulnerable");
 			AssertBool(((CombatPracticeTarget)harness.PracticeTarget).HurtBox.Invulnerable).IsTrue();
-			Press(monsters, "Clear spawned");
+			TestFactories.Press(monsters, "Clear spawned");
 			var spawn = monsters.GetNode<PopupMenu>("SpawnMonsterMenu");
 			spawn.EmitSignal(Window.SignalName.AboutToPopup);
-			int warrior = Enumerable.Range(0, spawn.ItemCount).Single(i => spawn.GetItemTooltip(i) == TestFactories.WarriorScene);
-			spawn.EmitSignal(PopupMenu.SignalName.IdPressed, spawn.GetItemId(warrior));
+			TestFactories.Press(spawn, i => spawn.GetItemTooltip(i) == TestFactories.WarriorScene);
 			var monster = harness.Monster;
 			AssertBool(GodotObject.IsInstanceValid(monster)).IsTrue();
 			AssertString(monster.SceneFilePath).IsEqual(TestFactories.WarriorScene);
@@ -148,17 +139,17 @@ public partial class CombatIntegrationTest
 			AssertBool(harness.ExecuteCommand("defense", value: 3)).IsTrue();
 			AssertObject(monster.DefenseController.Mode).IsEqual(EnemyDefenseMode.GuardParry);
 			AssertBool(monster.HurtBoxComponent.Invulnerable).IsTrue();
-			Press(monsters, "Invulnerable");
+			TestFactories.Press(monsters, "Invulnerable");
 			AssertBool(monster.HurtBoxComponent.Invulnerable).IsFalse();
 			harness.ExecuteCommand("defense", value: 1); // Keep this UI smoke attack undefended so its hitbox remains observable.
 			AssertObject(monster.DefenseController.Mode).IsEqual(EnemyDefenseMode.None);
 
 			await PhysicsFrames(runner, 2); // Enemy presentation becomes visible after its first physics tick.
-			var display = harness.Display.Popup;
-			Press(display, "Hurtboxes");
+			var display = TestFactories.Tool<CombatDisplayTool>(harness.Arena).Popup;
+			TestFactories.Press(display, "Hurtboxes");
 			foreach (var hurtbox in new[] { harness.Player.HurtBoxComponent, monster.HurtBoxComponent })
 				AssertBool(hurtbox.GetNode<MeshInstance3D>("CollisionShape3D/HurtboxDebugMesh").IsVisibleInTree()).IsTrue();
-			Press(display, "Hurtboxes");
+			TestFactories.Press(display, "Hurtboxes");
 			await PhysicsFrames(runner, 2);
 			AssertBool(harness.Player.HurtBoxComponent.HasNode("CollisionShape3D/HurtboxDebugMesh")).IsFalse();
 			harness.GetNode<Button>("%Controls/HeroGuard").EmitSignal(BaseButton.SignalName.Pressed);
@@ -166,7 +157,7 @@ public partial class CombatIntegrationTest
 			harness.GetNode<Button>("%Controls/Reset").EmitSignal(BaseButton.SignalName.Pressed);
 			AssertBool(harness.Player.GuardComponent.IsGuarding).IsFalse();
 			AssertBool(harness.Player.AttackController.DebugDrawEnabled).IsFalse();
-			Press(display, "Debug meshes");
+			TestFactories.Press(display, "Debug meshes");
 			AssertBool(harness.Player.AttackController.DebugDrawEnabled).IsTrue();
 			harness.GetNode<Button>("%Controls/Attack").EmitSignal(BaseButton.SignalName.Pressed);
 			AssertBool(harness.Player.AttackController.IsAttacking).IsTrue();

@@ -29,9 +29,9 @@ public partial class GameCameraProfile : Resource
 	/// <summary>Change of <see cref="Size"/> per second while a zoom action is held.</summary>
 	[Export] public float ZoomPerSecond { get; set; } = 12;
 
-	/// <summary>The view's orientation at <paramref name="yawDegrees"/>: the camera looks along its negative Z axis.</summary>
-	public Basis ViewBasis(float yawDegrees) =>
-		new Basis(Vector3.Up, Mathf.DegToRad(yawDegrees)) * new Basis(Vector3.Right, -Mathf.DegToRad(PitchDegrees));
+	/// <summary>The view's starting orientation; the camera looks along its negative Z axis.</summary>
+	public Basis ViewBasis =>
+		new Basis(Vector3.Up, Mathf.DegToRad(YawDegrees)) * new Basis(Vector3.Right, -Mathf.DegToRad(PitchDegrees));
 
 	/// <summary>Where the camera stands to look at <paramref name="target"/> with <paramref name="basis"/>.</summary>
 	public Vector3 ViewPosition(Vector3 target, Basis basis) => target + basis.Z * Distance;

@@ -14,21 +14,22 @@ public partial class EffectPreviewCamera : Camera3D
 	/// <summary>Starts at the game's heading and downward angle; the authored zoom stays closer for inspection.</summary>
 	public override void _Ready()
 	{
-		if (GameView != null)
-		{
-			_yaw = Mathf.DegToRad(GameView.YawDegrees);
-			_elevation = Mathf.DegToRad(GameView.PitchDegrees);
-		}
+		TakeGameAngle();
 		UpdateView();
 	}
 	/// <summary>Returns to the game camera's heading, downward angle and zoom around <see cref="Focus"/>.</summary>
 	public void ApplyGameView()
 	{
 		if (GameView == null) return;
-		_yaw = Mathf.DegToRad(GameView.YawDegrees);
-		_elevation = Mathf.DegToRad(GameView.PitchDegrees);
+		TakeGameAngle();
 		Size = GameView.Size;
 		UpdateView();
+	}
+	private void TakeGameAngle()
+	{
+		if (GameView == null) return;
+		_yaw = Mathf.DegToRad(GameView.YawDegrees);
+		_elevation = Mathf.DegToRad(GameView.PitchDegrees);
 	}
 	public override void _Process(double delta)
 	{

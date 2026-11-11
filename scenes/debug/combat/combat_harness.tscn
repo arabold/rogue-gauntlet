@@ -103,16 +103,14 @@ AIEnabled = false
 RiposteEnabled = false
 RewardsEnabled = false
 
-[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "Arena", "Items", "Monsters", "Spells", "Hero", "Display", "Recorder")]
+[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "Arena", "Items", "Monsters", "Hero", "Recorder")]
 layer = 2
 script = ExtResource("harness")
 Player = NodePath("../Player")
 Arena = NodePath("..")
 Items = NodePath("../UI/HUD/DebugMenu/ItemSpawnTool")
 Monsters = NodePath("../UI/HUD/DebugMenu/MonsterTool")
-Spells = NodePath("../UI/HUD/DebugMenu/SpellCastTool")
 Hero = NodePath("../UI/HUD/DebugMenu/HeroTool")
-Display = NodePath("../UI/HUD/DebugMenu/CombatDisplayTool")
 StartingWeapon = ExtResource("starting_weapon")
 Recorder = NodePath("../CombatTraceRecorder")
 

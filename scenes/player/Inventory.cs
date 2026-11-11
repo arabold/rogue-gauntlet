@@ -221,6 +221,30 @@ public partial class Inventory : Resource
 	}
 
 	/// <summary>
+	/// Whether <paramref name="item"/> can be worn in <paramref name="equipSlot"/> at all: a slot it fits, a hand a light
+	/// has a grip for, and the weapon hand for a two-handed weapon. What the slot displaces is checked by the equip itself.
+	/// </summary>
+	public static ItemOperationResult CanEquip(EquipableItem item, EquipmentSlot equipSlot)
+	{
+		if (((int)item.ValidSlots & (int)equipSlot) == 0)
+		{
+			GD.PrintErr($"{item.Name} cannot be equipped in {equipSlot}");
+			return new(ItemFailure.InvalidTarget);
+		}
+		if (item is PortableLightItem light && (light.HeldScene == null || light.GripFor(equipSlot) == null))
+		{
+			GD.PushError($"{item.Name}: assign HeldScene and the selected hand's grip before equipping.");
+			return new(ItemFailure.InvalidTarget);
+		}
+		if (item is Weapon { IsTwoHanded: true } && equipSlot != EquipmentSlot.WeaponHand)
+		{
+			GD.PrintErr($"{item.Name} must be equipped in {EquipmentSlot.WeaponHand}");
+			return new(ItemFailure.InvalidTarget);
+		}
+		return ItemOperationResult.Ok;
+	}
+
+	/// <summary>
 	/// Equips into <paramref name="equipSlot"/>, first removing whatever that displaces: the slot's occupant, the item's
 	/// own current slot, and the other hand for two-handed combinations. Fails without any change when a displaced item
 	/// is cursed, naming it as the result's subject.
@@ -228,25 +252,13 @@ public partial class Inventory : Resource
 	public ItemOperationResult Equip(InventoryItemSlot itemSlot, EquipmentSlot equipSlot)
 	{
 		if (itemSlot == null || !Items.Contains(itemSlot) || itemSlot.Item is not EquipableItem item) { return new(ItemFailure.NotOwned); }
-		var validSlots = (int)item.ValidSlots;
-		if ((validSlots & (int)equipSlot) == 0)
+		ItemOperationResult wearable = CanEquip(item, equipSlot);
+		if (!wearable.Success)
 		{
-			GD.PrintErr($"{item.Name} cannot be equipped in {equipSlot}");
-			return new(ItemFailure.InvalidTarget);
+			return wearable;
 		}
 
-		if (item is PortableLightItem light && (light.HeldScene == null || light.GripFor(equipSlot) == null))
-		{
-			GD.PushError($"{item.Name}: assign HeldScene and the selected hand's grip before equipping.");
-			return new(ItemFailure.InvalidTarget);
-		}
-
-		var isTwoHanded = item is Weapon weapon && weapon.IsTwoHanded;
-		if (isTwoHanded && equipSlot != EquipmentSlot.WeaponHand)
-		{
-			GD.PrintErr($"{item.Name} must be equipped in {EquipmentSlot.WeaponHand}");
-			return new(ItemFailure.InvalidTarget);
-		}
+		var isTwoHanded = item is Weapon { IsTwoHanded: true };
 
 		if (EquippedItems[equipSlot] == itemSlot)
 		{

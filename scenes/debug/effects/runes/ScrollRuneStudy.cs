@@ -67,7 +67,6 @@ public partial class ScrollRuneStudy : Node3D, ILitWorld
 	public void Replay() { _clock = 0; foreach (var animation in _animations) animation.Seek(0, true); ApplyFrame(); }
 	public void SetSpeed(float speed) { _speed = Mathf.Clamp(speed, 0, 1); foreach (var animation in _animations) animation.SpeedScale = _speed; }
 	public void SetTime(float time) { SetSpeed(0); _speedChoice.Selected = 0; _clock = Mathf.Clamp(time, 0, .9f); ApplyFrame(); }
-	public void SetDark(bool dark) => Lighting.IsDark = dark;
 	public void Rebuild()
 	{
 		RuneRing = null; _animations.Clear(); EffectPreviewStage.ClearChildren(Stage); EffectPreviewStage.ClearChildren(PaperRoot);

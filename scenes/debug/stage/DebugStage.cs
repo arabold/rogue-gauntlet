@@ -11,7 +11,6 @@ public partial class DebugStage : Node3D
 	[Export] public DebugArrangement[] Arrangements { get; set; } = [];
 	/// <summary>Arrangement the stage starts with; an arena that must stay open picks one without walls.</summary>
 	[Export] public int InitialArrangement { get; set; }
-	public string[] ArrangementNames => Arrangements.Select(a => a.DisplayName).ToArray();
 	private StaticBody3D[] _walls = [];
 	public int Arrangement { get; private set; }
 	public bool HasWestWall => Arrangements[Arrangement].HasWestWall;

@@ -10,9 +10,6 @@ using Godot;
 [GlobalClass]
 public partial class SampleFloor : GridMap
 {
-	/// <summary>Spacing of the library's floor tiles, in metres.</summary>
-	private const int TileSize = 4;
-
 	/// <summary>The tile to pave with, by its name in <see cref="GridMap.MeshLibrary"/>.</summary>
 	[Export]
 	public string Tile
@@ -37,13 +34,7 @@ public partial class SampleFloor : GridMap
 		}
 	} = 8;
 
-	public override void _Ready()
-	{
-		if (!Engine.IsEditorHint())
-		{
-			Pave();
-		}
-	}
+	public override void _Ready() => Pave();
 
 	private void Pave()
 	{
@@ -56,10 +47,10 @@ public partial class SampleFloor : GridMap
 		}
 
 		Position = Position with { Y = -WalkingSurface(tile) };
-		int reach = HalfExtent / TileSize * TileSize;
-		for (int x = -reach; x <= reach; x += TileSize)
+		int reach = HalfExtent / Room.TileSize * Room.TileSize;
+		for (int x = -reach; x <= reach; x += Room.TileSize)
 		{
-			for (int z = -reach; z <= reach; z += TileSize)
+			for (int z = -reach; z <= reach; z += Room.TileSize)
 			{
 				SetCellItem(new Vector3I(x, 0, z), tile);
 			}

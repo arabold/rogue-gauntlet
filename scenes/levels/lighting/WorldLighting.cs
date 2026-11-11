@@ -29,7 +29,7 @@ public partial class WorldLighting : WorldEnvironment
 
 	public override void _Ready()
 	{
-		if (Engine.IsEditorHint() || Environment == null)
+		if (Environment == null)
 		{
 			return;
 		}

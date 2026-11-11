@@ -1,27 +1,20 @@
 using Godot;
+using System;
 using System.Globalization;
 
 /// <summary>
-/// Floor diagnostics and run controls: the navigation overlay, x-rays, darkness, an arena's walls, revealing the map, restarting the floor
-/// and replaying the run from a seed. Revealing the map needs a generated <see cref="Level"/>; darkness and navigation
-/// need a debug world.
+/// Floor diagnostics and run controls: the navigation overlay, x-rays, darkness, an arena's walls, revealing the map,
+/// restarting the floor and replaying the run from a seed. Revealing, restarting and the run seed need a generated
+/// <see cref="Level"/>; darkness and navigation need a debug world.
 /// </summary>
 [GlobalClass]
 public partial class LevelTool : DebugTool
 {
-	private const int NavigationId = 0;
-	private const int DoorXrayId = 1;
-	private const int MonsterXrayId = 2;
-	private const int LootXrayId = 3;
-	private const int DarkId = 4;
-	private const int RevealMapId = 5;
-	private const int RestartLevelId = 6;
-	private const int CopyRunSeedId = 7;
-	private const int ReplayRunId = 8;
-
 	private NavigationDebugOverlay _navigationOverlay;
 	private ConfirmationDialog _replayDialog;
 	private LineEdit _replaySeedInput;
+	private DebugStage _stage;
+	private int _navigationId, _darkId, _revealMapId, _restartLevelId, _copyRunSeedId, _replayRunId;
 
 	/// <summary>
 	/// Shows the world's clearance grid for skeleton-sized bodies. Rebuilt on every enable, so it follows the current door
@@ -38,85 +31,62 @@ public partial class LevelTool : DebugTool
 		}
 	}
 
-	public bool DoorXrayEnabled
+	/// <summary>The run seed of the world's floor.</summary>
+	private ulong RunSeed => Menu?.DebugWorld?.RunSeed ?? RunState.DefaultSeed;
+
+	protected override void BuildMenu(PopupMenu menu)
 	{
-		get => GameDebug.DoorXrayEnabled;
-		set { GameDebug.DoorXrayEnabled = value; SignalBus.EmitXraySettingsChanged(); }
-	}
-
-	public bool MonsterXrayEnabled
-	{
-		get => GameDebug.MonsterXrayEnabled;
-		set { GameDebug.MonsterXrayEnabled = value; SignalBus.EmitXraySettingsChanged(); }
-	}
-
-	public bool LootXrayEnabled
-	{
-		get => GameDebug.LootXrayEnabled;
-		set { GameDebug.LootXrayEnabled = value; SignalBus.EmitXraySettingsChanged(); }
-	}
-
-	/// <summary>The run this floor belongs to; gameplay reads it from the level, not the session.</summary>
-	private PopupMenu _wallsMenu;
-
-	public ulong RunSeed => Menu?.Level?.Run?.RunSeed ?? GameSession.Instance?.Run.RunSeed ?? RunState.DefaultSeed;
-
-	public override void BuildMenu(PopupMenu menu)
-	{
-		menu.AddCheckItem("Navigation", NavigationId);
-		menu.AddCheckItem("Door x-ray", DoorXrayId);
-		menu.AddCheckItem("Monster x-ray", MonsterXrayId);
-		menu.AddCheckItem("Loot x-ray", LootXrayId);
-		menu.AddCheckItem("Dark level", DarkId);
-		if (Menu?.World is DebugArena { Stage: { } stage })
+		_navigationId = AddToggle(menu, "Navigation", () => NavigationEnabled, value => NavigationEnabled = value);
+		AddToggle(menu, "Door x-ray", () => GameDebug.DoorXrayEnabled, value => SetXray(() => GameDebug.DoorXrayEnabled = value));
+		AddToggle(menu, "Monster x-ray", () => GameDebug.MonsterXrayEnabled, value => SetXray(() => GameDebug.MonsterXrayEnabled = value));
+		AddToggle(menu, "Loot x-ray", () => GameDebug.LootXrayEnabled, value => SetXray(() => GameDebug.LootXrayEnabled = value));
+		_darkId = AddToggle(menu, "Dark level", () => Menu?.DebugWorld?.Lighting?.IsDark == true, SetDark);
+		_stage = (Menu?.World as DebugArena)?.Stage;
+		if (_stage != null)
 		{
-			_wallsMenu = new PopupMenu { Name = "WallsMenu" };
-			for (int index = 0; index < stage.Arrangements.Length; index++) { _wallsMenu.AddRadioCheckItem(stage.Arrangements[index].DisplayName, index); }
-			_wallsMenu.IdPressed += id => SetWalls(stage, (int)id);
-			menu.AddChild(_wallsMenu);
-			menu.AddSubmenuNodeItem("Walls", _wallsMenu);
+			PopupMenu walls = AddSubmenu(menu, "Walls", "WallsMenu");
+			for (int index = 0; index < _stage.Arrangements.Length; index++)
+			{
+				int arrangement = index;
+				AddRadio(walls, _stage.Arrangements[index].DisplayName, () => _stage.Arrangement == arrangement, () => SetWalls(arrangement));
+			}
 		}
 		menu.AddSeparator();
-		menu.AddItem("Reveal map", RevealMapId);
-		menu.AddItem("Restart level", RestartLevelId);
+		_revealMapId = AddAction(menu, "Reveal map", RevealMap);
+		_restartLevelId = AddAction(menu, "Restart level", RestartLevel);
 		menu.AddSeparator();
-		menu.AddItem("Copy run seed", CopyRunSeedId);
-		menu.AddItem("Replay run...", ReplayRunId);
-		menu.IdPressed += OnPressed;
+		_copyRunSeedId = AddAction(menu, "Copy run seed", CopyRunSeed);
+		_replayRunId = AddAction(menu, "Replay run...", OpenReplayDialog);
 		BuildReplayDialog();
-		RefreshMenu(menu);
 	}
 
-	/// <summary>Reads the world on opening, so the checks follow level changes and changes made by code.</summary>
-	public override void RefreshMenu(PopupMenu menu)
+	/// <summary>Disables what the world cannot do and shows the run seed.</summary>
+	protected override void OnRefresh()
 	{
 		IDebugWorld world = Menu?.DebugWorld;
-		if (_wallsMenu != null && Menu?.World is DebugArena { Stage: { } stage }) { CheckRadio(_wallsMenu, stage.Arrangement); }
-		SetChecked(menu, NavigationId, NavigationEnabled);
-		SetChecked(menu, DoorXrayId, DoorXrayEnabled);
-		SetChecked(menu, MonsterXrayId, MonsterXrayEnabled);
-		SetChecked(menu, LootXrayId, LootXrayEnabled);
-		SetChecked(menu, DarkId, world?.Lighting?.IsDark == true);
-		SetDisabled(menu, NavigationId, world == null);
-		SetDisabled(menu, DarkId, world?.Lighting == null);
+		SetDisabled(Popup, _navigationId, world == null);
+		SetDisabled(Popup, _darkId, world?.Lighting == null);
 		bool noLevel = Menu?.Level == null;
-		SetDisabled(menu, RevealMapId, noLevel);
-		SetDisabled(menu, RestartLevelId, noLevel);
-		SetDisabled(menu, CopyRunSeedId, noLevel);
-		SetDisabled(menu, ReplayRunId, noLevel);
-		menu.SetItemText(menu.GetItemIndex(CopyRunSeedId), $"Copy run seed ({FormatSeed(RunSeed)})");
+		foreach (int id in new[] { _revealMapId, _restartLevelId, _copyRunSeedId, _replayRunId })
+		{
+			SetDisabled(Popup, id, noLevel);
+		}
+		Popup.SetItemText(Popup.GetItemIndex(_copyRunSeedId), $"Copy run seed ({FormatSeed(RunSeed)})");
 	}
 
 	/// <summary>Switches an arena's stage to another wall arrangement; navigation, and its overlay when shown, follow.</summary>
-	public void SetWalls(DebugStage stage, int arrangement)
+	public void SetWalls(int arrangement)
 	{
-		stage.SetArrangement(arrangement);
+		if (_stage == null)
+		{
+			return;
+		}
+		_stage.SetArrangement(arrangement);
 		if (NavigationEnabled)
 		{
 			NavigationEnabled = false;
 			NavigationEnabled = true;
 		}
-		RefreshMenu(Popup);
 	}
 
 	/// <summary>Turns the world's lights off or back on; exploration is unchanged.</summary>
@@ -138,29 +108,25 @@ public partial class LevelTool : DebugTool
 	/// <summary>Starts over from depth 1 with <paramref name="seed"/>; an active game replaces the save in its slot.</summary>
 	public void ReplayRun(ulong seed) => GameSession.Instance?.ReplayRun(seed);
 
-	private void OnPressed(long id)
+	/// <summary>Changes an x-ray switch and lets the silhouettes refresh.</summary>
+	private static void SetXray(Action change)
 	{
-		switch (id)
-		{
-			case NavigationId: NavigationEnabled = !NavigationEnabled; break;
-			case DoorXrayId: DoorXrayEnabled = !DoorXrayEnabled; break;
-			case MonsterXrayId: MonsterXrayEnabled = !MonsterXrayEnabled; break;
-			case LootXrayId: LootXrayEnabled = !LootXrayEnabled; break;
-			case DarkId: SetDark(Menu?.DebugWorld?.Lighting?.IsDark != true); break;
-			case RevealMapId: RevealMap(); break;
-			case RestartLevelId: RestartLevel(); break;
-			case CopyRunSeedId:
-				DisplayServer.ClipboardSet(FormatSeed(RunSeed));
-				GD.Print($"Copied run seed {FormatSeed(RunSeed)}.");
-				break;
-			case ReplayRunId:
-				_replaySeedInput.Text = FormatSeed(RunSeed);
-				_replayDialog.PopupCentered();
-				_replaySeedInput.GrabFocus();
-				_replaySeedInput.SelectAll();
-				break;
-		}
-		RefreshMenu(Popup);
+		change();
+		SignalBus.EmitXraySettingsChanged();
+	}
+
+	private void CopyRunSeed()
+	{
+		DisplayServer.ClipboardSet(FormatSeed(RunSeed));
+		GD.Print($"Copied run seed {FormatSeed(RunSeed)}.");
+	}
+
+	private void OpenReplayDialog()
+	{
+		_replaySeedInput.Text = FormatSeed(RunSeed);
+		_replayDialog.PopupCentered();
+		_replaySeedInput.GrabFocus();
+		_replaySeedInput.SelectAll();
 	}
 
 	/// <summary>Seed entry for replaying a run; prefilled with the current seed, which can be replaced by any other.</summary>

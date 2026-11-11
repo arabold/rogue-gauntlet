@@ -180,7 +180,7 @@ public partial class SpellWandTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/staff_common.tres")).IsTrue();
-		var iceLance = harness.Spells.Spells.Spells.Single(spell => spell.DisplayName == "Ice Lance");
+		var iceLance = TestFactories.Tool<SpellCastTool>(harness.Arena).Spells.Spells.Single(spell => spell.DisplayName == "Ice Lance");
 		AssertBool(harness.ExecuteCommand("spell", iceLance.ResourcePath)).IsTrue();
 
 		var equipped = (MagicStaff)harness.Player.Inventory.EquippedWeapon;

@@ -12,14 +12,10 @@ using System.Linq;
 [GlobalClass]
 public partial class MonsterTool : DebugTool
 {
-	private const int KillAllId = 0;
-	private const int ClearId = 1;
-	private const int AIId = 2;
-	private const int InvulnerableId = 3;
-	private const int RewardsId = 4;
-	private const int RiposteId = 5;
 	private static readonly int[] Counts = [1, 3, 5];
-	private static readonly (string Label, EnemyDefenseMode Mode)[] DefenseModes =
+
+	/// <summary>The defense modes in menu order; harness scenarios pick them by this index.</summary>
+	internal static readonly (string Label, EnemyDefenseMode Mode)[] DefenseModes =
 	[
 		("Monster default", EnemyDefenseMode.ProfileDefault),
 		("No defense", EnemyDefenseMode.None),
@@ -59,7 +55,7 @@ public partial class MonsterTool : DebugTool
 		set
 		{
 			field = value;
-			foreach (EnemyBase monster in SpawnedMonsters) { ApplyRiposte(monster); }
+			ApplySettingsToSpawned();
 		}
 	} = true;
 
@@ -71,10 +67,7 @@ public partial class MonsterTool : DebugTool
 		set
 		{
 			field = value;
-			foreach (EnemyBase monster in SpawnedMonsters)
-			{
-				if (monster.DefenseController != null) { monster.DefenseController.Mode = value; }
-			}
+			ApplySettingsToSpawned();
 		}
 	}
 
@@ -86,10 +79,7 @@ public partial class MonsterTool : DebugTool
 		set
 		{
 			field = value;
-			foreach (Node3D target in Spawned)
-			{
-				if (HurtBoxOf(target) is { } hurtBox) { hurtBox.Invulnerable = value; }
-			}
+			ApplySettingsToSpawned();
 		}
 	}
 
@@ -101,10 +91,7 @@ public partial class MonsterTool : DebugTool
 		set
 		{
 			field = value;
-			foreach (EnemyBase monster in SpawnedMonsters)
-			{
-				if (monster.DeathComponent != null) { monster.DeathComponent.RewardsEnabled = value; }
-			}
+			ApplySettingsToSpawned();
 		}
 	} = true;
 
@@ -124,52 +111,36 @@ public partial class MonsterTool : DebugTool
 	private IEnumerable<EnemyBase> SpawnedMonsters => Spawned.OfType<EnemyBase>().Where(monster => !monster.IsDead);
 
 	private readonly List<Node3D> _spawned = [];
-	private readonly List<PackedScene> _spawnScenes = [];
 	private PopupMenu _spawnMenu;
-	private PopupMenu _countMenu;
-	private PopupMenu _defenseMenu;
+	private int _clearId;
 
-	public override void BuildMenu(PopupMenu menu)
+	protected override void BuildMenu(PopupMenu menu)
 	{
-		// Validating every monster scene instantiates it, so the list is built when the submenu first opens.
-		_spawnMenu = new PopupMenu { Name = "SpawnMonsterMenu" };
+		// Validating every monster scene instantiates it, so the list is filled when the submenu first opens.
+		_spawnMenu = AddSubmenu(menu, "Spawn", "SpawnMonsterMenu");
 		_spawnMenu.AboutToPopup += FillSpawnMenu;
-		_spawnMenu.IdPressed += id => Spawn(_spawnScenes[(int)id]);
-		menu.AddChild(_spawnMenu);
-		menu.AddSubmenuNodeItem("Spawn", _spawnMenu);
 
-		_countMenu = new PopupMenu { Name = "SpawnCountMenu" };
-		foreach (int count in Counts) { _countMenu.AddRadioCheckItem(count.ToString(), count); }
-		_countMenu.IdPressed += id => { Count = (int)id; RefreshMenu(menu); };
-		menu.AddChild(_countMenu);
-		menu.AddSubmenuNodeItem("Count", _countMenu);
+		PopupMenu counts = AddSubmenu(menu, "Count", "SpawnCountMenu");
+		foreach (int count in Counts)
+		{
+			AddRadio(counts, count.ToString(), () => Count == count, () => Count = count);
+		}
+		PopupMenu defenses = AddSubmenu(menu, "Defense", "DefenseModeMenu");
+		foreach (var (label, mode) in DefenseModes)
+		{
+			AddRadio(defenses, label, () => DefenseMode == mode, () => DefenseMode = mode);
+		}
 
-		_defenseMenu = new PopupMenu { Name = "DefenseModeMenu" };
-		foreach (var (label, mode) in DefenseModes) { _defenseMenu.AddRadioCheckItem(label, (int)mode); }
-		_defenseMenu.IdPressed += id => { DefenseMode = (EnemyDefenseMode)(int)id; RefreshMenu(menu); };
-		menu.AddChild(_defenseMenu);
-		menu.AddSubmenuNodeItem("Defense", _defenseMenu);
-
-		menu.AddCheckItem("Monster AI", AIId);
-		menu.AddCheckItem("Riposte", RiposteId);
-		menu.AddCheckItem("Invulnerable", InvulnerableId);
-		menu.AddCheckItem("Rewards", RewardsId);
+		AddToggle(menu, "Monster AI", () => AIEnabled, value => AIEnabled = value);
+		AddToggle(menu, "Riposte", () => RiposteEnabled, value => RiposteEnabled = value);
+		AddToggle(menu, "Invulnerable", () => Invulnerable, value => Invulnerable = value);
+		AddToggle(menu, "Rewards", () => RewardsEnabled, value => RewardsEnabled = value);
 		menu.AddSeparator();
-		menu.AddItem("Clear spawned", ClearId);
-		menu.AddItem("Kill all enemies", KillAllId);
-		menu.IdPressed += OnPressed;
+		_clearId = AddAction(menu, "Clear spawned", Clear);
+		AddAction(menu, "Kill all enemies", KillAll);
 	}
 
-	public override void RefreshMenu(PopupMenu menu)
-	{
-		SetChecked(menu, AIId, AIEnabled);
-		SetChecked(menu, RiposteId, RiposteEnabled);
-		SetChecked(menu, InvulnerableId, Invulnerable);
-		SetChecked(menu, RewardsId, RewardsEnabled);
-		SetDisabled(menu, ClearId, Spawned.Count == 0);
-		CheckRadio(_countMenu, Count);
-		CheckRadio(_defenseMenu, (int)DefenseMode);
-	}
+	protected override void OnRefresh() => SetDisabled(Popup, _clearId, Spawned.Count == 0);
 
 	/// <summary>
 	/// Places <see cref="Count"/> copies of <paramref name="scene"/> around the player at <paramref name="distance"/>, or
@@ -187,8 +158,7 @@ public partial class MonsterTool : DebugTool
 		}
 
 		Node3D first = null;
-		Vector3 ahead = -player.GlobalBasis.Z with { Y = 0 };
-		ahead = ahead.IsZeroApprox() ? Vector3.Forward : ahead.Normalized();
+		if (!(-player.GlobalBasis.Z).TryNormalizeHorizontal(out Vector3 ahead)) { ahead = Vector3.Forward; }
 		for (int index = 0; index < Count; index++)
 		{
 			Node3D target = Instantiate(scene);
@@ -224,11 +194,7 @@ public partial class MonsterTool : DebugTool
 	{
 		foreach (Node enemy in GetTree().GetNodesInGroup("enemy"))
 		{
-			HealthComponent health = enemy.GetNodeOrNull<HealthComponent>("HealthComponent");
-			if (health != null && !health.IsDead)
-			{
-				health.TakeDamage(health.CurrentHealth);
-			}
+			Kill(enemy.GetNodeOrNull<HealthComponent>("HealthComponent"));
 		}
 	}
 
@@ -240,10 +206,10 @@ public partial class MonsterTool : DebugTool
 		{
 			case EnemyBase monster:
 				monster.EnemyBehaviorComponent.AIEnabled = false;
-				ApplyRiposte(monster);
-				if (monster.DeathComponent != null) { monster.DeathComponent.RewardsEnabled = RewardsEnabled; }
+				ApplySettings(monster);
 				return monster;
 			case CombatPracticeTarget:
+				ApplySettings(target);
 				return target;
 			default:
 				target.Free();
@@ -252,21 +218,16 @@ public partial class MonsterTool : DebugTool
 		}
 	}
 
+	/// <summary>Seeds a spawned monster's combat, aims it at the player and starts its AI; navigation comes from its world.</summary>
 	private void Prepare(Node3D target, Player player, IDebugWorld world, int index)
 	{
-		if (HurtBoxOf(target) is { } hurtBox) { hurtBox.Invulnerable = Invulnerable; }
 		if (target is not EnemyBase monster)
 		{
 			return;
 		}
 
 		monster.ConfigureCombatRandom(world.RunSeed, $"debug.monster.{index}");
-		if (world.Navigation != null) { monster.EnemyBehaviorComponent.Navigation?.SetNavigationOverride(world.Navigation); }
-		if (monster.DefenseController != null)
-		{
-			monster.DefenseController.Target = player;
-			monster.DefenseController.Mode = DefenseMode;
-		}
+		if (monster.DefenseController != null) { monster.DefenseController.Target = player; }
 		monster.EnemyBehaviorComponent.SetTarget(player);
 		monster.EnemyBehaviorComponent.SetAction(EnemyAction.None);
 		Vector3 facing = player.GlobalPosition - monster.GlobalPosition;
@@ -299,10 +260,28 @@ public partial class MonsterTool : DebugTool
 		}
 	}
 
-	/// <summary>Counterattacks follow the toggle; whether a monster can riposte at all is its defense profile's call.</summary>
-	private void ApplyRiposte(EnemyBase monster)
+	/// <summary>
+	/// Applies this tool's invulnerability, counterattack, defense and reward settings; all are safe before the target
+	/// enters the tree. Whether a monster can riposte at all is its defense profile's call.
+	/// </summary>
+	private void ApplySettings(Node3D target)
 	{
-		if (monster.DefenseController != null) { monster.DefenseController.RiposteEnabled = RiposteEnabled; }
+		if (HurtBoxOf(target) is { } hurtBox) { hurtBox.Invulnerable = Invulnerable; }
+		if (target is not EnemyBase monster)
+		{
+			return;
+		}
+		if (monster.DefenseController != null)
+		{
+			monster.DefenseController.RiposteEnabled = RiposteEnabled;
+			monster.DefenseController.Mode = DefenseMode;
+		}
+		if (monster.DeathComponent != null) { monster.DeathComponent.RewardsEnabled = RewardsEnabled; }
+	}
+
+	private void ApplySettingsToSpawned()
+	{
+		foreach (Node3D target in Spawned) { ApplySettings(target); }
 	}
 
 	/// <summary>The distance a monster's movement and opening action are designed for; the dummy stands at arm's length.</summary>
@@ -320,7 +299,8 @@ public partial class MonsterTool : DebugTool
 		return monster.AttackController.IsRanged ? 6f : 2f;
 	}
 
-	private static HurtBoxComponent HurtBoxOf(Node3D target) => target switch
+	/// <summary>The hurtbox of a spawned monster or practice target.</summary>
+	internal static HurtBoxComponent HurtBoxOf(Node3D target) => target switch
 	{
 		EnemyBase monster => monster.HurtBoxComponent,
 		CombatPracticeTarget dummy => dummy.HurtBox,
@@ -329,36 +309,20 @@ public partial class MonsterTool : DebugTool
 
 	private void FillSpawnMenu()
 	{
-		if (_spawnScenes.Count > 0)
+		if (_spawnMenu.ItemCount > 0)
 		{
 			return;
 		}
 
 		if (PracticeTargetScene != null)
 		{
-			_spawnMenu.AddItem("Practice dummy", _spawnScenes.Count);
-			_spawnScenes.Add(PracticeTargetScene);
+			AddAction(_spawnMenu, "Practice dummy", () => Spawn(PracticeTargetScene));
 			_spawnMenu.AddSeparator();
 		}
 		foreach (var (scene, name) in DebugCatalog.Monsters(MonsterDirectory))
 		{
-			_spawnMenu.AddItem(name, _spawnScenes.Count);
+			AddAction(_spawnMenu, name, () => Spawn(scene));
 			_spawnMenu.SetItemTooltip(_spawnMenu.ItemCount - 1, scene.ResourcePath);
-			_spawnScenes.Add(scene);
 		}
-	}
-
-	private void OnPressed(long id)
-	{
-		switch (id)
-		{
-			case KillAllId: KillAll(); break;
-			case ClearId: Clear(); break;
-			case AIId: AIEnabled = !AIEnabled; break;
-			case RiposteId: RiposteEnabled = !RiposteEnabled; break;
-			case InvulnerableId: Invulnerable = !Invulnerable; break;
-			case RewardsId: RewardsEnabled = !RewardsEnabled; break;
-		}
-		RefreshMenu(Popup);
 	}
 }

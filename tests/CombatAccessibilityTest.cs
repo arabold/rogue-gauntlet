@@ -212,7 +212,7 @@ public partial class CombatAccessibilityTest
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.Display.EffectsEnabled = false;
+		TestFactories.Tool<CombatDisplayTool>(harness.Arena).EffectsEnabled = false;
 		var shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		await Frames(runner.Scene(), 3);
 		var attack = shooter.AttackController;

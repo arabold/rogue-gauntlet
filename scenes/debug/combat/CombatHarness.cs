@@ -12,18 +12,12 @@ using System.IO;
 /// </summary>
 public partial class CombatHarness : CanvasLayer
 {
-	/// <summary>Monster defense modes by the <c>defense</c> command's value.</summary>
-	private static readonly EnemyDefenseMode[] DefenseModes =
-		[EnemyDefenseMode.ProfileDefault, EnemyDefenseMode.None, EnemyDefenseMode.Dodge, EnemyDefenseMode.GuardParry];
-
 	[Export] public Player Player { get; set; }
 	/// <summary>The world the arena's debug tools act in.</summary>
 	[Export] public DebugArena Arena { get; set; }
 	[Export] public ItemSpawnTool Items { get; set; }
 	[Export] public MonsterTool Monsters { get; set; }
-	[Export] public SpellCastTool Spells { get; set; }
 	[Export] public HeroTool Hero { get; set; }
-	[Export] public CombatDisplayTool Display { get; set; }
 	/// <summary>Equipped on startup, as an exact authored copy like every weapon the <c>equip</c> command gives.</summary>
 	[Export] public Weapon StartingWeapon { get; set; }
 	[Export] public ulong Seed { get; set; } = 42;
@@ -42,6 +36,7 @@ public partial class CombatHarness : CanvasLayer
 	private readonly System.Text.StringBuilder _actionText = new();
 	private ulong _actionPanelFrame;
 	private Label _feedback;
+	private Button _heroGuardButton;
 	private readonly Queue<string> _history = new();
 
 	/// <summary>The target the arena's monster tool spawned first: the practice dummy or a monster; null when none lives.</summary>
@@ -63,7 +58,7 @@ public partial class CombatHarness : CanvasLayer
 
 	private void InitializeHarness()
 	{
-		if (Player == null || Arena == null || Items == null || Monsters == null || Spells == null || Hero == null || Display == null || Recorder == null)
+		if (Player == null || Arena == null || Items == null || Monsters == null || Hero == null || Recorder == null)
 			throw new InvalidDataException("Assign the player, arena, debug tools and trace recorder.");
 		ProcessPhysicsPriority = CombatPhysics.Input - 1;
 		DisableHarnessKeyboardFocus(GetNode<Control>("%Controls"));
@@ -90,7 +85,8 @@ public partial class CombatHarness : CanvasLayer
 		_monsterActions = GetNode<Label>("%Controls/MonsterActions");
 		_feedback = GetNode<Label>("%Controls/Feedback");
 		GetNode<Button>("%Controls/Attack").Pressed += () => ExecuteCommand("attack");
-		GetNode<Button>("%Controls/HeroGuard").Pressed += () => ExecuteCommand(_heroGuardHeld ? "release_guard" : "guard");
+		_heroGuardButton = GetNode<Button>("%Controls/HeroGuard");
+		_heroGuardButton.Pressed += () => ExecuteCommand(_heroGuardHeld ? "release_guard" : "guard");
 		GetNode<Button>("%Controls/HeroDodge").Pressed += () => ExecuteCommand("dodge");
 		GetNode<Button>("%Controls/Reset").Pressed += () => ExecuteCommand("reset");
 		Recorder.Start(Arena, Seed, TracePath);
@@ -195,7 +191,7 @@ public partial class CombatHarness : CanvasLayer
 
 	private void OnTargetSpawned(Node3D target)
 	{
-		if (HurtBoxOf(target) is { } hurtBox)
+		if (MonsterTool.HurtBoxOf(target) is { } hurtBox)
 			hurtBox.DamageResolved += (result, amount, _) => Feedback("Target", ((DamageOutcome)result).ToString(), amount);
 		if (target is EnemyBase monster) BindMonsterFeedback(monster);
 		CombatTrace.Write(this, "harness.spawned", ("scene", target.SceneFilePath), ("seed", Seed));
@@ -222,16 +218,16 @@ public partial class CombatHarness : CanvasLayer
 	{
 		Hero.Reset();
 		_heroGuardHeld = false;
-		var targetHealth = GetTargetHealth();
-		if (targetHealth != null) targetHealth.SetHealth(targetHealth.MaxHealth, targetHealth.MaxHealth);
-		if (PracticeTarget is CombatPracticeTarget dummy)
+		Node3D target = PracticeTarget;
+		if (MonsterTool.HurtBoxOf(target)?.HealthComponent is { } targetHealth) targetHealth.SetHealth(targetHealth.MaxHealth, targetHealth.MaxHealth);
+		if (target is CombatPracticeTarget dummy)
 		{
 			dummy.Movement?.Stop();
 			dummy.Movement?.Push(Vector3.Zero, 0);
 			dummy.ActionGate?.ResetForSimulation(); // Ends a stagger, so the restored dummy no longer takes punish damage.
 			dummy.HurtBox?.Poise?.Restore();
 		}
-		if (Monster is { IsDead: false } monster)
+		if (target is EnemyBase { IsDead: false } monster)
 		{
 			monster.HealthComponent.SetHealth(monster.HealthComponent.MaxHealth, monster.HealthComponent.MaxHealth);
 			monster.MovementComponent.Push(Vector3.Zero, 0);
@@ -239,19 +235,6 @@ public partial class CombatHarness : CanvasLayer
 			monster.HurtBoxComponent.Poise?.Restore();
 		}
 	}
-
-	private static HurtBoxComponent HurtBoxOf(Node3D target) => target switch
-	{
-		EnemyBase enemy => enemy.HurtBoxComponent,
-		CombatPracticeTarget dummy => dummy.HurtBox,
-		_ => null
-	};
-	private HealthComponent GetTargetHealth() => PracticeTarget switch
-	{
-		EnemyBase enemy => enemy.HealthComponent,
-		CombatPracticeTarget dummy => dummy.Health,
-		_ => null
-	};
 
 	private void Feedback(string actor, string result, float damage)
 	{
@@ -286,13 +269,13 @@ public partial class CombatHarness : CanvasLayer
 
 	public override void _Process(double delta)
 	{
-		var target = PracticeTarget;
-		string monster = Monster is { } spawned
+		Node3D target = PracticeTarget;
+		string monster = target is EnemyBase spawned
 			? $"Monster: {DescribeAction(spawned.ActionGate, spawned.IsDead)} · HP {spawned.HealthComponent.CurrentHealth:0}"
 			: target == null ? "Monster: Not spawned" : "Dummy";
-		var targetHealth = GetTargetHealth();
-		_status.Text = $"Hero: {DescribeAction(Player.ActionGate, Player.IsDead)} · HP {Player.HealthComponent.CurrentHealth:0}\n{monster} · HP {targetHealth?.CurrentHealth:0}";
-		GetNode<Button>("%Controls/HeroGuard").Text = _heroGuardHeld ? "Release guard (L)" : "Guard / parry (L)";
+		float? targetHealth = MonsterTool.HurtBoxOf(target)?.HealthComponent?.CurrentHealth;
+		_status.Text = $"Hero: {DescribeAction(Player.ActionGate, Player.IsDead)} · HP {Player.HealthComponent.CurrentHealth:0}\n{monster} · HP {targetHealth:0}";
+		_heroGuardButton.Text = _heroGuardHeld ? "Release guard (L)" : "Guard / parry (L)";
 	}
 
 	/// <summary>Refresh the action tuning panel; it evaluates actions, so it runs in the physics step like the AI.</summary>
@@ -365,8 +348,8 @@ public partial class CombatHarness : CanvasLayer
 					value > 0 ? value : null);
 				break;
 			case "defense":
-				accepted = value >= 0 && value < DefenseModes.Length;
-				if (accepted) Monsters.DefenseMode = DefenseModes[value];
+				accepted = value >= 0 && value < MonsterTool.DefenseModes.Length;
+				if (accepted) Monsters.DefenseMode = MonsterTool.DefenseModes[value].Mode;
 				break;
 			case "attack":
 				ulong previous = Player.ActionGate.CurrentGeneration;
@@ -401,9 +384,16 @@ public partial class CombatHarness : CanvasLayer
 		return accepted;
 	}
 
-	/// <summary>The resource at <paramref name="path"/> when it exists and has type <typeparamref name="T"/>; null otherwise.</summary>
-	private static T LoadResource<T>(string path) where T : Resource =>
-		!string.IsNullOrEmpty(path) && ResourceLoader.Exists(path) ? ResourceLoader.Load(path) as T : null;
+	/// <summary>
+	/// The resource at <paramref name="path"/> when it exists and has type <typeparamref name="T"/>; null otherwise. A path
+	/// command is a load boundary, so pending finalizers settle first, as before a floor generates.
+	/// </summary>
+	private static T LoadResource<T>(string path) where T : Resource
+	{
+		if (string.IsNullOrEmpty(path) || !ResourceLoader.Exists(path)) return null;
+		ResourceCacheGuard.Settle();
+		return ResourceLoader.Load(path) as T;
+	}
 
 	private sealed class HarnessCommand
 	{

@@ -8,14 +8,8 @@ using System;
 [GlobalClass]
 public partial class CombatDisplayTool : DebugTool
 {
-	private const int DebugMeshesId = 0;
-	private const int CombatLogsId = 1;
-	private const int AiLogsId = 2;
-	private const int HurtboxesId = 3;
-	private const int EffectsId = 4;
-	private const int CameraShakeId = 5;
-	private const int SlowMotionId = 6;
 	private const double SlowMotionScale = .25;
+	private static readonly StringName DebugMeshGroup = "debug_mesh";
 
 	/// <summary>Shows attack hit volumes and every node in the <c>debug_mesh</c> group.</summary>
 	[Export]
@@ -25,9 +19,7 @@ public partial class CombatDisplayTool : DebugTool
 		set
 		{
 			field = value;
-			if (!IsInsideTree()) { return; }
-			AttackController.GlobalDebugDrawEnabled = value;
-			ForEachNode<Node>(ApplyDebugMeshes);
+			ApplyToScene();
 		}
 	}
 
@@ -39,7 +31,7 @@ public partial class CombatDisplayTool : DebugTool
 		set
 		{
 			field = value;
-			ForEachNode<HurtBoxComponent>(ApplyHurtbox);
+			ApplyToScene();
 		}
 	}
 
@@ -51,7 +43,7 @@ public partial class CombatDisplayTool : DebugTool
 		set
 		{
 			field = value;
-			ForEachNode<Node>(ApplyEffects);
+			ApplyToScene();
 		}
 	} = true;
 
@@ -63,7 +55,7 @@ public partial class CombatDisplayTool : DebugTool
 		set
 		{
 			field = value;
-			ForEachNode<CombatCameraFeedbackController>(ApplyCameraShake);
+			ApplyToScene();
 		}
 	} = true;
 
@@ -79,35 +71,18 @@ public partial class CombatDisplayTool : DebugTool
 		}
 	}
 
-	public bool CombatLogsEnabled
-	{
-		get => GameDebug.CombatLogsEnabled;
-		set => GameDebug.CombatLogsEnabled = value;
-	}
-
-	public bool AiLogsEnabled
-	{
-		get => GameDebug.AiLogsEnabled;
-		set => GameDebug.AiLogsEnabled = value;
-	}
-
 	private double _normalTimeScale = 1;
 	private bool _slowed;
+	/// <summary>Ends the node-added watch; set while one runs.</summary>
+	private Action _stopWatching;
 
-	/// <summary>Whether a node added to the scene needs this tool's settings: only while one differs from the game's.</summary>
+	/// <summary>Whether actors need this tool's settings: only while one differs from the game's.</summary>
 	private bool OverridesActors => DebugMeshesEnabled || HurtboxesEnabled || !EffectsEnabled || !CameraShakeEnabled;
 
 	public override void _EnterTree() => ApplySlowMotion();
 
-	/// <summary>Applies the authored settings to the scene the tool joins; hit volumes otherwise carry over from an earlier scene.</summary>
-	public override void _Ready()
-	{
-		this.SubscribeUntilExit(GetTree(), tree => tree.NodeAdded += OnNodeAdded, tree => tree.NodeAdded -= OnNodeAdded);
-		DebugMeshesEnabled = DebugMeshesEnabled;
-		HurtboxesEnabled = HurtboxesEnabled;
-		EffectsEnabled = EffectsEnabled;
-		CameraShakeEnabled = CameraShakeEnabled;
-	}
+	/// <summary>Applies the authored settings to the scene the tool joins; at the game's settings there is nothing to change.</summary>
+	public override void _Ready() => ApplyToScene(onlyOverrides: true);
 
 	public override void _ExitTree()
 	{
@@ -118,64 +93,75 @@ public partial class CombatDisplayTool : DebugTool
 			_slowed = false;
 		}
 		if (DebugMeshesEnabled) { AttackController.GlobalDebugDrawEnabled = false; }
+		_stopWatching?.Invoke();
+		_stopWatching = null;
 	}
 
-	public override void BuildMenu(PopupMenu menu)
+	protected override void BuildMenu(PopupMenu menu)
 	{
-		menu.AddCheckItem("Debug meshes", DebugMeshesId);
-		menu.AddCheckItem("Hurtboxes", HurtboxesId);
-		menu.AddCheckItem("Hit effects", EffectsId);
-		menu.AddCheckItem("Camera shake", CameraShakeId);
-		menu.AddCheckItem("Slow motion", SlowMotionId);
+		AddToggle(menu, "Debug meshes", () => DebugMeshesEnabled, value => DebugMeshesEnabled = value);
+		AddToggle(menu, "Hurtboxes", () => HurtboxesEnabled, value => HurtboxesEnabled = value);
+		AddToggle(menu, "Hit effects", () => EffectsEnabled, value => EffectsEnabled = value);
+		AddToggle(menu, "Camera shake", () => CameraShakeEnabled, value => CameraShakeEnabled = value);
+		AddToggle(menu, "Slow motion", () => SlowMotionEnabled, value => SlowMotionEnabled = value);
 		menu.AddSeparator();
-		menu.AddCheckItem("Combat logs", CombatLogsId);
-		menu.AddCheckItem("AI logs", AiLogsId);
-		menu.IdPressed += OnPressed;
-		RefreshMenu(menu);
+		AddToggle(menu, "Combat logs", () => GameDebug.CombatLogsEnabled, value => GameDebug.CombatLogsEnabled = value);
+		AddToggle(menu, "AI logs", () => GameDebug.AiLogsEnabled, value => GameDebug.AiLogsEnabled = value);
 	}
 
-	public override void RefreshMenu(PopupMenu menu)
+	/// <summary>
+	/// Applies every setting to the whole scene in one pass and watches for added actors while a setting differs from
+	/// the game's. <paramref name="onlyOverrides"/> skips the pass when nothing would change.
+	/// </summary>
+	private void ApplyToScene(bool onlyOverrides = false)
 	{
-		SetChecked(menu, DebugMeshesId, DebugMeshesEnabled);
-		SetChecked(menu, HurtboxesId, HurtboxesEnabled);
-		SetChecked(menu, EffectsId, EffectsEnabled);
-		SetChecked(menu, CameraShakeId, CameraShakeEnabled);
-		SetChecked(menu, SlowMotionId, SlowMotionEnabled);
-		SetChecked(menu, CombatLogsId, CombatLogsEnabled);
-		SetChecked(menu, AiLogsId, AiLogsEnabled);
-	}
-
-	private void OnPressed(long id)
-	{
-		switch (id)
-		{
-			case DebugMeshesId: DebugMeshesEnabled = !DebugMeshesEnabled; break;
-			case HurtboxesId: HurtboxesEnabled = !HurtboxesEnabled; break;
-			case EffectsId: EffectsEnabled = !EffectsEnabled; break;
-			case CameraShakeId: CameraShakeEnabled = !CameraShakeEnabled; break;
-			case SlowMotionId: SlowMotionEnabled = !SlowMotionEnabled; break;
-			case CombatLogsId: CombatLogsEnabled = !CombatLogsEnabled; break;
-			case AiLogsId: AiLogsEnabled = !AiLogsEnabled; break;
-		}
-		RefreshMenu(Popup);
-	}
-
-	private void OnNodeAdded(Node node)
-	{
-		if (!OverridesActors)
+		if (!IsInsideTree())
 		{
 			return;
 		}
-		ApplyDebugMeshes(node);
-		ApplyEffects(node);
-		if (node is HurtBoxComponent hurtBox) { ApplyHurtbox(hurtBox); }
-		if (node is CombatCameraFeedbackController camera) { ApplyCameraShake(camera); }
+
+		AttackController.GlobalDebugDrawEnabled = DebugMeshesEnabled;
+		SceneTree tree = GetTree();
+		if (OverridesActors && _stopWatching == null)
+		{
+			_stopWatching = this.SubscribeUntilExit(tree, t => t.NodeAdded += ApplyTo, t => t.NodeAdded -= ApplyTo);
+		}
+		else if (!OverridesActors && _stopWatching != null)
+		{
+			_stopWatching();
+			_stopWatching = null;
+		}
+		if (onlyOverrides && !OverridesActors)
+		{
+			return;
+		}
+		foreach (Node node in tree.Root.FindChildren("*", "", true, false))
+		{
+			ApplyTo(node);
+		}
 	}
 
-	private void ApplyDebugMeshes(Node node)
+	private void ApplyTo(Node node)
 	{
-		if (node is AttackController attackController) { attackController.DebugDrawEnabled = DebugMeshesEnabled; }
-		else if (node is Node3D node3D && node.IsInGroup("debug_mesh")) { node3D.Visible = DebugMeshesEnabled; }
+		switch (node)
+		{
+			case AttackController attackController:
+				attackController.DebugDrawEnabled = DebugMeshesEnabled;
+				attackController.EffectsEnabled = EffectsEnabled;
+				break;
+			case HurtBoxComponent hurtBox:
+				hurtBox.DebugDrawEnabled = HurtboxesEnabled;
+				break;
+			case CombatFeedbackController feedback:
+				feedback.Enabled = EffectsEnabled;
+				break;
+			case CombatCameraFeedbackController camera:
+				camera.Enabled = CameraShakeEnabled;
+				break;
+			case Node3D mesh when mesh.IsInGroup(DebugMeshGroup):
+				mesh.Visible = DebugMeshesEnabled;
+				break;
+		}
 	}
 
 	private void ApplySlowMotion()
@@ -187,28 +173,5 @@ public partial class CombatDisplayTool : DebugTool
 		if (SlowMotionEnabled) { _normalTimeScale = Engine.TimeScale; }
 		Engine.TimeScale = SlowMotionEnabled ? _normalTimeScale * SlowMotionScale : _normalTimeScale;
 		_slowed = SlowMotionEnabled;
-	}
-
-	private void ApplyHurtbox(HurtBoxComponent hurtBox) => hurtBox.DebugDrawEnabled = HurtboxesEnabled;
-
-	private void ApplyEffects(Node node)
-	{
-		if (node is AttackController attackController) { attackController.EffectsEnabled = EffectsEnabled; }
-		else if (node is CombatFeedbackController feedback) { feedback.Enabled = EffectsEnabled; }
-	}
-
-	private void ApplyCameraShake(CombatCameraFeedbackController camera) => camera.Enabled = CameraShakeEnabled;
-
-	/// <summary>Applies a setting to every node of type <typeparamref name="T"/> in the scene; nothing outside the tree.</summary>
-	private void ForEachNode<T>(Action<T> apply) where T : Node
-	{
-		if (!IsInsideTree())
-		{
-			return;
-		}
-		foreach (Node node in GetTree().Root.FindChildren("*", "", true, false))
-		{
-			if (node is T match) { apply(match); }
-		}
 	}
 }

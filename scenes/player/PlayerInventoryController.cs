@@ -47,7 +47,7 @@ public partial class PlayerInventoryController : Node
 	public void BeginTargeting(Scroll scroll) => IdentifyItemType(scroll);
 
 	/// <summary>Records the item's hidden type with the run. A player outside a level (previews, harnesses) learns nothing.</summary>
-	private void IdentifyItemType(Item item) => Level?.Run.IdentifyItemType(item);
+	private void IdentifyItemType(Item item) => Level?.Run?.IdentifyItemType(item);
 
 	public void AutoEquipItems()
 	{

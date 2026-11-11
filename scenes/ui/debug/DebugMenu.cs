@@ -53,12 +53,11 @@ public partial class DebugMenu : HBoxContainer
 		{
 			var submenu = new PopupMenu { Name = $"{tool.Name}Menu" };
 			tool.Popup = submenu;
-			tool.BuildMenu(submenu);
+			// Built when first opened and refreshed on every opening, so checks follow changes made by code and other tools.
+			submenu.AboutToPopup += tool.Refresh;
 			root.AddChild(submenu);
 			root.AddSubmenuNodeItem(tool.Title, submenu);
 		}
-		// Refreshed on opening, so checks follow changes made by code, other tools and level changes.
-		root.AboutToPopup += RefreshTools;
 		UpdateFpsLabel();
 	}
 
@@ -74,14 +73,6 @@ public partial class DebugMenu : HBoxContainer
 		{
 			_fpsUpdateSeconds = 0;
 			UpdateFpsLabel();
-		}
-	}
-
-	private void RefreshTools()
-	{
-		foreach (DebugTool tool in Tools.Where(tool => tool?.Popup != null))
-		{
-			tool.RefreshMenu(tool.Popup);
 		}
 	}
 

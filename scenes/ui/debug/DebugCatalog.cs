@@ -11,6 +11,8 @@ using System.Linq;
 public static class DebugCatalog
 {
 	private static readonly Dictionary<(Type Type, string Directory), object> ResourcesByDirectory = [];
+	private static readonly Dictionary<string, IReadOnlyList<(PackedScene Scene, string Name)>> MonstersByDirectory = [];
+	private static ulong _settledFrame = ulong.MaxValue;
 
 	/// <summary>
 	/// Every <typeparamref name="T"/> <c>.tres</c> in <paramref name="directory"/> and its subfolders with its path, sorted
@@ -20,30 +22,14 @@ public static class DebugCatalog
 	{
 		if (!ResourcesByDirectory.TryGetValue((typeof(T), directory), out object cached))
 		{
-			ResourceCacheGuard.Settle();
-			var found = new List<(T Resource, string Path)>();
-			CollectResources(directory.TrimEnd('/'), found);
-			ResourcesByDirectory[(typeof(T), directory)] = cached = found.OrderBy(e => e.Path, StringComparer.Ordinal).ToList();
+			SettleOncePerFrame();
+			ResourcesByDirectory[(typeof(T), directory)] = cached = FilesUnder(directory, ".tres")
+				.Select(path => (Resource: ResourceLoader.Load(path) as T, Path: path))
+				.Where(entry => entry.Resource != null)
+				.OrderBy(entry => entry.Path, StringComparer.Ordinal).ToList();
 		}
 		return (IReadOnlyList<(T Resource, string Path)>)cached;
 	}
-
-	/// <summary>
-	/// Every <see cref="Item"/> <c>.tres</c> in <paramref name="directory"/> and its subfolders with its path, in display
-	/// order. Files that fail to load or are not items are skipped.
-	/// </summary>
-	public static IReadOnlyList<(Item Item, string Path)> Items(string directory)
-	{
-		if (!ItemsByDirectory.TryGetValue(directory, out var items))
-		{
-			ItemsByDirectory[directory] = items = InDisplayOrder(Resources<Item>(directory).Select(e => (e.Resource, e.Path))).ToList();
-		}
-		return items;
-	}
-
-	private static readonly Dictionary<string, IReadOnlyList<(Item Item, string Path)>> ItemsByDirectory = [];
-
-	private static readonly Dictionary<string, IReadOnlyList<(PackedScene Scene, string Name)>> MonstersByDirectory = [];
 
 	/// <summary>
 	/// Every valid monster scene in <paramref name="directory"/> and its subfolders, outside <c>templates/</c>, with its
@@ -54,9 +40,28 @@ public static class DebugCatalog
 	{
 		if (!MonstersByDirectory.TryGetValue(directory, out var monsters))
 		{
-			ResourceCacheGuard.Settle();
+			SettleOncePerFrame();
 			var found = new List<(PackedScene Scene, string Name)>();
-			CollectMonsters(directory.TrimEnd('/'), found);
+			foreach (string path in FilesUnder(directory, ".tscn", skipFolder: "templates"))
+			{
+				if (ResourceLoader.Load(path) is not PackedScene scene)
+				{
+					continue;
+				}
+				string[] errors = MonsterSceneValidator.ValidateScene(scene, out string definitionId);
+				if (string.IsNullOrWhiteSpace(definitionId))
+				{
+					continue;
+				}
+				if (errors.Length > 0)
+				{
+					GD.PushWarning($"Skipped monster {path}: {string.Join(" ", errors)}");
+					continue;
+				}
+				var actor = scene.Instantiate<EnemyBase>();
+				found.Add((scene, actor.Definition?.DisplayName ?? path.GetFile().GetBaseName()));
+				actor.Free();
+			}
 			MonstersByDirectory[directory] = monsters = found
 				.OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase)
 				.ThenBy(m => m.Scene.ResourcePath, StringComparer.Ordinal).ToList();
@@ -64,59 +69,39 @@ public static class DebugCatalog
 		return monsters;
 	}
 
-	private static void CollectMonsters(string directory, List<(PackedScene Scene, string Name)> monsters)
+	/// <summary>
+	/// Settles pending finalizers before loading by path, at most once a frame: a batch of folders loaded together needs
+	/// one settle, and nothing is freed between them.
+	/// </summary>
+	private static void SettleOncePerFrame()
 	{
-		foreach (string name in ResourceLoader.ListDirectory(directory))
-		{
-			string path = directory + "/" + name.TrimEnd('/');
-			if (name.EndsWith('/'))
-			{
-				if (name != "templates/") { CollectMonsters(path, monsters); }
-				continue;
-			}
-			if (!name.EndsWith(".tscn", StringComparison.Ordinal) || ResourceLoader.Load(path) is not PackedScene scene)
-			{
-				continue;
-			}
-
-			string[] errors = MonsterSceneValidator.ValidateScene(scene, out string definitionId);
-			if (string.IsNullOrWhiteSpace(definitionId))
-			{
-				continue;
-			}
-			if (errors.Length > 0)
-			{
-				GD.PushWarning($"Skipped monster {path}: {string.Join(" ", errors)}");
-				continue;
-			}
-			var actor = scene.Instantiate<EnemyBase>();
-			monsters.Add((scene, actor.Definition?.DisplayName ?? path.GetFile().GetBaseName()));
-			actor.Free();
-		}
-	}
-
-	/// <summary>Display order for item lists: by name, then tier, then path, so the tiers of one item sit together.</summary>
-	public static IEnumerable<(Item Item, string Path)> InDisplayOrder(IEnumerable<(Item Item, string Path)> entries) =>
-		entries.OrderBy(e => e.Item.Name, StringComparer.Ordinal)
-			.ThenBy(e => (e.Item as EquipableItem)?.Tier ?? 0)
-			.ThenBy(e => e.Path, StringComparer.Ordinal);
-
-	private static void CollectResources<T>(string directory, List<(T Resource, string Path)> resources) where T : Resource
-	{
-		if (!DirAccess.DirExistsAbsolute(directory))
+		ulong frame = Engine.GetProcessFrames();
+		if (frame == _settledFrame)
 		{
 			return;
 		}
+		_settledFrame = frame;
+		ResourceCacheGuard.Settle();
+	}
+
+	/// <summary>Every file ending in <paramref name="extension"/> under <paramref name="directory"/>, skipping folders named <paramref name="skipFolder"/>.</summary>
+	private static IEnumerable<string> FilesUnder(string directory, string extension, string skipFolder = null)
+	{
+		directory = directory.TrimEnd('/');
+		if (!DirAccess.DirExistsAbsolute(directory))
+		{
+			yield break;
+		}
 		foreach (string name in ResourceLoader.ListDirectory(directory))
 		{
 			string path = directory + "/" + name.TrimEnd('/');
-			if (name.EndsWith('/'))
+			if (!name.EndsWith('/'))
 			{
-				CollectResources(path, resources);
+				if (name.EndsWith(extension, StringComparison.Ordinal)) { yield return path; }
 			}
-			else if (name.EndsWith(".tres", StringComparison.Ordinal) && ResourceLoader.Load(path) is T resource)
+			else if (name.TrimEnd('/') != skipFolder)
 			{
-				resources.Add((resource, path));
+				foreach (string nested in FilesUnder(path, extension, skipFolder)) { yield return nested; }
 			}
 		}
 	}

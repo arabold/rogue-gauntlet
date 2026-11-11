@@ -1,5 +1,4 @@
 using Godot;
-using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
@@ -12,27 +11,19 @@ public partial class SpellCastTool : DebugTool
 	/// <summary>Spells the submenu lists; without a pool the tool is unavailable.</summary>
 	[Export] public SpellPool Spells { get; set; }
 
-	/// <summary>What each entry casts. Ids index this list.</summary>
-	private readonly List<(SpellDefinition Spell, int Level)> _castables = [];
-
 	public override bool IsAvailable => Spells != null;
 
-	/// <summary>One submenu per spell, listing every level it can be cast at.</summary>
-	public override void BuildMenu(PopupMenu menu)
+	protected override void BuildMenu(PopupMenu menu)
 	{
 		foreach (SpellDefinition spell in Spells.Spells.Where(spell => spell != null))
 		{
-			var levelMenu = new PopupMenu();
+			PopupMenu levels = AddSubmenu(menu, spell.DisplayName);
 			for (int level = 1; level <= spell.LevelCount; level++)
 			{
 				if (!spell.IsValidLevel(level)) { continue; }
-				_castables.Add((spell, level));
-				levelMenu.AddItem($"Level {level}", _castables.Count - 1);
+				int castLevel = level;
+				AddAction(levels, $"Level {level}", () => Cast(spell, castLevel));
 			}
-
-			levelMenu.IdPressed += OnCastPressed;
-			menu.AddChild(levelMenu);
-			menu.AddSubmenuNodeItem(spell.DisplayName, levelMenu);
 		}
 	}
 
@@ -73,16 +64,5 @@ public partial class SpellCastTool : DebugTool
 	{
 		SpellCaster caster = Menu?.Player?.SpellCaster;
 		return caster != null && caster.TryResolve(spell, null, 1, out ICombatSpell instance) ? instance : null;
-	}
-
-	private void OnCastPressed(long id)
-	{
-		if (id < 0 || id >= _castables.Count)
-		{
-			return;
-		}
-
-		var (spell, level) = _castables[(int)id];
-		Cast(spell, level);
 	}
 }

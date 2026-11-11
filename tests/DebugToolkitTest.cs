@@ -65,7 +65,7 @@ public class DebugToolkitTest
 		foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()) enemy.QueueFree();
 		await runner.SimulateFrames(1, 20);
 		var cleared = level.Run.CaptureClearedIds();
-		var tool = scene.FindChildren("*", "HBoxContainer", true, false).OfType<DebugMenu>().Single().GetTool<MonsterTool>();
+		var tool = TestFactories.Tool<MonsterTool>(scene);
 
 		var monster = (EnemyBase)tool.Spawn(TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn"), 7);
 		AssertObject(monster).IsNotNull();

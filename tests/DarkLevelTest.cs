@@ -31,10 +31,9 @@ public class DarkLevelTest
 		AssertBool(playerLights.Length > 0).IsTrue();
 		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
 		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Lit.Range);
-		var menu = scene.FindChildren("*", "HBoxContainer", true, false).OfType<DebugMenu>().Single();
-		var popup = menu.GetTool<LevelTool>().Popup;
+		var popup = TestFactories.Tool<LevelTool>(scene).Popup;
 		int index = Enumerable.Range(0, popup.ItemCount).Single(i => popup.GetItemText(i) == "Dark level");
-		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
+		TestFactories.Press(popup, "Dark level");
 		AssertBool(level.Lighting.IsDark).IsTrue();
 		AssertBool(popup.IsItemChecked(index)).IsTrue();
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(0f);
@@ -54,7 +53,7 @@ public class DarkLevelTest
 		TestFactories.AssertTorchEffects(unlit, false);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
 
-		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
+		TestFactories.Press(popup, "Dark level");
 		AssertBool(level.Lighting.IsDark).IsFalse();
 		AssertBool(popup.IsItemChecked(index)).IsFalse();
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(ambient);
