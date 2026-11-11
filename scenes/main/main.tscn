@@ -7,10 +7,12 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="10_effects"]
 [ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="11_camera"]
+[ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="12_death"]
 
-[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects")]
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "DeathScreen")]
 script = ExtResource("1_dl2xl")
 ScreenEffects = NodePath("ScreenEffects")
+DeathScreen = NodePath("DeathScreen")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 
@@ -33,6 +35,9 @@ visible = false
 
 [node name="PauseMenu" parent="." instance=ExtResource("9_pause")]
 unique_name_in_owner = true
+visible = false
+
+[node name="DeathScreen" parent="." instance=ExtResource("12_death")]
 visible = false
 
 [editable path="Level"]

@@ -1,5 +1,6 @@
 // Near death: the whole view is washed red and drained of color, with a blood-red vignette that
 // throbs to a lub-dub heartbeat. Higher `intensity` pulls the vignette further toward the center.
+// `motion` scales the heartbeat; at 0 the red holds still.
 shader_type canvas_item;
 render_mode unshaded;
 
@@ -12,6 +13,7 @@ uniform float wash_strength : hint_range(0.0, 1.0) = 0.55;
 uniform float desaturation : hint_range(0.0, 1.0) = 0.5;
 uniform float heartbeat_rate : hint_range(0.1, 4.0) = 1.1;
 uniform float pulse_strength : hint_range(0.0, 1.0) = 0.5;
+uniform float motion : hint_range(0.0, 1.0) = 1.0;
 // Vignette start (distance from center, 1 = corner) at full intensity.
 uniform float vignette_inner : hint_range(0.0, 1.0) = 0.25;
 uniform float vignette_width : hint_range(0.05, 1.0) = 0.6;
@@ -33,7 +35,7 @@ void fragment() {
 	vec2 offset = (SCREEN_UV - 0.5) * vec2(aspect, 1.0);
 	float dist = length(offset) / length(vec2(aspect, 1.0) * 0.5);
 
-	float beat = heartbeat(TIME) * pulse_strength;
+	float beat = heartbeat(TIME) * pulse_strength * motion;
 	float inner = mix(1.0, vignette_inner, intensity) - beat * 0.15 * intensity;
 	float vignette = smoothstep(inner, inner + vignette_width, dist);
 

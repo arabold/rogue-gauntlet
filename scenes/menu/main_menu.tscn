@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/menu/MainMenu.cs" id="1_menu"]
 [ext_resource type="Texture2D" path="res://assets/ui/main_menu/main_menu_background.png" id="2_background"]
 [ext_resource type="PackedScene" uid="uid://ccharpaneltscn1" path="res://scenes/menu/character_panel.tscn" id="3_charpanel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="4_death"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.0352941, 0.0431373, 0.054902, 0.82)
@@ -40,7 +41,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("DeathScreen")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15
@@ -49,6 +50,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
+DeathScreen = NodePath("DeathScreen")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
@@ -232,6 +234,10 @@ text = "Back"
 [node name="CharacterPanel" parent="." instance=ExtResource("3_charpanel")]
 unique_name_in_owner = true
 visible = false
+
+[node name="DeathScreen" parent="." instance=ExtResource("4_death")]
+visible = false
+DismissText = "Back"
 
 [node name="OverwriteDialog" type="ConfirmationDialog" parent="."]
 unique_name_in_owner = true

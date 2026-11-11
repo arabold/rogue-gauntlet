@@ -47,6 +47,6 @@ Living enemies reset health, position and tactical state on revisit; active time
 
 ## Save compatibility and acceptance
 
-`SaveGame.CurrentVersion` in [SaveGame.cs](../scripts/saves/SaveGame.cs) is the sole supported-version value. Missing or mismatched versions require a new run. There are no migrations, legacy DTO adapters or fallback conversions. Rejecting an incompatible or invalid save must not overwrite it. Current-version inventory and floor restoration must still preserve supported state correctly.
+When a run saves, and how death turns its save into a record of the fallen run, is in [runs, saving and permadeath](run-lifecycle.md). `SaveGame.CurrentVersion` in [SaveGame.cs](../scripts/saves/SaveGame.cs) is the sole supported-version value. Missing or mismatched versions require a new run. There are no migrations, legacy DTO adapters or fallback conversions. Rejecting an incompatible or invalid save must not overwrite it. Current-version inventory and floor restoration must still preserve supported state correctly.
 
 Verify actual regenerated layouts, encounter definitions/positions and rewards—not merely equal seeds—and save/resume/revisit after changing supported world state. Headless tests cannot certify baked navigation; actual passage remains an editor playtest. Test and command guidance belongs in [AGENTS.md](../AGENTS.md), with remaining acceptance in the [roadmap](development-roadmap.md).

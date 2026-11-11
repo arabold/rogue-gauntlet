@@ -43,7 +43,7 @@ The floor generator places rooms, connects them with corridors, and handles prog
 The game is in active development, and the first few dungeon floors are fully playable.
 
 - **Working title:** *"Rogue Gauntlet"* is an unfinished working title and subject to change as the game's identity evolves.
-- **Currently playable:** Procedural room and corridor generation, real-time melee and magic combat (attacks, guard/parry, dodge), inventory, equipment, consumable food/potions/scrolls, item identification, fog of war, and delta save/load.
+- **Currently playable:** Procedural room and corridor generation, real-time melee and magic combat (attacks, guard/parry, dodge), inventory, equipment, consumable food/potions/scrolls, item identification, fog of war, delta saves on floor arrival and exit, and permadeath.
 - **Still needed:** Gameplay balancing, expanding the monster roster and AI tactics, additional dungeon themes/biomes, and more 3D assets.
 
 The repository is ready to clone, build, and run today.

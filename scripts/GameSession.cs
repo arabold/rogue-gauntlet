@@ -5,7 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Coordinates game flow between menus, gameplay, and save slots.
+/// Coordinates game flow between menus, gameplay, and save slots. A run saves on arrival at every floor and when the
+/// player leaves the game, never on demand mid-floor. The hero's death ends it for good (permadeath): its save becomes a
+/// record of the fallen run that the menu can show but not continue.
 /// </summary>
 public partial class GameSession : Node
 {
@@ -17,6 +19,18 @@ public partial class GameSession : Node
 	public int ActiveSlotId { get; private set; }
 	public uint ActiveDungeonDepth { get; private set; } = 1;
 	public bool IsGameActive => ActiveSlotId > 0;
+
+	/// <summary>
+	/// True once the hero of the active game has died: its slot holds the fallen run's record and nothing saves or
+	/// continues the run again.
+	/// </summary>
+	public bool IsRunOver => _activeSave?.Outcome == RunOutcome.Died;
+
+	/// <summary>
+	/// What the run had reached when the hero last died, for the death screen; null until a death. A scene run without
+	/// a game gets a record too, which is never written.
+	/// </summary>
+	public SaveSlotMetadata FallenRun { get; private set; }
 
 	private RunState _run;
 
@@ -83,8 +97,25 @@ public partial class GameSession : Node
 
 		this.SubscribeUntilExit(
 			SignalBus.Instance,
-			signalBus => signalBus.PlayerSpawned += OnPlayerSpawned,
-			signalBus => signalBus.PlayerSpawned -= OnPlayerSpawned);
+			signalBus =>
+			{
+				signalBus.PlayerSpawned += OnPlayerSpawned;
+				signalBus.PlayerDeath += OnPlayerDeath;
+			},
+			signalBus =>
+			{
+				signalBus.PlayerSpawned -= OnPlayerSpawned;
+				signalBus.PlayerDeath -= OnPlayerDeath;
+			});
+	}
+
+	public override void _Notification(int what)
+	{
+		// Closing the window leaves the game, so the run is saved to continue from here.
+		if (what == NotificationWMCloseRequest)
+		{
+			SaveRun(interrupt: true);
+		}
 	}
 
 	public override void _ExitTree()
@@ -105,14 +136,23 @@ public partial class GameSession : Node
 			return;
 		}
 
+		BeginRun(slotId, characterClassId, seed);
+		EnterGameplay();
+	}
+
+	/// <summary>
+	/// Sets up a fresh run in <paramref name="slotId"/> without changing scenes. The slot keeps its previous save until
+	/// the run arrives on its first floor and saves there.
+	/// </summary>
+	internal void BeginRun(int slotId, string characterClassId = null, ulong? seed = null)
+	{
 		SaveService.GetSlotPath(slotId);
+		ClearSession();
 		ActiveSlotId = slotId;
 		_run = new RunState(seed ?? RunState.CreateSeed());
 		GD.Print($"Starting run with seed {Run.RunSeed}.");
-		ActiveDungeonDepth = 1;
 		PendingTravelDirection = LevelTravelDirection.Down;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
-		_pendingLoadedSave = null;
 		_saveAfterNextSpawn = true;
 		ResolveCharacterClass(characterClassId);
 
@@ -133,7 +173,11 @@ public partial class GameSession : Node
 			Seed = Run.RunSeed,
 			DungeonDepth = ActiveDungeonDepth,
 		};
+	}
 
+	/// <summary>Opens the gameplay scene behind a black screen; the first floor's arrival fades it in.</summary>
+	private void EnterGameplay()
+	{
 		GetTree().Paused = false;
 		_isSceneTransitioning = true;
 		ShowBlackScreen();
@@ -176,6 +220,11 @@ public partial class GameSession : Node
 			GD.PrintErr($"No save found in slot {slotId}.");
 			return;
 		}
+		if (saveGame.Outcome != RunOutcome.InProgress)
+		{
+			GD.PrintErr($"The run in slot {slotId} has ended and cannot be continued.");
+			return;
+		}
 
 		try
 		{
@@ -193,6 +242,7 @@ public partial class GameSession : Node
 
 		var identification = new IdentificationService();
 		identification.Initialize(saveGame.Seed, saveGame.Identification?.IdentifiedTypeIds, BuildAssignmentMap(saveGame.Identification));
+		ClearSession();
 		ActiveSlotId = slotId;
 		_run = new RunState(saveGame.Seed, saveGame.LootRollsConsumed, saveGame.World.ClearedEntityIds, identification);
 		ActiveDungeonDepth = saveGame.DungeonDepth;
@@ -202,11 +252,7 @@ public partial class GameSession : Node
 		_saveAfterNextSpawn = false;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		ResolveCharacterClass(saveGame.CharacterClassId);
-
-		GetTree().Paused = false;
-		_isSceneTransitioning = true;
-		ShowBlackScreen();
-		GetTree().ChangeSceneToFile(GameplayScenePath);
+		EnterGameplay();
 	}
 
 	/// <summary>Hands the level this run and the floor's saved deltas; a generation failure returns to the menu.</summary>
@@ -258,8 +304,8 @@ public partial class GameSession : Node
 			return false;
 		}
 
-		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentLevel()?.IsCommittingFloorChanges == true)
+		Player player = FindPlayer();
+		if (IsRunOver || player == null || player.IsDead || !CanCapture(player))
 		{
 			return false;
 		}
@@ -276,6 +322,8 @@ public partial class GameSession : Node
 			return false;
 		}
 		_pendingLoadedSave = _activeSave;
+		// Every floor is saved as the hero arrives on it.
+		_saveAfterNextSpawn = true;
 
 		if (direction == LevelTravelDirection.Down)
 		{
@@ -349,19 +397,38 @@ public partial class GameSession : Node
 		};
 	}
 
-	public bool SaveActiveGame()
+	/// <summary>
+	/// Writes the active run to its slot: on arrival at a floor, and when the player leaves the game. Between leaving a
+	/// floor and arriving on the next, the hero captured on departure is written instead of the live scene.
+	/// <paramref name="interrupt"/> abandons the hero's current action first, so leaving mid-swing still saves; loading
+	/// restores a neutral stance anyway. With no game, or an ended run, there is nothing to write, which counts as saved.
+	/// </summary>
+	private bool SaveRun(bool interrupt = false)
 	{
-		if (!IsGameActive)
+		if (!IsGameActive || IsRunOver)
 		{
-			GD.PrintErr("Cannot save because no game slot is active.");
-			return false;
+			return true;
 		}
 
-		Player player = GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-		if (player == null || player.ActionGate?.IsBusy == true || player.InventoryController.IsCommittingItemOperation || CurrentLevel()?.IsCommittingFloorChanges == true)
+		// A run that has not reached its first floor has nothing to save yet.
+		Player player = null;
+		bool travelling = _pendingLoadedSave != null;
+		if (!travelling)
 		{
-			GD.PrintErr("Cannot save while the player is unavailable or an item operation is committing.");
-			return false;
+			player = FindPlayer();
+			if (player == null || player.IsDead)
+			{
+				return false;
+			}
+			if (interrupt)
+			{
+				player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
+			}
+			if (!CanCapture(player))
+			{
+				GD.PrintErr("Cannot save while the player is acting or an item operation is committing.");
+				return false;
+			}
 		}
 
 		EnsureActiveSave();
@@ -369,26 +436,21 @@ public partial class GameSession : Node
 		double previousPlayTime = saveGame.PlayTimeSeconds;
 		try
 		{
-
-			saveGame.Version = SaveGame.CurrentVersion;
-			saveGame.SlotId = ActiveSlotId;
-			saveGame.CharacterClassId = ActiveCharacterClassId;
-			saveGame.SavedAtUtc = DateTime.UtcNow.ToString("O");
-			saveGame.Seed = Run.RunSeed;
-			saveGame.DungeonDepth = ActiveDungeonDepth;
-			saveGame.PlayTimeSeconds += GetSessionElapsedSeconds();
+			StampRun(saveGame, ActiveDungeonDepth);
 			saveGame.LootRollsConsumed = Run.LootRollsConsumed;
 			saveGame.World.ClearedEntityIds = Run.CaptureClearedIds();
-			StoreFloorDeltas();
-			saveGame.Player = PlayerSaveCodec.Capture(player, includeTransform: true);
 			saveGame.Identification = CaptureIdentification();
+			if (player != null)
+			{
+				StoreFloorDeltas();
+				saveGame.Player = PlayerSaveCodec.Capture(player, includeTransform: true);
+			}
 
 			if (!SaveService.Save(saveGame))
 			{
 				saveGame.PlayTimeSeconds = previousPlayTime;
 				return false;
 			}
-
 		}
 		catch (Exception error)
 		{
@@ -397,19 +459,84 @@ public partial class GameSession : Node
 			return false;
 		}
 
-		_activeSave = saveGame;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
 		GD.Print($"Saved game to slot {ActiveSlotId}.");
 		return true;
 	}
 
-	public void SaveAndReturnToMenu()
+	/// <summary>
+	/// Leaves the game for the menu, saving the run first unless it has ended. A failed save keeps the player in the
+	/// game, so leaving never loses progress.
+	/// </summary>
+	public bool SaveAndReturnToMenu()
 	{
-		if (SaveActiveGame())
+		if (!SaveRun(interrupt: true))
 		{
-			ReturnToMenu();
+			return false;
 		}
+
+		ReturnToMenu();
+		return true;
 	}
+
+	/// <summary>
+	/// Permadeath: the slot's playable save is replaced at once by a record of the fallen run (its seed, class and
+	/// what it reached), so quitting from here cannot bring the run back and the menu can still show how it ended.
+	/// </summary>
+	private void OnPlayerDeath(Player player)
+	{
+		if (IsRunOver)
+		{
+			return;
+		}
+
+		// The record keeps only what the death screen and a replay of the run need, not the floors or the inventory.
+		var record = new SaveGame
+		{
+			Outcome = RunOutcome.Died,
+			RunId = _activeSave?.RunId ?? string.Empty,
+			CreatedAtUtc = _activeSave?.CreatedAtUtc ?? string.Empty,
+			PlayTimeSeconds = _activeSave?.PlayTimeSeconds ?? 0,
+		};
+		StampRun(record, player?.GetAncestorOrNull<Level>()?.Depth ?? ActiveDungeonDepth);
+		if (player?.Stats != null)
+		{
+			record.Player.Stats = player.Stats.CreateSaveData();
+		}
+		FallenRun = SaveService.ToMetadata(ActiveSlotId, record);
+		// A scene run without a game reports its death the same way but writes nothing.
+		if (!IsGameActive)
+		{
+			return;
+		}
+
+		// Replacing the active save ends the run.
+		_activeSave = record;
+		_pendingLoadedSave = null;
+		if (!SaveService.Save(record) && !SaveService.Delete(ActiveSlotId))
+		{
+			GD.PushError($"Slot {ActiveSlotId} still holds the fallen run's playable save.");
+		}
+		GD.Print($"The run in slot {ActiveSlotId} ended in death at depth {record.DungeonDepth}.");
+	}
+
+	/// <summary>Writes the run's identity, <paramref name="depth"/> and the play time since the last write into <paramref name="save"/>.</summary>
+	private void StampRun(SaveGame save, uint depth)
+	{
+		save.Version = SaveGame.CurrentVersion;
+		save.SlotId = ActiveSlotId;
+		save.CharacterClassId = ActiveCharacterClassId;
+		save.SavedAtUtc = DateTime.UtcNow.ToString("O");
+		save.Seed = Run.RunSeed;
+		save.DungeonDepth = depth;
+		save.PlayTimeSeconds += GetSessionElapsedSeconds();
+	}
+
+	private Player FindPlayer() => GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+
+	/// <summary>The hero's state can be captured only between actions and item or floor commits.</summary>
+	private bool CanCapture(Player player) => player.ActionGate?.IsBusy != true
+		&& !player.InventoryController.IsCommittingItemOperation && CurrentLevel()?.IsCommittingFloorChanges != true;
 
 	public void ReturnToMenu()
 	{
@@ -441,9 +568,11 @@ public partial class GameSession : Node
 		ActiveCharacterClassId = ActiveCharacterClass?.Id ?? SaveGame.DefaultCharacterClassId;
 	}
 
-	private void ClearSession()
+	/// <summary>Forgets the active run, leaving no game active. Internal so tests can end a run without changing scenes.</summary>
+	internal void ClearSession()
 	{
 		ActiveSlotId = 0;
+		FallenRun = null;
 		_run = null;
 		ActiveDungeonDepth = 1;
 		ActiveCharacterClassId = "";
@@ -507,10 +636,12 @@ public partial class GameSession : Node
 			PlayerSaveCodec.Apply(player, _pendingLoadedSave.Player);
 			_pendingLoadedSave = null;
 		}
-		else if (_saveAfterNextSpawn)
+
+		// A new run and every floor it travels to save as the hero arrives, still behind the black screen.
+		if (_saveAfterNextSpawn)
 		{
 			_saveAfterNextSpawn = false;
-			SaveActiveGame();
+			SaveRun();
 		}
 
 		CallDeferred(MethodName.FadeInAfterLevelSettled);
@@ -520,6 +651,13 @@ public partial class GameSession : Node
 	{
 		GetTree().Paused = false;
 		await FadeToBlack();
+		if (IsRunOver)
+		{
+			// The hero died on the way out: stay on this floor so the death screen can report it.
+			await FadeFromBlack();
+			_isSceneTransitioning = false;
+			return;
+		}
 
 		// This can start from the transition trigger's physics callback (BodyEntered), so
 		// defer the reload to idle — reloading now would free the current scene's

@@ -25,6 +25,7 @@ These documents explain code that exists today. Any proposed extension or future
 | Document | Coverage |
 | --- | --- |
 | [Monster design and authoring](monster-authoring-design.md) | Six-monster roster, data-driven actions (targets, conditions, weights), health phases, dashes, shared monster spells, validation and tuning |
+| [Runs, saving and permadeath](run-lifecycle.md) | Run start, the endless descent, saving on floor arrival and exit, death records and the death screen |
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |

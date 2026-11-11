@@ -13,9 +13,12 @@ using Godot;
 public partial class ScreenEffect : Control
 {
 	private static readonly StringName IntensityParameter = "intensity";
+	private static readonly StringName MotionParameter = "motion";
 
 	private float _intensity;
+	private float _motion = 1f;
 	private Tween _fade;
+	private Tween _stilling;
 
 	/// <summary>Full-rect surface whose <see cref="ShaderMaterial"/> renders the effect. Required.</summary>
 	[Export] public ColorRect Surface { get; set; }
@@ -32,6 +35,21 @@ public partial class ScreenEffect : Control
 		}
 	}
 
+	/// <summary>
+	/// How much the effect moves, scaling its shader's <c>motion</c> uniform (the near-death heartbeat). Zero holds the
+	/// look still at its current intensity. Shaders without the uniform ignore it.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1,0.01")]
+	public float Motion
+	{
+		get => _motion;
+		set
+		{
+			_motion = Mathf.Clamp(value, 0f, 1f);
+			EffectMaterial?.SetShaderParameter(MotionParameter, _motion);
+		}
+	}
+
 	/// <summary>Shader material of the surface; per-instance because the scene marks it local to scene.</summary>
 	protected ShaderMaterial EffectMaterial => Surface?.Material as ShaderMaterial;
 
@@ -43,6 +61,18 @@ public partial class ScreenEffect : Control
 		}
 
 		ApplyIntensity();
+		Motion = _motion;
+	}
+
+	/// <summary>
+	/// Fades <see cref="Motion"/> out over <paramref name="duration"/>, keeping the effect's look. Runs while the game is
+	/// paused, since shader time keeps running then.
+	/// </summary>
+	public void StopMotion(float duration)
+	{
+		_stilling?.Kill();
+		_stilling = CreateTween().SetPauseMode(Tween.TweenPauseMode.Process);
+		_stilling.TweenProperty(this, PropertyName.Motion.ToString(), 0f, Mathf.Max(duration, 0f));
 	}
 
 	/// <summary>Smoothly animates <see cref="Intensity"/> to <paramref name="target"/>, replacing any running fade.</summary>
