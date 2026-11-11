@@ -1,9 +1,11 @@
-[gd_resource type="Resource" script_class="SpellDefinition" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="SpellDefinition" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/SpellDefinition.cs" id="definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/shared/effect_spell.tscn" id="scene"]
 [ext_resource type="Resource" path="res://scenes/magic/shared/healing_potion_small_effect.tres" id="effect"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/spell_support_release.tres" id="release_audio"]
 
 [sub_resource type="Resource" id="cast"]
 script = ExtResource("attack")
@@ -11,6 +13,8 @@ AttackStyle = &"staff.cast"
 HitWindowStart = 0.25
 HitWindowEnd = 0.35
 IsRanged = true
+ReleaseCue = ExtResource("release_audio")
+
 
 [resource]
 script = ExtResource("definition")

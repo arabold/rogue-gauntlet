@@ -21,7 +21,9 @@ public sealed class GeneratedFloor
 	private const uint SpawnObstructionMask = WorldSight.Blockers;
 
 	private readonly Node3D _world;
+	private readonly GridMap _floor;
 	private readonly GridMap _decoration;
+	private readonly Dictionary<int, SoundCueProfile> _footstepCuesByFloorItem = [];
 	private readonly List<RoomRegion> _rooms = new();
 	// Interior floor tile -> room id, for "which room is this in" queries.
 	private readonly Dictionary<Vector2I, int> _tileToRoom = new();
@@ -38,14 +40,64 @@ public sealed class GeneratedFloor
 
 	/// <param name="world">The generator: the physics space, scene tree and the subtree holding progression anchors.</param>
 	/// <param name="decoration">Read live until <see cref="Freeze"/>.</param>
-	public GeneratedFloor(MapData map, Node3D world, GridMap decoration)
+	public GeneratedFloor(MapData map, Node3D world, GridMap floor, GridMap decoration)
 	{
 		Map = map;
 		_world = world;
+		_floor = floor;
 		_decoration = decoration;
 	}
 
 	public MapData Map { get; }
+	/// <summary>Registers authored surface cues for item ids in this floor's shared mesh library.</summary>
+	internal void RegisterFootstepCues(IEnumerable<KeyValuePair<int, SoundCueProfile>> cues)
+	{
+		RequireLive();
+		foreach (var (itemId, cue) in cues)
+			RegisterFootstepCue(itemId, cue);
+	}
+
+	/// <summary>Registers corridor floor pieces using their material's shared whole-tile library.</summary>
+	internal void RegisterFootstepMaterial(FloorMaterial material)
+	{
+		if (material?.FootstepCue == null || _floor?.MeshLibrary == null) return;
+		RequireLive();
+		foreach (string item in material.Large.Keys.Concat(material.Small.Keys).Concat(material.Wear.Keys))
+		{
+			int itemId = _floor.MeshLibrary.FindItemByName(item);
+			RegisterFootstepCue(itemId, material.FootstepCue);
+		}
+	}
+
+	/// <summary>Finds the closest authored floor piece under this point, or null for the generic actor cue.</summary>
+	public SoundCueProfile FootstepCueAt(Vector3 worldPosition)
+	{
+		if (_footstepCuesByFloorItem.Count == 0 || !GodotObject.IsInstanceValid(_floor)) return null;
+		Vector3I center = _floor.LocalToMap(_floor.ToLocal(worldPosition));
+		center = new Vector3I(center.X, 0, center.Z);
+		SoundCueProfile nearestCue = null;
+		float nearestDistance = float.PositiveInfinity;
+		int extent = Room.TileSize / 2;
+		for (int dx = -extent; dx <= extent; dx++)
+		for (int dz = -extent; dz <= extent; dz++)
+		{
+			var cell = center + new Vector3I(dx, 0, dz);
+			int itemId = _floor.GetCellItem(cell);
+			if (!_footstepCuesByFloorItem.TryGetValue(itemId, out var cue)) continue;
+			Vector3 cellPosition = _floor.ToGlobal(_floor.MapToLocal(cell));
+			float distance = new Vector2(cellPosition.X - worldPosition.X, cellPosition.Z - worldPosition.Z).LengthSquared();
+			if (distance >= nearestDistance) continue;
+			nearestDistance = distance;
+			nearestCue = cue;
+		}
+		return nearestCue;
+	}
+
+	private void RegisterFootstepCue(int itemId, SoundCueProfile cue)
+	{
+		if (itemId >= 0 && cue != null) _footstepCuesByFloorItem.TryAdd(itemId, cue);
+	}
+
 	/// <summary>Full floor regions, including connector thresholds, indexed by room id.</summary>
 	public IReadOnlyList<RoomRegion> Rooms => _rooms;
 	/// <summary>Exterior doors paired with the connector they guard; interior gates are not listed.</summary>

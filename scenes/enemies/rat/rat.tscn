@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/beasts/rat.glb" id="2_glb"]
@@ -157,3 +157,7 @@ Actor = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[node name="ActorAudioComponent" parent="." node_paths=PackedStringArray("ActionGate", "Dash")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Dash = NodePath("../DashComponent")

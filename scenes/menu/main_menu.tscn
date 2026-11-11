@@ -1,8 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scenes/menu/MainMenu.cs" id="1_menu"]
 [ext_resource type="Texture2D" path="res://assets/ui/main_menu/main_menu_background.png" id="2_background"]
 [ext_resource type="PackedScene" uid="uid://ccharpaneltscn1" path="res://scenes/menu/character_panel.tscn" id="3_charpanel"]
+[ext_resource type="Script" path="res://scenes/audio/UiAudioComponent.cs" id="4_ui_audio"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/ui_click.tres" id="5_ui_click"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_panel.tscn" id="6_audio_settings"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.0352941, 0.0431373, 0.054902, 0.82)
@@ -40,7 +43,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("AudioSettingsButton", "AudioSettingsPanel")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15
@@ -49,6 +52,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
+AudioSettingsButton = NodePath("MenuPanel/MarginContainer/Content/MainButtons/AudioSettingsButton")
+AudioSettingsPanel = NodePath("AudioSettingsPanel")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
@@ -109,11 +114,11 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="Spacer" type="Control" parent="MenuPanel/MarginContainer/Content/MainButtons"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 20)
 
 [node name="NewGameButton" type="Button" parent="MenuPanel/MarginContainer/Content/MainButtons"]
 unique_name_in_owner = true
@@ -138,6 +143,18 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
 text = "Load Game"
+
+[node name="AudioSettingsButton" type="Button" parent="MenuPanel/MarginContainer/Content/MainButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+focus_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Audio Settings"
 
 [node name="QuitButton" type="Button" parent="MenuPanel/MarginContainer/Content/MainButtons"]
 unique_name_in_owner = true
@@ -239,3 +256,10 @@ process_mode = 3
 title = "Overwrite Save?"
 ok_button_text = "Overwrite"
 cancel_button_text = "Cancel"
+
+[node name="AudioSettingsPanel" parent="." instance=ExtResource("6_audio_settings")]
+
+[node name="UiAudioComponent" type="Node" parent="." node_paths=PackedStringArray("ButtonRoot")]
+script = ExtResource("4_ui_audio")
+ButtonRoot = NodePath("..")
+PressedCue = ExtResource("5_ui_click")

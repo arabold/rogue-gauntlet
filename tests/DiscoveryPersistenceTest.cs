@@ -57,7 +57,7 @@ public class DiscoveryPersistenceTest
 		map.SetTile(6, 5, MapTile.Room);
 		map.SetTile(2, 9, MapTile.Room);
 		map.SetTile(3, 9, MapTile.Corridor);
-		var floor = new GeneratedFloor(map, generator, generator.DecorationGridMap);
+		var floor = new GeneratedFloor(map, generator, generator.FloorGridMap, generator.DecorationGridMap);
 		var doorScene = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn");
 		var near = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());
 		var far = TestFactories.AddToSceneTree(doorScene.Instantiate<Door>());

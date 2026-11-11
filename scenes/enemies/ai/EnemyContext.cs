@@ -160,6 +160,7 @@ public sealed class EnemyContext
 	private Cooldown _scanCooldown;
 	private Cooldown _reachabilityCooldown;
 	private bool _lastReachable = true;
+	private readonly Action<Player> _playerTargetAcquired;
 
 	public EnemyContext(
 		EnemyBase actor,
@@ -167,7 +168,8 @@ public sealed class EnemyContext
 		PerceptionComponent perception,
 		NavigationComponent navigation,
 		EnemyBehaviorProfile profile,
-		Action<MonsterActionFilter> requestAction)
+		Action<MonsterActionFilter> requestAction,
+		Action<Player> playerTargetAcquired = null)
 	{
 		Actor = actor;
 		Movement = movement;
@@ -177,6 +179,7 @@ public sealed class EnemyContext
 		TacticalSelector = profile.Combat?.TacticalStrategy?.CreateRuntime();
 		Actions = new MonsterActionRuntime(this);
 		RequestAction = requestAction;
+		_playerTargetAcquired = playerTargetAcquired;
 		HomePosition = actor.GlobalPosition;
 	}
 
@@ -239,13 +242,15 @@ public sealed class EnemyContext
 		return true;
 	}
 
-	/// <summary>Sets the chase target and records where it was seen.</summary>
+	/// <summary>Sets the chase target, announces first player acquisition, and records where it was seen.</summary>
 	public void SetTarget(Node3D target)
 	{
 		if (Target != target)
 		{
-			GameDebug.Ai($"{Actor.Name} is now targeting {target.Name}");
+			GameDebug.Ai($"{Actor.Name} is now targeting {target?.Name ?? "no target"}");
+			Player acquiredPlayer = Target == null ? target as Player : null;
 			Target = target;
+			if (acquiredPlayer != null) _playerTargetAcquired?.Invoke(acquiredPlayer);
 		}
 		RecordTargetPosition();
 	}

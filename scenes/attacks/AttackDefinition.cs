@@ -171,6 +171,12 @@ public partial class AttackDefinition : Resource
 	/// <summary>Maximum degrees per second an AI attacker turns toward its target before facing commits. Zero is unlimited.</summary>
 	[Export(PropertyHint.Range, "0,1440,1")] public float WindUpTurnRate { get; set; }
 
+	[ExportGroup("Audio")]
+	/// <summary>Optional one-shot cue played when this accepted attack begins its wind-up.</summary>
+	[Export] public SoundCueProfile WindUpCue { get; set; }
+	/// <summary>Optional committed-release cue; preparation may supply a weapon fallback, otherwise silence.</summary>
+	[Export] public SoundCueProfile ReleaseCue { get; set; }
+
 	/// <summary>Whether the normalized execution progress lies inside the authored hyper-armor interval.</summary>
 	public bool IsHyperArmoredAt(float progress) => HyperArmorEnd > HyperArmorStart && progress >= HyperArmorStart && progress < HyperArmorEnd;
 

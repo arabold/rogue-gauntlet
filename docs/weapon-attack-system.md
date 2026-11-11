@@ -58,6 +58,8 @@ The combat HUD provides two held-item panels in place of separate action preview
 
 ## Authoring attacks
 
+[Audio cues](audio-system.md#attack-preparation-and-release) are captured with the prepared attack. Explicit attack/spell cues win over the acting weapon's primary/secondary fallback; paired melee has one release, and either-hand spell casts use their own focus.
+
 A weapon supplies stats, timing, an explicit attack style, grip and optional custom attack definition. `AttackDefinition` describes delivery, projectile pattern, targeting and effects without depending on quality, a particular actor rig or session state. Its impact fields cover poise damage, knockback, forced pushback, a hyper-armor interval and hit-stop (see [poise](combat-system.md#poise-and-hit-reactions)); the `BreaksGuard` defense trait makes it [Heavy](combat-system.md#threat-tiers-and-telegraphs). Its tracking fields cover facing lock lead and wind-up turn rate. Preparation and monster validation share the same rules: they reject negative or non-finite values, a reversed armor interval, and a lead that is ranged or longer than the wind-up. Runtime attacks snapshot definitions rather than mutate shared Resources.
 
 Attacks can also carry authored on-hit status payloads. The hurtbox applies them only after a direct contact deals damage and the target survives; each payload uses the attack's own random stream. See [status conditions and poison](stats-and-itemization.md#buffs-and-status-conditions) for venom, refresh and save behavior.

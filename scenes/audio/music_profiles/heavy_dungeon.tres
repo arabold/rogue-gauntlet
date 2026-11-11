@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="MusicProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/MusicProfile.cs" id="1_script"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/mintodog-rpg-music/heavy_dungeon.ogg" id="2_stream"]
+
+[resource]
+script = ExtResource("1_script")
+Stream = ExtResource("2_stream")
+GainDb = -12.0

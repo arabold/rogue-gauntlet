@@ -18,6 +18,8 @@ public partial class FloorMaterial : Resource
 	/// <summary>Quarter-tile accents (broken, weedy, rocky), by weight.</summary>
 	[Export] public Godot.Collections.Dictionary<string, float> Wear { get; set; } = [];
 	[Export(PropertyHint.Range, "0,1,0.01")] public float WearChance { get; set; }
+	/// <summary>Optional footsteps for this surface, shared by its large, small and wear pieces.</summary>
+	[Export] public SoundCueProfile FootstepCue { get; set; }
 	/// <summary>
 	/// Pieces, wear included, keep one orientation across the whole room instead of turning per tile: plank runs, and
 	/// Asset Studio floors, whose patterns join only between unturned neighbours.

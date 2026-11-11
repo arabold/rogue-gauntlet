@@ -52,6 +52,8 @@ public partial class SpellCastAction : RefCounted, ICombatAttackAction
 			attack = null;
 			return false;
 		}
+		// The prepared definition is isolated, and this focus may be in either hand.
+		attack.Definition.ReleaseCue ??= _focus.SecondaryReleaseCue;
 		attack = attack with { Spell = release };
 		return true;
 	}

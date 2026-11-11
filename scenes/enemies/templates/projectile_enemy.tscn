@@ -1,4 +1,4 @@
-[gd_scene load_steps=76 format=3]
+[gd_scene load_steps=84 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -79,6 +79,8 @@
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
 [ext_resource type="PackedScene" path="res://scenes/components/movement_effects_component.tscn" id="movement_effects"]
 [ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium_monster.tres" id="movement_profile"]
+
+[ext_resource type="Script" path="res://scenes/audio/ActorAudioComponent.cs" id="audio_component_script"]
 
 [sub_resource type="AnimationNodeAnimation" id="m_AnimationNodeAnimation_idauc"]
 animation = &"Death_A_Pose"
@@ -562,3 +564,10 @@ AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
 Movement = NodePath("../MovementComponent")
 Effects = NodePath("../WorldEffects")
 Profile = ExtResource("movement_profile")
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Movement", "Attack", "ActionGate")]
+script = ExtResource("audio_component_script")
+Actor = NodePath("..")
+Movement = NodePath("../MovementComponent")
+Attack = NodePath("../AttackController")
+ActionGate = NodePath("../ActorActionGateComponent")

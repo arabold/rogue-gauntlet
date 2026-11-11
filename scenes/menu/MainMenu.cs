@@ -4,6 +4,9 @@ using System.Linq;
 
 public partial class MainMenu : Control
 {
+	[Export] public Button AudioSettingsButton { get; set; }
+	[Export] public AudioSettingsPanel AudioSettingsPanel { get; set; }
+
 	private enum SlotMode
 	{
 		NewGame,
@@ -28,6 +31,7 @@ public partial class MainMenu : Control
 	{
 		ProcessMode = ProcessModeEnum.Always;
 		GetTree().Paused = false;
+		SignalBus.EmitMainMenuEntered();
 
 		_newGameButton = GetNode<Button>("%NewGameButton");
 		_loadGameButton = GetNode<Button>("%LoadGameButton");
@@ -39,6 +43,15 @@ public partial class MainMenu : Control
 		_backButton = GetNode<Button>("%BackButton");
 		_overwriteDialog = GetNode<ConfirmationDialog>("%OverwriteDialog");
 		_characterPanel = GetNode<CharacterPanel>("%CharacterPanel");
+		if (AudioSettingsButton == null || AudioSettingsPanel == null)
+		{
+			GD.PushError("MainMenu requires AudioSettingsButton and AudioSettingsPanel to be wired.");
+		}
+		else
+		{
+			AudioSettingsButton.Pressed += AudioSettingsPanel.Open;
+			AudioSettingsPanel.Closed += () => AudioSettingsButton.CallDeferred(Control.MethodName.GrabFocus);
+		}
 		_slotButtons = Enumerable.Range(1, SaveService.SlotCount)
 			.Select(i => GetNode<Button>($"%Slot{i}Button"))
 			.ToArray();

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/door_close_1.ogg" id="2_close_1"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/door_close_2.ogg" id="3_close_2"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/door_close_3.ogg" id="4_close_3"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/door_close_4.ogg" id="5_close_4"]
+
+[resource]
+script = ExtResource("1_script")
+Variants = Array[AudioStream]([ExtResource("2_close_1"), ExtResource("3_close_2"), ExtResource("4_close_3"), ExtResource("5_close_4")])
+Category = 0
+GainDb = -6.0
+PitchMinimum = 0.95
+PitchMaximum = 1.04
+PanningStrength = 0.6
+UnitSize = 4.0
+MaxDistance = 28.0
+Priority = 2
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 4
+MinIntervalSeconds = 0.12

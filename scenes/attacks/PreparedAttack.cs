@@ -17,4 +17,4 @@ public sealed record SpellRelease(ICombatSpell Spell, SpellCastContext Context, 
 /// </summary>
 public sealed record PreparedAttack(AttackDefinition Definition, AttackPlayback Playback, double Duration,
 	int ComboStep = -1, float DamageScale = 1, SpellRelease Spell = null, CombatFeedbackSettings? Feedback = null,
-	PreparedHitStatus[] OnHitStatuses = null);
+	PreparedHitStatus[] OnHitStatuses = null, SoundCueProfile VoiceCue = null);

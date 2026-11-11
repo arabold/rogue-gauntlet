@@ -6,7 +6,7 @@
 			"scale": "Real-world-ish, Y-up, ~1 Godot unit = 1 meter. Humanoids ~1.7-1.8u tall. Dungeon pieces snap to a 1-unit modular grid.",
 			"rig": "Shared KayKit humanoid skeleton; all KayKit characters reuse the KayKit Character Animations set.",
 			"texture": "A single shared palette PNG atlas per pack (e.g. *_texture.png); recoloring = remap UVs on the atlas, not per-mesh textures.",
-			"notes": "This is the project's primary 3D style. New 3D should join this group whenever possible \u2014 same-creator is the only hard guarantee that models blend."
+			"notes": "This is the project's primary 3D style. New 3D should join this group whenever possible — same-creator is the only hard guarantee that models blend."
 		},
 		"kenney-2d": {
 			"look": "Clean vector/flat UI and input-prompt iconography.",
@@ -19,11 +19,23 @@
 		"quaternius": {
 			"look": "Flat-shaded low-poly, cleaner/cartoonier than KayKit, single Atlas texture per model, slightly chunkier proportions.",
 			"scale": "Y-up, ~1 Godot unit = 1m, rigged humanoid armature (EnemyArmature/CharacterArmature) with its own animation set (Idle/Walk/Run/Attack/Death/HitReact).",
-			"notes": "A deliberate SECOND 3D style group, brought in for free CC0 animated monsters (KayKit has none free). Reads more cartoony than KayKit \u2014 acceptable for enemies, verified by in-engine side-by-side. Animation names differ per model; the enemy AnimationTree maps them per-monster."
+			"notes": "A deliberate SECOND 3D style group, brought in for free CC0 animated monsters (KayKit has none free). Reads more cartoony than KayKit — acceptable for enemies, verified by in-engine side-by-side. Animation names differ per model; the enemy AnimationTree maps them per-monster."
 		},
 		"unsorted": {
 			"look": "Not yet classified.",
-			"notes": "Triage required \u2014 assign a real group or document why it stands alone."
+			"notes": "Triage required — assign a real group or document why it stands alone."
+		},
+		"kenney-audio": {
+			"look": "Concise, cleanly recorded game sound effects with separate UI and RPG foley collections.",
+			"notes": "Audio provenance grouping; individual recordings remain subject to in-game audition and mix tuning."
+		},
+		"opengameart-music": {
+			"look": "Individually selected loopable community music tracks; evaluate their mix and loop boundaries in gameplay.",
+			"notes": "Tracks are registered independently with their own source listing and license evidence."
+		},
+		"opengameart-audio": {
+			"look": "Individually selected community sound effects for game playback.",
+			"notes": "Sound effects are evaluated in-game for timbre, mix and repetition; keep the source listing and license evidence with each acquisition."
 		}
 	},
 	"packs": [
@@ -155,13 +167,13 @@
 			],
 			"compatibility_group": "game-icons-net",
 			"acquired": "unknown (predates manifest)",
-			"notes": "ATTRIBUTION REQUIRED. Item/equipment SVG icons. Each icon has an individual author that must be credited in shipped builds. Per-icon authorship is not yet recorded here \u2014 needs backfill (see AGENTS.md)."
+			"notes": "ATTRIBUTION REQUIRED. Item/equipment SVG icons. Each icon has an individual author that must be credited in shipped builds. Per-icon authorship is not yet recorded here — needs backfill (see AGENTS.md)."
 		},
 		{
 			"id": "ui",
 			"name": "UI background art (unverified)",
 			"dir": "assets/ui",
-			"author": "UNKNOWN \u2014 needs triage",
+			"author": "UNKNOWN — needs triage",
 			"source": "UNKNOWN",
 			"license": "UNKNOWN",
 			"license_url": "",
@@ -252,6 +264,103 @@
 			"compatibility_group": "kaykit",
 			"acquired": "2026-10-16",
 			"notes": "Hero models built from the scripted character kit (head, body, outfit pieces). Each GLB is a drop-in for the KayKit adventurer it names as template (kaykit-adventurers/<Class>.glb): that model's Rig, 41 joints, baked clips and prop nodes (1H_Axe, <Class>_Hat, ...) are copied unchanged and only the meshes are ours, so size, orientation, clip names and attachment names match. Concept drawings: Google gemini-3-pro-image over KayKit's CC0 mannequin."
+		},
+		{
+			"id": "kenney-rpg-audio",
+			"name": "Kenney - RPG Audio",
+			"dir": "assets/kenney-rpg-audio",
+			"author": "Kenney Vleugels (Kenney.nl)",
+			"source": "https://kenney.nl/assets/rpg-audio",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "kenney-audio",
+			"acquired": "2026-11-07",
+			"notes": "51 OGG audio effects copied from the locally supplied Downloads pack. Original recordings are under audio/ with a filename-map.csv mapping from upstream names. License.txt is preserved as license.txt; Preview.ogg, URLs and archives are excluded."
+		},
+		{
+			"id": "kenney-ui-audio",
+			"name": "Kenney - UI Audio",
+			"dir": "assets/kenney-ui-audio",
+			"author": "Kenney Vleugels (Kenney.nl)",
+			"source": "https://kenney.nl/assets/ui-audio",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "kenney-audio",
+			"acquired": "2026-11-07",
+			"notes": "51 OGG audio effects copied from the locally supplied Downloads pack. Original recordings are under audio/ with a filename-map.csv mapping from upstream names. License.txt is preserved as license.txt; Preview.ogg, URLs and archives are excluded."
+		},
+		{
+			"id": "mintodog-rpg-music",
+			"name": "MintoDog - RPG Metal Music",
+			"dir": "assets/mintodog-rpg-music",
+			"author": "MintoDog",
+			"source": "https://opengameart.org/content/heavy-dungeon ; https://opengameart.org/content/heavy-battle-1",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio",
+				"music"
+			],
+			"compatibility_group": "opengameart-music",
+			"acquired": "2026-11-07",
+			"notes": "Two OGG loops labeled CC0 on their individual OpenGameArt listings. Source filenames, author, license and per-track listing URLs are recorded in provenance.txt. Selected by the project maintainer for exploration and boss-music prototyping."
+		},
+		{
+			"id": "opengameart-swishes",
+			"name": "OpenGameArt - Swishes Sound Pack",
+			"dir": "assets/opengameart-swishes",
+			"author": "artisticdude",
+			"source": "https://opengameart.org/content/swishes-sound-pack",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "opengameart-audio",
+			"acquired": "2026-11-07",
+			"notes": "13 WAV swish effects from the freely downloadable pack; the OpenGameArt listing marks the pack CC0. The game copies are downmixed from stereo to mono for positional 3D playback. Imported as randomized melee-release variants to distinguish misses from contact impacts. Original filenames, conversion and source are recorded in provenance.txt."
+		},
+		{
+			"id": "kenney-impact-sounds",
+			"name": "Kenney - Impact Sounds",
+			"dir": "assets/kenney-impact-sounds",
+			"author": "Kenney Vleugels (Kenney.nl)",
+			"source": "https://kenney.nl/assets/impact-sounds",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "kenney-audio",
+			"acquired": "2026-11-08",
+			"notes": "The supplied Audio folder and License.txt are copied without changing the recordings. The pack includes surface footsteps and impact variants."
+		},
+		{
+			"id": "artisticdude-rpg-sound-pack",
+			"name": "Artisticdude - RPG Sound Pack",
+			"dir": "assets/artisticdude-rpg-sound-pack",
+			"author": "artisticdude",
+			"source": "https://opengameart.org/content/rpg-sound-pack",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "opengameart-audio",
+			"acquired": "2026-11-08",
+			"notes": "The supplied WAV collection is copied with its category folders and original filenames. The OpenGameArt listing identifies this pack as CC0; see provenance.txt because the download did not include a license file."
 		}
 	]
 }

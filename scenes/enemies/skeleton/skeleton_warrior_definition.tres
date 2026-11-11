@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="definition"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_behavior.tres" id="behavior"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common_guaranteed.tres" id="loot"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/undead_death.tres" id="death_voice"]
 
 [resource]
 script = ExtResource("definition")
@@ -13,3 +15,4 @@ MoveSpeed = 3.5
 XpReward = 6
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
+DeathCue = ExtResource("death_voice")

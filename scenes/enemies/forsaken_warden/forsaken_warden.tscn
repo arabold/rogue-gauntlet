@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/forsaken_warden/forsaken_warden.glb" id="2_glb"]
@@ -21,6 +21,8 @@
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
 [ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/large.tres" id="movement_profile"]
 [ext_resource type="PackedScene" path="res://scenes/components/wall_clip_component.tscn" id="wall_clip"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_raise.tres" id="guard_audio"]
 
 [sub_resource type="AnimationNodeAnimation" id="anim_idle"]
 animation = &"Idle_A"
@@ -101,7 +103,8 @@ height = 4.5
 radius = 1.0
 height = 4.5
 
-[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "GuardComponent", "DefenseController", "BodyShape", "HealthPhases")]
+[node name="ForsakenWarden" instance=ExtResource("1_base") node_paths=PackedStringArray("EncounterNotifier", "ActionGate", "GuardComponent", "DefenseController", "BodyShape", "HealthPhases")]
+EncounterNotifier = NodePath("EncounterNotifier")
 BodyShape = NodePath("CollisionShape3D")
 Definition = ExtResource("definition")
 ActionGate = NodePath("ActorActionGateComponent")
@@ -203,3 +206,11 @@ Target = NodePath("../Pivot")
 script = ExtResource("phase_script")
 Health = NodePath("../HealthComponent")
 EnterHealthFractions = PackedFloat32Array(0.65, 0.3)
+
+[node name="EncounterNotifier" type="VisibleOnScreenNotifier3D" parent="."]
+aabb = AABB(-2, -0.5, -2, 4, 6.5, 4)
+
+[node name="ActorAudioComponent" parent="." node_paths=PackedStringArray("ActionGate", "Guard")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Guard = NodePath("../GuardComponent")
+GuardCue = ExtResource("guard_audio")

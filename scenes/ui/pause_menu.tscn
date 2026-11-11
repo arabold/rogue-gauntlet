@@ -1,6 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/PauseMenu.cs" id="1_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_panel.tscn" id="2_audio_settings"]
+[ext_resource type="Script" path="res://scenes/audio/UiAudioComponent.cs" id="3_ui_audio"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/ui_click.tres" id="4_ui_click"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.025, 0.029, 0.036, 0.9)
@@ -26,7 +29,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="PauseMenu" type="Control"]
+[node name="PauseMenu" type="Control" node_paths=PackedStringArray("PausePanel", "Dim", "AudioSettingsButton", "AudioSettingsPanel")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15
@@ -35,6 +38,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_pause")
+PausePanel = NodePath("PanelContainer")
+Dim = NodePath("Dim")
+AudioSettingsButton = NodePath("PanelContainer/MarginContainer/Content/AudioSettingsButton")
+AudioSettingsPanel = NodePath("AudioSettingsPanel")
 
 [node name="Dim" type="ColorRect" parent="."]
 layout_mode = 1
@@ -46,6 +53,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.58)
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -53,9 +61,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -260.0
-offset_top = -240.0
+offset_top = -270.0
 offset_right = 260.0
-offset_bottom = 240.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -87,6 +95,16 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
 text = "Resume"
+
+[node name="AudioSettingsButton" type="Button" parent="PanelContainer/MarginContainer/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+text = "Audio Settings"
 
 [node name="SaveButton" type="Button" parent="PanelContainer/MarginContainer/Content"]
 unique_name_in_owner = true
@@ -124,3 +142,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.76, 0.9, 0.76, 1)
 horizontal_alignment = 1
+
+[node name="AudioSettingsPanel" parent="." instance=ExtResource("2_audio_settings")]
+
+[node name="UiAudioComponent" type="Node" parent="." node_paths=PackedStringArray("ButtonRoot")]
+script = ExtResource("3_ui_audio")
+ButtonRoot = NodePath("..")
+PressedCue = ExtResource("4_ui_click")

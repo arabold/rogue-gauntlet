@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="FloorMaterial" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="FloorMaterial" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/surfaces/FloorMaterial.cs" id="1_FloorMateria"]
 [ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="2_FloorMeshLib"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/footstep.tres" id="footstep_cue"]
 
 [resource]
 script = ExtResource("1_FloorMateria")
 Id = "stone"
 Library = ExtResource("2_FloorMeshLib")
+FootstepCue = ExtResource("footstep_cue")
 Large = Dictionary[String, float]({"floor_tile_large": 1.0})
 Small = Dictionary[String, float]({"floor_tile_small": 1.0})
 Wear = Dictionary[String, float]({"floor_tile_small_broken_A": 1.0, "floor_tile_small_broken_B": 1.0, "floor_tile_small_weeds_A": 0.5, "floor_tile_small_weeds_B": 0.5})

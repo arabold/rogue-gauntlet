@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
@@ -6,6 +6,12 @@
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/shooter_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_crossbow_movement.tres" id="movement"]
 [ext_resource type="PackedScene" path="res://scenes/attacks/projectile.tscn" id="projectile"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/undead_attack_voice.tres" id="action_voice"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/projectile_release.tres" id="release_audio"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/crossbow_windup.tres" id="windup_audio"]
 
 [sub_resource type="Resource" id="shot_attack"]
 script = ExtResource("attack_definition")
@@ -17,6 +23,9 @@ ProjectileAimLockDuration = 0.3
 Range = 20.0
 HitWindowStart = 0.45
 PoiseDamage = 8.0
+ReleaseCue = ExtResource("release_audio")
+WindUpCue = ExtResource("windup_audio")
+
 
 [sub_resource type="Resource" id="shot"]
 resource_name = "shot"
@@ -29,6 +38,8 @@ Style = &"ranged"
 Duration = 1.4
 MinDamage = 3.0
 MaxDamage = 6.0
+VoiceCue = ExtResource("action_voice")
+
 
 [resource]
 script = ExtResource("profile")

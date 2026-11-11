@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=17 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
@@ -11,6 +11,10 @@
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_retreat.tres" id="retreat"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_contact.tres" id="contact"]
 [ext_resource type="Resource" path="res://scenes/buffs/rat_venom.tres" id="venom"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rat_attack_voice.tres" id="action_voice"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rush.tres" id="travel_audio"]
 
 [sub_resource type="Resource" id="venom_on_hit"]
 script = ExtResource("on_hit")
@@ -37,6 +41,8 @@ Style = &"melee"
 Duration = 0.8
 MinDamage = 2.0
 MaxDamage = 4.0
+VoiceCue = ExtResource("action_voice")
+
 
 [sub_resource type="Resource" id="rush_dash"]
 script = ExtResource("dash_profile")
@@ -44,6 +50,8 @@ Style = &"melee"
 WindUpDuration = 0.16
 Distance = 2.5
 TravelDuration = 0.45
+TravelCue = ExtResource("travel_audio")
+
 
 [sub_resource type="Resource" id="rush"]
 resource_name = "rush"

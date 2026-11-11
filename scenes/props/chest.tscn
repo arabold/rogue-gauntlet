@@ -1,10 +1,11 @@
-[gd_scene load_steps=15 format=4 uid="uid://cgi3a5fi0sxu6"]
+[gd_scene load_steps=16 format=4 uid="uid://cgi3a5fi0sxu6"]
 
 [ext_resource type="Script" uid="uid://nft3v52nfsps" path="res://scenes/props/Chest.cs" id="1_3h5at"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="2_fidv6"]
 [ext_resource type="PackedScene" uid="uid://dekj8iq2d1qp5" path="res://scenes/components/interactive_component.tscn" id="3_p08mt"]
 [ext_resource type="PackedScene" uid="uid://dud0hid1mwmdw" path="res://scenes/components/loot_table_component.tscn" id="4_loot_comp"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/chest_common.tres" id="5_loot_table"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/door_open.tres" id="open_cue"]
 
 [ext_resource type="Script" uid="uid://c2wpig74i81r4" path="res://scenes/components/OcclusionXrayComponent.cs" id="xray_script"]
 
@@ -89,6 +90,7 @@ points = PackedVector3Array(-0.605012, 0.0249606, -0.6, -0.650117, -2.38419e-07,
 
 [node name="Chest" type="Node3D" node_paths=PackedStringArray("Interactive", "LootTable", "Lid", "Xray") groups=["prop"]]
 script = ExtResource("1_3h5at")
+OpenCue = ExtResource("open_cue")
 Interactive = NodePath("InteractiveComponent")
 LootTable = NodePath("LootTableComponent")
 Lid = NodePath("chest/chest_lid")

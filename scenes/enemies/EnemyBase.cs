@@ -54,6 +54,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public bool StoneSkin { get => IsNodeReady() ? StoneSkinStatus?.IsActive == true : _initialStoneSkin; set { _initialStoneSkin = value; if (IsNodeReady()) StoneSkinStatus?.SetActive(value); } }
 
 	[Export] public EnemyBehaviorComponent EnemyBehaviorComponent;
+	[Export] public VisibleOnScreenNotifier3D EncounterNotifier { get; set; }
 	[Export] public MovementComponent MovementComponent;
 	[Export] public HealthComponent HealthComponent;
 	[Export] public HurtBoxComponent HurtBoxComponent;
@@ -100,6 +101,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		ManaComponent.SetMana(Definition.MaxMana, Definition.MaxMana);
 		ManaComponent.RegenPerSecond = Definition.ManaRegenPerSecond;
 		DeathComponent.Xp = Definition.XpReward;
+		DeathComponent.DeathCue = Definition.DeathCue;
 		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
 		if (Nameplate != null) Nameplate.NameLabel.Text = Definition.DisplayName;

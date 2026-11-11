@@ -14,6 +14,8 @@ public partial class MonsterDefinition : Resource
 	[Export(PropertyHint.Range, "0,10000,1,or_greater")] public float MaxMana { get; set; }
 	[Export(PropertyHint.Range, "0,50,0.1,or_greater")] public float ManaRegenPerSecond { get; set; }
 	[Export(PropertyHint.Range, "0,10000,1,or_greater")] public int XpReward { get; set; }
+	/// <summary>Optional one-shot creature sound played when this monster dies.</summary>
+	[Export] public SoundCueProfile DeathCue { get; set; }
 	/// <summary>What the monster drops on death and how often.</summary>
 	[Export] public LootDropProfile Loot { get; set; }
 	[Export] public EnemyBehaviorProfile Behavior { get; set; }

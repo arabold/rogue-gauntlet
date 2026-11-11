@@ -60,6 +60,10 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	[Export] public float SecondaryPerformDuration { get; set => SetValue(ref field, value); } = 0.6f;
 	[Export] public float SecondaryCooldownDuration { get; set => SetValue(ref field, value); } = 1.0f;
 	[Export] public float SecondaryDamageMultiplier { get; set => SetValue(ref field, value); } = 1.5f;
+	/// <summary>Release sound used when an attack definition does not provide its own cue.</summary>
+	[ExportGroup("Audio")]
+	[Export] public SoundCueProfile PrimaryReleaseCue { get; set => SetValue(ref field, value); }
+	[Export] public SoundCueProfile SecondaryReleaseCue { get; set => SetValue(ref field, value); }
 
 	/// <summary>The secondary action this weapon assigns while held: its martial technique unless a subclass casts.</summary>
 	public virtual ICombatAttackAction CreateSecondaryAction() => new MartialTechniqueAction(this);

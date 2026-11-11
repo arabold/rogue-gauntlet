@@ -368,7 +368,7 @@ public static partial class TestFactories
 	/// <summary>Starts the level's discovery on an empty floor of the given size, as if generation had just finished.</summary>
 	public static GeneratedFloor StartEmptyFloor(Level level, MapGenerator map, int size = 20)
 	{
-		var floor = new GeneratedFloor(new MapData(size, size), map, map.DecorationGridMap);
+		var floor = new GeneratedFloor(new MapData(size, size), map, map.FloorGridMap, map.DecorationGridMap);
 		level.Discovery.Initialize(floor);
 		return floor;
 	}

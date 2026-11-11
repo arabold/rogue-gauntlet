@@ -2,6 +2,11 @@ using Godot;
 
 public partial class PauseMenu : Control
 {
+	[Export] public Control PausePanel { get; set; }
+	[Export] public ColorRect Dim { get; set; }
+	[Export] public Button AudioSettingsButton { get; set; }
+	[Export] public AudioSettingsPanel AudioSettingsPanel { get; set; }
+
 	private Button _resumeButton;
 	private Button _saveButton;
 	private Button _saveAndQuitButton;
@@ -21,6 +26,15 @@ public partial class PauseMenu : Control
 		_saveButton.Pressed += Save;
 		_saveAndQuitButton.Pressed += () => GameSession.Instance.SaveAndReturnToMenu();
 		_quitWithoutSavingButton.Pressed += () => GameSession.Instance.ReturnToMenu();
+		if (PausePanel == null || Dim == null || AudioSettingsButton == null || AudioSettingsPanel == null)
+		{
+			GD.PushError("PauseMenu requires PausePanel, Dim, AudioSettingsButton and AudioSettingsPanel to be wired.");
+		}
+		else
+		{
+			AudioSettingsButton.Pressed += OpenAudioSettings;
+			AudioSettingsPanel.Closed += CloseAudioSettings;
+		}
 
 		Visible = false;
 	}
@@ -34,7 +48,11 @@ public partial class PauseMenu : Control
 
 		if (@event.IsActionReleased("pause"))
 		{
-			if (Visible)
+			if (AudioSettingsPanel?.Visible == true)
+			{
+				AudioSettingsPanel.Close();
+			}
+			else if (Visible)
 			{
 				Close();
 			}
@@ -68,5 +86,19 @@ public partial class PauseMenu : Control
 		_statusLabel.Text = GameSession.Instance.SaveActiveGame()
 			? "Saved."
 			: "Save failed.";
+	}
+
+	private void OpenAudioSettings()
+	{
+		PausePanel.Visible = false;
+		Dim.Visible = false;
+		AudioSettingsPanel.Open();
+	}
+
+	private void CloseAudioSettings()
+	{
+		Dim.Visible = true;
+		PausePanel.Visible = true;
+		AudioSettingsButton.GrabFocus();
 	}
 }

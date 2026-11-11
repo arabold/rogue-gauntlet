@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MagicStaff" format=3]
+[gd_resource type="Resource" script_class="MagicStaff" load_steps=10 format=3]
 
 [ext_resource type="Script" uid="uid://bncpld6hbytsn" path="res://scenes/items/MagicStaff.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/items/weapons/staff_uncommon.tscn" id="model"]
@@ -7,6 +7,10 @@
 [ext_resource type="Resource" path="res://scenes/magic/spells/frost_nova.tres" id="bound_spell"]
 [ext_resource type="Resource" path="res://scenes/magic/spells/spell_pool_all.tres" id="spell_pool"]
 [ext_resource type="Resource" path="res://scenes/magic/missile/staff_missiles.tres" id="missiles"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/magic_missile_release.tres" id="primary_audio"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/spell_release.tres" id="secondary_audio"]
 
 [resource]
 script = ExtResource("script")
@@ -32,3 +36,5 @@ BoundSpell = ExtResource("bound_spell")
 SpellPool = ExtResource("spell_pool")
 Missiles = ExtResource("missiles")
 metadata/_custom_type_script = ExtResource("script")
+PrimaryReleaseCue = ExtResource("primary_audio")
+SecondaryReleaseCue = ExtResource("secondary_audio")

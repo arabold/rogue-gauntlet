@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/magic/SpellDefinition.cs" id="definition"]
 [ext_resource type="PackedScene" path="res://scenes/magic/shared/effect_spell.tscn" id="scene"]
 [ext_resource type="Resource" path="res://scenes/magic/shared/instant_heal_effect.tres" id="effect"]
-[ext_resource type="Resource" path="res://scenes/magic/spells/spell_cast.tres" id="cast"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/support_cast.tres" id="cast"]
 
 [resource]
 script = ExtResource("definition")

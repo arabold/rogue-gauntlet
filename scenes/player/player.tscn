@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://hshntmwu857e"]
+[gd_scene load_steps=115 format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 [ext_resource type="PackedScene" path="res://scenes/player/player_light.tscn" id="player_light_scene"]
@@ -75,6 +75,13 @@
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
 [ext_resource type="PackedScene" path="res://scenes/components/movement_effects_component.tscn" id="movement_effects"]
 [ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium.tres" id="movement_profile"]
+[ext_resource type="Script" path="res://scenes/audio/ActorAudioComponent.cs" id="audio_component_script"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/footstep.tres" id="audio_footstep"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/rush.tres" id="audio_rush"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="audio_attack_release"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_raise.tres" id="audio_guard"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_pickup.tres" id="audio_item_pickup"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/item_drop.tres" id="audio_item_drop"]
 
 [sub_resource type="Resource" id="Resource_3j4b4"]
 script = ExtResource("3_uf5tr")
@@ -506,6 +513,8 @@ Player = NodePath("..")
 ActionManager = NodePath("../ActionManager")
 StatsController = NodePath("../PlayerStatsController")
 LootableItemScene = ExtResource("11_wj3nu")
+PickupCue = ExtResource("audio_item_pickup")
+DropCue = ExtResource("audio_item_drop")
 
 [node name="PlayerInputController" type="Node" parent="." unique_id=980165432 node_paths=PackedStringArray("Player", "InputComponent", "MovementComponent", "ActionManager", "InteractionController")]
 script = ExtResource("16_1atg5")
@@ -528,6 +537,9 @@ PrimaryFeedbackProfile = ExtResource("combat_feedback_profile")
 SecondaryFeedbackProfile = ExtResource("combat_feedback_profile")
 DefaultMeleeContact = ExtResource("melee_default")
 DefaultProjectileScene = ExtResource("19_projectile")
+UnarmedPrimaryReleaseCue = ExtResource("audio_attack_release")
+UnarmedSecondaryReleaseCue = ExtResource("audio_attack_release")
+
 
 [node name="MovementComponent" parent="." unique_id=956342266 node_paths=PackedStringArray("Actor", "StairsTrigger", "ActionGate") instance=ExtResource("7_7mjdt")]
 Actor = NodePath("..")
@@ -672,3 +684,15 @@ Movement = NodePath("../MovementComponent")
 Effects = NodePath("../WorldEffects")
 Profile = ExtResource("movement_profile")
 Dodge = NodePath("../DodgeComponent")
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Movement", "ActionGate", "Attack", "Dodge", "Guard")]
+script = ExtResource("audio_component_script")
+Actor = NodePath("..")
+Movement = NodePath("../MovementComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
+Attack = NodePath("../PlayerAttackController")
+Dodge = NodePath("../DodgeComponent")
+Guard = NodePath("../GuardComponent")
+FootstepCue = ExtResource("audio_footstep")
+RushCue = ExtResource("audio_rush")
+GuardCue = ExtResource("audio_guard")
