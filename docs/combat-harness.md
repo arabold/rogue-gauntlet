@@ -1,20 +1,22 @@
 # Combat harness and machine traces
 
-Open `scenes/debug/combat/combat_harness.tscn` and run it with F6. The harness uses production player equipment, action slots, movement, damage resolution, and monster defense components. It starts with a passive movable dummy, or you can select any valid authored monster scene discovered under `scenes/enemies`. **Monster AI (walk + attack)** is off by default; turn it on to let the selected monster move, chase, and attack using its normal behavior. With AI off, monsters still react to player hits and defend themselves. The defense selector offers profile default, no defense, always dodge, and always guard/parry. Target invulnerability is a separate setting. Arena monsters suppress dungeon loot and experience rewards.
+Open `scenes/debug/combat/combat_harness.tscn` and run it with F6. The arena is a `DebugArena` with the production player, HUD, game camera and lighting on the dungeon's stone floor, so it looks and plays like a dungeon floor: production equipment, action slots, movement, damage resolution, mana and monster defense components. The camera follows the hero at the game's angle and turns and zooms with the game's bindings. It starts with a passive movable dummy.
 
-The debug controls cover slow motion, optional hit-volume and hurtbox drawing, combat feedback, and camera shake. The target can be made invulnerable without changing the monster's defense mode. The dummy uses the same health, hurtbox, movement, poise, action gate, damage numbers, and feedback components as a monster, so knockback and defensive responses can be inspected without loading a dungeon.
+Items, spells, monsters and display settings come from the HUD's [debug menu](../scenes/debug/README.md#in-game-debug-menu), the same one the game has, so every authored weapon, wand, staff, shield, piece of jewelry and spell is available. In the arena, **Items** equips what you pick at once. **Monsters → Spawn** lists the dummy and every valid monster scene under `scenes/enemies`; it adds to the arena, so use **Clear spawned** first to replace the target. In the arena, **Monster AI** and **Riposte** start off (the game's menu starts them on); turn AI on to let spawned monsters move, chase and attack using their normal behavior. With AI off, monsters still react to player hits and defend themselves. **Defense** offers monster default, no defense, always dodge and always guard/parry; **Invulnerable** is a separate setting. Arena monsters give no rewards; with **Rewards** checked they award experience, while loot still needs a dungeon floor to land on. **Hero → Builds** equips a preset hero from `scenes/debug/hero_build_profiles/` (one per class, exact items at a seeded roll), and **Level → Walls** and **Dark level** add the stage's wall arrangements and darken the arena as a dark floor does.
+
+**Combat** covers slow motion, hit-volume and hurtbox drawing, hit effects, movement dust and dash trails, and camera shake. The dummy uses the same health, hurtbox, movement, poise, action gate, damage numbers and feedback components as a monster, so knockback and defensive responses can be inspected without loading a dungeon.
 
 The `monster_attack` scenario command requests one attack through the spawned monster's production behavior while AI remains off. Use it to inspect that monster's warning and attack timing without enabling autonomous movement.
 
-The control panel is mouse-operated so keypad, movement keys, and Space stay available to control the hero.
+The harness panel on the right keeps what only the arena has: hero attack, guard and dodge buttons, **Restore health**, the status line, the monster's action list and the combat log. It is mouse-operated so keypad, movement keys and Space stay available to control the hero.
 
-The monster section lists the spawned monster's actions for tuning: its health phase, current tactical decision and running action, then each action's priority, effective weight (after weight modifiers) and whether it is ready, cooling down or out of position, followed by the last choice or rejection. **Spawn / respawn** re-creates the monster from its scene, so Resource edits made through the Remote inspector apply to the new instance. Trace events `ai.action_attempt`, `dash.started`, `dash.blocked`, `dash.finished` and `enemy.phase_changed` record the same decisions.
+The monster section lists the spawned monster's actions for tuning: its health phase, current tactical decision and running action, then each action's priority, effective weight (after weight modifiers) and whether it is ready, cooling down or out of position, followed by the last choice or rejection. Spawning re-creates the monster from its scene, so Resource edits made through the Remote inspector apply to the new instance. Trace events `ai.action_attempt`, `dash.started`, `dash.blocked`, `dash.finished` and `enemy.phase_changed` record the same decisions.
 
 For player dodges, current processed movement input selects the heading; a released direction remains available for 0.08 seconds, then the player's facing is used. Space starts the dodge immediately. A new direction can correct an input-driven dodge during its first 0.04 seconds while the captured facing stays in place, making the correction a sidestep. Use slow motion to inspect timing, then review the curved path at normal speed.
 
-Checkbox defaults apply immediately on startup and to newly spawned monsters.
+The display settings authored on the arena's `CombatDisplayTool` apply on startup and to every monster spawned later.
 
-For ranged warning practice, choose **Skeleton Crossbow** and spawn it. During aiming, its translucent trapezoid starts at one-third range and grows and brightens as the cone narrows toward the projectile lane. At commitment, it becomes the existing bar and extends to the clear attack range past the player. The same reusable indicator handles other weapon attacks; the component's Inspector preview can show the cone and its narrowing. Move sideways or dodge on commitment. Slow motion helps inspect the phases.
+For ranged warning practice, spawn the **Skeleton Crossbowman**. During aiming, its translucent trapezoid starts at one-third range and grows and brightens as the cone narrows toward the projectile lane. At commitment, it becomes the existing bar and extends to the clear attack range past the player. The same reusable indicator handles other weapon attacks; the component's Inspector preview can show the cone and its narrowing. Move sideways or dodge on commitment. Slow motion helps inspect the phases.
 
 Hitboxes appear only during an attack’s contact window; use slow motion to inspect them. Hurtboxes remain visible while their toggle is enabled.
 
@@ -38,7 +40,7 @@ python3 scripts/analyze_combat_trace.py /tmp/combat.jsonl --require-complete
 
 The supplied scenario covers melee, parry/stagger, counterattack, held guard/release, dodge, equipment changes and projectiles. It also intentionally requests guard while staggered to capture a rejected action. This is a regression exercise, not a promise that every requested attack will hit: geometry, timing and active defense remain active.
 
-Use `scenes/debug/combat/scenarios/projectile_practice.json` with `--combat-frames=240` for repeated crossbow shots, steering-directed dodges and aim-lock records. `magic_missile_practice.json` with `--combat-frames=320` fires the tier-1 wand's missile volleys at a minion, then the tier-5 wand's at a guarding warrior and a rat; both carry Fireball, so both volleys are fire. `combo_buffer.json` with `--combat-frames=240` chains a sword combo from buffered presses, buffers a dodge out of the finisher's contact, spends both dodge charges and switches to the axe combo.
+Use `scenes/debug/combat/scenarios/projectile_practice.json` with `--combat-frames=240` for repeated crossbow shots, steering-directed dodges and aim-lock records. `magic_missile_practice.json` with `--combat-frames=320` fires the tier-1 wand's missile volleys at a minion, then the tier-5 wand's at a guarding warrior and a rat; both carry Fireball, so both volleys are fire. `movement_feedback.json` with `--combat-frames=150` runs, stops and dashes for movement dust and the dash trail. `combo_buffer.json` with `--combat-frames=240` chains a sword combo from buffered presses, buffers a dodge out of the finisher's contact, spends both dodge charges and switches to the axe combo.
 
 `--combat-console` additionally echoes records with the `COMBAT ` prefix. `--combat-log` accepts an absolute path or `user://` path and creates a fresh file, flushing each entry. The destination directory must exist. Without a path the recorder keeps the most recent 2048 records in memory, exposed as `Recorder.RecentRecordsJson`; a file capture retains the complete run. Inspector `Seed`, `TracePath`, recorder `CaptureFrames` and `EchoToConsole` configure interactive sessions. Engine errors remain in the separate Godot log, so retain both files when investigating a failure.
 
@@ -46,13 +48,14 @@ Effect events are echoed to Godot's Output panel by default, even when `--combat
 
 ## Commands
 
-Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining file order for commands on the same frame. Frame zero executes on the first available tick. `Command` names are lowercase. `Value` is an integer selection; `X` and `Z` form a world-space vector. Script playback turns off device input (`InputComponent.DeviceEnabled`) so keyboard state cannot perturb the run; the player's input controller keeps running, so scripted presses use the real buffer and recovery cancels. Buttons and scripts share `ExecuteCommand(string, int, Vector3)` and acceptance is recorded.
+Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining file order for commands on the same frame. Frame zero executes on the first available tick, after the dummy is placed. `Command` names are lowercase. `Path` names a resource by its `res://` path, so adding content never changes what a script uses; `Value` is an integer; `X` and `Z` form a world-space vector. Script playback turns off device input (`InputComponent.DeviceEnabled`) so keyboard state cannot perturb the run; the player's input controller keeps running, so scripted presses use the real buffer and recovery cancels. Buttons and scripts share `ExecuteCommand(string command, string path, int value, Vector3 direction)` and acceptance is recorded.
 
 | Command | Arguments |
 | --- | --- |
-| `equip` | `Value`: weapon index, shown in the weapon selector |
-| `spell` | `Value`: spell index, shown in the spell selector; an equipped wand or staff takes it for its secondary |
-| `spawn` | `Value`: 0 practice dummy; 1 onward follows the locally discovered monster list shown by the selector |
+| `equip` | `Path`: item definition; equips an exact authored copy, replacing the one the previous `equip` gave |
+| `spell` | `Path`: spell definition; the equipped wand or staff, and any equipped later, takes it for its secondary |
+| `spawn` | `Path`: monster scene, empty for the practice dummy; replaces the arena's targets. `Value`: distance ahead of the hero in metres, 0 for the monster's preferred distance |
+| `build` | `Path`: `HeroBuildProfile`; replaces the hero's attributes and inventory with the build's exact items (see `scenes/debug/hero_build_profiles/`) |
 | `defense` | `Value`: 0 profile default, 1 no defense, 2 always dodge, 3 always guard/parry |
 | `automation` | `Value`: 0 disable monster AI, 1 enable monster AI (movement and attacks) |
 | `attack`, `secondary`, `monster_attack` | No arguments; same action ownership as gameplay |
@@ -62,7 +65,7 @@ Scripts are JSON arrays, ordered by `Frame` (physics-frame offset), retaining fi
 | `monster_guard`, `monster_dodge` | `X`, `Z`: facing/direction |
 | `move` | `X`, `Z`: movement input; zero stops input |
 | `position_player`, `position_monster` | `X`, `Z`: explicit arena placement; height is retained |
-| `reset` | Restore hero/practice-target health and cancel hero commitment; heal a living monster |
+| `reset` | Restore the hero's health, mana and poise and cancel their commitment; restore the practice target; heal a living monster |
 
 Spawn a fresh monster after its death. Forced defense modes retain real cooldowns, visibility, delay, gate transitions and collision constraints. A seed isolates combat RNG, but does not promise deterministic replay across builds, different inputs or engine physics configurations.
 

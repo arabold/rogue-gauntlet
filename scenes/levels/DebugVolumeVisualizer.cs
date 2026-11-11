@@ -15,7 +15,8 @@ public partial class DebugVolumeVisualizer : MeshInstance3D
 
 		if (!Engine.IsEditorHint())
 		{
-			Visible = false;
+			// Hit volumes show while the debug meshes are on, including volumes added after they were turned on.
+			Visible = AttackController.GlobalDebugDrawEnabled;
 		}
 	}
 

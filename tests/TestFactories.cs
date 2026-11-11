@@ -90,22 +90,38 @@ public static partial class TestFactories
 
 	/// <summary>
 	/// Spawn one authored monster through the harness's spawn command (AI off, facing the hero), then place it
-	/// <paramref name="distance"/> metres in front of the hero on that same line. Tests name the scene instead of a picker
-	/// index, so adding a monster to the discovered roster never changes which monster a test fights.
+	/// <paramref name="distance"/> metres in front of the hero on that same line. The command names the scene by path, so
+	/// adding a monster never changes which monster a test fights.
 	/// </summary>
 	public static EnemyBase SpawnHarnessMonster(CombatHarness harness, string scenePath, float distance = 2)
 	{
-		harness.Monsters = [Load<PackedScene>(scenePath)];
-		if (!harness.ExecuteCommand("spawn", 1, Vector3.Zero)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
+		if (!harness.ExecuteCommand("spawn", scenePath)) throw new InvalidOperationException($"The combat harness could not spawn {scenePath}.");
 		var monster = harness.Monster;
 		monster.Position = harness.Player.Position + Vector3.Forward * distance;
 		monster.ResetPhysicsInterpolation();
 		return monster;
 	}
 
-	/// <summary>One of the harness's spell components, found by its authored name.</summary>
-	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell =>
-		harness.SpellComponents.OfType<T>().Single(spell => spell.DisplayName == name);
+	/// <summary>The hero's own instance of a spell in the arena's pool, found by its authored name; the debug menu casts the same one.</summary>
+	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell
+	{
+		var spells = Tool<SpellCastTool>(harness.Arena);
+		return (T)spells.Resolve(spells.Spells.Spells.Single(spell => spell.DisplayName == name));
+	}
+
+	/// <summary>The debug tool of type <typeparamref name="T"/> in the debug menu under <paramref name="scene"/>.</summary>
+	public static T Tool<T>(Node scene) where T : DebugTool =>
+		scene.FindChildren("*", nameof(HBoxContainer), true, false).OfType<DebugMenu>().Single().GetTool<T>();
+
+	/// <summary>Presses the single entry of <paramref name="menu"/> that <paramref name="matches"/>, as a click on it would.</summary>
+	public static void Press(PopupMenu menu, Func<int, bool> matches)
+	{
+		int index = Enumerable.Range(0, menu.ItemCount).Single(matches);
+		menu.EmitSignal(PopupMenu.SignalName.IdPressed, menu.GetItemId(index));
+	}
+
+	/// <summary>Presses the entry of <paramref name="menu"/> labelled <paramref name="text"/>.</summary>
+	public static void Press(PopupMenu menu, string text) => Press(menu, index => menu.GetItemText(index) == text);
 
 	/// <summary>The hit test casts use: a steady 8 that never rolls a critical, so amounts are exact.</summary>
 	public static readonly AttackStats SpellHit = new(8, 8, 0);
@@ -119,7 +135,7 @@ public static partial class TestFactories
 	/// <summary>The amount a definition scale yields with <see cref="SpellHit"/>.</summary>
 	public static float SpellAmount(float scale) => scale * SpellHit.MaxDamage;
 
-	/// <summary>Casts a harness spell as the player, the same call the harness's cast button queues.</summary>
+	/// <summary>Casts a pooled spell as the player with <see cref="SpellHit"/> and a fixed seed.</summary>
 	public static bool CastSpell(CombatHarness harness, string name, int level, ulong seed = 1) =>
 		GetSpell<ICombatSpell>(harness, name).Cast(TestFactories.CastContext(harness.Player, SpellPower(level)), new RandomNumberGenerator { Seed = seed });
 
@@ -341,9 +357,11 @@ public static partial class TestFactories
 	{
 		var map = Load<PackedScene>("res://scenes/levels/generators/map_generator.tscn").Instantiate<MapGenerator>();
 		var discovery = Load<PackedScene>("res://scenes/levels/floor_discovery.tscn").Instantiate<FloorDiscovery>();
-		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map, Discovery = discovery };
+		var lighting = Load<PackedScene>("res://scenes/levels/lighting/world_lighting.tscn").Instantiate<WorldLighting>();
+		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map, Discovery = discovery, Lighting = lighting };
 		level.AddChild(map);
 		level.AddChild(discovery);
+		level.AddChild(lighting);
 		return (level, map);
 	}
 

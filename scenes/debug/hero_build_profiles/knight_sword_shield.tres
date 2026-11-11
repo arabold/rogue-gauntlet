@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="HeroBuildProfile" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/player/classes/HeroBuildProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/player/classes/HeroBuildItem.cs" id="item"]
+[ext_resource type="Resource" path="res://scenes/player/classes/class_knight.tres" id="class"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/longsword_common.tres" id="res_0"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="res_1"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_protection.tres" id="res_2"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="res_3"]
+
+[sub_resource type="Resource" id="Equipment_0"]
+script = ExtResource("item")
+Definition = ExtResource("res_0")
+Quality = 2
+
+[sub_resource type="Resource" id="Equipment_1"]
+script = ExtResource("item")
+Definition = ExtResource("res_1")
+Slot = 512
+
+[sub_resource type="Resource" id="Equipment_2"]
+script = ExtResource("item")
+Definition = ExtResource("res_2")
+Quality = 3
+Slot = 64
+
+[sub_resource type="Resource" id="Backpack_0"]
+script = ExtResource("item")
+Definition = ExtResource("res_3")
+Quantity = 3
+
+[resource]
+script = ExtResource("profile")
+DisplayName = "Knight: longsword and shield"
+CharacterClass = ExtResource("class")
+Equipment = Array[ExtResource("item")]([SubResource("Equipment_0"), SubResource("Equipment_1"), SubResource("Equipment_2")])
+Backpack = Array[ExtResource("item")]([SubResource("Backpack_0")])

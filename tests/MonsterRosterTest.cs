@@ -20,8 +20,11 @@ public class MonsterRosterTest
 		shooter.MovementComponent.SetPhysicsProcess(false);
 		harness.Player.MovementComponent.SetPhysicsProcess(false);
 		var behavior = shooter.EnemyBehaviorComponent;
-		// Without the arena's navigation the shooter has nowhere to retreat to.
-		behavior.Navigation.SetNavigationOverride(null);
+		// A grid without any floor leaves the shooter nowhere to retreat to.
+		var nowhere = new ClearanceGrid(new Rect2(-1, -1, 2, 2));
+		nowhere.Freeze();
+		behavior.Navigation.SetNavigationOverride(new FloorNavigation(nowhere,
+			TestFactories.Load<NavigationProfile>("res://scenes/levels/navigation/navigation_profiles/default.tres")));
 		await runner.SimulateFrames(2, 20);
 		var context = new EnemyContext(shooter, shooter.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
 			behavior.Navigation, shooter.Definition.Behavior, filter => behavior.TryRequestAction(filter));

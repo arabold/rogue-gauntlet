@@ -1,14 +1,13 @@
 [gd_scene format=3 uid="uid://hshntmwu857e"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_light.tscn" id="player_light_scene"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/slow_status.tscn" id="slow_status_scene"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
 [ext_resource type="Resource" uid="uid://nmu6am3fevbi" path="res://scenes/player/resources/player_stats.tres" id="2_sug4b"]
-[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flickering_light.tscn" id="3_3qxnv"]
-[ext_resource type="Script" uid="uid://cdw6evppde3jq" path="res://scenes/effects/FlickerProfile.cs" id="flicker_profile_script"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="3_uf5tr"]
 [ext_resource type="Script" uid="uid://7aetn0f4oogq" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="4_uf5tr"]
@@ -44,9 +43,6 @@
 [ext_resource type="Resource" uid="uid://b0hniequ3jca" path="res://scenes/combat/definitions/player_dodge.tres" id="dodge_def"]
 [ext_resource type="Script" uid="uid://dvvv7pk1tehun" path="res://scenes/combat/DodgeComponent.cs" id="dodge_script"]
 [ext_resource type="PackedScene" path="res://scenes/components/editor_status_preview.tscn" id="editor_status_preview"]
-[ext_resource type="Script" uid="uid://bcsithvgd546d" path="res://scenes/player/PlayerLight.cs" id="player_light"]
-[ext_resource type="Script" uid="uid://dax5l6sxfmf88" path="res://scenes/player/PlayerLightProfile.cs" id="player_light_profile"]
-[ext_resource type="Resource" uid="uid://bithpkdcvodbw" path="res://scenes/effects/flicker_profiles/torch.tres" id="torch_flicker"]
 [ext_resource type="Resource" path="res://scenes/buffs/conditions/frozen.tres" id="frozen_condition"]
 [ext_resource type="Script" uid="uid://ds3fw1lymp5kj" path="res://scenes/components/FrozenStatusComponent.cs" id="frozen_driver"]
 [ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen_effect"]
@@ -103,38 +99,6 @@ CanUseMechanisms = true
 CanPickMechanicalLocks = true
 InnateDodge = ExtResource("dodge_def")
 InnateGuard = ExtResource("innate_guard")
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_f3pwl"]
-frequency = 0.75
-
-[sub_resource type="Resource" id="FlickerProfile_dim"]
-script = ExtResource("flicker_profile_script")
-Noise = SubResource("FastNoiseLite_f3pwl")
-Min = 0.333333
-Max = 1.0
-Fold = true
-
-[sub_resource type="Resource" id="PlayerLightProfile_lit"]
-script = ExtResource("player_light_profile")
-Energy = 1.0
-Range = 25.0
-Attenuation = 0.25
-Flicker = ExtResource("torch_flicker")
-HighlightEnergy = 1.0
-HighlightRange = 30.0
-HighlightAttenuation = 0.0
-HighlightHeight = 10.0
-
-[sub_resource type="Resource" id="PlayerLightProfile_dark"]
-script = ExtResource("player_light_profile")
-Energy = 0.7
-Range = 6.0
-Attenuation = 1.0
-Flicker = SubResource("FlickerProfile_dim")
-HighlightEnergy = 0.08
-HighlightRange = 6.0
-HighlightAttenuation = 1.8
-HighlightHeight = 3.0
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.5
@@ -449,29 +413,8 @@ layers = 4
 [node name="Barbarian_LegRight" parent="Pivot/Character/Rig/Skeleton3D" index="12" unique_id=1023101179]
 layers = 4
 
-[node name="PlayerLight" type="Node3D" parent="Pivot" unique_id=1847077433 node_paths=PackedStringArray("Player", "Light", "Highlight")]
-script = ExtResource("player_light")
+[node name="PlayerLight" parent="Pivot" unique_id=1847077433 node_paths=PackedStringArray("Player") instance=ExtResource("player_light_scene")]
 Player = NodePath("../..")
-Light = NodePath("Light")
-Highlight = NodePath("Highlight")
-Lit = SubResource("PlayerLightProfile_lit")
-Dark = SubResource("PlayerLightProfile_dark")
-
-[node name="Light" parent="Pivot/PlayerLight" unique_id=974580749 instance=ExtResource("3_3qxnv")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 2, 2)
-light_specular = 0.0
-shadow_caster_mask = 4294966527
-omni_range = 25.0
-omni_attenuation = 0.25
-
-[node name="Highlight" type="OmniLight3D" parent="Pivot/PlayerLight" unique_id=1664945387]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
-layers = 256
-light_specular = 0.0
-light_bake_mode = 0
-light_cull_mask = 4294966504
-omni_range = 30.0
-omni_attenuation = 0.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1159089663]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)

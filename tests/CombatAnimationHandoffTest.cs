@@ -108,9 +108,9 @@ public class CombatAnimationHandoffTest
 
 		player.Inventory.Unequip(player.Inventory.EquippedItems[EquipmentSlot.WeaponHand]);
 		await Perform("unarmed attack", player.ActionManager.TryPerformPrimary);
-		AssertBool(harness.ExecuteCommand("equip", 0, Vector3.Zero)).IsTrue();
+		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/sword_common.tres")).IsTrue();
 		await Perform("technique", player.ActionManager.TryPerformSecondary);
-		AssertBool(harness.ExecuteCommand("equip", Array.FindIndex(harness.Weapons, weapon => weapon is MagicStaff), Vector3.Zero)).IsTrue();
+		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/staff_common.tres")).IsTrue();
 		await Perform("spell", player.ActionManager.TryPerformSecondary);
 	}
 

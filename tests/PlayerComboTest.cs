@@ -15,13 +15,13 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public partial class PlayerComboTest
 {
-	private const int Sword = 0, Axe = 1;
+	private const string Sword = "res://scenes/items/weapons/sword_common.tres", Axe = "res://scenes/items/weapons/axe_common.tres";
 
-	private static async Task<(ISceneRunner, CombatHarness)> Load(int weapon = Sword)
+	private static async Task<(ISceneRunner, CombatHarness)> Load(string weapon = Sword)
 	{
 		var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		AssertBool(harness.ExecuteCommand("equip", weapon, Vector3.Zero)).IsTrue();
+		AssertBool(harness.ExecuteCommand("equip", weapon)).IsTrue();
 		await Frames(runner, 2);
 		return (runner, harness);
 	}
@@ -163,7 +163,7 @@ public partial class PlayerComboTest
 		{
 			AssertBool(harness.Player.ActionManager.TryPerformPrimary()).IsTrue();
 			await Until(runner, () => !harness.Player.IsPerformingAction, "the opener to end");
-			AssertBool(harness.ExecuteCommand("equip", Axe, Vector3.Zero)).IsTrue();
+			AssertBool(harness.ExecuteCommand("equip", Axe)).IsTrue();
 			await Frames(runner, 1);
 			AssertBool(harness.Player.ActionManager.TryPerformPrimary()).IsTrue();
 			AssertInt(Attack(harness).ComboStep).IsEqual(0);

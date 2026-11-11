@@ -179,10 +179,9 @@ public partial class SpellWandTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
-		int staff = Array.FindIndex(harness.Weapons, weapon => weapon is MagicStaff { IsTwoHanded: true });
-		AssertBool(harness.ExecuteCommand("equip", staff, Vector3.Zero)).IsTrue();
-		int iceLance = Array.FindIndex(harness.SpellPool.Spells, spell => spell.DisplayName == "Ice Lance");
-		AssertBool(harness.ExecuteCommand("spell", iceLance, Vector3.Zero)).IsTrue();
+		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/staff_common.tres")).IsTrue();
+		var iceLance = TestFactories.Tool<SpellCastTool>(harness.Arena).Spells.Spells.Single(spell => spell.DisplayName == "Ice Lance");
+		AssertBool(harness.ExecuteCommand("spell", iceLance.ResourcePath)).IsTrue();
 
 		var equipped = (MagicStaff)harness.Player.Inventory.EquippedWeapon;
 		AssertString(equipped.BoundSpell.DisplayName).IsEqual("Ice Lance");

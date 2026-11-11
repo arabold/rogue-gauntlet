@@ -18,7 +18,7 @@ public class DarkLevelTest
 		await runner.SimulateFrames(5, 20);
 		var scene = runner.Scene();
 		var level = scene.GetNode<Level>("Level");
-		var environment = scene.GetNode<WorldEnvironment>("WorldEnvironment").Environment;
+		var environment = level.Lighting.Environment;
 		float ambient = environment.AmbientLightEnergy;
 		AssertBool(ambient > 0).IsTrue();
 		var fixtures = level.MapGenerator.FindChildren("*", nameof(EnvironmentalLightComponent), true, false)
@@ -31,11 +31,10 @@ public class DarkLevelTest
 		AssertBool(playerLights.Length > 0).IsTrue();
 		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
 		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Lit.Range);
-		var menu = scene.FindChildren("*", "HBoxContainer", true, false).OfType<DebugMenu>().Single();
-		var popup = menu.GetNode<MenuButton>("%DebugMenuButton").GetPopup();
+		var popup = TestFactories.Tool<LevelTool>(scene).Popup;
 		int index = Enumerable.Range(0, popup.ItemCount).Single(i => popup.GetItemText(i) == "Dark level");
-		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
-		AssertBool(level.IsDark).IsTrue();
+		TestFactories.Press(popup, "Dark level");
+		AssertBool(level.Lighting.IsDark).IsTrue();
 		AssertBool(popup.IsItemChecked(index)).IsTrue();
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(0f);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
@@ -54,8 +53,8 @@ public class DarkLevelTest
 		TestFactories.AssertTorchEffects(unlit, false);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
 
-		popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
-		AssertBool(level.IsDark).IsFalse();
+		TestFactories.Press(popup, "Dark level");
+		AssertBool(level.Lighting.IsDark).IsFalse();
 		AssertBool(popup.IsItemChecked(index)).IsFalse();
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(ambient);
 		AssertArray(fixtures.Select(f => f.Light.Visible).ToArray()).IsEqual(lights);

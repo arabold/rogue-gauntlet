@@ -160,7 +160,7 @@ public class AttackAnimationTest
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
-		harness.EquipPreview(6);
+		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/crossbow_common.tres")).IsTrue();
 		harness.Attack();
 		var slot = harness.Player.ActionManager.GetChildren().OfType<ActionSlot>().First(value => value.IsDelayed);
 		AssertBool(harness.Player.AttackController.IsAttacking).IsFalse();

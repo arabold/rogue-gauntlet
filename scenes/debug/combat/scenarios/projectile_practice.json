@@ -1,5 +1,5 @@
 [
-  { "Frame": 1, "Command": "spawn", "Value": 2 },
+  { "Frame": 1, "Command": "spawn", "Path": "res://scenes/enemies/skeleton/skeleton_crossbow.tscn" },
   { "Frame": 2, "Command": "automation", "Value": 1 },
   { "Frame": 42, "Command": "move", "X": 1 },
   { "Frame": 43, "Command": "dodge" },

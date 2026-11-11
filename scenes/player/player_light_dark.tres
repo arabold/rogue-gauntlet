@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PlayerLightProfile" format=3]
+
+[ext_resource type="Script" uid="uid://dax5l6sxfmf88" path="res://scenes/player/PlayerLightProfile.cs" id="1_profile"]
+[ext_resource type="Resource" path="res://scenes/effects/flicker_profiles/dim.tres" id="2_flicker"]
+
+[resource]
+script = ExtResource("1_profile")
+Energy = 0.7
+Range = 6.0
+Attenuation = 1.0
+Flicker = ExtResource("2_flicker")
+HighlightEnergy = 0.08
+HighlightRange = 6.0
+HighlightAttenuation = 1.8
+HighlightHeight = 3.0

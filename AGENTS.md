@@ -32,7 +32,8 @@ codegraph init
   - Every `TestFactories.Load` forces a GC to settle finalizers, so load each resource once per test into a local, never through a property getter inside a loop.
   - Physics-tick and fixed-delta waits run in real time. Wait for the outcome (`AwaitPhysicsUntil`) instead of a long fixed frame count, and stage independent scenarios side by side in one world instead of one after another.
   - Generate a floor once and check every invariant on it (`GeneratedFloorSweepTest`) rather than regenerating the same seeds per invariant.
-- Spawn combat-harness monsters with `TestFactories.SpawnHarnessMonster(harness, scenePath)`. The harness discovers its roster and lists the practice dummy first, so picker indices shift whenever a monster is added.
+- Spawn combat-harness monsters with `TestFactories.SpawnHarnessMonster(harness, scenePath)`. Harness commands name items, spells and monster scenes by `res://` path, never by list position.
+- Drive debug actions through the tools, not hand-rolled setup: `TestFactories.Tool<T>(scene)` finds a scene's `ItemSpawnTool`, `MonsterTool`, `SpellCastTool`, `HeroTool`, `CombatDisplayTool` or `LevelTool`, and `TestFactories.Press(menu, text)` clicks a menu entry when a test covers the menu itself.
 - `dotnet build "Rogue Gauntlet.sln"` remains the fast compile check; add a `dotnet test` run when changing testable C# logic.
 
 ## Git / Commits & PRs
@@ -48,8 +49,9 @@ codegraph init
 ## Architecture
 - Autoload singletons are declared in `project.godot`: `SignalBus` (`scripts/SignalBus.cs`), `GameSession` (`scripts/GameSession.cs`), `ScenePool` (`scripts/ScenePool.cs`), `SceneDebugBootstrap` (`scripts/SceneDebugBootstrap.cs`), and the GDScript Phantom Camera manager.
 - `GameSession` is the focused session-flow coordinator: save slots, run identity and level transitions. Run-wide state lives in a plain `RunState` (`scripts/RunState.cs`: run seed, loot counter, cleared entities, item identification) that it hands to each `Level`; it is intentionally *not* a generic gameplay registry. Gameplay code gets run and floor context from its `Level` (`Seed`, `Depth`, `Run`, `Floor`, `Discovery`), resolved once in `_EnterTree`, never from the autoload. `ItemIdentity`'s UI-wide display is the one documented exception.
-- `Main.cs` wires camera and inventory UI and has `GameSession` configure the `Level` before `Level.Generate()`; `MapGenerator.cs` (with its `.Access` and `.Loot` partials) owns room layout, corridor connection, gridmap merge, access, loot, navigation grid, and spawn-point creation, and hands gameplay a frozen `GeneratedFloor`. See `docs/level-design.md` for the full generation pipeline.
+- `Main.cs` binds screen effects and the character dialog and has `GameSession` configure the `Level` before `Level.Generate()`; the `GameCameraRig` (`scenes/main/camera/game_camera.tscn`) follows the hero; `MapGenerator.cs` (with its `.Access` and `.Loot` partials) owns room layout, corridor connection, gridmap merge, access, loot, navigation grid, and spawn-point creation, and hands gameplay a frozen `GeneratedFloor`. See `docs/level-design.md` for the full generation pipeline.
 - Do not add a `GameManager`-style gameplay registry; use local dependencies, signals, or local group queries instead.
+- Debug actions exist once, as `DebugTool` nodes hosted by the HUD's `DebugMenu` (`scenes/ui/debug/`), acting on the menu's `IDebugWorld`: a `Level`, or the combat harness's `DebugArena`. A harness hosts that same menu and adds only its own readouts; never give a harness a second set of item, spell, monster or display controls. New content under the tools' folders shows up without code changes. See `scenes/debug/README.md`.
 - Decoupled game/UI updates go through `SignalBus` static emit helpers. Add new bus events there instead of introducing direct cross-system references when reacting to gameplay state.
 - Player behavior is component-scene based: `Player.cs` exports its components (`MovementComponent`, `InputComponent`, `HealthComponent`, `HurtBoxComponent`, `ActionManager`, attack and inventory controllers) and `player.tscn` wires them; it injects only runtime state such as the per-run inventory copy.
 - Data authored in Godot resources matters: items, player stats, dungeon factories, mesh libraries, and rooms are `.tres`/`.tscn` assets under `scenes/`; C# changes often need matching exported properties/resources in scenes.
@@ -76,6 +78,7 @@ Use the `godot-csharp` skill (`.agents/skills/godot-csharp/SKILL.md`) whenever w
 - **Queries & Contracts:** Prefer C# interfaces (`IDamageable`, `IInteractive`, `IPlayerAction`) for type-safe contracts and local Godot group queries (`player`, `enemy`, `damageable`) over global registries or service-locator autoload lookups.
 
 ## Godot/C# & Mobile Renderer Gotchas
+- **One lighting model:** a world (a `Level`, the combat arena, a workbench) implements `ILitWorld` and owns one `WorldLighting` (`scenes/levels/lighting/world_lighting.tscn`, the game's shared environment and **Dark level** switch). The hero's light and torches find it through their ancestors, and monsters find navigation the same way through `INavigableWorld`. Never add a `WorldEnvironment` or `DirectionalLight3D` to a harness or workbench; a subject without a playing hero gets `scenes/player/player_light.tscn` beside it. Stand subjects on `scenes/debug/stage/sample_floor.tscn`, and use `scenes/main/camera/game_camera.tscn` for the game's view.
 - **Mobile Renderer (`rendering_method="mobile"`) & Transparency:**
   - Never use `GeometryInstance3D.Transparency` (Forward+-only; fails silently on Mobile).
   - For standard fades (`FadeOutComponent`), duplicate each surface's `BaseMaterial3D` into an instance-local override (`TransparencyEnum.Alpha`) and tween `albedo_color:a` (plus `modulate:a` on `SpriteBase3D`/`Label3D`) so shared materials are never mutated.
@@ -90,7 +93,7 @@ Use the `godot-csharp` skill (`.agents/skills/godot-csharp/SKILL.md`) whenever w
 - Godot C# partial classes are in the global namespace in existing code despite the csproj root namespace; follow the current pattern unless doing a deliberate namespace migration.
 - Keep scene/resource paths lowercase as authored (`scenes/main/main.tscn`); there is at least one stale mixed-case reference in code (`Main.tscn`) that should not be copied.
 - **Naming, Taxonomy & Shims:** Follow the `program-design` skill (`.agents/skills/program-design/SKILL.md`) for naming rules: use `*Profile` for configuration resources, `*Component` for actor capabilities, direct domain nouns for actors/props, enforce subject-first asset and scene naming (`torch_flame.tscn`, `brazier_fire.tscn`), and never introduce backward-compatibility shims or legacy aliases.
-- Phantom Camera is GDScript-only here; `Main.cs` accesses it via `Node3D.Call("set_follow_target", player)` and property strings.
+- Phantom Camera is GDScript-only here; `GameCameraRig` positions its `PhantomCamera3D` as a plain `Node3D` and never calls its GDScript API.
 - `.editorconfig` sets tabs for `*.cs`, CRLF, and no final newline; match local formatting when editing C#.
 
 ## Coding Principles

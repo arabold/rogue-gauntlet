@@ -33,7 +33,7 @@ public partial class NavigationComponent : Node
 
 	private CharacterBody3D _actor;
 	private MovementComponent _movement;
-	private Level _level;
+	private INavigableWorld _world;
 	private FloorNavigation _navigationOverride;
 	private FloorNavigation _navigation;
 	private bool _stayInHomeRoom;
@@ -73,7 +73,7 @@ public partial class NavigationComponent : Node
 	/// <summary>The room the actor started in, when it is held there; -1 when it is free to roam.</summary>
 	public int HomeRoom => _stayInHomeRoom ? _homeRoom : -1;
 
-	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
+	public override void _EnterTree() => _world = this.GetAncestorOrNull<INavigableWorld>();
 
 	public override void _ExitTree()
 	{
@@ -94,7 +94,7 @@ public partial class NavigationComponent : Node
 		ResetStuckTracking();
 	}
 
-	/// <summary>Uses an explicitly supplied navigation grid when this actor is outside a generated level.</summary>
+	/// <summary>Uses an explicitly supplied navigation grid instead of the world's.</summary>
 	public void SetNavigationOverride(FloorNavigation navigation)
 	{
 		if (_navigationOverride == navigation) return;
@@ -109,7 +109,7 @@ public partial class NavigationComponent : Node
 	{
 		get
 		{
-			var navigation = _actor != null && IsInsideTree() ? _navigationOverride ?? _level?.Navigation : null;
+			var navigation = _actor != null && IsInsideTree() ? _navigationOverride ?? _world?.Navigation : null;
 			if (navigation == _navigation) return navigation;
 			_navigation?.Unregister(this);
 			_navigation = navigation;

@@ -212,7 +212,7 @@ public partial class CombatAccessibilityTest
 		using var runner = TestFactories.LoadCombatHarness();
 		await Frames(runner.Scene(), 4);
 		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
-		harness.GetNode<CheckButton>("%Controls/Effects").ButtonPressed = false;
+		TestFactories.Tool<CombatDisplayTool>(harness.Arena).EffectsEnabled = false;
 		var shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		await Frames(runner.Scene(), 3);
 		var attack = shooter.AttackController;
@@ -220,7 +220,7 @@ public partial class CombatAccessibilityTest
 		var crossbow = shooter.GetNode<Node3D>("Pivot/Skeleton_Minion/Rig/Skeleton3D/BoneAttachment3D/Skeleton_Crossbow");
 		Projectile[] Shots() => runner.Scene().GetChildren().OfType<Projectile>().Where(p => p.Attacker == shooter && p.IsInsideTree()).ToArray();
 
-		AssertBool(harness.ExecuteCommand("monster_attack", 0, Vector3.Zero)).IsTrue();
+		AssertBool(harness.ExecuteCommand("monster_attack")).IsTrue();
 		attack.SetPhysicsProcess(false);
 		AssertBool(attack.Indicator.Visible).IsTrue();
 		AssertBool(attack.IsProjectileAimLocked).IsFalse();
@@ -251,7 +251,7 @@ public partial class CombatAccessibilityTest
 		shooter = TestFactories.SpawnHarnessMonster(harness, TestFactories.CrossbowScene, 6);
 		attack = shooter.AttackController;
 		await Frames(runner.Scene(), 2);
-		AssertBool(harness.ExecuteCommand("monster_attack", 0, Vector3.Zero)).IsTrue();
+		AssertBool(harness.ExecuteCommand("monster_attack")).IsTrue();
 		attack.SetPhysicsProcess(false);
 		attack._PhysicsProcess(.1);
 		attack.CancelAttack();

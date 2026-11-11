@@ -31,19 +31,18 @@ public partial class CombatIntegrationTest
 	}
 
 	/// <summary>
-	/// Inspector checkbox defaults apply before any interaction, even when component defaults disagree, and reach monsters
-	/// spawned later; toggling a checkbox updates the hero and the monster at once.
+	/// The arena's authored display settings apply before any interaction, even when component defaults disagree, and
+	/// reach monsters spawned later; changing a setting updates the hero and the monster at once.
 	/// </summary>
 	[TestCase(true)]
 	[TestCase(false)]
-	public async Task AuthoredCheckboxStatesApplyOnStartupAndToSpawnedMonsters(bool enabled)
+	public async Task AuthoredDisplaySettingsApplyOnStartupAndToSpawnedMonsters(bool enabled)
 	{
 		double originalTimeScale = Engine.TimeScale;
 		var scene = TestFactories.Load<PackedScene>("res://scenes/debug/combat/combat_harness.tscn").Instantiate();
 		var harness = scene.GetNode<CombatHarness>("Instructions");
-		harness.Monsters = [TestFactories.Load<PackedScene>(TestFactories.WarriorScene)];
-		foreach (string name in new[] { "Volumes", "Hurtboxes", "Effects", "SlowMotion" })
-			harness.GetNode<CheckButton>($"%Controls/{name}").SetPressedNoSignal(enabled);
+		var display = scene.GetNode<CombatDisplayTool>("UI/HUD/DebugMenu/CombatDisplayTool");
+		display.DebugMeshesEnabled = display.HurtboxesEnabled = display.EffectsEnabled = display.SlowMotionEnabled = enabled;
 		scene.GetNode<AttackController>("Player/PlayerAttackController").DebugDrawEnabled = !enabled;
 		scene.GetNode<AttackController>("Player/PlayerAttackController").EffectsEnabled = !enabled;
 		// SceneRunner overrides Engine.TimeScale when loading; attach directly to test authored slow motion.
@@ -55,18 +54,16 @@ public partial class CombatIntegrationTest
 			AssertBool(harness.Player.AttackController.EffectsEnabled).IsEqual(enabled);
 			AssertFloat(Engine.TimeScale).IsEqualApprox(enabled ? .25 : originalTimeScale, .001);
 			AssertBool(harness.Player.HurtBoxComponent.HasNode("CollisionShape3D/HurtboxDebugMesh")).IsEqual(enabled);
-			harness.GetNode<OptionButton>("%Controls/Monsters").Selected = 1;
-			harness.GetNode<Button>("%Controls/SpawnMonster").EmitSignal(BaseButton.SignalName.Pressed);
+			var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
 			await PhysicsFrames(scene, 2);
-			AssertBool(harness.Monster.AttackController.DebugDrawEnabled).IsEqual(enabled);
-			AssertBool(harness.Monster.AttackController.EffectsEnabled).IsEqual(enabled);
-			AssertBool(harness.Monster.HurtBoxComponent.HasNode("CollisionShape3D/HurtboxDebugMesh")).IsEqual(enabled);
-			foreach (string name in new[] { "Volumes", "Effects", "SlowMotion" })
-				harness.GetNode<CheckButton>($"%Controls/{name}").ButtonPressed = !enabled;
+			AssertBool(monster.AttackController.DebugDrawEnabled).IsEqual(enabled);
+			AssertBool(monster.AttackController.EffectsEnabled).IsEqual(enabled);
+			AssertBool(monster.HurtBoxComponent.HasNode("CollisionShape3D/HurtboxDebugMesh")).IsEqual(enabled);
+			display.DebugMeshesEnabled = display.EffectsEnabled = display.SlowMotionEnabled = !enabled;
 			AssertBool(harness.Player.AttackController.DebugDrawEnabled).IsEqual(!enabled);
 			AssertBool(harness.Player.AttackController.EffectsEnabled).IsEqual(!enabled);
-			AssertBool(harness.Monster.AttackController.DebugDrawEnabled).IsEqual(!enabled);
-			AssertBool(harness.Monster.AttackController.EffectsEnabled).IsEqual(!enabled);
+			AssertBool(monster.AttackController.DebugDrawEnabled).IsEqual(!enabled);
+			AssertBool(monster.AttackController.EffectsEnabled).IsEqual(!enabled);
 			AssertFloat(Engine.TimeScale).IsEqualApprox(enabled ? originalTimeScale : .25, .001);
 		}
 		finally { scene.Free(); }
@@ -109,60 +106,58 @@ public partial class CombatIntegrationTest
 	}
 
 	/// <summary>
-	/// Exercise scene-authored UI signals so a disconnected harness cannot pass command-only tests: the pickers list the
-	/// authored weapons and discovered monsters, a monster spawns passive, target invulnerability and defense modes stay
+	/// Exercise the arena's debug menu and harness buttons so a disconnected arena cannot pass command-only tests: the
+	/// menu equips a listed weapon and spawns a discovered monster passive, target invulnerability and defense modes stay
 	/// independent, and the overlay, guard, reset and attack controls drive the hero.
 	/// </summary>
 	[TestCase]
-	public async Task HarnessControlsPopulateAndDriveCombatAndOverlays()
+	public async Task ArenaMenusAndHarnessButtonsDriveCombatAndOverlays()
 	{
 		var (runner, harness) = await Load();
 		using (runner)
 		{
-			var monsters = harness.GetNode<OptionButton>("%Controls/Monsters");
-			AssertBool(harness.Weapons.Length > 0 && harness.Monsters.Length > 0).IsTrue();
-			AssertInt(harness.GetNode<OptionButton>("%Controls/Weapons").ItemCount).IsEqual(harness.Weapons.Length);
-			AssertInt(monsters.ItemCount).IsEqual(harness.Monsters.Length + 1); // the practice dummy, then each monster
-			int warrior = Enumerable.Range(0, monsters.ItemCount)
-				.Single(index => monsters.GetItemMetadata(index).AsString() == TestFactories.WarriorScene);
+			const string axePath = "res://scenes/items/weapons/axe_common.tres";
+			var weapons = harness.Items.Popup.GetNode<PopupMenu>("SpawnWeaponsMenu");
+			TestFactories.Press(weapons, i => weapons.GetItemTooltip(i) == axePath);
+			AssertString(harness.Player.Inventory.EquippedWeapon?.Name).IsEqual(TestFactories.Load<Weapon>(axePath).Name);
 
-			var targetInvulnerable = harness.GetNode<CheckButton>("%Controls/TargetInvulnerable");
-			targetInvulnerable.ButtonPressed = true;
+			var monsters = harness.Monsters.Popup;
+			TestFactories.Press(monsters, "Invulnerable");
 			AssertBool(((CombatPracticeTarget)harness.PracticeTarget).HurtBox.Invulnerable).IsTrue();
-			monsters.Selected = warrior;
-			harness.GetNode<Button>("%Controls/SpawnMonster").EmitSignal(BaseButton.SignalName.Pressed);
+			TestFactories.Press(monsters, "Clear spawned");
+			var spawn = monsters.GetNode<PopupMenu>("SpawnMonsterMenu");
+			spawn.EmitSignal(Window.SignalName.AboutToPopup);
+			TestFactories.Press(spawn, i => spawn.GetItemTooltip(i) == TestFactories.WarriorScene);
 			var monster = harness.Monster;
 			AssertBool(GodotObject.IsInstanceValid(monster)).IsTrue();
 			AssertString(monster.SceneFilePath).IsEqual(TestFactories.WarriorScene);
 			AssertBool(monster.EnemyBehaviorComponent.AIEnabled || monster.DefenseController.RiposteEnabled).IsFalse();
 			AssertBool(monster.HurtBoxComponent.Invulnerable).IsTrue();
 			AssertObject(monster.DefenseController.Mode).IsEqual(EnemyDefenseMode.ProfileDefault);
-			AssertBool(harness.ExecuteCommand("defense", 2, Vector3.Zero)).IsTrue();
+			AssertBool(harness.ExecuteCommand("defense", value: 2)).IsTrue();
 			AssertObject(monster.DefenseController.Mode).IsEqual(EnemyDefenseMode.Dodge);
-			AssertBool(harness.ExecuteCommand("defense", 3, Vector3.Zero)).IsTrue();
+			AssertBool(harness.ExecuteCommand("defense", value: 3)).IsTrue();
 			AssertObject(monster.DefenseController.Mode).IsEqual(EnemyDefenseMode.GuardParry);
 			AssertBool(monster.HurtBoxComponent.Invulnerable).IsTrue();
-			targetInvulnerable.ButtonPressed = false;
+			TestFactories.Press(monsters, "Invulnerable");
 			AssertBool(monster.HurtBoxComponent.Invulnerable).IsFalse();
-			harness.ExecuteCommand("defense", 1, Vector3.Zero); // Keep this UI smoke attack undefended so its hitbox remains observable.
+			harness.ExecuteCommand("defense", value: 1); // Keep this UI smoke attack undefended so its hitbox remains observable.
 			AssertObject(monster.DefenseController.Mode).IsEqual(EnemyDefenseMode.None);
 
 			await PhysicsFrames(runner, 2); // Enemy presentation becomes visible after its first physics tick.
-			var hurtboxes = harness.GetNode<CheckButton>("%Controls/Hurtboxes");
-			hurtboxes.ButtonPressed = true;
+			var display = TestFactories.Tool<CombatDisplayTool>(harness.Arena).Popup;
+			TestFactories.Press(display, "Hurtboxes");
 			foreach (var hurtbox in new[] { harness.Player.HurtBoxComponent, monster.HurtBoxComponent })
 				AssertBool(hurtbox.GetNode<MeshInstance3D>("CollisionShape3D/HurtboxDebugMesh").IsVisibleInTree()).IsTrue();
-			hurtboxes.ButtonPressed = false;
+			TestFactories.Press(display, "Hurtboxes");
 			await PhysicsFrames(runner, 2);
 			AssertBool(harness.Player.HurtBoxComponent.HasNode("CollisionShape3D/HurtboxDebugMesh")).IsFalse();
 			harness.GetNode<Button>("%Controls/HeroGuard").EmitSignal(BaseButton.SignalName.Pressed);
 			AssertBool(harness.Player.GuardComponent.IsGuarding).IsTrue();
 			harness.GetNode<Button>("%Controls/Reset").EmitSignal(BaseButton.SignalName.Pressed);
 			AssertBool(harness.Player.GuardComponent.IsGuarding).IsFalse();
-			var volumes = harness.GetNode<CheckButton>("%Controls/Volumes");
-			volumes.ButtonPressed = false;
 			AssertBool(harness.Player.AttackController.DebugDrawEnabled).IsFalse();
-			volumes.ButtonPressed = true;
+			TestFactories.Press(display, "Debug meshes");
 			AssertBool(harness.Player.AttackController.DebugDrawEnabled).IsTrue();
 			harness.GetNode<Button>("%Controls/Attack").EmitSignal(BaseButton.SignalName.Pressed);
 			AssertBool(harness.Player.AttackController.IsAttacking).IsTrue();
@@ -368,7 +363,7 @@ public partial class CombatIntegrationTest
 		var (runner, harness) = await Load();
 		using (runner)
 		{
-			AssertBool(harness.ExecuteCommand("attack", 0, Vector3.Zero)).IsTrue();
+			AssertBool(harness.ExecuteCommand("attack")).IsTrue();
 			await PhysicsFrames(runner, 35);
 			using var json = JsonDocument.Parse(harness.Recorder.RecentRecordsJson);
 			var events = json.RootElement.EnumerateArray().ToArray();

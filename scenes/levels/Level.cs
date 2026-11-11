@@ -3,38 +3,15 @@ using System.Linq;
 using Godot;
 
 [Tool]
-public partial class Level : Node
+public partial class Level : Node, IDebugWorld
 {
 	[Export] public bool AutoGenerateOnReady { get; set; } = true;
 
 	[Export] public MapGenerator MapGenerator { get; set; }
-	/// <summary>Optional scene environment whose ambient illumination follows this floor's darkness.</summary>
-	[Export] public WorldEnvironment LightingEnvironment { get; set; }
-	[Signal] public delegate void DarknessChangedEventHandler(bool isDark);
+	/// <summary>The floor's illumination and darkness; unassigned, the floor's lights stay as authored.</summary>
+	[Export] public WorldLighting Lighting { get; set; }
 	/// <summary>The floor could not be generated or its saved deltas could not be restored; the session decides what follows.</summary>
 	[Signal] public delegate void GenerationFailedEventHandler(string reason);
-	/// <summary>Current floor illumination override; debug changes last for this level instance only.</summary>
-	[Export]
-	public bool IsDark
-	{
-		get;
-		set
-		{
-			if (field == value) { return; }
-			field = value;
-			if (!IsNodeReady()) { return; }
-			if (_lightingEnvironment != null)
-			{
-				_lightingEnvironment.AmbientLightEnergy = value ? 0f : _normalAmbientEnergy;
-			}
-			EmitSignal(SignalName.DarknessChanged, value);
-		}
-	}
-	private float _normalAmbientEnergy;
-	private Environment _lightingEnvironment;
-
-	/// <summary>Changes floor illumination and notifies local player/fixture lighting without changing exploration.</summary>
-	public void SetDark(bool isDark) => IsDark = isDark;
 
 	/// <summary>Required to generate a playable floor: it records and replays this floor's item deltas.</summary>
 	[Export] public LevelItemPersistence ItemPersistence { get; set; }
@@ -85,14 +62,6 @@ public partial class Level : Node
 		}
 		Run ??= new RunState(RunState.DefaultSeed);
 
-		if (LightingEnvironment?.Environment != null)
-		{
-			// Own the runtime copy so a debug override cannot mutate the shared scene definition.
-			_lightingEnvironment = (Environment)LightingEnvironment.Environment.Duplicate();
-			_normalAmbientEnergy = _lightingEnvironment.AmbientLightEnergy;
-			LightingEnvironment.Environment = _lightingEnvironment;
-			_lightingEnvironment.AmbientLightEnergy = IsDark ? 0f : _normalAmbientEnergy;
-		}
 		_runtimeWorldRoot = GetOrCreateRuntimeWorldRoot();
 		if (AutoGenerateOnReady)
 		{
@@ -124,6 +93,13 @@ public partial class Level : Node
 	public uint Depth => MapGenerator.DungeonDepth;
 	/// <summary>The generated floor gameplay queries; null until generation succeeds.</summary>
 	public GeneratedFloor Floor { get; private set; }
+
+	ulong IDebugWorld.RunSeed => Run?.RunSeed ?? RunState.DefaultSeed;
+
+	Vector3 IDebugWorld.FindFreePositionNear(Vector3 origin) => Floor?.FindFreePositionNear(origin) ?? origin;
+
+	Vector3 IDebugWorld.FindDropLanding(Vector3 source, Vector3 direction, float distance) =>
+		Floor?.FindDropLanding(source, direction, distance) ?? source;
 
 	/// <summary>Recreates a reward stream without advancing generation or gameplay RNGs.</summary>
 	public RandomNumberGenerator CreateSourceLootRng(string sourceId) => MapGenerator.CreateSourceLootRng(sourceId);

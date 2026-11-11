@@ -39,16 +39,17 @@ public partial class PlayerLight : Node3D
 	[Export(PropertyHint.Range, "0,1,0.01")] public float WallGap { get; set; } = 0.4f;
 
 	private PlayerLightProfile _lit, _dark;
-	private Level _level;
+	private WorldLighting _lighting;
 	private Vector3 _spot;
 	private PhysicsRayQueryParameters3D _ray;
 
-	/// <summary>Whether the light burns at <see cref="Lit"/>: the floor is lit, or the player holds a light.</summary>
-	public bool IsLit => _level?.IsDark != true || HoldsLight;
+	/// <summary>Whether the light burns at <see cref="Lit"/>: the world is lit, or the player holds a light.</summary>
+	public bool IsLit => _lighting?.IsDark != true || HoldsLight;
 
 	private bool HoldsLight => Player?.Inventory?.EquippedItems.Values.Any(entry => entry?.Item is PortableLightItem) == true;
 
-	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
+	/// <summary>The world this light is carried in: a level, an arena or a workbench; none leaves it lit.</summary>
+	public override void _EnterTree() => _lighting = this.GetAncestorOrNull<ILitWorld>()?.Lighting;
 
 	public override void _Ready()
 	{
@@ -61,7 +62,7 @@ public partial class PlayerLight : Node3D
 		ProcessPhysicsPriority = CombatPhysics.MovementPresentation;
 		_spot = Light.Position;
 		_ray = PhysicsRayQueryParameters3D.Create(Vector3.Zero, Vector3.Zero, BlockingLayers);
-		this.SubscribeUntilExit(_level, level => level.DarknessChanged += OnDarknessChanged, level => level.DarknessChanged -= OnDarknessChanged);
+		this.SubscribeUntilExit(_lighting, lighting => lighting.DarknessChanged += OnDarknessChanged, lighting => lighting.DarknessChanged -= OnDarknessChanged);
 		this.SubscribeUntilExit(Player?.Inventory,
 			inventory => { inventory.ItemEquipped += OnEquipmentChanged; inventory.ItemUnequipped += OnEquipmentChanged; },
 			inventory => { inventory.ItemEquipped -= OnEquipmentChanged; inventory.ItemUnequipped -= OnEquipmentChanged; });

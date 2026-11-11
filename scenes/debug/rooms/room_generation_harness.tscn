@@ -30,6 +30,9 @@ MapDepth = 26
 MaxRooms = 6
 Seed = 2
 
+[node name="WorldLighting" parent="Level" index="3"]
+environment = SubResource("Environment")
+
 [node name="PreviewRoot" type="Node3D" parent="."]
 
 [node name="Camera3D" type="Camera3D" parent="."]
@@ -43,9 +46,6 @@ far = 250.0
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-60, -25, 0)
 light_energy = 1.0
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -70,3 +70,5 @@ theme_override_font_sizes/font_size = 22
 
 [node name="Status" type="Label" parent="UI/Panel/Margin/Controls"]
 text = "Generating…"
+
+[editable path="Level"]
