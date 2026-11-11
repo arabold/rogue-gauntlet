@@ -99,7 +99,7 @@ rotation_degrees = Vector3(-90, 0, 0)
   the underlying asset — the whole point is that the asset can change later without a rename.
 - A wrong local-axis convention (the model's "extends away from grip" axis doesn't match what
   the target bone's rest pose expects) makes the model invisible from every normal camera angle,
-  not just visibly mis-rotated — see the `assets` skill's in-hand verification section for how
+  not just visibly mis-rotated — see the `godot-mcp` skill's in-hand verification section for how
   to diagnose and derive the correction.
 - A scale correction is a uniform `transform = Transform3D(s, 0, 0, 0, s, 0, 0, 0, s, 0, 0, 0)`
   on the same child node, for models that render fine but are inconsistently sized against a

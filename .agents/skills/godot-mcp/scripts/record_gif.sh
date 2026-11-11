@@ -29,4 +29,8 @@ trap 'rm -rf "$frames_dir"' EXIT
 frame_count=$(awk "BEGIN { print int($seconds * $fps) }")
 "$here/godot.sh" --path "$PWD" "$scene" --resolution "$resolution" --fixed-fps "$fps" \
 	--write-movie "$frames_dir/frame.png" --quit-after "$frame_count"
-python3 -I "$here/frames_to_gif.py" "$frames_dir" "$out" --fps "$fps" "$@"
+# Pillow lives in the project's virtualenv, kept in the main checkout even when this runs in a worktree.
+python=python3
+common_dir=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) \
+	&& [[ -x "$(dirname "$common_dir")/.venv/bin/python" ]] && python="$(dirname "$common_dir")/.venv/bin/python"
+"$python" -I "$here/frames_to_gif.py" "$frames_dir" "$out" --fps "$fps" "$@"

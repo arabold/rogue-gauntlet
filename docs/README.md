@@ -34,7 +34,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Item identification](item-identification-system.md) | Per-run disguises, discovery, jewelry, and scroll targeting |
 | [Weapon attacks](weapon-attack-system.md) | Main/off-hand capabilities, paired melee, shared player/monster spell definitions, attack payloads, combos, weapon execution and contact resolution |
 | [Combat actions and defense](combat-system.md) | Shared action ownership and execution, dashes, hit feedback, attack indicators, dodge, guard/parry/guard break, poise, hit reactions, threat tiers, attack slots, RNG and persistence |
-| [Combat harness and traces](combat-harness.md) | Arena on the game's debug menu, passive movable target, path-based scripted combat, JSONL schema and analyzer |
+| [Combat harness and traces](combat-harness.md) | Arena on the game's debug menu, camera and lighting; passive target, hero builds, wall layouts, path-based scenarios, JSONL schema and analyzer |
 | [Screen effects](screen-effects.md) | Blindness/poison/near-death post-process overlays, their gameplay wiring through health and status conditions (including confusion and slowness), and the debug harness |
 | [Actor and item world effects](world-effects.md) | Reusable burst/sustained VFX, shared cloak/skin ownership, authored looks, committed potion use, known-cursed item auras (in-world, equipped, dropped and in inventory previews), glowing weapons with flicker lights, fountain pool sparkles and the workbench |
 | [Movement presentation](movement-feedback.md) | Shared locomotion animation sync and size-aware run, stop and dash cues |

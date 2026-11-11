@@ -59,9 +59,14 @@ Concrete corrections — each is a mistake that happens without being told other
   protection Write gets — a filename collision with an existing (even orphaned/dead) file
   silently clobbers it with no diff shown. Check `git status`/existence for every target
   filename first, or use Write per-file when the count is manageable.
-- **A model that renders fine in the item catalog can still be broken when equipped.** See the
-  `assets` skill's in-hand verification section — floating-and-auto-framed vs. bone-attached
-  are different enough contexts that one passing does not imply the other passes.
+- **A model that renders fine in the item catalog can still be broken when equipped.** See
+  "Visual verification: in-hand items" below — floating-and-auto-framed vs. bone-attached are
+  different enough contexts that one passing does not imply the other passes.
+- **Scenes outside `scenes/debug/` get the standalone bootstrap.** `SceneDebugBootstrap` adds its
+  own floor, light and camera to any scene run on its own outside `scenes/debug/`, the main menu
+  and `main.tscn`, so a `res://tmp_*` capture never looks like the game. Put temporary capture
+  scenes under `scenes/debug/` (and delete them), or instance a scene that already lights like
+  the game: the combat arena, a workbench or `main.tscn`.
 - **`_ready()` on freshly-added nodes is deferred, not synchronous.** In a `--script` main-loop
   script, `some_node.add_child(x)` does NOT run `x`'s (or an autoload's) `_ready()` before the
   next call returns — it fires on a later frame. Calling logic that depends on a node's own
@@ -112,6 +117,41 @@ Run a GDScript file as the main loop to exercise the project without the editor:
   scratchpad that loads a resource and calls its marshalable methods / reads its properties
   (see the GDScript gotcha above), then run it with `--script`. Do not commit one-offs.
 
+## Gameplay checks in the combat arena
+
+`scenes/debug/combat/combat_harness.tscn` is the game's player, HUD, camera, lighting and stone
+floor on an open arena, hosting the same debug menu as the game (see
+[`scenes/debug/README.md`](../../../scenes/debug/README.md) and the
+[harness guide](../../../docs/combat-harness.md)). Stage gameplay there instead of building a scene:
+
+- **Scripted runs:** JSON scenarios name items, spells and monsters by `res://` path. Run one
+  headless with a trace, then check it:
+  ```bash
+  /Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path "$PWD"     res://scenes/debug/combat/combat_harness.tscn -- --combat-seed=42     --combat-log=/tmp/run.jsonl --combat-script="$PWD/scenes/debug/combat/scenarios/combat_smoke.json" --combat-frames=420
+  python3 scripts/analyze_combat_trace.py /tmp/run.jsonl --require-complete
+  ```
+- **Recordings:** add `--fixed-fps 30 --write-movie <dir>/frame.png --quit-after <frames>` before
+  `--` on a windowed run to record a scenario, then stitch with `scripts/frames_to_gif.py`.
+- **Probes:** from a temporary script, call the harness's `ExecuteCommand("spawn", path, distance,
+  Vector3.ZERO)` or the debug tools under `UI/HUD/DebugMenu` (`SpellCastTool.Cast`,
+  `LevelTool.SetWalls`, `LevelTool.SetDark`, `MonsterTool.Count`).
+
+## Visual verification: in-hand items
+
+The floating item catalog auto-frames and auto-rotates, which hides two defects that only show
+once a model is bone-attached: a local-axis convention the hand's bone does not expect (melee
+bones expect the blade along local +Y; raw bow/crossbow assets aim along Z), which can leave the
+model edge-on and invisible, and a scale inconsistent with sibling tiers. Verify new weapons and
+shields on the rig: `asset-studio/godot/render_held_items.gd` equips each item on a standalone
+player and screenshots it from several angles (windowed), and the combat arena equips any item
+from **Items** at the game's camera. Each class names its own attachment bones
+(`docs/character-classes.md`), so re-check after changing them.
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
+  --script asset-studio/godot/render_held_items.gd -- <outdir> res://scenes/items/weapons/axe_rare.tres [more...]
+```
+
 ## Visual verification: top-down level/room screenshots
 
 Reasoning about tile coordinates can't confirm what a generated level or room actually looks like.
@@ -141,19 +181,22 @@ that a rotated room's doors still stand in their doorways.
 For motion (tweens, VFX, pickups, animations), record a GIF instead of single screenshots.
 `scripts/record_gif.sh` runs a scene **windowed** with Godot's Movie Maker (`--write-movie`), which
 forces a fixed frame rate, so tweens play at their true timing however slow the render, then
-stitches the frames with `scripts/frames_to_gif.py` (needs Pillow):
+stitches the frames with `scripts/frames_to_gif.py` (needs Pillow, which the project's `.venv`
+has; the script prefers it):
 
 ```bash
-.agents/skills/godot-mcp/scripts/record_gif.sh res://tmp_preview.tscn <out.gif> [seconds=2] [fps=30] [resolution=960x640] \
+.agents/skills/godot-mcp/scripts/record_gif.sh res://scenes/debug/tmp_preview.tscn <out.gif> [seconds=2] [fps=30] [resolution=960x640] \
   -- [--skip N] [--width 640] [--crop x,y,w,h]
 ```
 
-Stage the moment in a temporary `res://tmp_*` scene whose script builds the camera, light and
-props in `_ready()` and triggers the action from `_process()` after a short delay (no
-self-screenshot or `quit()` needed: `record_gif.sh` stops after the given seconds). Write the GIF
+`--crop` takes fractions (0-1) of the frame. Stage the moment in a temporary scene under
+`scenes/debug/` (see the bootstrap gotcha above) that instances the combat arena or a workbench,
+so it lights like the game, and triggers the action from `_process()` after a short delay (no
+self-screenshot or `quit()` needed: `record_gif.sh` stops after the given seconds). A gameplay
+moment needs no scene of its own: record a scenario in the arena (see above). Write the GIF
 to the scratchpad or a temp dir, never into the project (the script refuses an in-project path), and
 send it to the user. To inspect it yourself, `Read` only shows the first frame:
-tile a few frames into a PNG contact sheet with Pillow first. Delete the `tmp_*` scene afterwards.
+tile a few frames into a PNG contact sheet with Pillow first. Delete the temporary scene afterwards.
 
 ## MCP tools
 
@@ -187,8 +230,8 @@ grip orientation or scale. Always validate the result with `inspect_resource.gd`
 
 - Do not replace `dotnet build` with Godot's C# solution build on this machine; the Godot CLI
   solution build times out with engine shutdown errors. Use `dotnet`.
-- Do not commit temporary probe scenes/scripts. Put one-offs in the scratchpad; if a
-  `res://tmp_*` file is unavoidable, delete it before finishing.
+- Do not commit temporary probe scenes/scripts. Put one-offs in the scratchpad; if a scene in
+  the project is unavoidable, put it under `scenes/debug/` and delete it before finishing.
 - Do not edit `.tscn`/`.tres` blindly when a visual result matters; launch the editor or build
   a focused test scene.
 - Prefer deterministic checks: run a specific scene and seed when debugging generation.

@@ -8,7 +8,7 @@ Actor/item VFX use reusable scenes under `scenes/effects/world/`. Player and mon
 | --- | --- | --- |
 | `iron_skin/iron_skin.tres` | Metallic body/gear transformation with a brief entry ring and forging sparks | Inspector condition and preview/API; protection mechanics remain separate |
 | `stone_skin/stone_skin.tres` | Rough fractured mineral body/gear transformation and dust accent | Inspector condition and preview/API; protection mechanics remain separate |
-| `frozen/frozen.tres` | Sustained icy body/gear appearance with reversible entry and exit | Actor workbench, Frost Nova preview and combat-harness contact through the actor frozen-status component |
+| `frozen/frozen.tres` | Sustained icy body/gear appearance with reversible entry and exit | Actor workbench, and Frost Nova contact in the game or combat harness through the actor frozen-status component |
 | `healing/healing.tres` | Crimson gathering ribbons, ground pulse and rising motes | Committed healing potion use; drinking from a health fountain |
 | `mana/mana.tres` | The healing burst in cobalt blue | Drinking from a mana fountain |
 | `strength/strength.tres` | Amber rising streaks and pressure ring | Committed strength potion use |
@@ -72,7 +72,7 @@ Each pool effect sits under the prop's `Pools` node, hidden by an `ExplorationGa
 
 ## Workbench
 
-Open any preview with F6. Shared tabs switch between **World effects**, **Actor / item effects**, and **Scroll reading**. The scene paths and titles are authored once in `effect_harness_navigation.tscn`; the shared mouse camera is `EffectPreviewCamera`. Each preview owns its content and uses the production effect code. Shared helpers prepare actors and build consistent controls; the world harness contains only world effects, with scene switching handled solely by the tabs.
+Open any preview with F6. Shared tabs switch between **World effects**, **Actor / item effects**, and **Scroll reading**. The scene paths and titles are authored once in `effect_harness_navigation.tscn`; the shared mouse camera is `EffectPreviewCamera`. Each preview owns its content and uses the production effect code, lit by the game's own lighting and the hero's carried light, on the dungeon's stone floor (see [lighting, camera and floor](../scenes/debug/README.md#lighting-camera-and-floor)). Shared helpers prepare actors and build consistent controls; the world harness contains only world effects, with scene switching handled solely by the tabs.
 
 Actor/item controls show one subject and one effect: select the effect and player/skeleton/Warden/sword/ring, choose an actor pose, then replay, fade or clear. Fade uses the normal exit envelope; clear removes effects immediately. Replay restarts sustained effects as well as bursts. Playback supports pause/slow motion; **Dark level** darkens the workbench as a dark floor does, which helps inspect emission and light spill. There are no comparison, crowd, auto-replay, seed, combination, curse-knowledge or lifecycle controls. Lifecycle combinations and multiple owners remain covered by automated tests.
 
