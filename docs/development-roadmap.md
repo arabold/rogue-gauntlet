@@ -66,6 +66,8 @@ The next consumable-feedback goal is [catalog-wide activation coverage](specs/co
 
 ## Audio
 
+Before expanding content, reconcile the prototype with main's multi-action monsters, either-hand spells and shared camera/debug toolkit using the [audio combat integration plan](specs/audio-combat-integration-plan.md). Its three slices establish captured cue selection and successful release timing, author the expanded roster/dashes, then accept synchronization and the mix in the production combat arena.
+
 The [audio concept and implementation plan](specs/audio-system-plan.md) now has a playable prototype: Kenney CC0 effects, MintoDog CC0 exploration/boss loops, separate audio buses, menu and pause clicks, persistent volume settings with mono output, exploration music that continues into gameplay, boss crossfades, a player-centered listener, player movement/defense/attack cues, door cues, resolved contact impacts and one-shot crossbow/Warden wind-up cues. The user has heard menu/workbench playback and selected the music pair. Distinct material/element impacts and the later spell/item/ambience batches remain planned; settings persistence, in-game audibility and stereo behavior still need a windowed playthrough.
 
 ## Later delivery

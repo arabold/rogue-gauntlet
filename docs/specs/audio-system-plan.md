@@ -1,5 +1,7 @@
 # Audio concept and implementation plan
 
+Integration update (2026-11-10): this document describes the audio prototype before main's multi-action monster, dual wield and debug-toolkit reworks. The [audio combat integration plan](audio-combat-integration-plan.md) governs its reconciliation with that architecture; sound direction, asset choices and remaining content scope stay here.
+
 Status: the first-draft spec is committed; menu, workbench and gameplay audio have been heard. The Kenney CC0 packs, MintoDog CC0 exploration/boss pair, OpenGameArt CC0 swish pack and Artisticdude CC0 RPG sound pack are in the repo. Two-deck music, persistent category settings, boss music transitions, camera-aligned stereo placement, player/door/item pickup/drop cues, randomized attack swishes and resolved-contact routing are wired. Footsteps now follow the floor material; Kenney plate/tin variants drive parry/guard; monster definitions author attack voices and death cues from Artisticdude's pack. Real gameplay listening is still needed to tune those new mappings. Per-realm music, distinct damage/element impact coverage, spell and item-use audio remain future slices. This plan follows [program-design](../../.agents/skills/program-design/SKILL.md), the [architecture](../../ARCHITECTURE.md), and the existing [combat](../combat-system.md), [movement](../movement-feedback.md), [world effects](../world-effects.md) and [door access](../door-access.md) boundaries.
 
 ## Sound direction

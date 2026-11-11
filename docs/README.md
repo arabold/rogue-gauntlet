@@ -56,6 +56,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Attack status effects](specs/attack-status-effects-plan.md) | Proposed on-hit status payloads, actor-agnostic buffs for monsters and a monster status tint; first slice lets venomous monster attacks poison the player |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 | [Audio system](specs/audio-system-plan.md) | Playback prototype, persistent category settings and first combat cues wired; remaining work covers mix acceptance and broader content |
+| [Audio combat integration](specs/audio-combat-integration-plan.md) | Proposed reconciliation with current main: per-action monster voices, successful release timing, paired melee, either-hand spells and the shared camera/arena |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 
