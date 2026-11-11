@@ -2,8 +2,10 @@ using Godot;
 
 /// <summary>
 /// A floor paved with one real dungeon tile from its mesh library, so harnesses and workbenches stand their subjects on
-/// the game's own ground rather than a flat colour. Paved when it enters a running game; the editor shows it empty, so
-/// saving a scene never writes the tiles into it.
+/// the game's own ground rather than a flat colour. A tile's walking surface lies above its cell, where actors in the
+/// game stand on its collision, so the grid drops by that height: the surface sits at the parent's origin, level with the
+/// flat colliders and staged subjects there. Paved when it enters a running game; the editor shows it empty, so saving a
+/// scene never writes the tiles into it.
 /// </summary>
 [GlobalClass]
 public partial class SampleFloor : GridMap
@@ -53,6 +55,7 @@ public partial class SampleFloor : GridMap
 			return;
 		}
 
+		Position = Position with { Y = -WalkingSurface(tile) };
 		int reach = HalfExtent / TileSize * TileSize;
 		for (int x = -reach; x <= reach; x += TileSize)
 		{
@@ -61,5 +64,20 @@ public partial class SampleFloor : GridMap
 				SetCellItem(new Vector3I(x, 0, z), tile);
 			}
 		}
+	}
+
+	/// <summary>Height of the tile's walking surface above its cell: the top of its collision, or 0 without any.</summary>
+	private float WalkingSurface(int tile)
+	{
+		var shapes = MeshLibrary.GetItemShapes(tile);
+		float top = 0;
+		for (int index = 0; index + 1 < shapes.Count; index += 2)
+		{
+			if (shapes[index].AsGodotObject() is Shape3D shape)
+			{
+				top = Mathf.Max(top, CollisionOutlines.FromShape(shape, shapes[index + 1].AsTransform3D()).Top);
+			}
+		}
+		return top;
 	}
 }
