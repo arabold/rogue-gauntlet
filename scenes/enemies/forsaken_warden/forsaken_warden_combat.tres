@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=25 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
@@ -69,6 +69,16 @@ HitStopDuration = 0.06
 FacingLockLead = 0.3
 WindUpTurnRate = 45.0
 
+[sub_resource type="Resource" id="slam_cast"]
+script = ExtResource("attack_definition")
+HitWindowStart = 0.2
+DefenseTraits = 3
+IsRanged = true
+Range = 16.0
+PoiseDamage = 0.0
+Knockback = 0.0
+HyperArmorEnd = 1.0
+
 [sub_resource type="Resource" id="slash"]
 resource_name = "slash"
 script = ExtResource("attack_action")
@@ -109,8 +119,9 @@ UsesAttackSlot = false
 Conditions = [SubResource("phase_two_on")]
 WeightModifiers = [SubResource("tremor_mid")]
 Spell = ExtResource("tremor_spell")
+Cast = SubResource("slam_cast")
 Style = &"stomp"
-Duration = 2.65
+Duration = 1.1
 MinDamage = 20.5
 MaxDamage = 31.0
 

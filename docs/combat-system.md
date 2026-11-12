@@ -44,7 +44,7 @@ Monsters, nests and the harness practice target show floating damage numbers thr
 
 ## Poise and hit reactions
 
-An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefinition` sets max poise, regeneration delay and rate, break stagger, staggered damage multiplier, hyper-armor scale and whether the floating bar shows the meter. Each unprotected damaging contact removes the attack's `PoiseDamage`.
+An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefinition` sets max poise, regeneration delay and rate, break stagger, staggered damage multiplier, hyper-armor scale and whether the floating bar shows the meter. Each unprotected damaging contact removes the attack's `PoiseDamage`, scaled by the hyper-armor scale while the actor's action is armored; a scale of 0 (the Warden) makes armored actions unstoppable.
 
 - **Flinch.** While poise remains, the hit does not interrupt and does not push. Hit particles still play.
 - **Break.** The contact that empties poise staggers the actor through its action gate and pushes it by the attack's `Knockback`. The meter stays empty during the stagger, so later hits cannot chain breaks. It refills when the stagger ends, and otherwise after the regeneration delay.

@@ -156,6 +156,13 @@ public partial class EnemyDefenseController : Node
 		if (!HasGuardCapability && !HasDodgeCapability) return;
 
 		float dt = (float)delta;
+		// A hyper-armored action is committed: the monster never abandons it to guard or dodge, and a reaction it had
+		// scheduled lapses.
+		if (Enemy.ActionGate?.IsHyperArmored == true)
+		{
+			_meleeReactionTimer = 0;
+			return;
+		}
 		UpdateGuardHold(dt);
 		if (_ripostePending && GuardComponent?.IsGuarding != true && GuardComponent?.IsGuardRecovering != true)
 		{

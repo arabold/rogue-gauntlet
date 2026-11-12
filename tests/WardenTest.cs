@@ -189,6 +189,39 @@ public class WardenTest
 		AssertFloat(boss.GlobalPosition.HorizontalDistanceTo(hero.GlobalPosition)).IsGreater(5);
 	}
 
+	/// <summary>
+	/// The slam is the answer to a hero who strikes from behind: it comes within a second, and the hero's blows neither
+	/// stagger it nor make the Warden drop it to raise its shield.
+	/// </summary>
+	[TestCase]
+	public async Task HittingTheWardenFromBehindCannotStopItsSlam()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
+		boss.MovementComponent.SetPhysicsProcess(false);
+		boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
+		// Right behind it, where neither sword swing can start.
+		hero.GlobalPosition = boss.GlobalPosition + Vector3.Back * 1.6f;
+		hero.ResetPhysicsInterpolation();
+		hero.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		await runner.SimulateFrames(1, 20);
+		float heroFull = hero.HealthComponent.CurrentHealth, bossBefore = boss.HealthComponent.CurrentHealth;
+		harness.ExecuteCommand("automation", "", 1);
+
+		int frame = 0;
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
+		{
+			if (frame++ % 12 == 0) harness.ExecuteCommand("attack");
+			return hero.HealthComponent.CurrentHealth < heroFull;
+		}, 1.2f);
+		AssertFloat(boss.HealthComponent.CurrentHealth).OverrideFailureMessage("The hero's blows should land during the slam").IsLess(bossBefore);
+		AssertBool(boss.GetNode<PoiseComponent>("PoiseComponent").IsBroken).IsFalse();
+	}
+
 	[TestCase]
 	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
 	{
