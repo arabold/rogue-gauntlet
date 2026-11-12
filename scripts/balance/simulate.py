@@ -528,11 +528,14 @@ def read_trace(path):
         event, data, actor = record["event"], record["data"], record["actor"]
         if event == "attack.started":
             key = (data["execution_source"], data["execution"])
-            attacks[key] = {"hero": "/Player/" in actor + "/", "kind": "melee"}
+            style = str(data.get("style", ""))
+            # Casts fire homing missiles; a monster's "ranged" style shoots bolts; everything else is a melee swing.
+            kind = "homing" if "cast" in style else "ranged" if style == "ranged" else "melee"
+            attacks[key] = {"hero": "/Player/" in actor + "/", "kind": kind}
         elif event == "projectile.spawned" and "parent_source" in data:
             parent = (data["parent_source"], data["parent_execution"])
             parents[(data["execution_source"], data["execution"])] = parent
-            if parent in attacks:
+            if parent in attacks and attacks[parent]["kind"] == "melee":
                 attacks[parent]["kind"] = "homing" if "Missile" in actor else "ranged"
         elif event == "damage.resolved" and data["outcome"] == "Damaged":
             key = (data["execution_source"], data["execution"])
