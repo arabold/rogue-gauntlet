@@ -83,8 +83,12 @@ public partial class GameSession : Node
 	private ColorRect _levelFadeRect;
 	private Tween _levelFadeTween;
 
+	/// <summary>Autoloads are built before the engine loads the startup scene, which no load boundary precedes.</summary>
+	public GameSession() => ResourceCacheGuard.BeginStartup();
+
 	public override void _Ready()
 	{
+		ResourceCacheGuard.EndStartup();
 		if (Instance != null && GodotObject.IsInstanceValid(Instance))
 		{
 			GD.PrintErr("Multiple GameSession instances detected.");
