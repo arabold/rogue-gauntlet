@@ -18,7 +18,6 @@ These tuning changes came with the migration; check them in play:
 
 - The Warden reuses the player's Tremor spell, so both shake with `tremor_shake.tres` (0.32 s decay instead of the player's former 0.18 s).
 - The Warden uses one repeat penalty (0.35) in every phase instead of 0.25 in phase 3, and its Tremor takes no attack slot, like its swings.
-- Close pressure counts from the start of the fight, so a player already hugging the Warden can draw the stomp as soon as phase 2 begins.
 - Shooters may fire while closing in when they have sight and their action's range allows it.
 
 ## Persistence

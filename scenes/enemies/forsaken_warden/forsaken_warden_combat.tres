@@ -1,11 +1,10 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=27 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterSpellAction.cs" id="spell_action"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/HealthPhaseCondition.cs" id="phase"]
-[ext_resource type="Script" path="res://scenes/enemies/actions/TargetPressureCondition.cs" id="pressure"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterActionWeightModifier.cs" id="modifier"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
@@ -26,11 +25,6 @@ MinimumPhase = 1
 [sub_resource type="Resource" id="phase_three"]
 script = ExtResource("phase")
 MinimumPhase = 2
-
-[sub_resource type="Resource" id="close_pressure"]
-script = ExtResource("pressure")
-Range = 2.4
-Duration = 0.85
 
 [sub_resource type="Resource" id="slash_late"]
 script = ExtResource("modifier")
@@ -110,9 +104,9 @@ MaxDamage = 27.5
 resource_name = "tremor"
 script = ExtResource("spell_action")
 Cooldown = 8.0
-MaximumRange = 3.9
+MaximumRange = 7.0
 UsesAttackSlot = false
-Conditions = [SubResource("phase_two_on"), SubResource("close_pressure")]
+Conditions = [SubResource("phase_two_on")]
 WeightModifiers = [SubResource("tremor_mid")]
 Spell = ExtResource("tremor_spell")
 Style = &"stomp"

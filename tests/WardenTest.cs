@@ -164,6 +164,31 @@ public class WardenTest
 		}
 	}
 
+	/// <summary>
+	/// A hero who keeps out of sword reach does not stall the Warden: from its second phase it slams with Tremor as soon
+	/// as the hero stands inside the wave, and the wave reaches them.
+	/// </summary>
+	[TestCase]
+	public async Task TheWardenSlamsAHeroWhoKeepsOutOfSwordReach()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		hero.MovementComponent.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 5.5f);
+		// It cannot close in, so only the slam can reach the hero.
+		boss.MovementComponent.SetPhysicsProcess(false);
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
+		await runner.SimulateFrames(1, 20);
+		float full = hero.HealthComponent.CurrentHealth;
+		harness.ExecuteCommand("automation", "", 1);
+
+		await TestFactories.AwaitPhysicsUntil(runner, () => hero.HealthComponent.CurrentHealth < full, 4);
+		AssertFloat(hero.HealthComponent.CurrentHealth).IsLess(full);
+		AssertFloat(boss.GlobalPosition.HorizontalDistanceTo(hero.GlobalPosition)).IsGreater(5);
+	}
+
 	[TestCase]
 	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
 	{

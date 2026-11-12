@@ -47,7 +47,7 @@ An `EnemyCombatProfile` lists its actions in order. Each action is a Resource th
 
 ### Health phases
 
-An optional `HealthPhaseComponent` latches phases from descending health thresholds; healing never lowers it and it never interrupts a running action. Actions read it through `HealthPhaseCondition`. The Forsaken Warden uses 65% and 30%: the slash weighs less in phase 3, the overhead swing more in phases 2 and 3, and the Tremor stomp unlocks in phase 2 when the player stays within 2.4 m for 0.85 s. Its Tremor is the shared spell and shakes the camera through its `CameraShakeProfile`.
+An optional `HealthPhaseComponent` latches phases from descending health thresholds; healing never lowers it and it never interrupts a running action. Actions read it through `HealthPhaseCondition`. The Forsaken Warden uses 65% and 30%: the slash weighs less in phase 3, the overhead swing more in phases 2 and 3, and the Tremor stomp unlocks in phase 2. From then on it slams whenever its 8 s cooldown allows and the player stands inside its 7 m wave, so keeping out of sword reach does not stall the fight. Its Tremor is the shared spell and shakes the camera through its `CameraShakeProfile`.
 
 ### Roster examples
 
