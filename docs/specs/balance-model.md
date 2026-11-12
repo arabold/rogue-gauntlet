@@ -74,8 +74,8 @@ depth 1 to 25% at depth 24.
   multiples of it: dagger 0.72× every 0.36 s; sword 1.0× every 0.5 s; two-handed axe 1.5× every 0.72 s, clipping a
   second engaged monster 15% of the time; crossbow 1.3× every 0.95 s at range; wand 3 homing darts of 0.25× every
   0.6 s. The kinds no class starts with share the sword's damage per second when one-handed (axe 1.15×, blunt 1.3×:
-  bigger, slower hits that cut through armor) and add cleave when two-handed (sword, axe, blunt); spears and staves
-  trade the off-hand for a larger hit. Their exact multiples are proposals in `params.py`.
+  bigger, slower hits that cut through armor) and add cleave when two-handed (sword, axe, blunt); spears trade the off-hand
+  for a larger hit, and a staff fires four missiles for a volley 1.5× a wand's. Their exact multiples are proposals in `params.py`.
 - **Armor slots** are sized against the standard monster's mean hit `m` at that depth. A Normal medium body piece
   holds `0.30 m` armor, a helmet `0.15 m`, a shield `0.22 m`. Light pieces carry half the armor and remove 5% of
   landed hits; heavy pieces carry 1.3× and let 10% more land. The game has no passive evasion, so it expresses that footwork as movement speed: a light body piece moves its wearer 5% faster, a heavy one 8% slower.
@@ -133,16 +133,21 @@ archetype marks the gatekeeper bonus. `simulate.py monster` evaluates proposed s
 
 ## Floors and gatekeepers
 
-A floor spends a budget of 8 standard monsters at depth 1, rising to 11 at depth 24. It spends it on **packs**, not
-single monsters, so roles appear together: a patrol (standard and fodder), a guard post (brute and shooter), a rat
-swarm, a warband (two standards and a caster who heals them) and, from depth 4, a vanguard (brute, standard and
-shooter). Fighting together costs more than the sum of the members, because each monster keeps attacking until the
-hero reaches it. Gatekeeper floors spend 60% of the budget, then the gatekeeper.
+A floor spends a budget of 9 standard fights at depth 1, rising to 23 at depth 24. It spends it on **packs**, not
+single monsters, so roles appear together. Rats lead: rat packs of three from depth 1 and hordes of five from depth 2,
+with fodder pairs, lone standards, patrols (standard and fodder), sentries (a shooter) and, from depth 3, warbands (two
+standards and a caster who heals them); guard posts (brute and shooter) and vanguards (brute, standard and shooter)
+join from depth 4. Each pack has a depth range in `params.PACKS`. Gatekeeper floors spend 60% of the budget, then the
+gatekeeper.
 
-The game spends the same budget through the realm's encounter table. A monster costs
+A pack costs `(N + 1) / 2` times its members fought alone (`model.group_factor`): the hero kills them one by one while
+the rest keep attacking. The simulator's group fights match that within 10% for swarms, fodder and mixed melee; packs
+with a healer or a shooter come out a little lower. The floor budget is sized for these group costs.
+
+The game spends the same budget through the realm's encounter table, whose entries are packs. A monster costs
 `cost growth ^ (threat level − depth)` there: one standard fight on the depth of its threat level, 23% less for each
-depth deeper. That closed form stays within about 20% of the model's cost at the depths a monster spawns. The
-game does not compose packs yet; it draws single monsters by weight until no eligible one fits.
+depth deeper. That closed form stays within about 20% of the model's cost at the depths a monster spawns. A pack
+spawns together in one room.
 
 At regular skill and without potions, an ordinary floor costs about 40% of max health at depth 3 and over 110% at
 depth 24, and a gatekeeper about 110% and 230%. Supplies cover part of that: the late game is meant to drain
@@ -245,23 +250,19 @@ is authored by choosing its archetype and depth, and a new item by choosing its 
 the numbers. Loot needs only averages to match: potions and food per floor, the tier a hero wears at each depth, and
 the bonus from quality and affixes. Item tables are free to vary around them.
 
-`audit` and `derive` exist (see [Game content](#game-content)). The realm 1 monsters and the class sheets are
-derived; XP and floor budgets follow the monsters' threat levels; heroes level up on the fitted ladder with
-percentage attributes; elemental damage passes armor; potions and food heal a share of max health; and body armor and
-helmets exist in three weights, with every class starting in its own. The remaining steps:
+`audit` and `derive` exist (see [Game content](#game-content)), and the game follows the model so far:
 
-1. **Realm 1.** Derive the rest of depths 1–3: packs, class kits and tier-1 gear. Count potions,
-   food and gear per floor from the real loot generator over seeded headless floors, and match them to `SUPPLY`.
-   Then calibrate the novice and regular skill tiers from playtests (see [Calibration](#calibration)). Most of the
-   difficulty targets fall in these depths.
-   - **Tier bands.** The game drops each tier over its own overlapping depth band (`tier_depth_bands.tres`), not the
-     model's `tier_intro` and `tier_band`. Let `derive` write the bands and the loot pool windows, or move the model
-     to the game's bands, before measuring gear per floor.
-   - **Packs in the game.** Encounter tables list packs (members and count) instead of single monsters, a pack
-     spawns together in one room, and it costs its model cost, more than its members fought one at a time.
-   - **A rat-led start.** Rats are the weakest monster but arrive after the skeletons. Instead, depth 1 opens with
-     small rat groups, depth 2 brings rat hordes large enough to overwhelm a careless hero with only occasional
-     skeletons, and depth 3 leads to the Warden. Add the packs to `PACKS` first and check the effect with `survival`.
+- realm 1 monsters, class sheets, every weapon and armor piece, and the loot tier bands are derived;
+- XP and floor budgets follow the monsters' threat levels, and floors spawn rat-led packs;
+- heroes level up on the fitted ladder with percentage attributes;
+- elemental damage passes armor, and potions and food heal a share of max health;
+- body armor and helmets exist in three weights, and every class starts in its own.
+
+The remaining steps:
+
+1. **Realm 1.** Count potions, food and gear per floor from the real loot generator over seeded headless floors, and
+   match them to `SUPPLY`. Then calibrate the novice and regular skill tiers from playtests (see
+   [Calibration](#calibration)). Most of the difficulty targets fall in these depths.
 2. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
    playtested before the next one starts.
 3. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before

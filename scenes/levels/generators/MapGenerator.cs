@@ -475,17 +475,22 @@ public partial class MapGenerator : Node3D
 		return true;
 	}
 
+	/// <summary>Pack members stand within this distance of their pack's first member.</summary>
+	private const float PackRadius = 3.5f;
+	/// <summary>Distance between members of one pack.</summary>
+	private const float PackSpacing = 1.3f;
+
 	/// <summary>
-	/// Places the floor's encounter and applies its plan: the gatekeeper takes the first encounter slot at its resolved
-	/// site (or at the first picked point when it has neither a marker nor a fit), and the first two ordinary points of a
-	/// nest floor become nests.
+	/// Places the floor's packs and applies its plan. Each pack's first member takes a spawn point spaced from every
+	/// other pack; the rest stand around it in the same room. The gatekeeper takes the first pack's place at its resolved
+	/// site (or at the first picked point when it has neither a marker nor a fit), and the first two packs of a nest
+	/// floor become nests.
 	/// </summary>
 	private void GenerateEnemySpawnPoints()
 	{
-		var encounter = MobFactory.CreateEncounter(DungeonDepth, _random.Encounters);
+		var packs = MobFactory.CreatePacks(DungeonDepth, _random.Encounters);
 		var plan = Floor.Encounter;
-		int mobCount = encounter.Count;
-		GD.Print($"Generating {mobCount} enemy spawn points...");
+		GD.Print($"Generating {packs.Count} packs of {packs.Sum(pack => pack.Length)} monsters...");
 
 		var spawnPoints = new List<Vector3>();
 		int first = 0;
@@ -506,37 +511,46 @@ public partial class MapGenerator : Node3D
 		}
 
 		int nests = plan?.Nest == null ? 0 : 2;
-		for (int i = first; i < mobCount; i++)
+		for (int p = first; p < packs.Count; p++)
 		{
-			if (!TryPickEnemySpawnPoint(candidates, spawnPoints, out var point))
+			if (!TryPickEnemySpawnPoint(candidates, spawnPoints, out var anchor))
 			{
 				GD.PrintErr("Could not find a valid enemy spawn point.");
 				continue;
 			}
+			spawnPoints.Add(anchor);
 
-			spawnPoints.Add(point);
-
-			// Enemy scenes are loaded lazily by the factory to keep unused variants out of memory.
-			var enemyScene = encounter[i];
-			if (enemyScene == null)
+			string id = $"depth:{DungeonDepth}:pack:{p}";
+			// The pack faces one way, so it reads as a group.
+			var heading = new Basis(Vector3.Up, (float)(_random.Encounters.Randf() * 2 * Math.PI));
+			if (plan?.Gatekeeper != null && Floor.GatekeeperSpawn == null)
 			{
+				Floor.GatekeeperSpawn = AddEnemySpawnPoint(plan.Gatekeeper, plan.GatekeeperId, new Transform3D(heading, anchor));
+				continue;
+			}
+			if (nests > 0)
+			{
+				nests--;
+				AddEnemySpawnPoint(plan.Nest, id + ":nest", new Transform3D(heading, anchor));
 				continue;
 			}
 
-			string id = $"depth:{DungeonDepth}:monster:{i}";
-			var transform = new Transform3D(new Basis(Vector3.Up, (float)(_random.Encounters.Randf() * 2 * Math.PI)), point);
-			if (plan?.Gatekeeper != null && Floor.GatekeeperSpawn == null)
+			var members = new List<Vector3> { anchor };
+			for (int m = 0; m < packs[p].Length; m++)
 			{
-				Floor.GatekeeperSpawn = AddEnemySpawnPoint(plan.Gatekeeper, plan.GatekeeperId, transform);
-			}
-			else if (nests > 0)
-			{
-				nests--;
-				AddEnemySpawnPoint(plan.Nest, id + ":nest", transform);
-			}
-			else
-			{
-				AddEnemySpawnPoint(enemyScene, id, transform);
+				var point = anchor;
+				if (m > 0)
+				{
+					if (!Floor.TryPlacePackMember(anchor, members, PackRadius, PackSpacing, _random.Encounters, out point))
+					{
+						GD.PushWarning($"{id}: no room for member {m}; the pack spawns smaller.");
+						continue;
+					}
+					members.Add(point);
+					spawnPoints.Add(point);
+				}
+				// Enemy scenes are loaded lazily by the factory to keep unused variants out of memory.
+				if (packs[p][m] != null) AddEnemySpawnPoint(packs[p][m], $"{id}:{m}", new Transform3D(heading, point));
 			}
 		}
 	}

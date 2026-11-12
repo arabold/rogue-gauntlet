@@ -5,15 +5,18 @@ using Godot;
 public abstract partial class MobFactory : Resource
 {
 	public abstract PackedScene CreateEnemy(uint dungeonDepth, RandomNumberGenerator rng);
-	/// <summary>Default encounter sizing for factories without an authored budget.</summary>
-	public virtual Godot.Collections.Array<PackedScene> CreateEncounter(uint depth, RandomNumberGenerator rng)
+	/// <summary>
+	/// The floor's ordinary monsters in packs, each spawning together in one room. The default, for factories without
+	/// an authored budget, spawns single monsters.
+	/// </summary>
+	public virtual System.Collections.Generic.List<PackedScene[]> CreatePacks(uint depth, RandomNumberGenerator rng)
 	{
-		var result = new Godot.Collections.Array<PackedScene>();
+		var result = new System.Collections.Generic.List<PackedScene[]>();
 		uint count = 3 + depth % 5 + (uint)rng.RandiRange(0, 2);
 		for (int i = 0; i < count; i++)
 		{
 			var scene = CreateEnemy(depth, rng);
-			if (scene != null) result.Add(scene);
+			if (scene != null) result.Add([scene]);
 		}
 		return result;
 	}

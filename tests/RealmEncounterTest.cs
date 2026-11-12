@@ -20,23 +20,29 @@ public class RealmEncounterTest
 			{
 				using var a = GenerationRandom.Create(seed, GenerationRandom.Monsters);
 				using var b = GenerationRandom.Create(seed, GenerationRandom.Monsters);
-				var first = factory.CreateEncounter(depth, a).Select(s => s.ResourcePath).ToArray();
-				var second = factory.CreateEncounter(depth, b).Select(s => s.ResourcePath).ToArray();
-				AssertString(string.Join("|", first)).IsEqual(string.Join("|", second));
-				// The floor spends its budget until no eligible monster still fits.
-				float spent = first.Sum(path => factory.Cost(factory.Entries.Single(e => e.ScenePath == path), depth));
+				var first = Members(factory.CreatePacks(depth, a));
+				var second = Members(factory.CreatePacks(depth, b));
+				AssertString(Fingerprint(first)).IsEqual(Fingerprint(second));
+				// The floor spends its budget on whole packs until no eligible pack still fits.
+				float spent = first.Sum(pack => factory.Cost(factory.Entries.Single(e => e.Members.SequenceEqual(pack)), depth));
 				float cheapest = factory.Entries.Where(e => e.EligibleAt(depth)).Min(e => factory.Cost(e, depth));
 				AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth) + 1e-4f).IsTrue();
-				AssertBool(first.Length == 24 || factory.FloorBudget(depth) - spent < cheapest).IsTrue();
+				AssertBool(first.Sum(pack => pack.Length) >= RealmEncounterFactory.MaximumMonsters
+					|| factory.FloorBudget(depth) - spent < cheapest).IsTrue();
 			}
 		}
 		using var fallbackA = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		using var fallbackB = GenerationRandom.Create(42, GenerationRandom.Monsters);
-		AssertString(string.Join("|", factory.CreateEncounter(4, fallbackA).Select(s => s.ResourcePath)))
-			.IsEqual(string.Join("|", factory.Fallback.CreateEncounter(4, fallbackB).Select(s => s.ResourcePath)));
+		AssertString(Fingerprint(Members(factory.CreatePacks(4, fallbackA))))
+			.IsEqual(Fingerprint(Members(factory.Fallback.CreatePacks(4, fallbackB))));
 		AssertBool(factory.ContainsDepth(0)).IsFalse();
 		AssertBool(factory.ContainsDepth(4)).IsFalse();
 	}
+
+	private static string[][] Members(System.Collections.Generic.List<PackedScene[]> packs) =>
+		packs.Select(pack => pack.Select(scene => scene.ResourcePath).ToArray()).ToArray();
+
+	private static string Fingerprint(string[][] packs) => string.Join("|", packs.Select(pack => string.Join(",", pack)));
 
 	[TestCase]
 	public async Task ThreeFloorsHaveFiniteNestsAndPersistentGatekeeperUnlock()
@@ -45,7 +51,9 @@ public class RealmEncounterTest
 		await runner.SimulateFrames(2, 20);
 		var level = runner.Scene().GetNode<Level>("Level");
 		AssertBool(level.CanDescend).IsTrue();
-		AssertBool(level.MapGenerator.EnemySpawnPoints.All(p => p.Scenes[0].ResourcePath.Contains("/skeleton/"))).IsTrue();
+		// Depth 1 draws from the realm's own packs, not the fallback.
+		var realmMembers = ((RealmEncounterFactory)level.MapGenerator.MobFactory).Entries.SelectMany(entry => entry.Members).ToHashSet();
+		AssertBool(level.MapGenerator.EnemySpawnPoints.All(p => realmMembers.Contains(p.Scenes[0].ResourcePath))).IsTrue();
 
 		level.ConfigureGeneration(new RunState(12345), 2, null, null);
 		level.Generate();
@@ -91,13 +99,13 @@ public class RealmEncounterTest
 			boss.HealthComponent.TakeDamage(1000);
 			// Its threat level and the gatekeeper bonus pay more than any ordinary monster of the realm.
 			var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory;
-			int OrdinaryXp(MobSpawnEntry entry)
+			int OrdinaryXp(string path)
 			{
-				var actor = TestFactories.Load<PackedScene>(entry.ScenePath).Instantiate<EnemyBase>();
+				var actor = TestFactories.Load<PackedScene>(path).Instantiate<EnemyBase>();
 				try { return level.ThreatProfile.Xp(actor.Definition); }
 				finally { actor.Free(); }
 			}
-			int ordinaryBest = realm.Entries.Max(OrdinaryXp);
+			int ordinaryBest = realm.Entries.SelectMany(entry => entry.Members).Distinct().Max(OrdinaryXp);
 			AssertInt(player.Stats.Xp - xp).IsGreater(ordinaryBest);
 			await Task.Delay(1100); // allow the independent stair-arrival cooldown to expire
 			AssertBool(GameSession.Instance.CanUseTransition(GameSession.LevelTravelDirection.Down)).IsTrue();

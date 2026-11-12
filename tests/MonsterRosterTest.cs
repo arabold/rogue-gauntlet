@@ -183,9 +183,9 @@ public class MonsterRosterTest
 	{
 		var source = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		using var factory = (RealmEncounterFactory)source.Duplicate();
-		factory.Entries = new[] { new MobSpawnEntry { ScenePath = source.Entries[0].ScenePath, MinimumDepth = 3, MaximumDepth = 2 } };
+		factory.Entries = new[] { new MobSpawnEntry { Members = source.Entries[0].Members, MinimumDepth = 3, MaximumDepth = 2 } };
 		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("depth bounds"))).IsTrue();
-		factory.Entries = new[] { new MobSpawnEntry { ScenePath = source.Entries[0].ScenePath } };
+		factory.Entries = new[] { new MobSpawnEntry { Members = source.Entries[0].Members } };
 		factory.ThreatProfile = new ThreatProfile { FirstFloorBudget = 0.01f, LastFloorBudget = 0.01f };
 		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("affordable"))).IsTrue();
 		factory.ThreatProfile = null;

@@ -9,7 +9,7 @@ The active roster is Skeleton Minion, Skeleton Warrior, Skeleton Crossbowman, Sk
 | Asset Studio | Visuals, rig, clips, attachments and provenance |
 | Godot monster scene | Editable component composition, model, shapes, animations and explicit dependencies |
 | Monster definition and policy Resources | Starting stats, XP, loot, perception and combat decisions |
-| Realm encounter Resources | Depth eligibility, weights, nest and boss assignments; budgets come from the threat profile |
+| Realm encounter Resources | Packs (member scenes), depth eligibility, weights, nest and boss assignments; budgets come from the threat profile |
 
 Balance changes belong in Godot, not Studio JSON or documentation stat tables. A model's availability does not require adding it to encounters. Shared Resources are definitions; health, timers, targets and execution state belong to each actor.
 
@@ -77,7 +77,7 @@ The FSM owns awareness/pursuit, movement strategies express preferences and a pe
 
 ## Strength, placement and rewards
 
-Strength is fixed authored data; depth does not silently scale health or damage. `MonsterDefinition` authors base health, speed, armor and mana; `ActorStatsComponent` is the only writer of those values on the actor, re-resolving them when buffs such as Rage add or remove modifiers. Stronger variants can reuse art but get separate definitions. A definition's `Archetype` and `BalanceDepth` let the [balance model](specs/balance-model.md#game-content) derive those stats and the monster's threat level; the threat level sets its XP and what it costs a floor's encounter budget. Encounter entries set inclusive depth bounds and frequency. Player leveling remains separate work.
+Strength is fixed authored data; depth does not silently scale health or damage. `MonsterDefinition` authors base health, speed, armor and mana; `ActorStatsComponent` is the only writer of those values on the actor, re-resolving them when buffs such as Rage add or remove modifiers. Stronger variants can reuse art but get separate definitions. A definition's `Archetype` and `BalanceDepth` let the [balance model](specs/balance-model.md#game-content) derive those stats and the monster's threat level; the threat level sets its XP and what it costs a floor's encounter budget. Encounter entries are packs: they list their member scenes and set inclusive depth bounds and frequency. Player leveling remains separate work.
 
 Invalid required gatekeeper configuration leaves descent locked with diagnostics. Cleared entities, finite nest slots and boss defeat use existing floor deltas; surviving actors reset on reconstruction. [Randomness and saves](randomness-and-seeds.md) owns those limits.
 

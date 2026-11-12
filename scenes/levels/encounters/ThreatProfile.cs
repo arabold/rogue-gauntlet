@@ -41,6 +41,21 @@ public partial class ThreatProfile : Resource
 	/// </summary>
 	public float Cost(float threatLevel, uint depth) => Mathf.Pow(CostGrowth, threatLevel - depth);
 
+	/// <summary>
+	/// How much more a pack costs than its members fought alone. The hero kills members one by one while the rest keep
+	/// attacking, so the k-th to fall attacks through k kills: (N + 1) / 2 for N members (the balance model's
+	/// <c>group_factor</c>).
+	/// </summary>
+	public static float GroupFactor(int size) => (size + 1) / 2f;
+
+	/// <summary>Budget a pack of monsters with these threat levels spends on a floor at <paramref name="depth"/>.</summary>
+	public float PackCost(System.Collections.Generic.IReadOnlyCollection<float> threatLevels, uint depth)
+	{
+		float sum = 0;
+		foreach (float threat in threatLevels) sum += Cost(threat, depth);
+		return GroupFactor(threatLevels.Count) * sum;
+	}
+
 	/// <summary>Standard fights a floor at <paramref name="depth"/> spends on ordinary monsters.</summary>
 	public float FloorBudget(uint depth, bool gatekeeperFloor)
 	{

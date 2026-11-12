@@ -73,7 +73,7 @@ WEAPONS = {
     "spear_2h": dict(hit=1.55, cycle=0.70, hands=2),            # thrusts one target; reach is not modeled
     "crossbow": dict(hit=1.30, cycle=0.95, hands=2, ranged=True),
     "wand":     dict(hit=1.00, cycle=0.60, hands=1, ranged=True, homing=True, darts=3, dart_scale=0.25),
-    "staff":    dict(hit=1.20, cycle=0.60, hands=2, ranged=True, homing=True, darts=4, dart_scale=0.19),
+    "staff":    dict(hit=1.00, cycle=0.60, hands=2, ranged=True, homing=True, darts=4, dart_scale=0.28),  # volley 1.5x a wand's
 }
 
 # Spells scale off the focus's hit like missiles. `targets` = average monsters hit in a pack.
@@ -131,7 +131,7 @@ ARCHETYPES = {
 # careless hero with only occasional skeletons, and mixed groups take over from depth 3.
 PACKS = [
     dict(name="rat pack",      first=1, last=6, weight=6, members=["swarmer"] * 3),
-    dict(name="rat horde",     first=2, last=0, weight=3, members=["swarmer"] * 6),
+    dict(name="rat horde",     first=2, last=0, weight=3, members=["swarmer"] * 5),
     dict(name="fodder pair",   first=1, last=0, weight=2, members=["fodder", "fodder"]),
     dict(name="lone standard", first=1, last=0, weight=2, members=["standard"]),
     dict(name="patrol",        first=2, last=0, weight=2, members=["standard", "fodder"]),

@@ -76,11 +76,18 @@ public class GarrisonRoomPoolTest
 			level.Generate();
 			AssertString(failure).OverrideFailureMessage($"seed={runSeed} depth={depth}: {failure}").IsEmpty();
 			AssertArray(TestFactories.ConnectivityFailures(generator).ToArray()).OverrideFailureMessage($"seed={runSeed} depth={depth}").IsEmpty();
-			var ordinary = generator.EnemySpawnPoints.Where(spawn => encounters.Entries.Any(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath)).ToArray();
-			float spent = ordinary.Sum(spawn => encounters.Cost(encounters.Entries.Single(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath), depth));
+			// Every pack's members are placed, and stand together in one room around the pack's first member.
 			using var encounterRng = GenerationRandom.Create(generator.Seed, GenerationRandom.Monsters);
-			AssertInt(generator.EnemySpawnPoints.Count).IsEqual(encounters.CreateEncounter(depth, encounterRng).Count);
-			AssertBool(spent > 0 && spent <= encounters.FloorBudget(depth) + 1e-4f).IsTrue();
+			var packs = encounters.CreatePacks(depth, encounterRng);
+			int replaced = depth == 3 ? 1 : depth == 2 ? 2 : 0;
+			AssertInt(generator.EnemySpawnPoints.Count).IsEqual(replaced + packs.Skip(replaced).Sum(pack => pack.Length));
+			var ordinary = generator.EnemySpawnPoints.Where(spawn => spawn.PersistentId.Contains(":pack:") && !spawn.PersistentId.EndsWith(":nest"));
+			foreach (var pack in ordinary.GroupBy(spawn => spawn.PersistentId[..spawn.PersistentId.LastIndexOf(':')]))
+			{
+				Vector3 lead = pack.First().GlobalPosition;
+				AssertBool(pack.All(spawn => spawn.GlobalPosition.HorizontalDistanceTo(lead) <= 3.51f
+					&& generator.Floor.RoomIdAt(spawn.GlobalPosition) == generator.Floor.RoomIdAt(lead))).OverrideFailureMessage(pack.Key).IsTrue();
+			}
 			AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.Scenes[0] == encounters.NestScene)).IsEqual(depth == 2 ? 2 : 0);
 			AssertBool(level.CanDescend).IsEqual(depth != 3);
 			if (depth == 3) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);

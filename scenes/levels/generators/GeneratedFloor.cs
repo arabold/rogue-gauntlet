@@ -256,6 +256,37 @@ public sealed class GeneratedFloor
 		return false;
 	}
 
+	/// <summary>
+	/// A spot for one more pack member near <paramref name="anchor"/>: walkable for a monster's body, in the anchor's room
+	/// (or corridor), within <paramref name="radius"/> and at least <paramref name="spacing"/> from every member already
+	/// placed. Rings widen outward from a random start angle; false when the room has no space left that close.
+	/// </summary>
+	public bool TryPlacePackMember(Vector3 anchor, IReadOnlyList<Vector3> pack, float radius, float spacing,
+		RandomNumberGenerator rng, out Vector3 point)
+	{
+		const float BodyRadius = .5f;
+		int room = RoomIdAt(anchor);
+		float start = rng.Randf() * Mathf.Tau;
+		for (float ring = spacing; ring <= radius; ring += spacing * .5f)
+		{
+			int samples = Mathf.Max(6, Mathf.CeilToInt(Mathf.Tau * ring / spacing));
+			for (int i = 0; i < samples; i++)
+			{
+				float angle = start + Mathf.Tau * i / samples;
+				var candidate = new Vector3(anchor.X + Mathf.Cos(angle) * ring, anchor.Y, anchor.Z + Mathf.Sin(angle) * ring);
+				if (RoomIdAt(candidate) != room || !IsWalkableMapPosition(candidate) || !IsReachableArea(candidate, BodyRadius)) continue;
+				bool crowded = false;
+				foreach (var other in pack)
+					if (candidate.HorizontalDistanceTo(other) < spacing) { crowded = true; break; }
+				if (crowded) continue;
+				point = candidate;
+				return true;
+			}
+		}
+		point = anchor;
+		return false;
+	}
+
 	/// <summary>Checks a room-local circular footprint against floor edges, decoration and authored props.</summary>
 	public bool IsFootprintClear(Vector3 point, float radius, int roomId)
 	{
