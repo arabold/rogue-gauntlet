@@ -72,11 +72,20 @@ public partial class ActorActionGateComponent : Node
 	/// </summary>
 	public bool IsHyperArmored { get; private set; }
 
-	public void ReportHyperArmor(ActorActionLease lease, bool armored)
+	/// <summary>
+	/// True while the current action's armor is uninterruptible (<see cref="AttackDefinition.Interruptible"/>): hits drain
+	/// no poise, so only death ends it, and its owner never cancels it to defend.
+	/// </summary>
+	public bool IsUnstoppable { get; private set; }
+
+	public void ReportHyperArmor(ActorActionLease lease, bool armored, bool unstoppable = false)
 	{
-		if (!IsLeaseCurrent(lease) || IsHyperArmored == armored) return;
+		unstoppable &= armored;
+		if (!IsLeaseCurrent(lease) || (IsHyperArmored == armored && IsUnstoppable == unstoppable)) return;
 		IsHyperArmored = armored;
-		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.hyper_armor", ("kind", CurrentKind.ToString()), ("armored", armored), ("lease", lease.LeaseId));
+		IsUnstoppable = unstoppable;
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.hyper_armor", ("kind", CurrentKind.ToString()), ("armored", armored),
+			("unstoppable", unstoppable), ("lease", lease.LeaseId));
 	}
 
 	public bool AllowsLocomotion => !IsStatusLocked && (!IsBusy || (CurrentKind == ActorActionKind.Guard && CurrentPhase == ActorActionPhase.Active));
@@ -194,7 +203,7 @@ public partial class ActorActionGateComponent : Node
 		CurrentLease = ActorActionLease.None;
 		CurrentKind = ActorActionKind.None;
 		CurrentPhase = ActorActionPhase.None;
-		IsHyperArmored = false;
+		IsHyperArmored = IsUnstoppable = false;
 		_currentOnInterrupted = null;
 
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.released", ("kind", oldKind.ToString()));
@@ -210,7 +219,7 @@ public partial class ActorActionGateComponent : Node
 		CurrentLease = ActorActionLease.None;
 		CurrentKind = ActorActionKind.None;
 		CurrentPhase = ActorActionPhase.None;
-		IsHyperArmored = false;
+		IsHyperArmored = IsUnstoppable = false;
 		_currentOnInterrupted = null;
 
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.interrupted", ("kind", oldKind.ToString()), ("reason", reason.ToString()));

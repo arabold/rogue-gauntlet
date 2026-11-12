@@ -214,6 +214,23 @@ public partial class CombatDefenseTest
 		AssertFloat(health.CurrentHealth).IsEqual(100f);
 	}
 
+	/// <summary>Dodging through an area (a slam's wave, an explosion) does not avoid it; only leaving the area does.</summary>
+	[TestCase]
+	public void DodgeImmunityDoesNotAvoidAreaImpacts()
+	{
+		var (_, _, hurtbox, _, dodge, health) = CreateDodgeActor();
+		dodge.TryDodge(new Vector3(0, 0, -1));
+		dodge._PhysicsProcess(0.05f);
+
+		var resolution = hurtbox.ResolveDamage(new DamageContext
+		{
+			Amount = 25f, IncomingDirection = new Vector3(0, 0, -1), Faction = DamageSourceFlags.Enemy,
+			DefenseTraits = AttackDefenseTraits.Dodgeable, DeliveryKind = DamageDeliveryKind.AreaImpact
+		});
+		AssertInt((int)resolution.Outcome).IsEqual((int)DamageOutcome.Damaged);
+		AssertFloat(health.CurrentHealth).IsLess(100f);
+	}
+
 	[TestCase]
 	public void DodgeCooldownBlocksImmediateReDodge()
 	{

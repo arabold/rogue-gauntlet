@@ -156,9 +156,9 @@ public partial class EnemyDefenseController : Node
 		if (!HasGuardCapability && !HasDodgeCapability) return;
 
 		float dt = (float)delta;
-		// A hyper-armored action is committed: the monster never abandons it to guard or dodge, and a reaction it had
+		// An uninterruptible action is committed: the monster never abandons it to guard or dodge, and a reaction it had
 		// scheduled lapses.
-		if (Enemy.ActionGate?.IsHyperArmored == true)
+		if (Enemy.ActionGate?.IsUnstoppable == true)
 		{
 			_meleeReactionTimer = 0;
 			return;

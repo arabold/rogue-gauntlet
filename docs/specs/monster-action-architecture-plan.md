@@ -8,7 +8,7 @@ Goal for every remaining step: a new monster is a scene plus Resources, and a ne
 
 - **Dodge on the dash component.** `DodgeComponent` keeps its own displacement (immunity, charges, steering, pass-through). Moving its travel onto `DashComponent` waits until both have settled in play.
 - **Editor badges.** Scene-tree configuration warnings for monsters need `EnemyBase` to become `[Tool]`, which would run gameplay setters against editor placeholders. **Project → Tools → Validate monster scene** stays the editor surface.
-- **Phase content.** Phase entry actions (a roar, brief immunity) and per-phase movement or defense overrides wait for a boss that needs them; today phases only gate and weight actions.
+- **Phase content.** Phase entry actions (a roar, brief immunity) and per-phase speed or defense overrides wait for a boss that needs them; today phases gate and weight actions and scale turning (`TurnRateByPhase`).
 - **Spell cast validation.** A spell action's cast definition does not get the attack timing checks (wind-up, threat tier) that attack actions get; add them once the shared cast definitions are tuned against those rules.
 - **Consumables.** Plain buff potions and scrolls keep `BuffedItem.ApplyBuff`; an item moves to a spell only when a monster needs the same effect.
 

@@ -22,7 +22,7 @@ The existing hit stop remains on the attacking execution; other actors, defense 
 
 ## Dodge, guard and parry
 
-Dodge combines physical displacement with an authored immunity interval, recovery, charges and a minimum interval between dodges. Collision may stop displacement without extending immunity. AI must also find a supported, clear destination before dodging.
+Dodge combines physical displacement with an authored immunity interval, recovery, charges and a minimum interval between dodges. Immunity avoids strikes and projectiles, never areas: an area contact (a slam's wave, an explosion, a lingering field) is escaped only by leaving it. Collision may stop displacement without extending immunity. AI must also find a supported, clear destination before dodging.
 
 A dodge can pass through other actors. `DodgeDefinition.PassThroughLayers` removes physics layers from the actor's collision mask while it travels. Temporary body collision exceptions also prevent those bodies' movement from pushing them out of the dodging actor; hurtboxes remain active and walls stay solid. The player's dodge passes through the enemies layer, so dodging through a monster puts the player behind it. A dodge that ends inside a pass-through body keeps moving at half speed, without immunity and for at most `PassThroughExitTime` (0.3 s), until it is clear; then the mask returns. Every exit path restores the mask and removes only the dodge's own collision exceptions: finishing, cancellation, interruption and leaving the tree. Monster dodges pass through nothing.
 
@@ -44,7 +44,7 @@ Monsters, nests and the harness practice target show floating damage numbers thr
 
 ## Poise and hit reactions
 
-An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefinition` sets max poise, regeneration delay and rate, break stagger, staggered damage multiplier, hyper-armor scale and whether the floating bar shows the meter. Each unprotected damaging contact removes the attack's `PoiseDamage`, scaled by the hyper-armor scale while the actor's action is armored; a scale of 0 (the Warden) makes armored actions unstoppable.
+An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefinition` sets max poise, regeneration delay and rate, break stagger, staggered damage multiplier, hyper-armor scale and whether the floating bar shows the meter. Each unprotected damaging contact removes the attack's `PoiseDamage`, scaled by the hyper-armor scale while the actor's action is armored.
 
 - **Flinch.** While poise remains, the hit does not interrupt and does not push. Hit particles still play.
 - **Break.** The contact that empties poise staggers the actor through its action gate and pushes it by the attack's `Knockback`. The meter stays empty during the stagger, so later hits cannot chain breaks. It refills when the stagger ends, and otherwise after the regeneration delay.
@@ -52,6 +52,7 @@ An actor may assign a `PoiseComponent` to its hurtbox. Its shared `PoiseDefiniti
 - **Without poise.** Actors without poise (rats, practice targets) keep the older rule: every damaging hit interrupts the current action and pushes. The exception is an action reporting hyper-armor, which only flinches.
 - **Forced pushback.** An attack with `ForcePushback` also pushes a defender that would only flinch, by its `Knockback`, and interrupts its current action without a stagger or poise break. Hyper-armor still holds, a running stagger is pushed but not shortened, and poise with `ResistsForcedPushback` (the Warden) only flinches. The player's default melee secondary and the air staff's whirlwind (`Knockback` 4) force pushback.
 - **Hyper-armor.** It is authored per attack as a normalized execution interval. It scales incoming poise damage by the definition's armored scale. A break still interrupts.
+- **Uninterruptible attacks.** An attack with `Interruptible` off makes its hyper-armor window unstoppable, the souls-like committed attack of a boss or elite: hits there drain no poise, so nothing staggers the attacker out of it, and a monster never cancels it to guard or dodge. Its recovery outside the window stays open to punishment.
 
 Attacks author `PoiseDamage`, `Knockback`, `ForcePushback` and `HitStopDuration`. Weapons without a custom definition use the player attack controller's default impact; the default secondary carries hyper-armor. Absorbed, blocked, dodged and parried contacts deal no poise damage.
 

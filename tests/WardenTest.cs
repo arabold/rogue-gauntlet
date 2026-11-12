@@ -398,6 +398,33 @@ public class WardenTest
 		AssertBool(interrupted == false).OverrideFailureMessage("The Warden's swing was interrupted").IsTrue();
 	}
 
+	/// <summary>The weaker the Warden, the faster it turns to a hero behind it, so flanking pays less in its later phases.</summary>
+	[TestCase]
+	public async Task TheWardenTurnsFasterInItsLaterPhases()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
+		boss.EnemyBehaviorComponent.AIEnabled = false;
+
+		async Task<float> TurnedTowardItsBack()
+		{
+			boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
+			float elapsed = 0;
+			await TestFactories.AwaitPhysicsUntil(runner, () =>
+			{
+				boss.MovementComponent.FaceDirection(Vector3.Back with { X = 0.01f });
+				return (elapsed += 1f / Engine.PhysicsTicksPerSecond) >= 0.4f;
+			}, 2);
+			return boss.MovementComponent.LookAtDirection.AngleTo(Vector3.Forward);
+		}
+
+		float fullHealth = await TurnedTowardItsBack();
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.8f);
+		float lastPhase = await TurnedTowardItsBack();
+		AssertFloat(lastPhase).IsGreater(fullHealth * 1.8f);
+	}
+
 	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(boss.GlobalPosition);
 
 	private static EnemyBase Boss(Level level) => level.FindChildren("*", "", true, false)

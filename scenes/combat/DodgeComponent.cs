@@ -206,9 +206,13 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		if (!IsTimerRunning) SetPhysicsProcess(false);
 	}
 
+	/// <summary>
+	/// Immunity avoids dodgeable strikes and projectiles, never areas: an area contact (a slam's wave, an explosion, a field)
+	/// can only be escaped by leaving it, like hazards.
+	/// </summary>
 	public bool TryEvaluate(in DamageContext contact, out DefenseEvaluation evaluation)
 	{
-		if (contact.DeliveryKind is not (DamageDeliveryKind.Hazard or DamageDeliveryKind.Environmental)
+		if (contact.DeliveryKind is not (DamageDeliveryKind.Hazard or DamageDeliveryKind.Environmental or DamageDeliveryKind.AreaImpact)
 			&& IsDodging && DodgeDef != null
 			&& _dodgeElapsed >= EffectiveDefinition.ImmunityStart
 			&& _dodgeElapsed < EffectiveDefinition.ImmunityEnd)

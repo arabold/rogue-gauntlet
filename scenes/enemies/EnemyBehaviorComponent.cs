@@ -170,6 +170,11 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 				healthComponent => healthComponent.Died += OnDie,
 				healthComponent => healthComponent.Died -= OnDie);
 		}
+
+		ApplyPhaseTurnRate(Actor.HealthPhases?.CurrentPhase ?? 0);
+		this.SubscribeUntilExit(Actor.HealthPhases,
+			phases => phases.PhaseChanged += OnPhaseChanged,
+			phases => phases.PhaseChanged -= OnPhaseChanged);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -222,6 +227,11 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		SetTarget(player);
 		SetBehavior(EnemyBehaviorState.Chasing);
 	}
+
+	private void OnPhaseChanged(int previous, int current) => ApplyPhaseTurnRate(current);
+
+	/// <summary>Each health phase may turn the monster faster (<see cref="EnemyCombatProfile.TurnRateByPhase"/>).</summary>
+	private void ApplyPhaseTurnRate(int phase) => MovementComponent.TurnRateScale = _profile.Combat?.TurnRateScale(phase) ?? 1;
 
 	private void OnAttackFinished(AttackIdentity identity, bool interrupted)
 	{

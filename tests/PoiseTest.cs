@@ -123,6 +123,28 @@ public class PoiseTest
 		Free(gate, poise);
 	}
 
+	/// <summary>
+	/// Uninterruptible armor drains no poise, so no number of hits staggers the attacker out of it; ordinary armor on the
+	/// next action drains again.
+	/// </summary>
+	[TestCase]
+	public void UninterruptibleArmorCannotBeBroken()
+	{
+		var (gate, poise) = Create();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var committed);
+		gate.ReportHyperArmor(committed, true, unstoppable: true);
+		AssertBool(poise.Apply(100)).IsFalse();
+		AssertFloat(poise.Current).IsEqual(20);
+		AssertBool(gate.IsLeaseCurrent(committed)).IsTrue();
+		gate.Release(committed);
+		AssertBool(gate.IsUnstoppable).IsFalse();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var ordinary);
+		gate.ReportHyperArmor(ordinary, true);
+		poise.Apply(10);
+		AssertFloat(poise.Current).IsEqual(15);
+		Free(gate, poise);
+	}
+
 	[TestCase]
 	public void InvalidDefinitionLeavesTheActorWithoutPoise()
 	{
