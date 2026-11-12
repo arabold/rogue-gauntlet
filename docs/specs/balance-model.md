@@ -124,8 +124,8 @@ to shooters. Healers add what they heal, burned through again, while an ally kee
   level), so out-of-depth weaklings pay little but tough monsters are not exponential jackpots. A standard monster
   pays 10 XP at depth 1 and 47 at depth 12; the depth-3 gatekeeper pays about 100.
 
-The game will compute threat level and XP from a monster's definition with these formulas, replacing `XpReward` and
-hand-authored `Threat`. `simulate.py monster` evaluates proposed stats today.
+The simulator will write each monster's threat level into its definition, and the game will compute XP from it,
+replacing `XpReward` and hand-authored `Threat`. `simulate.py monster` evaluates proposed stats today.
 
 ## Floors and gatekeepers
 
@@ -200,20 +200,34 @@ The model can be no better than its skill tiers. Measure them before tuning numb
 
 ## Implementation plan
 
-1. **Model in the game.** Port the reference curves, duel cost, threat level and XP to C#, with their parameters in
-   one Godot resource. Monsters compute threat level and XP from their definitions, which removes `XpReward` and
-   `MobSpawnEntry.Threat`. Floor budgets come from the depth instead of authored `FloorBudgets`. Bump
+The model stays in Python, so it has one implementation. The game holds the derived numbers and only the short
+formulas that use them: XP from threat level, floor budgets from depth, and the XP ladder.
+
+Missing content does not block any step. Targets exist per archetype and gear tier, not per item, so a new monster
+is authored by choosing its archetype and depth, and a new item by choosing its kind and tier; `derive` fills in
+the numbers. Loot needs only averages to match: potions and food per floor, the tier a hero wears at each depth, and
+the bonus from quality and affixes. Item tables are free to vary around them.
+
+1. **Derive and audit.** `simulate.py derive` writes target values into monster, weapon, armor and class `.tres`
+   files, including each monster's threat level. `simulate.py audit` reads them and flags anything off target. Run on
+   today's data, the audit lists everything still to rewrite.
+2. **Threat-based XP.** The game computes XP from a monster's threat level, doubled for gatekeepers, and floor
+   budgets from the depth. Remove `XpReward`, `MobSpawnEntry.Threat` and the authored `FloorBudgets`, and bump
    `SaveGame.CurrentVersion`.
-2. **Rule changes.** Make attributes proportional (Vitality as % health; Strength and Intelligence as % damage).
-   Let missiles and spells skip armor. Make healing potions heal a share of max health.
-3. **Leveling.** The fitted XP ladder, level-ups adding health and the class's attribute growth, and the level-up
-   presentation the game already has an effect for.
-4. **Armor slots.** Body armor and helmets in light, medium and heavy weights, sized from the slot shares and tiers.
-5. **Derived content.** Rewrite weapons, shields, monsters, spells, potions, class sheets, packs and loot supply
-   from the simulator's target tables.
-6. **Audit mode.** Once the `.tres` files hold derived values, `simulate.py audit` reads them and flags anything
-   off its target. From then on the simulator checks the real game instead of the plan.
-7. **Calibrate** the skill tiers from playtests, then retune the targets.
+3. **Leveling and rule changes.** Both change `PlayerStats`, so they land together:
+   - the fitted XP ladder, with level-ups that add health and the class's attribute growth;
+   - attributes as percentages (Vitality of health, Strength and Intelligence of damage);
+   - missiles and spells that skip armor;
+   - healing potions that heal a share of max health.
+4. **Realm 1.** Derive depths 1–3 and their gatekeeper: monsters, packs, class kits and tier-1 weapons. Count
+   potions, food and gear per floor from the real loot generator over seeded headless floors, and match them to
+   `SUPPLY`. Then calibrate the novice and regular skill tiers from playtests (see [Calibration](#calibration)).
+   Most of the difficulty targets fall in these depths.
+5. **Armor slots.** Body armor and helmets in light, medium and heavy weights, sized from the slot shares and tiers.
+6. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
+   playtested before the next one starts.
+7. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
+   they are built. A shop, for example, turns gold into supplies and gear upgrades.
 
 ## Not modeled yet
 
