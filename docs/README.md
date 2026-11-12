@@ -45,6 +45,7 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Remaining scope |
 | --- | --- |
+| [Balance model](specs/balance-model.md) | Progression, threat-based XP, leveling, armor slots and class parity derived from one model with a simulator; the game's data is not yet derived from it |
 | [Room-owned secret entrances](specs/room-owned-secrets-plan.md) | Room-selected concealed doorways, access and discovery |
 | [Exact wall placement experiment](specs/exact-wall-placement-plan.md) | Geometry contracts, room boundaries and doorway fit, corridor and interior follow-up |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm definitions, corridor factories, realm tags, and room-owned doorways landed; per-depth room roles/recipes and visible Warden stair seal remain |
