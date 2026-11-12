@@ -53,8 +53,9 @@ GEAR = dict(
     tier_lag=1,                # depths before the expected hero wears a newly introduced tier
     # Armor of a Normal medium piece, as a share of the standard monster's mean hit at that depth.
     slot_armor=dict(body=0.30, helmet=0.15, shield=0.22),
-    # Armor weight: armor multiplier, and the share of landed hits its footwork removes (negative adds hits).
-    weight=dict(light=(0.5, +0.05), medium=(1.0, 0.0), heavy=(1.3, -0.10)),
+    # Armor weight: armor multiplier, the share of landed hits its footwork removes (negative adds hits), and the
+    # body piece's movement speed factor that stands for that footwork in the game (helmets keep full speed).
+    weight=dict(light=(0.5, +0.05, 1.05), medium=(1.0, 0.0, 1.0), heavy=(1.3, -0.10, 0.92)),
 )
 
 # Weapon kinds relative to the reference sword: hit multiplier, seconds per attack, hands.

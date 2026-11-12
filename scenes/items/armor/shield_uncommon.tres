@@ -8,7 +8,7 @@
 script = ExtResource("2_shieldunc")
 Tier = 3
 RequiredStrength = 12
-ArmorPoints = 5
+ArmorPoints = 6
 SpeedModifier = 0.97
 ValidSlots = 512
 RollTable = ExtResource("roll_table")

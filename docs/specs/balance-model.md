@@ -78,7 +78,7 @@ depth 1 to 25% at depth 24.
   trade the off-hand for a larger hit. Their exact multiples are proposals in `params.py`.
 - **Armor slots** are sized against the standard monster's mean hit `m` at that depth. A Normal medium body piece
   holds `0.30 m` armor, a helmet `0.15 m`, a shield `0.22 m`. Light pieces carry half the armor and remove 5% of
-  landed hits; heavy pieces carry 1.3× and let 10% more land. Body armor and helmets are new slots to build.
+  landed hits; heavy pieces carry 1.3× and let 10% more land. The game has no passive evasion, so it expresses that footwork as movement speed: a light body piece moves its wearer 5% faster, a heavy one 8% slower.
 - **Tiers T1–T5** are introduced at depths 1, 6, 11, 16 and 21, drop for 8 depths and are on curve one depth after
   introduction. `simulate.py gear` prints the authoring targets: T1 sword 4–9, T3 sword 8–20, T5 sword 18–42; T3
   heavy body armor 11, and so on.
@@ -247,24 +247,24 @@ the bonus from quality and affixes. Item tables are free to vary around them.
 
 `audit` and `derive` exist (see [Game content](#game-content)). The realm 1 monsters and the class sheets are
 derived; XP and floor budgets follow the monsters' threat levels; heroes level up on the fitted ladder with
-percentage attributes; elemental damage passes armor; and potions and food heal a share of max health. The remaining
-steps:
+percentage attributes; elemental damage passes armor; potions and food heal a share of max health; and body armor and
+helmets exist in three weights, with every class starting in its own. The remaining steps:
 
-1. **Armor slots.** Body armor and helmets in light, medium and heavy weights, sized from the slot shares and tiers.
-   They come before any calibration: the standard monster's hit assumes the hero wears them, so without them every
-   fight costs more health than the model expects.
-2. **Realm 1.** Derive the rest of depths 1–3: packs, class kits and tier-1 gear. Count potions,
+1. **Realm 1.** Derive the rest of depths 1–3: packs, class kits and tier-1 gear. Count potions,
    food and gear per floor from the real loot generator over seeded headless floors, and match them to `SUPPLY`.
    Then calibrate the novice and regular skill tiers from playtests (see [Calibration](#calibration)). Most of the
    difficulty targets fall in these depths.
+   - **Tier bands.** The game drops each tier over its own overlapping depth band (`tier_depth_bands.tres`), not the
+     model's `tier_intro` and `tier_band`. Let `derive` write the bands and the loot pool windows, or move the model
+     to the game's bands, before measuring gear per floor.
    - **Packs in the game.** Encounter tables list packs (members and count) instead of single monsters, a pack
      spawns together in one room, and it costs its model cost, more than its members fought one at a time.
    - **A rat-led start.** Rats are the weakest monster but arrive after the skeletons. Instead, depth 1 opens with
      small rat groups, depth 2 brings rat hordes large enough to overwhelm a careless hero with only occasional
      skeletons, and depth 3 leads to the Warden. Add the packs to `PACKS` first and check the effect with `survival`.
-3. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
+2. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
    playtested before the next one starts.
-4. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
+3. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
    they are built. A shop, for example, turns gold into supplies and gear upgrades.
 
 ## Not modeled yet

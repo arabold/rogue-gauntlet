@@ -319,8 +319,17 @@ def weapons(match=None) -> Group:
 SLOT_FLAGS = {1 << 0: "helmet", 1 << 1: "body", 1 << 9: "shield"}  # EquipmentSlot in Inventory.cs
 
 
+WEIGHTS = ("light", "medium", "heavy")  # ArmorWeight in Armor.cs, in declaration order
+
+
+def _weight(file: R.TextResource, section: R.Section) -> str:
+    value = file.get(section, "Weight")
+    return WEIGHTS[value] if isinstance(value, int) else str(value).rsplit(".", 1)[-1].lower()
+
+
 def armor(match=None) -> Group:
-    g = Group("Armor", headers=["armor", "slot", "tier", "armor", "derived"])
+    """Body armor and helmets by slot, weight and tier; shields by tier. Body armor also gets its weight's speed."""
+    g = Group("Armor", headers=["armor", "slot", "weight", "tier", "armor", "derived"])
     for path in sorted(R.ROOT.glob("scenes/items/armor/**/*.tres")):
         if not _selected(path, match):
             continue
@@ -334,9 +343,12 @@ def armor(match=None) -> Group:
             g.note(f"{name}: slot {f.get(s, 'ValidSlots')} has no armor target")
             continue
         tier = int(f.get(s, "Tier", 1))
-        target = max(1, round(M.slot_armor(slot, "medium", tier_depth(tier), found=False)))
+        weight = "medium" if slot == "shield" else _weight(f, s)
+        target = max(1, round(M.slot_armor(slot, weight, tier_depth(tier), found=False)))
         g.add(f"{name} (T{tier})", f, s, "ArmorPoints", target)
-        g.rows.append([name, slot, tier, f.get(s, "ArmorPoints"), target])
+        if slot == "body":
+            g.add(f"{name} (T{tier})", f, s, "SpeedModifier", P.GEAR["weight"][weight][2])
+        g.rows.append([name, slot, "" if slot == "shield" else weight, tier, f.get(s, "ArmorPoints"), target])
     return g
 
 

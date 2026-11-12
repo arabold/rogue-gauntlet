@@ -10,7 +10,9 @@ public enum AttachmentType
 	Item,
 	Hat,
 	Cape,
-	Chest
+	Chest,
+	/// <summary>A worn helmet, on the head bone itself rather than a class's hat prop bone.</summary>
+	Helmet
 }
 
 [GlobalClass]
@@ -55,6 +57,7 @@ public partial class BoneAttachmentManager : Node
 			RemoveAttachments(AttachmentType.Item);
 			RemoveAttachments(AttachmentType.Hat);
 			RemoveAttachments(AttachmentType.Chest);
+			RemoveAttachments(AttachmentType.Helmet);
 
 			if (player != null)
 			{
@@ -139,6 +142,13 @@ public partial class BoneAttachmentManager : Node
 			return boneAttachment;
 		}
 
+		if (attachmentType == AttachmentType.Helmet && skeleton.FindBone("head") >= 0)
+		{
+			boneAttachment = new BoneAttachment3D { Name = "Runtime_Helmet", BoneName = "head" };
+			skeleton.AddChild(boneAttachment);
+			AttachmentNodes[AttachmentType.Helmet] = boneAttachment;
+			return boneAttachment;
+		}
 		if (attachmentType == AttachmentType.Chest && skeleton.FindBone("chest") >= 0)
 		{
 			boneAttachment = new BoneAttachment3D
@@ -162,6 +172,7 @@ public partial class BoneAttachmentManager : Node
 			return;
 		}
 
+		if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, true);
 		AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment);
 		if (boneAttachment != null)
 		{
@@ -185,9 +196,29 @@ public partial class BoneAttachmentManager : Node
 		}
 	}
 
+	/// <summary>Class props a worn piece covers: a helmet replaces the class's hat, body armor its cape.</summary>
+	private static readonly System.Collections.Generic.Dictionary<AttachmentType, AttachmentType> CoveredProps = new()
+	{
+		[AttachmentType.Helmet] = AttachmentType.Hat,
+		[AttachmentType.Chest] = AttachmentType.Cape,
+	};
+
+	/// <summary>Shows or hides the class model's own props under <paramref name="type"/>'s attachment node.</summary>
+	private void SetBuiltInPropsVisible(AttachmentType type, bool visible)
+	{
+		if (AttachmentNodes == null || !AttachmentNodes.TryGetValue(type, out var node) || !IsInstanceValid(node)) return;
+		foreach (Node child in node.GetChildren())
+			if (!child.HasMeta(EquippedMetaKey) && child is Node3D prop) prop.Visible = visible;
+	}
+
 	private void AddAttachment(AttachmentType attachmentType, EquipableItem item, EquipmentSlot slot)
 	{
-		PackedScene scene = item is PortableLightItem portableLight ? portableLight.HeldScene : ItemIdentity.ResolveScene(item);
+		PackedScene scene = item switch
+		{
+			PortableLightItem portableLight => portableLight.HeldScene,
+			Armor armor when attachmentType is AttachmentType.Helmet or AttachmentType.Chest => armor.WornScene,
+			_ => ItemIdentity.ResolveScene(item),
+		};
 		if (scene == null)
 		{
 			return;
@@ -216,6 +247,7 @@ public partial class BoneAttachmentManager : Node
 				}
 			}
 
+			if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, false);
 			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
 			var itemAttachment = scene.Instantiate<Node>();
 			itemAttachment.SetMeta(EquippedMetaKey, true);
@@ -282,7 +314,7 @@ public partial class BoneAttachmentManager : Node
 			}
 			else if ((armor.ValidSlots & ValidSlots.Head) != 0)
 			{
-				attachmentType = AttachmentType.Hat;
+				attachmentType = AttachmentType.Helmet;
 			}
 			else if ((armor.ValidSlots & ValidSlots.Chest) != 0)
 			{
