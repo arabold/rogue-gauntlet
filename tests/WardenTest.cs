@@ -323,12 +323,11 @@ public class WardenTest
 	}
 
 	/// <summary>
-	/// The Warden's shipped reaction and timing answer an ordinary hero swing, also while it winds up its own: it raises its
-	/// shield in view, parries the contact and ripostes once its guard is released.
+	/// The Warden's shipped reaction and timing answer an ordinary hero swing: it raises its shield in view, parries the
+	/// contact and ripostes once its guard is released.
 	/// </summary>
-	[TestCase(false)]
-	[TestCase(true)]
-	public async Task ParriesAnOrdinaryHeroSwingAndRipostes(bool alreadyWindingUp)
+	[TestCase]
+	public async Task ParriesAnOrdinaryHeroSwingAndRipostes()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
@@ -350,7 +349,6 @@ public class WardenTest
 		var skeleton = boss.FindChildren("*", "Skeleton3D", true, false).OfType<Skeleton3D>().Single();
 		int hand = skeleton.FindBone("handslot.l");
 		var idleHand = skeleton.GetBoneGlobalPose(hand);
-		if (alreadyWindingUp) AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		harness.Attack();
 		AssertBool(player.AttackController.IsAttacking).IsTrue();
 		bool shieldRaised = false;
@@ -364,6 +362,40 @@ public class WardenTest
 		AssertInt(parries).IsEqual(1);
 		AssertInt(blocks).IsEqual(0);
 		AssertInt(ripostes).IsEqual(1);
+	}
+
+	/// <summary>
+	/// A swing the Warden has started goes through: the hero swinging back neither makes it raise its shield instead nor
+	/// staggers it, so the player must dodge the swing rather than bait its guard.
+	/// </summary>
+	[TestCase]
+	public async Task ASwingItHasStartedGoesThroughTheHerosSwing()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 2.5f);
+		var player = harness.Player;
+		player.InputController.SetPhysicsProcess(false);
+		player.MovementComponent.SetPhysicsProcess(false);
+		boss.MovementComponent.SetPhysicsProcess(false);
+		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		// The guard choice is forced, so only the committed swing keeps the shield down.
+		boss.DefenseController.Mode = EnemyDefenseMode.GuardParry;
+		bool? interrupted = null;
+		boss.AttackController.AttackFinished += (_, wasInterrupted) => interrupted ??= wasInterrupted;
+		await runner.SimulateFrames(2, 20);
+
+		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
+		harness.Attack();
+		AssertBool(player.AttackController.IsAttacking).IsTrue();
+		bool guarded = false;
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
+		{
+			guarded |= boss.GuardComponent.IsGuarding;
+			return interrupted != null;
+		}, 3);
+		AssertBool(guarded).OverrideFailureMessage("The Warden raised its shield over its own swing").IsFalse();
+		AssertBool(interrupted == false).OverrideFailureMessage("The Warden's swing was interrupted").IsTrue();
 	}
 
 	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(boss.GlobalPosition);
