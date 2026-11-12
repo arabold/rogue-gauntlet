@@ -14,6 +14,7 @@ Rogue Gauntlet balance simulator: target tables, class parity and survival odds 
     uv run scripts/balance/simulate.py monster --depth 4 --hp 40 --armor 1 --damage 6-10 --cycle 2.2 [--kind ranged]
     uv run scripts/balance/simulate.py audit [--only monsters,weapons,armor,classes] [--match skeleton]
     uv run scripts/balance/simulate.py derive [--only ...] [--match ...]   # writes the targets into the .tres files
+    uv run scripts/balance/simulate.py supply [--depths 1-3] [--seeds 12]  # healing, food and gear per floor in the game
 
 See docs/specs/balance-model.md for the model; edit params.py to tune it.
 """
@@ -25,6 +26,7 @@ import os
 import random
 import sys
 from functools import cache
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import content as C  # noqa: E402
@@ -488,6 +490,32 @@ def report_audit(categories, match):
     print(f"{off_total} values off target by more than {P.AUDIT_TOLERANCE:.0%}. `derive` writes the targets.")
 
 
+GODOT = R.ROOT / ".agents/skills/godot-mcp/scripts/godot.sh"
+
+
+def report_supply(depths, seeds, samples):
+    """Runs the game's loot supply probe headless and compares healing, food and gear per floor with SUPPLY."""
+    import json
+    import subprocess
+    import tempfile
+    out = Path(tempfile.mkdtemp()) / "supply.json"
+    subprocess.run([str(GODOT), "--headless", "--path", str(R.ROOT), "res://scenes/debug/balance/loot_supply_probe.tscn",
+                    "--", f"--supply-out={out}", f"--supply-depths={depths}", f"--supply-seeds={seeds}",
+                    f"--supply-samples={samples}"], check=True, capture_output=True)
+    report = json.loads(out.read_text())
+    s = P.SUPPLY
+    print(f"Items per floor from the real loot generator ({seeds} floors per depth), against SUPPLY\n")
+    rows = []
+    for depth, items in sorted(report.items(), key=lambda pair: int(pair[0])):
+        potions = {k.split(":")[1]: v for k, v in items.items() if k.startswith("potion.healing:")}
+        heal = sum(v * s["potion_sizes"][size] for size, v in potions.items())
+        gear = ", ".join(f"{k.split(':')[1]} {v:.1f}" for k, v in sorted(items.items()) if k.startswith("gear:"))
+        rows.append([depth, f"{items.get('monsters', 0):.1f}", f"{sum(potions.values()):.2f}", f"{s['healing_potions']:.2f}",
+                     f"{heal:.0%}", f"{s['healing_potions'] * s['potion_heal']:.0%}", f"{items.get('food', 0):.2f}",
+                     f"{s['food']:.2f}", gear])
+    table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
+
+
 def derive(categories, match):
     """Write every target into its .tres file; git shows what changed."""
     groups = C.collect(categories, match)
@@ -536,6 +564,10 @@ def main():
     m.add_argument("--guard", type=float, default=0.0)
     m.add_argument("--darts", type=int, default=1)
     m.add_argument("--boss", action="store_true")
+    sp = sub.add_parser("supply")
+    sp.add_argument("--depths", default="1-3")
+    sp.add_argument("--seeds", type=int, default=12)
+    sp.add_argument("--samples", type=int, default=40)
     for name in ("audit", "derive"):
         c = sub.add_parser(name)
         c.add_argument("--only", default=",".join(C.CATEGORIES), help="categories: " + ", ".join(C.CATEGORIES))
@@ -562,6 +594,8 @@ def main():
             evaluate_armor(args)
         case "monster":
             evaluate_monster(args)
+        case "supply":
+            report_supply(args.depths, args.seeds, args.samples)
         case "audit" | "derive":
             categories = [c.strip() for c in args.only.split(",")]
             unknown = set(categories) - set(C.CATEGORIES)

@@ -135,7 +135,7 @@ public partial class RealmEncounterFactory : MobFactory
 	}
 
 	/// <summary>The definition a monster scene's root is saved with, read without instantiating the scene.</summary>
-	private static MonsterDefinition DefinitionOf(PackedScene scene)
+	internal static MonsterDefinition DefinitionOf(PackedScene scene)
 	{
 		var state = scene.GetState();
 		for (int i = 0; i < state.GetNodePropertyCount(0); i++)
