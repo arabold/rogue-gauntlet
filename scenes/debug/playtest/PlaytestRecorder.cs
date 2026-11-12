@@ -12,9 +12,12 @@ using System.Linq;
 /// </summary>
 public partial class PlaytestRecorder : Node
 {
-	/// <summary>Trace events too frequent or too cosmetic to matter for balance.</summary>
+	/// <summary>
+	/// Trace events too frequent or too cosmetic to matter for balance. Monster decisions (<c>ai.</c>) and action starts and
+	/// interruptions stay: they explain why a monster attacked less often than its cooldowns allow.
+	/// </summary>
 	private static readonly string[] IgnoredEvents =
-		["effect.", "ai.", "action.", "slots.", "attack.aim_locked", "attack.facing_committed", "projectile.homing_lost"];
+		["effect.", "action.phase", "action.hyper_armor", "slots.", "attack.aim_locked", "attack.facing_committed", "projectile.homing_lost"];
 
 	/// <summary>The recording in progress, or null.</summary>
 	public static PlaytestRecorder Current { get; private set; }
