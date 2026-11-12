@@ -319,18 +319,31 @@ def xp_reward(m: Monster) -> float:
 # --- Floors and the XP ladder ---------------------------------------------------------------------
 
 def eligible_packs(depth: int):
-    return [p for p in P.PACKS if p[1] <= depth]
+    return [p for p in P.PACKS if p["first"] <= depth and (p["last"] == 0 or depth <= p["last"])]
+
+
+def group_factor(size: int) -> float:
+    """
+    How much more a pack costs than its members fought alone. The hero kills members one by one while the rest keep
+    attacking, so the k-th member to fall attacks through k kills: (N + 1) / 2 for N similar members. Simulated
+    packs of swarmers, fodder and mixed melee follow it within 10%; packs with a healer or shooter come out lower.
+    """
+    return (size + 1) / 2
+
+
+def pack_units(pack, depth: float) -> float:
+    """Budget cost of a pack at `depth`, in standard monsters."""
+    return group_factor(len(pack["members"])) * sum(cost_units(m, depth) for m in pack_members(pack, depth))
 
 
 def pack_members(pack, depth: float):
-    return [monster(a, depth) for a in pack[3]]
+    return [monster(a, depth) for a in pack["members"]]
 
 
 def expected_floor_xp(depth: int) -> float:
     packs = eligible_packs(depth)
-    weight = sum(p[2] for p in packs)
-    xp_per_unit = sum(p[2] * sum(xp_reward(m) for m in pack_members(p, depth)) for p in packs)
-    units = sum(p[2] * sum(cost_units(m, depth) for m in pack_members(p, depth)) for p in packs)
+    xp_per_unit = sum(p["weight"] * sum(xp_reward(m) for m in pack_members(p, depth)) for p in packs)
+    units = sum(p["weight"] * pack_units(p, depth) for p in packs)
     budget = lerp(P.FLOOR["budget"], depth)
     boss = depth % P.REALM_SIZE == 0
     if boss:

@@ -14,4 +14,4 @@ MaxHealth = 11.0
 MoveSpeed = 4.2
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
-ThreatLevel = -2.99
+ThreatLevel = -0.46

@@ -144,23 +144,27 @@ def monster_at(archetype, depth):
     return M.monster(archetype, depth)
 
 
+def pack_cost(pack, depth):
+    return M.group_factor(len(pack["members"])) * sum(member_cost(a, depth) for a in pack["members"])
+
+
 @cache
-def pack_cost(pack_index, depth):
-    return sum(M.cost_units(monster_at(a, depth), depth) for a in P.PACKS[pack_index][3])
+def member_cost(archetype, depth):
+    return M.cost_units(monster_at(archetype, depth), depth)
 
 
 def compose_floor(depth, rng):
     budget = M.lerp(P.FLOOR["budget"], depth)
     if depth % P.REALM_SIZE == 0:
         budget *= P.FLOOR["boss_budget_share"]
-    eligible = [i for i, p in enumerate(P.PACKS) if p[1] <= depth]
-    weights = [P.PACKS[i][2] for i in eligible]
+    eligible = M.eligible_packs(depth)
+    weights = [p["weight"] for p in eligible]
     packs, misses = [], 0
     while misses < 4:
-        i = rng.choices(eligible, weights)[0]
-        cost = pack_cost(i, depth)
+        pack = rng.choices(eligible, weights)[0]
+        cost = pack_cost(pack, depth)
         if cost <= budget + 0.25:
-            packs.append([monster_at(a, depth) for a in P.PACKS[i][3]])
+            packs.append([monster_at(a, depth) for a in pack["members"]])
             budget -= cost
         else:
             misses += 1

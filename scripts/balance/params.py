@@ -16,7 +16,7 @@ LEVEL_CAP = 25
 # --- Difficulty dial: the standard monster against the reference hero ---------------------------
 STANDARD = dict(
     hits_to_kill=(3.5, 5.0),   # reference hero hits (no crit) to kill a standard monster
-    hits_to_die=(9.0, 5.0),    # standard monster hits (after the hero's armor) to kill the reference hero
+    hits_to_die=(9.0, 4.6),    # standard monster hits (after the hero's armor) to kill the reference hero
     cycle=2.2,                 # seconds between a monster's attacks (wind-up plus cooldown)
     spread=0.35,               # damage range is mean * (1 -/+ spread)
     speed=2.8,                 # m/s, for approach time against ranged heroes
@@ -115,8 +115,8 @@ MATCHUP_TOLERANCE = 0.25       # floors alone or gatekeepers alone may differ mo
 # armor = share of the reference hero's mean hit; kind decides avoidance; support heals allies.
 ARCHETYPES = {
     "fodder":   dict(hp=0.55, armor=0.00, damage=0.65, cycle=2.0, kind="melee", speed=3.2),
-    "swarmer":  dict(hp=0.45, armor=0.00, damage=0.50, cycle=1.9, kind="melee", speed=4.2,
-                     status=(0.35, 0.6)),
+    "swarmer":  dict(hp=0.45, armor=0.00, damage=0.70, cycle=1.9, kind="melee", speed=4.2,
+                     status=(0.35, 1.2)),   # venom passes armor, so heavy armor shrugs off less of a swarm
     "standard": dict(hp=1.00, armor=0.10, damage=1.00, cycle=2.2, kind="melee", speed=2.8),
     "brute":    dict(hp=1.70, armor=0.35, damage=1.30, cycle=2.5, kind="melee", speed=2.6, guard=0.25),
     "shooter":  dict(hp=0.80, armor=0.05, damage=0.95, cycle=3.2, kind="ranged", speed=2.8),
@@ -126,21 +126,24 @@ ARCHETYPES = {
                      phases=[(0.65, 1.25), (0.30, 1.55)], area=0.35),
 }
 
-# Packs a floor spends its budget on: (name, first depth, weight, members).
+# Packs a floor spends its budget on. A pack spawns together in one room; it may appear from `first` to `last`
+# depth (0 = to the end). Rats lead: depth 1 opens with small rat groups, depth 2 brings hordes that can overwhelm a
+# careless hero with only occasional skeletons, and mixed groups take over from depth 3.
 PACKS = [
-    ("lone standard",      1, 4, ["standard"]),
-    ("fodder pair",        1, 3, ["fodder", "fodder"]),
-    ("patrol",             1, 3, ["standard", "fodder"]),
-    ("sentry",             1, 2, ["shooter"]),
-    ("guard post",         2, 2, ["brute", "shooter"]),
-    ("rat swarm",          2, 2, ["swarmer", "swarmer", "swarmer"]),
-    ("warband",            2, 2, ["standard", "standard", "caster"]),
-    ("vanguard",           4, 2, ["brute", "standard", "shooter"]),
+    dict(name="rat pack",      first=1, last=6, weight=6, members=["swarmer"] * 3),
+    dict(name="rat horde",     first=2, last=0, weight=3, members=["swarmer"] * 6),
+    dict(name="fodder pair",   first=1, last=0, weight=2, members=["fodder", "fodder"]),
+    dict(name="lone standard", first=1, last=0, weight=2, members=["standard"]),
+    dict(name="patrol",        first=2, last=0, weight=2, members=["standard", "fodder"]),
+    dict(name="sentry",        first=2, last=0, weight=1, members=["shooter"]),
+    dict(name="warband",       first=3, last=0, weight=2, members=["standard", "standard", "caster"]),
+    dict(name="guard post",    first=4, last=0, weight=2, members=["brute", "shooter"]),
+    dict(name="vanguard",      first=4, last=0, weight=2, members=["brute", "standard", "shooter"]),
 ]
 
 # --- Floors, supplies and experience ------------------------------------------------------------
 FLOOR = dict(
-    budget=(8.0, 11.0),        # standard-monster equivalents per floor
+    budget=(9.0, 23.0),        # standard-monster equivalents per floor, packs costed as groups (model.group_factor)
     boss_budget_share=0.6,     # a boss floor spends this share of the budget before the boss
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )

@@ -35,8 +35,8 @@ RiposteEligible = true
 Attack = SubResource("bite_attack")
 Style = &"melee"
 Duration = 0.8
-MinDamage = 3.0
-MaxDamage = 6.0
+MinDamage = 4.0
+MaxDamage = 8.5
 
 [sub_resource type="Resource" id="rush_dash"]
 script = ExtResource("dash_profile")
