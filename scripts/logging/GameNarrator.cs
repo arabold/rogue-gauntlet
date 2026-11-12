@@ -22,6 +22,7 @@ public partial class GameNarrator : Node
 				bus.ItemDropped += OnItemDropped;
 				bus.ItemPickedUp += OnItemPickedUp;
 				bus.XpRewarded += OnXpRewarded;
+				bus.PlayerLeveledUp += OnPlayerLeveledUp;
 				bus.PlayerDeath += OnPlayerDeath;
 			},
 			bus =>
@@ -33,6 +34,7 @@ public partial class GameNarrator : Node
 				bus.ItemDropped -= OnItemDropped;
 				bus.ItemPickedUp -= OnItemPickedUp;
 				bus.XpRewarded -= OnXpRewarded;
+				bus.PlayerLeveledUp -= OnPlayerLeveledUp;
 				bus.PlayerDeath -= OnPlayerDeath;
 			});
 	}
@@ -177,6 +179,8 @@ public partial class GameNarrator : Node
 
 		GameLog.Player($"Gained [b]{xp} XP[/b]", LogSeverity.Experience);
 	}
+
+	private void OnPlayerLeveledUp(int level) => GameLog.Player($"Reached [b]level {level}[/b]", LogSeverity.Experience);
 
 	private void OnPlayerDeath(Player player)
 	{

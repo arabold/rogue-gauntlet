@@ -23,7 +23,7 @@ import model as M
 import params as P
 import resources as R
 
-CATEGORIES = ("monsters", "weapons", "armor", "classes")
+CATEGORIES = ("monsters", "weapons", "armor", "classes", "supplies")
 
 
 @dataclass
@@ -38,10 +38,20 @@ class Value:
 
     @property
     def off(self) -> float:
-        """Relative difference from the target; absolute when the target is zero."""
-        if self.target == 0:
-            return abs(self.current)
-        return abs(self.current - self.target) / abs(self.target)
+        """Relative difference from the target (absolute when the target is zero); the largest one for a list."""
+        if isinstance(self.target, list):
+            current = self.current if isinstance(self.current, list) else []
+            if len(current) != len(self.target):
+                return 1.0
+            return max((_relative(c, t) for c, t in zip(current, self.target)), default=0.0)
+        return _relative(self.current, self.target)
+
+    @property
+    def shown(self) -> tuple[str, str]:
+        """Current and target value as the audit prints them."""
+        def text(value):
+            return f"{len(value)} entries" if isinstance(value, list) else f"{value:g}"
+        return text(self.current), text(self.target)
 
     @property
     def location(self):
@@ -59,11 +69,16 @@ class Group:
 
     def add(self, item: str, file: R.TextResource, section: R.Section, key: str, target):
         current = file.get(section, key)
-        self.values.append(Value(item, file, section, key, float(current or 0), target))
+        current = current if isinstance(current, list) else float(current or 0)
+        self.values.append(Value(item, file, section, key, current, target))
 
     def note(self, text: str):
         if text not in self.notes:
             self.notes.append(text)
+
+
+def _relative(current: float, target: float) -> float:
+    return abs(current) if target == 0 else abs(current - target) / abs(target)
 
 
 def snap(value: float, unit: float, minimum: float = 0.0) -> float:
@@ -75,7 +90,7 @@ def _selected(path, match) -> bool:
 
 
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
-    groups = [{"monsters": monsters, "weapons": weapons, "armor": armor, "classes": classes}[c](match)
+    groups = [{"monsters": monsters, "weapons": weapons, "armor": armor, "classes": classes, "supplies": supplies}[c](match)
               for c in categories]
     _merge_shared(groups)
     return groups
@@ -89,7 +104,7 @@ def _merge_shared(groups):
     targets, seen = {}, set()
     for g in groups:
         for v in g.values:
-            targets.setdefault(v.location, set()).add(v.target)
+            targets.setdefault(v.location, set()).add(tuple(v.target) if isinstance(v.target, list) else v.target)
     for g in groups:
         conflicts = {v.location for v in g.values if len(targets[v.location]) > 1}
         for path, _, key in sorted(conflicts):
@@ -332,10 +347,15 @@ HERO_SHEET = "res://scenes/player/resources/player_stats.tres"
 
 
 def _profile_values(cls: dict) -> dict:
-    """Stat profile coefficients that reproduce the model's level-1 hero with the game's flat formulas."""
-    return {"HealthPerVitality": P.ATTRIBUTES["hp_base"] * M._profile(cls, "hp_per_vit"),
+    """A class's stat profile: how its attributes pay off and how much each grows per level."""
+    growth = cls["growth"]
+    return {"HealthPercentPerVitality": M._profile(cls, "hp_per_vit"),
+            "PhysicalDamagePercentPerStrength": M._profile(cls, "damage_per_str"),
+            "MagicDamagePercentPerIntelligence": M._profile(cls, "spell_per_int"),
             "ManaPerIntelligence": M._profile(cls, "mana_per_int"),
-            "CritChancePerDexterity": M._profile(cls, "crit_per_dex")}
+            "CritChancePerDexterity": M._profile(cls, "crit_per_dex"),
+            "StrengthPerLevel": growth["STR"], "DexterityPerLevel": growth["DEX"],
+            "VitalityPerLevel": growth["VIT"], "IntelligencePerLevel": growth["INT"]}
 
 
 def _kit_kinds(file: R.TextResource, section: R.Section) -> set[str]:
@@ -350,6 +370,9 @@ def _kit_kinds(file: R.TextResource, section: R.Section) -> set[str]:
     return kinds
 
 
+LEVELING = "res://scenes/player/resources/leveling_profile.tres"
+
+
 def classes(match=None) -> Group:
     g = Group("Classes", headers=["class", "STR", "DEX", "VIT", "INT", "health", "derived", "starting weapons"])
     a = P.ATTRIBUTES
@@ -358,14 +381,18 @@ def classes(match=None) -> Group:
     sheet = R.load(HERO_SHEET)
     hs = sheet.main
     if _selected(sheet.path, match):
-        # At level 1, base x (1 + k (VIT - 10)) equals the game's flat BaseMaxHealth + VIT x HealthPerVitality.
-        g.add("Hero sheet", sheet, hs, "BaseMaxHealth", a["hp_base"] * (1 - 10 * a["hp_per_vit"]))
+        g.add("Hero sheet", sheet, hs, "BaseMaxHealth", a["hp_base"])
         g.add("Hero sheet", sheet, hs, "BaseMaxMana", a["mana_base"])
         g.add("Hero sheet", sheet, hs, "ManaRegenRate", a["mana_regen"])
         g.add("Hero sheet", sheet, hs, "BaseCritChance", 0.0)
         pf, p = sheet.follow(sheet.get(hs, "Profile"))
         for key, value in _profile_values(P.CLASSES["reference"]).items():
             g.add("Default profile", pf, p, key, value)
+    leveling = R.load(LEVELING)
+    if _selected(leveling.path, match):
+        need, _ = M.xp_ladder()
+        g.add("XP ladder", leveling, leveling.main, "XpToNextLevel", [int(n) for n in need])
+        g.add("XP ladder", leveling, leveling.main, "HealthPerLevel", a["hp_per_level"])
     base_health = sheet.get(hs, "BaseMaxHealth")
     for path in sorted(R.ROOT.glob("scenes/player/classes/class_*.tres")):
         if not _selected(path, match):
@@ -385,10 +412,53 @@ def classes(match=None) -> Group:
         expected = {cls["weapon"]} | ({cls["opener"]} if "opener" in cls else set())
         if not expected <= kinds:
             g.note(f"{name}: starts with {', '.join(sorted(kinds)) or 'no weapon'}; "
-                           f"the model expects {', '.join(sorted(expected))}")
-        health = base_health + f.get(s, "BaseVitality") * pf.get(p, "HealthPerVitality")
+                   f"the model expects {', '.join(sorted(expected))}")
+        vitality = f.get(s, "BaseVitality") - 10
+        health = base_health * max(0.0, 1 + pf.get(p, "HealthPercentPerVitality") * vitality)
         g.rows.append([name] + [f"{f.get(s, k):g}" for k in ATTRIBUTE_KEYS.values()]
                       + [f"{health:.0f}", f"{M.hero_hp(cls, 1):.0f}", ", ".join(sorted(kinds))])
-    g.note("Attribute damage (DamagePerStrength, DamagePerIntelligence) and the hero's base damage stay as "
-                   "they are until attributes become percentages (the leveling step of the plan).")
+    return g
+
+
+# --- Supplies -------------------------------------------------------------------------------------
+
+def _healing_buffs(file: R.TextResource, section: R.Section, seen=None):
+    """Every `HealingBuff` a consumable reaches through its references (its own buff or its spell's effect)."""
+    seen = seen if seen is not None else set()
+    if (file.path, section.start) in seen:
+        return []
+    seen.add((file.path, section.start))
+    script = file.script_of(section) or ""
+    found = [(file, section)] if script.endswith("/HealingBuff.cs") else []
+    for key in section.props:
+        if key == "script" or key.startswith("metadata/"):
+            continue
+        value = file.get(section, key)
+        for ref in value if isinstance(value, list) else [value]:
+            if not isinstance(ref, R.Ref) or (ref.kind == "ExtResource" and not file.ext_path(ref.id).endswith(".tres")):
+                continue
+            found += _healing_buffs(*file.follow(ref), seen)
+    return found
+
+
+def _ticks(file: R.TextResource, buff: R.Section) -> int:
+    return max(1, round(file.get(buff, "Duration", 1.0) * file.get(buff, "TicksPerSecond", 1.0)))
+
+
+def supplies(match=None) -> Group:
+    """Healing potions and food restore their model share of max health, spread over their buff's ticks."""
+    g = Group("Supplies", headers=["item", "heals", "derived"])
+    s = P.SUPPLY
+    items = [(path, s["potion_sizes"][path.stem.rsplit("_", 1)[1]])
+             for path in sorted(R.ROOT.glob("scenes/items/potions/potion_healing_*.tres"))]
+    items += [(path, s["food_heal"]) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres"))]
+    for path, share in items:
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        name = f.get(f.main, "Name") or path.stem
+        for bf, buff in _healing_buffs(f, f.main):
+            ticks = _ticks(bf, buff)
+            g.add(name, bf, buff, "MaxHealthFractionPerTick", round(share / ticks, 4))
+            g.rows.append([name, f"{bf.get(buff, 'MaxHealthFractionPerTick', 0.0) * ticks:.0%}", f"{share:.0%}"])
     return g

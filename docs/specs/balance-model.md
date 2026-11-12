@@ -41,10 +41,11 @@ guesses until playtests measure them (see [calibration](#calibration)).
   `h − A/2` on average when `h ≥ A`, and `h²/(2A)` below that. Flat armor is strong against many small hits and weak
   against a few big ones: it trivializes swarms, matters less against gatekeepers, and would crush multi-dart
   missiles.
-- **Magic ignores armor** (proposed rule change). Missiles and spells skip the armor roll, as wand zaps do in
-  Shattered Pixel Dungeon. Otherwise a wand's three small darts lose most of their damage to an armored gatekeeper,
-  and no Mage tuning reaches parity there.
-- **Attributes scale; levels and gear grow** (proposed rule change). Each attribute changes a shared curve by a
+- **Magic ignores armor.** Elemental damage (missiles, spells, burning) skips the armor roll, as wand zaps do in
+  Shattered Pixel Dungeon, for heroes and monsters alike. Otherwise a wand's three small darts lose most of their
+  damage to an armored gatekeeper, and no Mage tuning reaches parity there. Monster casters' missiles and gatekeepers'
+  area attacks therefore ignore the hero's armor too, so the caster's damage is set low.
+- **Attributes scale; levels and gear grow.** Each attribute changes a shared curve by a
   percentage, so a class's advantage keeps its size at every depth. Flat per-point bonuses fade as levels add health
   and gear adds damage, so a class balanced at depth 1 drifts out of balance by depth 24.
 - **Class and armor bonuses remove a share of the hits that skill lets through.** If they added to the avoid chance
@@ -60,9 +61,9 @@ class follows the same curves:
   **Intelligence:** +3% missile and spell damage per point above 10; mana `= 20 + 5 × Intelligence`, regenerating
   1% of the maximum per second.
 - Each level adds one attribute point, split by class (`growth` in `params.py`).
-- **Supplies:** about one healing potion per floor, healing 50% of max health (proposed: a share of max health, not a
-  fixed amount); about one food per floor at 10%; three health fountains per run. Health never regenerates on its
-  own. Classes start without potions (today only the Mage starts with one).
+- **Supplies:** about one healing potion per floor, restoring a share of max health (small 35%, medium 50%, large
+  70%; the runs assume 50% until loot odds are measured); about one food per floor at 10%; three health fountains per
+  run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
 
 ### Gear
 
@@ -105,8 +106,8 @@ Archetypes are multiples of the standard monster at the same depth:
 | Standard | 1 | 0.10 | 1 | 2.2 s | | 0 |
 | Brute | 1.7 | 0.35 | 1.3 | 2.5 s | guards 25% | +3 to +4 |
 | Shooter | 0.8 | 0.05 | 0.95 | 3.2 s | ranged | −1 |
-| Caster | 0.9 | 0 | 0.8 in 3 darts | 3.3 s | heals an ally 30% every 9 s | −1 to −3 |
-| Gatekeeper | 6 | 0.35 | 1.6 | 2.4 s | guards 25%, ×1.25 below 65% and ×1.55 below 30% health, 35% area attacks | +9 to +11 |
+| Caster | 0.9 | 0 | 0.35 in 3 darts | 3.3 s | heals an ally 30% every 9 s; darts ignore armor | −1 to −2 |
+| Gatekeeper | 6 | 0.35 | 1.6 | 2.4 s | guards 25%, ×1.25 below 65% and ×1.55 below 30% health, 35% area attacks, which ignore armor | +10 to +12 |
 
 ## Cost, threat level and XP
 
@@ -245,18 +246,14 @@ the numbers. Loot needs only averages to match: potions and food per floor, the 
 the bonus from quality and affixes. Item tables are free to vary around them.
 
 `audit` and `derive` exist (see [Game content](#game-content)). The realm 1 monsters and the class sheets are
-derived, and XP and floor budgets follow the monsters' threat levels. The remaining steps:
+derived; XP and floor budgets follow the monsters' threat levels; heroes level up on the fitted ladder with
+percentage attributes; elemental damage passes armor; and potions and food heal a share of max health. The remaining
+steps:
 
-1. **Leveling and rule changes.** Both change `PlayerStats`, so they land together:
-   - the fitted XP ladder, with level-ups that add health and the class's attribute growth;
-   - attributes as percentages (Vitality of health, Strength and Intelligence of damage), with the hero's base
-     damage folded into the weapon;
-   - missiles and spells that skip armor;
-   - healing potions that heal a share of max health.
-2. **Armor slots.** Body armor and helmets in light, medium and heavy weights, sized from the slot shares and tiers.
+1. **Armor slots.** Body armor and helmets in light, medium and heavy weights, sized from the slot shares and tiers.
    They come before any calibration: the standard monster's hit assumes the hero wears them, so without them every
    fight costs more health than the model expects.
-3. **Realm 1.** Derive the rest of depths 1–3: packs, class kits and tier-1 gear. Count potions,
+2. **Realm 1.** Derive the rest of depths 1–3: packs, class kits and tier-1 gear. Count potions,
    food and gear per floor from the real loot generator over seeded headless floors, and match them to `SUPPLY`.
    Then calibrate the novice and regular skill tiers from playtests (see [Calibration](#calibration)). Most of the
    difficulty targets fall in these depths.
@@ -265,9 +262,9 @@ derived, and XP and floor budgets follow the monsters' threat levels. The remain
    - **A rat-led start.** Rats are the weakest monster but arrive after the skeletons. Instead, depth 1 opens with
      small rat groups, depth 2 brings rat hordes large enough to overwhelm a careless hero with only occasional
      skeletons, and depth 3 leads to the Warden. Add the packs to `PACKS` first and check the effect with `survival`.
-4. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
+3. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
    playtested before the next one starts.
-5. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
+4. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
    they are built. A shop, for example, turns gold into supplies and gear upgrades.
 
 ## Not modeled yet

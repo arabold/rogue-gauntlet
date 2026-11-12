@@ -27,7 +27,7 @@ public class PlayerSaveCodecTest
 		player.BuffController.ApplyStatus(frozen, focus, 4);
 		player.BuffController.ApplyBuff(new StatModifierBuff { Name = "Strength", Duration = 12,
 			Modifiers = [new StatModifier { Stat = StatType.Strength, Value = 3 }] });
-		player.BuffController.ApplyBuff(new HealingBuff { Name = "Healing", Duration = 10, TicksPerSecond = 2, HealthPointsPerTick = 1 });
+		player.BuffController.ApplyBuff(new HealingBuff { Name = "Healing", Duration = 10, TicksPerSecond = 2, MaxHealthFractionPerTick = 0.01f });
 		var periodic = player.BuffController.ActiveBuffs.Last();
 		periodic._PhysicsProcess(.3);
 		float strength = player.Stats.Strength;

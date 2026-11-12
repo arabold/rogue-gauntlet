@@ -35,7 +35,7 @@ public static class BuffSaveCodec
 			}
 			switch (buff)
 			{
-				case HealingBuff healing: record.Kind = "healing"; record.TicksPerSecond = healing.TicksPerSecond; record.PointsPerTick = healing.HealthPointsPerTick; break;
+				case HealingBuff healing: record.Kind = "healing"; record.TicksPerSecond = healing.TicksPerSecond; record.HealthFractionPerTick = healing.MaxHealthFractionPerTick; break;
 				case PoisonBuff poison: record.Kind = "poison"; record.TicksPerSecond = poison.TicksPerSecond; record.PointsPerTick = poison.DamagePointsPerTick; break;
 				case TimeScaleBuff time: record.Kind = "time_scale"; record.TimeScale = time.TimeScale; break;
 				case StatModifierBuff stat: record.Kind = "stat_modifier"; record.Modifiers = ItemSaveCodec.CaptureModifiers(stat.Modifiers); break;
@@ -84,7 +84,7 @@ public static class BuffSaveCodec
 			Buff buff = definition ?? data.Kind switch
 			{
 				"condition" => new Buff(),
-				"healing" => new HealingBuff { TicksPerSecond = data.TicksPerSecond, HealthPointsPerTick = data.PointsPerTick },
+				"healing" => new HealingBuff { TicksPerSecond = data.TicksPerSecond, MaxHealthFractionPerTick = data.HealthFractionPerTick },
 				"poison" => new PoisonBuff { TicksPerSecond = data.TicksPerSecond, DamagePointsPerTick = data.PointsPerTick },
 				"time_scale" => new TimeScaleBuff { TimeScale = data.TimeScale },
 				"stat_modifier" => new StatModifierBuff { Modifiers = ItemSaveCodec.BuildModifiers(data.Modifiers) },

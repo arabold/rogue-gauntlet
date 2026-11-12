@@ -114,7 +114,8 @@ public partial class Hud : Control
 
 	private void OnPlayerStatsChanged(PlayerStats stats)
 	{
-		_xpLabel.Text = $"XP: {stats.Xp}";
+		var (gained, needed) = stats.LevelProgress;
+		_xpLabel.Text = needed > 0 ? $"Level {stats.XpLevel}  XP: {gained}/{needed}" : $"Level {stats.XpLevel}  XP: {stats.Xp}";
 		_goldLabel.Text = $"Gold: {stats.Gold}";
 		_healthBar.MaxValue = stats.MaxHealth;
 		_healthBar.Value = stats.Health;

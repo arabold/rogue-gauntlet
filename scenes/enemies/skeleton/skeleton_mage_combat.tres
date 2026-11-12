@@ -40,8 +40,8 @@ MaximumRange = 12.0
 Attack = SubResource("volley_attack")
 Style = &"staff.cast"
 Duration = 1.1
-MinDamage = 1.5
-MaxDamage = 3.5
+MinDamage = 0.5
+MaxDamage = 1.5
 
 [sub_resource type="Resource" id="allies"]
 script = ExtResource("ally")
@@ -67,8 +67,8 @@ Spell = ExtResource("fireball_spell")
 PaysMana = true
 Style = &"staff.cast"
 Duration = 1.2
-MinDamage = 2.5
-MaxDamage = 5.0
+MinDamage = 1.0
+MaxDamage = 2.0
 CritChance = 0.05
 
 [sub_resource type="Resource" id="regenerate"]

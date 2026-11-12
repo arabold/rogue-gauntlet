@@ -6,10 +6,10 @@
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
-HealthPointsPerTick = 16
 CuredConditions = [ExtResource("blinded")]
 Name = "Medium Potion of Healing"
 Duration = 3.0
+MaxHealthFractionPerTick = 0.1667
 metadata/_custom_type_script = ExtResource("buff")
 
 [resource]

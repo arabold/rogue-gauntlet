@@ -56,7 +56,10 @@ public enum DamageDeliveryKind
 	Environmental
 }
 
-/// <summary>Optional elemental identity for protection and resistance; ordinary damage has none.</summary>
+/// <summary>
+/// Optional elemental identity for protection and resistance; ordinary damage has none. Elemental damage is magic:
+/// armor does not absorb it, elemental wards and resistances do.
+/// </summary>
 public enum DamageElement { None, Fire, Earth, Air, Water }
 
 public readonly record struct AttackIdentity(ulong SourceInstanceId, ulong Sequence);

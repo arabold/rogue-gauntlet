@@ -476,7 +476,7 @@ def report_audit(categories, match):
         off_total += len(off)
         if off:
             table(["item", "value", "now", "target", "off"],
-                  [[v.item, v.key, f"{v.current:g}", f"{v.target:g}", f"{v.off:.0%}"] for v in off])
+                  [[v.item, v.key, *v.shown, f"{v.off:.0%}"] for v in off])
         for note in g.notes:
             print(f"- {note}")
         if g.notes:

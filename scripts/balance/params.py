@@ -119,7 +119,7 @@ ARCHETYPES = {
     "standard": dict(hp=1.00, armor=0.10, damage=1.00, cycle=2.2, kind="melee", speed=2.8),
     "brute":    dict(hp=1.70, armor=0.35, damage=1.30, cycle=2.5, kind="melee", speed=2.6, guard=0.25),
     "shooter":  dict(hp=0.80, armor=0.05, damage=0.95, cycle=3.2, kind="ranged", speed=2.8),
-    "caster":   dict(hp=0.90, armor=0.00, damage=0.80, cycle=3.3, kind="homing", speed=2.4,
+    "caster":   dict(hp=0.90, armor=0.00, damage=0.35, cycle=3.3, kind="homing", speed=2.4,
                      darts=3, support=dict(heal=0.30, cycle=9.0)),
     "boss":     dict(hp=6.00, armor=0.35, damage=1.60, cycle=2.4, kind="melee", speed=2.6, guard=0.25,
                      phases=[(0.65, 1.25), (0.30, 1.55)], area=0.35),
@@ -145,7 +145,8 @@ FLOOR = dict(
 )
 SUPPLY = dict(
     healing_potions=1.0,       # expected healing potions found per floor (Poisson)
-    potion_heal=0.5,           # share of max health one healing potion restores
+    potion_heal=0.5,           # share of max health the average healing potion restores (the model's runs)
+    potion_sizes=dict(small=0.35, medium=0.5, large=0.7),  # what each potion restores; loot odds set the average
     food=1.0,                  # expected food per floor
     food_heal=0.10,
     fountain_depths=[5, 12, 19],  # one full heal on these floors (2-3 per run, seeded in game)

@@ -50,6 +50,9 @@ public partial class SignalBus : Node
     public static void EmitPlayerSpawned(Player player) => Instance?.EmitSignalPlayerSpawned(player);
     public static void EmitPlayerDeath(Player player) => Instance?.EmitSignalPlayerDeath(player);
     public static void EmitXpRewarded(int xp) => Instance?.EmitSignalXpRewarded(xp);
+    /// <summary>Fired once per level the hero gains, after their attributes and max health grew.</summary>
+    [Signal] public delegate void PlayerLeveledUpEventHandler(int level);
+    public static void EmitPlayerLeveledUp(int level) => Instance?.EmitSignalPlayerLeveledUp(level);
 
     [Signal] public delegate void ItemConsumedEventHandler(Player player, ConsumableItem item);
     [Signal] public delegate void ItemEquippedEventHandler(Player player, EquipableItem item);

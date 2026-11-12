@@ -198,7 +198,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		// A staggered defender (poise break or parry) is the punish window: its hits land harder before armor.
 		if (Poise?.IsAvailable == true && Poise.ActionGate.IsStaggered)
 			incomingAmount *= Poise.Definition.StaggeredDamageMultiplier;
-		armorRoll = contact.BypassArmor ? 0 : Roll(random, Armor);
+		// Armor stops physical blows only: elemental damage (missiles, spells, burning) passes it.
+		armorRoll = contact.BypassArmor || contact.Element != DamageElement.None ? 0 : Roll(random, Armor);
 		float finalDamage = Mathf.Max(0, incomingAmount - armorRoll);
 		if (unaware) Awareness.NoticeAttacker(contact.OwnerNode);
 		// Capture the guard before absorption: the final hit can deplete it but still reflects.

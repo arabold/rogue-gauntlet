@@ -386,6 +386,7 @@ public class MeleeContactTest
 		harness.Player.Stats.BaseMinDamage = 0;
 		harness.Player.Stats.BaseMaxDamage = 0;
 		harness.Player.Stats.BaseCritChance = 0;
+		harness.Player.Stats.BaseStrength = StatProfile.AttributeBaseline; // the weapon's own damage, unscaled
 		var controller = harness.Player.AttackController;
 
 		using var def = new Weapon
@@ -407,7 +408,7 @@ public class MeleeContactTest
 		controller.SetPhysicsProcess(false);
 		controller._PhysicsProcess(2);
 		float primaryDamage = 1000 - Health(harness).CurrentHealth;
-		AssertFloat(primaryDamage).IsEqual(11.0f);
+		AssertFloat(primaryDamage).IsEqual(10.0f);
 
 		TestFactories.ResetPracticeTarget(harness);
 		var action = new MartialTechniqueAction(weapon);
@@ -415,7 +416,7 @@ public class MeleeContactTest
 		AssertBool(action.StartPrepared(harness.Player, secondaryAttack)).IsTrue();
 		controller._PhysicsProcess(2);
 		float secondaryDamage = 1000 - Health(harness).CurrentHealth;
-		AssertFloat(secondaryDamage).IsEqual(22.0f);
+		AssertFloat(secondaryDamage).IsEqual(20.0f);
 		AssertFloat(secondaryDamage).IsEqualApprox(primaryDamage * 2.0f, 0.001f);
 
 		using var crossbow = new RangedWeapon

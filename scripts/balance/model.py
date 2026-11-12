@@ -224,13 +224,19 @@ def hero_dps(h: Hero, m: Monster, skill: dict) -> float:
 
 
 def monster_dps(m: Monster, h: Hero, skill: dict) -> float:
+    """
+    Damage per second the hero takes. Elemental damage (a caster's missiles, a gatekeeper's area attacks) meets only
+    `MAGIC_ARMOR_SHARE` of the hero's armor, like the hero's own magic.
+    """
     spread = P.STANDARD["spread"]
     per_dart = m.hit / m.darts
-    landed = m.darts * net_hit(*spread_range(per_dart, spread), h.armor)
+    magic_armor = h.armor * P.MAGIC_ARMOR_SHARE
+    landed = m.darts * net_hit(*spread_range(per_dart, spread), magic_armor if m.kind == "homing" else h.armor)
     chance, extra = m.status
     landed += chance * extra * per_dart * m.darts
-    kind_avoid = avoid(h, m.kind, skill) * (1 - m.area) + avoid(h, "area", skill) * m.area
-    return landed / m.cycle * (1 - kind_avoid)
+    direct = landed * (1 - m.area) * (1 - avoid(h, m.kind, skill))
+    area = net_hit(*spread_range(m.hit, spread), magic_armor) * m.area * (1 - avoid(h, "area", skill))
+    return (direct + area) / m.cycle
 
 
 def duel_cost(m: Monster, h: Hero, skill: dict) -> float:

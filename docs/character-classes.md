@@ -21,18 +21,22 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 - **`CharacterCatalog`** (`character_catalog.tres`) — the ordered class list. The first entry
   is the fallback for pre-class saves and unknown ids. `GameSession` loads it from the
   well-known path `CharacterCatalog.DefaultCatalogPath`.
-- **Per-class `StatProfile`** (`stat_profile_*.tres`) — the attribute-derivation seam: e.g.
-  the Mage's profile has `DamagePerIntelligence > 0` so spell-capable characters scale damage
-  with INT, while the Rogue doubles `CritChancePerDexterity`.
+- **Per-class `StatProfile`** (`stat_profile_*.tres`) — how the class's attributes pay off and
+  grow per level (see [stats](stats-and-itemization.md#experience-and-levels)). The values come
+  from the [balance model](specs/balance-model.md); the Rogue doubles `CritChancePerDexterity`.
 
 ## The shipped roster
 
-| Class | STR | DEX | VIT | INT | HP | MP | Profile twist | Starting gear |
+| Class | STR | DEX | VIT | INT | HP | MP | Growth per level | Starting gear |
 |---|---|---|---|---|---|---|---|---|
-| Barbarian | 14 | 8 | 13 | 5 | 115 | 45 | +50% damage per STR | Battle Axe (T1, 2–6, 2H) |
-| Knight | 12 | 8 | 14 | 6 | 120 | 50 | — | Sword + shield |
-| Rogue | 8 | 15 | 9 | 8 | 95 | 60 | 2× crit/DEX | Crossbow + dagger + two lockpicks |
-| Mage | 6 | 10 | 8 | 16 | 90 | 100 | damage scales with INT | Wand of Fireball (T1) + healing potion (pre-identified) |
+| Barbarian | 12 | 8 | 10 | 5 | 50 | 45 | STR 0.45, VIT 0.25 | Battle Axe (T1, 2H) |
+| Knight | 9 | 8 | 10 | 6 | 50 | 50 | STR 0.3, VIT 0.3 | Sword + shield |
+| Rogue | 9 | 15 | 11 | 8 | 52 | 60 | DEX 0.5, VIT 0.25 | Crossbow + dagger + two lockpicks |
+| Mage | 6 | 10 | 10 | 15 | 50 | 95 | INT 0.5, VIT 0.3 | Wand of Fireball (T1) + healing potion (pre-identified) |
+
+Each class gains one attribute point per level in all, split as its growth says (the table lists the larger shares).
+The [balance model](specs/balance-model.md#class-parity) keeps the classes equally strong; `params.py` holds the
+numbers and `simulate.py derive` writes them.
 
 All starting equipment is first-tier (T1), Normal quality at its authored values; better gear comes from the dungeon.
 

@@ -28,7 +28,7 @@ public partial class MonsterDefinition : Resource
 	[ExportGroup("Stats")]
 	[Export(PropertyHint.Range, "1,10000,1,or_greater")] public float MaxHealth { get; set; } = 10;
 	[Export(PropertyHint.Range, "0,20,0.1,or_greater")] public float MoveSpeed { get; set; } = 3.2f;
-	/// <summary>Base damage reduction before buffs; the hurtbox rolls it against every hit that does not bypass armor.</summary>
+	/// <summary>Base damage reduction before buffs; the hurtbox rolls it against every physical hit (elemental damage passes armor).</summary>
 	[Export(PropertyHint.Range, "0,100,0.5,or_greater")] public float Armor { get; set; }
 	[Export(PropertyHint.Range, "0,10000,1,or_greater")] public float MaxMana { get; set; }
 	[Export(PropertyHint.Range, "0,50,0.1,or_greater")] public float ManaRegenPerSecond { get; set; }

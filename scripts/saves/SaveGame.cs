@@ -13,7 +13,7 @@ public enum RunOutcome
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 78;
+	public const int CurrentVersion = 79;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -105,6 +105,7 @@ public sealed class ActiveBuffSaveData
 	public double TickProgress { get; set; }
 	public float TicksPerSecond { get; set; }
 	public int PointsPerTick { get; set; }
+	public float HealthFractionPerTick { get; set; }
 	public float TimeScale { get; set; }
 	public List<StatModifierSaveData> Modifiers { get; set; } = [];
 }

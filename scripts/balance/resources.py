@@ -61,6 +61,9 @@ def parse_value(raw: str):
         return float(raw)
     except ValueError:
         pass
+    if raw.startswith("Packed") and "Array(" in raw:  # PackedInt32Array(1, 2) and the like
+        inner = raw[raw.index("(") + 1:raw.rindex(")")].strip()
+        return [parse_value(x) for x in inner.split(",")] if inner else []
     if raw.startswith(("ExtResource", "SubResource")):
         kind, id_ = _REF.match(raw).groups()
         return Ref(kind, id_)
@@ -72,7 +75,9 @@ def parse_value(raw: str):
 
 
 def format_value(value) -> str:
-    """Godot's text form of a number: floats keep a decimal point, without float noise."""
+    """Godot's text form of a number (floats keep a decimal point, without float noise) or of a list of integers."""
+    if isinstance(value, list):
+        return f"PackedInt32Array({', '.join(str(int(v)) for v in value)})"
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, int):
@@ -153,6 +158,8 @@ class TextResource:
         section = self._current(section)
         text = format_value(value)
         current = self.get(section, key)
+        if isinstance(value, list) and current == value:
+            return False
         if isinstance(current, (int, float)) and not isinstance(current, bool) and abs(current - value) < 1e-9:
             return False
         if key in section.props:
