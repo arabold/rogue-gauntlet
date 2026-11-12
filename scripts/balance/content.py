@@ -23,7 +23,7 @@ import model as M
 import params as P
 import resources as R
 
-CATEGORIES = ("monsters", "weapons", "armor", "classes", "supplies")
+CATEGORIES = ("monsters", "weapons", "armor", "classes", "supplies", "loot")
 
 
 @dataclass
@@ -39,6 +39,8 @@ class Value:
     @property
     def off(self) -> float:
         """Relative difference from the target (absolute when the target is zero); the largest one for a list."""
+        if isinstance(self.target, R.Raw):
+            return 0.0 if self.current == self.target else 1.0
         if isinstance(self.target, list):
             current = self.current if isinstance(self.current, list) else []
             if len(current) != len(self.target):
@@ -50,6 +52,8 @@ class Value:
     def shown(self) -> tuple[str, str]:
         """Current and target value as the audit prints them."""
         def text(value):
+            if isinstance(value, R.Raw):
+                return value.text if len(value.text) <= 40 else value.text[:37] + "..."
             return f"{len(value)} entries" if isinstance(value, list) else f"{value:g}"
         return text(self.current), text(self.target)
 
@@ -68,6 +72,9 @@ class Group:
     notes: list[str] = field(default_factory=list)
 
     def add(self, item: str, file: R.TextResource, section: R.Section, key: str, target):
+        if isinstance(target, R.Raw):
+            self.values.append(Value(item, file, section, key, R.Raw(file.raw(section, key) or ""), target))
+            return
         current = file.get(section, key)
         current = current if isinstance(current, list) else float(current or 0)
         self.values.append(Value(item, file, section, key, current, target))
@@ -90,7 +97,7 @@ def _selected(path, match) -> bool:
 
 
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
-    groups = [{"monsters": monsters, "weapons": weapons, "armor": armor, "classes": classes, "supplies": supplies}[c](match)
+    groups = [{"monsters": monsters, "weapons": weapons, "armor": armor, "classes": classes, "supplies": supplies, "loot": loot}[c](match)
               for c in categories]
     _merge_shared(groups)
     return groups
@@ -104,7 +111,7 @@ def _merge_shared(groups):
     targets, seen = {}, set()
     for g in groups:
         for v in g.values:
-            targets.setdefault(v.location, set()).add(tuple(v.target) if isinstance(v.target, list) else v.target)
+            targets.setdefault(v.location, set()).add(tuple(v.target) if isinstance(v.target, list) else v.target)  # Raw is hashable
     for g in groups:
         conflicts = {v.location for v in g.values if len(targets[v.location]) > 1}
         for path, _, key in sorted(conflicts):
@@ -473,4 +480,53 @@ def supplies(match=None) -> Group:
             ticks = _ticks(bf, buff)
             g.add(name, bf, buff, "MaxHealthFractionPerTick", round(share / ticks, 4))
             g.rows.append([name, f"{bf.get(buff, 'MaxHealthFractionPerTick', 0.0) * ticks:.0%}", f"{share:.0%}"])
+    return g
+
+
+# --- Loot tiers -----------------------------------------------------------------------------------
+
+TIER_BANDS = "res://scenes/items/quality/tier_depth_bands.tres"
+TIERED_POOLS = ("res://scenes/items/loot/pools/weapons.tres", "res://scenes/items/loot/pools/armor.tres")
+
+
+def tier_bands() -> list[tuple[int, int]]:
+    """Depths each tier drops at: from its introduction for `tier_band` depths; the last tier never stops (0)."""
+    intros = P.GEAR["tier_intro"]
+    bands = []
+    for i, intro in enumerate(intros):
+        last = intro + P.GEAR["tier_band"] - 1
+        bands.append((intro, 0 if i == len(intros) - 1 or last >= P.DEPTHS else last))
+    return bands
+
+
+def loot(match=None) -> Group:
+    """The tier depth bands and every tiered loot-pool entry's depth window, from the model's tier introductions."""
+    g = Group("Loot", headers=["tier", "drops at depths", "derived"])
+    bands = tier_bands()
+    f = R.load(TIER_BANDS)
+    if _selected(f.path, match):
+        current = f.raw(f.main, "Bands") or ""
+        g.add("Tier bands", f, f.main, "Bands",
+              R.Raw("Array[Vector2i]([" + ", ".join(f"Vector2i({a}, {b})" for a, b in bands) + "])"))
+        old = [tuple(int(x) for x in pair.split(",")) for pair in re.findall(r"Vector2i\(([^)]*)\)", current)]
+        for tier, band in enumerate(bands, 1):
+            was = old[tier - 1] if tier <= len(old) else None
+            g.rows.append([f"T{tier}", f"{was[0]}-{was[1] or ''}" if was else "", f"{band[0]}-{band[1] or ''}"])
+    for pool_path in TIERED_POOLS:
+        pool = R.load(pool_path)
+        if not _selected(pool.path, match):
+            continue
+        for ref in pool.get(pool.main, "Items", []):
+            ef, entry = pool.follow(ref)
+            item = ef.get(entry, "Item")
+            if not isinstance(item, R.Ref):
+                continue
+            itf, it = ef.follow(item)
+            if itf.script_class not in WEAPON_CLASSES + ("Armor",):
+                continue
+            tier = int(itf.get(it, "Tier", 1))
+            label = f"{itf.get(it, 'Name') or itf.path.stem} (T{tier})"
+            low, high = bands[tier - 1]
+            g.add(label, ef, entry, "MinDepth", low)
+            g.add(label, ef, entry, "MaxDepth", high)
     return g

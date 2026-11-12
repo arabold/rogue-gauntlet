@@ -110,15 +110,17 @@ Source tables own category budgets; shared loot pools own each category's depth 
 
 A source's `LootDropProfile` decides its table, drop chance, roll count and how its items roll. The Forsaken Warden's [profile](../scenes/enemies/forsaken_warden/forsaken_warden_drop.tres) uses its own [loot table](../scenes/enemies/forsaken_warden/forsaken_warden_loot.tres) of tier-2 weapons and the [gatekeeper policy](../scenes/items/gatekeeper_item_policy.tres), whose ladder never rolls below Magic and never curses. Rare enters that ladder at depth 5, the same depth as ordinary drops, then grows (about 12% at depth 6, 24% at depth 12, 40% at depth 24), so the depth-3 Warden's guaranteed drop is a clearly better Magic weapon to carry into depth 4 without skipping ahead of the quality curve.
 
-Weapon and armor base tiers are fenced over the 24-depth run (8 realms of 3 depths), so the highest tier belongs to the final two realms. Neighboring tiers overlap to smooth transitions. The bands live in [`tier_depth_bands.tres`](../scenes/items/quality/tier_depth_bands.tres); the weapon and armor pools validate every entry against them:
+Weapon and armor base tiers are fenced over the 24-depth run. Each tier drops for eight depths from its introduction, so neighbors overlap and smooth the transition, and the last tier never stops. The bands come from the [balance model](specs/balance-model.md#gear) (`tier_intro`, `tier_band`) and live in [`tier_depth_bands.tres`](../scenes/items/quality/tier_depth_bands.tres); `simulate.py derive` writes them and every weapon and armor pool entry's window, and the pools validate their entries against them:
 
 | Base tier | Depths | Realms |
 | --- | --- | --- |
-| T1 | 1–6 | 1–2 |
-| T2 | 4–12 | 2–4 |
-| T3 | 10–18 | 4–6 |
-| T4 | 16–21 | 6–7 |
-| T5 | 19–24 | 7–8 |
+| T1 | 1–8 | 1–3 |
+| T2 | 6–13 | 2–5 |
+| T3 | 11–18 | 4–6 |
+| T4 | 16–23 | 6–8 |
+| T5 | 21–24 | 7–8 |
+
+Every weapon, shield and armor piece's numbers come from its kind, slot, weight and tier through `derive`, so items of one kind and tier differ only in look, quality and affixes.
 
 Every jewelry type is eligible from depth 1; its quality carries the progression. See the [catalog](item-catalog.md#source-budgets-and-eligibility) and the source `.tres` files for actual eligibility and weights. Monster threat and item tier are selection/tuning concepts, not automatic depth-based stat scaling.
 

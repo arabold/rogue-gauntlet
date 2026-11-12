@@ -20,6 +20,12 @@ _REF = re.compile(r'(ExtResource|SubResource)\("([^"]+)"\)')
 
 
 @dataclass(frozen=True)
+class Raw:
+    """A value written and compared as Godot text, for types the reader does not model (e.g. Vector2i arrays)."""
+    text: str
+
+
+@dataclass(frozen=True)
 class Ref:
     """A reference to an external or sub-resource by its id in the file."""
     kind: str  # "ExtResource" or "SubResource"
@@ -76,6 +82,8 @@ def parse_value(raw: str):
 
 def format_value(value) -> str:
     """Godot's text form of a number (floats keep a decimal point, without float noise) or of a list of integers."""
+    if isinstance(value, Raw):
+        return value.text
     if isinstance(value, list):
         return f"PackedInt32Array({', '.join(str(int(v)) for v in value)})"
     if isinstance(value, bool):
@@ -129,6 +137,10 @@ class TextResource:
     def ext_path(self, id_: str) -> str:
         return next(s for s in self.sections if s.kind == "ext_resource" and s.id == id_).attrs["path"]
 
+    def raw(self, section: Section, key: str) -> str | None:
+        """A property's text as written in the file, or None when it is omitted."""
+        return section.props[key][2].strip() if key in section.props else None
+
     def has(self, section: Section, key: str) -> bool:
         return key in section.props
 
@@ -158,6 +170,8 @@ class TextResource:
         section = self._current(section)
         text = format_value(value)
         current = self.get(section, key)
+        if isinstance(value, Raw) and key in section.props and section.props[key][2].strip() == value.text:
+            return False
         if isinstance(value, list) and current == value:
             return False
         if isinstance(current, (int, float)) and not isinstance(current, bool) and abs(current - value) < 1e-9:
