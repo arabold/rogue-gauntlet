@@ -26,8 +26,8 @@ RiposteEligible = true
 Attack = SubResource("strike_attack")
 Style = &"melee"
 Duration = 1.0
-MinDamage = 4.0
-MaxDamage = 8.0
+MinDamage = 3.5
+MaxDamage = 7.5
 
 [resource]
 script = ExtResource("profile")

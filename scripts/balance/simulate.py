@@ -241,7 +241,7 @@ def fight(h, state, members, skill, rng):
         last = t
         if hero_next <= t:
             if state["hp"] < skill["potion_at"] * h.hp and state["potions"] > 0:
-                state["hp"] = min(h.hp, state["hp"] + P.SUPPLY["potion_heal"] * h.hp)
+                state["hp"] = min(h.hp, state["hp"] + M.lerp(P.SUPPLY["potion_heal"], h.depth) * h.hp)
                 state["potions"] -= 1
                 hero_next = t + 1.0
                 continue
@@ -512,7 +512,7 @@ def report_supply(depths, seeds, samples):
         heal = sum(v * s["potion_sizes"][size] for size, v in potions.items())
         gear = ", ".join(f"{k.split(':')[1]} {v:.1f}" for k, v in sorted(items.items()) if k.startswith("gear:"))
         rows.append([depth, f"{items.get('monsters', 0):.1f}", f"{sum(potions.values()):.2f}", f"{s['healing_potions']:.2f}",
-                     f"{heal:.0%}", f"{s['healing_potions'] * s['potion_heal']:.0%}", f"{items.get('food', 0):.2f}",
+                     f"{heal:.0%}", f"{s['healing_potions'] * M.lerp(s['potion_heal'], int(depth)):.0%}", f"{items.get('food', 0):.2f}",
                      f"{s['food']:.2f}", gear])
     table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
 

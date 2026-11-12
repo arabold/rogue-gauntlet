@@ -26,13 +26,15 @@ when they drink potions and how many found potions they can identify.
 
 | Skill | Avoid melee / ranged / homing | Efficiency | Arrival odds: target | Simulated (class range) |
 | --- | --- | --- | --- | --- |
-| Novice | 25% / 20% / 10% | 60% | depth 2: 75%, 3: 35%, 4: 3% | 77%, 22% (12–36%), 0% |
-| Regular | 50% / 45% / 30% | 75% | depth 4: 40%, 7: 10% | 37% (34–41%), 10% (8–13%) |
-| Skilled | 68% / 62% / 45% | 85% | depth 4: 85%, 13: 35%, win: 3% | 85%, 39% (34–43%), 0–1% |
-| Expert | 82% / 76% / 60% | 92% | depth 13: 85%, win: 35% | 86% (84–88%), 40% (36–42%) |
+| Novice | 51% / 35% / 27% | 29% | depth 2: 75%, 3: 35%, 4: 3% | 76% (71–82%), 30% (25–36%), 1% |
+| Regular | 67% / 55% / 43% | 36% | depth 4: 40%, 7: 10% | 39% (36–41%), 14% (13–14%) |
+| Skilled | 79% / 69% / 55% | 41% | depth 4: 85%, 13: 35%, win: 3% | 85% (81–88%), 44% (41–47%), 0–1% |
+| Expert | 88% / 80% / 67% | 44% | depth 13: 85%, win: 35% | 90% (88–91%), 34% (29–39%) |
 
 "Arriving at depth 4" means beating the depth-3 gatekeeper; "win" means beating the depth-24 one. The skill values are
-guesses until playtests measure them (see [calibration](#calibration)).
+preliminary (see [calibration](#calibration)): *skilled* is one developer's measured arena profile, and the other tiers
+keep their earlier spacing. Players avoid most attacks by moving, but many of their own swings miss, so efficiency is
+low at every tier.
 
 ## Combat rules the model assumes
 
@@ -61,9 +63,9 @@ class follows the same curves:
   **Intelligence:** +3% missile and spell damage per point above 10; mana `= 20 + 5 × Intelligence`, regenerating
   1% of the maximum per second.
 - Each level adds one attribute point, split by class (`growth` in `params.py`).
-- **Supplies:** about one healing potion per floor, restoring a share of max health (small 35%, medium 50%, large
-  70%; the runs assume 50% until loot odds are measured); about one food per floor at 10%; three health fountains per
-  run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
+- **Supplies:** about 0.9 healing potions per floor, restoring a share of max health (small 35%, from depth 3 medium
+  50%, from depth 7 large 70%; the runs assume 38% early, rising to 60%), as measured with `supply`; about one food per
+  floor at 10%; three health fountains per run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
 
 ### Gear
 
@@ -94,7 +96,8 @@ reference hero:
 - **Health** `= hits_to_kill(D) ×` the reference hero's mean hit after the monster's armor (10% of that hit).
 - **Mean hit** `= hero health / (hits_to_die(D) × (1 − hero armor share / 2))`, so the reference hero dies after
   `hits_to_die` landed hits. One attack every 2.2 s, ±35% range.
-- **The difficulty dial:** `hits_to_kill` rises from 3.5 to 5 and `hits_to_die` falls from 9 to 5 across the run.
+- **The difficulty dial:** `hits_to_kill` rises from 2.2 to 3.2 landed hits (misses come on top) and `hits_to_die`
+  falls from 9.6 to 4.4 across the run.
   Monsters therefore outgrow the hero slowly, and later floors are deadlier at the same skill.
 
 Archetypes are multiples of the standard monster at the same depth:
@@ -177,10 +180,9 @@ A class passes when each of these holds at regular skill:
 | Rogue | 9 / 15 / 11 / 8 | STR .2, DEX .5, VIT .25, INT .05 | dagger, crossbow opener, light armor, 2% crit per DEX | gatekeepers | packs |
 | Mage | 6 / 10 / 10 / 15 | STR .1, DEX .1, VIT .3, INT .5 | wand, Fireball, light armor | packs | gatekeepers |
 
-All four currently pass. The realm cost of each is within 6% of the mean, and survival differs by a few points at
-regular, skilled and expert skill. One spread remains: novices survive depths 1–2 more often as a Mage (36% reach
-depth 3, against 12–26% for the others). Range and homing missiles forgive poor aim. Decide whether that is a welcome
-on-ramp or needs tuning.
+All four currently pass. The realm cost of each is within 8% of the mean, and survival differs by a few points at
+every skill. Homing missiles recover only 10% of missed attacks (`HOMING_ASSIST`): with measured hit rates this low, a
+larger share made the Mage far safer than the other classes.
 
 ## Using the simulator
 

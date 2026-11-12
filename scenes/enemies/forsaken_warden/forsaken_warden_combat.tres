@@ -87,8 +87,8 @@ WeightModifiers = [SubResource("slash_late")]
 Attack = SubResource("swing")
 Style = &"melee"
 Duration = 1.6
-MinDamage = 11.0
-MaxDamage = 23.0
+MinDamage = 10.5
+MaxDamage = 21.5
 
 [sub_resource type="Resource" id="overhead"]
 resource_name = "overhead"
@@ -103,8 +103,8 @@ WeightModifiers = [SubResource("overhead_mid"), SubResource("overhead_late")]
 Attack = SubResource("overhead_swing")
 Style = &"overhead"
 Duration = 1.8
-MinDamage = 18.0
-MaxDamage = 29.0
+MinDamage = 17.0
+MaxDamage = 27.5
 
 [sub_resource type="Resource" id="tremor"]
 resource_name = "tremor"
@@ -117,8 +117,8 @@ WeightModifiers = [SubResource("tremor_mid")]
 Spell = ExtResource("tremor_spell")
 Style = &"stomp"
 Duration = 2.65
-MinDamage = 22.0
-MaxDamage = 33.0
+MinDamage = 20.5
+MaxDamage = 31.0
 
 [resource]
 script = ExtResource("profile")

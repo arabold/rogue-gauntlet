@@ -28,7 +28,7 @@ Attack = SubResource("shot_attack")
 Style = &"ranged"
 Duration = 1.4
 MinDamage = 5.5
-MaxDamage = 11.5
+MaxDamage = 11.0
 
 [resource]
 script = ExtResource("profile")

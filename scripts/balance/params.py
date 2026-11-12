@@ -15,8 +15,8 @@ LEVEL_CAP = 25
 
 # --- Difficulty dial: the standard monster against the reference hero ---------------------------
 STANDARD = dict(
-    hits_to_kill=(3.5, 5.0),   # reference hero hits (no crit) to kill a standard monster
-    hits_to_die=(9.0, 4.6),    # standard monster hits (after the hero's armor) to kill the reference hero
+    hits_to_kill=(2.2, 3.2),   # reference hero hits (no crit) to kill a standard monster; misses come on top
+    hits_to_die=(9.6, 4.4),    # standard monster hits (after the hero's armor) to kill the reference hero
     cycle=2.2,                 # seconds between a monster's attacks (wind-up plus cooldown)
     spread=0.35,               # damage range is mean * (1 -/+ spread)
     speed=2.8,                 # m/s, for approach time against ranged heroes
@@ -40,7 +40,7 @@ ATTRIBUTES = dict(
     mana_regen=0.01,           # share of max mana regenerated per second
 )
 CRIT_MULTIPLIER = 2.0
-HOMING_ASSIST = 0.3           # share of missed attacks a homing projectile still lands
+HOMING_ASSIST = 0.1           # share of missed attacks a homing projectile still lands
 MAGIC_ARMOR_SHARE = 0.0       # share of armor that applies to missiles and spells (0 = magic ignores armor)
 
 # --- Gear -------------------------------------------------------------------------------------
@@ -148,8 +148,8 @@ FLOOR = dict(
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )
 SUPPLY = dict(
-    healing_potions=1.0,       # expected healing potions found per floor (Poisson)
-    potion_heal=0.5,           # share of max health the average healing potion restores (the model's runs)
+    healing_potions=0.9,       # expected healing potions found per floor (Poisson); measured with `simulate.py supply`
+    potion_heal=(0.38, 0.6),   # share of max health the average potion restores: small ones early, larger ones later
     potion_sizes=dict(small=0.35, medium=0.5, large=0.7),  # what each potion restores; loot odds set the average
     food=1.0,                  # expected food per floor
     food_heal=0.10,
@@ -163,19 +163,23 @@ XP = dict(
     level_by_depth={1: 2, 24: 25},  # target level after clearing these depths; fits the XP ladder
 )
 
-# --- Player skill: what the model cannot know until playtests measure it -------------------------
-# avoid = share of a monster's landed-contact attempts the hero avoids (dodge, guard, spacing);
-# efficiency = share of the hero's attack cycles that land; potion_at = health share that triggers a
-# potion; potion_known = share of found healing potions the hero can identify and use.
+# --- Player skill, measured in combat-arena playtests (`simulate.py calibrate`) ------------------------
+# avoid = share of a monster's attacks the hero avoids (moving away, dodging, guarding, interrupting);
+# efficiency = share of the hero's attacks that land, swings at nothing included; potion_at = health share that
+# triggers a potion; potion_known = share of found healing potions the hero can identify and use.
+# Preliminary (2026-11-12): "skilled" is one developer's arena profile (avoided 79% of melee and 69% of ranged attacks,
+# landed 41% of swings over ~110 monster attacks). The other tiers keep their earlier spacing, with the share of hits
+# let through and the hit rate scaled to match. Homing uses the ranged scale: the measured 92% mostly reflected weak
+# Skeleton Mage casts, not skill.
 SKILL = {
-    "novice":  dict(avoid=dict(melee=0.25, ranged=0.20, homing=0.10, area=0.20),
-                    efficiency=0.60, potion_at=0.20, potion_known=0.5),
-    "regular": dict(avoid=dict(melee=0.50, ranged=0.45, homing=0.30, area=0.45),
-                    efficiency=0.75, potion_at=0.30, potion_known=0.8),
-    "skilled": dict(avoid=dict(melee=0.68, ranged=0.62, homing=0.45, area=0.62),
-                    efficiency=0.85, potion_at=0.35, potion_known=0.95),
-    "expert":  dict(avoid=dict(melee=0.82, ranged=0.76, homing=0.60, area=0.76),
-                    efficiency=0.92, potion_at=0.40, potion_known=1.0),
+    "novice":  dict(avoid=dict(melee=0.51, ranged=0.35, homing=0.27, area=0.35),
+                    efficiency=0.29, potion_at=0.20, potion_known=0.5),
+    "regular": dict(avoid=dict(melee=0.67, ranged=0.55, homing=0.43, area=0.55),
+                    efficiency=0.36, potion_at=0.30, potion_known=0.8),
+    "skilled": dict(avoid=dict(melee=0.79, ranged=0.69, homing=0.55, area=0.69),
+                    efficiency=0.41, potion_at=0.35, potion_known=0.95),
+    "expert":  dict(avoid=dict(melee=0.88, ranged=0.80, homing=0.67, area=0.80),
+                    efficiency=0.44, potion_at=0.40, potion_known=1.0),
 }
 REFERENCE_SKILL = "regular"
 

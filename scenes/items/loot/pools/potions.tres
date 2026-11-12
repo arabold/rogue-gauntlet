@@ -91,7 +91,7 @@ metadata/_custom_type_script = ExtResource("entry")
 script = ExtResource("entry")
 Weight = 6.0
 Item = ExtResource("item_potion_healing_medium")
-MinDepth = 1
+MinDepth = 3
 MaxDepth = 9
 metadata/_custom_type_script = ExtResource("entry")
 

@@ -18,6 +18,6 @@ Value = 200
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
-ArmorPoints = 27
+ArmorPoints = 28
 SpeedModifier = 0.92
 metadata/_custom_type_script = ExtResource("script")

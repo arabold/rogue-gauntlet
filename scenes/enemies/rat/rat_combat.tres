@@ -36,7 +36,7 @@ Attack = SubResource("bite_attack")
 Style = &"melee"
 Duration = 0.8
 MinDamage = 4.0
-MaxDamage = 8.5
+MaxDamage = 8.0
 
 [sub_resource type="Resource" id="rush_dash"]
 script = ExtResource("dash_profile")
