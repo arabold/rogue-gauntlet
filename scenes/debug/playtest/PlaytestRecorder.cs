@@ -4,8 +4,8 @@ using System.Linq;
 
 /// <summary>
 /// Records a whole playtest, across floors, into one JSONL file for <c>simulate.py playtest</c>: the combat trace
-/// (attacks, contacts, damage, defenses, monster deaths) plus the game events a balance review needs — each floor entered
-/// with its planned monsters and loot, items picked up, used, equipped, dropped and identified, healing, XP, level-ups and
+/// (attacks, contacts, damage, defenses, healing, monster deaths) plus the game events a balance review needs — each floor
+/// entered with its planned monsters and loot, items picked up, used, equipped, dropped and identified, XP, level-ups and
 /// the hero's death, with a snapshot of the hero on every floor and level-up. It lives under the tree root, so floor
 /// changes, which reload the gameplay scene, do not end it. Started from the debug menu's Playtest tool, or with
 /// <c>-- --playtest-log[=PATH]</c>.
@@ -25,7 +25,6 @@ public partial class PlaytestRecorder : Node
 	private string _path;
 	private CombatTraceRecorder _trace;
 	private Player _hero;
-	private float _lastHealth, _lastMaxHealth;
 
 	/// <summary>Starts recording to <paramref name="path"/>, or to a new file under <c>user://playtests/</c>; returns the recording.</summary>
 	public static PlaytestRecorder Start(SceneTree tree, string path = "")
@@ -97,7 +96,6 @@ public partial class PlaytestRecorder : Node
 
 	public override void _ExitTree()
 	{
-		Unbind();
 		if (Current == this) Current = null;
 	}
 
@@ -125,21 +123,8 @@ public partial class PlaytestRecorder : Node
 
 	private void OnPlayerSpawned(Player hero)
 	{
-		Unbind();
 		_hero = hero;
-		_lastHealth = hero.HealthComponent?.CurrentHealth ?? 0;
-		_lastMaxHealth = hero.HealthComponent?.MaxHealth ?? 0;
-		if (hero.HealthComponent != null) hero.HealthComponent.HealthChanged += OnHeroHealthChanged;
 		Snapshot("spawned");
-	}
-
-	/// <summary>Records healing; a raised maximum (a level-up or new gear) is growth, not healing.</summary>
-	private void OnHeroHealthChanged(float health, float maxHealth)
-	{
-		if (health > _lastHealth + 0.01f && maxHealth <= _lastMaxHealth + 0.01f)
-			CombatTrace.Write(_hero, "hero.healed", ("amount", health - _lastHealth), ("health", health), ("max_health", maxHealth));
-		_lastHealth = health;
-		_lastMaxHealth = maxHealth;
 	}
 
 	private void OnItemPickedUp(Player player, Item item, int quantity) => CombatTrace.Write(player, "item.picked_up", ("item", Describe(item, quantity)));
@@ -185,10 +170,4 @@ public partial class PlaytestRecorder : Node
 		["type_id"] = (item as IIdentifiable)?.TypeId, ["form"] = (item as IIdentifiable)?.AppearanceForm,
 		["tier"] = (item as EquipableItem)?.Tier, ["quality"] = (item as EquipableItem)?.Quality.ToString(),
 	};
-
-	private void Unbind()
-	{
-		if (IsInstanceValid(_hero) && _hero.HealthComponent != null) _hero.HealthComponent.HealthChanged -= OnHeroHealthChanged;
-		_hero = null;
-	}
 }

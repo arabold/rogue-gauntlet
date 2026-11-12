@@ -580,7 +580,7 @@ def read_playtest(path):
         event, data, time = record["event"], record["data"], record["time"]
         hero = "/Player/" in record["actor"] + "/"
         if event == "floor.entered":
-            floor = dict(depth=data["depth"], start=time, end=time, monsters=len(data["monsters"]), kills=0, xp=0,
+            floor = dict(depth=data["depth"], start=time, end=time, monsters=len(data["monsters"]), nests=data["nests"], kills=0, xp=0,
                          damage=0.0, healed=0.0, found=Counter(), used=Counter(), gear=[], level=None, max_health=None,
                          died=False, loose=Counter(item_label(i) for i in data["loose_items"]), chests=data["chests"])
             floors.append(floor)
@@ -594,13 +594,13 @@ def read_playtest(path):
             floor["xp"] += data["xp"]
         elif event == "damage.resolved" and hero and data["outcome"] == "Damaged":
             floor["damage"] += data["damage"]
-        elif event == "hero.healed":
+        elif event == "health.healed" and hero:
             floor["healed"] += data["amount"] / data["max_health"]
         elif event == "item.picked_up":
             item = data["item"]
             floor["found"][item_label(item)] += item["quantity"]
-            if item["kind"] in ("Weapon", "Armor"):
-                floor["gear"].append(f"T{item['tier']} {item['kind'].lower()}")
+            if item.get("tier") is not None:
+                floor["gear"].append(gear_label(item))
         elif event == "item.consumed":
             floor["used"][item_label(data["item"])] += 1
         elif event == "hero.snapshot":
@@ -609,6 +609,13 @@ def read_playtest(path):
             floor["level_out"] = data["level"]
             floor["died"] |= data["reason"] == "died"
     return floors
+
+
+def gear_label(item):
+    """Weapons, staves and armor by tier and kind, jewelry by type: `T2 weapon`, `ring.strength`."""
+    if item["kind"] in ("Weapon", "MagicStaff", "Armor"):
+        return f"T{item['tier']} {'staff' if item['kind'] == 'MagicStaff' else item['kind'].lower()}"
+    return item.get("type_id") or item["kind"]
 
 
 def item_label(item):
@@ -628,7 +635,8 @@ def report_playtest(paths):
             health = f["max_health"] or 1
             level = f"{f['level']}" + (f"→{f['level_out']}" if f.get("level_out", f["level"]) != f["level"] else "")
             expected = P.SUPPLY["healing_potions"] * M.lerp(P.SUPPLY["potion_heal"], int(f["depth"]))
-            rows.append([f["depth"], f"{(f['end'] - f['start']) / 60:.1f}", f"{f['kills']}/{f['monsters']}", f["xp"],
+            planned = f"{f['monsters']}" + (f"+{f['nests']} nests" if f["nests"] else "")
+            rows.append([f["depth"], f"{(f['end'] - f['start']) / 60:.1f}", f"{f['kills']}/{planned}", f["xp"],
                          level, f"{f['damage'] / health:.1f}", f"{f['healed']:.0%}", f"{expected:.0%}",
                          ", ".join(f"{n} {size}" for size, n in heal) or "-", used, ", ".join(f["gear"]) or "-",
                          "died" if f["died"] else ""])
