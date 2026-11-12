@@ -253,6 +253,19 @@ The model can be no better than its skill tiers. Measure them before tuning numb
 - Check time to kill and damage taken against the standard monster and the gatekeeper in the arena. They should
   match the simulator's duel numbers within about 20%. If not, fix the model's timing (attack cycles, engagement
   gap) first.
+- Record whole playtests of the first floors. **Debug → Playtest → Record playtest** in the game, or launching with
+  `-- --playtest-log[=PATH]`, writes one JSONL file under `user://playtests/` that follows the run across floors: the
+  combat trace plus each floor's monsters and loot, pickups, items used, equipped and identified, healing, XP,
+  level-ups and deaths, with a snapshot of the hero on every floor.
+
+  ```bash
+  uv run scripts/balance/simulate.py playtest ~/Library/Application\ Support/Godot/app_userdata/Rogue\ Gauntlet/playtests/*.jsonl
+  ```
+
+  `playtest` reports per floor the time spent, kills, XP, level, damage taken and healing (in max health), the
+  healing potions found by size against the model's supply, and gear found, followed by the same skill profile as
+  `calibrate`. A playtest measures the whole loop the model predicts, so compare its floors with `survival` at the
+  matching skill tier.
 
 ## Implementation plan
 
@@ -275,7 +288,7 @@ the bonus from quality and affixes. Item tables are free to vary around them.
 
 The remaining steps:
 
-1. **Realm 1.** Calibrate the novice and regular skill tiers from playtests (see
+1. **Realm 1.** Calibrate the novice and regular skill tiers from recorded playtests of the first three floors (see
    [Calibration](#calibration)). Most of the difficulty targets fall in these depths.
 2. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
    playtested before the next one starts.

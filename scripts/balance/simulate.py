@@ -562,7 +562,81 @@ def report_calibration(paths):
         efficiency = sum(a["landed"] for a in swings) / len(swings)
         rows.append(["hero attacks landed", len(swings), f"{efficiency:.0%}", nearest(efficiency, "efficiency")])
     print(f"Calibration from {len(paths)} trace(s); compare with SKILL in params.py\n")
-    table(["measure", "attacks", "share", "closest skill tier"], rows)
+    if rows:
+        table(["measure", "attacks", "share", "closest skill tier"], rows)
+    else:
+        print("No attacks recorded.")
+
+
+def read_playtest(path):
+    """Floors of a playtest log (the debug menu's Playtest tool): what each held and what the hero found, used, took and gained."""
+    import json
+    from collections import Counter
+    floors, floor = [], None
+    for line in Path(path).read_text().splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        event, data, time = record["event"], record["data"], record["time"]
+        hero = "/Player/" in record["actor"] + "/"
+        if event == "floor.entered":
+            floor = dict(depth=data["depth"], start=time, end=time, monsters=len(data["monsters"]), kills=0, xp=0,
+                         damage=0.0, healed=0.0, found=Counter(), used=Counter(), gear=[], level=None, max_health=None,
+                         died=False, loose=Counter(item_label(i) for i in data["loose_items"]), chests=data["chests"])
+            floors.append(floor)
+            continue
+        if floor is None:
+            continue
+        floor["end"] = time
+        if event == "actor.died":
+            floor["kills"] += 1
+        elif event == "hero.xp":
+            floor["xp"] += data["xp"]
+        elif event == "damage.resolved" and hero and data["outcome"] == "Damaged":
+            floor["damage"] += data["damage"]
+        elif event == "hero.healed":
+            floor["healed"] += data["amount"] / data["max_health"]
+        elif event == "item.picked_up":
+            item = data["item"]
+            floor["found"][item_label(item)] += item["quantity"]
+            if item["kind"] in ("Weapon", "Armor"):
+                floor["gear"].append(f"T{item['tier']} {item['kind'].lower()}")
+        elif event == "item.consumed":
+            floor["used"][item_label(data["item"])] += 1
+        elif event == "hero.snapshot":
+            if floor["level"] is None:
+                floor["level"], floor["max_health"] = data["level"], data["max_health"]
+            floor["level_out"] = data["level"]
+            floor["died"] |= data["reason"] == "died"
+    return floors
+
+
+def item_label(item):
+    """Potions by kind and size (`potion.healing:small`), other items by type."""
+    if item.get("type_id"):
+        return f"{item['type_id']}:{item['form']}" if item.get("form") else item["type_id"]
+    return item["kind"]
+
+
+def report_playtest(paths):
+    """Per-floor summary of recorded playtests against the model's expectations, then the measured skill profile."""
+    rows = []
+    for path in paths:
+        for f in read_playtest(path):
+            heal = sorted((k.split(":")[-1], n) for k, n in f["found"].items() if k.startswith("potion.healing"))
+            used = sum(n for k, n in f["used"].items() if k.startswith("potion.healing"))
+            health = f["max_health"] or 1
+            level = f"{f['level']}" + (f"→{f['level_out']}" if f.get("level_out", f["level"]) != f["level"] else "")
+            expected = P.SUPPLY["healing_potions"] * M.lerp(P.SUPPLY["potion_heal"], int(f["depth"]))
+            rows.append([f["depth"], f"{(f['end'] - f['start']) / 60:.1f}", f"{f['kills']}/{f['monsters']}", f["xp"],
+                         level, f"{f['damage'] / health:.1f}", f"{f['healed']:.0%}", f"{expected:.0%}",
+                         ", ".join(f"{n} {size}" for size, n in heal) or "-", used, ", ".join(f["gear"]) or "-",
+                         "died" if f["died"] else ""])
+    print(f"Playtest from {len(paths)} log(s): damage and healing in the hero's max health on arrival\n")
+    table(["depth", "minutes", "kills", "xp", "level", "damage taken", "healed", "model healing", "healing potions found",
+           "used", "gear found", ""], rows)
+    print()
+    report_calibration(paths)
 
 
 def derive(categories, match):
@@ -614,7 +688,9 @@ def main():
     m.add_argument("--darts", type=int, default=1)
     m.add_argument("--boss", action="store_true")
     cal = sub.add_parser("calibrate")
-    cal.add_argument("traces", nargs="+", help="combat-arena traces recorded with --combat-log")
+    cal.add_argument("traces", nargs="+", help="combat-arena traces (--combat-log) or playtest logs")
+    pt = sub.add_parser("playtest")
+    pt.add_argument("logs", nargs="+", help="playtest logs from the debug menu's Playtest tool (user://playtests/)")
     sp = sub.add_parser("supply")
     sp.add_argument("--depths", default="1-3")
     sp.add_argument("--seeds", type=int, default=12)
@@ -647,6 +723,8 @@ def main():
             evaluate_monster(args)
         case "calibrate":
             report_calibration(args.traces)
+        case "playtest":
+            report_playtest(args.logs)
         case "supply":
             report_supply(args.depths, args.seeds, args.samples)
         case "audit" | "derive":
