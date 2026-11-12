@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="ThreatProfile" format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/encounters/ThreatProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+CostGrowth = 1.2976

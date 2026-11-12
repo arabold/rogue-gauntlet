@@ -77,10 +77,10 @@ public class GarrisonRoomPoolTest
 			AssertString(failure).OverrideFailureMessage($"seed={runSeed} depth={depth}: {failure}").IsEmpty();
 			AssertArray(TestFactories.ConnectivityFailures(generator).ToArray()).OverrideFailureMessage($"seed={runSeed} depth={depth}").IsEmpty();
 			var ordinary = generator.EnemySpawnPoints.Where(spawn => encounters.Entries.Any(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath)).ToArray();
-			int spent = ordinary.Sum(spawn => encounters.Entries.Single(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath).Threat);
+			float spent = ordinary.Sum(spawn => encounters.Cost(encounters.Entries.Single(entry => entry.ScenePath == spawn.Scenes[0].ResourcePath), depth));
 			using var encounterRng = GenerationRandom.Create(generator.Seed, GenerationRandom.Monsters);
 			AssertInt(generator.EnemySpawnPoints.Count).IsEqual(encounters.CreateEncounter(depth, encounterRng).Count);
-			AssertBool(spent > 0 && spent <= encounters.FloorBudgets[depth - 1]).IsTrue();
+			AssertBool(spent > 0 && spent <= encounters.FloorBudget(depth) + 1e-4f).IsTrue();
 			AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.Scenes[0] == encounters.NestScene)).IsEqual(depth == 2 ? 2 : 0);
 			AssertBool(level.CanDescend).IsEqual(depth != 3);
 			if (depth == 3) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);

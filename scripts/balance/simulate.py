@@ -12,6 +12,8 @@ Rogue Gauntlet balance simulator: target tables, class parity and survival odds 
     uv run scripts/balance/simulate.py weapon --tier 2 --damage 6-12 --cycle 0.5 [--hands 2]
     uv run scripts/balance/simulate.py armor --tier 3 --slot body --armor 9 [--weight heavy]
     uv run scripts/balance/simulate.py monster --depth 4 --hp 40 --armor 1 --damage 6-10 --cycle 2.2 [--kind ranged]
+    uv run scripts/balance/simulate.py audit [--only monsters,weapons,armor,classes] [--match skeleton]
+    uv run scripts/balance/simulate.py derive [--only ...] [--match ...]   # writes the targets into the .tres files
 
 See docs/specs/balance-model.md for the model; edit params.py to tune it.
 """
@@ -25,8 +27,10 @@ import sys
 from functools import cache
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import content as C  # noqa: E402
 import model as M  # noqa: E402
 import params as P  # noqa: E402
+import resources as R  # noqa: E402
 
 KEY_DEPTHS = [1, 3, 6, 9, 12, 15, 18, 21, 24]
 CLASS_NAMES = [c for c in P.CLASSES if c != "reference"]
@@ -459,6 +463,42 @@ def evaluate_monster(args):
               f"{M.duel_cost(m, M.hero('reference', d), P.SKILL[P.REFERENCE_SKILL]):.1%} of the reference hero's health")
 
 
+# --- Game content ---------------------------------------------------------------------------------------
+
+def report_audit(categories, match):
+    """Every authored value the model sets that is off its target, with each category's summary."""
+    off_total = 0
+    for g in C.collect(categories, match):
+        print(f"## {g.name}\n")
+        if g.rows:
+            table(g.headers, g.rows)
+        off = [v for v in g.values if v.off > P.AUDIT_TOLERANCE]
+        off_total += len(off)
+        if off:
+            table(["item", "value", "now", "target", "off"],
+                  [[v.item, v.key, f"{v.current:g}", f"{v.target:g}", f"{v.off:.0%}"] for v in off])
+        for note in g.notes:
+            print(f"- {note}")
+        if g.notes:
+            print()
+    print(f"{off_total} values off target by more than {P.AUDIT_TOLERANCE:.0%}. `derive` writes the targets.")
+
+
+def derive(categories, match):
+    """Write every target into its .tres file; git shows what changed."""
+    groups = C.collect(categories, match)
+    written = 0
+    for g in groups:
+        for v in g.values:
+            written += v.file.set(v.section, v.key, v.target)
+        for note in g.notes:
+            print(f"- {g.name}: {note}")
+    changed = R.save_all()
+    print(f"Wrote {written} values to {len(changed)} files:")
+    for path in changed:
+        print(f"  {R.to_res(path)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command")
@@ -492,6 +532,10 @@ def main():
     m.add_argument("--guard", type=float, default=0.0)
     m.add_argument("--darts", type=int, default=1)
     m.add_argument("--boss", action="store_true")
+    for name in ("audit", "derive"):
+        c = sub.add_parser(name)
+        c.add_argument("--only", default=",".join(C.CATEGORIES), help="categories: " + ", ".join(C.CATEGORIES))
+        c.add_argument("--match", action="append", help="only resources whose path contains this text (repeatable)")
     args = parser.parse_args()
     match args.command:
         case None | "progression":
@@ -514,6 +558,12 @@ def main():
             evaluate_armor(args)
         case "monster":
             evaluate_monster(args)
+        case "audit" | "derive":
+            categories = [c.strip() for c in args.only.split(",")]
+            unknown = set(categories) - set(C.CATEGORIES)
+            if unknown:
+                parser.error(f"unknown categories: {', '.join(sorted(unknown))}")
+            (report_audit if args.command == "audit" else derive)(categories, args.match)
 
 
 if __name__ == "__main__":

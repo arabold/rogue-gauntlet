@@ -21,14 +21,14 @@ PoiseDamage = 8.0
 [sub_resource type="Resource" id="shot"]
 resource_name = "shot"
 script = ExtResource("attack_action")
-Cooldown = 1.8
+Cooldown = 3.2
 MaximumRange = 14.0
 RiposteEligible = true
 Attack = SubResource("shot_attack")
 Style = &"ranged"
 Duration = 1.4
-MinDamage = 3.0
-MaxDamage = 6.0
+MinDamage = 5.5
+MaxDamage = 11.5
 
 [resource]
 script = ExtResource("profile")

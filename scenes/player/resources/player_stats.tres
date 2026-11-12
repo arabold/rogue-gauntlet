@@ -6,3 +6,5 @@
 [resource]
 script = ExtResource("1_ukt4l")
 Profile = ExtResource("2_profile")
+BaseMaxHealth = 30.0
+ManaRegenRate = 0.01

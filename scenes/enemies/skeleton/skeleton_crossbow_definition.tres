@@ -8,8 +8,11 @@
 script = ExtResource("script")
 Id = "skeleton_crossbow"
 DisplayName = "Skeleton Crossbowman"
-MaxHealth = 8.0
-MoveSpeed = 3.0
-XpReward = 4
+Archetype = 5
+BalanceDepth = 2.0
+MaxHealth = 19.0
+MoveSpeed = 2.8
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
+Armor = 0.5
+ThreatLevel = 1.26

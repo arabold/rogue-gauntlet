@@ -182,7 +182,14 @@ public class WardenTest
 			boss.GlobalPosition = new Vector3(0, 0, -2);
 			boss.MovementComponent.SetLookAtDirection(-side);
 			harness.Player.GlobalPosition = boss.GlobalPosition + side * 2.05f;
+			// Each side starts fresh: the previous side's hit may have staggered the hero or broken their poise.
+			harness.Player.Velocity = Vector3.Zero;
+			harness.Player.MovementComponent.SetInputDirection(Vector3.Zero);
+			harness.Player.ResetPhysicsInterpolation();
+			boss.ResetPhysicsInterpolation();
 			harness.Player.HealthComponent.SetHealth(100, 100);
+			harness.Player.ActionGate.ResetForSimulation();
+			harness.Player.GetNodeOrNull<PoiseComponent>("PoiseComponent")?.Restore();
 			await runner.SimulateFrames(2, 20);
 			// Start through the executor: the AI would not start a swing at a hero behind it, but body contact
 			// must still cover every side once a swing is under way.

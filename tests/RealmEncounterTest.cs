@@ -23,8 +23,11 @@ public class RealmEncounterTest
 				var first = factory.CreateEncounter(depth, a).Select(s => s.ResourcePath).ToArray();
 				var second = factory.CreateEncounter(depth, b).Select(s => s.ResourcePath).ToArray();
 				AssertString(string.Join("|", first)).IsEqual(string.Join("|", second));
-				int spent = first.Sum(path => factory.Entries.Single(e => e.ScenePath == path).Threat);
-				AssertInt(spent).IsEqual(factory.FloorBudgets[(int)depth - 1]);
+				// The floor spends its budget until no eligible monster still fits.
+				float spent = first.Sum(path => factory.Cost(factory.Entries.Single(e => e.ScenePath == path), depth));
+				float cheapest = factory.Entries.Where(e => e.EligibleAt(depth)).Min(e => factory.Cost(e, depth));
+				AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth) + 1e-4f).IsTrue();
+				AssertBool(first.Length == 24 || factory.FloorBudget(depth) - spent < cheapest).IsTrue();
 			}
 		}
 		using var fallbackA = GenerationRandom.Create(42, GenerationRandom.Monsters);
@@ -75,7 +78,7 @@ public class RealmEncounterTest
 		AssertBool(level.CanDescend).IsFalse();
 		var boss = level.FindChildren("*", "", true, false).OfType<EnemyBase>()
 			.Single(e => e.GetMeta("persistent_id", "").AsString() == level.Encounters.GatekeeperId);
-		AssertFloat(boss.HealthComponent.CurrentHealth).IsEqual(110);
+		AssertFloat(boss.HealthComponent.CurrentHealth).IsEqual(boss.Definition.MaxHealth);
 		AssertString(boss.SceneFilePath).IsEqual("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn");
 		var tree = level.GetTree();
 		Node previousScene = tree.CurrentScene;
@@ -83,7 +86,19 @@ public class RealmEncounterTest
 		try
 		{
 			AssertBool(GameSession.Instance.ChangeDungeonDepth(GameSession.LevelTravelDirection.Down)).IsFalse();
+			var player = level.GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+			int xp = player.Stats.Xp;
 			boss.HealthComponent.TakeDamage(1000);
+			// Its threat level and the gatekeeper bonus pay more than any ordinary monster of the realm.
+			var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory;
+			int OrdinaryXp(MobSpawnEntry entry)
+			{
+				var actor = TestFactories.Load<PackedScene>(entry.ScenePath).Instantiate<EnemyBase>();
+				try { return level.ThreatProfile.Xp(actor.Definition); }
+				finally { actor.Free(); }
+			}
+			int ordinaryBest = realm.Entries.Max(OrdinaryXp);
+			AssertInt(player.Stats.Xp - xp).IsGreater(ordinaryBest);
 			await Task.Delay(1100); // allow the independent stair-arrival cooldown to expire
 			AssertBool(GameSession.Instance.CanUseTransition(GameSession.LevelTravelDirection.Down)).IsTrue();
 		}

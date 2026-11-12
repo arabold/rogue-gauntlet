@@ -8,8 +8,10 @@
 script = ExtResource("definition")
 Id = "skeleton_minion"
 DisplayName = "Skeleton Minion"
-MaxHealth = 8.0
+Archetype = 1
+BalanceDepth = 2.0
+MaxHealth = 14.0
 MoveSpeed = 3.2
-XpReward = 2
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
+ThreatLevel = -1.73

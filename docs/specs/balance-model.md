@@ -72,7 +72,9 @@ depth 1 to 25% at depth 24.
 - **Weapons:** the reference one-handed sword's mean hit is `6 × 1.08^(depth − 1)` with a ±40% range. Other kinds are
   multiples of it: dagger 0.72× every 0.36 s; sword 1.0× every 0.5 s; two-handed axe 1.5× every 0.72 s, clipping a
   second engaged monster 15% of the time; crossbow 1.3× every 0.95 s at range; wand 3 homing darts of 0.25× every
-  0.6 s.
+  0.6 s. The kinds no class starts with share the sword's damage per second when one-handed (axe 1.15×, blunt 1.3×:
+  bigger, slower hits that cut through armor) and add cleave when two-handed (sword, axe, blunt); spears and staves
+  trade the off-hand for a larger hit. Their exact multiples are proposals in `params.py`.
 - **Armor slots** are sized against the standard monster's mean hit `m` at that depth. A Normal medium body piece
   holds `0.30 m` armor, a helmet `0.15 m`, a shield `0.22 m`. Light pieces carry half the armor and remove 5% of
   landed hits; heavy pieces carry 1.3× and let 10% more land. Body armor and helmets are new slots to build.
@@ -124,8 +126,9 @@ to shooters. Healers add what they heal, burned through again, while an ally kee
   level), so out-of-depth weaklings pay little but tough monsters are not exponential jackpots. A standard monster
   pays 10 XP at depth 1 and 47 at depth 12; the depth-3 gatekeeper pays about 100.
 
-The simulator will write each monster's threat level into its definition, and the game will compute XP from it,
-replacing `XpReward` and hand-authored `Threat`. `simulate.py monster` evaluates proposed stats today.
+`derive` writes each monster's threat level into its definition, and the game pays XP from it through the level's
+`ThreatProfile` (`scenes/levels/encounters/threat_profile.tres`, whose constants `derive` also writes). The `Boss`
+archetype marks the gatekeeper bonus. `simulate.py monster` evaluates proposed stats before they are authored.
 
 ## Floors and gatekeepers
 
@@ -134,6 +137,11 @@ single monsters, so roles appear together: a patrol (standard and fodder), a gua
 swarm, a warband (two standards and a caster who heals them) and, from depth 4, a vanguard (brute, standard and
 shooter). Fighting together costs more than the sum of the members, because each monster keeps attacking until the
 hero reaches it. Gatekeeper floors spend 60% of the budget, then the gatekeeper.
+
+The game spends the same budget through the realm's encounter table. A monster costs
+`cost growth ^ (threat level − depth)` there: one standard fight on the depth of its threat level, 23% less for each
+depth deeper. That closed form stays within about 20% of the model's cost at the depths a monster spawns. The
+game does not compose packs yet; it draws single monsters by weight until no eligible one fits.
 
 At regular skill and without potions, an ordinary floor costs about 40% of max health at depth 3 and over 110% at
 depth 24, and a gatekeeper about 110% and 230%. Supplies cover part of that: the late game is meant to drain
@@ -188,6 +196,34 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
 - **Retuning.** Change the dial, supplies or targets in `params.py`, then rerun `survival` until no target is
   flagged. `survival --runs 1000` takes about 20 s.
 
+### Game content
+
+`audit` compares the game's `.tres` files with the model's targets; `derive` writes the targets into them. Both take
+`--only monsters,weapons,armor,classes` and `--match <path text>` (repeatable). `derive` overwrites every value it
+owns; review the result with `git diff`.
+
+```bash
+uv run scripts/balance/simulate.py audit                       # everything off target by more than 10%
+uv run scripts/balance/simulate.py derive --match skeleton     # write the targets of matching resources
+```
+
+- **Monsters** carry an `Archetype` and a `BalanceDepth` in their definition: the role and the depth its stats are
+  sized for. `derive` writes health, armor, speed and the read-only `ThreatLevel`. The first damaging action of the
+  combat profile takes the archetype's hit and attack rhythm. Further damaging actions keep their damage ratio to it
+  and their authored cooldowns, so signature attacks such as the Warden's overhead and tremor come as often as
+  designed; the model counts only the first attack, so it underestimates such monsters a little. A definition without an archetype is reported and left alone. The `Boss` archetype is the gatekeeper.
+- **Weapons** get their kind from their attack style (`MagicStaff` decides wand or staff by hands) and their target
+  from `Tier`. A combo's average damage and duration scales count toward the hit and the seconds per attack, so
+  `derive` writes the base damage range and `PerformDuration` that reproduce the kind's hit and rhythm. Wand and
+  staff missiles get the kind's dart share.
+- **Armor** gets its slot from `ValidSlots` and its target from `Tier` (Normal quality, medium weight).
+- **Classes** match the model's classes by `Id`. `derive` writes base attributes, and the hero sheet and stat
+  profiles that reproduce the model's level-1 health, mana and crit chance with the game's current formulas. Damage
+  from attributes waits for the rule change.
+
+All items of one kind and tier get the same numbers, so variety within a tier has to come from affixes, guards,
+weight or attack patterns.
+
 ## Calibration
 
 The model can be no better than its skill tiers. Measure them before tuning numbers further:
@@ -208,25 +244,30 @@ is authored by choosing its archetype and depth, and a new item by choosing its 
 the numbers. Loot needs only averages to match: potions and food per floor, the tier a hero wears at each depth, and
 the bonus from quality and affixes. Item tables are free to vary around them.
 
-1. **Derive and audit.** `simulate.py derive` writes target values into monster, weapon, armor and class `.tres`
-   files, including each monster's threat level. `simulate.py audit` reads them and flags anything off target. Run on
-   today's data, the audit lists everything still to rewrite.
-2. **Threat-based XP.** The game computes XP from a monster's threat level, doubled for gatekeepers, and floor
-   budgets from the depth. Remove `XpReward`, `MobSpawnEntry.Threat` and the authored `FloorBudgets`, and bump
-   `SaveGame.CurrentVersion`.
-3. **Leveling and rule changes.** Both change `PlayerStats`, so they land together:
+`audit` and `derive` exist (see [Game content](#game-content)). The realm 1 monsters and the class sheets are
+derived, and XP and floor budgets follow the monsters' threat levels. The remaining steps:
+
+1. **Leveling and rule changes.** Both change `PlayerStats`, so they land together:
    - the fitted XP ladder, with level-ups that add health and the class's attribute growth;
-   - attributes as percentages (Vitality of health, Strength and Intelligence of damage);
+   - attributes as percentages (Vitality of health, Strength and Intelligence of damage), with the hero's base
+     damage folded into the weapon;
    - missiles and spells that skip armor;
    - healing potions that heal a share of max health.
-4. **Realm 1.** Derive depths 1–3 and their gatekeeper: monsters, packs, class kits and tier-1 weapons. Count
-   potions, food and gear per floor from the real loot generator over seeded headless floors, and match them to
-   `SUPPLY`. Then calibrate the novice and regular skill tiers from playtests (see [Calibration](#calibration)).
-   Most of the difficulty targets fall in these depths.
-5. **Armor slots.** Body armor and helmets in light, medium and heavy weights, sized from the slot shares and tiers.
-6. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
+2. **Armor slots.** Body armor and helmets in light, medium and heavy weights, sized from the slot shares and tiers.
+   They come before any calibration: the standard monster's hit assumes the hero wears them, so without them every
+   fight costs more health than the model expects.
+3. **Realm 1.** Derive the rest of depths 1–3: packs, class kits and tier-1 gear. Count potions,
+   food and gear per floor from the real loot generator over seeded headless floors, and match them to `SUPPLY`.
+   Then calibrate the novice and regular skill tiers from playtests (see [Calibration](#calibration)). Most of the
+   difficulty targets fall in these depths.
+   - **Packs in the game.** Encounter tables list packs (members and count) instead of single monsters, a pack
+     spawns together in one room, and it costs its model cost, more than its members fought one at a time.
+   - **A rat-led start.** Rats are the weakest monster but arrive after the skeletons. Instead, depth 1 opens with
+     small rat groups, depth 2 brings rat hordes large enough to overwhelm a careless hero with only occasional
+     skeletons, and depth 3 leads to the Warden. Add the packs to `PACKS` first and check the effect with `survival`.
+4. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
    playtested before the next one starts.
-7. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
+5. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
    they are built. A shop, for example, turns gold into supplies and gear upgrades.
 
 ## Not modeled yet

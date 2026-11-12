@@ -407,6 +407,7 @@ public partial class CombatIntegrationTest
 		using (runner)
 		{
 			var enemy = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
+			enemy.HurtBoxComponent.Armor = 0; // the guard is under test, not the armor roll
 			AssertInt((int)enemy.GuardComponent.TryBeginGuard(Vector3.Back)).IsEqual((int)DefenseRequestResult.Success);
 			await PhysicsFrames(runner, 4);
 			float before = enemy.HealthComponent.CurrentHealth;

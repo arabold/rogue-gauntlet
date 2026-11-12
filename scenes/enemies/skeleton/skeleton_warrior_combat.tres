@@ -21,14 +21,14 @@ WindUpTurnRate = 300.0
 [sub_resource type="Resource" id="strike"]
 resource_name = "strike"
 script = ExtResource("attack_action")
-Cooldown = 1.4
+Cooldown = 2.2
 MaximumRange = 2.7
 RiposteEligible = true
 Attack = SubResource("strike_attack")
 Style = &"melee"
 Duration = 1.0
-MinDamage = 1.0
-MaxDamage = 15.0
+MinDamage = 6.0
+MaxDamage = 12.5
 
 [resource]
 script = ExtResource("profile")

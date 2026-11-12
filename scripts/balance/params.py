@@ -58,13 +58,21 @@ GEAR = dict(
 )
 
 # Weapon kinds relative to the reference sword: hit multiplier, seconds per attack, hands.
-# `cleave` = average monsters hit per swing while two or more are engaged; `darts` split a volley.
+# `cleave` = average monsters hit per swing while two or more are engaged; `darts` split a volley, each dealing
+# `dart_scale` of the hit. One-handed melee kinds share the sword's damage per second and differ in hit size (bigger
+# hits cut through armor); two-handed melee kinds add cleave. Kinds no class starts with are not in the parity runs.
 WEAPONS = {
     "sword_1h": dict(hit=1.00, cycle=0.50, hands=1),
     "dagger":   dict(hit=0.72, cycle=0.36, hands=1),
+    "axe_1h":   dict(hit=1.15, cycle=0.575, hands=1),
+    "blunt_1h": dict(hit=1.30, cycle=0.65, hands=1),
+    "sword_2h": dict(hit=1.35, cycle=0.65, hands=2, cleave=1.20),
     "axe_2h":   dict(hit=1.50, cycle=0.72, hands=2, cleave=1.15),
+    "blunt_2h": dict(hit=1.75, cycle=0.84, hands=2, cleave=1.10),
+    "spear_2h": dict(hit=1.55, cycle=0.70, hands=2),            # thrusts one target; reach is not modeled
     "crossbow": dict(hit=1.30, cycle=0.95, hands=2, ranged=True),
     "wand":     dict(hit=1.00, cycle=0.60, hands=1, ranged=True, homing=True, darts=3, dart_scale=0.25),
+    "staff":    dict(hit=1.20, cycle=0.60, hands=2, ranged=True, homing=True, darts=4, dart_scale=0.19),
 }
 
 # Spells scale off the focus's hit like missiles. `targets` = average monsters hit in a pack.
@@ -175,3 +183,4 @@ TARGETS = {
     "expert":  {13: 0.85, 25: 0.35},          # experts win about a third of their runs
 }
 TARGET_TOLERANCE = 0.10        # absolute probability slack before a target is flagged
+AUDIT_TOLERANCE = 0.10         # relative difference before `simulate.py audit` flags an authored value

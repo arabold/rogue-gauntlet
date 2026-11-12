@@ -11,6 +11,7 @@
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/loose_items.tres" id="11_loose_items"]
 [ext_resource type="Resource" path="res://scenes/props/fountains/fountain_profile.tres" id="12_fountains"]
 [ext_resource type="Resource" path="res://scenes/levels/navigation/navigation_profiles/default.tres" id="13_navigation"]
+[ext_resource type="Resource" path="res://scenes/levels/encounters/threat_profile.tres" id="threat_profile"]
 
 [ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
@@ -40,6 +41,7 @@ ItemPersistence = NodePath("ItemPersistence")
 Discovery = NodePath("FloorDiscovery")
 Lighting = NodePath("WorldLighting")
 NavigationProfile = ExtResource("13_navigation")
+ThreatProfile = ExtResource("threat_profile")
 
 [node name="MapGenerator" parent="." instance=ExtResource("2_dtjl1")]
 AccessProfile = ExtResource("access_profile")

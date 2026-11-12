@@ -123,7 +123,7 @@ def weapon_mean(kind: str, depth: float, cls: dict, found: bool = True) -> float
     w = P.WEAPONS[kind]
     a = attributes(cls, level_at(depth))
     base = reference_weapon_hit(depth) * w["hit"] * (1 + found_bonus(depth) if found else 1)
-    if kind == "wand":
+    if "darts" in w:  # magic foci scale with Intelligence
         return base * (1 + _profile(cls, "spell_per_int") * (a["INT"] - 10))
     return base * (1 + _profile(cls, "damage_per_str") * (a["STR"] - 10))
 

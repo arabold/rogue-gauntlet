@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
 [ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
@@ -7,32 +7,29 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/forsaken_warden/forsaken_warden.tscn" id="boss"]
 
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_fit.tres" id="fit"]
+[ext_resource type="Resource" path="res://scenes/levels/encounters/threat_profile.tres" id="threat_profile"]
 
 [sub_resource type="Resource" id="minion"]
 script = ExtResource("entry")
 ScenePath = "res://scenes/enemies/skeleton/skeleton_minion.tscn"
-Threat = 2
 Weight = 5
 MaximumDepth = 3
 
 [sub_resource type="Resource" id="warrior"]
 script = ExtResource("entry")
 ScenePath = "res://scenes/enemies/skeleton/skeleton_warrior.tscn"
-Threat = 4
 Weight = 2
 MaximumDepth = 3
 
 [sub_resource type="Resource" id="crossbow"]
 script = ExtResource("entry")
 ScenePath = "res://scenes/enemies/skeleton/skeleton_crossbow.tscn"
-Threat = 4
 Weight = 3
 MaximumDepth = 3
 
 [sub_resource type="Resource" id="rat"]
 script = ExtResource("entry")
 ScenePath = "res://scenes/enemies/rat/rat.tscn"
-Threat = 1
 Weight = 3
 MinimumDepth = 2
 MaximumDepth = 3
@@ -40,7 +37,6 @@ MaximumDepth = 3
 [sub_resource type="Resource" id="mage"]
 script = ExtResource("entry")
 ScenePath = "res://scenes/enemies/skeleton/skeleton_mage.tscn"
-Threat = 4
 Weight = 1
 MinimumDepth = 2
 MaximumDepth = 3
@@ -49,7 +45,7 @@ MaximumDepth = 3
 script = ExtResource("factory")
 RealmName = "The Sunken Garrison"
 FirstDepth = 1
-FloorBudgets = PackedInt32Array(12, 20, 16)
+ThreatProfile = ExtResource("threat_profile")
 Entries = [SubResource("minion"), SubResource("warrior"), SubResource("crossbow"), SubResource("rat"), SubResource("mage")]
 Fallback = ExtResource("fallback")
 NestScene = ExtResource("nest")

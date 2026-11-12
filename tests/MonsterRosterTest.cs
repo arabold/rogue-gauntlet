@@ -185,8 +185,11 @@ public class MonsterRosterTest
 		using var factory = (RealmEncounterFactory)source.Duplicate();
 		factory.Entries = new[] { new MobSpawnEntry { ScenePath = source.Entries[0].ScenePath, MinimumDepth = 3, MaximumDepth = 2 } };
 		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("depth bounds"))).IsTrue();
-		factory.Entries = new[] { new MobSpawnEntry { ScenePath = source.Entries[0].ScenePath, Threat = 100 } };
+		factory.Entries = new[] { new MobSpawnEntry { ScenePath = source.Entries[0].ScenePath } };
+		factory.ThreatProfile = new ThreatProfile { FirstFloorBudget = 0.01f, LastFloorBudget = 0.01f };
 		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("affordable"))).IsTrue();
+		factory.ThreatProfile = null;
+		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("ThreatProfile"))).IsTrue();
 		AssertString(string.Join("; ", source.ValidatePool(1))).IsEmpty();
 	}
 

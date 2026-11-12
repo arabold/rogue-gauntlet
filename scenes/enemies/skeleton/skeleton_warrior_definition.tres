@@ -8,8 +8,11 @@
 script = ExtResource("definition")
 Id = "skeleton_warrior"
 DisplayName = "Skeleton Warrior"
-MaxHealth = 10.0
-MoveSpeed = 3.5
-XpReward = 6
+Archetype = 3
+BalanceDepth = 2.0
+MaxHealth = 24.0
+MoveSpeed = 2.8
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
+Armor = 0.5
+ThreatLevel = 2.06
