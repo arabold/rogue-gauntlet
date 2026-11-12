@@ -15,6 +15,7 @@ Rogue Gauntlet balance simulator: target tables, class parity and survival odds 
     uv run scripts/balance/simulate.py audit [--only monsters,weapons,armor,classes] [--match skeleton]
     uv run scripts/balance/simulate.py derive [--only ...] [--match ...]   # writes the targets into the .tres files
     uv run scripts/balance/simulate.py supply [--depths 1-3] [--seeds 12]  # healing, food and gear per floor in the game
+    uv run scripts/balance/simulate.py calibrate TRACE.jsonl [...]          # skill measured from combat-arena traces
 
 See docs/specs/balance-model.md for the model; edit params.py to tune it.
 """
@@ -516,6 +517,51 @@ def report_supply(depths, seeds, samples):
     table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
 
 
+def read_trace(path):
+    """Attacks of a combat-arena trace (`--combat-log`): who made each, its kind, and whether it landed."""
+    import json
+    attacks, parents, landed = {}, {}, set()
+    for line in Path(path).read_text().splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line.removeprefix("COMBAT "))
+        event, data, actor = record["event"], record["data"], record["actor"]
+        if event == "attack.started":
+            key = (data["execution_source"], data["execution"])
+            attacks[key] = {"hero": "/Player/" in actor + "/", "kind": "melee"}
+        elif event == "projectile.spawned" and "parent_source" in data:
+            parent = (data["parent_source"], data["parent_execution"])
+            parents[(data["execution_source"], data["execution"])] = parent
+            if parent in attacks:
+                attacks[parent]["kind"] = "homing" if "Missile" in actor else "ranged"
+        elif event == "damage.resolved" and data["outcome"] == "Damaged":
+            key = (data["execution_source"], data["execution"])
+            landed.add(parents.get(key, key))
+    return [dict(a, landed=key in landed) for key, a in attacks.items()]
+
+
+def report_calibration(paths):
+    """Measured avoidance per attack kind and hero efficiency from traces, placed against the skill tiers."""
+    attacks = [a for path in paths for a in read_trace(path)]
+
+    def nearest(value, field, kind=None):
+        tiers = {name: (s["avoid"][kind] if kind else s[field]) for name, s in P.SKILL.items()}
+        return min(tiers, key=lambda name: abs(tiers[name] - value))
+
+    rows = []
+    for kind in ("melee", "ranged", "homing"):
+        tried = [a for a in attacks if not a["hero"] and a["kind"] == kind]
+        if tried:
+            avoided = 1 - sum(a["landed"] for a in tried) / len(tried)
+            rows.append([f"monster {kind} avoided", len(tried), f"{avoided:.0%}", nearest(avoided, "avoid", kind)])
+    swings = [a for a in attacks if a["hero"]]
+    if swings:
+        efficiency = sum(a["landed"] for a in swings) / len(swings)
+        rows.append(["hero attacks landed", len(swings), f"{efficiency:.0%}", nearest(efficiency, "efficiency")])
+    print(f"Calibration from {len(paths)} trace(s); compare with SKILL in params.py\n")
+    table(["measure", "attacks", "share", "closest skill tier"], rows)
+
+
 def derive(categories, match):
     """Write every target into its .tres file; git shows what changed."""
     groups = C.collect(categories, match)
@@ -564,6 +610,8 @@ def main():
     m.add_argument("--guard", type=float, default=0.0)
     m.add_argument("--darts", type=int, default=1)
     m.add_argument("--boss", action="store_true")
+    cal = sub.add_parser("calibrate")
+    cal.add_argument("traces", nargs="+", help="combat-arena traces recorded with --combat-log")
     sp = sub.add_parser("supply")
     sp.add_argument("--depths", default="1-3")
     sp.add_argument("--seeds", type=int, default=12)
@@ -594,6 +642,8 @@ def main():
             evaluate_armor(args)
         case "monster":
             evaluate_monster(args)
+        case "calibrate":
+            report_calibration(args.traces)
         case "supply":
             report_supply(args.depths, args.seeds, args.samples)
         case "audit" | "derive":

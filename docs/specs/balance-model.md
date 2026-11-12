@@ -201,6 +201,9 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
   others, or moves the odds off target, is a balance change rather than content.
 - **Retuning.** Change the dial, supplies or targets in `params.py`, then rerun `survival` until no target is
   flagged. `survival --runs 1000` takes about 20 s.
+- **Supplies in the game.** `supply` runs a headless probe (`scenes/debug/balance/loot_supply_probe.tscn`) that
+  generates seeded floors and samples every loot source on them, then compares healing potions, healing, food and
+  gear per floor with `SUPPLY`. Healing potions are the most common potion; realm 1 gives about one per floor.
 
 ### Game content
 
@@ -234,8 +237,17 @@ weight or attack patterns.
 
 The model can be no better than its skill tiers. Measure them before tuning numbers further:
 
-- From combat-arena traces (`--combat-log`), take the share of monster attacks the player avoided per attack kind,
-  and the share of the player's attacks that landed. Use several players of known experience.
+- Record combat-arena sessions with a trace: run the arena windowed and fight its monsters (spawn them from the debug
+  menu), several players of known experience, a few minutes each.
+
+  ```bash
+  /Applications/Godot_mono.app/Contents/MacOS/Godot --path . res://scenes/debug/combat/combat_harness.tscn -- --combat-log=/tmp/me.jsonl
+  uv run scripts/balance/simulate.py calibrate /tmp/me.jsonl
+  ```
+
+  `calibrate` reports the share of monster attacks the player avoided per kind (melee, ranged, homing) and the share
+  of the player's own attacks that landed, each with the closest `SKILL` tier. Move the tiers toward the measured
+  values, then retune the targets with `survival`.
 - Check time to kill and damage taken against the standard monster and the gatekeeper in the arena. They should
   match the simulator's duel numbers within about 20%. If not, fix the model's timing (attack cycles, engagement
   gap) first.
@@ -255,13 +267,13 @@ the bonus from quality and affixes. Item tables are free to vary around them.
 - realm 1 monsters, class sheets, every weapon and armor piece, and the loot tier bands are derived;
 - XP and floor budgets follow the monsters' threat levels, and floors spawn rat-led packs;
 - heroes level up on the fitted ladder with percentage attributes;
-- elemental damage passes armor, and potions and food heal a share of max health;
+- elemental damage passes armor, potions and food heal a share of max health, and realm 1 drops about one healing
+  potion per floor (`supply`);
 - body armor and helmets exist in three weights, and every class starts in its own.
 
 The remaining steps:
 
-1. **Realm 1.** Count potions, food and gear per floor from the real loot generator over seeded headless floors, and
-   match them to `SUPPLY`. Then calibrate the novice and regular skill tiers from playtests (see
+1. **Realm 1.** Calibrate the novice and regular skill tiers from playtests (see
    [Calibration](#calibration)). Most of the difficulty targets fall in these depths.
 2. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
    playtested before the next one starts.
