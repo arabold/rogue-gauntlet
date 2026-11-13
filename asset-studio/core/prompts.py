@@ -24,6 +24,26 @@ def item_prompt(brief):
     )
 
 
+# The panel order and angles `core/concept_score.VIEWS` renders, so a concept can be scored against the model.
+TURNAROUND = (
+    "Layout: one landscape model sheet with THREE consistent views of the SAME subject side by side, left to right: "
+    "front view; three-quarter view turned about 36 degrees so the subject faces toward the viewer's left; side "
+    "profile facing left. Same scale and height in every view, eye-level camera, no tilt and no perspective "
+    "distortion, so the views line up like an orthographic turnaround. Plain solid pure white background, "
+    "comfortable margins, no text, no labels."
+)
+WORN = ("The first supplied image shows the plain grey dummy head in exactly these three views: draw the subject worn "
+        "on that dummy head, keeping the dummy's pose, framing and scale in each view (head and neck only).")
+
+
+def turnaround_prompt(brief, worn=False):
+    """A three-view concept sheet of `brief` matching the compare views; `worn` draws it on the supplied dummy head."""
+    if not brief or not brief.strip():
+        raise ValueError("Provide --brief or set recipe.concept")
+    return compose(f"Subject: {brief.strip()}\n{TURNAROUND}\n" + (f"{WORN}\n" if worn else "") +
+                   "The other supplied images are style references only; the subject above defines the design.")
+
+
 def style_images():
     """Load independent copies so provider calls do not retain open file handles."""
     from PIL import Image

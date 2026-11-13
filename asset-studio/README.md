@@ -14,7 +14,7 @@ Start at **[catalogs/items/README.md](catalogs/items/README.md)** for every recr
 
 | Location | Keep |
 | --- | --- |
-| `objects/<category>/<name>/` | `item.json`, original `source.glb`/`source.blend`, selected concept and exact prompt, export ownership receipt |
+| `objects/<category>/<name>/` | `item.json`, original `source.glb`/`source.blend` or a model script `source.py` with its generated `source.glb` and provenance `source.json`, selected concept and exact prompt, export ownership receipt |
 | `characters/<family>/<name>/` | Character recipe and selected reference/source assets |
 | `costumes/<name>/` | Art-only outfit recipe, construction notes and selected concept/prompt |
 | `catalogs/items/<category>/<name>/` | Final GLB, Godot lineup and fingerprint manifest |
@@ -113,6 +113,7 @@ asset-studio/
 ├── README.md                 # Architecture and usage guide
 ├── requirements.txt          # Python dependencies (numpy, scipy, Pillow, trimesh, etc.)
 ├── studio.py                 # Unified CLI entrypoint (list, schema, new, reference, preview, export, lineup, catalog)
+├── blender/                  # Runs inside Blender only: `runner.py` and the `modeling/` helpers model scripts use
 ├── core/                     # Core geometry, meshing, rigging, shading, and export engine
 │   ├── kit.py                # Superellipse lofts, sweeps, hulls, bevel boxes, surface projection, battle damage
 │   ├── mesh.py               # GLB reader, gradient/flat palette Atlas, color space & view splitting
@@ -120,7 +121,10 @@ asset-studio/
 │   ├── rig.py                # 41-joint rig sampler, mannequin skin-weight transfer, Laplacian smoothing
 │   ├── export.py             # Skinned glTF/GLB writer, crease-angle normals, PBR material presets, .import generator
 │   ├── catalog.py            # Multi-angle contact-sheet renderer and stand-in hosts
-│   ├── match.py              # Concept reference generator, silhouette/color IoU scorer, coordinate-descent tuner
+│   ├── match.py              # Concept redraw prompts for character parts
+│   ├── concept_score.py      # Concept-vs-model silhouette scoring, diff sheets and vision audit (`item compare`)
+│   ├── blender.py            # Headless Blender jobs for model scripts, version pin and provenance (`item model`)
+│   ├── hosts.py              # Committed hosts worn art is modeled on (`rigs/hosts/`), fit checks
 │   ├── ai.py                 # Gemini / OpenAI / TRELLIS image & 3D providers
 │   └── trellis_runner.py     # Remote GPU runner for image-to-3D reconstruction
 ├── prefabs/                  # Modular, parameterized 3D building blocks
@@ -138,7 +142,7 @@ asset-studio/
 │   │   ├── clothes.py        # Tunics, robes, sleeves, shorts, loincloths, aprons, collars, cuffs, wraps
 │   │   ├── cuirass.py        # Fitted plate cuirasses (knight, orc, corset)
 │   │   ├── armor.py          # Breastplates, backplates, lames, mail, scales, tabards, faulds, limb plates, cops
-│   │   ├── helmets.py        # Helmets (great, nasal, horned, kettle, skull, hood, wizard)
+│   │   ├── helmets.py        # Procedural helmets (bear, horned, headdress, wizard, knight, crusader, kettle, ...)
 │   │   ├── crowns.py         # Crowns, circlets, diadems, halos
 │   │   ├── pauldrons.py      # Layered, spiked, and skull shoulder armor
 │   │   └── belts.py          # Belts, sashes, ropes, chains, buckles, pouches, trophies
@@ -169,7 +173,7 @@ asset-studio/
 │   ├── build_item.py         # Compatibility entrypoint accepting the new item subcommands
 │   ├── align.py              # Low-poly item builders, palette UV mapper, grip/AABB alignment
 │   └── hf_image3d.py         # Image-to-3D mesh reconstruction helper
-├── objects/                  # Item source folders (<category>/<name>/item.json, reference.png, source.blend, source.glb)
+├── objects/                  # Item source folders (<category>/<name>/item.json, reference.png, source.glb, source.blend or source.py)
 ├── tiles/                    # Modular floor, wall and rug tile builders and their workflow
 ├── tilesets/                 # Tile family recipes (<set>/<family>.json); see tilesets/README.md
 ├── characters/               # Per-character folders (<family>/<name>/character.json, reference.png)
@@ -214,6 +218,10 @@ Run all commands using the workspace `.venv`:
 ./.venv/bin/python asset-studio/studio.py item build tools/tool_lantern_brass
 ./.venv/bin/python asset-studio/studio.py item validate tools/tool_lantern_brass
 ./.venv/bin/python asset-studio/studio.py item lineup tools/tool_lantern_brass
+
+# Regenerate a Blender-modeled item headless, then score it against its concept
+./.venv/bin/python asset-studio/studio.py item model headgear/shaman_antler_headdress
+./.venv/bin/python asset-studio/studio.py item compare headgear/shaman_antler_headdress
 ```
 
 ---
@@ -232,7 +240,7 @@ Items live under `objects/<category>/<name>/` to distinguish authored assets fro
 
 | Backend | Use it for | Input |
 | --- | --- | --- |
-| `source` | Blender MCP modeling, manual modeling, or existing art | Self-contained `source.glb`; optional editable `source.blend` |
+| `source` | Concept-driven modeling in Blender, manual modeling, or existing art | Self-contained `source.glb`, generated from a committed `source.py` model script or exported by hand |
 | `prefab` | Recoloring and composing reusable parts | `parts` referencing harvested meshes from any prefab domain |
 | `procedural` | Solid-family recipes or local blockouts/variations | Explicit `builder` and `design`, or legacy `archetype` with optional reference and palette |
 | `image3d` | AI mesh reconstruction | Reference image and the shared `core.ai` image-to-3D provider |
@@ -317,6 +325,48 @@ The dragon horn mounts use exaggerated faceted `construction.horn_socket` boots 
 
 The existing character `kit.stud` provides repair-plate fasteners. `prefabs/details/wear.py` adds `solid_gash`, a closed negative cutter matching the armor's chiseled V-groove shape. Subtract it for closed props; the original surface-patch `gash` remains available for character armor. Dents subtract shallow faceted volumes. Wear is deterministic and uses explicit placements, with wood damage applied before attaching hardware so knots cannot bore through later rivets. Shield recipes enable this pass with `design.details: true`; `false` is available for geometry comparison. Shared construction and wear helpers are included in build-freshness checks.
 
+### Model a concept faithfully in Blender
+
+Concept-driven, one-off art (headgear first, any item or prop next) is modeled by a committed Blender script and
+scored against its concept in a short loop. Blender runs only when the model is regenerated; builds, lineups and
+exports read the committed result and never need it.
+
+```text
+objects/headgear/shaman_antler_headdress/
+  item.json           backend source, "model": "source.py", optional "host", surface.palette "materials"
+  reference.png       three-view concept turnaround (+ reference.prompt.txt)
+  source.py           build(ctx): the model, written against blender/modeling
+  source.glb          generated by `item model` (committed)
+  source.json         provenance: Blender version and hashes of the script, helpers, host and GLB
+```
+
+```bash
+item=headgear/shaman_antler_headdress
+./.venv/bin/python asset-studio/studio.py item reference $item --turnaround --brief "..."  # or --image <concept>
+./.venv/bin/python asset-studio/studio.py item model $item       # headless Blender: source.py -> source.glb
+./.venv/bin/python asset-studio/studio.py item compare $item     # IoU per view + diff sheet; --audit adds a review
+./.venv/bin/python asset-studio/studio.py item lineup $item --mount head
+```
+
+- **Iterate:** edit `source.py`, run `item model` and `item compare`, read the diff sheet (and `--audit` notes), repeat.
+  A stale `source.glb` (script, helpers or host changed since `item model`) fails `item build`.
+- **Concept:** `--turnaround` asks for front, three-quarter (turned toward the viewer's left) and left-facing profile
+  panels, the angles `item compare` renders. Worn items are drawn on the host's reference head, which the command
+  renders and passes to the image model; its concepts and compares share framing.
+- **Frame and hosts:** Blender's frame is the asset's (Z up, front toward -Y). Headgear uses the game's hat-prop frame
+  on the adventurer heads (`"host": "adventurer_heads"`, see `core/hosts.py`); `ctx.host_bvh` lets a shell clear a
+  head, and `item validate` reports where each class head shows through. `ctx.origin` lets a script model around a
+  local centre such as the head it was designed on.
+- **Surface:** each part's material name is its palette slot (`ctx.material`, `ctx.add(name, bm, slots)`); the
+  recipe's `colors` color the slots, the Studio's character surface shades them, and Blender's sharp edges become the
+  shipped normals. `surface.height_range` keeps the shading ramp fixed across a family.
+- **Scoring:** worn items keep one scale across all views (registered on the host head), so a part modeled too large
+  scores badly instead of being rescaled per view. The score measures silhouettes; review detail, junctions and
+  color in the sheet, the audit and the Godot lineup.
+- **Blender:** `BLENDER_BIN` or a standard install; `blender/blender.json` pins the release that generates committed
+  models. Jobs run in a fresh factory-settings Blender, never in an open session. Grow `blender/modeling/` when an
+  asset needs a new form; keep asset-specific shapes in its own script.
+
 ### Create an item with Blender MCP and AI reference art
 
 Concepts share the KayKit-inspired art direction in [`prompts/stylized-fantasy.txt`](prompts/stylized-fantasy.txt), composed by `core/prompts.py` for both characters and items. Item generation also uses the existing knight concept as a visual style anchor. Keep subject-specific changes in the brief; change the master file to adjust the whole library's art direction.
@@ -343,7 +393,7 @@ Inspect the listed style images, then pass the returned prompt and images to Ima
 
 For a new visual direction, finish one item through concept, modeling, geometry checks and Godot review before applying it across the catalog. Publish only the selected final lineup; review candidates belong outside the repo and previous finals belong in Git history. Technical validation does not imply visual acceptance.
 
-When using Blender MCP, follow the `assets` skill's Blender routing. Save the editable project as `objects/tools/moon_lantern/source.blend` and export an embedded-texture GLB as `source.glb` in the same folder. The CLI consumes that file; it does not start an MCP connection itself. Match the project palette, readable silhouettes, and scene scale. Set a meaningful origin in Blender or configure placement in the recipe.
+For concept-driven modeling prefer a model script (above); Blender MCP stays useful for inspecting a generated model or hand edits. A hand-made model saves the editable project as `objects/tools/moon_lantern/source.blend` and exports an embedded-texture GLB as `source.glb` in the same folder. The CLI consumes that file; it does not start an MCP connection itself. Match the project palette, readable silhouettes, and scene scale. Set a meaningful origin in Blender or configure placement in the recipe.
 
 ```bash
 ./.venv/bin/python asset-studio/studio.py item build tools/moon_lantern
@@ -427,7 +477,7 @@ The old `items/build_item.py --id ... --tier ...` interface has been retired. Th
 ./.venv/bin/python -m unittest discover -s asset-studio/tests -v
 ```
 
-Tests cover source round trips, transforms across mesh instances/primitives, pivot/scale placement, budgets, stale builds, adoption, export protection, actual solid unions, floating geometry rejection, welded render seams, open/duplicate/inward surfaces, fresh family topology, shared character shading, and the art-only boundary. They use isolated temporary output trees and make no provider calls.
+Tests cover source round trips, transforms across mesh instances/primitives, pivot/scale placement, budgets, stale builds, adoption, export protection, actual solid unions, floating geometry rejection, welded render seams, open/duplicate/inward surfaces, fresh family topology, shared character shading, and the art-only boundary. Blender-modeled sources add material-slot ingestion, model provenance, shared-scale concept scoring and host show-through; their runner tests use the pinned Blender and skip without it. Tests use isolated temporary output trees and make no provider calls.
 
 ---
 
@@ -449,7 +499,7 @@ The studio owns the tile art only. Mesh libraries, collision, navigation and whi
 
 ## Blender MCP & Godot Creator Tool Integration
 
-- **Blender MCP (`blender-mcp`)**: Any `kit.Piece` or exported `.glb` can be loaded into Blender via MCP for custom adjustments, boolean bevels, NLA animation tweaks, or lookdev, and saved back into domain `meshes/` via `harvest.py` or exported to `assets/`.
+- **Blender**: concept-driven models are committed scripts that `item model` runs in a fresh headless Blender ([Model a concept faithfully in Blender](#model-a-concept-faithfully-in-blender)). Blender MCP stays useful for inspecting a generated model, hand adjustments, NLA animation tweaks or lookdev on any `kit.Piece` or exported `.glb`; save results back into domain `meshes/` via `harvest.py` or as a hand-made item source.
 - **Godot Character/Monster Creator Tool**: `prefabs/registry.py` (`studio.py schema`) exposes every prefab category, preset list, and parameter signature as structured JSON, and `characters/<family>/<name>/character.json` is a declarative recipe format designed so an in-engine Godot visual editor can inspect, tweak, preview, and export characters directly.
 
 Current cloth costume studies: `costumes/ranger`, `costumes/scout`, `costumes/arcanist` and `costumes/adventurer`. Their current comparison is [`catalogs/costumes/travel_family.png`](catalogs/costumes/travel_family.png). Reusable scarves, cowls and a separate steel gorget live in `prefabs/outfits/neckwear.py`; `costumes/gorget_study` fits the steel option on the practical knight without changing existing armor. See [costume construction notes](costumes/README.md). Mantles currently use skeletal deformation, without physical cloth simulation.

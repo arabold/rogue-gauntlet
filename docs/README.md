@@ -55,6 +55,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Monster action architecture](specs/monster-action-architecture-plan.md) | Landed; dodge on the dash component, editor badges, phase content and spell cast validation remain |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 | [Shared debug toolkit](specs/debug-toolkit-plan.md) | Implemented; remaining class switching, captured builds and open harness decisions |
+| [Blender-modeled Studio assets](specs/blender-modeling-pipeline.md) | Model scripts, concept scoring and head hosts landed; game wiring, per-class fit, kit heads and organic forms remain |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 

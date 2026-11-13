@@ -1,6 +1,8 @@
 """Recover authored palette regions without remeshing or baking old lighting twice."""
 
 import io
+import re
+
 import numpy as np
 from PIL import Image
 from core import kit, mesh
@@ -35,6 +37,63 @@ def potion_liquid(piece, size):
     slots = piece.slots.copy()
     slots[liquid] = "liquid"
     return kit.Piece(piece.verts, piece.faces, slots), {"liquid_triangles": int(liquid.sum()), "size": size}
+
+
+SLOT_NAME = re.compile(r"[a-z][a-z0-9_]*")
+
+
+def material_piece(source, slots=None):
+    """Read a modeled source whose glTF material names are palette slots (`surface.palette: materials`).
+
+    Each material name, optionally renamed through `slots`, labels its faces; authored corner normals are kept, so
+    Blender's smooth and sharp edges survive. Names that are not plain slot names (`trim.001`), textures and vertex
+    colors are rejected: colors come from the recipe's palette, never from the source.
+    """
+    g, binary, accessor = mesh.read_glb(str(source))
+    model.read(source)
+    worlds = mesh._node_worlds(g)
+    verts, faces, normals, labels = [], [], [], []
+
+    def visit(index):
+        node = g["nodes"][index]
+        if "mesh" in node:
+            world = worlds[index]
+            rotation = np.linalg.inv(world[:3, :3]).T
+            flip = np.linalg.det(world[:3, :3]) < 0
+            for primitive in g["meshes"][node["mesh"]]["primitives"]:
+                attrs = primitive["attributes"]
+                if primitive.get("mode", 4) != 4:
+                    raise ValueError("Only triangle primitives are supported")
+                if "material" not in primitive:
+                    raise ValueError(f"Node {node.get('name')!r} has a primitive without a slot material")
+                material = g["materials"][primitive["material"]]
+                name = material.get("name", "")
+                if not SLOT_NAME.fullmatch(name):
+                    raise ValueError(f"Material {name!r} is not a palette slot name (lowercase, no .001 suffixes)")
+                if "baseColorTexture" in material.get("pbrMetallicRoughness", {}) or "COLOR_0" in attrs:
+                    raise ValueError(f"Material {name!r} carries a texture or vertex colors; slots take recipe colors")
+                if "NORMAL" not in attrs:
+                    raise ValueError(f"Node {node.get('name')!r} has no normals; export them from Blender")
+                p = accessor(attrs["POSITION"]).astype(float)
+                n = accessor(attrs["NORMAL"]).astype(float) @ rotation.T
+                f = accessor(primitive["indices"]).reshape(-1, 3).astype(np.int64)
+                if flip:
+                    f = f[:, ::-1]
+                offset = sum(len(v) for v in verts)
+                verts.append((np.column_stack([p, np.ones(len(p))]) @ world.T)[:, :3])
+                normals.append(n[f] / np.linalg.norm(n[f], axis=2, keepdims=True))
+                faces.append(f + offset)
+                slot = (slots or {}).get(name, name)
+                labels.extend([slot] * len(f))
+        for child in node.get("children", []):
+            visit(child)
+
+    for root in g["scenes"][g.get("scene", 0)]["nodes"]:
+        visit(root)
+    if not faces:
+        raise ValueError("Source has no triangles")
+    return kit.Piece(np.vstack(verts), np.vstack(faces), np.array(labels, dtype=object),
+                     normals=np.concatenate(normals))
 
 
 def palette_piece(source, palette, slots=None):

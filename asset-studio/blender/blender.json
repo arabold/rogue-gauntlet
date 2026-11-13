@@ -1,0 +1,4 @@
+{
+  "version": "5.2",
+  "note": "Blender release that generates committed source.glb files; `item model` refuses any other. Raise it deliberately and regenerate every model when upgrading."
+}
