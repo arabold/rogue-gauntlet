@@ -24,12 +24,12 @@ Skill is the one input the game cannot know, so the model plays four players. *A
 they avoid by dodging, guarding or spacing. *Efficiency* is the share of their own attacks that land. They differ in
 when they drink potions and how many found potions they can identify.
 
-| Skill | Avoid melee / ranged / homing | Efficiency | Arrival odds: target | Simulated (class range) |
+| Skill | Avoid melee / ranged / homing | Efficiency | Arrival odds: target | Simulated, 3,000 runs (class range) |
 | --- | --- | --- | --- | --- |
-| Novice | 51% / 35% / 27% | 29% | depth 2: 75%, 3: 35%, 4: 3% | 76% (71–82%), 30% (25–36%), 1% |
-| Regular | 67% / 55% / 43% | 36% | depth 4: 40%, 7: 10% | 39% (36–41%), 14% (13–14%) |
-| Skilled | 79% / 69% / 55% | 41% | depth 4: 85%, 13: 35%, win: 3% | 85% (81–88%), 44% (41–47%), 0–1% |
-| Expert | 88% / 80% / 67% | 44% | depth 13: 85%, win: 35% | 90% (88–91%), 34% (29–39%) |
+| Novice | 51% / 35% / 27% | 29% | depth 2: 75%, 3: 35%, 4: 3% | 75% (67–81%), 33% (24–40%), 1% |
+| Regular | 67% / 55% / 43% | 36% | depth 4: 40%, 7: 10% | 45% (41–47%), 12% (10–14%) |
+| Skilled | 79% / 69% / 55% | 41% | depth 4: 85%, 13: 35%, win: 3% | 88% (88–89%), 31% (29–34%), 0% |
+| Expert | 88% / 80% / 67% | 44% | depth 13: 85%, win: 35% | 86% (85–87%), 30% (26–33%) |
 
 "Arriving at depth 4" means beating the depth-3 gatekeeper; "win" means beating the depth-24 one. The skill values are
 preliminary (see [calibration](#calibration)): *skilled* is one developer's measured arena profile, and the other tiers
@@ -143,12 +143,14 @@ archetype marks the gatekeeper bonus. `simulate.py monster` evaluates proposed s
 
 ## Floors and gatekeepers
 
-A floor spends a budget of 9 standard fights at depth 1, rising to 23 at depth 24. It spends it on **packs**, not
+A floor spends a budget of 9.25 standard fights at depth 1, rising to 21.5 at depth 24. It spends it on **packs**, not
 single monsters, so roles appear together. Rats lead: rat packs of three from depth 1 and hordes of five from depth 2,
 with fodder pairs, lone standards, patrols (standard and fodder), sentries (a shooter) and, from depth 3, warbands (two
 standards and a caster who heals them); guard posts (brute and shooter) and vanguards (brute, standard and shooter)
 join from depth 4. Each pack has a depth range in `params.PACKS`. Gatekeeper floors spend 60% of the budget, then the
-gatekeeper.
+gatekeeper. The simulator fills a floor as the game does: it draws by weight among the eligible packs the remaining
+budget affords, until none is affordable or the floor holds 32 monsters. A floor therefore ends less than its cheapest
+pack below its budget, 1–5% on average.
 
 A pack costs `(N + 1) / 2` times its members fought alone (`model.group_factor`): the hero kills them one by one while
 the rest keep attacking. The simulator's group fights match that within 10% for swarms, fodder and mixed melee; packs
@@ -159,8 +161,8 @@ The game spends the same budget through the realm's encounter table, whose entri
 depth deeper. That closed form stays within about 20% of the model's cost at the depths a monster spawns. A pack
 spawns together in one room.
 
-At regular skill and without potions, an ordinary floor costs about 40% of max health at depth 3 and over 110% at
-depth 24, and a gatekeeper about 110% and 230%. Supplies cover part of that: the late game is meant to drain
+At regular skill and without potions, a floor's packs cost about a third of max health at depth 3 and 150% at depth
+24, and a gatekeeper about 90% and 250%. Supplies cover part of that: the late game is meant to drain
 potions.
 
 ## Experience
@@ -188,8 +190,9 @@ A class passes when each of these holds at regular skill:
 | Mage | 6 / 10 / 10 / 15 | STR .1, DEX .1, VIT .3, INT .5 | wand, Fireball, light armor | packs | gatekeepers |
 
 All four currently pass. The realm cost of each is within 8% of the mean, and survival differs by a few points at
-every skill. Homing missiles recover only 10% of missed attacks (`HOMING_ASSIST`): with measured hit rates this low, a
-larger share made the Mage far safer than the other classes.
+regular skill and above. Novices are the exception: the Knight and Mage reach depth 3 in 40% of runs, the Rogue in 24%,
+the one target `survival --runs 3000` flags. Homing missiles recover only 10% of missed attacks (`HOMING_ASSIST`): with
+measured hit rates this low, a larger share made the Mage far safer than the other classes.
 
 ## Using the simulator
 
@@ -209,7 +212,9 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
   or a small formula in `model.py`. Then run `parity` and `survival`. A change that moves one class more than the
   others, or moves the odds off target, is a balance change rather than content.
 - **Retuning.** Change the dial, supplies or targets in `params.py`, then rerun `survival` until no target is
-  flagged. `survival --runs 1000` takes about 20 s.
+  flagged. `survival` and `parity` run each class and skill as its own job on every core, with its own random stream:
+  a job's numbers depend only on `--seed`, not on which `--classes` run. `survival --runs 3000` takes about 8 s, and
+  the default 300 runs can stray about 5 points, enough to flag a target near the edge of its tolerance.
 - **Supplies in the game.** `supply` runs a headless probe (`scenes/debug/balance/loot_supply_probe.tscn`) that
   generates seeded floors and samples every loot source on them, then compares healing potions, healing, food and
   gear per floor with `SUPPLY`. Healing potions are the most common potion; realm 1 gives about one per floor.
@@ -217,8 +222,8 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
 ### Game content
 
 `audit` compares the game's `.tres` files with the model's targets; `derive` writes the targets into them. Both take
-`--only` with any of `monsters,weapons,armor,jewelry,classes,supplies,loot` and `--match <path text>` (repeatable). `derive` overwrites every value it
-owns; review the result with `git diff`.
+`--only` with any of `monsters,encounters,weapons,armor,jewelry,classes,supplies,loot` and `--match <path text>`
+(repeatable). `derive` overwrites every value it owns; review the result with `git diff`.
 
 ```bash
 uv run scripts/balance/simulate.py audit                       # everything off target by more than 10%
@@ -230,6 +235,11 @@ uv run scripts/balance/simulate.py derive --match skeleton     # write the targe
   combat profile takes the archetype's hit and attack rhythm. Further damaging actions keep their damage ratio to it
   and their authored cooldowns, so signature attacks such as the Warden's overhead and tremor come as often as
   designed; the model counts only the first attack, so it underestimates such monsters a little. A definition without an archetype is reported and left alone. The `Boss` archetype is the gatekeeper.
+- **Encounters** are each realm's packs (`RealmEncounterFactory` entries), while the model's floor costs and XP
+  ladder come from `params.PACKS`. Each entry's member scenes name their definitions, and their archetypes match the
+  entry to the model pack with the same members. The entry takes that pack's `Weight` and its depth window, clamped to
+  the realm's floors, as `MinimumDepth` and `MaximumDepth`; these must match exactly. A realm pack the model lacks, and
+  a model pack the realm's depths should hold but the realm lacks, are reported.
 - **Weapons** get their kind from their attack style (`MagicStaff` decides wand or staff by hands) and their target
   from `Tier`. A combo's average damage and duration scales count toward the hit and the seconds per attack, so
   `derive` writes the base damage range and `PerformDuration` that reproduce the kind's hit and rhythm. Wand and

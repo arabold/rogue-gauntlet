@@ -141,8 +141,9 @@ PACKS = [
 
 # --- Floors, supplies and experience ------------------------------------------------------------
 FLOOR = dict(
-    budget=(9.0, 23.0),        # standard-monster equivalents per floor, packs costed as groups (model.group_factor)
+    budget=(9.25, 21.5),       # standard-monster equivalents per floor, packs costed as groups (model.group_factor)
     boss_budget_share=0.6,     # a boss floor spends this share of the budget before the boss
+    max_monsters=32,           # a floor stops adding packs once it holds this many (RealmEncounterFactory.MaximumMonsters)
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )
 SUPPLY = dict(

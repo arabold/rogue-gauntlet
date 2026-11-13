@@ -13,13 +13,15 @@ docs/specs/balance-model.md describes the model and every command; edit params.p
 from __future__ import annotations
 
 import argparse
+import bisect
 import itertools
 import json
 import math
 import os
 import random
 import sys
-from functools import cache
+from concurrent.futures import ProcessPoolExecutor
+from functools import cache, partial
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -148,24 +150,31 @@ def monster_at(archetype, depth):
 
 @cache
 def floor_packs(depth):
-    """The packs eligible at `depth` with their cumulative weights, costs and members, drawn from on every floor."""
-    eligible = M.eligible_packs(depth)
-    cumulative = list(itertools.accumulate(p["weight"] for p in eligible))
-    packs = [(M.pack_units(p, depth), [monster_at(a, depth) for a in p["members"]]) for p in eligible]
-    return packs, cumulative
+    """
+    The packs eligible at `depth`, cheapest first, as costs, members and cumulative weights, drawn from on every floor.
+    Sorted by cost, the packs a remaining budget affords are a prefix of the table.
+    """
+    eligible = sorted(M.eligible_packs(depth), key=lambda p: M.pack_units(p, depth))
+    costs = [M.pack_units(p, depth) for p in eligible]
+    members = [[monster_at(a, depth) for a in p["members"]] for p in eligible]
+    return costs, members, list(itertools.accumulate(p["weight"] for p in eligible))
 
 
 def compose_floor(depth, rng):
-    budget = M.floor_budget(depth)
-    eligible, cumulative = floor_packs(depth)
-    packs, misses = [], 0
-    while misses < 4:
-        cost, members = rng.choices(eligible, cum_weights=cumulative)[0]
-        if cost <= budget + 0.25:
-            packs.append(members)
-            budget -= cost
-        else:
-            misses += 1
+    """
+    One floor's packs, drawn like the game's `RealmEncounterFactory.CreatePacks`: by weight among the packs the
+    remaining budget affords, until none is affordable or the floor holds `max_monsters`.
+    """
+    costs, members, cumulative = floor_packs(depth)
+    remaining, packs, monsters = M.floor_budget(depth), [], 0
+    while remaining > 0 and monsters < P.FLOOR["max_monsters"]:
+        affordable = bisect.bisect_right(costs, remaining)
+        if not affordable:
+            break
+        i = rng.choices(range(affordable), cum_weights=cumulative[:affordable])[0]
+        packs.append(members[i])
+        monsters += len(members[i])
+        remaining -= costs[i]
     return packs
 
 
@@ -386,14 +395,33 @@ def parity_table(costs, tolerance):
     table(["depth", "class mean", "reference"] + CLASS_NAMES, rows)
 
 
+def job_rng(seed, skill_name, name):
+    """A Monte Carlo job's own random stream: its numbers depend on the seed, skill and class, not on the other jobs."""
+    return random.Random(f"{seed}:{skill_name}:{name}")
+
+
+def in_parallel(job, *args):
+    """`job` mapped over `args` on a process pool; jobs are independent, each with its own random stream."""
+    with ProcessPoolExecutor() as pool:
+        return list(pool.map(job, *args))
+
+
+GATEKEEPER_DEPTHS = [d for d in range(1, P.DEPTHS + 1) if M.is_gatekeeper_floor(d)]
+
+
+def parity_job(name, floors, seed):
+    """One class's ordinary floor and gatekeeper costs at every gatekeeper depth."""
+    rng, skill = job_rng(seed, P.REFERENCE_SKILL, name), P.SKILL[P.REFERENCE_SKILL]
+    return ({d: floor_cost(name, d, skill, rng, floors) for d in GATEKEEPER_DEPTHS},
+            {d: boss_cost(name, d, skill, rng, floors) for d in GATEKEEPER_DEPTHS})
+
+
 def report_parity(floors, seed):
-    rng = random.Random(seed)
-    skill = P.SKILL[P.REFERENCE_SKILL]
     names = ["reference"] + CLASS_NAMES
-    depths = [d for d in range(1, P.DEPTHS + 1) if M.is_gatekeeper_floor(d)]
-    floor = {d: {n: floor_cost(n, d, skill, rng, floors) for n in names} for d in depths}
-    boss = {d: {n: boss_cost(n, d, skill, rng, floors) for n in names} for d in depths}
-    realm = {d: {n: P.REALM_SIZE * floor[d][n] + boss[d][n] for n in names} for d in depths}
+    costs = dict(zip(names, in_parallel(partial(parity_job, floors=floors, seed=seed), names)))
+    floor = {d: {n: costs[n][0][d] for n in names} for d in GATEKEEPER_DEPTHS}
+    boss = {d: {n: costs[n][1][d] for n in names} for d in GATEKEEPER_DEPTHS}
+    realm = {d: {n: P.REALM_SIZE * floor[d][n] + boss[d][n] for n in names} for d in GATEKEEPER_DEPTHS}
     print(f"Health lost relative to the class mean ({P.REFERENCE_SKILL} skill, no potions, {floors} samples). "
           "Below 1 is stronger; * = outside tolerance.\n")
     print(f"Realm: {P.REALM_SIZE} floors and the gatekeeper (parity, +-{P.PARITY_TOLERANCE:.0%})")
@@ -404,15 +432,22 @@ def report_parity(floors, seed):
     parity_table(boss, P.MATCHUP_TOLERANCE)
 
 
+def survival_job(skill_name, name, runs, seed):
+    """The depth each of `runs` runs of one class at one skill reached."""
+    rng = job_rng(seed, skill_name, name)
+    return [run(name, skill_name, rng) for _ in range(runs)]
+
+
 def report_survival(runs, seed, classes):
-    rng = random.Random(seed)
+    jobs = list(itertools.product(P.SKILL, classes))
+    results = dict(zip(jobs, in_parallel(partial(survival_job, runs=runs, seed=seed), *zip(*jobs))))
     print(f"Probability of arriving at a depth ({runs} runs each; 25 = victory)\n")
     shown = [2, 3, 4, 5, 7, 10, 13, 16, 19, 22, 25]
     flagged = []
     for skill_name in P.SKILL:
         rows = []
         for name in classes:
-            reached = [run(name, skill_name, rng) for _ in range(runs)]
+            reached = results[skill_name, name]
             row = [name]
             for d in shown:
                 row.append(f"{sum(1 for r in reached if r >= d) / runs:.0%}")
