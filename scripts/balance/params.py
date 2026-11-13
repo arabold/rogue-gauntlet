@@ -147,15 +147,15 @@ FLOOR = dict(
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )
 SUPPLY = dict(
-    healing_potions=(0.9, 2.0),  # expected healing potions found per floor (Poisson), depths 1 to 24; measured with `supply`
+    healing_potions=(0.45, 1.0),  # expected healing potions found per floor (Poisson), depths 1 to 24; measured with `supply`
     # Potions heal fixed points, so a size is worth less as the hero's health grows and the next size takes over. A size
     # drops from `intro` to `last` (0 = to the end), healing `heal` of the expected hero's health where it arrives;
     # `weight` is its share among the sizes eligible at a depth. Small potions stop once large ones are near, or late
     # floors fill with potions that heal a tenth of the hero. `derive` writes every potion pool entry's window and the
     # healing potions' weights.
-    potion_sizes=dict(small=dict(intro=1, last=12, heal=0.6, weight=12),
-                      medium=dict(intro=9, last=0, heal=0.7, weight=12),
-                      large=dict(intro=17, last=0, heal=1.0, weight=12)),
+    potion_sizes=dict(small=dict(intro=1, last=12, heal=0.6, weight=4),
+                      medium=dict(intro=9, last=0, heal=0.7, weight=4),
+                      large=dict(intro=17, last=0, heal=1.0, weight=4)),
     food=1.0,                  # expected food per floor
     # Food heals fixed points by its `Portion`, as a share of a level 1 hero's health: minor healing that fades deeper
     # down. Fruit and drinks are small, bread and cheese medium, meat large.
@@ -174,6 +174,18 @@ JEWELRY = dict(
     damage=0.20,               # Savagery
     frailty=-0.20,             # Frailty (always cursed): health lost
     attribute=(2, 1),          # Strength, Dexterity, Vitality, Mind: points at tier 1 and per tier above
+)
+# Curses: this share of dropped equipment is cursed, carrying a hidden penalty while worn. Penalties take points, like
+# the bonuses beside them (damage, armor, health, Strength, Dexterity), in tiers 1-5 that roll in the gear tier bands,
+# each up to `penalty` times what a ring of that tier gives (see JEWELRY) and at least `floor` of that, so a curse
+# outweighs an item of its tier. Dread, which lowers damage, goes to `damage_penalty` instead, so its strongest roll
+# takes over half of an average hit. Speed is a percentage everywhere on gear, so its penalty is too and needs no tiers.
+CURSES = dict(
+    chance=0.25,
+    penalty=2.0,
+    damage_penalty=3.0,
+    floor=0.67,
+    speed_percent=(0.10, 0.15),    # Lethargy
 )
 XP = dict(
     standard_xp=10.0,          # XP of a threat-level-1 standard monster

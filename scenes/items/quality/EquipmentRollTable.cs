@@ -73,7 +73,7 @@ public partial class EquipmentRollTable : Resource
 	{
 		var families = rolled.Select(affix => affix.Group).ToHashSet();
 		Affix[] Eligible(Affix[] affixes, AffixKind kind) => rolled.Count(affix => affix.Kind == kind) >= kindCap ? []
-			: (affixes ?? []).Where(affix => affix != null && affix.MinDepth <= depth && !families.Contains(affix.Family)).ToArray();
+			: (affixes ?? []).Where(affix => affix != null && affix.IsEligibleAt(depth) && !families.Contains(affix.Family)).ToArray();
 
 		Affix[] prefixes = Eligible(Prefixes, AffixKind.Prefix);
 		Affix[] suffixes = Eligible(Suffixes, AffixKind.Suffix);

@@ -65,8 +65,9 @@ class follows the same curves:
 - Each level adds one attribute point, split by class (`growth` in `params.py`).
 - **Supplies:** healing potions heal fixed points, so a size is worth less as the hero grows and the next size takes
   over: small 30 (60% of a level 1 hero, dropping until depth 12), medium 85 (from depth 9), large 200 (from depth
-  17), equally likely while eligible. The hero finds 0.9 per floor at depth 1, rising to 2.0 at depth 24, as measured
-  with `supply`. Food heals 3, 5 or 8 by its portion (small: fruit and drinks; medium: bread and cheese; large: meat), about one per floor; three health
+  17), equally likely while eligible. The hero finds 0.45 per floor at depth 1, rising to 1.0 at depth 24, as measured
+  with `supply`. Healing potions are only about a quarter of the potions found, so their bottle stays a guess until
+  one is drunk or identified. Food heals 3, 5 or 8 by its portion (small: fruit and drinks; medium: bread and cheese; large: meat), about one per floor; three health
   fountains per run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
 
 ### Gear
@@ -83,6 +84,9 @@ depth 1 to 25% at depth 24.
 - **Armor slots** are sized against the standard monster's mean hit `m` at that depth. A Normal medium body piece
   holds `0.30 m` armor, a helmet `0.15 m`, a shield `0.22 m`. Light pieces carry half the armor and remove 5% of
   landed hits; heavy pieces carry 1.3× and let 10% more land. The game has no passive evasion, so it expresses that footwork as movement speed: a light body piece moves its wearer 5% faster, a heavy one 8% slower.
+- **Curses:** a quarter of dropped equipment is cursed. A curse's hidden penalty takes points, like the bonuses beside
+  it (damage, armor, health, Strength, Dexterity), in tiers 1–5 like the gear, each up to twice what a ring of its tier
+  gives (Dread, on damage, three times: its strongest roll takes over half an average hit); the speed penalty is 10–15%, since speed is a percentage everywhere on gear. The model does not count curses, since a careful player avoids most of them.
 - **Jewelry** comes in tiers 1–5 that drop in the same depth bands. At its tier's on-curve depth a ring adds 12% of
   the standard monster's mean hit as armor (Protection), 10% of the hero's health (Health), 20% of the reference
   weapon's range to both ends of the hero's damage (Savagery), or attribute points (2 at tier 1, one more per tier).
@@ -296,7 +300,9 @@ The model can be no better than its skill tiers. Measure them before tuning numb
   ```
 
   `playtest` reports per floor the time spent, kills, XP, level, damage taken and healing (in max health), the
-  healing potions found by size against the model's supply, and gear found, followed by the same skill profile as
+  healing potions found by size against the model's supply, and gear found. It then lists every hidden item type
+  found (potions, scrolls, jewelry) by its real name, how many were found and used, and how each was identified (used,
+  worn, or by a scroll of identify), and the cursed items the hero put on, followed by the same skill profile as
   `calibrate`. A playtest measures the whole loop the model predicts, so compare its floors with `survival` at the
   matching skill tier.
 

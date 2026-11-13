@@ -68,7 +68,7 @@ public class ItemCurseTest
 				AssertBool(created.CurseModifiers.All(modifier => modifier.Value < 0)).IsTrue();
 			}
 		}
-		AssertInt(cursed).IsBetween(20, 70);
+		AssertInt(cursed).IsBetween((int)(400 * policy.CurseChance * 0.6f), (int)(400 * policy.CurseChance * 1.4f));
 
 		for (int i = 0; i < 20; i++)
 		{

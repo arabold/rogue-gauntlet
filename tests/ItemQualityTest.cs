@@ -103,6 +103,10 @@ public class ItemQualityTest
 		AssertFloat(weapon.ScaledDamageMin).IsEqual(1f);
 		AssertFloat(weapon.ScaledDamageMax).IsEqual(1f);
 		AssertInt(new Armor { ArmorPoints = 3, MagnitudeScale = 1.6f }.ScaledArmorPoints).IsEqual(5);
+		// Players read whole points and whole percents, never fractions.
+		AssertString(StatModifier.FormatValue(11.5f, false)).IsEqual("+12");
+		AssertString(StatModifier.FormatValue(-2.5f, false)).IsEqual("-3");
+		AssertString(StatModifier.FormatValue(0.125f, true)).IsEqual("+13%");
 
 		// A superior Ring of Frailty is the worst one, still in whole points.
 		var frailty = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_frailty_1.tres");

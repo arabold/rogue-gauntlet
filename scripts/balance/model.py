@@ -416,6 +416,24 @@ def authored_depth(depth: int) -> float:
     return realm * P.REALM_SIZE + (P.REALM_SIZE + 1) / 2
 
 
+def curse_penalty(stat: str, tier: int) -> list[tuple[int, int]]:
+    """
+    The strongest and weakest roll of each modifier of a curse penalty on `stat` (`armor`, `health`, `attribute`, or
+    `damage` as its low and high end) at `tier`, as positive points: up to `CURSES["penalty"]` (for damage
+    `CURSES["damage_penalty"]`) times what a ring of that tier gives, down to `CURSES["floor"]` of it.
+    """
+    c, j = P.CURSES, P.JEWELRY
+    d = tier_depth(tier)
+    if stat == "damage":
+        rings = [j["damage"] * end for end in spread_range(reference_weapon_hit(d), P.GEAR["weapon_spread"])]
+    else:
+        rings = [{"attribute": j["attribute"][0] + j["attribute"][1] * (tier - 1), "armor": j["armor"] * standard_hit(d),
+                  "health": j["health"] * reference_hp(d)}[stat]]
+    penalty = c["damage_penalty"] if stat == "damage" else c["penalty"]
+    strongest = [max(1, round(penalty * ring)) for ring in rings]
+    return [(s, max(1, round(c["floor"] * s))) for s in strongest]
+
+
 @functools.cache
 def archetype_units(archetype: str, depth: float) -> float:
     """Budget cost of one ordinary monster of `archetype` on a floor at `depth`, in standard monsters."""

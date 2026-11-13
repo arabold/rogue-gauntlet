@@ -13,7 +13,7 @@ import model as M
 import params as P
 import resources as R
 
-CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "classes", "supplies", "loot")
+CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "curses", "classes", "supplies", "loot")
 
 
 @dataclass
@@ -89,7 +89,7 @@ def _selected(path, match) -> bool:
 
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
     groups = [{"monsters": monsters, "encounters": encounters, "weapons": weapons, "armor": armor, "jewelry": jewelry,
-               "classes": classes, "supplies": supplies, "loot": loot}[c](match) for c in categories]
+               "curses": curses, "classes": classes, "supplies": supplies, "loot": loot}[c](match) for c in categories]
     _merge_shared(groups)
     return groups
 
@@ -401,7 +401,7 @@ def weapons(match=None) -> Group:
         tier, w = int(f.get(s, "Tier", 1)), P.WEAPONS[kind]
         damage_scale, duration_scale = _combo_scales(f, s)
         mean = M.reference_weapon_hit(M.tier_depth(tier)) * w["hit"] / damage_scale
-        lo, hi = (snap(x, 0.5, 0.5) for x in M.spread_range(mean, P.GEAR["weapon_spread"]))
+        lo, hi = (snap(x, 1, 1) for x in M.spread_range(mean, P.GEAR["weapon_spread"]))  # whole points, as players read them
         fixed = f.get(s, "Delay", 0.0) + f.get(s, "CooldownDuration", 0.0)
         perform = round((w["cycle"] - fixed) / duration_scale, 2)
         label = f"{name} (T{tier})"
@@ -564,6 +564,53 @@ def jewelry(match=None) -> Group:
             g.add(f"{name} (T{tier})", mf, modifier, "Value", float(target))
         current = "/".join(f"{mf.get(m, 'Value', 0.0):g}" for mf, m in modifiers)
         g.rows.append([name, f"T{tier}", current, "/".join(f"{v:g}" for v in targets)])
+    return g
+
+
+# --- Curses ---------------------------------------------------------------------------------------
+
+ITEM_POLICY = "res://scenes/items/dungeon_item_policy.tres"
+# The stat each tiered curse lowers, by file name (`frailty_3.tres`); the percentage curses are untiered.
+CURSE_STATS = {"brittleness": "armor", "clumsiness": "attribute", "weakness": "attribute", "frailty": "health",
+               "dread": "damage"}
+CURSE_PERCENTS = {"lethargy": "speed_percent"}
+
+
+def curses(match=None) -> Group:
+    """The share of cursed drops, and every curse penalty's range and the depths its tier rolls at."""
+    g = Group("Curses", headers=["penalty", "tier", "depths", "derived"])
+    policy = R.load(ITEM_POLICY)
+    if _selected(policy.path, match):
+        g.add("Cursed drops", policy, policy.main, "CurseChance", P.CURSES["chance"])
+    bands = tier_bands()
+    for path in sorted(R.ROOT.glob("scenes/items/affixes/curses/*.tres")):
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        kind, _, tier = path.stem.partition("_")
+        modifiers = [f.follow(ref) for ref in f.get(f.main, "Modifiers", [])]
+        if kind in CURSE_PERCENTS:
+            weakest, strongest = P.CURSES[CURSE_PERCENTS[kind]]
+            ranges = [(strongest, weakest)] * len(modifiers)
+            tier, (low, high) = 0, (1, 0)
+        elif kind in CURSE_STATS:
+            tier = int(tier)
+            ranges = M.curse_penalty(CURSE_STATS[kind], tier)
+            low, high = bands[tier - 1]
+        else:
+            g.note(f"{R.to_res(path)}: no model for this curse; left alone")
+            continue
+        label = f"{kind} (T{tier})" if tier else kind
+        if len(modifiers) != len(ranges):
+            g.note(f"{R.to_res(path)}: {len(modifiers)} modifiers, the model sizes {len(ranges)}; left alone")
+            continue
+        g.add(label, f, f.main, "MinDepth", low)
+        g.add(label, f, f.main, "MaxDepth", high)
+        for (mf, modifier), (strongest, weakest) in zip(modifiers, ranges):
+            g.add(label, mf, modifier, "MinValue", -float(strongest))
+            g.add(label, mf, modifier, "MaxValue", -float(weakest))
+        g.rows.append([kind, f"T{tier}" if tier else "-", f"{low}-{high or ''}",
+                       ", ".join(f"-{s:g} to -{w:g}" for s, w in ranges)])
     return g
 
 
