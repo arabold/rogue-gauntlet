@@ -30,6 +30,12 @@ public partial class PlaytestTool : DebugTool
 		// Once per launch, so a playtest stopped from the menu stays stopped on the next floor.
 		if (_commandLineHandled || !OS.IsDebugBuild()) return;
 		_commandLineHandled = true;
+		// The menu hands its tools their world in its own _Ready, after theirs, so start once it has.
+		Callable.From(StartFromCommandLine).CallDeferred();
+	}
+
+	private void StartFromCommandLine()
+	{
 		foreach (string arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg == "--playtest-log" || arg.StartsWith("--playtest-log="))
