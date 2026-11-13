@@ -206,9 +206,38 @@ public class PoiseTest
 		AssertBool(movement.IsPushed).IsFalse();
 
 		gate.ReportHyperArmor(lease, false);
-		hurtbox.ResolveDamage(Contact(1, 0, knockback: 4));
+		hurtbox.ResolveDamage(Contact(12, 0, knockback: 4));
 		AssertBool(gate.IsBusy).IsFalse();
 		AssertBool(movement.IsPushed).IsTrue();
+	}
+
+	/// <summary>
+	/// Without poise, a hit interrupts only if it takes a tenth of max health, and not again for a second after (Diablo
+	/// II's hit recovery), so a fast weapon cannot keep a monster from ever finishing an attack.
+	/// </summary>
+	[TestCase]
+	public void WithoutPoiseOnlyABigHitInterruptsAndNotAgainRightAfter()
+	{
+		var (hurtbox, gate, _, _) = Actor();
+		hurtbox.Poise = null;
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
+		hurtbox.ResolveDamage(Contact(5, 0));
+		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a hit under a tenth of max health").IsTrue();
+		hurtbox.ResolveDamage(Contact(12, 0));
+		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a hit over a tenth of max health").IsFalse();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out lease);
+		hurtbox.ResolveDamage(Contact(12, 0));
+		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a second big hit inside the immunity").IsTrue();
+
+		var (fresh, freshGate, _, _) = Actor();
+		fresh.Poise = null;
+		fresh.InterruptImmunity = 0;
+		for (int hit = 0; hit < 2; hit++)
+		{
+			freshGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var attack);
+			fresh.ResolveDamage(Contact(12, 0));
+			AssertBool(freshGate.IsLeaseCurrent(attack)).OverrideFailureMessage($"hit {hit} without immunity").IsFalse();
+		}
 	}
 
 	[TestCase]

@@ -418,6 +418,30 @@ public partial class EnemyDefenseTest
 		AssertObject(strategy.Choose(true, true, .1f, guardSafe: false)).IsEqual(EnemyDefenseMode.Dodge);
 	}
 
+	/// <summary>
+	/// A raised guard slows a monster but does not stop it: a shield skeleton blocking a hero's volleys keeps closing in,
+	/// so a hero shooting from range still has to fight it.
+	/// </summary>
+	[TestCase]
+	public async System.Threading.Tasks.Task AGuardingMonsterKeepsClosingIn()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene, 9f);
+		monster.DefenseController.SetPhysicsProcess(false); // keep the guard raised for the whole approach
+		harness.ExecuteCommand("automation", "", 1);
+		await runner.SimulateFrames(1, 20);
+		float Distance() => monster.GlobalPosition.HorizontalDistanceTo(hero.GlobalPosition);
+		AssertObject(monster.GuardComponent.TryBeginGuard(hero.GlobalPosition - monster.GlobalPosition)).IsEqual(DefenseRequestResult.Success);
+		float start = Distance();
+
+		await TestFactories.AwaitPhysicsUntil(runner, () => Distance() < start - 1.5f, 3);
+		AssertObject(monster.ActionGate.CurrentKind).IsEqual(ActorActionKind.Guard);
+		AssertFloat(Distance()).IsLess(start - 1.5f);
+	}
+
 	[TestCase]
 	public void ThreatTierIsDerivedFromTheDefenseTraits()
 	{

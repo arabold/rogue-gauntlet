@@ -183,7 +183,9 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_context.TickThrottles(delta);
 		SyncEngagedSlots();
 		var gate = Actor.ActionGate;
-		if (gate?.Disabled == true || (gate?.IsBusy == true && _running == null))
+		// A raised guard slows a monster but does not stop its pursuit: it keeps closing in behind it.
+		bool guarding = gate?.CurrentKind == ActorActionKind.Guard;
+		if (gate?.Disabled == true || (gate?.IsBusy == true && _running == null && !guarding))
 		{
 			MovementComponent.Stop();
 			_navigation.ResetStuckTracking();

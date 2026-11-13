@@ -30,8 +30,17 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public BuffController Buffs { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
-	/// <summary>Optional hit-reaction meter. Unassigned keeps the poise-free rule: every damaging hit interrupts unless hyper-armored.</summary>
+	/// <summary>
+	/// Optional hit-reaction meter. Unassigned keeps the poise-free rule (Diablo II's hit recovery): a hit interrupts the
+	/// actor only if it deals at least <see cref="InterruptThreshold"/> of its max health, and not again within
+	/// <see cref="InterruptImmunity"/>; smaller hits only make it flinch.
+	/// </summary>
 	[Export] public PoiseComponent Poise { get; set; }
+	/// <summary>Without poise, the share of max health one hit must deal to interrupt this actor; 0 lets every hit interrupt.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float InterruptThreshold { get; set; } = 0.1f;
+	/// <summary>Without poise, seconds after an interruption during which further hits only make the actor flinch, so it gets its next action off.</summary>
+	[Export(PropertyHint.Range, "0,5,0.05")] public float InterruptImmunity { get; set; } = 1f;
+	private ulong _interruptibleFromFrame;
 	/// <summary>Optional directional and sneak-attack vulnerability. Unassigned means every contact counts as frontal.</summary>
 	[Export] public HitVulnerabilityProfile Vulnerability { get; set; }
 	/// <summary>Runtime awareness of the owning actor, registered by its root like a defense evaluator. Null means never unaware.</summary>
@@ -227,7 +236,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 
 		reactionSuppressed = defenseEval.SuppressHitStun || statusLocked || contact.SuppressHitReaction;
 		if (!reactionSuppressed)
-			reaction = ReactToHit(contact, poiseDamage);
+			reaction = ReactToHit(contact, poiseDamage, finalDamage);
 		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && HealthComponent?.IsDead != true)
 			MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
 		if (!isDefended && HealthComponent?.IsDead != true
@@ -268,17 +277,22 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	/// also pushes and interrupts a flinch, unless the defender is hyper-armored or resists it. A running
 	/// stagger is pushed but never cut short.
 	/// </summary>
-	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage)
+	/// <summary>Without poise: a hit big enough for <see cref="InterruptThreshold"/>, once the last interruption's immunity has passed.</summary>
+	private bool Interrupts(float damage) => Engine.GetPhysicsFrames() >= _interruptibleFromFrame
+		&& damage >= InterruptThreshold * (HealthComponent?.MaxHealth ?? 0);
+
+	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage, float damage)
 	{
 		var gate = MovementComponent?.ActionGate;
 		HitReaction reaction;
 		if (Poise?.IsAvailable == true)
 			reaction = Poise.Apply(poiseDamage) ? HitReaction.Staggered : HitReaction.Flinch;
-		else if (gate?.IsHyperArmored == true)
+		else if (gate?.IsHyperArmored == true || !Interrupts(damage))
 			reaction = HitReaction.Flinch;
 		else
 		{
 			gate?.CancelCurrent(ActionInterruptReason.HitStun);
+			_interruptibleFromFrame = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(InterruptImmunity * Engine.PhysicsTicksPerSecond);
 			reaction = HitReaction.Interrupted;
 		}
 		bool forced = reaction == HitReaction.Flinch && contact.ForcePushback && gate?.IsHyperArmored != true
