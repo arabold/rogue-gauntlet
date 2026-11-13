@@ -120,7 +120,9 @@ For reference comparisons, `studio.py armor compare costume_knight_plate` loads 
 
 Use the canonical [master style prompt](../../../asset-studio/prompts/stylized-fantasy.txt) for every generated concept. It defines the requested KayKit-inspired style; do not replace it with an ad hoc generic low-poly prompt. `core/prompts.py` composes it with the subject and layout for Studio generation.
 
-For item concepts, run `./.venv/bin/python asset-studio/studio.py item reference <category/name> --prompt-only --brief "<design>"`. This is read-only and returns the exact prompt and style-reference image paths. Inspect those images, then pass the prompt and referenced images to the built-in image generation tool using the imagegen skill. The images establish style, not the new subject. Keep the brief focused on silhouette, functional details and material choices; avoid realistic surface texture. For character concepts preserve the mannequin's pose and front/side layout through `core.match`.
+Always pair the verbatim master style prompt with our two visual style anchors — [`asset-studio/characters/heroes/knight/reference.png`](../../../asset-studio/characters/heroes/knight/reference.png) and [`asset-studio/costumes/knight_plate/reference.png`](../../../asset-studio/costumes/knight_plate/reference.png) — passing both paths as reference images so outputs keep the exact plain white background, charcoal-gray chunky chibi fitting dummy (when showing equipment fit), broad planar facets with softly chamfered edges, and clean solid color regions without surface noise, scratches, dark backgrounds, or ink outlines.
+
+For item concepts, run `./.venv/bin/python asset-studio/studio.py item reference <category/name> --prompt-only --brief "<design>"`. This is read-only and returns the exact prompt and style-reference image paths. Inspect those images, then pass the prompt and referenced images to `image-generator` / the image tool. If the built-in image generator hits quota limits (or when batching turnarounds through `asset-studio/core/ai.py`), use the exported `SKILL_IMAGE_GEN_GEMINI_KEY` environment variable (bind it to `GEMINI_API_KEY` in-memory only — never echo or commit key values) with `GeminiProvider(image_model="gemini-nano-banana-2.1").edit_image(compose(task), refs, aspect="16:9")` via `uv run --with google-genai --with pillow`. For character concepts preserve the mannequin's pose and front/side layout through `core.match`.
 
 Keep proposals in the image tool’s preview history; copy only the selected image to `reference.png` and its exact prompt to `reference.prompt.txt`. Compare the result with the character references for facets, proportions, color regions and detail scale. Import the selected concept through `item reference --image`; then model and verify its actual Godot lineup. A concept image does not establish mesh connectivity or runtime shading.
 
@@ -183,10 +185,24 @@ Room furnishings, set dressing and any prop that stands in the world must read a
 Game-side wiring (`Prop`/`PropGroup` resources, lit and composed scenes, room types) follows the [room assembly guide](../../../scenes/levels/generators/assembly/README.md).
 
 ### Using `blender-mcp` with Asset Studio
-When a part or prop needs custom sculpting, boolean bevels, or lookdev in Blender:
-1. Export or assemble the base mesh via `asset-studio/studio.py` or `core/kit.py`.
-2. Import into Blender via `blender-mcp` tools to refine geometry, sculpt organic details, or inspect shading.
-3. Save editable Blender sources and the finished intermediate GLB inside the item folder (or harvest reusable parts into domain `meshes/`). Use `studio.py item build`, inspect `item lineup`, then publish through `item export`.
+When authoring custom armor, helmets, or props in Blender:
+1. Fit wearable headgear directly to KayKit's `Mannequin_Medium_Head` (`upper_halfW = 0.432`, natural lower-in-back ~4–6° nape rake rather than level at 90°) instead of inflated custom heads. Wrap curved cheek/ear shells around a clean smooth head envelope or `BVHTree` rather than extruding flat slabs, and seat secondary trim (straps, studs, collars, ridges) using `BVHTree` saddle projection along surface normals so collars never clip diagonally into curved domes.
+2. **Concept-vs-Wireframe + Automated Seam Audit Loop (up to 3 iterations):**
+   - Align vertices, edge loops, and proportions BEFORE picking final flat KayKit palette colors or carving surface effects (since KayKit style uses flat fills without complex painted textures, emblems/dents/seams must live in clean vertex geometry).
+   - Render synchronized 3-point-lit solid + Holdout hidden-line wireframe passes **plus** 4 zoomed macro junction closeups (`brow_nasal`, `left_socket`, `right_socket`, `rear_band`) via [`core/blender_compare_render.py`](../../../asset-studio/core/blender_compare_render.py) (`render_compare_passes` + `render_junction_closeups`), then run overlay comparison + programmatic `gemini-3.8-flash` visual inspection:
+     ```bash
+     uv run --with pillow --with numpy --with scipy --with google-genai python asset-studio/core/concept_compare.py \
+       <concept.png> <front_solid.png> <tq_solid.png> <side_solid.png> \
+       --wires <front_wire.png> <tq_wire.png> <side_wire.png> \
+       --closeups <brow_closeup.png> <left_closeup.png> <right_closeup.png> <rear_closeup.png> \
+       --labels "Front,Three-Quarter,Side" --asset-name "<AssetName>" --audit --out <diag.png>
+     ```
+   - Never judge by outer silhouette IoU alone: inspect `diag.png` **Wireframe on Concept**, `diag_closeups.png`, and the `gemini-3.8-flash` JSON audit (`diag_audit.json`) explicitly for:
+     - **Structural junctions & physical plausibility**: horn/socket cuffs seated evenly 360° around dome normals without diagonal clipping; vertical straps/crests continuing front-to-back and terminating flush into horizontal bands rather than stopping mid-dome; zero floating fragments or shell bleed-through.
+     - **Silhouette & small detail proportions**: oversized chunky KayKit stud proportions, tapered/chamfered shapes instead of blunt boxes, curved jaw/head wrapping, and natural S-curves.
+     - **Shading & material separation**: crisp 3-point key/fill/rim separation between brushed metal, specular studs, matte leather, and smooth bone (flat ambient washes out form).
+   - Fix defects and repeat up to **3 iterations** until `gemini-3.8-flash` and visual inspection of both sheets pass cleanly.
+3. Save editable Blender sources / harvest reusable parts into domain `meshes/`, then build and review with `studio.py`.
 
 ### Curated equipment
 

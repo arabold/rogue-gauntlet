@@ -361,6 +361,12 @@ def build(recipe):
     if any(getattr(p,"garment_type",None)=="cape" for p in pieces.values()) and any(
             "Gorget" in name for name in pieces):
         raise ValueError("Choose a cape or a gorget; the cape includes its own shoulder yoke")
+    hides = []
+    for key, piece in pieces.items():
+        if key != "Head":
+            hides.extend(getattr(piece, "hides", ()))
+    if hides:
+        _, pieces["Head"] = heads.build(head_spec, suppress=tuple(dict.fromkeys(hides)))
     if recipe.get("hide_covered", True):
         pieces = hide_covered(pieces, covers)
     explicit = {**head_spec.get("colors", {}), **recipe.get("colors", {})}

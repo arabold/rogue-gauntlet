@@ -1367,7 +1367,7 @@ def layout(head, recipe, margin=0.06, limit=0.35):
     return recipe, notes
 
 
-def build(recipe, center=(0.0, 1.72, 0.0)):
+def build(recipe, center=(0.0, 1.72, 0.0), suppress=()):
     """
     `(head, piece)` for a recipe: `form` (the `Head` arguments) plus one entry per feature (`FEATURES`; a dict of
     the feature function's arguments, or a list of them for several; any feature takes `move` = [dx, dy] to nudge
@@ -1376,14 +1376,17 @@ def build(recipe, center=(0.0, 1.72, 0.0)):
     half width as a share of the head's]), `shade` lighter
     and darker bands of skin (`{"top": [slot, from yn], "bottom": [slot, below yn]}`). Under sculpted
     hair the scalp is painted in the hair's slot, so gaps between its locks show hair, not skin.
+    `suppress` names any feature keys (e.g. `"ears"`, `"hair"`, `"beard"`) hidden under headwear.
     """
     skin_slot = recipe.get("skin", "skin")
     head = Head(center=center, **recipe.get("form", {}))
     cranium = head.mesh(skin_slot)
-    recipe, head.layout = layout(head, recipe) if recipe.get("layout", True) else (recipe, [])
+    suppressed = set(suppress)
+    work = {k: v for k, v in recipe.items() if k not in suppressed} if suppressed else recipe
+    work, head.layout = layout(head, work) if work.get("layout", True) else (work, [])
     parts, skin, painted, carved = [], [], [], []
     for key, fn in FEATURES.items():
-        spec = recipe.get(key)
+        spec = work.get(key)
         for one in ([] if spec is None or spec is False else spec if isinstance(spec, list) else [spec]):
             args = _moved(fn, one) if fn is not None else dict(one)
             if key in ("paint", "scar"):
