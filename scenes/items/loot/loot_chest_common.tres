@@ -13,7 +13,7 @@
 [sub_resource type="Resource" id="Group_gold"]
 resource_name = "Gold"
 script = ExtResource("group")
-Weight = 16.0
+Weight = 11.0
 Pool = ExtResource("pool_gold")
 metadata/_custom_type_script = ExtResource("group")
 
@@ -27,7 +27,7 @@ metadata/_custom_type_script = ExtResource("group")
 [sub_resource type="Resource" id="Group_potions"]
 resource_name = "Potions"
 script = ExtResource("group")
-Weight = 36.0
+Weight = 41.0
 Pool = ExtResource("pool_potions")
 metadata/_custom_type_script = ExtResource("group")
 

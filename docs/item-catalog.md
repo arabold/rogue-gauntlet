@@ -60,7 +60,7 @@ A source's `LootDropProfile` names its table, drop chance, roll count and item c
 Monster definitions and chest scenes reference shared profiles in
 [`scenes/items/loot/drops/`](../scenes/items/loot/drops/).
 
-Actual category weights live in the [loot table Resources](../scenes/items/loot/), and depth bounds and quantity scaling in their pools, not a second numeric table here. Common enemies favor currency/recovery; rarer chests favor equipment. Base tier eligibility and rolled quality are independent, and both are fenced by depth. Every jewelry type is eligible from depth 1; its quality carries the progression. Guaranteed matching keys are placed by the level access profile separately from random loot. Lockpicks never spawn in normal floors or loot tables; the Rogue starts with two, and future shops may stock them. Other deferred tools remain outside normal loot until their mechanics are implemented.
+Actual category weights live in the [loot table Resources](../scenes/items/loot/), and depth bounds and quantity scaling in their pools, not a second numeric table here. Humanoid enemies favor currency/recovery; beasts drop only raw meat; rarer chests favor equipment. Base tier eligibility and rolled quality are independent, and both are fenced by depth. Every jewelry type is eligible from depth 1; its quality carries the progression. Guaranteed matching keys are placed by the level access profile separately from random loot. Lockpicks never spawn in normal floors or loot tables; the Rogue starts with two, and future shops may stock them. Other deferred tools remain outside normal loot until their mechanics are implemented.
 
 ## Active definitions
 
@@ -207,7 +207,7 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Ring of Strength](../scenes/items/jewelry/ring/ring_strength.tres) | `ring.strength` | 1+ |
 | [Ring of Vitality](../scenes/items/jewelry/ring/ring_vitality.tres) | `ring.vitality` | 1+ |
 
-### Food (12)
+### Food (13)
 
 | Definition | Family / role | Depth |
 | --- | --- | --- |
@@ -222,6 +222,7 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Roasted Turkey Drumstick](../scenes/items/food/food/food_meat_drumstick.tres) | `recovery; per-piece contamination` | 1+ |
 | [Smoked Hunter's Sausage](../scenes/items/food/food/food_meat_sausage.tres) | `recovery; per-piece contamination` | 1+ |
 | [Grilled T-Bone Steak](../scenes/items/food/food/food_meat_steak.tres) | `recovery; per-piece contamination` | 1+ |
+| [Raw Meat](../scenes/items/food/food/food_meat_raw.tres) | `recovery; often contaminated; beasts' only drop` | 1+ |
 | [Golden Pear](../scenes/items/food/food/food_pear_golden.tres) | `recovery; per-piece contamination` | 1+ |
 
 ### Potions (27)
