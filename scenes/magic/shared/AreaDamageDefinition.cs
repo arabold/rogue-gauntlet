@@ -15,7 +15,8 @@ public partial class AreaDamageDefinition : Resource
 	[Export(PropertyHint.Range, "0,10,0.05")] public float ContactDelay { get; set; }
 	/// <summary>Optional camera shake requested each time the area reaches a target.</summary>
 	[Export] public CameraShakeProfile CameraShake { get; set; }
-	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
+	/// <summary>What defenses do against this area's contacts. An area is never Dodgeable: only leaving it avoids it.</summary>
+	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Guardable;
 	[Export] public DamageElement Element { get; set; }
 	public int LevelCount => System.Math.Min(SpellLevels.Max, System.Math.Min(RadiusByLevel?.Length ?? 0, DamageScaleByLevel?.Length ?? 0));
 	public float PushAt(int level) => PushByLevel is { Length: > 0 } ? PushByLevel[level - 1] : 0;

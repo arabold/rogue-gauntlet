@@ -186,6 +186,7 @@ public partial class AttackController : Node, IParryInterruptible
 
 		ReportProgress();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.started", ("execution", _executionSequence), ("execution_source", GetInstanceId()), ("style", CurrentStyle.ToString()),
+			("delivery", TraceDelivery(attack)), ("homing", attack.Spell == null && def.IsRanged && def.HomingTurnRate > 0),
 			("contact_start", def.HitWindowStart), ("contact_end", def.HitWindowEnd), ("duration", attack.Duration),
 			("traits", def.DefenseTraits.ToString()), ("min_damage", hit.MinDamage), ("max_damage", hit.MaxDamage),
 			("poise_damage", def.PoiseDamage), ("facing_lock_lead", def.FacingLockLead), ("hyper_armor", $"{def.HyperArmorStart}-{def.HyperArmorEnd}"));
@@ -195,15 +196,24 @@ public partial class AttackController : Node, IParryInterruptible
 		return true;
 	}
 
+	/// <summary>How an execution's contacts arrive: melee, projectiles, or its spell's delivery, "None" for a spell without damage.</summary>
+	private static string TraceDelivery(PreparedAttack attack) => attack.Spell != null
+		? attack.Spell.Spell?.Delivery?.ToString() ?? "None"
+		: (attack.Definition.IsRanged ? DamageDeliveryKind.Projectile : DamageDeliveryKind.DirectMelee).ToString();
+
 	/// <summary>
 	/// Cancels any active attack and cleans up active hitboxes.
 	/// </summary>
 	public void CancelAttack() => FinishAttack(true);
 
+	/// <summary>
+	/// End the parried execution and stagger its attacker. An uninterruptible window refuses: the parry still stopped the
+	/// hit, but only death ends the attack.
+	/// </summary>
 	public bool TryInterruptForParry(AttackIdentity execution, float staggerDuration)
 	{
 		if (!_execution.IsRunning || _preparedAttack == null) return false;
-		if (CurrentExecutionId != execution) return false;
+		if (CurrentExecutionId != execution || ActionGate?.IsUnstoppable == true) return false;
 
 		_actor ??= GetParent<Node3D>();
 		CancelAttack();
@@ -244,8 +254,10 @@ public partial class AttackController : Node, IParryInterruptible
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!_execution.IsRunning || _currentAttack == null) { SetPhysicsProcess(false); return; }
-		if ((_actor is Player player && (player.IsDead || player.IsHit))
-			|| (_actor is EnemyBase enemy && (enemy.IsDead || enemy.MovementComponent.IsPushed)))
+		// Death ends any attack; a hit or a push only one outside an uninterruptible window.
+		bool knocked = ActionGate?.IsUnstoppable != true
+			&& (_actor is Player { IsHit: true } || _actor is EnemyBase { MovementComponent.IsPushed: true });
+		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true } || knocked)
 		{
 			CancelAttack();
 			return;
@@ -257,7 +269,13 @@ public partial class AttackController : Node, IParryInterruptible
 			return;
 		}
 		float previous = step.PreviousTime;
-		ReportProgress();
+		// A finished execution reports nothing more, so an uninterruptible window that lasts to the end finishes the attack
+		// instead of handing it to a waiting status lock; one that closes earlier ends the attack there.
+		if (!step.Completed)
+		{
+			ReportProgress();
+			if (!_execution.IsRunning) return;
+		}
 		if (_preparedAttack.Playback != null)
 			AnimationComponent.Sample(_preparedAttack.Playback, _elapsedTime / _preparedAttack.Duration);
 
@@ -560,12 +578,13 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		var random = new RandomNumberGenerator { Seed = _random.Randi() };
-		var context = release.Context;
+		var context = release.Context with { Parent = CurrentExecutionId };
 		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
 			&& release.Revalidate?.Invoke(context) != false && release.Spell.Cast(in context, random);
 		ReportFeedback(cast ? "Cast" : "Fizzled");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
-			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level), ("cast", cast));
+			("execution_source", GetInstanceId()), ("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level),
+			("cast", cast));
 	}
 
 	/// <summary>

@@ -131,7 +131,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		{
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "damage.resolved", ("source", CombatTrace.Identity(snapshot.SourceNode)),
 				("owner", CombatTrace.Identity(snapshot.OwnerNode)), ("execution", snapshot.ExecutionId.Sequence),
-				("execution_source", snapshot.ExecutionId.SourceInstanceId), ("delivery", snapshot.DeliveryKind.ToString()),
+				("execution_source", snapshot.ExecutionId.SourceInstanceId), ("parent_execution", snapshot.Parent.Sequence),
+				("parent_source", snapshot.Parent.SourceInstanceId), ("delivery", snapshot.DeliveryKind.ToString()),
 				("traits", snapshot.DefenseTraits.ToString()), ("incoming", CombatTrace.Vector(snapshot.IncomingDirection)),
 				("raw_damage", snapshot.Amount), ("armor", Armor),
 				("armor_roll", armorRoll), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),

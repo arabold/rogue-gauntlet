@@ -5,6 +5,8 @@ public interface ICombatSpell
 {
 	string DisplayName { get; }
 	int LevelCount { get; }
+	/// <summary>How the spell's damage reaches its targets; null for a spell that deals none (a heal, a buff, a ward).</summary>
+	DamageDeliveryKind? Delivery => null;
 	/// <summary>What a cast with <paramref name="power"/> does, as short tooltip lines (see <see cref="SpellLevels"/>).</summary>
 	System.Collections.Generic.IEnumerable<string> DescribeLevel(in SpellPower power);
 	/// <summary>Whether the cast is legal against the context's caster and target; <see cref="Cast"/> checks it itself.</summary>

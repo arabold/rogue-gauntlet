@@ -9,6 +9,7 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public DamageDeliveryKind? Delivery => DamageDeliveryKind.AreaImpact;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
 		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
@@ -21,7 +22,7 @@ public partial class LingeringAreaSpell : Node, ICombatSpell
 		Node3D caster = context.Caster;
 		SpellPower power = context.Power;
 		int level = power.Level;
-		if (!CanCast(in context) || !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.RadiusByLevel[level - 1], out var cast)) return false;
+		if (!CanCast(in context) || !AreaCastLifecycle.TryCapture(this, in context, VisualRoot, random, Definition.RadiusByLevel[level - 1], out var cast)) return false;
 		Node node = VisualScene.Instantiate();
 		bool valid = Definition.Kind switch
 		{

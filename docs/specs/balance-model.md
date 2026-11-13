@@ -260,12 +260,13 @@ The model can be no better than its skill tiers. Measure them before tuning numb
   ```
 
   `calibrate` reports the share of monster attacks the player avoided per kind (melee, ranged, homing, area) and the
-  share of the player's own attacks that landed, each with the closest `SKILL` tier. A spell hits under its own
-  execution, so its hits count for the caster's latest cast. It also reports the share of the hero's hits and damage
-  that came from behind or as crits, which the model does not count yet, and each archetype's uptime: attacks per
-  second while fighting against the model's rhythm, from a monster's first decision or attack to its death. Uptime
-  below 100% means the hero kept attacks from starting, which the model also does not count yet. Move the tiers toward the measured
-  values, then retune the targets with `survival`.
+  share of the player's own attacks that landed, each with the closest `SKILL` tier. An attack's kind is how its
+  contacts arrive, logged when it starts (a projectile that homes in is homing, a cast takes its spell's delivery, and
+  a spell without damage has none), and a projectile's or spell's hit counts for the attack that released it. It also
+  reports the share of the hero's hits and damage that came from behind or as crits, which the model does not count
+  yet, and each archetype's uptime: attacks per second while fighting against the model's rhythm, from a monster's
+  first decision or attack to its death. Uptime below 100% means the hero kept attacks from starting, which the model
+  also does not count yet. Move the tiers toward the measured values, then retune the targets with `survival`.
 - Check time to kill and damage taken against the standard monster and the gatekeeper in the arena. They should
   match the simulator's duel numbers within about 20%. If not, fix the model's timing (attack cycles, engagement
   gap) first.

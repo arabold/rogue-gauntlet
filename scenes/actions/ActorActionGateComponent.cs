@@ -32,13 +32,16 @@ public partial class ActorActionGateComponent : Node
 	private readonly System.Collections.Generic.HashSet<object> _statusLocks = [];
 	public bool IsStatusLocked => _statusLocks.Count > 0;
 
-	/// <summary>Stops actions for as long as at least one independent status owns a lock.</summary>
+	/// <summary>
+	/// Stops actions for as long as at least one independent status owns a lock. An unstoppable action runs on and the
+	/// lock ends it when its uninterruptible window closes (see <see cref="ReportHyperArmor"/>).
+	/// </summary>
 	public void SetStatusLock(object owner, bool locked)
 	{
 		if (owner == null) return;
 		if (locked)
 		{
-			if (_statusLocks.Add(owner)) CancelCurrent(ActionInterruptReason.Invalidated);
+			if (_statusLocks.Add(owner) && !IsUnstoppable) CancelCurrent(ActionInterruptReason.Invalidated);
 		}
 		else _statusLocks.Remove(owner);
 	}
@@ -73,11 +76,16 @@ public partial class ActorActionGateComponent : Node
 	public bool IsHyperArmored { get; private set; }
 
 	/// <summary>
-	/// True while the current action's armor is uninterruptible (<see cref="AttackDefinition.Interruptible"/>): hits drain
-	/// no poise, so only death ends it, and its owner never cancels it to defend.
+	/// True while the current action's armor is uninterruptible (<see cref="AttackDefinition.Interruptible"/>): only death
+	/// ends it. The gate refuses every other action, stagger included; hits drain no poise; a parry stops the hit but not
+	/// the action; and a status lock waits for the window to close.
 	/// </summary>
 	public bool IsUnstoppable { get; private set; }
 
+	/// <summary>
+	/// Publish the current action's armor. Closing an uninterruptible window under a status lock ends the action, as the
+	/// lock would have on arrival; the owner's interruption callback runs before this returns.
+	/// </summary>
 	public void ReportHyperArmor(ActorActionLease lease, bool armored, bool unstoppable = false)
 	{
 		unstoppable &= armored;
@@ -86,6 +94,7 @@ public partial class ActorActionGateComponent : Node
 		IsUnstoppable = unstoppable;
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "action.hyper_armor", ("kind", CurrentKind.ToString()), ("armored", armored),
 			("unstoppable", unstoppable), ("lease", lease.LeaseId));
+		if (!unstoppable && IsStatusLocked) CancelCurrent(ActionInterruptReason.Invalidated);
 	}
 
 	public bool AllowsLocomotion => !IsStatusLocked && (!IsBusy || (CurrentKind == ActorActionKind.Guard && CurrentPhase == ActorActionPhase.Active));
@@ -167,7 +176,7 @@ public partial class ActorActionGateComponent : Node
 			return ActorActionRequestResult.InvalidDefinition;
 		}
 
-		if (!CanTransition(CurrentKind, CurrentPhase, kind, RecoveryCancels))
+		if (IsUnstoppable || !CanTransition(CurrentKind, CurrentPhase, kind, RecoveryCancels))
 		{
 			return ActorActionRequestResult.Busy;
 		}
