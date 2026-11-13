@@ -561,6 +561,8 @@ def read_trace(path):
         event, data, actor, time = record["event"], record["data"], record["actor"], record["time"]
         hero = is_hero(actor)
         if event == "attack.started":
+            if "delivery" not in data:
+                raise SystemExit(f"{path}: recorded before traces named each hit's attack; record it again")
             kind = "homing" if data["homing"] else TRACE_KINDS.get(data["delivery"])
             attacks[(data["execution_source"], data["execution"])] = {"hero": hero, "kind": kind}
             if not hero:

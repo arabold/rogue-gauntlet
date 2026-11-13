@@ -268,7 +268,8 @@ The model can be no better than its skill tiers. Measure them before tuning numb
   reports the share of the hero's hits and damage that came from behind or as crits, which the model does not count
   yet, and each archetype's uptime: attacks per second while fighting against the model's rhythm, from a monster's
   first decision or attack to its death. Uptime below 100% means the hero kept attacks from starting, which the model
-  also does not count yet. Move the tiers toward the measured values, then retune the targets with `survival`.
+  also does not count yet. Logs recorded before attacks logged their delivery cannot be read; record them again. Move
+  the tiers toward the measured values, then retune the targets with `survival`.
 - Check time to kill and damage taken against the standard monster and the gatekeeper in the arena. They should
   match the simulator's duel numbers within about 20%. If not, fix the model's timing (attack cycles, engagement
   gap) first.
