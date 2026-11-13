@@ -1,0 +1,91 @@
+{
+  "blender": "5.2.2",
+  "script": "e2c184a9c41d698f6ea727e8000d1d6ce714f9be99e8192c3bc9ef9d703e4343",
+  "helpers": "120c759eef85bff4db183e28c22a8c821f936c65e16e8efe162c625a31b7d88b",
+  "host": "cdea10bdab66946e50c6df41254598a540d391460471dbcb92ea055e45b69872",
+  "glb": "47c2c3c2bcbd143460165c8c5e2d86a28d58444bf4d6d7784045e9746f934223",
+  "objects": [
+    {
+      "name": "CentralCrest",
+      "triangles": 152,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "metal"
+      ]
+    },
+    {
+      "name": "EarMedallionL",
+      "triangles": 316,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "metal"
+      ]
+    },
+    {
+      "name": "EarMedallionR",
+      "triangles": 316,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "metal"
+      ]
+    },
+    {
+      "name": "GemBezel",
+      "triangles": 48,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "gold"
+      ]
+    },
+    {
+      "name": "GoldTrim",
+      "triangles": 180,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "gold"
+      ]
+    },
+    {
+      "name": "HelmetShell",
+      "triangles": 1248,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "armor",
+        "dark"
+      ]
+    },
+    {
+      "name": "RubyGem",
+      "triangles": 36,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "gem"
+      ]
+    },
+    {
+      "name": "WingL",
+      "triangles": 212,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "metal"
+      ]
+    },
+    {
+      "name": "WingR",
+      "triangles": 212,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "metal"
+      ]
+    }
+  ]
+}

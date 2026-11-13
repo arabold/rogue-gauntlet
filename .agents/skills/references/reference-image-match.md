@@ -193,11 +193,7 @@ blender-director
 | Entire ship white when animating | Emission keyed on shared hull material | Per-light materials; clear structural mat animation |
 | Black camera view | Camera inside mesh or no lights | Reposition CAM; boost key + world |
 | Boxy, toy-like | Tier-2 panel breaks skipped | Ribs, belts, recesses, chamfers before greebles |
-| Reference angle wrong / tall wings foreshortened | Wide perspective lens on turnaround sheet | Use telephoto `lens=135, distance=10.2` in `blender_compare_render.py` |
-| Missing cheek vents or horizontal slits on rear waist | Boolean `EXACT` modifier on solidified shell with concave waist | Use `bcr.inset_quad_slot_pockets` directly in BMesh; never `BOOLEAN` solidified open shells |
-| Diagonal shading streaks on bevels/crests in EEVEE | `edge.smooth = False` without edge split in Blender 4.x/5.x | Call `bcr.finalize_and_link_mesh(..., split_sharp=True)` (`bmesh.ops.split_edges`) |
-| Grey patches / slits on rear of helmet | KayKit `Mannequin_Medium_Head`'s boxy 135° rear corners (`r_xy=0.519`) poking through elliptical dome | Call `bcr.enforce_head_clearance_on_grid(grid, min_outer_clearance=0.056)` before solidifying |
-| Pinched/twisted wing or horn roots at ear boss | Downward-curving collar tube or roots crossing raised outer bezel ring | Seat blade roots inside cylinder barrel (`x_loc < +0.044`) and loft monotonically upward/backward |
+| Reference angle wrong | Camera not matched first | TRACK_TO target; match lens and position |
 | Blurry on spacebar | Cycles viewport + low samples | EEVEE preview; motion blur off |
 | Flat grey clay | No lighting / no material contrast | Sun + rim; light/dark panel pair |
 | Details float at origin | Parent/position not set | Parent to root; place on hull surface |
