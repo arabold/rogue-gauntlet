@@ -56,7 +56,10 @@ public enum DamageDeliveryKind
 	Environmental
 }
 
-/// <summary>Optional elemental identity for protection and resistance; ordinary damage has none.</summary>
+/// <summary>
+/// Optional elemental identity for protection and resistance; ordinary damage has none. Elemental damage is magic:
+/// armor does not absorb it, elemental wards and resistances do.
+/// </summary>
 public enum DamageElement { None, Fire, Earth, Air, Water }
 
 public readonly record struct AttackIdentity(ulong SourceInstanceId, ulong Sequence);
@@ -64,6 +67,11 @@ public readonly record struct AttackIdentity(ulong SourceInstanceId, ulong Seque
 public readonly record struct DamageContext
 {
 	public AttackIdentity ExecutionId { get; init; }
+	/// <summary>
+	/// The attack execution that released this contact's projectile or spell; default for an attack's own contact or one
+	/// no attack released. Traces credit the contact to it.
+	/// </summary>
+	public AttackIdentity Parent { get; init; }
 	public Node SourceNode { get; init; }
 	public Node OwnerNode { get; init; }
 	public DamageSourceFlags Faction { get; init; }

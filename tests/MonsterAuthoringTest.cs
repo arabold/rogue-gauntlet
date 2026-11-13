@@ -54,7 +54,6 @@ public partial class MonsterAuthoringTest
 		var custom = (MonsterDefinition)first.Definition.Duplicate();
 		custom.MaxHealth = 37;
 		custom.MoveSpeed = 1.7f;
-		custom.XpReward = 19;
 		second.Definition = custom;
 		float healthAtReady = 0;
 		second.HealthComponent.Ready += () => healthAtReady = second.HealthComponent.CurrentHealth;
@@ -63,7 +62,6 @@ public partial class MonsterAuthoringTest
 		AssertBool(first.DefinitionValid && second.DefinitionValid).IsTrue();
 		AssertFloat(healthAtReady).IsEqual(37);
 		AssertFloat(second.MovementComponent.Speed).IsEqual(1.7f);
-		AssertInt(second.DeathComponent.Xp).IsEqual(19);
 		second.HealthComponent.TakeDamage(3);
 		AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(34);
 		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(authoredHealth);

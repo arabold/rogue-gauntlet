@@ -4,8 +4,9 @@
 
 [resource]
 script = ExtResource("1_profile")
-HealthPerVitality = 5.0
-DamagePerStrength = 0.05
-DamagePerIntelligence = 0.2
-CritChancePerDexterity = 0.005
+CritChancePerDexterity = 0.01
+StrengthPerLevel = 0.1
+DexterityPerLevel = 0.1
+VitalityPerLevel = 0.3
+IntelligencePerLevel = 0.5
 metadata/_custom_type_script = ExtResource("1_profile")

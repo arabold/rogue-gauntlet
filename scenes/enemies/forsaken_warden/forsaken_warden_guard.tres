@@ -11,3 +11,4 @@ RaiseDuration = 0.06
 ParryWindow = 0.24
 ReleaseRecovery = 0.35
 DamageMultiplier = 0.5
+MovementSpeedMultiplier = 0.5

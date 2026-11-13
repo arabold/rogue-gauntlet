@@ -1,0 +1,721 @@
+"""
+The game's authored content in balance-model terms: every value the model sets, paired with its target.
+`simulate.py audit` reports the pairs that differ and `simulate.py derive` writes the targets. How each kind of content
+maps to the model is described under "Game content" in docs/specs/balance-model.md.
+"""
+from __future__ import annotations
+
+import re
+from collections import Counter
+from dataclasses import dataclass, field, replace
+
+import model as M
+import params as P
+import resources as R
+
+CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "curses", "classes", "supplies", "loot")
+
+
+@dataclass
+class Value:
+    """One authored value the model sets."""
+    item: str
+    file: R.TextResource
+    section: R.Section
+    key: str
+    current: float
+    target: float
+    exact: bool = False  # counts, such as weights and depths, are off by any difference
+
+    @property
+    def off(self) -> float:
+        """Relative difference from the target (absolute when the target is zero); the largest one for a list."""
+        if isinstance(self.target, R.Raw) or self.exact:
+            return 0.0 if self.current == self.target else 1.0
+        if isinstance(self.target, list):
+            current = self.current if isinstance(self.current, list) else []
+            if len(current) != len(self.target):
+                return 1.0
+            return max((_relative(c, t) for c, t in zip(current, self.target)), default=0.0)
+        return _relative(self.current, self.target)
+
+    @property
+    def shown(self) -> tuple[str, str]:
+        """Current and target value as the audit prints them."""
+        def text(value):
+            if isinstance(value, R.Raw):
+                return value.text if len(value.text) <= 40 else value.text[:37] + "..."
+            return f"{len(value)} entries" if isinstance(value, list) else f"{value:g}"
+        return text(self.current), text(self.target)
+
+    @property
+    def location(self):
+        return self.file.path, self.section.start, self.key
+
+
+@dataclass
+class Group:
+    """One category of content: the values the model sets, a summary table and notes that need a person."""
+    name: str
+    headers: list[str] = field(default_factory=list)
+    rows: list[list] = field(default_factory=list)
+    values: list[Value] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+    def add(self, item: str, file: R.TextResource, section: R.Section, key: str, target, exact: bool = False):
+        if isinstance(target, R.Raw):
+            self.values.append(Value(item, file, section, key, R.Raw(file.raw(section, key) or ""), target))
+            return
+        current = file.get(section, key)
+        current = current if isinstance(current, list) else float(current or 0)
+        self.values.append(Value(item, file, section, key, current, target, exact))
+
+    def note(self, text: str):
+        if text not in self.notes:
+            self.notes.append(text)
+
+
+def _relative(current: float, target: float) -> float:
+    return abs(current) if target == 0 else abs(current - target) / abs(target)
+
+
+def snap(value: float, unit: float, minimum: float = 0.0) -> float:
+    return max(minimum, round(round(value / unit) * unit, 4))
+
+
+def _selected(path, match) -> bool:
+    return not match or any(m in str(path) for m in match)
+
+
+def collect(categories=CATEGORIES, match=None) -> list[Group]:
+    groups = [{"monsters": monsters, "encounters": encounters, "weapons": weapons, "armor": armor, "jewelry": jewelry,
+               "curses": curses, "classes": classes, "supplies": supplies, "loot": loot}[c](match) for c in categories]
+    _merge_shared(groups)
+    return groups
+
+
+def _merge_shared(groups):
+    """
+    A resource shared by several items (a staff's missiles, a combat profile) appears once. When the items want
+    different values for it, it keeps its value and gets a note instead.
+    """
+    targets, seen = {}, set()
+    for g in groups:
+        for v in g.values:
+            targets.setdefault(v.location, set()).add(tuple(v.target) if isinstance(v.target, list) else v.target)  # Raw is hashable
+    for g in groups:
+        conflicts = {v.location for v in g.values if len(targets[v.location]) > 1}
+        for path, _, key in sorted(conflicts):
+            g.note(f"{R.to_res(path)} {key}: shared by items with different targets; left alone")
+        unique = []
+        for v in g.values:
+            if v.location not in conflicts and v.location not in seen:
+                seen.add(v.location)
+                unique.append(v)
+        g.values = unique
+
+
+# --- Monsters -------------------------------------------------------------------------------------
+
+def archetype_names() -> list[str]:
+    """`MonsterArchetype`'s members in declaration order, which is how Godot stores them, checked against the model."""
+    names = R.csharp_enum("MonsterArchetype")
+    missing = [n for n in names[1:] if n.lower() not in P.ARCHETYPES]
+    if missing:
+        raise SystemExit(f"MonsterArchetype: params.ARCHETYPES has no {', '.join(missing)}")
+    return [n.lower() for n in names]
+
+
+def _archetype(file: R.TextResource, definition: R.Section) -> str:
+    """A monster definition's archetype as the model names it; `none` if unset."""
+    return archetype_names()[file.get(definition, "Archetype", 0)]
+
+
+def _definitions(match=None):
+    """Every monster definition outside the templates: its file, display name and archetype (`none` if unset)."""
+    for path in sorted(R.ROOT.glob("scenes/enemies/*/*_definition.tres")):
+        if "templates" in path.parts or not _selected(path, match):
+            continue
+        d = R.load(path)
+        yield d, d.get(d.main, "DisplayName") or path.stem, _archetype(d, d.main)
+
+
+def _damaging_actions(file: R.TextResource, definition: R.Section):
+    behavior = file.get(definition, "Behavior")
+    if not isinstance(behavior, R.Ref):
+        return []
+    bf, b = file.follow(behavior)
+    combat = bf.get(b, "Combat")
+    if not isinstance(combat, R.Ref):
+        return []
+    cf, c = bf.follow(combat)
+    actions = [cf.follow(ref) for ref in cf.get(c, "Actions", [])]
+    return [(f, a) for f, a in actions if (f.get(a, "MaxDamage") or 0) > 0]
+
+
+def _volley(file: R.TextResource, action: R.Section) -> tuple[int, float]:
+    """Projectiles per attack and the share of the action's damage each deals."""
+    attack = file.get(action, "Attack")
+    if not isinstance(attack, R.Ref):
+        return 1, 1.0
+    af, a = file.follow(attack)
+    if not af.get(a, "IsRanged"):
+        return 1, 1.0
+    return int(af.get(a, "ProjectileCount", 1)), float(af.get(a, "ProjectileDamageScale", 1.0))
+
+
+THREAT_PROFILE = "res://scenes/levels/encounters/threat_profile.tres"
+
+
+def _threat_profile(g: Group, match):
+    """The constants the game turns threat levels into XP and floor budgets with."""
+    f = R.load(THREAT_PROFILE)
+    if not _selected(f.path, match):
+        return
+    s = f.main
+    first, last = P.FLOOR["budget"]
+    for key, value in {"StandardXp": P.XP["standard_xp"], "XpGrowth": P.XP["growth"],
+                       "GatekeeperXpMultiplier": P.XP["boss_multiplier"], "CostGrowth": round(M.cost_growth(), 4),
+                       "FirstFloorBudget": first, "LastFloorBudget": last, "LastDepth": P.DEPTHS,
+                       "GatekeeperFloorShare": P.FLOOR["boss_budget_share"]}.items():
+        g.add("Threat profile", f, s, key, value)
+
+
+def monster_archetypes() -> dict[str, str]:
+    """Each monster's archetype by display name, as traces name monsters."""
+    return {name: archetype for _, name, archetype in _definitions() if archetype != "none"}
+
+
+def monsters(match=None) -> Group:
+    g = Group("Monsters", headers=["monster", "archetype", "sized for depth", "threat stored", "threat now",
+                                   "threat derived", "XP derived"])
+    _threat_profile(g, match)
+    for d, name, archetype in _definitions(match):
+        s = d.main
+        if archetype == "none":
+            g.note(f"{name}: no archetype; choose one and a balance depth in its definition")
+            continue
+        depth = float(d.get(s, "BalanceDepth", 1.0))
+        attacks = _damaging_actions(d, s)
+        if not attacks:
+            g.note(f"{name}: no damaging action in its combat profile")
+            continue
+
+        target = M.monster(archetype, depth)
+        pf, primary = attacks[0]
+        darts, dart_scale = _volley(pf, primary)
+        lo, hi = M.spread_range(target.hit / darts / dart_scale, P.STANDARD["spread"])
+        lo, hi = snap(lo, 0.5, 0.5), snap(hi, 0.5, 0.5)
+        cooldown = snap(target.cycle, 0.05)
+        duration = pf.get(primary, "Duration")
+        derived = replace(target, hp=float(max(1, round(target.hp))), armor=snap(target.armor, 0.5),
+                          hit=(lo + hi) / 2 * dart_scale * darts, cycle=max(cooldown, duration),
+                          speed=round(target.speed, 1), darts=darts)
+        old_lo, old_hi, old_cooldown = pf.get(primary, "MinDamage"), pf.get(primary, "MaxDamage"), pf.get(primary, "Cooldown")
+        now = replace(target, hp=d.get(s, "MaxHealth"), armor=d.get(s, "Armor"),
+                      hit=(old_lo + old_hi) / 2 * dart_scale * darts, cycle=max(old_cooldown, duration),
+                      speed=d.get(s, "MoveSpeed"), darts=darts)
+        threat = M.threat_level(derived)
+
+        g.add(name, d, s, "MaxHealth", derived.hp)
+        g.add(name, d, s, "Armor", derived.armor)
+        g.add(name, d, s, "MoveSpeed", derived.speed)
+        g.add(name, d, s, "ThreatLevel", round(threat, 2))
+        damage_scale = (lo + hi) / (old_lo + old_hi)
+        g.add(f"{name}: {pf.get(primary, 'resource_name') or primary.id}", pf, primary, "Cooldown", cooldown)
+        for f, a in attacks:
+            # Signature attacks keep their authored cooldowns, which set how often they come around.
+            label = f"{name}: {f.get(a, 'resource_name') or a.id}"
+            new_lo, new_hi = (lo, hi) if a is primary else (snap(f.get(a, "MinDamage") * damage_scale, 0.5),
+                                                              snap(f.get(a, "MaxDamage") * damage_scale, 0.5, 0.5))
+            g.add(label, f, a, "MinDamage", new_lo)
+            g.add(label, f, a, "MaxDamage", new_hi)
+        g.rows.append([name, archetype, f"{depth:g}", f"{d.get(s, 'ThreatLevel', 1.0):.1f}",
+                       f"{M.threat_level(now):.1f}", f"{threat:.1f}",
+                       f"{M.xp_reward(derived):.0f}"])
+    return g
+
+
+# --- Encounters -----------------------------------------------------------------------------------
+
+def _realms(match=None):
+    """Every realm encounter resource (`RealmEncounterFactory`): the packs its floors spawn."""
+    for path in sorted(R.ROOT.glob("scenes/**/*.tres")):
+        if _selected(path, match):
+            with path.open() as text:
+                if 'script_class="RealmEncounterFactory"' in text.readline():
+                    yield R.load(path)
+
+
+def _definition_of(scene: str):
+    """The monster definition a scene's root saves, which is what the game reads: (file, section), or None."""
+    f = R.load(scene)
+    root = next(s for s in f.sections if s.kind == "node")
+    ref = f.get(root, "Definition")
+    return f.follow(ref) if isinstance(ref, R.Ref) else None
+
+
+def _member(scene: str) -> tuple[str, str]:
+    """A pack member's name and archetype."""
+    found = _definition_of(scene)
+    if found is None:
+        return R.load(scene).path.stem, "none"
+    df, d = found
+    return df.get(d, "DisplayName") or df.path.stem, _archetype(df, d)
+
+
+def _authored_for(realm: str, scene: str, depth: float) -> str | None:
+    """A note when the monster in `scene` is not authored (`BalanceDepth`) for the depth the model plans for it."""
+    found = _definition_of(scene)
+    if found is None:
+        return None
+    df, d = found
+    authored = float(df.get(d, "BalanceDepth", 1.0))
+    if abs(authored - depth) > 1e-6:
+        name = df.get(d, "DisplayName") or df.path.stem
+        return f"{realm}: {name} is authored for depth {authored:g}; the model plans its realm's monsters for {depth:g}"
+    return None
+
+
+def _window(pack: dict, first: int, last: int) -> tuple[int, int]:
+    """A model pack's depths within a realm's; empty (first > last) when it never spawns there."""
+    return max(pack["first"], first), min(pack["last"] or last, last)
+
+
+def encounters(match=None) -> Group:
+    """
+    Each realm's packs against the model's (`params.PACKS`, which floor costs and the XP ladder come from). An entry
+    matches the model pack with the same archetypes and takes its weight and its depth window, clamped to the realm's
+    floors. Its monsters must be authored for the realm's middle floor, and its gatekeeper for its last.
+    """
+    g = Group("Encounters", headers=["realm", "pack", "members", "weight", "derived", "depths", "derived"])
+    model = {}
+    for p in P.PACKS:
+        key = tuple(sorted(p["members"]))
+        if key in model:
+            raise SystemExit(f"params.PACKS: {model[key]['name']} and {p['name']} have the same members")
+        model[key] = p
+    for f in _realms(match):
+        s = f.main
+        realm = f.get(s, "RealmName") or f.path.stem
+        first = int(f.get(s, "FirstDepth"))
+        last = first + int(f.get(s, "FloorCount")) - 1
+        matched = Counter()
+        entries = [f.follow(ref) for ref in f.get(s, "Entries", [])]
+        scenes = sorted({path for ef, entry in entries for path in ef.get(entry, "Members", [])})
+        notes = [_authored_for(realm, path, M.authored_depth(first)) for path in scenes]
+        gatekeeper = f.get(s, "GatekeeperScene")
+        if isinstance(gatekeeper, R.Ref):
+            notes.append(_authored_for(realm, f.ext_path(gatekeeper.id), last))
+        for note in filter(None, notes):
+            g.note(note)
+        for ef, entry in entries:
+            members = [_member(path) for path in ef.get(entry, "Members", [])]
+            counts = Counter(name for name, _ in members)
+            shown = ", ".join(f"{name} x{n}" if n > 1 else name for name, n in counts.items())
+            pack = model.get(tuple(sorted(a for _, a in members)))
+            if pack is None:
+                g.note(f"{realm}: the model has no pack of {shown} "
+                       f"({', '.join(a for _, a in members)}); add one to params.PACKS")
+                continue
+            matched[pack["name"]] += 1
+            lo, hi = _window(pack, first, last)
+            if lo > hi:
+                g.note(f"{realm}: {shown} is the model's {pack['name']}, which spawns at depths "
+                       f"{pack['first']}-{pack['last'] or ''}, outside the realm's {first}-{last}")
+                continue
+            label = f"{realm}: {pack['name']}"
+            for key, target in (("Weight", pack["weight"]), ("MinimumDepth", lo), ("MaximumDepth", hi)):
+                g.add(label, ef, entry, key, target, exact=True)
+            g.rows.append([realm, pack["name"], shown, ef.get(entry, "Weight"), pack["weight"],
+                           f"{ef.get(entry, 'MinimumDepth')}-{ef.get(entry, 'MaximumDepth') or ''}", f"{lo}-{hi}"])
+        for p in P.PACKS:
+            lo, hi = _window(p, first, last)
+            if lo <= hi and not matched[p["name"]]:
+                g.note(f"{realm}: no pack of the model's {p['name']} ({', '.join(p['members'])}), "
+                       f"which spawns at depths {lo}-{hi}")
+            elif matched[p["name"]] > 1:
+                g.note(f"{realm}: {matched[p['name']]} entries are the model's {p['name']}; "
+                       f"each takes its weight, so together they spawn more often than the model plans")
+    return g
+
+
+# --- Weapons --------------------------------------------------------------------------------------
+
+STYLE_KINDS = {"sword.1h": "sword_1h", "sword.2h": "sword_2h", "axe.1h": "axe_1h", "axe.2h": "axe_2h",
+               "blunt.1h": "blunt_1h", "blunt.2h": "blunt_2h", "spear.2h": "spear_2h", "dagger.1h": "dagger",
+               "crossbow": "crossbow"}
+WEAPON_CLASSES = ("Weapon", "RangedWeapon", "MagicStaff")
+
+
+def weapon_kind(file: R.TextResource, section: R.Section) -> str | None:
+    if file.script_class == "MagicStaff":
+        return "staff" if file.get(section, "IsTwoHanded") else "wand"
+    style = file.get(section, "AttackStyle") or ""
+    return next((kind for prefix, kind in STYLE_KINDS.items() if style.startswith(prefix)), None)
+
+
+def _combo_scales(file: R.TextResource, section: R.Section) -> tuple[float, float]:
+    """Average damage and duration scale over a combo's steps; (1, 1) without a combo."""
+    combo = file.get(section, "PrimaryCombo")
+    if not isinstance(combo, R.Ref):
+        return 1.0, 1.0
+    cf, c = file.follow(combo)
+    steps = [cf.follow(ref) for ref in cf.get(c, "Steps", [])]
+    if not steps:
+        return 1.0, 1.0
+    return (sum(f.get(s, "DamageScale", 1.0) for f, s in steps) / len(steps),
+            sum(f.get(s, "DurationScale", 1.0) for f, s in steps) / len(steps))
+
+
+def _missiles(file: R.TextResource, section: R.Section):
+    """The attack definitions of a staff's missile set."""
+    missiles = file.get(section, "Missiles")
+    if not isinstance(missiles, R.Ref):
+        return []
+    mf, m = file.follow(missiles)
+    out = []
+    for key in m.props:
+        ref = mf.get(m, key)
+        if isinstance(ref, R.Ref) and ref.kind == "ExtResource" and mf.ext_path(ref.id).endswith(".tres"):
+            af, a = mf.follow(ref)
+            if af.script_class == "AttackDefinition":
+                out.append((af, a))
+    return out
+
+
+def weapons(match=None) -> Group:
+    g = Group("Weapons", headers=["weapon", "kind", "tier", "damage", "derived", "seconds", "derived"])
+    for path in sorted(R.ROOT.glob("scenes/items/weapons/**/*.tres")):
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        s = f.main
+        if f.script_class not in WEAPON_CLASSES:
+            continue
+        name = f.get(s, "Name") or path.stem
+        kind = weapon_kind(f, s)
+        if kind is None:
+            g.note(f"{name}: attack style {f.get(s, 'AttackStyle')!r} matches no weapon kind in params.WEAPONS")
+            continue
+        tier, w = int(f.get(s, "Tier", 1)), P.WEAPONS[kind]
+        damage_scale, duration_scale = _combo_scales(f, s)
+        mean = M.reference_weapon_hit(M.tier_depth(tier)) * w["hit"] / damage_scale
+        lo, hi = (snap(x, 1, 1) for x in M.spread_range(mean, P.GEAR["weapon_spread"]))  # whole points, as players read them
+        fixed = f.get(s, "Delay", 0.0) + f.get(s, "CooldownDuration", 0.0)
+        perform = round((w["cycle"] - fixed) / duration_scale, 2)
+        label = f"{name} (T{tier})"
+        g.add(label, f, s, "DamageMin", lo)
+        g.add(label, f, s, "DamageMax", hi)
+        g.add(label, f, s, "PerformDuration", perform)
+        for af, a in _missiles(f, s):
+            g.add(f"{label}: {af.path.stem}", af, a, "ProjectileDamageScale", w["dart_scale"])
+            if af.get(a, "ProjectileCount", 1) != w["darts"]:
+                g.note(f"{af.path.stem}: {af.get(a, 'ProjectileCount', 1)} missiles, the model assumes {w['darts']}")
+        if (w["hands"] == 2) != bool(f.get(s, "IsTwoHanded")):
+            g.note(f"{name}: IsTwoHanded disagrees with the model's {kind} ({w['hands']} hands)")
+        g.rows.append([name, kind, tier, f"{f.get(s, 'DamageMin'):g}-{f.get(s, 'DamageMax'):g}", f"{lo:g}-{hi:g}",
+                       f"{fixed + f.get(s, 'PerformDuration') * duration_scale:.2f}", f"{w['cycle']:.2f}"])
+    return g
+
+
+# --- Armor ----------------------------------------------------------------------------------------
+
+SLOT_FLAGS = {1 << 0: "helmet", 1 << 1: "body", 1 << 9: "shield"}  # EquipmentSlot in Inventory.cs
+
+
+def _weight(file: R.TextResource, section: R.Section) -> str:
+    return R.csharp_enum("ArmorWeight")[file.get(section, "Weight")].lower()
+
+
+def armor(match=None) -> Group:
+    """Body armor and helmets by slot, weight and tier; shields by tier. Body armor also gets its weight's speed."""
+    g = Group("Armor", headers=["armor", "slot", "weight", "tier", "armor", "derived"])
+    for path in sorted(R.ROOT.glob("scenes/items/armor/**/*.tres")):
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        s = f.main
+        if f.script_class != "Armor":
+            continue
+        name = f.get(s, "Name") or path.stem
+        slot = SLOT_FLAGS.get(f.get(s, "ValidSlots", 0))
+        if slot is None:
+            g.note(f"{name}: slot {f.get(s, 'ValidSlots')} has no armor target")
+            continue
+        tier = int(f.get(s, "Tier", 1))
+        weight = "medium" if slot == "shield" else _weight(f, s)
+        target = max(1, round(M.slot_armor(slot, weight, M.tier_depth(tier), found=False)))
+        g.add(f"{name} (T{tier})", f, s, "ArmorPoints", target)
+        if slot == "body":
+            g.add(f"{name} (T{tier})", f, s, "SpeedModifier", P.GEAR["weight"][weight][2])
+        g.rows.append([name, slot, "" if slot == "shield" else weight, tier, f.get(s, "ArmorPoints"), target])
+    return g
+
+
+# --- Classes --------------------------------------------------------------------------------------
+
+ATTRIBUTE_KEYS = {"STR": "BaseStrength", "DEX": "BaseDexterity", "VIT": "BaseVitality", "INT": "BaseIntelligence"}
+HERO_SHEET = "res://scenes/player/resources/player_stats.tres"
+
+
+def _profile_values(cls: dict) -> dict:
+    """A class's stat profile: how its attributes pay off and how much each grows per level."""
+    growth = cls["growth"]
+    return {"HealthPercentPerVitality": M._profile(cls, "hp_per_vit"),
+            "PhysicalDamagePercentPerStrength": M._profile(cls, "damage_per_str"),
+            "MagicDamagePercentPerIntelligence": M._profile(cls, "spell_per_int"),
+            "ManaPerIntelligence": M._profile(cls, "mana_per_int"),
+            "CritChancePerDexterity": M._profile(cls, "crit_per_dex"),
+            "StrengthPerLevel": growth["STR"], "DexterityPerLevel": growth["DEX"],
+            "VitalityPerLevel": growth["VIT"], "IntelligencePerLevel": growth["INT"]}
+
+
+def _kit_kinds(file: R.TextResource, section: R.Section) -> set[str]:
+    kinds = set()
+    for ref in file.get(section, "StartingItems", []):
+        sf, slot = file.follow(ref)
+        item = sf.get(slot, "Item")
+        if isinstance(item, R.Ref):
+            itf, it = sf.follow(item)
+            if itf.script_class in WEAPON_CLASSES and (kind := weapon_kind(itf, it)):
+                kinds.add(kind)
+    return kinds
+
+
+LEVELING = "res://scenes/player/resources/leveling_profile.tres"
+
+
+def classes(match=None) -> Group:
+    g = Group("Classes", headers=["class", "STR", "DEX", "VIT", "INT", "health", "derived", "starting weapons"])
+    a = P.ATTRIBUTES
+    if any("hp_per_vit" in c.get("profile", {}) for c in P.CLASSES.values()):
+        raise SystemExit("params.CLASSES: per-class hp_per_vit needs a per-class BaseMaxHealth the game lacks")
+    sheet = R.load(HERO_SHEET)
+    hs = sheet.main
+    if _selected(sheet.path, match):
+        g.add("Hero sheet", sheet, hs, "BaseMaxHealth", a["hp_base"])
+        g.add("Hero sheet", sheet, hs, "BaseMaxMana", a["mana_base"])
+        g.add("Hero sheet", sheet, hs, "ManaRegenRate", a["mana_regen"])
+        g.add("Hero sheet", sheet, hs, "BaseCritChance", 0.0)
+        pf, p = sheet.follow(sheet.get(hs, "Profile"))
+        for key, value in _profile_values(P.CLASSES["reference"]).items():
+            g.add("Default profile", pf, p, key, value)
+    leveling = R.load(LEVELING)
+    if _selected(leveling.path, match):
+        need, _ = M.xp_ladder()
+        g.add("XP ladder", leveling, leveling.main, "XpToNextLevel", [int(n) for n in need])
+        g.add("XP ladder", leveling, leveling.main, "HealthPerLevel", a["hp_per_level"])
+    base_health = sheet.get(hs, "BaseMaxHealth")
+    for path in sorted(R.ROOT.glob("scenes/player/classes/class_*.tres")):
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        s = f.main
+        name, cls = f.get(s, "DisplayName") or path.stem, P.CLASSES.get(f.get(s, "Id"))
+        if cls is None:
+            g.note(f"{name}: no class {f.get(s, 'Id')!r} in params.CLASSES")
+            continue
+        for attr, key in ATTRIBUTE_KEYS.items():
+            g.add(name, f, s, key, float(cls["attrs"][attr]))
+        pf, p = f.follow(f.get(s, "StatProfile"))
+        for key, value in _profile_values(cls).items():
+            g.add(f"{name} profile", pf, p, key, value)
+        kinds = _kit_kinds(f, s)
+        expected = {cls["weapon"]} | ({cls["opener"]} if "opener" in cls else set())
+        if not expected <= kinds:
+            g.note(f"{name}: starts with {', '.join(sorted(kinds)) or 'no weapon'}; "
+                   f"the model expects {', '.join(sorted(expected))}")
+        vitality = f.get(s, "BaseVitality") - 10
+        health = base_health * max(0.0, 1 + pf.get(p, "HealthPercentPerVitality") * vitality)
+        g.rows.append([name] + [f"{f.get(s, k):g}" for k in ATTRIBUTE_KEYS.values()]
+                      + [f"{health:.0f}", f"{M.hero_hp(cls, 1):.0f}", ", ".join(sorted(kinds))])
+    return g
+
+
+# --- Jewelry --------------------------------------------------------------------------------------
+
+# The stat each tiered jewelry type raises, by the type's name after its slot (`ring.protection`). Types not listed
+# change speed or damage by a percentage, which needs no tiers: they are tier 0 and drop at every depth.
+JEWELRY_STATS = {"strength": "attribute", "dexterity": "attribute", "vitality": "attribute", "mind": "attribute",
+                 "health": "health", "protection": "armor", "savagery": "damage", "frailty": "frailty"}
+
+
+def jewelry(match=None) -> Group:
+    """Tiered jewelry's modifier values from its stat, slot and `Tier`; untiered jewelry gets tier 0."""
+    g = Group("Jewelry", headers=["piece", "tier", "values", "derived"])
+    for path in sorted(R.ROOT.glob("scenes/items/jewelry/*/*.tres")):
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        slot, _, kind = (f.get(f.main, "TypeId") or "").partition(".")
+        name = f"{f.get(f.main, 'Name') or path.stem}"
+        stat = JEWELRY_STATS.get(kind)
+        if stat is None:
+            g.add(name, f, f.main, "Tier", 0)
+            continue
+        tier = int(f.get(f.main, "Tier", 1))
+        modifiers = [f.follow(ref) for ref in f.get(f.main, "IntrinsicModifiers", [])]
+        targets = M.jewelry_values(stat, slot, tier)
+        if len(modifiers) != len(targets):
+            g.note(f"{R.to_res(path)}: {len(modifiers)} modifiers, the model sizes {len(targets)}; left alone")
+            continue
+        for (mf, modifier), target in zip(modifiers, targets):
+            g.add(f"{name} (T{tier})", mf, modifier, "Value", float(target))
+        current = "/".join(f"{mf.get(m, 'Value', 0.0):g}" for mf, m in modifiers)
+        g.rows.append([name, f"T{tier}", current, "/".join(f"{v:g}" for v in targets)])
+    return g
+
+
+# --- Curses ---------------------------------------------------------------------------------------
+
+ITEM_POLICY = "res://scenes/items/dungeon_item_policy.tres"
+# The stat each tiered curse lowers, by file name (`frailty_3.tres`); the percentage curses are untiered.
+CURSE_STATS = {"brittleness": "armor", "clumsiness": "attribute", "weakness": "attribute", "frailty": "health",
+               "dread": "damage"}
+CURSE_PERCENTS = {"lethargy": "speed_percent"}
+
+
+def curses(match=None) -> Group:
+    """The share of cursed drops, and every curse penalty's range and the depths its tier rolls at."""
+    g = Group("Curses", headers=["penalty", "tier", "depths", "derived"])
+    policy = R.load(ITEM_POLICY)
+    if _selected(policy.path, match):
+        g.add("Cursed drops", policy, policy.main, "CurseChance", P.CURSES["chance"])
+    bands = tier_bands()
+    for path in sorted(R.ROOT.glob("scenes/items/affixes/curses/*.tres")):
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        kind, _, tier = path.stem.partition("_")
+        modifiers = [f.follow(ref) for ref in f.get(f.main, "Modifiers", [])]
+        if kind in CURSE_PERCENTS:
+            weakest, strongest = P.CURSES[CURSE_PERCENTS[kind]]
+            ranges = [(strongest, weakest)] * len(modifiers)
+            tier, (low, high) = 0, (1, 0)
+        elif kind in CURSE_STATS:
+            tier = int(tier)
+            ranges = M.curse_penalty(CURSE_STATS[kind], tier)
+            low, high = bands[tier - 1]
+        else:
+            g.note(f"{R.to_res(path)}: no model for this curse; left alone")
+            continue
+        label = f"{kind} (T{tier})" if tier else kind
+        if len(modifiers) != len(ranges):
+            g.note(f"{R.to_res(path)}: {len(modifiers)} modifiers, the model sizes {len(ranges)}; left alone")
+            continue
+        g.add(label, f, f.main, "MinDepth", low)
+        g.add(label, f, f.main, "MaxDepth", high)
+        for (mf, modifier), (strongest, weakest) in zip(modifiers, ranges):
+            g.add(label, mf, modifier, "MinValue", -float(strongest))
+            g.add(label, mf, modifier, "MaxValue", -float(weakest))
+        g.rows.append([kind, f"T{tier}" if tier else "-", f"{low}-{high or ''}",
+                       ", ".join(f"-{s:g} to -{w:g}" for s, w in ranges)])
+    return g
+
+
+# --- Supplies -------------------------------------------------------------------------------------
+
+def _healing_buffs(file: R.TextResource, section: R.Section, seen=None):
+    """Every `HealingBuff` a consumable reaches through its references (its own buff or its spell's effect)."""
+    seen = seen if seen is not None else set()
+    if (file.path, section.start) in seen:
+        return []
+    seen.add((file.path, section.start))
+    script = file.script_of(section) or ""
+    found = [(file, section)] if script.endswith("/HealingBuff.cs") else []
+    for key in section.props:
+        if key == "script" or key.startswith("metadata/"):
+            continue
+        value = file.get(section, key)
+        for ref in value if isinstance(value, list) else [value]:
+            if not isinstance(ref, R.Ref) or (ref.kind == "ExtResource" and not file.ext_path(ref.id).endswith(".tres")):
+                continue
+            found += _healing_buffs(*file.follow(ref), seen)
+    return found
+
+
+def _ticks(file: R.TextResource, buff: R.Section) -> int:
+    return max(1, round(file.get(buff, "Duration", 1.0) * file.get(buff, "TicksPerSecond", 1.0)))
+
+
+POTION_POOL = "res://scenes/items/loot/pools/potions.tres"
+HEALING_POTION = "potion.healing"
+
+
+def _pool_items(pool: R.TextResource):
+    """Each entry of a loot pool with the item it drops: (entry file, entry, item file, item)."""
+    for ref in pool.get(pool.main, "Items", []):
+        ef, entry = pool.follow(ref)
+        item = ef.get(entry, "Item")
+        if isinstance(item, R.Ref):
+            yield ef, entry, *ef.follow(item)
+
+
+def supplies(match=None) -> Group:
+    """
+    Healing potions and food restore their model's points, spread over their buff's ticks. Every potion drops in its
+    size's depth window; healing potions also take their size's weight.
+    """
+    g = Group("Supplies", headers=["item", "heals", "derived"])
+    potions = [R.load(path) for path in sorted(R.ROOT.glob("scenes/items/potions/*.tres"))]
+    items = [(f, M.potion_points(f.get(f.main, "AppearanceForm"))) for f in potions
+             if f.get(f.main, "TypeId") == HEALING_POTION]
+    portions = R.csharp_enum("FoodPortion")
+    items += [(f, M.food_points(portions[f.get(f.main, "Portion")].lower()))
+              for f in (R.load(path) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres")))
+              if f.script_class == "FoodItem"]
+    for f, points in items:
+        if not _selected(f.path, match):
+            continue
+        name = f.get(f.main, "Name") or f.path.stem
+        for bf, buff in _healing_buffs(f, f.main):
+            ticks = _ticks(bf, buff)
+            g.add(name, bf, buff, "HealthPointsPerTick", round(points / ticks, 4))
+            g.rows.append([name, f"{bf.get(buff, 'HealthPointsPerTick', 0.0) * ticks:.0f}", f"{points}"])
+    pool = R.load(POTION_POOL)
+    if _selected(pool.path, match):
+        for ef, entry, itf, it in _pool_items(pool):
+            size = P.SUPPLY["potion_sizes"].get(itf.get(it, "AppearanceForm"))
+            if size is None:
+                continue
+            label = itf.path.stem
+            g.add(label, ef, entry, "MinDepth", size["intro"])
+            g.add(label, ef, entry, "MaxDepth", size["last"])
+            if itf.get(it, "TypeId") == HEALING_POTION:
+                g.add(label, ef, entry, "Weight", float(size["weight"]))
+    return g
+
+
+# --- Loot tiers -----------------------------------------------------------------------------------
+
+TIER_BANDS = "res://scenes/items/quality/tier_depth_bands.tres"
+
+
+def tier_bands() -> list[tuple[int, int]]:
+    """Depths each tier drops at: from its introduction for `tier_band` depths; the last tier never stops (0)."""
+    intros = P.GEAR["tier_intro"]
+    bands = []
+    for i, intro in enumerate(intros):
+        last = intro + P.GEAR["tier_band"] - 1
+        bands.append((intro, 0 if i == len(intros) - 1 or last >= P.DEPTHS else last))
+    return bands
+
+
+def loot(match=None) -> Group:
+    """
+    The tier depth bands, from the model's tier introductions. Pools that reference them drop each equipment entry in
+    its item tier's band, so the entries store no window of their own.
+    """
+    g = Group("Loot", headers=["tier", "drops at depths", "derived"])
+    bands = tier_bands()
+    f = R.load(TIER_BANDS)
+    if _selected(f.path, match):
+        current = f.raw(f.main, "Bands") or ""
+        g.add("Tier bands", f, f.main, "Bands",
+              R.Raw("Array[Vector2i]([" + ", ".join(f"Vector2i({a}, {b})" for a, b in bands) + "])"))
+        old = [tuple(int(x) for x in pair.split(",")) for pair in re.findall(r"Vector2i\(([^)]*)\)", current)]
+        for tier, band in enumerate(bands, 1):
+            was = old[tier - 1] if tier <= len(old) else None
+            g.rows.append([f"T{tier}", f"{was[0]}-{was[1] or ''}" if was else "", f"{band[0]}-{band[1] or ''}"])
+    return g

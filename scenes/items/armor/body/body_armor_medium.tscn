@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/armor/body/body_armor_medium.glb" id="model"]
+
+[node name="BodyArmorMedium" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("model")]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0.228, 0)

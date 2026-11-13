@@ -8,7 +8,7 @@
 script = ExtResource("2_script")
 Tier = 3
 RequiredStrength = 14
-ArmorPoints = 5
+ArmorPoints = 6
 SpeedModifier = 1.0
 ValidSlots = 512
 RollTable = ExtResource("roll_table")

@@ -50,6 +50,9 @@ public partial class SignalBus : Node
     public static void EmitPlayerSpawned(Player player) => Instance?.EmitSignalPlayerSpawned(player);
     public static void EmitPlayerDeath(Player player) => Instance?.EmitSignalPlayerDeath(player);
     public static void EmitXpRewarded(int xp) => Instance?.EmitSignalXpRewarded(xp);
+    /// <summary>Fired once per level the hero gains, after their attributes and max health grew.</summary>
+    [Signal] public delegate void PlayerLeveledUpEventHandler(int level);
+    public static void EmitPlayerLeveledUp(int level) => Instance?.EmitSignalPlayerLeveledUp(level);
 
     [Signal] public delegate void ItemConsumedEventHandler(Player player, ConsumableItem item);
     [Signal] public delegate void ItemEquippedEventHandler(Player player, EquipableItem item);
@@ -59,11 +62,15 @@ public partial class SignalBus : Node
     [Signal] public delegate void ItemPickedUpEventHandler(Player player, Item item, int quantity);
     /// <summary>Fired when an item type's hidden identity is newly discovered this run.</summary>
     [Signal] public delegate void ItemIdentifiedEventHandler(string typeId);
-    /// <summary>Fired when an item type's hidden identity is revealed with its disguised and true name.</summary>
-    [Signal] public delegate void ItemIdentityRevealedEventHandler(string typeId, string disguisedName, string trueName);
+    /// <summary>
+    /// Fired when an item type's hidden identity is revealed with its disguised and true name, and how
+    /// (an <see cref="IdentificationSource"/>: Use, Wear or Scroll).
+    /// </summary>
+    [Signal] public delegate void ItemIdentityRevealedEventHandler(string typeId, string disguisedName, string trueName, string source);
     public static void EmitItemConsumed(Player player, ConsumableItem item) => Instance?.EmitSignalItemConsumed(player, item);
     public static void EmitItemIdentified(string typeId) => Instance?.EmitSignalItemIdentified(typeId);
-    public static void EmitItemIdentityRevealed(string typeId, string disguisedName, string trueName) => Instance?.EmitSignalItemIdentityRevealed(typeId, disguisedName, trueName);
+    public static void EmitItemIdentityRevealed(string typeId, string disguisedName, string trueName, string source) =>
+        Instance?.EmitSignalItemIdentityRevealed(typeId, disguisedName, trueName, source);
     public static void EmitItemEquipped(Player player, EquipableItem item) => Instance?.EmitSignalItemEquipped(player, item);
     public static void EmitItemUnequipped(Player player, EquipableItem item) => Instance?.EmitSignalItemUnequipped(player, item);
     public static void EmitItemDestroyed(Player player, Item item, int quantity) => Instance?.EmitSignalItemDestroyed(player, item, quantity);

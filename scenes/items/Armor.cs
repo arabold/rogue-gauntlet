@@ -1,10 +1,30 @@
 using Godot;
 using System;
 
+/// <summary>
+/// How heavy a body armor or helmet is. Heavier pieces carry more armor; a heavy body piece slows its wearer and a light
+/// one quickens them (<see cref="Armor.SpeedModifier"/>). The balance model sizes both from the weight; the game has no
+/// passive evasion, so footwork is movement speed.
+/// </summary>
+public enum ArmorWeight
+{
+	Light,
+	Medium,
+	Heavy,
+}
+
 [Tool]
 [GlobalClass]
 public partial class Armor : EquipableItem
 {
+	/// <summary>The weight class the balance model sizes this body armor or helmet for; shields ignore it.</summary>
+	[Export] public ArmorWeight Weight { get; set => SetValue(ref field, value); } = ArmorWeight.Medium;
+	/// <summary>
+	/// Body armor's or a helmet's model on the hero, in its bone's rest frame (origin at the chest or head bone, +Z
+	/// forward). <see cref="Item.Scene"/> stays the pickup and inventory model. Unassigned, nothing shows on the body
+	/// and the class model's own hat or cape stays visible.
+	/// </summary>
+	[Export] public PackedScene WornScene { get; set => SetValue(ref field, value); }
 	/// <summary>
 	/// Strength required to wear this armor effectively.
 	/// </summary>

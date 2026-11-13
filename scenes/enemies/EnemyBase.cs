@@ -99,7 +99,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		Stats.Initialize(Definition);
 		ManaComponent.SetMana(Definition.MaxMana, Definition.MaxMana);
 		ManaComponent.RegenPerSecond = Definition.ManaRegenPerSecond;
-		DeathComponent.Xp = Definition.XpReward;
+		DeathComponent.Xp = _level?.ThreatProfile?.Xp(Definition) ?? 0;
 		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
 		if (Nameplate != null) Nameplate.NameLabel.Text = Definition.DisplayName;

@@ -78,8 +78,13 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 		return _modifiers.Resolve(stat, baseValue, weapon);
 	}
 
+	/// <summary>Raised once per level gained, after the attributes and max health grew.</summary>
+	[Signal] public delegate void LeveledUpEventHandler(int level);
+
 	// Rules that turn primary attributes into secondary stats. Null = no derivation.
 	[Export] public StatProfile Profile { get; set => SetValue(ref field, value); }
+	/// <summary>The XP ladder and the health each level adds. Null = experience never raises the level.</summary>
+	[Export] public LevelingProfile Leveling { get; set => SetValue(ref field, value); }
 
 	// Player's stats
 	public float Health { get; set => SetValue(ref field, value); } = 100;
@@ -100,8 +105,8 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 	[Export] public float BaseIntelligence { get; set => SetValue(ref field, value); } = 10;
 
 	[ExportGroup("Base stats")]
-	// Base secondary stats, before attribute derivation or modifiers. BaseMaxHealth is
-	// intentionally low because Vitality supplies the rest (10 Vitality * 5 = +50 -> 100).
+	// Base secondary stats, before attribute derivation or modifiers. BaseMaxHealth is the level-1 health at
+	// baseline Vitality; levels add to it and Vitality scales the sum.
 	[Export] public float BaseSpeed { get; set => SetValue(ref field, value); } = 7.5f;
 	[Export] public float BaseMaxHealth { get; set => SetValue(ref field, value); } = 50;
 	// Intelligence supplies most of the pool (Mage 16 * 5 = +80 -> 100).
@@ -127,7 +132,8 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 
 	// Resolved secondary stats: base + attribute derivation + active modifiers.
 	public float Speed => ResolveStat(StatType.Speed, BaseSpeed);
-	public float MaxHealth => ResolveStat(StatType.MaxHealth, BaseMaxHealth + Vitality * Coefficient(p => p.HealthPerVitality));
+	public float MaxHealth => ResolveStat(StatType.MaxHealth, (BaseMaxHealth + (Leveling?.HealthPerLevel ?? 0) * (XpLevel - 1))
+		* Mathf.Max(0, 1 + Coefficient(p => p.HealthPercentPerVitality) * (Vitality - StatProfile.AttributeBaseline)));
 	public float MaxMana => ResolveStat(StatType.MaxMana, BaseMaxMana + Intelligence * Coefficient(p => p.ManaPerIntelligence));
 	public float ManaRegenPerSecond => MaxMana * ManaRegenRate;
 
@@ -178,14 +184,14 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 
 	/// <summary>
 	/// Damage range and crit chance for an attack made with <paramref name="weapon"/> (and optional paired
-	/// <paramref name="offhand"/> weapon), or unarmed when null: the character's stats with weapon attack stats
-	/// folded into the same sums.
+	/// <paramref name="offhand"/> weapon), or unarmed when null: the weapon's attack stats folded into the character's,
+	/// then scaled by the attribute the weapon uses (<see cref="DamageMultiplier"/>). The base damage is the bare hands'
+	/// hit, so a weapon replaces it.
 	/// </summary>
 	public AttackStats ResolveAttack(Weapon weapon, Weapon offhand = null)
 	{
-		float attrDamage = DamageFromAttributes;
-		float min = ResolveStat(StatType.MinDamage, BaseMinDamage + attrDamage, weapon);
-		float max = ResolveStat(StatType.MaxDamage, BaseMaxDamage + attrDamage, weapon);
+		float min = ResolveStat(StatType.MinDamage, weapon == null ? BaseMinDamage : 0, weapon);
+		float max = ResolveStat(StatType.MaxDamage, weapon == null ? BaseMaxDamage : 0, weapon);
 		float crit = ResolveStat(StatType.CritChance, BaseCritChance + Dexterity * Coefficient(p => p.CritChancePerDexterity), weapon);
 
 		if (IsEligibleMeleePair(weapon, offhand))
@@ -196,8 +202,17 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 			max += offMax * scale;
 		}
 
-		return new AttackStats(min, max, crit);
+		float multiplier = DamageMultiplier(weapon);
+		return new AttackStats(min * multiplier, max * multiplier, crit);
 	}
+
+	/// <summary>
+	/// Factor the attributes apply to an attack with <paramref name="weapon"/>: Intelligence for a wand's or staff's
+	/// missiles and spells, Strength for everything else, each by a share per point above the baseline.
+	/// </summary>
+	public float DamageMultiplier(Weapon weapon) => Mathf.Max(0, 1 + (weapon is MagicStaff
+		? Coefficient(p => p.MagicDamagePercentPerIntelligence) * (Intelligence - StatProfile.AttributeBaseline)
+		: Coefficient(p => p.PhysicalDamagePercentPerStrength) * (Strength - StatProfile.AttributeBaseline)));
 
 	/// <summary>
 	/// The hit <paramref name="weapon"/> would deal wielded in place of the current weapon while granting
@@ -215,16 +230,13 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 	// Defense Stats
 	public float Armor => ResolveStat(StatType.Armor, BaseArmor);
 
-	private float DamageFromAttributes =>
-		Strength * Coefficient(p => p.DamagePerStrength) + Intelligence * Coefficient(p => p.DamagePerIntelligence);
-
 	/// <summary>Reads a derivation coefficient from the profile, or 0 when none is set.</summary>
 	private float Coefficient(System.Func<StatProfile, float> selector) => Profile != null ? selector(Profile) : 0f;
 
 	/// <summary>An instance-owned copy of this definition, so runtime changes never write back into the authored sheet.</summary>
 	public PlayerStats CreateRuntimeCopy()
 	{
-		var copy = new PlayerStats { Profile = Profile };
+		var copy = new PlayerStats { Profile = Profile, Leveling = Leveling };
 		copy.ApplySaveData(CreateSaveData());
 		return copy;
 	}
@@ -277,7 +289,11 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 		GoldModifier = data.GoldModifier;
 	}
 
-	// Method to increase the experience points
+	/// <summary>XP gained toward the next level, and what that level takes in all (0 at the cap or without a ladder).</summary>
+	public (int Gained, int Needed) LevelProgress => Leveling == null || XpLevel >= Leveling.LevelCap ? (0, 0)
+		: (Xp - Leveling.XpToReach(XpLevel), Leveling.XpToNextLevel[XpLevel - 1]);
+
+	/// <summary>Adds experience and takes every level it reaches on the <see cref="Leveling"/> ladder.</summary>
 	public void AddXp(int xp)
 	{
 		if (xp <= 0)
@@ -285,15 +301,31 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 			return;
 		}
 		Xp += xp;
-		GD.Print($"XP Updated: {Xp}");
+		while (Leveling != null && XpLevel < Leveling.LevelCap && Xp >= Leveling.XpToReach(XpLevel + 1))
+		{
+			LevelUp();
+		}
 		EmitChanged();
 	}
 
+	/// <summary>
+	/// Advances one level: the class's attribute growth applies and max health rises, and current health rises by the
+	/// same amount, so a level-up never heals the damage already taken.
+	/// </summary>
 	public void LevelUp()
 	{
+		float maxHealth = MaxHealth;
 		XpLevel++;
-		GD.Print($"Level Up: {XpLevel}");
+		if (Profile != null)
+		{
+			BaseStrength += Profile.StrengthPerLevel;
+			BaseDexterity += Profile.DexterityPerLevel;
+			BaseVitality += Profile.VitalityPerLevel;
+			BaseIntelligence += Profile.IntelligencePerLevel;
+		}
+		Health += MaxHealth - maxHealth;
 		EmitChanged();
+		EmitSignalLeveledUp(XpLevel);
 	}
 
 	// Method to increase the gold

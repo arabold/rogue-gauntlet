@@ -214,6 +214,29 @@ public partial class CombatDefenseTest
 		AssertFloat(health.CurrentHealth).IsEqual(100f);
 	}
 
+	/// <summary>
+	/// Dodging through an area (a slam's wave, an explosion) does not avoid it; only leaving the area does. Area spells and
+	/// projectile splashes carry their definitions' default traits.
+	/// </summary>
+	[TestCase]
+	public void DodgeImmunityDoesNotAvoidAreaImpacts()
+	{
+		var (_, _, hurtbox, _, dodge, health) = CreateDodgeActor();
+		dodge.TryDodge(new Vector3(0, 0, -1));
+		dodge._PhysicsProcess(0.05f);
+
+		foreach (var traits in new[] { new AreaDamageDefinition().DefenseTraits, new AttackDefinition().AreaDefenseTraits })
+		{
+			var resolution = hurtbox.ResolveDamage(new DamageContext
+			{
+				Amount = 25f, IncomingDirection = new Vector3(0, 0, -1), Faction = DamageSourceFlags.Enemy,
+				DefenseTraits = traits, DeliveryKind = DamageDeliveryKind.AreaImpact
+			});
+			AssertInt((int)resolution.Outcome).OverrideFailureMessage(traits.ToString()).IsEqual((int)DamageOutcome.Damaged);
+		}
+		AssertFloat(health.CurrentHealth).IsLess(100f);
+	}
+
 	[TestCase]
 	public void DodgeCooldownBlocksImmediateReDodge()
 	{
@@ -401,37 +424,67 @@ public partial class CombatDefenseTest
 	public void ParryWindowInterruptsAttackerAndStaggers()
 	{
 		var (_, _, hurtbox, _, guard, health) = CreateGuardActor();
-
-		// Create attacker
-		var attacker = new CharacterBody3D { Name = "Attacker" };
-		var attackerGate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
-		attacker.AddChild(attackerGate);
-		var attackCtrl = new AttackController { Name = "AttackController", ActionGate = attackerGate };
-		attacker.AddChild(attackCtrl);
-
-		var detector = new MeleeHitDetector();
-		attacker.AddChild(detector);
-		attackCtrl.MeleeDetector = detector;
-		attackCtrl.DefaultMeleeContact = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres");
+		var (attackerGate, attackCtrl) = CreateAttacker();
 		AssertBool(attackCtrl.StartAttack(new AttackDefinition(), new AttackStats(1, 1, 0), 8)).IsTrue();
 		guard.TryBeginGuard(new Vector3(0, 0, 1));
 		// Advance within parry window (0.05s < 0.21s)
 		guard._PhysicsProcess(0.05f);
 
-		var context = new DamageContext
-		{
-			Amount = 30f,
-			IncomingDirection = new Vector3(0, 0, -1),
-			ExecutionId = attackCtrl.CurrentExecutionId,
-			SourceNode = attackCtrl,
-			OwnerNode = attacker,
-			Faction = DamageSourceFlags.Enemy,
-			DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable
-		};
-
-		var res = hurtbox.ResolveDamage(context);
+		var res = hurtbox.ResolveDamage(ContactFrom(attackCtrl));
 		AssertInt((int)res.Outcome).IsEqual((int)DamageOutcome.Parried);
 		AssertFloat(health.CurrentHealth).IsEqual(100f); // 0 damage!
 		AssertBool(attackerGate.IsStaggered).IsTrue(); // Attacker staggered!
 	}
+
+	/// <summary>
+	/// Only death ends an uninterruptible attack: a parry still stops its hit but neither cancels nor staggers it, and a
+	/// freeze does not end it either.
+	/// </summary>
+	[TestCase]
+	public void AParryOrAFreezeDoesNotEndAnUninterruptibleAttack()
+	{
+		var (_, _, hurtbox, _, guard, health) = CreateGuardActor();
+		var (attackerGate, attackCtrl) = CreateAttacker();
+		bool? interrupted = null;
+		attackCtrl.AttackFinished += (_, wasInterrupted) => interrupted = wasInterrupted;
+		AssertBool(attackCtrl.StartAttack(new AttackDefinition { Interruptible = false, HyperArmorEnd = 1 }, new AttackStats(1, 1, 0), 8)).IsTrue();
+		guard.TryBeginGuard(new Vector3(0, 0, 1));
+		guard._PhysicsProcess(0.05f);
+
+		AssertObject(hurtbox.ResolveDamage(ContactFrom(attackCtrl)).Outcome).IsEqual(DamageOutcome.Parried);
+		AssertFloat(health.CurrentHealth).IsEqual(100f);
+		attackerGate.SetStatusLock(guard, true);
+		AssertBool(attackCtrl.IsAttacking).IsTrue();
+		AssertBool(attackerGate.IsStaggered).IsFalse();
+		AssertBool(interrupted == null).OverrideFailureMessage("The uninterruptible attack ended").IsTrue();
+		attackerGate.Disable();
+		AssertBool(interrupted == true).OverrideFailureMessage("Death must end the attack").IsTrue();
+	}
+
+	/// <summary>A bare attacker with a gate, a melee controller and its detector, outside the tree.</summary>
+	private static (ActorActionGateComponent Gate, AttackController Controller) CreateAttacker()
+	{
+		var attacker = AutoFree(new CharacterBody3D { Name = "Attacker" });
+		var gate = new ActorActionGateComponent { Name = "ActorActionGateComponent" };
+		attacker.AddChild(gate);
+		var controller = new AttackController { Name = "AttackController", ActionGate = gate };
+		attacker.AddChild(controller);
+		var detector = new MeleeHitDetector();
+		attacker.AddChild(detector);
+		controller.MeleeDetector = detector;
+		controller.DefaultMeleeContact = TestFactories.Load<MeleeAttackProfile>("res://scenes/attacks/melee_profiles/slash_1h.tres");
+		return (gate, controller);
+	}
+
+	/// <summary>A frontal guardable and parryable contact of the controller's current execution.</summary>
+	private static DamageContext ContactFrom(AttackController controller) => new()
+	{
+		Amount = 30f,
+		IncomingDirection = new Vector3(0, 0, -1),
+		ExecutionId = controller.CurrentExecutionId,
+		SourceNode = controller,
+		OwnerNode = controller.GetParent(),
+		Faction = DamageSourceFlags.Enemy,
+		DefenseTraits = AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable
+	};
 }

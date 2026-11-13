@@ -164,6 +164,105 @@ public class WardenTest
 		}
 	}
 
+	/// <summary>
+	/// A hero who keeps out of sword reach does not stall the Warden: from its second phase it slams with Tremor as soon
+	/// as the hero stands inside the wave, and the wave reaches them.
+	/// </summary>
+	[TestCase]
+	public async Task TheWardenSlamsAHeroWhoKeepsOutOfSwordReach()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		hero.MovementComponent.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 5.5f);
+		// It cannot close in, so only the slam can reach the hero.
+		boss.MovementComponent.SetPhysicsProcess(false);
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
+		await runner.SimulateFrames(1, 20);
+		float full = hero.HealthComponent.CurrentHealth;
+		harness.ExecuteCommand("automation", "", 1);
+
+		await TestFactories.AwaitPhysicsUntil(runner, () => hero.HealthComponent.CurrentHealth < full, 4);
+		AssertFloat(hero.HealthComponent.CurrentHealth).IsLess(full);
+		AssertFloat(boss.GlobalPosition.HorizontalDistanceTo(hero.GlobalPosition)).IsGreater(5);
+	}
+
+	/// <summary>
+	/// The slam is the answer to a hero who strikes from behind: it comes within a second, and the hero's blows neither
+	/// stagger it nor make the Warden drop it to raise its shield.
+	/// </summary>
+	[TestCase]
+	public async Task HittingTheWardenFromBehindCannotStopItsSlam()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
+		boss.MovementComponent.SetPhysicsProcess(false);
+		boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
+		// Right behind it, where neither sword swing can start.
+		hero.GlobalPosition = boss.GlobalPosition + Vector3.Back * 1.6f;
+		hero.ResetPhysicsInterpolation();
+		hero.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		await runner.SimulateFrames(1, 20);
+		float heroFull = hero.HealthComponent.CurrentHealth, bossBefore = boss.HealthComponent.CurrentHealth;
+		harness.ExecuteCommand("automation", "", 1);
+
+		int frame = 0;
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
+		{
+			if (frame++ % 12 == 0) harness.ExecuteCommand("attack");
+			return hero.HealthComponent.CurrentHealth < heroFull;
+		}, 1.2f);
+		AssertFloat(boss.HealthComponent.CurrentHealth).OverrideFailureMessage("The hero's blows should land during the slam").IsLess(bossBefore);
+		AssertBool(boss.GetNode<PoiseComponent>("PoiseComponent").IsBroken).IsFalse();
+	}
+
+	/// <summary>
+	/// Only death ends the slam: frozen and shoved while it winds up, the Warden still brings the wave down on the hero,
+	/// and the freeze holds it once the slam is over. The wave's hit names the slam as the attack that released it.
+	/// </summary>
+	[TestCase]
+	public async Task NeitherAFreezeNorAShoveStopsTheSlam()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		hero.MovementComponent.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 5.5f);
+		// It cannot close in, and the shove keeps it pushed for the whole slam.
+		boss.MovementComponent.SetPhysicsProcess(false);
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
+		await runner.SimulateFrames(1, 20);
+		float full = hero.HealthComponent.CurrentHealth;
+		bool? interrupted = null;
+		boss.AttackController.AttackFinished += (_, wasInterrupted) => interrupted ??= wasInterrupted;
+		AttackIdentity? released = null;
+		hero.HurtBoxComponent.ContactResolved += (in CombatContactFeedback contact) =>
+		{
+			if (contact.Outcome == DamageOutcome.Damaged) released ??= contact.Context.Parent;
+		};
+		// Out of sword reach, the slam is the only attack it can start.
+		harness.ExecuteCommand("automation", "", 1);
+		await TestFactories.AwaitPhysicsUntil(runner, () => boss.AttackController.IsAttacking, 4);
+		var slam = boss.AttackController.CurrentExecutionId;
+		boss.Frozen = true;
+		boss.MovementComponent.PushForced(Vector3.Back, 4);
+
+		await TestFactories.AwaitPhysicsUntil(runner, () => interrupted != null, 3);
+		AssertBool(interrupted == false).OverrideFailureMessage("The slam was interrupted").IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => hero.HealthComponent.CurrentHealth < full, 2);
+		AssertFloat(hero.HealthComponent.CurrentHealth).IsLess(full);
+		AssertObject(released).IsEqual(slam);
+		AssertBool(boss.ActionGate.IsStatusLocked).IsTrue();
+		AssertBool(boss.ActionGate.IsBusy).IsFalse();
+	}
+
 	[TestCase]
 	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
 	{
@@ -182,7 +281,14 @@ public class WardenTest
 			boss.GlobalPosition = new Vector3(0, 0, -2);
 			boss.MovementComponent.SetLookAtDirection(-side);
 			harness.Player.GlobalPosition = boss.GlobalPosition + side * 2.05f;
+			// Each side starts fresh: the previous side's hit may have staggered the hero or broken their poise.
+			harness.Player.Velocity = Vector3.Zero;
+			harness.Player.MovementComponent.SetInputDirection(Vector3.Zero);
+			harness.Player.ResetPhysicsInterpolation();
+			boss.ResetPhysicsInterpolation();
 			harness.Player.HealthComponent.SetHealth(100, 100);
+			harness.Player.ActionGate.ResetForSimulation();
+			harness.Player.GetNodeOrNull<PoiseComponent>("PoiseComponent")?.Restore();
 			await runner.SimulateFrames(2, 20);
 			// Start through the executor: the AI would not start a swing at a hero behind it, but body contact
 			// must still cover every side once a swing is under way.
@@ -258,12 +364,11 @@ public class WardenTest
 	}
 
 	/// <summary>
-	/// The Warden's shipped reaction and timing answer an ordinary hero swing, also while it winds up its own: it raises its
-	/// shield in view, parries the contact and ripostes once its guard is released.
+	/// The Warden's shipped reaction and timing answer an ordinary hero swing: it raises its shield in view, parries the
+	/// contact and ripostes once its guard is released.
 	/// </summary>
-	[TestCase(false)]
-	[TestCase(true)]
-	public async Task ParriesAnOrdinaryHeroSwingAndRipostes(bool alreadyWindingUp)
+	[TestCase]
+	public async Task ParriesAnOrdinaryHeroSwingAndRipostes()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
@@ -285,7 +390,6 @@ public class WardenTest
 		var skeleton = boss.FindChildren("*", "Skeleton3D", true, false).OfType<Skeleton3D>().Single();
 		int hand = skeleton.FindBone("handslot.l");
 		var idleHand = skeleton.GetBoneGlobalPose(hand);
-		if (alreadyWindingUp) AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		harness.Attack();
 		AssertBool(player.AttackController.IsAttacking).IsTrue();
 		bool shieldRaised = false;
@@ -299,6 +403,67 @@ public class WardenTest
 		AssertInt(parries).IsEqual(1);
 		AssertInt(blocks).IsEqual(0);
 		AssertInt(ripostes).IsEqual(1);
+	}
+
+	/// <summary>
+	/// A swing the Warden has started goes through: the hero swinging back neither makes it raise its shield instead nor
+	/// staggers it, so the player must dodge the swing rather than bait its guard.
+	/// </summary>
+	[TestCase]
+	public async Task ASwingItHasStartedGoesThroughTheHerosSwing()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 2.5f);
+		var player = harness.Player;
+		player.InputController.SetPhysicsProcess(false);
+		player.MovementComponent.SetPhysicsProcess(false);
+		boss.MovementComponent.SetPhysicsProcess(false);
+		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
+		// The guard choice is forced, so only the committed swing keeps the shield down.
+		boss.DefenseController.Mode = EnemyDefenseMode.GuardParry;
+		bool? interrupted = null;
+		boss.AttackController.AttackFinished += (_, wasInterrupted) => interrupted ??= wasInterrupted;
+		await runner.SimulateFrames(2, 20);
+
+		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
+		harness.Attack();
+		AssertBool(player.AttackController.IsAttacking).IsTrue();
+		bool guarded = false;
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
+		{
+			guarded |= boss.GuardComponent.IsGuarding;
+			return interrupted != null;
+		}, 3);
+		AssertBool(guarded).OverrideFailureMessage("The Warden raised its shield over its own swing").IsFalse();
+		AssertBool(interrupted == false).OverrideFailureMessage("The Warden's swing was interrupted").IsTrue();
+	}
+
+	/// <summary>The weaker the Warden, the faster it turns to a hero behind it, so flanking pays less in its later phases.</summary>
+	[TestCase]
+	public async Task TheWardenTurnsFasterInItsLaterPhases()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene);
+		boss.EnemyBehaviorComponent.AIEnabled = false;
+
+		async Task<float> TurnedTowardItsBack()
+		{
+			boss.MovementComponent.SetLookAtDirection(Vector3.Forward);
+			float elapsed = 0;
+			await TestFactories.AwaitPhysicsUntil(runner, () =>
+			{
+				boss.MovementComponent.FaceDirection(Vector3.Back with { X = 0.01f });
+				return (elapsed += 1f / Engine.PhysicsTicksPerSecond) >= 0.4f;
+			}, 2);
+			return boss.MovementComponent.LookAtDirection.AngleTo(Vector3.Forward);
+		}
+
+		float fullHealth = await TurnedTowardItsBack();
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.8f);
+		float lastPhase = await TurnedTowardItsBack();
+		AssertFloat(lastPhase).IsGreater(fullHealth * 1.8f);
 	}
 
 	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(boss.GlobalPosition);

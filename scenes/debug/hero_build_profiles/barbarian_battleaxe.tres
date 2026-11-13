@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scenes/player/classes/HeroBuildItem.cs" id="item"]
 [ext_resource type="Resource" path="res://scenes/player/classes/class_barbarian.tres" id="class"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe_common.tres" id="res_0"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_health.tres" id="res_1"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/amulet/amulet_health_1.tres" id="res_1"]
 [ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="res_2"]
 
 [sub_resource type="Resource" id="Equipment_0"]

@@ -400,6 +400,27 @@ public partial class CombatIntegrationTest
 		}
 	}
 
+	/// <summary>Armor absorbs physical hits only: an elemental missile lands in full however heavy the armor.</summary>
+	[TestCase]
+	public async Task ElementalProjectileIgnoresArmor()
+	{
+		var (runner, harness) = await Load();
+		using (runner)
+		{
+			var enemy = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
+			enemy.HurtBoxComponent.Armor = 100;
+			await PhysicsFrames(runner, 4);
+			float before = enemy.HealthComponent.CurrentHealth;
+			var projectile = TestFactories.Load<PackedScene>("res://scenes/attacks/projectile.tscn").Instantiate<Projectile>();
+			runner.Scene().AddChild(projectile);
+			projectile.Element = DamageElement.Fire;
+			projectile.Initialize(Vector3.Up, Vector3.Forward, 10, 10, new AttackStats(5, 5, 0),
+				harness.Player, AttackDefenseTraits.None);
+			await PhysicsFrames(runner, 18);
+			AssertFloat(enemy.HealthComponent.CurrentHealth).IsEqualApprox(before - 5, .001);
+		}
+	}
+
 	[TestCase]
 	public async Task UndefendableProjectileBypassesAnActiveGuard()
 	{
@@ -407,6 +428,7 @@ public partial class CombatIntegrationTest
 		using (runner)
 		{
 			var enemy = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene);
+			enemy.HurtBoxComponent.Armor = 0; // the guard is under test, not the armor roll
 			AssertInt((int)enemy.GuardComponent.TryBeginGuard(Vector3.Back)).IsEqual((int)DefenseRequestResult.Success);
 			await PhysicsFrames(runner, 4);
 			float before = enemy.HealthComponent.CurrentHealth;

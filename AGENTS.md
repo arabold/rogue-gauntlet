@@ -87,6 +87,7 @@ Use the `godot-csharp` skill (`.agents/skills/godot-csharp/SKILL.md`) whenever w
 - **Runtime Lifecycle, Physics & Pooling:**
   - Set `ProcessPhysicsPriority` from `CombatPhysics` in `_Ready()` whenever `_PhysicsProcess` order matters; call `SetPhysicsProcess(false)` when idle.
   - Check `GodotObject.IsInstanceValid(node)` (not just `!= null`) on dynamic runtime `Node` references held across frames, tweens, `ToSignal`, or `CallDeferred`.
+  - Load boundaries settle the godotengine/godot#83762 race with `ResourceCacheGuard.Settle()` (floor generation, harness and debug-catalog loads). The startup scene's load has no boundary, so `GameSession`'s constructor suspends collections until the autoloads are ready (`ResourceCacheGuard.BeginStartup`/`EndStartup`); without it the combat harness aborted on launch whenever new code shifted GC timing.
   - Use `ScenePool.Spawn<T>` / `ScenePool.Despawn` for short-lived combat/VFX scenes and reset per-spawn state in `IPooledNode.OnSpawnedFromPool()`.
   - Call `ResetPhysicsInterpolation()` after snapping a `Node3D`'s `GlobalPosition`/`GlobalTransform` (`physics_interpolation=true`).
   - Defer physics state changes (`SetDeferred` / `CallDeferred`) inside `BodyEntered`/`AreaEntered` callbacks, kill previous `_activeTween?.Kill()` before replacing a tween, and cache `StringName`s on hot paths.

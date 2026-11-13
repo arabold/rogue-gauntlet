@@ -7,12 +7,13 @@
 
 [sub_resource type="Resource" id="Resource_buff"]
 script = ExtResource("1_buff")
-HealthPointsPerTick = 1
 Name = "Glazed Sweet Roll"
+HealthPointsPerTick = 5.0
 metadata/_custom_type_script = ExtResource("1_buff")
 
 [resource]
 script = ExtResource("4_script")
+Portion = 1
 PoisonChance = 0.15
 PoisonEffect = ExtResource("5_poison")
 TrueName = "Glazed Sweet Roll"

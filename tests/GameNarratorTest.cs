@@ -31,7 +31,7 @@ public partial class GameNarratorTest
 		var potion = new TestFactories.TestConsumableItem("potion.healing", "Small Potion of Healing", "drink_potion");
 
 		// Simulate reveal then consumption
-		SignalBus.EmitItemIdentityRevealed("potion.healing", "Small Murky Potion", "Small Potion of Healing");
+		SignalBus.EmitItemIdentityRevealed("potion.healing", "Small Murky Potion", "Small Potion of Healing", nameof(IdentificationSource.Use));
 		SignalBus.EmitItemConsumed(null, potion);
 
 		AssertInt(sink.Entries.Count).IsEqual(2);
@@ -74,7 +74,7 @@ public partial class GameNarratorTest
 
 		var narrator = TestFactories.AddToSceneTree(new GameNarrator());
 
-		SignalBus.EmitItemIdentityRevealed("scroll.identify", "Scroll labeled ZELGO MER", "Scroll of Identify");
+		SignalBus.EmitItemIdentityRevealed("scroll.identify", "Scroll labeled ZELGO MER", "Scroll of Identify", nameof(IdentificationSource.Use));
 		narrator.FlushPendingReveals();
 
 		AssertInt(sink.Entries.Count).IsEqual(1);

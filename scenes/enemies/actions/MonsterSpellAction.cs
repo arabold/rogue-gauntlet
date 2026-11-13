@@ -14,9 +14,14 @@ public partial class MonsterSpellAction : MonsterTimedAction
 	[Export(PropertyHint.Range, "1,5,1")] public int Level { get; set; } = 1;
 	/// <summary>Spend the spell's mana cost from the actor's pool; without it the cast is limited by cooldown only.</summary>
 	[Export] public bool PaysMana { get; set; }
+	/// <summary>
+	/// How this monster casts the spell: its contact timing, hyper armor and threat. Empty uses the spell's own cast, as
+	/// players cast it; a boss's signature cast authors its own, such as an armored slam nothing interrupts.
+	/// </summary>
+	[Export] public AttackDefinition Cast { get; set; }
 
-	protected override AttackDefinition Definition => Spell?.Cast;
-	public override float Reach => Spell?.Cast?.Range ?? float.PositiveInfinity;
+	protected override AttackDefinition Definition => Cast ?? Spell?.Cast;
+	public override float Reach => Definition?.Range ?? float.PositiveInfinity;
 	public override AttackSlotKind? SlotKind => AttackSlotKind.Ranged;
 	private float ManaCost => PaysMana && Spell?.IsValidLevel(Level) == true ? Spell.ManaCost(Level) : 0;
 
@@ -42,7 +47,7 @@ public partial class MonsterSpellAction : MonsterTimedAction
 		if (!actor.SpellCaster.TryPrepare(Spell, this, in cast, out var release)) return ActorActionRequestResult.Unavailable;
 		if (!context.TryReserveSlot(ReservedSlot, out var slots)) return ActorActionRequestResult.Busy;
 		release = release with { Revalidate = released => CanRelease(context, released) };
-		if (!controller.TryPrepareAttack(Spell.Cast, Style, Duration, out var prepared)
+		if (!controller.TryPrepareAttack(Definition, Style, Duration, out var prepared)
 			|| !controller.StartAttack(prepared with { Spell = release }, power, HostileMask))
 		{
 			slots?.Release(actor, yield: false);
@@ -74,6 +79,6 @@ public partial class MonsterSpellAction : MonsterTimedAction
 		if (!context.Check(Spell?.IsValidLevel(Level) == true, "assign a SpellDefinition that supports this Level.")) return;
 		context.Check(!PaysMana || Spell.ManaCost(Level) > 0, "PaysMana needs a spell level with a mana cost.");
 		context.Check(!PaysMana || context.Definition?.MaxMana >= Spell.ManaCost(Level), "Definition.MaxMana must cover the spell's mana cost.");
-		context.Check(Spell.Cast != null, "the spell needs a Cast attack definition.");
+		context.Check(Definition != null, "assign a Cast or a spell with its own Cast attack definition.");
 	}
 }

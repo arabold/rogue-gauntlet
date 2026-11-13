@@ -14,26 +14,36 @@ public class RealmEncounterTest
 	public void BudgetsAreDeterministicScopedAndImmutable()
 	{
 		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
 		for (uint depth = 1; depth <= 3; depth++)
 		{
 			for (ulong seed = 1; seed <= 8; seed++)
 			{
 				using var a = GenerationRandom.Create(seed, GenerationRandom.Monsters);
 				using var b = GenerationRandom.Create(seed, GenerationRandom.Monsters);
-				var first = factory.CreateEncounter(depth, a).Select(s => s.ResourcePath).ToArray();
-				var second = factory.CreateEncounter(depth, b).Select(s => s.ResourcePath).ToArray();
-				AssertString(string.Join("|", first)).IsEqual(string.Join("|", second));
-				int spent = first.Sum(path => factory.Entries.Single(e => e.ScenePath == path).Threat);
-				AssertInt(spent).IsEqual(factory.FloorBudgets[(int)depth - 1]);
+				var first = Members(factory.CreatePacks(depth, threat, a));
+				var second = Members(factory.CreatePacks(depth, threat, b));
+				AssertString(Fingerprint(first)).IsEqual(Fingerprint(second));
+				// The floor spends its budget on whole packs until no eligible pack still fits.
+				float spent = first.Sum(pack => RealmEncounterFactory.Cost(factory.Entries.Single(e => e.Members.SequenceEqual(pack)), depth, threat));
+				float cheapest = factory.Entries.Where(e => e.EligibleAt(depth)).Min(e => RealmEncounterFactory.Cost(e, depth, threat));
+				AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth, threat) + 1e-4f).IsTrue();
+				AssertBool(first.Sum(pack => pack.Length) >= RealmEncounterFactory.MaximumMonsters
+					|| factory.FloorBudget(depth, threat) - spent < cheapest).IsTrue();
 			}
 		}
 		using var fallbackA = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		using var fallbackB = GenerationRandom.Create(42, GenerationRandom.Monsters);
-		AssertString(string.Join("|", factory.CreateEncounter(4, fallbackA).Select(s => s.ResourcePath)))
-			.IsEqual(string.Join("|", factory.Fallback.CreateEncounter(4, fallbackB).Select(s => s.ResourcePath)));
+		AssertString(Fingerprint(Members(factory.CreatePacks(4, threat, fallbackA))))
+			.IsEqual(Fingerprint(Members(factory.Fallback.CreatePacks(4, threat, fallbackB))));
 		AssertBool(factory.ContainsDepth(0)).IsFalse();
 		AssertBool(factory.ContainsDepth(4)).IsFalse();
 	}
+
+	private static string[][] Members(System.Collections.Generic.List<PackedScene[]> packs) =>
+		packs.Select(pack => pack.Select(scene => scene.ResourcePath).ToArray()).ToArray();
+
+	private static string Fingerprint(string[][] packs) => string.Join("|", packs.Select(pack => string.Join(",", pack)));
 
 	[TestCase]
 	public async Task ThreeFloorsHaveFiniteNestsAndPersistentGatekeeperUnlock()
@@ -42,7 +52,9 @@ public class RealmEncounterTest
 		await runner.SimulateFrames(2, 20);
 		var level = runner.Scene().GetNode<Level>("Level");
 		AssertBool(level.CanDescend).IsTrue();
-		AssertBool(level.MapGenerator.EnemySpawnPoints.All(p => p.Scenes[0].ResourcePath.Contains("/skeleton/"))).IsTrue();
+		// Depth 1 draws from the realm's own packs, not the fallback.
+		var realmMembers = ((RealmEncounterFactory)level.MapGenerator.MobFactory).Entries.SelectMany(entry => entry.Members).ToHashSet();
+		AssertBool(level.MapGenerator.EnemySpawnPoints.All(p => realmMembers.Contains(p.Scenes[0].ResourcePath))).IsTrue();
 
 		level.ConfigureGeneration(new RunState(12345), 2, null, null);
 		level.Generate();
@@ -75,7 +87,7 @@ public class RealmEncounterTest
 		AssertBool(level.CanDescend).IsFalse();
 		var boss = level.FindChildren("*", "", true, false).OfType<EnemyBase>()
 			.Single(e => e.GetMeta("persistent_id", "").AsString() == level.Encounters.GatekeeperId);
-		AssertFloat(boss.HealthComponent.CurrentHealth).IsEqual(110);
+		AssertFloat(boss.HealthComponent.CurrentHealth).IsEqual(boss.Definition.MaxHealth);
 		AssertString(boss.SceneFilePath).IsEqual("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn");
 		var tree = level.GetTree();
 		Node previousScene = tree.CurrentScene;
@@ -83,7 +95,14 @@ public class RealmEncounterTest
 		try
 		{
 			AssertBool(GameSession.Instance.ChangeDungeonDepth(GameSession.LevelTravelDirection.Down)).IsFalse();
+			var player = level.GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+			int xp = player.Stats.Xp;
 			boss.HealthComponent.TakeDamage(1000);
+			// Its threat level and the gatekeeper bonus pay more than any ordinary monster of the realm.
+			var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory;
+			int OrdinaryXp(string path) => level.ThreatProfile.Xp(RealmEncounterFactory.DefinitionOf(TestFactories.Load<PackedScene>(path)));
+			int ordinaryBest = realm.Entries.SelectMany(entry => entry.Members).Distinct().Max(OrdinaryXp);
+			AssertInt(player.Stats.Xp - xp).IsGreater(ordinaryBest);
 			await Task.Delay(1100); // allow the independent stair-arrival cooldown to expire
 			AssertBool(GameSession.Instance.CanUseTransition(GameSession.LevelTravelDirection.Down)).IsTrue();
 		}

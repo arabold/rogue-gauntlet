@@ -40,7 +40,7 @@ public static class LootRoller
 	/// <summary>The modifiers of one curse penalty eligible at <paramref name="depth"/>; a curse always has one.</summary>
 	private static StatModifier[] RollPenalty(uint depth, RandomNumberGenerator rng, Affix[] penalties)
 	{
-		Affix[] eligible = (penalties ?? []).Where(penalty => penalty != null && penalty.MinDepth <= depth).ToArray();
+		Affix[] eligible = (penalties ?? []).Where(penalty => penalty != null && penalty.IsEligibleAt(depth)).ToArray();
 		if (eligible.Length == 0) { throw new System.InvalidOperationException($"No curse penalty is eligible at depth {depth}."); }
 		return Affix.PickWeighted(eligible, rng).RollModifiers(rng);
 	}

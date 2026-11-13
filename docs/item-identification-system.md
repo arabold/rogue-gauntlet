@@ -142,7 +142,8 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
   from the jewelry roll tables. The quality is never part of the disguise: its word leads the
   unidentified name and its color shows everywhere, so "shiny golden ruby ring" and "magic
   golden ruby ring" are the same unknown type in two qualities. One type cannot look different
-  in different qualities, which is why each jewelry type has exactly one definition.
+  in different qualities or tiers: a type's tiers (1–5, deeper ones giving more) share its
+  appearance and name.
 - **Size = potency (potions only).** A potion type has small, medium and large
   definitions that share one `TypeId`, so they share the run's color and differ only in
   bottle size and magnitude. Potency is authored entirely in the buff; there is no
