@@ -470,11 +470,14 @@ def xp_ladder():
 
 
 def levels_by_depth(need, cumulative):
-    """Level on arrival at each depth when every floor above was cleared as expected."""
+    """
+    Level on arrival at each depth when every floor above was cleared as expected. The ladder rounds each level's XP to
+    whole points, so a level counts as reached when the expected XP falls short of it by no more than that rounding.
+    """
     out, total_need = {}, [0]
     for n in need:
         total_need.append(total_need[-1] + n)
     for d in range(1, P.DEPTHS + 2):
         xp = cumulative.get(d - 1, 0.0)
-        out[d] = 1 + sum(1 for t in total_need[1:] if t <= xp * 1.001)
+        out[d] = 1 + sum(1 for level, t in enumerate(total_need[1:], 1) if t <= xp + 0.5 * level)
     return out

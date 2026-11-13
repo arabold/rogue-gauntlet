@@ -6,13 +6,14 @@ maps to the model is described under "Game content" in docs/specs/balance-model.
 from __future__ import annotations
 
 import re
+from collections import Counter
 from dataclasses import dataclass, field, replace
 
 import model as M
 import params as P
 import resources as R
 
-CATEGORIES = ("monsters", "weapons", "armor", "jewelry", "classes", "supplies", "loot")
+CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "classes", "supplies", "loot")
 
 
 @dataclass
@@ -24,11 +25,12 @@ class Value:
     key: str
     current: float
     target: float
+    exact: bool = False  # counts, such as weights and depths, are off by any difference
 
     @property
     def off(self) -> float:
         """Relative difference from the target (absolute when the target is zero); the largest one for a list."""
-        if isinstance(self.target, R.Raw):
+        if isinstance(self.target, R.Raw) or self.exact:
             return 0.0 if self.current == self.target else 1.0
         if isinstance(self.target, list):
             current = self.current if isinstance(self.current, list) else []
@@ -60,13 +62,13 @@ class Group:
     values: list[Value] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
-    def add(self, item: str, file: R.TextResource, section: R.Section, key: str, target):
+    def add(self, item: str, file: R.TextResource, section: R.Section, key: str, target, exact: bool = False):
         if isinstance(target, R.Raw):
             self.values.append(Value(item, file, section, key, R.Raw(file.raw(section, key) or ""), target))
             return
         current = file.get(section, key)
         current = current if isinstance(current, list) else float(current or 0)
-        self.values.append(Value(item, file, section, key, current, target))
+        self.values.append(Value(item, file, section, key, current, target, exact))
 
     def note(self, text: str):
         if text not in self.notes:
@@ -86,8 +88,8 @@ def _selected(path, match) -> bool:
 
 
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
-    groups = [{"monsters": monsters, "weapons": weapons, "armor": armor, "jewelry": jewelry, "classes": classes,
-               "supplies": supplies, "loot": loot}[c](match) for c in categories]
+    groups = [{"monsters": monsters, "encounters": encounters, "weapons": weapons, "armor": armor, "jewelry": jewelry,
+               "classes": classes, "supplies": supplies, "loot": loot}[c](match) for c in categories]
     _merge_shared(groups)
     return groups
 
@@ -124,14 +126,18 @@ def archetype_names() -> list[str]:
     return [n.lower() for n in names]
 
 
+def _archetype(file: R.TextResource, definition: R.Section) -> str:
+    """A monster definition's archetype as the model names it; `none` if unset."""
+    return archetype_names()[file.get(definition, "Archetype", 0)]
+
+
 def _definitions(match=None):
     """Every monster definition outside the templates: its file, display name and archetype (`none` if unset)."""
-    names = archetype_names()
     for path in sorted(R.ROOT.glob("scenes/enemies/*/*_definition.tres")):
         if "templates" in path.parts or not _selected(path, match):
             continue
         d = R.load(path)
-        yield d, d.get(d.main, "DisplayName") or path.stem, names[d.get(d.main, "Archetype", 0)]
+        yield d, d.get(d.main, "DisplayName") or path.stem, _archetype(d, d.main)
 
 
 def _damaging_actions(file: R.TextResource, definition: R.Section):
@@ -227,6 +233,83 @@ def monsters(match=None) -> Group:
         g.rows.append([name, archetype, f"{depth:g}", f"{d.get(s, 'ThreatLevel', 1.0):.1f}",
                        f"{M.threat_level(now):.1f}", f"{threat:.1f}",
                        f"{M.xp_reward(derived):.0f}"])
+    return g
+
+
+# --- Encounters -----------------------------------------------------------------------------------
+
+def _realms(match=None):
+    """Every realm encounter resource (`RealmEncounterFactory`): the packs its floors spawn."""
+    for path in sorted(R.ROOT.glob("scenes/**/*.tres")):
+        if _selected(path, match):
+            with path.open() as text:
+                if 'script_class="RealmEncounterFactory"' in text.readline():
+                    yield R.load(path)
+
+
+def _member(scene: str) -> tuple[str, str]:
+    """A pack member's name and archetype, from the definition its scene's root saves, which is what the game reads."""
+    f = R.load(scene)
+    root = next(s for s in f.sections if s.kind == "node")
+    ref = f.get(root, "Definition")
+    if not isinstance(ref, R.Ref):
+        return f.path.stem, "none"
+    df, d = f.follow(ref)
+    return df.get(d, "DisplayName") or df.path.stem, _archetype(df, d)
+
+
+def _window(pack: dict, first: int, last: int) -> tuple[int, int]:
+    """A model pack's depths within a realm's; empty (first > last) when it never spawns there."""
+    return max(pack["first"], first), min(pack["last"] or last, last)
+
+
+def encounters(match=None) -> Group:
+    """
+    Each realm's packs against the model's (`params.PACKS`, which floor costs and the XP ladder come from). An entry
+    matches the model pack with the same archetypes and takes its weight and its depth window, clamped to the realm's
+    floors.
+    """
+    g = Group("Encounters", headers=["realm", "pack", "members", "weight", "derived", "depths", "derived"])
+    model = {}
+    for p in P.PACKS:
+        key = tuple(sorted(p["members"]))
+        if key in model:
+            raise SystemExit(f"params.PACKS: {model[key]['name']} and {p['name']} have the same members")
+        model[key] = p
+    for f in _realms(match):
+        s = f.main
+        realm = f.get(s, "RealmName") or f.path.stem
+        first = int(f.get(s, "FirstDepth"))
+        last = first + int(f.get(s, "FloorCount")) - 1
+        matched = Counter()
+        for ef, entry in (f.follow(ref) for ref in f.get(s, "Entries", [])):
+            members = [_member(path) for path in ef.get(entry, "Members", [])]
+            counts = Counter(name for name, _ in members)
+            shown = ", ".join(f"{name} x{n}" if n > 1 else name for name, n in counts.items())
+            pack = model.get(tuple(sorted(a for _, a in members)))
+            if pack is None:
+                g.note(f"{realm}: the model has no pack of {shown} "
+                       f"({', '.join(a for _, a in members)}); add one to params.PACKS")
+                continue
+            matched[pack["name"]] += 1
+            lo, hi = _window(pack, first, last)
+            if lo > hi:
+                g.note(f"{realm}: {shown} is the model's {pack['name']}, which spawns at depths "
+                       f"{pack['first']}-{pack['last'] or ''}, outside the realm's {first}-{last}")
+                continue
+            label = f"{realm}: {pack['name']}"
+            for key, target in (("Weight", pack["weight"]), ("MinimumDepth", lo), ("MaximumDepth", hi)):
+                g.add(label, ef, entry, key, target, exact=True)
+            g.rows.append([realm, pack["name"], shown, ef.get(entry, "Weight"), pack["weight"],
+                           f"{ef.get(entry, 'MinimumDepth')}-{ef.get(entry, 'MaximumDepth') or ''}", f"{lo}-{hi}"])
+        for p in P.PACKS:
+            lo, hi = _window(p, first, last)
+            if lo <= hi and not matched[p["name"]]:
+                g.note(f"{realm}: no pack of the model's {p['name']} ({', '.join(p['members'])}), "
+                       f"which spawns at depths {lo}-{hi}")
+            elif matched[p["name"]] > 1:
+                g.note(f"{realm}: {matched[p['name']]} entries are the model's {p['name']}; "
+                       f"each takes its weight, so together they spawn more often than the model plans")
     return g
 
 
