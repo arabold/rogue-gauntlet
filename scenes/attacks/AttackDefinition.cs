@@ -34,7 +34,10 @@ public partial class AttackDefinition : Resource
 	/// <summary>Defensive traits (dodgeable, guardable, parryable) for this attack.</summary>
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable;
 
-	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable;
+	/// <summary>
+	/// Defensive traits of the splash around a projectile's impact. An area is never Dodgeable: only leaving it avoids it.
+	/// </summary>
+	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.None;
 
 	/// <summary>
 	/// Threat label derived from <see cref="DefenseTraits"/>. Monster Heavy (BreaksGuard) and Unblockable (neither

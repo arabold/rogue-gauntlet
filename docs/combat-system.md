@@ -22,7 +22,7 @@ The existing hit stop remains on the attacking execution; other actors, defense 
 
 ## Dodge, guard and parry
 
-Dodge combines physical displacement with an authored immunity interval, recovery, charges and a minimum interval between dodges. Immunity avoids strikes and projectiles, never areas: an area contact (a slam's wave, an explosion, a lingering field) is escaped only by leaving it. Collision may stop displacement without extending immunity. AI must also find a supported, clear destination before dodging.
+Dodge combines physical displacement with an authored immunity interval, recovery, charges and a minimum interval between dodges. Immunity avoids contacts with the `Dodgeable` trait: strikes and projectiles. Area contacts (a slam's wave, an explosion, a lingering field) never carry it, so they are escaped only by leaving them. Collision may stop displacement without extending immunity. AI must also find a supported, clear destination before dodging.
 
 A dodge can pass through other actors. `DodgeDefinition.PassThroughLayers` removes physics layers from the actor's collision mask while it travels. Temporary body collision exceptions also prevent those bodies' movement from pushing them out of the dodging actor; hurtboxes remain active and walls stay solid. The player's dodge passes through the enemies layer, so dodging through a monster puts the player behind it. A dodge that ends inside a pass-through body keeps moving at half speed, without immunity and for at most `PassThroughExitTime` (0.3 s), until it is clear; then the mask returns. Every exit path restores the mask and removes only the dodge's own collision exceptions: finishing, cancellation, interruption and leaving the tree. Monster dodges pass through nothing.
 
@@ -86,7 +86,7 @@ Player and enemy facades forward complete `ICombatDamageable` contacts to their 
 
 Dodged/parried contacts suppress ordinary damage and hit reactions. Blocks report final chip damage without a hit reaction; guard breaks report their reduced damage and stagger instead. Positive unprotected damage then [flinches, interrupts or staggers](#poise-and-hit-reactions) the defender. Parry interrupts only the source execution it actually intercepted. Each swing resolves once per defender, including a defended contact; projectile splash cannot hit its directly resolved target a second time.
 
-Defense eligibility is authored per attack: ordinary melee allows dodge, guard and parry; ordinary projectiles allow dodge/guard; area impacts have independent flags. Environmental damage does not automatically grant defense eligibility. Unavoidable content needs clear presentation.
+Defense eligibility is authored per attack: ordinary melee allows dodge, guard and parry; ordinary projectiles allow dodge/guard; area impacts have independent flags and are never dodgeable. Environmental damage does not automatically grant defense eligibility. Unavoidable content needs clear presentation.
 
 Attack profiles may carry on-hit status payloads. The hurtbox rolls each payload only after direct contact resolves as damaging and leaves the target alive. Chance uses the attack or projectile RNG; a full chance consumes no draw. Venom and poison share the same periodic buff, with authored refresh identity for repeated applications. Defended, filtered, absorbed, splash and lethal contacts do not apply it. See [status conditions](stats-and-itemization.md#buffs-and-status-conditions).
 

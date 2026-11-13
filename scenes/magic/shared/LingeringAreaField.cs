@@ -120,7 +120,7 @@ public partial class LingeringAreaField : Node3D
 		var contact = new DamageContext { ExecutionId = new AttackIdentity(_cast.Caster.GetInstanceId(), ++_sequence),
 			SourceNode = _source, OwnerNode = _cast.Caster, Faction = HurtBoxComponent.GetDamageSource(_cast.Caster),
 			Random = _cast.Random,
-			DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, DeliveryKind = DamageDeliveryKind.AreaImpact,
+			DefenseTraits = AttackDefenseTraits.Guardable, DeliveryKind = DamageDeliveryKind.AreaImpact,
 			Element = _definition.Kind == LingeringAreaKind.SolarFlares ? DamageElement.Fire : DamageElement.Water,
 			BypassArmor = hail, SuppressHitReaction = hail,
 			ForcedPush = _definition.Kind == LingeringAreaKind.IceWall ? _definition.RepelPush : 0 };

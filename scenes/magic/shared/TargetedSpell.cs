@@ -37,7 +37,8 @@ public partial class TargetedSpell : Node, ICombatSpell
 				OwnerNode = hit.Caster,
 				Faction = HurtBoxComponent.GetDamageSource(hit.Caster),
 				Random = hit.Random,
-				DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
+				// A focused strike can be dodged; an area strike only escaped.
+				DefenseTraits = hit.IsAreaImpact ? AttackDefenseTraits.Guardable : AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
 				DeliveryKind = hit.IsAreaImpact ? DamageDeliveryKind.AreaImpact : DamageDeliveryKind.Projectile,
 				Element = Definition.Element
 			};

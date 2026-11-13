@@ -136,7 +136,7 @@ public partial class Projectile : Node3D, IPooledNode
 		SetHitBoxMonitoring(false, deferred: true);
 	}
 
-	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.Dodgeable, ulong randomSeed = 42, AttackIdentity parentExecution = default, CombatFeedbackSettings? feedback = null, PreparedHitStatus[] onHitStatuses = null)
+	public void Initialize(Vector3 origin, Vector3 direction, float speed, float range, AttackStats hit, Node attacker = null, AttackDefenseTraits defenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable, AttackDefenseTraits areaDefenseTraits = AttackDefenseTraits.None, ulong randomSeed = 42, AttackIdentity parentExecution = default, CombatFeedbackSettings? feedback = null, PreparedHitStatus[] onHitStatuses = null)
 	{
 		_parentExecution = parentExecution;
 		_feedback = feedback;

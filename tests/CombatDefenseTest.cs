@@ -214,7 +214,10 @@ public partial class CombatDefenseTest
 		AssertFloat(health.CurrentHealth).IsEqual(100f);
 	}
 
-	/// <summary>Dodging through an area (a slam's wave, an explosion) does not avoid it; only leaving the area does.</summary>
+	/// <summary>
+	/// Dodging through an area (a slam's wave, an explosion) does not avoid it; only leaving the area does. Area spells and
+	/// projectile splashes carry their definitions' default traits.
+	/// </summary>
 	[TestCase]
 	public void DodgeImmunityDoesNotAvoidAreaImpacts()
 	{
@@ -222,12 +225,15 @@ public partial class CombatDefenseTest
 		dodge.TryDodge(new Vector3(0, 0, -1));
 		dodge._PhysicsProcess(0.05f);
 
-		var resolution = hurtbox.ResolveDamage(new DamageContext
+		foreach (var traits in new[] { new AreaDamageDefinition().DefenseTraits, new AttackDefinition().AreaDefenseTraits })
 		{
-			Amount = 25f, IncomingDirection = new Vector3(0, 0, -1), Faction = DamageSourceFlags.Enemy,
-			DefenseTraits = AttackDefenseTraits.Dodgeable, DeliveryKind = DamageDeliveryKind.AreaImpact
-		});
-		AssertInt((int)resolution.Outcome).IsEqual((int)DamageOutcome.Damaged);
+			var resolution = hurtbox.ResolveDamage(new DamageContext
+			{
+				Amount = 25f, IncomingDirection = new Vector3(0, 0, -1), Faction = DamageSourceFlags.Enemy,
+				DefenseTraits = traits, DeliveryKind = DamageDeliveryKind.AreaImpact
+			});
+			AssertInt((int)resolution.Outcome).OverrideFailureMessage(traits.ToString()).IsEqual((int)DamageOutcome.Damaged);
+		}
 		AssertFloat(health.CurrentHealth).IsLess(100f);
 	}
 
