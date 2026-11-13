@@ -182,15 +182,15 @@ public class MonsterRosterTest
 	public void InvalidPoolBoundsAndUnaffordableContentFailBeforeRandomSelection()
 	{
 		var source = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
 		using var factory = (RealmEncounterFactory)source.Duplicate();
 		factory.Entries = new[] { new MobSpawnEntry { Members = source.Entries[0].Members, MinimumDepth = 3, MaximumDepth = 2 } };
-		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("depth bounds"))).IsTrue();
+		AssertBool(factory.ValidatePool(1, threat).Any(error => error.Contains("depth bounds"))).IsTrue();
 		factory.Entries = new[] { new MobSpawnEntry { Members = source.Entries[0].Members } };
-		factory.ThreatProfile = new ThreatProfile { FirstFloorBudget = 0.01f, LastFloorBudget = 0.01f };
-		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("affordable"))).IsTrue();
-		factory.ThreatProfile = null;
-		AssertBool(factory.ValidatePool(1).Any(error => error.Contains("ThreatProfile"))).IsTrue();
-		AssertString(string.Join("; ", source.ValidatePool(1))).IsEmpty();
+		using var starved = new ThreatProfile { FirstFloorBudget = 0.01f, LastFloorBudget = 0.01f };
+		AssertBool(factory.ValidatePool(1, starved).Any(error => error.Contains("affordable"))).IsTrue();
+		AssertBool(factory.ValidatePool(1, null).Any(error => error.Contains("ThreatProfile"))).IsTrue();
+		AssertString(string.Join("; ", source.ValidatePool(1, threat))).IsEmpty();
 	}
 
 	/// <summary>Movement and tactical strategies report tuning that cannot work.</summary>

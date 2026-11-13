@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=15 format=3]
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
 [ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/forsaken_warden/forsaken_warden.tscn" id="boss"]
 
 [ext_resource type="Resource" path="res://scenes/enemies/forsaken_warden/forsaken_warden_fit.tres" id="fit"]
-[ext_resource type="Resource" path="res://scenes/levels/encounters/threat_profile.tres" id="threat_profile"]
 
 [sub_resource type="Resource" id="rat_pack"]
 script = ExtResource("entry")
@@ -59,7 +58,6 @@ MaximumDepth = 3
 script = ExtResource("factory")
 RealmName = "The Sunken Garrison"
 FirstDepth = 1
-ThreatProfile = ExtResource("threat_profile")
 Entries = [SubResource("rat_pack"), SubResource("rat_horde"), SubResource("fodder_pair"), SubResource("lone_warrior"), SubResource("patrol"), SubResource("sentry"), SubResource("warband")]
 Fallback = ExtResource("fallback")
 NestScene = ExtResource("nest")

@@ -78,7 +78,7 @@ public class GarrisonRoomPoolTest
 			AssertArray(TestFactories.ConnectivityFailures(generator).ToArray()).OverrideFailureMessage($"seed={runSeed} depth={depth}").IsEmpty();
 			// Every pack's members are placed, and stand together in one room around the pack's first member.
 			using var encounterRng = GenerationRandom.Create(generator.Seed, GenerationRandom.Monsters);
-			var packs = encounters.CreatePacks(depth, encounterRng);
+			var packs = encounters.CreatePacks(depth, level.ThreatProfile, encounterRng);
 			int floor = encounters.FloorIndex(depth);
 			int replaced = floor == RealmEncounterFactory.GatekeeperFloorIndex ? 1 : floor == RealmEncounterFactory.NestFloorIndex ? MapGenerator.NestsPerFloor : 0;
 			AssertInt(generator.EnemySpawnPoints.Count).IsEqual(replaced + packs.Skip(replaced).Sum(pack => pack.Length));

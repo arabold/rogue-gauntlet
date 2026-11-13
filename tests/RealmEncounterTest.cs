@@ -14,27 +14,28 @@ public class RealmEncounterTest
 	public void BudgetsAreDeterministicScopedAndImmutable()
 	{
 		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
 		for (uint depth = 1; depth <= 3; depth++)
 		{
 			for (ulong seed = 1; seed <= 8; seed++)
 			{
 				using var a = GenerationRandom.Create(seed, GenerationRandom.Monsters);
 				using var b = GenerationRandom.Create(seed, GenerationRandom.Monsters);
-				var first = Members(factory.CreatePacks(depth, a));
-				var second = Members(factory.CreatePacks(depth, b));
+				var first = Members(factory.CreatePacks(depth, threat, a));
+				var second = Members(factory.CreatePacks(depth, threat, b));
 				AssertString(Fingerprint(first)).IsEqual(Fingerprint(second));
 				// The floor spends its budget on whole packs until no eligible pack still fits.
-				float spent = first.Sum(pack => factory.Cost(factory.Entries.Single(e => e.Members.SequenceEqual(pack)), depth));
-				float cheapest = factory.Entries.Where(e => e.EligibleAt(depth)).Min(e => factory.Cost(e, depth));
-				AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth) + 1e-4f).IsTrue();
+				float spent = first.Sum(pack => RealmEncounterFactory.Cost(factory.Entries.Single(e => e.Members.SequenceEqual(pack)), depth, threat));
+				float cheapest = factory.Entries.Where(e => e.EligibleAt(depth)).Min(e => RealmEncounterFactory.Cost(e, depth, threat));
+				AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth, threat) + 1e-4f).IsTrue();
 				AssertBool(first.Sum(pack => pack.Length) >= RealmEncounterFactory.MaximumMonsters
-					|| factory.FloorBudget(depth) - spent < cheapest).IsTrue();
+					|| factory.FloorBudget(depth, threat) - spent < cheapest).IsTrue();
 			}
 		}
 		using var fallbackA = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		using var fallbackB = GenerationRandom.Create(42, GenerationRandom.Monsters);
-		AssertString(Fingerprint(Members(factory.CreatePacks(4, fallbackA))))
-			.IsEqual(Fingerprint(Members(factory.Fallback.CreatePacks(4, fallbackB))));
+		AssertString(Fingerprint(Members(factory.CreatePacks(4, threat, fallbackA))))
+			.IsEqual(Fingerprint(Members(factory.Fallback.CreatePacks(4, threat, fallbackB))));
 		AssertBool(factory.ContainsDepth(0)).IsFalse();
 		AssertBool(factory.ContainsDepth(4)).IsFalse();
 	}

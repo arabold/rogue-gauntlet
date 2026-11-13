@@ -9,7 +9,7 @@ The active roster is Skeleton Minion, Skeleton Warrior, Skeleton Crossbowman, Sk
 | Asset Studio | Visuals, rig, clips, attachments and provenance |
 | Godot monster scene | Editable component composition, model, shapes, animations and explicit dependencies |
 | Monster definition and policy Resources | Starting stats, XP, loot, perception and combat decisions |
-| Realm encounter Resources | Packs (member scenes), depth eligibility, weights, nest and boss assignments; budgets come from the threat profile |
+| Realm encounter Resources | Packs (member scenes), depth eligibility, weights, nest and boss assignments; budgets come from the level's threat profile |
 
 Balance changes belong in Godot, not Studio JSON or documentation stat tables. A model's availability does not require adding it to encounters. Shared Resources are definitions; health, timers, targets and execution state belong to each actor.
 
