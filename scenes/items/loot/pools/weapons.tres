@@ -87,548 +87,401 @@
 [sub_resource type="Resource" id="Entry_broadsword_steel"]
 script = ExtResource("entry")
 Item = ExtResource("item_broadsword_steel")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_club_steel"]
 script = ExtResource("entry")
 Item = ExtResource("item_club_steel")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_club_wood_old"]
 script = ExtResource("entry")
 Item = ExtResource("item_club_wood_old")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_dagger_short"]
 script = ExtResource("entry")
 Item = ExtResource("item_dagger_short")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_greatsword_steel"]
 script = ExtResource("entry")
 Item = ExtResource("item_greatsword_steel")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_halberd_steel"]
 script = ExtResource("entry")
 Item = ExtResource("item_halberd_steel")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_morning_star_iron"]
 script = ExtResource("entry")
 Item = ExtResource("item_morning_star_iron")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_rapier_steel"]
 script = ExtResource("entry")
 Item = ExtResource("item_rapier_steel")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_saber_steel"]
 script = ExtResource("entry")
 Item = ExtResource("item_saber_steel")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_scythe_iron"]
 script = ExtResource("entry")
 Item = ExtResource("item_scythe_iron")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_spear_steel"]
 script = ExtResource("entry")
 Item = ExtResource("item_spear_steel")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axe_bearded"]
 script = ExtResource("entry")
 Item = ExtResource("item_axe_bearded")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axe_executioner"]
 script = ExtResource("entry")
 Item = ExtResource("item_axe_executioner")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axe_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_axe_common")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axe_old"]
 script = ExtResource("entry")
 Item = ExtResource("item_axe_old")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axe_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_axe_rare")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axe_uncommon"]
 script = ExtResource("entry")
 Item = ExtResource("item_axe_uncommon")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axedouble_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_axedouble_common")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axedouble_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_axedouble_rare")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_axedouble_uncommon"]
 script = ExtResource("entry")
 Item = ExtResource("item_axedouble_uncommon")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_battleaxe_gilded"]
 script = ExtResource("entry")
 Item = ExtResource("item_battleaxe_gilded")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_battleaxe_iron"]
 script = ExtResource("entry")
 Item = ExtResource("item_battleaxe_iron")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_battleaxe_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_battleaxe_common")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_battleaxe_skeleton"]
 script = ExtResource("entry")
 Item = ExtResource("item_battleaxe_skeleton")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_battleaxe_starter"]
 script = ExtResource("entry")
 Item = ExtResource("item_battleaxe_starter")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_greatsword_winged"]
 script = ExtResource("entry")
 Item = ExtResource("item_greatsword_winged")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_greatsword_wooden"]
 script = ExtResource("entry")
 Item = ExtResource("item_greatsword_wooden")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_longblade_crescent"]
 script = ExtResource("entry")
 Item = ExtResource("item_longblade_crescent")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_greatblade_curved"]
 script = ExtResource("entry")
 Item = ExtResource("item_greatblade_curved")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_claymore_iron"]
 script = ExtResource("entry")
 Item = ExtResource("item_claymore_iron")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_broadsword_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_broadsword_common")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_broadsword_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_broadsword_rare")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_crossbow_gilded"]
 script = ExtResource("entry")
 Item = ExtResource("item_crossbow_gilded")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_crossbow_2handed"]
 script = ExtResource("entry")
 Item = ExtResource("item_crossbow_2handed")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_crossbow_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_crossbow_common")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_crossbow_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_crossbow_rare")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_crossbow_spiked"]
 script = ExtResource("entry")
 Item = ExtResource("item_crossbow_spiked")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_crossbow_uncommon"]
 script = ExtResource("entry")
 Item = ExtResource("item_crossbow_uncommon")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_dagger_dirk"]
 script = ExtResource("entry")
 Item = ExtResource("item_dagger_dirk")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_dagger_fang"]
 script = ExtResource("entry")
 Item = ExtResource("item_dagger_fang")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_dagger_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_dagger_common")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_dagger_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_dagger_rare")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_dagger_uncommon"]
 script = ExtResource("entry")
 Item = ExtResource("item_dagger_uncommon")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_mace_gilded"]
 script = ExtResource("entry")
 Item = ExtResource("item_mace_gilded")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_hammer_mallet"]
 script = ExtResource("entry")
 Item = ExtResource("item_hammer_mallet")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_hammer_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_hammer_common")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_hammer_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_hammer_rare")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_hammer_uncommon"]
 script = ExtResource("entry")
 Item = ExtResource("item_hammer_uncommon")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_longsword_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_longsword_common")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_saber_skeleton"]
 script = ExtResource("entry")
 Item = ExtResource("item_saber_skeleton")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_shortsword_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_shortsword_common")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_archmage"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_archmage")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_emerald"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_emerald")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_common")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_rare")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_skeleton"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_skeleton")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_uncommon"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_uncommon")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_sword_knight"]
 script = ExtResource("entry")
 Item = ExtResource("item_sword_knight")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_sword_sunblade"]
 script = ExtResource("entry")
 Item = ExtResource("item_sword_sunblade")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_sword_common"]
 script = ExtResource("entry")
 Item = ExtResource("item_sword_common")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_sword_rare"]
 script = ExtResource("entry")
 Item = ExtResource("item_sword_rare")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_wand_celestial"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand_celestial")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_wand_ruby"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand_ruby")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_wand_crooked"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand_crooked")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_wand_iron"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand_iron")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_wand_bone"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand_bone")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_wand_carved"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand_carved")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_crooked"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_crooked")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_iron"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_iron")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_bone"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_bone")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_staff_horned"]
 script = ExtResource("entry")
 Item = ExtResource("item_staff_horned")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_wand"]
 script = ExtResource("entry")
 Item = ExtResource("item_wand")
-MinDepth = 1
-MaxDepth = 8
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_warhammer_sledge"]
 script = ExtResource("entry")
 Item = ExtResource("item_warhammer_sledge")
-MinDepth = 6
-MaxDepth = 13
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_warhammer_spiked"]
 script = ExtResource("entry")
 Item = ExtResource("item_warhammer_spiked")
-MinDepth = 11
-MaxDepth = 18
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_warhammer"]
 script = ExtResource("entry")
 Item = ExtResource("item_warhammer")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_warhammer_gold"]
 script = ExtResource("entry")
 Item = ExtResource("item_warhammer_gold")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_sword_flame"]
 script = ExtResource("entry")
 Item = ExtResource("item_sword_flame")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_sword_frost"]
 script = ExtResource("entry")
 Item = ExtResource("item_sword_frost")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_warhammer_stone"]
 script = ExtResource("entry")
 Item = ExtResource("item_warhammer_stone")
-MinDepth = 16
-MaxDepth = 23
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_trident_storm"]
 script = ExtResource("entry")
 Item = ExtResource("item_trident_storm")
-MinDepth = 21
 metadata/_custom_type_script = ExtResource("entry")
 
 [resource]

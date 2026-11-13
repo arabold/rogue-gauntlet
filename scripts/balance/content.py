@@ -533,8 +533,6 @@ def supplies(match=None) -> Group:
 # --- Loot tiers -----------------------------------------------------------------------------------
 
 TIER_BANDS = "res://scenes/items/quality/tier_depth_bands.tres"
-TIERED_POOLS = ("res://scenes/items/loot/pools/weapons.tres", "res://scenes/items/loot/pools/armor.tres",
-                "res://scenes/items/loot/pools/jewelry.tres")
 
 
 def tier_bands() -> list[tuple[int, int]]:
@@ -548,7 +546,10 @@ def tier_bands() -> list[tuple[int, int]]:
 
 
 def loot(match=None) -> Group:
-    """The tier depth bands and every tiered loot-pool entry's depth window, from the model's tier introductions."""
+    """
+    The tier depth bands, from the model's tier introductions. Pools that reference them drop each equipment entry in
+    its item tier's band, so the entries store no window of their own.
+    """
     g = Group("Loot", headers=["tier", "drops at depths", "derived"])
     bands = tier_bands()
     f = R.load(TIER_BANDS)
@@ -560,16 +561,4 @@ def loot(match=None) -> Group:
         for tier, band in enumerate(bands, 1):
             was = old[tier - 1] if tier <= len(old) else None
             g.rows.append([f"T{tier}", f"{was[0]}-{was[1] or ''}" if was else "", f"{band[0]}-{band[1] or ''}"])
-    for pool_path in TIERED_POOLS:
-        pool = R.load(pool_path)
-        if not _selected(pool.path, match):
-            continue
-        for ef, entry, itf, it in _pool_items(pool):
-            if itf.script_class not in WEAPON_CLASSES + ("Armor", "IdentifiableEquipableItem"):
-                continue
-            tier = int(itf.get(it, "Tier", 1))
-            label = f"{itf.get(it, 'Name') or itf.path.stem} (T{tier})"
-            low, high = bands[tier - 1] if tier > 0 else (0, 0)
-            g.add(label, ef, entry, "MinDepth", low)
-            g.add(label, ef, entry, "MaxDepth", high)
     return g
