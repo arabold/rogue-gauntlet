@@ -203,9 +203,13 @@ public partial class AttackController : Node, IParryInterruptible
 	public bool TryInterruptForParry(AttackIdentity execution, float staggerDuration)
 	{
 		if (!_execution.IsRunning || _preparedAttack == null) return false;
-		if (CurrentExecutionId != execution) return false;
+		if (CurrentExecutionId != execution || ActionGate?.IsUnstoppable == true) return false;
 
 		_actor ??= GetParent<Node3D>();
+	/// <summary>
+	/// End the parried execution and stagger its attacker. An uninterruptible window refuses: the parry still stopped the
+	/// hit, but only death ends the attack.
+	/// </summary>
 		CancelAttack();
 
 		if (_actor is IStaggerable staggerable)
@@ -244,8 +248,10 @@ public partial class AttackController : Node, IParryInterruptible
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!_execution.IsRunning || _currentAttack == null) { SetPhysicsProcess(false); return; }
-		if ((_actor is Player player && (player.IsDead || player.IsHit))
-			|| (_actor is EnemyBase enemy && (enemy.IsDead || enemy.MovementComponent.IsPushed)))
+		// Death ends any attack; a hit or a push only one outside an uninterruptible window.
+		bool knocked = ActionGate?.IsUnstoppable != true
+			&& (_actor is Player { IsHit: true } || _actor is EnemyBase { MovementComponent.IsPushed: true });
+		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true } || knocked)
 		{
 			CancelAttack();
 			return;
@@ -257,7 +263,13 @@ public partial class AttackController : Node, IParryInterruptible
 			return;
 		}
 		float previous = step.PreviousTime;
-		ReportProgress();
+		// A finished execution reports nothing more, so an uninterruptible window that lasts to the end finishes the attack
+		// instead of handing it to a waiting status lock; one that closes earlier ends the attack there.
+		if (!step.Completed)
+		{
+			ReportProgress();
+			if (!_execution.IsRunning) return;
+		}
 		if (_preparedAttack.Playback != null)
 			AnimationComponent.Sample(_preparedAttack.Playback, _elapsedTime / _preparedAttack.Duration);
 

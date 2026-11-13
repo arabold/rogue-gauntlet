@@ -222,6 +222,40 @@ public class WardenTest
 		AssertBool(boss.GetNode<PoiseComponent>("PoiseComponent").IsBroken).IsFalse();
 	}
 
+	/// <summary>
+	/// Only death ends the slam: frozen and shoved while it winds up, the Warden still brings the wave down on the hero,
+	/// and the freeze holds it once the slam is over.
+	/// </summary>
+	[TestCase]
+	public async Task NeitherAFreezeNorAShoveStopsTheSlam()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var hero = harness.Player;
+		hero.InputController.SetPhysicsProcess(false);
+		hero.MovementComponent.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 5.5f);
+		// It cannot close in, and the shove keeps it pushed for the whole slam.
+		boss.MovementComponent.SetPhysicsProcess(false);
+		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
+		await runner.SimulateFrames(1, 20);
+		float full = hero.HealthComponent.CurrentHealth;
+		bool? interrupted = null;
+		boss.AttackController.AttackFinished += (_, wasInterrupted) => interrupted ??= wasInterrupted;
+		// Out of sword reach, the slam is the only attack it can start.
+		harness.ExecuteCommand("automation", "", 1);
+		await TestFactories.AwaitPhysicsUntil(runner, () => boss.AttackController.IsAttacking, 4);
+		boss.Frozen = true;
+		boss.MovementComponent.PushForced(Vector3.Back, 4);
+
+		await TestFactories.AwaitPhysicsUntil(runner, () => interrupted != null, 3);
+		AssertBool(interrupted == false).OverrideFailureMessage("The slam was interrupted").IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => hero.HealthComponent.CurrentHealth < full, 2);
+		AssertFloat(hero.HealthComponent.CurrentHealth).IsLess(full);
+		AssertBool(boss.ActionGate.IsStatusLocked).IsTrue();
+		AssertBool(boss.ActionGate.IsBusy).IsFalse();
+	}
+
 	[TestCase]
 	public async Task RunningIntoTheWardenCannotCreateAContactPocket()
 	{
