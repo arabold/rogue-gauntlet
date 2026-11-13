@@ -54,7 +54,7 @@ public partial class GameNarrator : Node
 		_pendingReveals.Clear();
 	}
 
-	private void OnItemIdentityRevealed(string typeId, string disguisedName, string trueName)
+	private void OnItemIdentityRevealed(string typeId, string disguisedName, string trueName, string source)
 	{
 		if (string.IsNullOrEmpty(typeId))
 		{

@@ -746,7 +746,39 @@ def report_playtest(paths):
     table(["depth", "minutes", "kills", "xp", "level", "damage taken", "healed", "model healing", "healing potions found",
            "used", "gear found", ""], rows)
     print()
+    report_identities(paths)
     report_calibration(paths)
+
+
+def report_identities(paths):
+    """
+    Each hidden item type the hero found (potions, scrolls, jewelry), by its real name: how many were found and used,
+    and how its identity came out. Then every cursed item the hero put on.
+    """
+    from collections import Counter
+    found, used, names, identified, cursed = Counter(), Counter(), {}, {}, []
+    for path in paths:
+        for record in records(path):
+            event, data = record["event"], record["data"]
+            item = data.get("item", {})
+            if event == "item.picked_up" and item.get("type_id"):
+                found[item["type_id"]] += item["quantity"]
+                names.setdefault(item["type_id"], item["name"])
+            elif event == "item.consumed" and item.get("type_id"):
+                used[item["type_id"]] += 1
+                names.setdefault(item["type_id"], item["name"])
+            elif event == "item.identified":
+                identified.setdefault(data["type_id"], data.get("by", "?"))
+                names.setdefault(data["type_id"], data["name"])
+            elif event == "item.equipped" and item.get("cursed"):
+                cursed.append(item["name"])
+    if not found and not identified:
+        return
+    print("Hidden item types: found, used and how each was identified (Use = drunk, eaten or read; Wear; Scroll)\n")
+    rows = [[type_id, names.get(type_id, ""), found[type_id], used[type_id], identified.get(type_id, "never")]
+            for type_id in sorted(set(found) | set(identified))]
+    table(["type", "real name", "found", "used", "identified by"], rows)
+    print(f"Cursed items put on: {', '.join(cursed) if cursed else 'none'}\n")
 
 
 def derive(categories, match):

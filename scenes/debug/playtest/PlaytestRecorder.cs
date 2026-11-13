@@ -27,6 +27,8 @@ public partial class PlaytestRecorder : Node
 
 	private string _path;
 	private Level _startLevel;
+	/// <summary>The run in play, so the log can say which item types the player had identified.</summary>
+	private RunState _run;
 	private CombatTraceRecorder _trace;
 	private Player _hero;
 
@@ -108,6 +110,7 @@ public partial class PlaytestRecorder : Node
 
 	private void OnLevelLoaded(Level level)
 	{
+		_run = level.Run;
 		var monsters = new List<Dictionary<string, object>>();
 		int nests = 0;
 		foreach (var spawn in level.MapGenerator.EnemySpawnPoints)
@@ -141,8 +144,8 @@ public partial class PlaytestRecorder : Node
 	private void OnItemDropped(Player player, Item item, int quantity) => CombatTrace.Write(player, "item.dropped", ("item", Describe(item, quantity)));
 	private void OnItemDestroyed(Player player, Item item, int quantity) => CombatTrace.Write(player, "item.destroyed", ("item", Describe(item, quantity)));
 
-	private void OnItemIdentityRevealed(string typeId, string disguisedName, string trueName) =>
-		CombatTrace.Write(this, "item.identified", ("type_id", typeId), ("disguised", disguisedName), ("name", trueName));
+	private void OnItemIdentityRevealed(string typeId, string disguisedName, string trueName, string source) =>
+		CombatTrace.Write(this, "item.identified", ("type_id", typeId), ("disguised", disguisedName), ("name", trueName), ("by", source));
 
 	private void OnXpRewarded(int xp)
 	{
@@ -169,12 +172,17 @@ public partial class PlaytestRecorder : Node
 			("pack", inventory?.Items.Where(slot => slot?.Item != null).Select(slot => Describe(slot.Item, slot.Quantity)).ToList()));
 	}
 
-	/// <summary>An item as the log names it: its definition, kind, identity, tier and quality.</summary>
-	private static Dictionary<string, object> Describe(Item item, int quantity) => new()
+	/// <summary>
+	/// An item as the log names it: its definition, real name, kind, identity and whether the player knew that identity
+	/// at the time, and for equipment its tier, quality and whether it is cursed.
+	/// </summary>
+	private Dictionary<string, object> Describe(Item item, int quantity) => new()
 	{
 		["definition"] = string.IsNullOrEmpty(item.SourceDefinitionPath) ? item.ResourcePath : item.SourceDefinitionPath,
 		["name"] = item.Name, ["kind"] = item.GetType().Name, ["quantity"] = quantity,
 		["type_id"] = (item as IIdentifiable)?.TypeId, ["form"] = (item as IIdentifiable)?.AppearanceForm,
+		["identified"] = item is IIdentifiable { HasIdentity: true } identifiable ? _run?.Identification.IsIdentified(identifiable) : null,
 		["tier"] = (item as EquipableItem)?.Tier, ["quality"] = (item as EquipableItem)?.Quality.ToString(),
+		["cursed"] = (item as EquipableItem)?.IsCursed,
 	};
 }
