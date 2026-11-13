@@ -35,8 +35,10 @@ public partial class RealmEncounterFactory : MobFactory
 	public float FloorBudget(uint depth) => ThreatProfile.FloorBudget(depth, FloorIndex(depth) == GatekeeperFloorIndex);
 
 	/// <summary>What <paramref name="entry"/>'s pack spends of a floor budget at <paramref name="depth"/>.</summary>
-	public float Cost(MobSpawnEntry entry, uint depth) =>
-		ThreatProfile.PackCost(entry.Members.Select(path => DefinitionOf(Load(path)).ThreatLevel).ToArray(), depth);
+	public float Cost(MobSpawnEntry entry, uint depth) => Cost(entry, depth, []);
+
+	private float Cost(MobSpawnEntry entry, uint depth, Dictionary<string, PackedScene> scenes) =>
+		ThreatProfile.PackCost(entry.Members.Select(path => DefinitionOf(Scene(path, scenes)).ThreatLevel).ToArray(), depth);
 
 	/// <summary>Every realm floor has a plan, so its level runs the realm's encounter controller; floors outside defer to the fallback.</summary>
 	public override EncounterPlan PlanEncounters(uint depth)
@@ -52,17 +54,18 @@ public partial class RealmEncounterFactory : MobFactory
 	public override PackedScene CreateEnemy(uint depth, RandomNumberGenerator rng)
 	{
 		if (!ContainsDepth(depth)) return Fallback?.CreateEnemy(depth, rng);
-		RequireValidPool(depth);
-		var entry = Pick(Costs(depth), float.PositiveInfinity, rng).Entry;
-		return entry == null ? null : Load(entry.Members[rng.RandiRange(0, entry.Members.Length - 1)]);
+		var scenes = RequireValidPool(depth);
+		// Every pack is affordable on an unlimited budget, so only the weights decide.
+		var entry = Pick(Eligible(depth).Select(e => (e, 0f)).ToArray(), float.PositiveInfinity, rng).Entry;
+		return entry == null ? null : Scene(entry.Members[rng.RandiRange(0, entry.Members.Length - 1)], scenes);
 	}
 
 	/// <summary>Spend the floor's budget on packs, filtering unaffordable entries before each weighted draw.</summary>
 	public override List<PackedScene[]> CreatePacks(uint depth, RandomNumberGenerator rng)
 	{
 		if (!ContainsDepth(depth)) return Fallback?.CreatePacks(depth, rng) ?? [];
-		RequireValidPool(depth);
-		var costs = Costs(depth);
+		var scenes = RequireValidPool(depth);
+		var costs = Costs(depth, scenes);
 		var result = new List<PackedScene[]>();
 		float remaining = FloorBudget(depth);
 		int monsters = 0;
@@ -70,7 +73,7 @@ public partial class RealmEncounterFactory : MobFactory
 		{
 			var (entry, cost) = Pick(costs, remaining, rng);
 			if (entry == null) break;
-			result.Add(entry.Members.Select(Load).ToArray());
+			result.Add(entry.Members.Select(path => Scene(path, scenes)).ToArray());
 			monsters += entry.Members.Length;
 			remaining -= cost;
 		}
@@ -81,7 +84,10 @@ public partial class RealmEncounterFactory : MobFactory
 	public const int MaximumMonsters = 32;
 
 	/// <summary>Check authoring before the first random draw; invalid pools do not silently lose encounters.</summary>
-	public string[] ValidatePool(uint depth)
+	public string[] ValidatePool(uint depth) => ValidatePool(depth, []);
+
+	/// <summary>Validates the pool, loading each member scene once into <paramref name="scenes"/> for the rest of the call.</summary>
+	private string[] ValidatePool(uint depth, Dictionary<string, PackedScene> scenes)
 	{
 		var errors = new List<string>();
 		if (!ContainsDepth(depth)) return errors.ToArray();
@@ -103,26 +109,31 @@ public partial class RealmEncounterFactory : MobFactory
 					errors.Add($"Missing monster scene: {path}");
 					continue;
 				}
-				errors.AddRange(MonsterSceneValidator.ValidateScene(Load(path), out string id).Select(error => $"{path}: {error}"));
+				errors.AddRange(MonsterSceneValidator.ValidateScene(Scene(path, scenes), out string id).Select(error => $"{path}: {error}"));
 				if (ids.TryGetValue(id, out string previous) && previous != path) errors.Add($"Duplicate monster ID '{id}': {previous} and {path}");
 				ids[id] = path;
 			}
 		}
-		if (errors.Count == 0 && FloorBudget(depth) > 0 && !Costs(depth).Any(pair => pair.Cost <= FloorBudget(depth)))
+		if (errors.Count == 0 && FloorBudget(depth) > 0 && !Costs(depth, scenes).Any(pair => pair.Cost <= FloorBudget(depth)))
 			errors.Add($"Depth {depth} has no affordable eligible pack.");
 		return errors.ToArray();
 	}
 
-	private void RequireValidPool(uint depth)
+	/// <summary>Validates the pool and returns its member scenes, loaded once for this call.</summary>
+	private Dictionary<string, PackedScene> RequireValidPool(uint depth)
 	{
-		var errors = ValidatePool(depth);
+		var scenes = new Dictionary<string, PackedScene>();
+		var errors = ValidatePool(depth, scenes);
 		if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
+		return scenes;
 	}
 
-	/// <summary>The cost of every entry that may spawn at <paramref name="depth"/>, in authored order.</summary>
-	private (MobSpawnEntry Entry, float Cost)[] Costs(uint depth) => Entries
-		.Where(e => e != null && e.EligibleAt(depth) && e.Weight > 0 && e.Members is { Length: > 0 })
-		.Select(e => (e, Cost(e, depth))).ToArray();
+	/// <summary>Every entry that may spawn at <paramref name="depth"/>, in authored order.</summary>
+	private IEnumerable<MobSpawnEntry> Eligible(uint depth) =>
+		Entries.Where(e => e != null && e.EligibleAt(depth) && e.Weight > 0 && e.Members is { Length: > 0 });
+
+	private (MobSpawnEntry Entry, float Cost)[] Costs(uint depth, Dictionary<string, PackedScene> scenes) =>
+		Eligible(depth).Select(e => (e, Cost(e, depth, scenes))).ToArray();
 
 	private static (MobSpawnEntry Entry, float Cost) Pick((MobSpawnEntry Entry, float Cost)[] costs, float budget, RandomNumberGenerator rng)
 	{
@@ -144,6 +155,14 @@ public partial class RealmEncounterFactory : MobFactory
 		throw new InvalidOperationException($"{scene.ResourcePath}: the root saves no MonsterDefinition.");
 	}
 
-	private static PackedScene Load(string path) => ResourceLoader.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore)
-		?? throw new InvalidOperationException($"Missing encounter scene: {path}");
+	/// <summary>
+	/// A member scene, loaded on first use within one call and shared after it, so a floor loads each kind of monster once.
+	/// </summary>
+	private static PackedScene Scene(string path, Dictionary<string, PackedScene> scenes)
+	{
+		if (!scenes.TryGetValue(path, out var scene))
+			scenes[path] = scene = ResourceLoader.Load<PackedScene>(path, cacheMode: ResourceLoader.CacheMode.Ignore)
+				?? throw new InvalidOperationException($"Missing encounter scene: {path}");
+		return scene;
+	}
 }

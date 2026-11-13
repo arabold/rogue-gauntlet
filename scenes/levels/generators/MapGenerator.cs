@@ -476,7 +476,9 @@ public partial class MapGenerator : Node3D
 	}
 
 	/// <summary>Pack members stand within this distance of their pack's first member.</summary>
-	private const float PackRadius = 3.5f;
+	internal const float PackRadius = 3.5f;
+	/// <summary>Nests a floor with a nest plan places, each in place of one pack.</summary>
+	internal const int NestsPerFloor = 2;
 	/// <summary>Distance between members of one pack.</summary>
 	private const float PackSpacing = 1.3f;
 
@@ -510,7 +512,7 @@ public partial class MapGenerator : Node3D
 			return;
 		}
 
-		int nests = plan?.Nest == null ? 0 : 2;
+		int nests = plan?.Nest == null ? 0 : NestsPerFloor;
 		for (int p = first; p < packs.Count; p++)
 		{
 			if (!TryPickEnemySpawnPoint(candidates, spawnPoints, out var anchor))

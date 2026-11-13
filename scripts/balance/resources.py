@@ -141,9 +141,6 @@ class TextResource:
         """A property's text as written in the file, or None when it is omitted."""
         return section.props[key][2].strip() if key in section.props else None
 
-    def has(self, section: Section, key: str) -> bool:
-        return key in section.props
-
     def get(self, section: Section, key: str, default=None):
         """A property's value, else the default its C# script declares, else `default`."""
         if key in section.props:
@@ -230,8 +227,10 @@ _LOADED: dict[Path, TextResource] = {}
 
 def load(path: Path | str) -> TextResource:
     """Shared instance per file, so every edit to one file lands in one buffer."""
-    resource = TextResource(path)
-    return _LOADED.setdefault(resource.path, resource)
+    key = res_path(path) if str(path).startswith("res://") else Path(path)
+    if key not in _LOADED:
+        _LOADED[key] = TextResource(key)
+    return _LOADED[key]
 
 
 def save_all() -> list[Path]:
@@ -255,7 +254,27 @@ def _class_files() -> dict[str, Path]:
     return files
 
 
+@cache
+def csharp_enum(name: str) -> list[str]:
+    """The members of the C# enum `name` in declaration order, which is how Godot stores enum properties."""
+    pattern = re.compile(rf"enum\s+{re.escape(name)}\s*\{{(.*?)\}}", re.S)
+    for path in sorted(ROOT.glob("scenes/**/*.cs")) + sorted(ROOT.glob("scripts/**/*.cs")):
+        match = pattern.search(path.read_text())
+        if match:
+            lines = (line.split("//")[0].strip().rstrip(",") for line in match.group(1).splitlines())
+            return [line.split("=")[0].strip() for line in lines if line]
+    raise KeyError(f"no C# enum {name}")
+
+
 _ZERO = {"float": 0.0, "double": 0.0, "int": 0, "uint": 0, "bool": False}
+_ENUM_MEMBER = re.compile(r"(\w+)\.(\w+)")
+
+
+def _is_enum(type_: str) -> bool:
+    try:
+        return bool(csharp_enum(type_))
+    except KeyError:
+        return False
 
 
 @cache
@@ -272,8 +291,11 @@ def script_default(script_res: str, key: str):
         match = re.search(rf"public\s+([\w.<>\[\]?]+)\s+{re.escape(key)}\s*\{{[^}}]*\}}\s*(?:=\s*([^;]+))?", source)
         if match:
             type_, raw = match.group(1), (match.group(2) or "").strip()
+            enum = _ENUM_MEMBER.fullmatch(raw)
+            if enum and enum.group(1) == type_:  # an enum default, stored by Godot as the member's position
+                return csharp_enum(type_).index(enum.group(2))
             if not raw:
-                return _ZERO.get(type_)
+                return _ZERO.get(type_, 0 if _is_enum(type_) else None)
             return parse_value(raw[:-1] if re.fullmatch(r"-?[\d.]+[fF]", raw) else raw)
         base = _CLASS.search(source)
         path = _class_files().get(base.group(2)) if base else None

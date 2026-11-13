@@ -79,16 +79,25 @@ public class GarrisonRoomPoolTest
 			// Every pack's members are placed, and stand together in one room around the pack's first member.
 			using var encounterRng = GenerationRandom.Create(generator.Seed, GenerationRandom.Monsters);
 			var packs = encounters.CreatePacks(depth, encounterRng);
-			int replaced = depth == 3 ? 1 : depth == 2 ? 2 : 0;
+			int floor = encounters.FloorIndex(depth);
+			int replaced = floor == RealmEncounterFactory.GatekeeperFloorIndex ? 1 : floor == RealmEncounterFactory.NestFloorIndex ? MapGenerator.NestsPerFloor : 0;
 			AssertInt(generator.EnemySpawnPoints.Count).IsEqual(replaced + packs.Skip(replaced).Sum(pack => pack.Length));
-			var ordinary = generator.EnemySpawnPoints.Where(spawn => spawn.PersistentId.Contains(":pack:") && !spawn.PersistentId.EndsWith(":nest"));
+			var ordinary = generator.EnemySpawnPoints.Where(spawn => spawn.PersistentId.Contains(":pack:") && !generator.Floor.IsNest(spawn));
 			foreach (var pack in ordinary.GroupBy(spawn => spawn.PersistentId[..spawn.PersistentId.LastIndexOf(':')]))
 			{
 				Vector3 lead = pack.First().GlobalPosition;
-				AssertBool(pack.All(spawn => spawn.GlobalPosition.HorizontalDistanceTo(lead) <= 3.51f
+				AssertBool(pack.All(spawn => spawn.GlobalPosition.HorizontalDistanceTo(lead) <= MapGenerator.PackRadius + .01f
 					&& generator.Floor.RoomIdAt(spawn.GlobalPosition) == generator.Floor.RoomIdAt(lead))).OverrideFailureMessage(pack.Key).IsTrue();
 			}
-			AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.Scenes[0] == encounters.NestScene)).IsEqual(depth == 2 ? 2 : 0);
+			// Monsters keep the rules their pack's anchor keeps: off props and decoration, clear of the arrival and stairs.
+			// A nest is a prop itself, so its own tile counts as occupied once it stands there.
+			foreach (var spawn in generator.EnemySpawnPoints.Where(spawn => spawn != generator.Floor.GatekeeperSpawn && !generator.Floor.IsNest(spawn)))
+			{
+				Vector2I tile = generator.Floor.Map.WorldToTile(spawn.GlobalPosition);
+				AssertBool(generator.Floor.IsOccupied(tile.X, tile.Y) || generator.Floor.IsInSpawnClearance(spawn.GlobalPosition))
+					.OverrideFailureMessage($"seed={runSeed} {spawn.PersistentId}").IsFalse();
+			}
+			AssertInt(generator.EnemySpawnPoints.Count(generator.Floor.IsNest)).IsEqual(floor == RealmEncounterFactory.NestFloorIndex ? MapGenerator.NestsPerFloor : 0);
 			AssertBool(level.CanDescend).IsEqual(depth != 3);
 			if (depth == 3) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);
 			AssertBool(generator.EnemySpawnPoints.All(spawn => generator.Floor.IsReachable(spawn.GlobalPosition))).IsTrue();

@@ -58,7 +58,7 @@ public partial class LootSupplyProbe : Node
 			Sample(totals, chest.LootTable?.Profile, depth, samples, chest.GetPath());
 		foreach (var spawn in level.MapGenerator.EnemySpawnPoints)
 		{
-			if (spawn.PersistentId.EndsWith(":nest") || spawn.Scenes.Count == 0) continue;
+			if (spawn.Scenes.Count == 0 || level.Floor.IsNest(spawn)) continue;
 			var definition = RealmEncounterFactory.DefinitionOf(spawn.Scenes[0]);
 			Sample(totals, definition?.Loot, depth, samples, spawn.PersistentId);
 			totals["monsters"] = totals.GetValueOrDefault("monsters") + 1;
@@ -70,7 +70,7 @@ public partial class LootSupplyProbe : Node
 		if (profile == null) return;
 		for (int i = 0; i < samples; i++)
 		{
-			using var rng = new RandomNumberGenerator { Seed = (ulong)GD.Hash($"{sourceId}:{i}") };
+			using var rng = GenerationRandom.Create((ulong)i, GenerationRandom.Loot, sourceId);
 			foreach (var record in LootTableComponent.GenerateOutcome(profile, depth, rng, $"{sourceId}:{i}"))
 				Add(totals, record.Item, record.Quantity / (double)samples);
 		}

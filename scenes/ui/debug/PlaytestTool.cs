@@ -11,7 +11,7 @@ public partial class PlaytestTool : DebugTool
 	private static bool _commandLineHandled;
 	private int _copyPathId;
 
-	public override bool IsAvailable => Menu?.World is Level;
+	public override bool IsAvailable => Menu?.Level != null;
 
 	/// <summary>Whether a playtest is being recorded.</summary>
 	public bool Recording
@@ -20,7 +20,7 @@ public partial class PlaytestTool : DebugTool
 		set
 		{
 			if (value == Recording) return;
-			if (value) PlaytestRecorder.Start(GetTree());
+			if (value) PlaytestRecorder.Start(GetTree(), Menu.Level);
 			else PlaytestRecorder.Stop();
 		}
 	}
@@ -33,7 +33,7 @@ public partial class PlaytestTool : DebugTool
 		foreach (string arg in OS.GetCmdlineUserArgs())
 		{
 			if (arg == "--playtest-log" || arg.StartsWith("--playtest-log="))
-				PlaytestRecorder.Start(GetTree(), arg.Contains('=') ? arg.Split('=', 2)[1] : "");
+				PlaytestRecorder.Start(GetTree(), Menu?.Level, arg.Contains('=') ? arg.Split('=', 2)[1] : "");
 		}
 	}
 

@@ -1,9 +1,19 @@
 using Godot;
 
+/// <summary>How much a food heals, sized by the balance model: fruit and drinks are small, bread and cheese medium, meat large.</summary>
+public enum FoodPortion
+{
+	Small,
+	Medium,
+	Large,
+}
+
 [Tool]
 [GlobalClass]
 public partial class FoodItem : ConsumableItem
 {
+	/// <summary>Which of the balance model's food heals this restores; <c>simulate.py derive</c> writes its healing from it.</summary>
+	[Export] public FoodPortion Portion { get; set => SetValue(ref field, value); }
 	[Export] public float PoisonChance { get; set => SetValue(ref field, value); } = 0.2f;
 	[Export] public PoisonBuff PoisonEffect { get; set => SetValue(ref field, value); }
 

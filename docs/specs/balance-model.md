@@ -1,8 +1,8 @@
 # Balance model
 
-**Status: plan.** This defines where the game's balance is going and how every number is derived. Leveling, body
-armor, helmets and threat-based XP do not exist yet, and today's authored values were made in isolation; the
-[implementation plan](#implementation-plan) replaces them with values derived here. The simulator in
+**Status: realm 1 implemented.** This defines where the game's balance is going and how every number is derived.
+Realm 1 follows it; the [implementation plan](#implementation-plan) lists what the game already takes from it and the
+remaining steps. The simulator in
 [`scripts/balance/`](../../scripts/balance/) implements these formulas, and its
 [`params.py`](../../scripts/balance/params.py) holds every number. This document explains them; when a number here
 and the file disagree, the file wins.
@@ -66,7 +66,7 @@ class follows the same curves:
 - **Supplies:** healing potions heal fixed points, so a size is worth less as the hero grows and the next size takes
   over: small 30 (60% of a level 1 hero, dropping until depth 12), medium 85 (from depth 9), large 200 (from depth
   17), equally likely while eligible. The hero finds 0.9 per floor at depth 1, rising to 2.0 at depth 24, as measured
-  with `supply`. Food heals 3 (fruit and drinks), 5 (bread and cheese) or 8 (meat), about one per floor; three health
+  with `supply`. Food heals 3, 5 or 8 by its portion (small: fruit and drinks; medium: bread and cheese; large: meat), about one per floor; three health
   fountains per run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
 
 ### Gear
@@ -112,7 +112,7 @@ Archetypes are multiples of the standard monster at the same depth:
 | Archetype | Health | Armor (share of hero hit) | Damage | Attack every | Notes | Threat level vs depth |
 | --- | --- | --- | --- | --- | --- | --- |
 | Fodder | 0.55 | 0 | 0.65 | 2.0 s | fast | −4 |
-| Swarmer | 0.45 | 0 | 0.5 | 1.9 s | 35% venom | −5 |
+| Swarmer | 0.45 | 0 | 0.7 | 1.9 s | 35% venom worth 1.2 bites, passing armor | −5 |
 | Standard | 1 | 0.10 | 1 | 2.2 s | | 0 |
 | Brute | 1.7 | 0.35 | 1.3 | 2.5 s | guards 25% | +3 to +4 |
 | Shooter | 0.8 | 0.05 | 0.95 | 3.2 s | ranged | −1 |
@@ -234,14 +234,15 @@ uv run scripts/balance/simulate.py derive --match skeleton     # write the targe
   from `Tier`. A combo's average damage and duration scales count toward the hit and the seconds per attack, so
   `derive` writes the base damage range and `PerformDuration` that reproduce the kind's hit and rhythm. Wand and
   staff missiles get the kind's dart share.
-- **Armor** gets its slot from `ValidSlots` and its target from `Tier` (Normal quality, medium weight).
+- **Armor** gets its slot from `ValidSlots`, its weight from `Weight` and its target from `Tier` (Normal quality); a
+  body piece also gets its weight's `SpeedModifier`.
 - **Jewelry** gets its stat from its type (`ring.protection`) and its values from `Tier`. Each type with points has
   one definition per tier (`ring_protection_1.tres` to `_5`); percentage types get tier 0.
-- **Supplies:** healing potions get their size's points and food its kind's (meat, bread and cheese, or light), spread
-  over their buff's ticks. Every potion pool entry gets its size's depth window, and healing potions its weight.
+- **Supplies:** healing potions (`TypeId` `potion.healing`) get the points of their size (`AppearanceForm`) and food
+  those of its `Portion`, spread over their buff's ticks. Every potion pool entry gets its size's depth window, and healing potions its weight.
 - **Classes** match the model's classes by `Id`. `derive` writes base attributes, and the hero sheet and stat
-  profiles that reproduce the model's level-1 health, mana and crit chance with the game's current formulas. Damage
-  from attributes waits for the rule change.
+  profiles that reproduce the model's level-1 health, mana and crit chance, its attribute growth and the percentage
+  each attribute point adds.
 
 All items of one kind and tier get the same numbers, so variety within a tier has to come from affixes, guards,
 weight or attack patterns.
@@ -258,8 +259,12 @@ The model can be no better than its skill tiers. Measure them before tuning numb
   uv run scripts/balance/simulate.py calibrate /tmp/me.jsonl
   ```
 
-  `calibrate` reports the share of monster attacks the player avoided per kind (melee, ranged, homing) and the share
-  of the player's own attacks that landed, each with the closest `SKILL` tier. Move the tiers toward the measured
+  `calibrate` reports the share of monster attacks the player avoided per kind (melee, ranged, homing, area) and the
+  share of the player's own attacks that landed, each with the closest `SKILL` tier. A spell hits under its own
+  execution, so its hits count for the caster's latest cast. It also reports the share of the hero's hits and damage
+  that came from behind or as crits, which the model does not count yet, and each archetype's uptime: attacks per
+  second while fighting against the model's rhythm, from a monster's first decision or attack to its death. Uptime
+  below 100% means the hero kept attacks from starting, which the model also does not count yet. Move the tiers toward the measured
   values, then retune the targets with `survival`.
 - Check time to kill and damage taken against the standard monster and the gatekeeper in the arena. They should
   match the simulator's duel numbers within about 20%. If not, fix the model's timing (attack cycles, engagement

@@ -437,7 +437,7 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		ActionGate?.ReportPhase(_actionLease, Phase);
 		bool armored = _currentAttack.IsHyperArmoredAt(_elapsedTime / (float)_preparedAttack.Duration);
-		ActionGate?.ReportHyperArmor(_actionLease, armored, armored && !_currentAttack.Interruptible);
+		ActionGate?.ReportHyperArmor(_actionLease, armored, !_currentAttack.Interruptible);
 	}
 
 	private void ApplyMeleeContact(Node3D target)

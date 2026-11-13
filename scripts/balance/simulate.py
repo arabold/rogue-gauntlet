@@ -3,25 +3,18 @@
 # requires-python = ">=3.12"
 # ///
 """
-Rogue Gauntlet balance simulator: target tables, class parity and survival odds from the balance model.
+Rogue Gauntlet balance simulator: target tables, class parity and survival odds from the balance model, checks and
+derivation of the game's content, and reports on loot supply, traces and playtests.
 
-    uv run scripts/balance/simulate.py                 # progression overview
-    uv run scripts/balance/simulate.py monsters|gear|classes|xp
-    uv run scripts/balance/simulate.py survival [--runs 300]  # arrival odds per skill and class vs targets
-    uv run scripts/balance/simulate.py parity [--floors 200]  # realm, floor and gatekeeper cost per class
-    uv run scripts/balance/simulate.py weapon --tier 2 --damage 6-12 --cycle 0.5 [--hands 2]
-    uv run scripts/balance/simulate.py armor --tier 3 --slot body --armor 9 [--weight heavy]
-    uv run scripts/balance/simulate.py monster --depth 4 --hp 40 --armor 1 --damage 6-10 --cycle 2.2 [--kind ranged]
-    uv run scripts/balance/simulate.py audit [--only monsters,weapons,armor,classes] [--match skeleton]
-    uv run scripts/balance/simulate.py derive [--only ...] [--match ...]   # writes the targets into the .tres files
-    uv run scripts/balance/simulate.py supply [--depths 1-3] [--seeds 12]  # healing, food and gear per floor in the game
-    uv run scripts/balance/simulate.py calibrate TRACE.jsonl [...]          # skill measured from combat-arena traces
+    uv run scripts/balance/simulate.py --help
 
-See docs/specs/balance-model.md for the model; edit params.py to tune it.
+docs/specs/balance-model.md describes the model and every command; edit params.py to tune it.
 """
 from __future__ import annotations
 
 import argparse
+import itertools
+import json
 import math
 import os
 import random
@@ -64,11 +57,11 @@ def report_progression():
     for d in range(1, P.DEPTHS + 1):
         h, m = M.hero("reference", d), M.monster("standard", d)
         per_hit = M.net_hit(*M.spread_range(m.hit, P.STANDARD["spread"]), h.armor)
-        rows.append([d, "boss" if d % P.REALM_SIZE == 0 else "", levels[d], f"{h.hp:.0f}", f"{h.armor:.1f}",
+        rows.append([d, "boss" if M.is_gatekeeper_floor(d) else "", levels[d], f"{h.hp:.0f}", f"{h.armor:.1f}",
                      rng_range(h.hit, P.GEAR["weapon_spread"]), f"{m.hp:.0f}", f"{m.armor:.1f}",
                      rng_range(m.hit, P.STANDARD["spread"]), f"{h.hp / per_hit:.1f}",
                      f"{M.duel_cost(m, h, skill):.1%}", f"{M.lerp(P.FLOOR['budget'], d):.1f}",
-                     f"{M.expected_floor_xp(d):.0f}"])
+                     f"{cumulative[d] - cumulative.get(d - 1, 0.0):.0f}"])
     table(["depth", "", "level", "hero hp", "armor", "hit", "mon hp", "armor", "mon hit", "hits to die",
            "duel cost", "budget", "floor xp"], rows)
     print(f"A fixed monster gets {1 - 1 / M.cost_growth():.1%} cheaper per depth as the expected hero grows.")
@@ -90,9 +83,8 @@ def report_monsters():
 def report_gear():
     print("Authoring targets per tier: Normal quality at the depth the tier is on curve\n")
     rows = []
-    for t, intro in enumerate(P.GEAR["tier_intro"], 1):
-        d = intro + P.GEAR["tier_lag"]
-        ref = P.CLASSES["reference"]
+    for t, (first, last) in enumerate(C.tier_bands(), 1):
+        d = M.tier_depth(t)
         weapons = []
         for kind, w in P.WEAPONS.items():
             mean = M.reference_weapon_hit(d) * w["hit"]
@@ -100,7 +92,7 @@ def report_gear():
         armor = [f"{slot}/{weight} {M.slot_armor(slot, weight, d, found=False):.1f}"
                  for slot in ("body", "helmet") for weight in P.GEAR["weight"]]
         armor.append(f"shield {M.slot_armor('shield', 'medium', d, found=False):.1f}")
-        rows.append([f"T{t}", f"{intro}-{min(P.DEPTHS, intro + P.GEAR['tier_band'] - 1)}", d, "; ".join(weapons)])
+        rows.append([f"T{t}", f"{first}-{last or P.DEPTHS}", d, "; ".join(weapons)])
         rows.append(["", "", "", "; ".join(armor)])
         jewelry = [f"{stat} " + "/".join("-".join(f"{v:g}" for v in M.jewelry_values(stat, slot, t)) for slot in ("ring", "amulet"))
                    for stat in ("attribute", "armor", "health", "damage", "frailty")]
@@ -108,7 +100,7 @@ def report_gear():
     table(["tier", "drops", "on curve", "values"], rows)
     s = P.SUPPLY
     potions = ", ".join(f"{size} {M.potion_points(size)} (depths {v['intro']}-{v['last'] or ''})" for size, v in s["potion_sizes"].items())
-    food = ", ".join(f"{kind} {M.food_points(kind)}" for kind in s["food_kinds"])
+    food = ", ".join(f"{portion} {M.food_points(portion)}" for portion in s["food_portions"])
     print(f"\nHealing potions heal {potions}. Food heals {food}.")
 
 
@@ -154,27 +146,23 @@ def monster_at(archetype, depth):
     return M.monster(archetype, depth)
 
 
-def pack_cost(pack, depth):
-    return M.group_factor(len(pack["members"])) * sum(member_cost(a, depth) for a in pack["members"])
-
-
 @cache
-def member_cost(archetype, depth):
-    return M.cost_units(monster_at(archetype, depth), depth)
+def floor_packs(depth):
+    """The packs eligible at `depth` with their cumulative weights, costs and members, drawn from on every floor."""
+    eligible = M.eligible_packs(depth)
+    cumulative = list(itertools.accumulate(p["weight"] for p in eligible))
+    packs = [(M.pack_units(p, depth), [monster_at(a, depth) for a in p["members"]]) for p in eligible]
+    return packs, cumulative
 
 
 def compose_floor(depth, rng):
-    budget = M.lerp(P.FLOOR["budget"], depth)
-    if depth % P.REALM_SIZE == 0:
-        budget *= P.FLOOR["boss_budget_share"]
-    eligible = M.eligible_packs(depth)
-    weights = [p["weight"] for p in eligible]
+    budget = M.floor_budget(depth)
+    eligible, cumulative = floor_packs(depth)
     packs, misses = [], 0
     while misses < 4:
-        pack = rng.choices(eligible, weights)[0]
-        cost = pack_cost(pack, depth)
+        cost, members = rng.choices(eligible, cum_weights=cumulative)[0]
         if cost <= budget + 0.25:
-            packs.append([monster_at(a, depth) for a in pack["members"]])
+            packs.append(members)
             budget -= cost
         else:
             misses += 1
@@ -204,7 +192,18 @@ class Live:
         self.approached = h.ranged or m.kind == "melee"
         per_dart = m.hit / m.darts
         self.lo, self.hi = M.spread_range(per_dart, P.STANDARD["spread"])
-        self.dps = M.monster_dps(m, h, skill)
+        self.dps = monster_dps_at(m, h, skill)
+
+
+def monster_dps_at(m, h, skill):
+    """`M.monster_dps` for a cached monster and hero; both depend only on their names and depths."""
+    key = (m.archetype, m.depth, h.name, h.depth, id(skill))
+    if key not in _MONSTER_DPS:
+        _MONSTER_DPS[key] = M.monster_dps(m, h, skill)
+    return _MONSTER_DPS[key]
+
+
+_MONSTER_DPS = {}
 
 
 def phase_multiplier(u: Live):
@@ -222,7 +221,8 @@ def fight(h, state, members, skill, rng):
     w = P.WEAPONS[h.weapon]
     spread = P.GEAR["weapon_spread"]
     eff = M.homing_efficiency(skill) if w.get("homing") else skill["efficiency"]
-    spell = P.SPELLS.get(P.CLASSES[h.name].get("spell", ""), None)
+    spell = h.spell
+    avoid = {kind: M.avoid(h, kind, skill) for kind in skill["avoid"]}
     mana = state.setdefault("mana", h.mana)
     t, last, hero_next = 0.0, 0.0, 0.0
     melee_cap = P.ENGAGEMENT["melee_cap"]
@@ -266,7 +266,7 @@ def fight(h, state, members, skill, rng):
                 extra = min(1.0, (spell["targets"] - 1) / len(others)) if others else 0
                 for u in [target] + [u for u in others if rng.random() < extra]:
                     if rng.random() < eff:
-                        hit_unit(u, h.spell_hit * spell["scale"], P.MAGIC_ARMOR_SHARE)
+                        hit_unit(u, h.hit * spell["scale"], P.MAGIC_ARMOR_SHARE)
                 hero_next = t + spell["cast"]
                 continue
             opening = h.opener_hit and not any(u.m.kind == "melee" and t >= u.engage for u in alive)
@@ -299,7 +299,7 @@ def fight(h, state, members, skill, rng):
                     u.support_next = t + u.m.support["cycle"]
                     continue
             kind = "area" if u.m.area and rng.random() < u.m.area else u.m.kind
-            if rng.random() < M.avoid(h, kind, skill):
+            if rng.random() < avoid[kind]:
                 continue
             mult = phase_multiplier(u)
             for _ in range(u.m.darts):
@@ -331,7 +331,7 @@ def run(name, skill_name, rng):
         if d in P.SUPPLY["fountain_depths"]:
             state["hp"] = h.hp
         packs = compose_floor(d, rng)
-        if d % P.REALM_SIZE == 0:
+        if M.is_gatekeeper_floor(d):
             packs.append([monster_at("boss", d)])
         for pack in packs:
             while state["hp"] < 0.6 * h.hp and food > 0:
@@ -348,29 +348,30 @@ def rest(h, state):
     state["mana"] = min(h.mana, state.get("mana", h.mana) + h.mana_regen * P.ENGAGEMENT["rest"])
 
 
+def health_lost(h, state, pack, skill, rng):
+    """Share of max health one pack takes from a hero who cannot die and drinks nothing; keeps `state`'s mana."""
+    state["hp"] = 1e12
+    fight(h, state, pack, skill, rng)
+    return (1e12 - state["hp"]) / h.hp
+
+
 def floor_cost(name, depth, skill, rng, floors):
-    """Mean share of max health one floor's packs take from a hero who cannot die and drinks nothing."""
+    """Mean share of max health one floor's packs take, resting between packs."""
     h = hero_at(name, depth)
+    state = {"potions": [], "mana": h.mana}
     total = 0.0
-    state = {"hp": 1e12, "potions": [], "mana": h.mana}
     for _ in range(floors):
         for pack in compose_floor(depth, rng):
-            state["hp"] = 1e12
             rest(h, state)
-            fight(h, state, pack, skill, rng)
-            total += (1e12 - state["hp"]) / h.hp
+            total += health_lost(h, state, pack, skill, rng)
     return total / floors
 
 
 def boss_cost(name, depth, skill, rng, fights):
-    """Mean share of max health a gatekeeper takes from a hero who arrives with full mana and cannot die."""
+    """Mean share of max health a gatekeeper takes from a hero who arrives with full mana."""
     h = hero_at(name, depth)
-    total = 0.0
-    for _ in range(fights):
-        state = {"hp": 1e12, "potions": [], "mana": h.mana}
-        fight(h, state, [monster_at("boss", depth)], skill, rng)
-        total += (1e12 - state["hp"]) / h.hp
-    return total / fights
+    boss = [monster_at("boss", depth)]
+    return sum(health_lost(h, {"potions": [], "mana": h.mana}, boss, skill, rng) for _ in range(fights)) / fights
 
 
 def parity_table(costs, tolerance):
@@ -389,7 +390,7 @@ def report_parity(floors, seed):
     rng = random.Random(seed)
     skill = P.SKILL[P.REFERENCE_SKILL]
     names = ["reference"] + CLASS_NAMES
-    depths = [d for d in range(1, P.DEPTHS + 1) if d % P.REALM_SIZE == 0]
+    depths = [d for d in range(1, P.DEPTHS + 1) if M.is_gatekeeper_floor(d)]
     floor = {d: {n: floor_cost(n, d, skill, rng, floors) for n in names} for d in depths}
     boss = {d: {n: boss_cost(n, d, skill, rng, floors) for n in names} for d in depths}
     realm = {d: {n: P.REALM_SIZE * floor[d][n] + boss[d][n] for n in names} for d in depths}
@@ -435,7 +436,7 @@ def parse_range(text):
 
 
 def evaluate_weapon(args):
-    d = P.GEAR["tier_intro"][args.tier - 1] + P.GEAR["tier_lag"]
+    d = M.tier_depth(args.tier)
     skill = P.SKILL[P.REFERENCE_SKILL]
     m = M.monster("standard", d)
     lo, hi = parse_range(args.damage)
@@ -458,7 +459,7 @@ def net_dps(lo, hi, cycle, m):
 
 
 def evaluate_armor(args):
-    d = P.GEAR["tier_intro"][args.tier - 1] + P.GEAR["tier_lag"]
+    d = M.tier_depth(args.tier)
     target = M.slot_armor(args.slot, args.weight, d, found=False)
     print(f"T{args.tier} {args.weight} {args.slot} on curve at depth {d}: target {target:.1f} armor; "
           f"this piece has {args.armor:g} ({args.armor / target:.0%} of target)")
@@ -507,7 +508,6 @@ GODOT = R.ROOT / ".agents/skills/godot-mcp/scripts/godot.sh"
 
 def report_supply(depths, seeds, samples):
     """Runs the game's loot supply probe headless and compares healing, food and gear per floor with SUPPLY."""
-    import json
     import subprocess
     import tempfile
     out = Path(tempfile.mkdtemp()) / "supply.json"
@@ -521,50 +521,104 @@ def report_supply(depths, seeds, samples):
     for depth, items in sorted(report.items(), key=lambda pair: int(pair[0])):
         potions = {k.split(":")[1]: v for k, v in items.items() if k.startswith("potion.healing:")}
         heal = sum(v * M.potion_points(size) for size, v in potions.items()) / M.reference_hp(int(depth))
-        model_heal = M.healing_potions(int(depth)) * M.potion_heal(int(depth)) / M.reference_hp(int(depth))
         gear = ", ".join(f"{k.split(':')[1]} {v:.1f}" for k, v in sorted(items.items()) if k.startswith("gear:"))
         rows.append([depth, f"{items.get('monsters', 0):.1f}", f"{sum(potions.values()):.2f}", f"{M.healing_potions(int(depth)):.2f}",
-                     f"{heal:.0%}", f"{model_heal:.0%}", f"{items.get('food', 0):.2f}",
+                     f"{heal:.0%}", f"{M.healing_share(int(depth)):.0%}", f"{items.get('food', 0):.2f}",
                      f"{s['food']:.2f}", gear])
     table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
 
 
-def read_trace(path):
-    """Attacks of a combat-arena trace (`--combat-log`): who made each, its kind, and whether it landed."""
-    import json
-    attacks, parents, landed = {}, {}, set()
+SPELL_LINGER = 5.0  # seconds after a cast that its lingering area or spell can still hit and count for it
+
+
+def records(path):
+    """The events of a combat trace or playtest log, in order."""
     for line in Path(path).read_text().splitlines():
-        if not line.strip():
-            continue
-        record = json.loads(line.removeprefix("COMBAT "))
-        event, data, actor = record["event"], record["data"], record["actor"]
+        if line.strip():
+            yield json.loads(line.removeprefix("COMBAT "))
+
+
+def is_hero(actor: str) -> bool:
+    """Whether a node path belongs to the hero."""
+    return "/Player/" in actor + "/"
+
+
+def read_trace(path):
+    """
+    What a combat trace (`--combat-log`, or a playtest log) shows of skill: every attack with who made it, its kind and
+    whether it landed; the hero's hits with their zone and crit; and each monster's attacks over the time it fought.
+    """
+    attacks, parents, landed = {}, {}, set()
+    controllers, casts, spell_kinds = {}, {}, {}
+    hits, fighting, fights = [], {}, []
+
+    def engaged(monster, time):
+        return fighting.setdefault(monster, {"start": time, "end": time, "attacks": 0, "name": monster.rsplit("/", 1)[-1]})
+
+    for record in records(path):
+        event, data, actor, time = record["event"], record["data"], record["actor"], record["time"]
+        hero = is_hero(actor)
         if event == "attack.started":
             key = (data["execution_source"], data["execution"])
             style = str(data.get("style", ""))
-            # Casts fire homing missiles; a monster's "ranged" style shoots bolts; everything else is a melee swing.
+            # Casts fire homing missiles; a monster's "ranged" style shoots bolts; everything else is a melee swing
+            # until a released spell says otherwise.
             kind = "homing" if "cast" in style else "ranged" if style == "ranged" else "melee"
-            attacks[key] = {"hero": "/Player/" in actor + "/", "kind": kind}
+            attacks[key] = {"hero": hero, "kind": kind}
+            controllers[(actor, data["execution"])] = key
+            if not hero:
+                f = engaged(actor.rsplit("/", 1)[0], time)
+                f["attacks"] += 1
+                f["end"] = time
+        elif event == "attack.spell_released":
+            key = controllers.get((actor, data["execution"]))
+            if key:
+                attacks[key]["spell"] = data["spell"]
+                casts.setdefault(actor.rsplit("/", 1)[0], []).append((time, key))
+        elif event.startswith("ai.") and not hero:
+            engaged(actor, time)
+        elif event == "actor.died" and actor in fighting:
+            f = fighting.pop(actor)
+            fights.append(dict(f, end=time, name=data.get("monster", f["name"])))
         elif event == "projectile.spawned" and "parent_source" in data:
             parent = (data["parent_source"], data["parent_execution"])
             parents[(data["execution_source"], data["execution"])] = parent
             if parent in attacks and attacks[parent]["kind"] == "melee":
                 attacks[parent]["kind"] = "homing" if "Missile" in actor else "ranged"
         elif event == "damage.resolved" and data["outcome"] == "Damaged":
-            key = (data["execution_source"], data["execution"])
-            landed.add(parents.get(key, key))
-    return [dict(a, landed=key in landed) for key, a in attacks.items()]
+            key = parents.get((data["execution_source"], data["execution"]), (data["execution_source"], data["execution"]))
+            owner = data.get("owner", "")
+            if key not in attacks:
+                # A spell hits under its own execution: credit the caster's latest cast before the hit.
+                cast = max((c for c in casts.get(owner, []) if 0 <= time - c[0] <= SPELL_LINGER), default=None)
+                if cast:
+                    key = cast[1]
+                    spell_kinds[attacks[key]["spell"]] = "area" if data["delivery"] == "AreaImpact" else "homing"
+            landed.add(key)
+            if is_hero(owner) and not hero:
+                hits.append({"rear": data.get("zone") == "Rear", "critical": bool(data.get("critical")),
+                             "damage": data["damage"]})
+    for a in attacks.values():
+        if "spell" in a:  # a spell that never hit takes its kind from its other casts; monster spells are mostly areas
+            a["kind"] = spell_kinds.get(a["spell"], "area")
+    fights += fighting.values()
+    return {"attacks": [dict(a, landed=key in landed) for key, a in attacks.items()], "hits": hits, "fights": fights}
 
 
 def report_calibration(paths):
-    """Measured avoidance per attack kind and hero efficiency from traces, placed against the skill tiers."""
-    attacks = [a for path in paths for a in read_trace(path)]
+    """
+    Measured avoidance per attack kind, hero efficiency, rear hits and crits, and how often monsters attacked while
+    fighting, from traces, placed against the skill tiers and the model's attack rhythm.
+    """
+    traces = [read_trace(path) for path in paths]
+    attacks = [a for t in traces for a in t["attacks"]]
 
     def nearest(value, field, kind=None):
         tiers = {name: (s["avoid"][kind] if kind else s[field]) for name, s in P.SKILL.items()}
         return min(tiers, key=lambda name: abs(tiers[name] - value))
 
     rows = []
-    for kind in ("melee", "ranged", "homing"):
+    for kind in ("melee", "ranged", "homing", "area"):
         tried = [a for a in attacks if not a["hero"] and a["kind"] == kind]
         if tried:
             avoided = 1 - sum(a["landed"] for a in tried) / len(tried)
@@ -574,23 +628,45 @@ def report_calibration(paths):
         efficiency = sum(a["landed"] for a in swings) / len(swings)
         rows.append(["hero attacks landed", len(swings), f"{efficiency:.0%}", nearest(efficiency, "efficiency")])
     print(f"Calibration from {len(paths)} trace(s); compare with SKILL in params.py\n")
-    if rows:
-        table(["measure", "attacks", "share", "closest skill tier"], rows)
-    else:
+    if not rows:
         print("No attacks recorded.")
+        return
+    table(["measure", "attacks", "share", "closest skill tier"], rows)
+
+    hits = [h for t in traces for h in t["hits"]]
+    if hits:
+        total = sum(h["damage"] for h in hits) or 1
+        print(f"\nThe hero's {len(hits)} damaging hits (the model counts neither rear hits nor their bonus)\n")
+        table(["hits", "share of hits", "share of damage"],
+              [[name, f"{sum(h[name] for h in hits) / len(hits):.0%}",
+                f"{sum(h['damage'] for h in hits if h[name]) / total:.0%}"] for name in ("rear", "critical")])
+
+    archetypes = C.monster_archetypes()
+    by_archetype = {}
+    for f in (f for t in traces for f in t["fights"]):
+        archetype = archetypes.get(f["name"])
+        if archetype and f["end"] - f["start"] >= 1.0:
+            by_archetype.setdefault(archetype, []).append(f)
+    if by_archetype:
+        print("\nMonster attacks while fighting, against the model's rhythm (uptime below 100% means the hero kept "
+              "attacks from starting)\n")
+        rows = []
+        for archetype, group in sorted(by_archetype.items()):
+            seconds = sum(f["end"] - f["start"] for f in group)
+            count = sum(f["attacks"] for f in group)
+            cycle = P.ARCHETYPES[archetype]["cycle"]
+            rows.append([archetype, len(group), count, f"{seconds:.0f}", f"{seconds / max(count, 1):.1f}", f"{cycle:.1f}",
+                         f"{count * cycle / seconds:.0%}"])
+        table(["archetype", "monsters", "attacks", "seconds fighting", "seconds per attack", "model", "uptime"], rows)
 
 
 def read_playtest(path):
     """Floors of a playtest log (the debug menu's Playtest tool): what each held and what the hero found, used, took and gained."""
-    import json
     from collections import Counter
     floors, floor = [], None
-    for line in Path(path).read_text().splitlines():
-        if not line.strip():
-            continue
-        record = json.loads(line)
+    for record in records(path):
         event, data, time = record["event"], record["data"], record["time"]
-        hero = "/Player/" in record["actor"] + "/"
+        hero = is_hero(record["actor"])
         if event == "floor.entered":
             floor = dict(depth=data["depth"], start=time, end=time, monsters=len(data["monsters"]), nests=data["nests"], kills=0, xp=0,
                          damage=0.0, healed=0.0, found=Counter(), used=Counter(), gear=[], level=None, max_health=None,
@@ -646,7 +722,7 @@ def report_playtest(paths):
             used = sum(n for k, n in f["used"].items() if k.startswith("potion.healing"))
             health = f["max_health"] or 1
             level = f"{f['level']}" + (f"→{f['level_out']}" if f.get("level_out", f["level"]) != f["level"] else "")
-            expected = M.healing_potions(int(f["depth"])) * M.potion_heal(int(f["depth"])) / M.reference_hp(int(f["depth"]))
+            expected = M.healing_share(int(f["depth"]))
             planned = f"{f['monsters']}" + (f"+{f['nests']} nests" if f["nests"] else "")
             rows.append([f["depth"], f"{(f['end'] - f['start']) / 60:.1f}", f"{f['kills']}/{planned}", f["xp"],
                          level, f"{f['damage'] / health:.1f}", f"{f['healed']:.0%}", f"{expected:.0%}",

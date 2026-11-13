@@ -61,6 +61,8 @@ public sealed class GeneratedFloor
 	public Transform3D? GatekeeperSite { get; internal set; }
 	/// <summary>The spawn point that brings the gatekeeper in; null on floors without one.</summary>
 	public SpawnPoint GatekeeperSpawn { get; internal set; }
+	/// <summary>Whether <paramref name="spawn"/> places one of this floor's nests rather than a monster.</summary>
+	public bool IsNest(SpawnPoint spawn) => Encounter?.Nest != null && spawn.Scenes.Count > 0 && spawn.Scenes[0] == Encounter.Nest;
 	public bool IsFrozen => _decoratedTiles != null;
 	/// <summary>Every door's generated access state, keyed by its stable connection id: what exploration saves diff against.</summary>
 	public IReadOnlyDictionary<string, (Door Door, DoorAccessSaveData Baseline)> DoorBaselines => _doorBaselines;
@@ -230,42 +232,25 @@ public sealed class GeneratedFloor
 	}
 
 	/// <summary>Keeps a spawn clear of the arrival, of the points already <paramref name="taken"/> and of progression anchors.</summary>
-	internal bool IsBlockedSpawnPoint(Vector3 point, IReadOnlyList<Vector3> taken)
-	{
-		if (Arrival != null && point.HorizontalDistanceTo(Arrival.GlobalPosition) < SpawnArrivalClearance)
-		{
-			return true;
-		}
+	internal bool IsBlockedSpawnPoint(Vector3 point, IReadOnlyList<Vector3> taken) =>
+		IsInSpawnClearance(point) || taken.Any(other => point.HorizontalDistanceTo(other) < SpawnPointSpacing);
 
-		foreach (var other in taken)
-		{
-			if (point.HorizontalDistanceTo(other) < SpawnPointSpacing)
-			{
-				return true;
-			}
-		}
-
-		foreach (var anchor in SpawnAnchors)
-		{
-			if (point.HorizontalDistanceTo(anchor) < SpawnAnchorClearance)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
+	/// <summary>Too close to where the hero arrives, or to a stair or progression anchor, for any monster to spawn.</summary>
+	internal bool IsInSpawnClearance(Vector3 point) =>
+		Arrival != null && point.HorizontalDistanceTo(Arrival.GlobalPosition) < SpawnArrivalClearance
+		|| SpawnAnchors.Any(anchor => point.HorizontalDistanceTo(anchor) < SpawnAnchorClearance);
 
 	/// <summary>
 	/// A spot for one more pack member near <paramref name="anchor"/>: walkable for a monster's body, in the anchor's room
 	/// (or corridor), within <paramref name="radius"/> and at least <paramref name="spacing"/> from every member already
-	/// placed. Rings widen outward from a random start angle; false when the room has no space left that close.
+	/// placed. Like the anchor, it stays off props and decoration and out of the spawn clearances. Rings widen outward from
+	/// a random start angle; false when the room has no space left that close.
 	/// </summary>
 	public bool TryPlacePackMember(Vector3 anchor, IReadOnlyList<Vector3> pack, float radius, float spacing,
 		RandomNumberGenerator rng, out Vector3 point)
 	{
-		const float BodyRadius = .5f;
 		int room = RoomIdAt(anchor);
+		RefreshPropTiles();
 		float start = rng.Randf() * Mathf.Tau;
 		for (float ring = spacing; ring <= radius; ring += spacing * .5f)
 		{
@@ -274,11 +259,11 @@ public sealed class GeneratedFloor
 			{
 				float angle = start + Mathf.Tau * i / samples;
 				var candidate = new Vector3(anchor.X + Mathf.Cos(angle) * ring, anchor.Y, anchor.Z + Mathf.Sin(angle) * ring);
-				if (RoomIdAt(candidate) != room || !IsWalkableMapPosition(candidate) || !IsReachableArea(candidate, BodyRadius)) continue;
-				bool crowded = false;
-				foreach (var other in pack)
-					if (candidate.HorizontalDistanceTo(other) < spacing) { crowded = true; break; }
-				if (crowded) continue;
+				// The grid is built for the largest ordinary body, so a reachable cell has room for any pack member.
+				var tile = Map.WorldToTile(candidate);
+				if (RoomIdAt(candidate) != room || !IsWalkableMapPosition(candidate) || !IsReachable(candidate)
+					|| IsOccupiedNow(tile.X, tile.Y) || IsInSpawnClearance(candidate)) continue;
+				if (pack.Any(other => candidate.HorizontalDistanceTo(other) < spacing)) continue;
 				point = candidate;
 				return true;
 			}

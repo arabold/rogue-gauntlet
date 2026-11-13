@@ -26,11 +26,15 @@ public partial class PlaytestRecorder : Node
 	public string OutputPath => ProjectSettings.GlobalizePath(_path);
 
 	private string _path;
+	private Level _startLevel;
 	private CombatTraceRecorder _trace;
 	private Player _hero;
 
-	/// <summary>Starts recording to <paramref name="path"/>, or to a new file under <c>user://playtests/</c>; returns the recording.</summary>
-	public static PlaytestRecorder Start(SceneTree tree, string path = "")
+	/// <summary>
+	/// Starts recording <paramref name="level"/> and every floor after it to <paramref name="path"/>, or to a new file under
+	/// <c>user://playtests/</c>; returns the recording.
+	/// </summary>
+	public static PlaytestRecorder Start(SceneTree tree, Level level, string path = "")
 	{
 		if (Current != null) return Current;
 		if (string.IsNullOrEmpty(path))
@@ -38,7 +42,7 @@ public partial class PlaytestRecorder : Node
 			DirAccess.MakeDirRecursiveAbsolute("user://playtests");
 			path = $"user://playtests/playtest-{Time.GetDatetimeStringFromSystem().Replace(':', '-')}.jsonl";
 		}
-		Current = new PlaytestRecorder { Name = nameof(PlaytestRecorder), _path = path };
+		Current = new PlaytestRecorder { Name = nameof(PlaytestRecorder), _path = path, _startLevel = level };
 		// The root may be busy adding the scene that asked for this.
 		tree.Root.CallDeferred(Node.MethodName.AddChild, Current);
 		return Current;
@@ -89,8 +93,8 @@ public partial class PlaytestRecorder : Node
 		});
 
 		// Started mid-floor (or from the command line, after the first floor loaded): describe the floor and hero in play.
-		var level = GetTree().Root.FindChildren("*", "", true, false).OfType<Level>().FirstOrDefault(candidate => candidate.Floor != null);
-		if (level != null) OnLevelLoaded(level);
+		if (IsInstanceValid(_startLevel) && _startLevel.Floor != null) OnLevelLoaded(_startLevel);
+		_startLevel = null;
 		if (GetTree().GetFirstNodeInGroup("player") is Player hero) OnPlayerSpawned(hero);
 	}
 
@@ -108,7 +112,7 @@ public partial class PlaytestRecorder : Node
 		int nests = 0;
 		foreach (var spawn in level.MapGenerator.EnemySpawnPoints)
 		{
-			if (spawn.PersistentId.EndsWith(":nest")) { nests++; continue; }
+			if (level.Floor.IsNest(spawn)) { nests++; continue; }
 			if (spawn.Scenes.Count == 0 || level.Run.IsCleared(spawn.PersistentId)) continue;
 			var definition = RealmEncounterFactory.DefinitionOf(spawn.Scenes[0]);
 			monsters.Add(new()

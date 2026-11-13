@@ -8,7 +8,9 @@ public enum AttachmentType
 	OffhandWeapon,
 	Shield,
 	Item,
+	/// <summary>The class model's own hat props, which a worn helmet hides.</summary>
 	Hat,
+	/// <summary>The class model's own cape props, which worn body armor hides.</summary>
 	Cape,
 	Chest,
 	/// <summary>A worn helmet, on the head bone itself rather than a class's hat prop bone.</summary>
@@ -55,7 +57,6 @@ public partial class BoneAttachmentManager : Node
 			RemoveAttachments(AttachmentType.OffhandWeapon);
 			RemoveAttachments(AttachmentType.Shield);
 			RemoveAttachments(AttachmentType.Item);
-			RemoveAttachments(AttachmentType.Hat);
 			RemoveAttachments(AttachmentType.Chest);
 			RemoveAttachments(AttachmentType.Helmet);
 
@@ -129,41 +130,22 @@ public partial class BoneAttachmentManager : Node
 			return null;
 		}
 
-		if (attachmentType == AttachmentType.Hat && skeleton.FindBone("head") >= 0)
+		if (!WornMounts.TryGetValue(attachmentType, out var mount) || skeleton.FindBone(mount.Bone) < 0)
 		{
-			boneAttachment = new BoneAttachment3D
-			{
-				Name = "Runtime_Hat",
-				BoneName = "head",
-				Position = new Vector3(0f, -0.0255f, 0f)
-			};
-			skeleton.AddChild(boneAttachment);
-			AttachmentNodes[AttachmentType.Hat] = boneAttachment;
-			return boneAttachment;
+			return null;
 		}
-
-		if (attachmentType == AttachmentType.Helmet && skeleton.FindBone("head") >= 0)
-		{
-			boneAttachment = new BoneAttachment3D { Name = "Runtime_Helmet", BoneName = "head" };
-			skeleton.AddChild(boneAttachment);
-			AttachmentNodes[AttachmentType.Helmet] = boneAttachment;
-			return boneAttachment;
-		}
-		if (attachmentType == AttachmentType.Chest && skeleton.FindBone("chest") >= 0)
-		{
-			boneAttachment = new BoneAttachment3D
-			{
-				Name = "Runtime_Chest",
-				BoneName = "chest",
-				Position = new Vector3(0f, 0.243f, 0f)
-			};
-			skeleton.AddChild(boneAttachment);
-			AttachmentNodes[AttachmentType.Chest] = boneAttachment;
-			return boneAttachment;
-		}
-
-		return null;
+		boneAttachment = new BoneAttachment3D { Name = $"Runtime_{attachmentType}", BoneName = mount.Bone, Position = mount.Offset };
+		skeleton.AddChild(boneAttachment);
+		AttachmentNodes[attachmentType] = boneAttachment;
+		return boneAttachment;
 	}
+
+	/// <summary>Where worn pieces mount: the bone and the offset from it that seats the model.</summary>
+	private static readonly System.Collections.Generic.Dictionary<AttachmentType, (string Bone, Vector3 Offset)> WornMounts = new()
+	{
+		[AttachmentType.Helmet] = ("head", Vector3.Zero),
+		[AttachmentType.Chest] = ("chest", new Vector3(0f, 0.243f, 0f)),
+	};
 
 	private void RemoveAttachments(AttachmentType attachmentType)
 	{
@@ -176,20 +158,9 @@ public partial class BoneAttachmentManager : Node
 		AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment);
 		if (boneAttachment != null)
 		{
-			bool keepBuiltInProps = attachmentType == AttachmentType.Hat || attachmentType == AttachmentType.Cape;
 			GD.Print($"Removing attachments from {attachmentType}");
-			var children = boneAttachment.GetChildren();
-			foreach (Node child in children)
+			foreach (Node child in boneAttachment.GetChildren())
 			{
-				if (keepBuiltInProps && !child.HasMeta(EquippedMetaKey))
-				{
-					if (child is Node3D builtInNode)
-					{
-						builtInNode.Visible = true;
-					}
-					continue;
-				}
-
 				boneAttachment.RemoveChild(child);
 				child.QueueFree();
 			}
@@ -236,17 +207,6 @@ public partial class BoneAttachmentManager : Node
 		if (boneAttachment != null)
 		{
 			RemoveAttachments(attachmentType);
-			if (attachmentType == AttachmentType.Hat || attachmentType == AttachmentType.Cape)
-			{
-				foreach (Node child in boneAttachment.GetChildren())
-				{
-					if (!child.HasMeta(EquippedMetaKey) && child is Node3D builtInNode)
-					{
-						builtInNode.Visible = false;
-					}
-				}
-			}
-
 			if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, false);
 			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
 			var itemAttachment = scene.Instantiate<Node>();

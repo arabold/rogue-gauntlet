@@ -2,8 +2,8 @@
 Design parameters of the Rogue Gauntlet balance model.
 
 Every number the game's balance derives from lives here. `docs/specs/balance-model.md` explains the
-model; `simulate.py` turns these parameters into target tables and difficulty estimates. Values are
-targets for content still to be authored, not a mirror of the current `.tres` data.
+model; `simulate.py` turns these parameters into target tables and difficulty estimates, and `derive` writes the
+game's values from them.
 
 Conventions: `(a, b)` pairs are values at depth 1 and depth 24, interpolated linearly. Multipliers are
 relative to the reference hero or the standard monster at the same depth. Times are seconds.
@@ -17,9 +17,7 @@ LEVEL_CAP = 25
 STANDARD = dict(
     hits_to_kill=(2.2, 3.2),   # reference hero hits (no crit) to kill a standard monster; misses come on top
     hits_to_die=(9.6, 4.4),    # standard monster hits (after the hero's armor) to kill the reference hero
-    cycle=2.2,                 # seconds between a monster's attacks (wind-up plus cooldown)
     spread=0.35,               # damage range is mean * (1 -/+ spread)
-    speed=2.8,                 # m/s, for approach time against ranged heroes
 )
 
 # How a fight opens: monsters notice the hero `gap` metres away; heroes walk up to shooters at
@@ -158,8 +156,9 @@ SUPPLY = dict(
                       medium=dict(intro=9, last=0, heal=0.7, weight=12),
                       large=dict(intro=17, last=0, heal=1.0, weight=12)),
     food=1.0,                  # expected food per floor
-    # Food heals fixed points by kind, as a share of a level 1 hero's health: minor healing that fades deeper down.
-    food_kinds=dict(light=0.06, bread=0.10, meat=0.15),
+    # Food heals fixed points by its `Portion`, as a share of a level 1 hero's health: minor healing that fades deeper
+    # down. Fruit and drinks are small, bread and cheese medium, meat large.
+    food_portions=dict(small=0.06, medium=0.10, large=0.15),
     fountain_depths=[5, 12, 19],  # one full heal on these floors (2-3 per run, seeded in game)
     starting_potions=0,        # healing potions every class starts with (equal for parity)
 )

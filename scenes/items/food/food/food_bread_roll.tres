@@ -13,6 +13,7 @@ metadata/_custom_type_script = ExtResource("1_buff")
 
 [resource]
 script = ExtResource("4_script")
+Portion = 1
 PoisonChance = 0.15
 PoisonEffect = ExtResource("5_poison")
 TrueName = "Glazed Sweet Roll"

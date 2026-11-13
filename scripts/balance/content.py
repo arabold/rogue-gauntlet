@@ -1,18 +1,7 @@
 """
-The game's authored content in balance-model terms.
-
-For every value the model sets (monster stats and attacks, weapon damage and timing, armor, class sheets) this module
-pairs the value in its `.tres` with the model's target. `simulate.py audit` reports the pairs that differ;
-`simulate.py derive` writes the targets.
-
-How content maps to the model:
-- Monsters carry `Archetype` and `BalanceDepth` in their definition. The first damaging action in their combat profile
-  takes the archetype's hit and rhythm; further damaging actions keep their damage ratio to it and their authored
-  cooldowns, which set how often signature attacks come around.
-- Weapons get their kind from their attack style (or `MagicStaff` for wands and staffs) and their target from `Tier`.
-  A combo's average damage and duration scales count toward the hit and the seconds per attack.
-- Armor gets its slot from `ValidSlots` and its target from `Tier`.
-- Classes match the model's classes by `Id`.
+The game's authored content in balance-model terms: every value the model sets, paired with its target.
+`simulate.py audit` reports the pairs that differ and `simulate.py derive` writes the targets. How each kind of content
+maps to the model is described under "Game content" in docs/specs/balance-model.md.
 """
 from __future__ import annotations
 
@@ -126,18 +115,23 @@ def _merge_shared(groups):
 
 # --- Monsters -------------------------------------------------------------------------------------
 
-ARCHETYPE_ENUM = R.ROOT / "scenes/enemies/MonsterArchetype.cs"
-
-
 def archetype_names() -> list[str]:
-    """The C# enum's members in declaration order, which is how Godot stores them, checked against the model."""
-    body = re.search(r"enum MonsterArchetype\s*\{(.*?)\}", ARCHETYPE_ENUM.read_text(), re.S).group(1)
-    names = [line.strip().rstrip(",") for line in body.splitlines()
-             if line.strip() and not line.strip().startswith("//")]
+    """`MonsterArchetype`'s members in declaration order, which is how Godot stores them, checked against the model."""
+    names = R.csharp_enum("MonsterArchetype")
     missing = [n for n in names[1:] if n.lower() not in P.ARCHETYPES]
     if missing:
-        raise SystemExit(f"{ARCHETYPE_ENUM.name}: params.ARCHETYPES has no {', '.join(missing)}")
+        raise SystemExit(f"MonsterArchetype: params.ARCHETYPES has no {', '.join(missing)}")
     return [n.lower() for n in names]
+
+
+def _definitions(match=None):
+    """Every monster definition outside the templates: its file, display name and archetype (`none` if unset)."""
+    names = archetype_names()
+    for path in sorted(R.ROOT.glob("scenes/enemies/*/*_definition.tres")):
+        if "templates" in path.parts or not _selected(path, match):
+            continue
+        d = R.load(path)
+        yield d, d.get(d.main, "DisplayName") or path.stem, names[d.get(d.main, "Archetype", 0)]
 
 
 def _damaging_actions(file: R.TextResource, definition: R.Section):
@@ -174,25 +168,24 @@ def _threat_profile(g: Group, match):
         return
     s = f.main
     first, last = P.FLOOR["budget"]
-    for key, value in {"StandardXp": P.XP["standard_xp"], "XpGrowth": P.XP["growth"] or M.cost_growth(),
+    for key, value in {"StandardXp": P.XP["standard_xp"], "XpGrowth": P.XP["growth"],
                        "GatekeeperXpMultiplier": P.XP["boss_multiplier"], "CostGrowth": round(M.cost_growth(), 4),
                        "FirstFloorBudget": first, "LastFloorBudget": last, "LastDepth": P.DEPTHS,
                        "GatekeeperFloorShare": P.FLOOR["boss_budget_share"]}.items():
         g.add("Threat profile", f, s, key, value)
 
 
+def monster_archetypes() -> dict[str, str]:
+    """Each monster's archetype by display name, as traces name monsters."""
+    return {name: archetype for _, name, archetype in _definitions() if archetype != "none"}
+
+
 def monsters(match=None) -> Group:
     g = Group("Monsters", headers=["monster", "archetype", "sized for depth", "threat stored", "threat now",
                                    "threat derived", "XP derived"])
-    names = archetype_names()
     _threat_profile(g, match)
-    for path in sorted(R.ROOT.glob("scenes/enemies/*/*_definition.tres")):
-        if "templates" in path.parts or not _selected(path, match):
-            continue
-        d = R.load(path)
+    for d, name, archetype in _definitions(match):
         s = d.main
-        name = d.get(s, "DisplayName") or path.stem
-        archetype = names[d.get(s, "Archetype", 0)]
         if archetype == "none":
             g.note(f"{name}: no archetype; choose one and a balance depth in its definition")
             continue
@@ -321,12 +314,8 @@ def weapons(match=None) -> Group:
 SLOT_FLAGS = {1 << 0: "helmet", 1 << 1: "body", 1 << 9: "shield"}  # EquipmentSlot in Inventory.cs
 
 
-WEIGHTS = ("light", "medium", "heavy")  # ArmorWeight in Armor.cs, in declaration order
-
-
 def _weight(file: R.TextResource, section: R.Section) -> str:
-    value = file.get(section, "Weight")
-    return WEIGHTS[value] if isinstance(value, int) else str(value).rsplit(".", 1)[-1].lower()
+    return R.csharp_enum("ArmorWeight")[file.get(section, "Weight")].lower()
 
 
 def armor(match=None) -> Group:
@@ -493,17 +482,17 @@ def _ticks(file: R.TextResource, buff: R.Section) -> int:
     return max(1, round(file.get(buff, "Duration", 1.0) * file.get(buff, "TicksPerSecond", 1.0)))
 
 
-# Food kinds by file name; anything else (fruit, drinks) is light.
-FOOD_KINDS = {"food_meat_": "meat", "food_bread_": "bread", "food_cheese_": "bread"}
 POTION_POOL = "res://scenes/items/loot/pools/potions.tres"
+HEALING_POTION = "potion.healing"
 
 
-def food_kind(path) -> str:
-    return next((kind for prefix, kind in FOOD_KINDS.items() if path.stem.startswith(prefix)), "light")
-
-
-def potion_size(path) -> str:
-    return path.stem.rsplit("_", 1)[1]
+def _pool_items(pool: R.TextResource):
+    """Each entry of a loot pool with the item it drops: (entry file, entry, item file, item)."""
+    for ref in pool.get(pool.main, "Items", []):
+        ef, entry = pool.follow(ref)
+        item = ef.get(entry, "Item")
+        if isinstance(item, R.Ref):
+            yield ef, entry, *ef.follow(item)
 
 
 def supplies(match=None) -> Group:
@@ -512,33 +501,32 @@ def supplies(match=None) -> Group:
     size's depth window; healing potions also take their size's weight.
     """
     g = Group("Supplies", headers=["item", "heals", "derived"])
-    items = [(path, M.potion_points(potion_size(path)))
-             for path in sorted(R.ROOT.glob("scenes/items/potions/potion_healing_*.tres"))]
-    items += [(path, M.food_points(food_kind(path))) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres"))]
-    for path, points in items:
-        if not _selected(path, match):
+    potions = [R.load(path) for path in sorted(R.ROOT.glob("scenes/items/potions/*.tres"))]
+    items = [(f, M.potion_points(f.get(f.main, "AppearanceForm"))) for f in potions
+             if f.get(f.main, "TypeId") == HEALING_POTION]
+    portions = R.csharp_enum("FoodPortion")
+    items += [(f, M.food_points(portions[f.get(f.main, "Portion")].lower()))
+              for f in (R.load(path) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres")))
+              if f.script_class == "FoodItem"]
+    for f, points in items:
+        if not _selected(f.path, match):
             continue
-        f = R.load(path)
-        name = f.get(f.main, "Name") or path.stem
+        name = f.get(f.main, "Name") or f.path.stem
         for bf, buff in _healing_buffs(f, f.main):
             ticks = _ticks(bf, buff)
             g.add(name, bf, buff, "HealthPointsPerTick", round(points / ticks, 4))
             g.rows.append([name, f"{bf.get(buff, 'HealthPointsPerTick', 0.0) * ticks:.0f}", f"{points}"])
     pool = R.load(POTION_POOL)
     if _selected(pool.path, match):
-        for ref in pool.get(pool.main, "Items", []):
-            ef, entry = pool.follow(ref)
-            item = ef.get(entry, "Item")
-            if not isinstance(item, R.Ref):
-                continue
-            path = R.ROOT / ef.ext_path(item.id).removeprefix("res://")
-            size = P.SUPPLY["potion_sizes"].get(potion_size(path))
+        for ef, entry, itf, it in _pool_items(pool):
+            size = P.SUPPLY["potion_sizes"].get(itf.get(it, "AppearanceForm"))
             if size is None:
                 continue
-            g.add(path.stem, ef, entry, "MinDepth", size["intro"])
-            g.add(path.stem, ef, entry, "MaxDepth", size["last"])
-            if path.stem.startswith("potion_healing_"):
-                g.add(path.stem, ef, entry, "Weight", float(size["weight"]))
+            label = itf.path.stem
+            g.add(label, ef, entry, "MinDepth", size["intro"])
+            g.add(label, ef, entry, "MaxDepth", size["last"])
+            if itf.get(it, "TypeId") == HEALING_POTION:
+                g.add(label, ef, entry, "Weight", float(size["weight"]))
     return g
 
 
@@ -576,12 +564,7 @@ def loot(match=None) -> Group:
         pool = R.load(pool_path)
         if not _selected(pool.path, match):
             continue
-        for ref in pool.get(pool.main, "Items", []):
-            ef, entry = pool.follow(ref)
-            item = ef.get(entry, "Item")
-            if not isinstance(item, R.Ref):
-                continue
-            itf, it = ef.follow(item)
+        for ef, entry, itf, it in _pool_items(pool):
             if itf.script_class not in WEAPON_CLASSES + ("Armor", "IdentifiableEquipableItem"):
                 continue
             tier = int(itf.get(it, "Tier", 1))

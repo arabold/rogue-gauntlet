@@ -13,7 +13,7 @@ public enum RunOutcome
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 83;
+	public const int CurrentVersion = 84;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -104,8 +104,8 @@ public sealed class ActiveBuffSaveData
 	public double Remaining { get; set; }
 	public double TickProgress { get; set; }
 	public float TicksPerSecond { get; set; }
-	public int PointsPerTick { get; set; }
-	public float HealthPerTick { get; set; }
+	/// <summary>Health a healing or poison buff restores or takes per tick.</summary>
+	public float PointsPerTick { get; set; }
 	public float TimeScale { get; set; }
 	public List<StatModifierSaveData> Modifiers { get; set; } = [];
 }

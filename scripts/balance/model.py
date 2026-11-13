@@ -65,7 +65,7 @@ class Hero:
     cycle: float
     mana: float = 0.0
     mana_regen: float = 0.0
-    spell_hit: float = 0.0     # mean hit a spell scales off (the focus's hit)
+    spell: dict | None = None  # the class spell, which scales off the focus's hit
     avoid_bonus: dict = field(default_factory=dict)
     opener_hit: float = 0.0
     opener_cycle: float = 0.0
@@ -138,12 +138,14 @@ def reference_hp(depth: float) -> float:
     return hero_hp(P.CLASSES["reference"], level_at(depth))
 
 
+@functools.cache
 def potion_points(size: str) -> int:
     """Health a healing potion of `size` restores: its share of the expected hero's health where the size arrives."""
     s = P.SUPPLY["potion_sizes"][size]
     return round(s["heal"] * reference_hp(s["intro"]) / 5) * 5
 
 
+@functools.cache
 def potion_sizes_at(depth: float) -> dict[str, float]:
     """The odds of each healing potion size among the potions found at `depth`."""
     sizes = {name: s["weight"] for name, s in P.SUPPLY["potion_sizes"].items()
@@ -162,15 +164,21 @@ def potion_heal(depth: float) -> float:
     return sum(odds * potion_points(size) for size, odds in potion_sizes_at(depth).items())
 
 
-def food_points(kind: str) -> int:
-    """Health one food of `kind` restores: its share of a level 1 hero's health."""
-    return max(1, round(P.SUPPLY["food_kinds"][kind] * reference_hp(1)))
+def healing_share(depth: int) -> float:
+    """Expected healing from the potions found on a floor at `depth`, as a share of the expected hero's health."""
+    return healing_potions(depth) * potion_heal(depth) / reference_hp(depth)
 
 
+def food_points(portion: str) -> int:
+    """Health one food of `portion` restores: its share of a level 1 hero's health."""
+    return max(1, round(P.SUPPLY["food_portions"][portion] * reference_hp(1)))
+
+
+@functools.cache
 def food_heal() -> float:
-    """Expected health one food restores, with every kind equally likely."""
-    kinds = P.SUPPLY["food_kinds"]
-    return sum(food_points(kind) for kind in kinds) / len(kinds)
+    """Expected health one food restores, with every portion equally likely."""
+    portions = P.SUPPLY["food_portions"]
+    return sum(food_points(portion) for portion in portions) / len(portions)
 
 
 def jewelry_values(stat: str, slot: str, tier: int) -> list[float]:
@@ -212,7 +220,7 @@ def hero(name: str, depth: float) -> Hero:
     if "spell" in cls:
         h.mana = P.ATTRIBUTES["mana_base"] + _profile(cls, "mana_per_int") * a["INT"]
         h.mana_regen = h.mana * P.ATTRIBUTES["mana_regen"]
-        h.spell_hit = h.hit
+        h.spell = P.SPELLS[cls["spell"]]
     if "opener" in cls:
         h.opener_hit = weapon_mean(cls["opener"], depth, cls)
         h.opener_cycle = P.WEAPONS[cls["opener"]]["cycle"]
@@ -245,7 +253,7 @@ def monster(archetype: str, depth: float) -> Monster:
     a = P.ARCHETYPES[archetype]
     ref_hit = weapon_mean("sword_1h", depth, P.CLASSES["reference"])
     armor = a["armor"] * ref_hit
-    per_swing = net_hit(*spread_range(ref_hit, P.GEAR.get("weapon_spread", 0.4)), armor)
+    per_swing = net_hit(*spread_range(ref_hit, P.GEAR["weapon_spread"]), armor)
     return Monster(archetype=archetype, depth=depth,
                    hp=a["hp"] * lerp(P.STANDARD["hits_to_kill"], depth) * per_swing,
                    armor=armor, hit=a["damage"] * standard_hit(depth), cycle=a["cycle"], kind=a["kind"],
@@ -272,7 +280,7 @@ def homing_efficiency(skill: dict) -> float:
 def hero_dps(h: Hero, m: Monster, skill: dict) -> float:
     """Sustained damage per second against `m`, including crits, efficiency and the monster's guard."""
     w = P.WEAPONS[h.weapon]
-    spread = P.GEAR.get("weapon_spread", 0.4)
+    spread = P.GEAR["weapon_spread"]
     eff = skill["efficiency"]
     if w.get("homing"):
         eff = homing_efficiency(skill)
@@ -283,10 +291,9 @@ def hero_dps(h: Hero, m: Monster, skill: dict) -> float:
         per_attack = net_hit(*spread_range(h.hit, spread), m.armor)
     per_attack *= 1 + h.crit * (P.CRIT_MULTIPLIER - 1)
     dps = per_attack / h.cycle * eff * (1 - m.guard)
-    if h.mana_regen > 0:
-        spell = P.SPELLS[P.CLASSES[h.name]["spell"]]
-        cast_hit = net_hit(*spread_range(h.spell_hit * spell["scale"], spread), m.armor * P.MAGIC_ARMOR_SHARE)
-        dps += h.mana_regen / spell["mana"] * cast_hit * eff
+    if h.spell:
+        cast_hit = net_hit(*spread_range(h.hit * h.spell["scale"], spread), m.armor * P.MAGIC_ARMOR_SHARE)
+        dps += h.mana_regen / h.spell["mana"] * cast_hit * eff
     return dps
 
 
@@ -316,14 +323,14 @@ def duel_cost(m: Monster, h: Hero, skill: dict) -> float:
     elif not h.ranged and m.kind != "melee":
         ttk += gap / P.ENGAGEMENT["close_speed"]                              # walking up to a shooter
     elif h.opener_hit and m.kind == "melee":
-        opener = P.WEAPONS[P.CLASSES[h.name]["opener"]]
         free = gap / m.speed
-        shots = free / opener["cycle"] * skill["efficiency"]
-        dealt = shots * net_hit(*spread_range(h.opener_hit, P.GEAR.get("weapon_spread", 0.4)), m.armor)
+        shots = free / h.opener_cycle * skill["efficiency"]
+        dealt = shots * net_hit(*spread_range(h.opener_hit, P.GEAR["weapon_spread"]), m.armor)
         ttk = max(0.0, (m.hp - dealt) / kill)
     return monster_dps(m, h, skill) * ttk / h.hp
 
 
+@functools.cache
 def standard_cost(depth: float, hero_name: str = "reference", skill_name: str = P.REFERENCE_SKILL) -> float:
     return duel_cost(monster("standard", depth), hero(hero_name, depth), P.SKILL[skill_name])
 
@@ -374,12 +381,12 @@ def cost_growth() -> float:
     """Per-depth factor by which a fixed monster gets cheaper as the expected hero grows."""
     skill = P.SKILL[P.REFERENCE_SKILL]
     m = monster("standard", 1)
-    return (duel_cost(m, hero("reference", 1), skill) / duel_cost(m, hero("reference", 24), skill)) ** (1 / 23)
+    first, last = hero("reference", 1), hero("reference", P.DEPTHS)
+    return (duel_cost(m, first, skill) / duel_cost(m, last, skill)) ** (1 / (P.DEPTHS - 1))
 
 
 def xp_reward(m: Monster) -> float:
-    growth = P.XP["growth"] or cost_growth()
-    xp = P.XP["standard_xp"] * growth ** (threat_level(m) - 1)
+    xp = P.XP["standard_xp"] * P.XP["growth"] ** (threat_level(m) - 1)
     return xp * (P.XP["boss_multiplier"] if m.boss else 1.0)
 
 
@@ -398,29 +405,45 @@ def group_factor(size: int) -> float:
     return (size + 1) / 2
 
 
+@functools.cache
+def archetype_units(archetype: str, depth: float) -> float:
+    """Budget cost of one monster of `archetype` authored for `depth`, in standard monsters."""
+    return cost_units(monster(archetype, depth), depth)
+
+
+@functools.cache
+def archetype_xp(archetype: str, depth: float) -> float:
+    return xp_reward(monster(archetype, depth))
+
+
 def pack_units(pack, depth: float) -> float:
     """Budget cost of a pack at `depth`, in standard monsters."""
-    return group_factor(len(pack["members"])) * sum(cost_units(m, depth) for m in pack_members(pack, depth))
+    return group_factor(len(pack["members"])) * sum(archetype_units(a, depth) for a in pack["members"])
 
 
-def pack_members(pack, depth: float):
-    return [monster(a, depth) for a in pack["members"]]
+def is_gatekeeper_floor(depth: int) -> bool:
+    """The last floor of each realm holds its gatekeeper."""
+    return depth % P.REALM_SIZE == 0
 
 
+def floor_budget(depth: int) -> float:
+    """Standard fights a floor spends on packs; a gatekeeper floor spends a share and keeps the rest for it."""
+    budget = lerp(P.FLOOR["budget"], depth)
+    return budget * P.FLOOR["boss_budget_share"] if is_gatekeeper_floor(depth) else budget
+
+
+@functools.cache
 def expected_floor_xp(depth: int) -> float:
     packs = eligible_packs(depth)
-    xp_per_unit = sum(p["weight"] * sum(xp_reward(m) for m in pack_members(p, depth)) for p in packs)
+    xp_per_unit = sum(p["weight"] * sum(archetype_xp(a, depth) for a in p["members"]) for p in packs)
     units = sum(p["weight"] * pack_units(p, depth) for p in packs)
-    budget = lerp(P.FLOOR["budget"], depth)
-    boss = depth % P.REALM_SIZE == 0
-    if boss:
-        budget *= P.FLOOR["boss_budget_share"]
-    xp = budget * xp_per_unit / units * P.FLOOR["clear_share"]
-    if boss:
-        xp += xp_reward(monster("boss", depth))
+    xp = floor_budget(depth) * xp_per_unit / units * P.FLOOR["clear_share"]
+    if is_gatekeeper_floor(depth):
+        xp += archetype_xp("boss", depth)
     return xp
 
 
+@functools.cache
 def xp_ladder():
     """XP to advance from each level, `a * g^(L-1)`, fitted so cleared floors land the target levels."""
     cumulative, total = {}, 0.0

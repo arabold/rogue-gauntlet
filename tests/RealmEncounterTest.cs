@@ -99,12 +99,7 @@ public class RealmEncounterTest
 			boss.HealthComponent.TakeDamage(1000);
 			// Its threat level and the gatekeeper bonus pay more than any ordinary monster of the realm.
 			var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory;
-			int OrdinaryXp(string path)
-			{
-				var actor = TestFactories.Load<PackedScene>(path).Instantiate<EnemyBase>();
-				try { return level.ThreatProfile.Xp(actor.Definition); }
-				finally { actor.Free(); }
-			}
+			int OrdinaryXp(string path) => level.ThreatProfile.Xp(RealmEncounterFactory.DefinitionOf(TestFactories.Load<PackedScene>(path)));
 			int ordinaryBest = realm.Entries.SelectMany(entry => entry.Members).Distinct().Max(OrdinaryXp);
 			AssertInt(player.Stats.Xp - xp).IsGreater(ordinaryBest);
 			await Task.Delay(1100); // allow the independent stair-arrival cooldown to expire
