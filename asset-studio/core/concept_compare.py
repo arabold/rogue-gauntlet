@@ -674,17 +674,17 @@ Images provided:
 
 Inspect strictly and skeptically. Small craftsmanship errors make a model look unfinished even when overall IoU is high (~90%). Check ALL four categories explicitly:
 1. STRUCTURAL JUNCTIONS & PHYSICAL PLAUSIBILITY (check Image 3 macro views closely):
-   - Do sockets/collars/cuffs/mounts seat flush and unbroken around the outside of curved domes, OR does one side clip/sink diagonally into the helmet shell?
+   - Do sockets/collars/cuffs/mounts seat flush and unbroken around the outside of curved domes, OR does one side clip/sink diagonally into the helmet shell, or twist/pinch where feathers or horns exit a circular boss?
    - Do vertical crests, ridges, or metal straps run continuously and terminate cleanly INTO horizontal bands/rims on BOTH front AND rear, OR does a band stop abruptly mid-helmet leaving a floating stub/gap?
-   - Do straps, rivets, cheek/ear plates, and trim hug the underlying curvature cleanly without floating gaps or head bleed-through?
+   - Do straps, rivets, cheek/ear plates, and trim hug the underlying curvature cleanly without floating gaps or dummy-head bleed-through (especially around the boxy 135-degree rear-diagonal corners of the KayKit head)?
 2. PROPORTIONS, SILHOUETTE & SHAPE LANGUAGE (compare Image 1 vs Image 2 solid & cyan wireframe overlay):
-   - Compare small detail scale (e.g., brass rivet/stud size and spacing, strap thickness, horn base width/taper, nasal bar bevel/angle vs boxy rectangle, curved cheek/ear guards wrapping the head vs flat slabs, natural lower-in-back helmet rake).
+   - Compare small detail scale and canonical cutouts (e.g., recessed ventilation slits/grooves, brass rivet/stud size and spacing, strap thickness, horn/wing base width/taper/sweep, nasal bar bevel/angle vs boxy rectangle, curved cheek/ear guards wrapping the head vs flat slabs, natural lower-in-back helmet rake).
 3. INTENTIONAL VS ACCIDENTAL ASYMMETRY:
    - Respect intentional design asymmetry from Image 1 (such as a broken horn tip), while flagging unintentional asymmetrical mounting/clipping.
 4. SHADING, VALUE CONTRAST & MATERIAL READ:
-   - Evaluate whether the Blender render shows crisp key/fill/rim light contrast and clear separation between steel, brass/gold rivets, leather straps/cuffs, and bone — or looks overly flat/washed-out.
+   - Evaluate whether the Blender render shows crisp key/fill/rim light contrast and clear separation between steel, brass/gold rivets, leather straps/cuffs, gems, and bone — or looks overly flat/washed-out or has unsplit bevel shading streaks.
 
-Return `verdict: "NEEDS_REVISION"` if ANY critical or major junction defect, mid-surface cutoff, clipping socket, or clear shape/proportion mismatch remains; return `"PASS"` only when geometry, seams, proportions, and shading read cleanly at close inspection."""
+Return `verdict: "NEEDS_REVISION"` if ANY critical or major junction defect, mid-surface cutoff, clipping socket, dummy-head bleed-through, or clear shape/proportion mismatch remains; return `"PASS"` only when geometry, seams, proportions, and shading read cleanly at close inspection."""
 
 	provider = GeminiProvider(text_model=text_model)
 	result = provider.analyze_json(prompt, images, _AUDIT_SCHEMA)
@@ -698,8 +698,11 @@ Return `verdict: "NEEDS_REVISION"` if ANY critical or major junction defect, mid
 
 def main() -> None:
 	parser = argparse.ArgumentParser(description="Overlay and compare concept turnaround views vs Blender renders.")
-	parser.add_argument("concept", help="Path to multi-view white-background concept image")
-	parser.add_argument("renders", nargs="+", help="Transparent RGBA Blender render PNGs matching panels left-to-right")
+	parser.add_argument("concept_pos", nargs="?", help="Path to multi-view white-background concept image")
+	parser.add_argument("renders", nargs="*", help="Transparent RGBA Blender render PNGs matching panels left-to-right")
+	parser.add_argument("--concept", help="Path to multi-view white-background concept image (optional flag form)")
+	parser.add_argument("--render-dir", help="Directory containing `<view>_<prefix>_solid.png` renders (used with --prefix)")
+	parser.add_argument("--prefix", help="Render prefix from `render_compare_passes` / `render_junction_closeups`")
 	parser.add_argument("--wires", nargs="+", help="Optional hidden-line wireframe RGBA PNGs matching `renders` order")
 	parser.add_argument("--closeups", nargs="+", help="Optional closeup RGBA PNGs to stitch into a 2x2 junction sheet")
 	parser.add_argument("--closeups-out", help="Output path for 2x2 closeup junction sheet")
@@ -712,8 +715,36 @@ def main() -> None:
 	parser.add_argument("--audit-out", help="Optional JSON path for --audit output")
 	args = parser.parse_args()
 
-	labels = [s.strip() for s in args.labels.split(",") if s.strip()] or None
-	report = compare_views(args.concept, args.renders, args.out, labels=labels, out_json=args.json, wire_paths=args.wires)
+	concept_path = args.concept or args.concept_pos
+	renders = list(args.renders or [])
+	if args.concept and args.concept_pos:
+		renders = [args.concept_pos] + renders
+	if not concept_path:
+		parser.error("Provide a concept image path either positionally or via --concept.")
+
+	wires = args.wires
+	closeups = args.closeups
+	if args.render_dir and args.prefix:
+		rdir = Path(args.render_dir)
+		pfx = args.prefix
+		if not renders:
+			renders = [str(rdir / f"{v}_{pfx}_solid.png") for v in ("front", "tq", "side")]
+		if not wires:
+			cand_wires = [rdir / f"{v}_{pfx}_wire.png" for v in ("front", "tq", "side")]
+			if all(p.exists() for p in cand_wires):
+				wires = [str(p) for p in cand_wires]
+		if not closeups:
+			cand_closeups = [
+				rdir / f"closeup_{c}_{pfx}_closeup.png" for c in ("brow", "left", "right", "rear")
+			]
+			if all(p.exists() for p in cand_closeups):
+				closeups = [str(p) for p in cand_closeups]
+
+	if not renders:
+		parser.error("Provide render PNG paths positionally or via `--render-dir <dir> --prefix <prefix>`.")
+
+	labels = [s.strip() for s in args.labels.split(",") if s.strip()] or ["Front", "Three-Quarter", "Side"][: len(renders)]
+	report = compare_views(concept_path, renders, args.out, labels=labels, out_json=args.json, wire_paths=wires)
 	print(f"Saved diagnostic sheet: {args.out} (Mean IoU = {report['mean_iou_pct']:.2f}%)")
 	for name, m in report["views"].items():
 		print(
@@ -721,18 +752,30 @@ def main() -> None:
 			f"Extra={m['extra_pct']:.1f}%  W_ratio={m['width_ratio']:.2f}  H_ratio={m['height_ratio']:.2f}"
 		)
 
+	views_dict = report["views"]
+	if "Front" in views_dict and "Side" in views_dict:
+		fw = views_dict["Front"]["width_ratio"]
+		sw = views_dict["Side"]["width_ratio"]
+		fh = views_dict["Front"]["height_ratio"]
+		print(
+			f"  [3D Axis Hint] Lateral X width ratio (Front) = {fw:.2f} | "
+			f"Front-to-back Y depth/sweep ratio (Side) = {sw:.2f} | "
+			f"Vertical Z height ratio = {fh:.2f} "
+			"(Note: Three-Quarter horizontal screen axis u_right = +0.81*X + 0.59*Y; decouple X in Front and Y in Side!)"
+		)
+
 	closeup_sheet = None
-	if args.closeups:
+	if closeups:
 		out_p = Path(args.out)
 		closeup_sheet = Path(args.closeups_out) if args.closeups_out else out_p.with_name(f"{out_p.stem}_closeups.png")
-		build_closeup_sheet(args.closeups, closeup_sheet)
+		build_closeup_sheet(closeups, closeup_sheet)
 		print(f"Saved closeup junction sheet: {closeup_sheet}")
 
 	if args.audit:
 		out_p = Path(args.out)
 		audit_json = Path(args.audit_out) if args.audit_out else out_p.with_name(f"{out_p.stem}_audit.json")
 		audit = audit_with_gemini(
-			args.concept,
+			concept_path,
 			args.out,
 			closeup_sheet_path=closeup_sheet,
 			asset_name=args.asset_name,
@@ -746,6 +789,105 @@ def main() -> None:
 		for mm in audit.get("shape_proportion_mismatches", []):
 			print(f"  [SHAPE:{mm['severity'].upper()}] {mm['feature']}: {mm['concept_vs_model']} -> Fix: {mm['fix']}")
 		print(f"  [SHADING] {audit.get('shading_feedback', '')}")
+
+
+def compose_character_showcase(
+	render_dir: str | Path,
+	prefix: str,
+	out_sheet: str | Path,
+	out_gif: str | Path | None = None,
+	title: str = "KayKit Character Headgear Showcase",
+	fps: int = 18,
+) -> tuple[Path, Path | None]:
+	"""Compose the 6-panel character showcase sheet (2 portraits + 4 full-body views) and optional 360 turntable GIF."""
+	rdir = Path(render_dir)
+	bg_top = np.array([28, 32, 42], dtype=np.float32)
+	bg_bot = np.array([16, 18, 24], dtype=np.float32)
+
+	def load_on_grad(fp: Path, target_w: int, target_h: int) -> Image.Image:
+		im = Image.open(fp).convert("RGBA").resize((target_w, target_h), Image.LANCZOS)
+		arr = np.asarray(im, dtype=np.float32)
+		alpha = arr[..., 3:4] / 255.0
+		t = np.linspace(0.0, 1.0, target_h, dtype=np.float32)[:, None, None]
+		grad = bg_top * (1.0 - t) + bg_bot * t
+		grad = np.broadcast_to(grad, (target_h, target_w, 3))
+		comp = arr[..., :3] * alpha + grad * (1.0 - alpha)
+		return Image.fromarray(np.clip(comp, 0, 255).astype(np.uint8))
+
+	pad = 16
+	header_h = 54
+	label_h = 30
+	total_w = 1860
+	row1_w = (total_w - 3 * pad) // 2
+	row1_h = 680
+	row2_w = (total_w - 5 * pad) // 4
+	row2_h = 520
+	total_h = header_h + pad + (row1_h + label_h) + pad + (row2_h + label_h) + pad
+
+	sheet = Image.new("RGB", (total_w, total_h), (13, 15, 20))
+	draw = ImageDraw.Draw(sheet)
+	font_title = _load_font(22)
+	font_lbl = _load_font(15)
+
+	draw.text((pad, 15), title, fill=(235, 240, 248), font=font_title)
+
+	p_specs = [
+		(rdir / f"{prefix}_portrait_front.png", "1. Portrait Closeup (Front-Left)"),
+		(rdir / f"{prefix}_portrait_tq.png", "2. Portrait Closeup (Three-Quarter)"),
+	]
+	y1 = header_h + pad
+	for idx, (fp, lbl) in enumerate(p_specs):
+		x = pad + idx * (row1_w + pad)
+		draw.rectangle([x, y1, x + row1_w, y1 + label_h], fill=(24, 28, 36))
+		draw.text((x + 10, y1 + 6), lbl, fill=(200, 215, 235), font=font_lbl)
+		im_src = Image.open(fp).convert("RGBA")
+		w, h = im_src.size
+		crop_h = int(w * (row1_h / row1_w))
+		top = max(0, (h - crop_h) // 2 - int(0.04 * h))
+		im_crop = im_src.crop((0, top, w, min(h, top + crop_h))).resize((row1_w, row1_h), Image.LANCZOS)
+		arr = np.asarray(im_crop, dtype=np.float32)
+		alpha = arr[..., 3:4] / 255.0
+		t = np.linspace(0.0, 1.0, row1_h, dtype=np.float32)[:, None, None]
+		grad = np.broadcast_to(bg_top * (1.0 - t) + bg_bot * t, (row1_h, row1_w, 3))
+		comp = Image.fromarray(np.clip(arr[..., :3] * alpha + grad * (1.0 - alpha), 0, 255).astype(np.uint8))
+		sheet.paste(comp, (x, y1 + label_h))
+
+	f_specs = [
+		(rdir / f"{prefix}_full_front.png", "3. Full Character — Front"),
+		(rdir / f"{prefix}_full_tq.png", "4. Full Character — Three-Quarter"),
+		(rdir / f"{prefix}_full_side.png", "5. Full Character — Side Profile"),
+		(rdir / f"{prefix}_full_back.png", "6. Full Character — Rear View"),
+	]
+	y2 = y1 + label_h + row1_h + pad
+	for idx, (fp, lbl) in enumerate(f_specs):
+		x = pad + idx * (row2_w + pad)
+		draw.rectangle([x, y2, x + row2_w, y2 + label_h], fill=(24, 28, 36))
+		draw.text((x + 10, y2 + 6), lbl, fill=(200, 215, 235), font=font_lbl)
+		comp = load_on_grad(fp, row2_w, row2_h)
+		sheet.paste(comp, (x, y2 + label_h))
+
+	out_sheet_p = Path(out_sheet)
+	sheet.save(out_sheet_p)
+
+	out_gif_p = None
+	if out_gif is not None:
+		turn_files = sorted(rdir.glob(f"{prefix}_turn_*.png"))
+		if turn_files:
+			frames = [
+				load_on_grad(fp, 480, 480).quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG)
+				for fp in turn_files
+			]
+			out_gif_p = Path(out_gif)
+			frames[0].save(
+				out_gif_p,
+				save_all=True,
+				append_images=frames[1:],
+				duration=int(round(1000.0 / fps)),
+				loop=0,
+				optimize=False,
+			)
+
+	return out_sheet_p, out_gif_p
 
 
 if __name__ == "__main__":

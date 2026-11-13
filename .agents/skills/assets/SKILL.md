@@ -186,23 +186,32 @@ Game-side wiring (`Prop`/`PropGroup` resources, lit and composed scenes, room ty
 
 ### Using `blender-mcp` with Asset Studio
 When authoring custom armor, helmets, or props in Blender:
-1. Fit wearable headgear directly to KayKit's `Mannequin_Medium_Head` (`upper_halfW = 0.432`, natural lower-in-back ~4–6° nape rake rather than level at 90°) instead of inflated custom heads. Wrap curved cheek/ear shells around a clean smooth head envelope or `BVHTree` rather than extruding flat slabs, and seat secondary trim (straps, studs, collars, ridges) using `BVHTree` saddle projection along surface normals so collars never clip diagonally into curved domes.
-2. **Concept-vs-Wireframe + Automated Seam Audit Loop (up to 3 iterations):**
-   - Align vertices, edge loops, and proportions BEFORE picking final flat KayKit palette colors or carving surface effects (since KayKit style uses flat fills without complex painted textures, emblems/dents/seams must live in clean vertex geometry).
-   - Render synchronized 3-point-lit solid + Holdout hidden-line wireframe passes **plus** 4 zoomed macro junction closeups (`brow_nasal`, `left_socket`, `right_socket`, `rear_band`) via [`core/blender_compare_render.py`](../../../asset-studio/core/blender_compare_render.py) (`render_compare_passes` + `render_junction_closeups`), then run overlay comparison + programmatic `gemini-3.8-flash` visual inspection:
+1. **KayKit `Mannequin_Medium_Head` Facial Reference & Reusable BMesh Helpers (`asset-studio/core/blender_compare_render.py`):**
+   - **Always use the seamless KayKit facial head (`Mannequin_Medium_Head` with visible eyes, eyebrows, nose, mouth, and ears)** in both the 3-view turnaround base passed to the concept artist (`base_kaykit_head_3view.png`) and in `COL_Reference` inside Blender. This guarantees that brow bands, nasal guards, visor cutouts, and cheek/mouth openings align with the real KayKit character face on every iteration pass rather than discovering facial alignment misses at the end.
+   - `Mannequin_Medium_Head` (`X = ±0.453` head / `±0.535` ears, `Y = [-0.460, +0.460]`, `Z = [-0.405, +0.475]`) is a **rounded box (superellipse)** in XY whose rear-diagonal corners (`azimuth 120°–150°`) bulge out. Always call `bcr.enforce_head_clearance_on_grid(grid, min_outer_clearance=0.038..0.056)` before solidifying.
+   - Reuse the built-in helpers in [`core/blender_compare_render.py`](../../../asset-studio/core/blender_compare_render.py) (`import blender_compare_render as bcr`):
+     - `bcr.get_or_create_workbench("COL_Workbench")` and `bcr.make_pbr_mat(...)` (accepts 3-tuple RGB or 4-tuple RGBA).
+     - `bcr.solidify_open_shell(bm, thickness=0.048, inner_mat_idx=1, horizontal_only_verts=brow_verts)` so visor/brow cutout rims offset horizontally and never dip below exterior gold/metal trim.
+     - `bcr.inset_quad_slot_pockets(bm, face_groups, border_thickness=0.019, depth=-0.028)` to create recessed ventilation slits and panel grooves directly on the quad grid—**never** use Blender's `BOOLEAN` (`solver="EXACT"`) on solidified shells with concave creases, which silently drops cuts or slices horizontal slits across the mesh.
+     - `bcr.build_lofted_tube_sharp_rails(bm, rings, ...)` for bevel-profiled crests, brow trims, horns, and feather blades. When mounting multi-tier wings or feathers into a circular ear boss/medallion, seat each blade's root (`Station 0`) directly inside the cylinder barrel (`behind the raised outer bezel ring`) and sweep monotonically without downward-looping collar tubes that twist cross-sections.
+     - **Coaxial Collars, Snug Wraps & Tapered Internal Y-Roots for Branching Props:** When building socket collars (`AntlerCollar`) or leather wraps (`AntlerWrap`) around a curved shaft, align the collar stations along the shaft's exact initial tangent vector (`base_dir`) and match the polygon side count (`sides=6`) and phase angle of the shaft so wraps hug the shaft with zero radial gap. When branching secondary tines off a main beam, start `ring[0]` on the parent centerline with a reduced internal radius (`r0 ≈ 0.45 * parent_radius`) and flare to full tine radius at `ring[1]` where the branch exits the parent surface, preventing tilted base rings from poking out the underside of the parent shaft.
+     - `bcr.finalize_and_link_mesh(wb, name, bm, mats, sharp_angle_deg=32.0, split_sharp=True)`—in Blender 4.x/5.x EEVEE, `edge.smooth = False` alone does not split normals; `finalize_and_link_mesh` physically splits sharp bevel rails via `bmesh.ops.split_edges` while keeping C1 bell-curve flares (`< 32°`) smooth (or pass `sharp_angle_deg=1.0` for crisp low-poly faceted leather/bone props).
+2. **Concept-vs-Wireframe + Automated Seam Audit Loop (3–6 iterations):**
+   - Align vertices, edge loops, and proportions BEFORE picking final flat KayKit palette colors or carving surface effects.
+   - Render synchronized 3-point-lit solid + Holdout hidden-line wireframe passes (`lens=135.0, distance=10.2` telephoto default to match 2D turnaround perspective across all views) **plus** 4 zoomed macro junction closeups (`brow_nasal`, `left_socket`, `right_socket`, `rear_band`) via `bcr.render_compare_passes(out_dir, prefix)` and `bcr.render_junction_closeups(out_dir, prefix)`, then run `concept_compare.py` with `--render-dir` and `--prefix`:
      ```bash
      uv run --with pillow --with numpy --with scipy --with google-genai python asset-studio/core/concept_compare.py \
-       <concept.png> <front_solid.png> <tq_solid.png> <side_solid.png> \
-       --wires <front_wire.png> <tq_wire.png> <side_wire.png> \
-       --closeups <brow_closeup.png> <left_closeup.png> <right_closeup.png> <rear_closeup.png> \
-       --labels "Front,Three-Quarter,Side" --asset-name "<AssetName>" --audit --out <diag.png>
+       --concept <concept.png> --render-dir <out_dir> --prefix <prefix> \
+       --asset-name "<AssetName>" --audit --out <diag.png>
      ```
-   - Never judge by outer silhouette IoU alone: inspect `diag.png` **Wireframe on Concept**, `diag_closeups.png`, and the `gemini-3.8-flash` JSON audit (`diag_audit.json`) explicitly for:
-     - **Structural junctions & physical plausibility**: horn/socket cuffs seated evenly 360° around dome normals without diagonal clipping; vertical straps/crests continuing front-to-back and terminating flush into horizontal bands rather than stopping mid-dome; zero floating fragments or shell bleed-through.
-     - **Silhouette & small detail proportions**: oversized chunky KayKit stud proportions, tapered/chamfered shapes instead of blunt boxes, curved jaw/head wrapping, and natural S-curves.
-     - **Shading & material separation**: crisp 3-point key/fill/rim separation between brushed metal, specular studs, matte leather, and smooth bone (flat ambient washes out form).
-   - Fix defects and repeat up to **3 iterations** until `gemini-3.8-flash` and visual inspection of both sheets pass cleanly.
-3. Save editable Blender sources / harvest reusable parts into domain `meshes/`, then build and review with `studio.py`.
+   - Use the printed `[3D Axis Hint]` (and per-Z-slice `Front X` vs `Side Y` intervals when calibrating multi-branch antlers or feather fans) to decouple lateral `X` width (from `Front`), front-to-back `Y` sweep (from `Side`), and vertical `Z` height (since `Three-Quarter` projects screen-right as `u = +0.81*X + 0.59*Y`).
+   - Inspect `diag.png` **Wireframe on Concept**, `diag_closeups.png`, and the `gemini-3.8-flash` JSON audit (`diag_audit.json`) explicitly for:
+     - **Structural junctions & physical plausibility**: socket/ear-boss roots seated cleanly without twisted collars or diagonal clipping; vertical crests/straps tapering or terminating flush into rear/front rims; zero dummy-head bleed-through at the `135°` rear corners.
+     - **Silhouette & small detail proportions**: recessed quad-inset vents, oversized chunky KayKit studs, faceted crystalline gems, and smooth S-curve/bell-curve neck flares.
+     - **Shading & material separation**: crisp 3-point key/fill/rim separation and split sharp bevel edges.
+3. **Final Character Mounting & 360° Turntable Verification:**
+   - Before declaring any headgear asset complete, call `bcr.render_character_showcase(out_dir, prefix, character_glb=..., hide_ears=..., hide_hair=True)` in Blender (which mounts `COL_Workbench` 1:1 onto a rigged KayKit Adventurer via `scale_f=1.000, y_shift=-0.0155, z_shift=+0.4018`) and `cc.compose_character_showcase(out_dir, prefix, out_sheet, out_gif)` to inspect the 6-panel character showcase sheet and 360° rotating GIF.
+4. Save editable Blender sources / harvest reusable parts into domain `meshes/`, then build and review with `studio.py`.
 
 ### Curated equipment
 
