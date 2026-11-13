@@ -405,15 +405,27 @@ def group_factor(size: int) -> float:
     return (size + 1) / 2
 
 
+def authored_depth(depth: int) -> float:
+    """
+    The depth the ordinary monsters of a floor at `depth` are authored for. Monsters don't level: a realm authors its
+    monsters once, for its middle floor, and they keep those stats on every floor of the realm. Its first floor
+    therefore holds fewer, relatively stronger monsters, and its last more, weaker ones. A gatekeeper is authored for
+    its own floor.
+    """
+    realm = (depth - 1) // P.REALM_SIZE
+    return realm * P.REALM_SIZE + (P.REALM_SIZE + 1) / 2
+
+
 @functools.cache
 def archetype_units(archetype: str, depth: float) -> float:
-    """Budget cost of one monster of `archetype` authored for `depth`, in standard monsters."""
-    return cost_units(monster(archetype, depth), depth)
+    """Budget cost of one ordinary monster of `archetype` on a floor at `depth`, in standard monsters."""
+    return cost_units(monster(archetype, authored_depth(depth)), depth)
 
 
 @functools.cache
 def archetype_xp(archetype: str, depth: float) -> float:
-    return xp_reward(monster(archetype, depth))
+    """XP of one ordinary monster of `archetype` on a floor at `depth`."""
+    return xp_reward(monster(archetype, authored_depth(depth)))
 
 
 def pack_units(pack, depth: float) -> float:
@@ -439,7 +451,7 @@ def expected_floor_xp(depth: int) -> float:
     units = sum(p["weight"] * pack_units(p, depth) for p in packs)
     xp = floor_budget(depth) * xp_per_unit / units * P.FLOOR["clear_share"]
     if is_gatekeeper_floor(depth):
-        xp += archetype_xp("boss", depth)
+        xp += xp_reward(monster("boss", depth))
     return xp
 
 

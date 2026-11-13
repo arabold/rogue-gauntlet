@@ -97,7 +97,9 @@ depth 1 to 25% at depth 24.
 ## Monsters
 
 Monsters never scale at runtime. An authored monster keeps its stats wherever it spawns; deeper floors spawn monsters
-authored for deeper depths. Authoring targets come from the **standard monster** at depth `D`, built against the
+authored for deeper depths. A realm authors its ordinary monsters once, for its middle floor (realm 1: depth 2), and
+its gatekeeper for its last. The model fights and prices every floor's monsters at their realm's depth, so a realm's
+first floor holds fewer, relatively stronger monsters and its last more, weaker ones, for the same budget. Authoring targets come from the **standard monster** at depth `D`, built against the
 reference hero:
 
 - **Health** `= hits_to_kill(D) ×` the reference hero's mean hit after the monster's armor (10% of that hit).
@@ -239,7 +241,8 @@ uv run scripts/balance/simulate.py derive --match skeleton     # write the targe
   ladder come from `params.PACKS`. Each entry's member scenes name their definitions, and their archetypes match the
   entry to the model pack with the same members. The entry takes that pack's `Weight` and its depth window, clamped to
   the realm's floors, as `MinimumDepth` and `MaximumDepth`; these must match exactly. A realm pack the model lacks, and
-  a model pack the realm's depths should hold but the realm lacks, are reported.
+  a model pack the realm's depths should hold but the realm lacks, are reported, and so is a member or gatekeeper whose
+  `BalanceDepth` is not the realm's middle or last floor.
 - **Weapons** get their kind from their attack style (`MagicStaff` decides wand or staff by hands) and their target
   from `Tier`. A combo's average damage and duration scales count toward the hit and the seconds per attack, so
   `derive` writes the base damage range and `PerformDuration` that reproduce the kind's hit and rhythm. Wand and

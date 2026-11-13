@@ -247,15 +247,34 @@ def _realms(match=None):
                     yield R.load(path)
 
 
-def _member(scene: str) -> tuple[str, str]:
-    """A pack member's name and archetype, from the definition its scene's root saves, which is what the game reads."""
+def _definition_of(scene: str):
+    """The monster definition a scene's root saves, which is what the game reads: (file, section), or None."""
     f = R.load(scene)
     root = next(s for s in f.sections if s.kind == "node")
     ref = f.get(root, "Definition")
-    if not isinstance(ref, R.Ref):
-        return f.path.stem, "none"
-    df, d = f.follow(ref)
+    return f.follow(ref) if isinstance(ref, R.Ref) else None
+
+
+def _member(scene: str) -> tuple[str, str]:
+    """A pack member's name and archetype."""
+    found = _definition_of(scene)
+    if found is None:
+        return R.load(scene).path.stem, "none"
+    df, d = found
     return df.get(d, "DisplayName") or df.path.stem, _archetype(df, d)
+
+
+def _authored_for(realm: str, scene: str, depth: float) -> str | None:
+    """A note when the monster in `scene` is not authored (`BalanceDepth`) for the depth the model plans for it."""
+    found = _definition_of(scene)
+    if found is None:
+        return None
+    df, d = found
+    authored = float(df.get(d, "BalanceDepth", 1.0))
+    if abs(authored - depth) > 1e-6:
+        name = df.get(d, "DisplayName") or df.path.stem
+        return f"{realm}: {name} is authored for depth {authored:g}; the model plans its realm's monsters for {depth:g}"
+    return None
 
 
 def _window(pack: dict, first: int, last: int) -> tuple[int, int]:
@@ -267,7 +286,7 @@ def encounters(match=None) -> Group:
     """
     Each realm's packs against the model's (`params.PACKS`, which floor costs and the XP ladder come from). An entry
     matches the model pack with the same archetypes and takes its weight and its depth window, clamped to the realm's
-    floors.
+    floors. Its monsters must be authored for the realm's middle floor, and its gatekeeper for its last.
     """
     g = Group("Encounters", headers=["realm", "pack", "members", "weight", "derived", "depths", "derived"])
     model = {}
@@ -282,7 +301,15 @@ def encounters(match=None) -> Group:
         first = int(f.get(s, "FirstDepth"))
         last = first + int(f.get(s, "FloorCount")) - 1
         matched = Counter()
-        for ef, entry in (f.follow(ref) for ref in f.get(s, "Entries", [])):
+        entries = [f.follow(ref) for ref in f.get(s, "Entries", [])]
+        scenes = sorted({path for ef, entry in entries for path in ef.get(entry, "Members", [])})
+        notes = [_authored_for(realm, path, M.authored_depth(first)) for path in scenes]
+        gatekeeper = f.get(s, "GatekeeperScene")
+        if isinstance(gatekeeper, R.Ref):
+            notes.append(_authored_for(realm, f.ext_path(gatekeeper.id), last))
+        for note in filter(None, notes):
+            g.note(note)
+        for ef, entry in entries:
             members = [_member(path) for path in ef.get(entry, "Members", [])]
             counts = Counter(name for name, _ in members)
             shown = ", ".join(f"{name} x{n}" if n > 1 else name for name, n in counts.items())

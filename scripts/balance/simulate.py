@@ -35,7 +35,7 @@ CLASS_NAMES = [c for c in P.CLASSES if c != "reference"]
 
 
 def table(headers, rows):
-    widths = [max(len(str(h)), *(len(str(r[i])) for r in rows)) for i, h in enumerate(headers)]
+    widths = [max([len(str(h))] + [len(str(r[i])) for r in rows]) for i, h in enumerate(headers)]
     print("  ".join(str(h).rjust(w) for h, w in zip(headers, widths)))
     print("  ".join("-" * w for w in widths))
     for r in rows:
@@ -156,7 +156,7 @@ def floor_packs(depth):
     """
     eligible = sorted(M.eligible_packs(depth), key=lambda p: M.pack_units(p, depth))
     costs = [M.pack_units(p, depth) for p in eligible]
-    members = [[monster_at(a, depth) for a in p["members"]] for p in eligible]
+    members = [[monster_at(a, M.authored_depth(depth)) for a in p["members"]] for p in eligible]
     return costs, members, list(itertools.accumulate(p["weight"] for p in eligible))
 
 
@@ -594,10 +594,10 @@ def read_trace(path):
 
     for record in records(path):
         event, data, actor, time = record["event"], record["data"], record["actor"], record["time"]
+        if event == "attack.started" and "delivery" not in data or event == "damage.resolved" and "parent_source" not in data:
+            raise SystemExit(f"{path}: recorded before traces named each hit's attack; record it again")
         hero = is_hero(actor)
         if event == "attack.started":
-            if "delivery" not in data:
-                raise SystemExit(f"{path}: recorded before traces named each hit's attack; record it again")
             kind = "homing" if data["homing"] else TRACE_KINDS.get(data["delivery"])
             attacks[(data["execution_source"], data["execution"])] = {"hero": hero, "kind": kind}
             if not hero:
