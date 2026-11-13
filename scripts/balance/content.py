@@ -23,7 +23,7 @@ import model as M
 import params as P
 import resources as R
 
-CATEGORIES = ("monsters", "weapons", "armor", "classes", "supplies", "loot")
+CATEGORIES = ("monsters", "weapons", "armor", "jewelry", "classes", "supplies", "loot")
 
 
 @dataclass
@@ -97,8 +97,8 @@ def _selected(path, match) -> bool:
 
 
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
-    groups = [{"monsters": monsters, "weapons": weapons, "armor": armor, "classes": classes, "supplies": supplies, "loot": loot}[c](match)
-              for c in categories]
+    groups = [{"monsters": monsters, "weapons": weapons, "armor": armor, "jewelry": jewelry, "classes": classes,
+               "supplies": supplies, "loot": loot}[c](match) for c in categories]
     _merge_shared(groups)
     return groups
 
@@ -252,11 +252,6 @@ def weapon_kind(file: R.TextResource, section: R.Section) -> str | None:
     return next((kind for prefix, kind in STYLE_KINDS.items() if style.startswith(prefix)), None)
 
 
-def tier_depth(tier: int) -> int:
-    """The depth a tier is on curve: its introduction plus the lag before the expected hero wears it."""
-    return P.GEAR["tier_intro"][tier - 1] + P.GEAR["tier_lag"]
-
-
 def _combo_scales(file: R.TextResource, section: R.Section) -> tuple[float, float]:
     """Average damage and duration scale over a combo's steps; (1, 1) without a combo."""
     combo = file.get(section, "PrimaryCombo")
@@ -302,7 +297,7 @@ def weapons(match=None) -> Group:
             continue
         tier, w = int(f.get(s, "Tier", 1)), P.WEAPONS[kind]
         damage_scale, duration_scale = _combo_scales(f, s)
-        mean = M.reference_weapon_hit(tier_depth(tier)) * w["hit"] / damage_scale
+        mean = M.reference_weapon_hit(M.tier_depth(tier)) * w["hit"] / damage_scale
         lo, hi = (snap(x, 0.5, 0.5) for x in M.spread_range(mean, P.GEAR["weapon_spread"]))
         fixed = f.get(s, "Delay", 0.0) + f.get(s, "CooldownDuration", 0.0)
         perform = round((w["cycle"] - fixed) / duration_scale, 2)
@@ -351,7 +346,7 @@ def armor(match=None) -> Group:
             continue
         tier = int(f.get(s, "Tier", 1))
         weight = "medium" if slot == "shield" else _weight(f, s)
-        target = max(1, round(M.slot_armor(slot, weight, tier_depth(tier), found=False)))
+        target = max(1, round(M.slot_armor(slot, weight, M.tier_depth(tier), found=False)))
         g.add(f"{name} (T{tier})", f, s, "ArmorPoints", target)
         if slot == "body":
             g.add(f"{name} (T{tier})", f, s, "SpeedModifier", P.GEAR["weight"][weight][2])
@@ -439,6 +434,40 @@ def classes(match=None) -> Group:
     return g
 
 
+# --- Jewelry --------------------------------------------------------------------------------------
+
+# The stat each tiered jewelry type raises, by the type's name after its slot (`ring.protection`). Types not listed
+# change speed or damage by a percentage, which needs no tiers: they are tier 0 and drop at every depth.
+JEWELRY_STATS = {"strength": "attribute", "dexterity": "attribute", "vitality": "attribute", "mind": "attribute",
+                 "health": "health", "protection": "armor", "savagery": "damage", "frailty": "frailty"}
+
+
+def jewelry(match=None) -> Group:
+    """Tiered jewelry's modifier values from its stat, slot and `Tier`; untiered jewelry gets tier 0."""
+    g = Group("Jewelry", headers=["piece", "tier", "values", "derived"])
+    for path in sorted(R.ROOT.glob("scenes/items/jewelry/*/*.tres")):
+        if not _selected(path, match):
+            continue
+        f = R.load(path)
+        slot, _, kind = (f.get(f.main, "TypeId") or "").partition(".")
+        name = f"{f.get(f.main, 'Name') or path.stem}"
+        stat = JEWELRY_STATS.get(kind)
+        if stat is None:
+            g.add(name, f, f.main, "Tier", 0)
+            continue
+        tier = int(f.get(f.main, "Tier", 1))
+        modifiers = [f.follow(ref) for ref in f.get(f.main, "IntrinsicModifiers", [])]
+        targets = M.jewelry_values(stat, slot, tier)
+        if len(modifiers) != len(targets):
+            g.note(f"{R.to_res(path)}: {len(modifiers)} modifiers, the model sizes {len(targets)}; left alone")
+            continue
+        for (mf, modifier), target in zip(modifiers, targets):
+            g.add(f"{name} (T{tier})", mf, modifier, "Value", float(target))
+        current = "/".join(f"{mf.get(m, 'Value', 0.0):g}" for mf, m in modifiers)
+        g.rows.append([name, f"T{tier}", current, "/".join(f"{v:g}" for v in targets)])
+    return g
+
+
 # --- Supplies -------------------------------------------------------------------------------------
 
 def _healing_buffs(file: R.TextResource, section: R.Section, seen=None):
@@ -464,29 +493,60 @@ def _ticks(file: R.TextResource, buff: R.Section) -> int:
     return max(1, round(file.get(buff, "Duration", 1.0) * file.get(buff, "TicksPerSecond", 1.0)))
 
 
+# Food kinds by file name; anything else (fruit, drinks) is light.
+FOOD_KINDS = {"food_meat_": "meat", "food_bread_": "bread", "food_cheese_": "bread"}
+POTION_POOL = "res://scenes/items/loot/pools/potions.tres"
+
+
+def food_kind(path) -> str:
+    return next((kind for prefix, kind in FOOD_KINDS.items() if path.stem.startswith(prefix)), "light")
+
+
+def potion_size(path) -> str:
+    return path.stem.rsplit("_", 1)[1]
+
+
 def supplies(match=None) -> Group:
-    """Healing potions and food restore their model share of max health, spread over their buff's ticks."""
+    """
+    Healing potions and food restore their model's points, spread over their buff's ticks. Every potion drops in its
+    size's depth window; healing potions also take their size's weight.
+    """
     g = Group("Supplies", headers=["item", "heals", "derived"])
-    s = P.SUPPLY
-    items = [(path, s["potion_sizes"][path.stem.rsplit("_", 1)[1]])
+    items = [(path, M.potion_points(potion_size(path)))
              for path in sorted(R.ROOT.glob("scenes/items/potions/potion_healing_*.tres"))]
-    items += [(path, s["food_heal"]) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres"))]
-    for path, share in items:
+    items += [(path, M.food_points(food_kind(path))) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres"))]
+    for path, points in items:
         if not _selected(path, match):
             continue
         f = R.load(path)
         name = f.get(f.main, "Name") or path.stem
         for bf, buff in _healing_buffs(f, f.main):
             ticks = _ticks(bf, buff)
-            g.add(name, bf, buff, "MaxHealthFractionPerTick", round(share / ticks, 4))
-            g.rows.append([name, f"{bf.get(buff, 'MaxHealthFractionPerTick', 0.0) * ticks:.0%}", f"{share:.0%}"])
+            g.add(name, bf, buff, "HealthPointsPerTick", round(points / ticks, 4))
+            g.rows.append([name, f"{bf.get(buff, 'HealthPointsPerTick', 0.0) * ticks:.0f}", f"{points}"])
+    pool = R.load(POTION_POOL)
+    if _selected(pool.path, match):
+        for ref in pool.get(pool.main, "Items", []):
+            ef, entry = pool.follow(ref)
+            item = ef.get(entry, "Item")
+            if not isinstance(item, R.Ref):
+                continue
+            path = R.ROOT / ef.ext_path(item.id).removeprefix("res://")
+            size = P.SUPPLY["potion_sizes"].get(potion_size(path))
+            if size is None:
+                continue
+            g.add(path.stem, ef, entry, "MinDepth", size["intro"])
+            g.add(path.stem, ef, entry, "MaxDepth", size["last"])
+            if path.stem.startswith("potion_healing_"):
+                g.add(path.stem, ef, entry, "Weight", float(size["weight"]))
     return g
 
 
 # --- Loot tiers -----------------------------------------------------------------------------------
 
 TIER_BANDS = "res://scenes/items/quality/tier_depth_bands.tres"
-TIERED_POOLS = ("res://scenes/items/loot/pools/weapons.tres", "res://scenes/items/loot/pools/armor.tres")
+TIERED_POOLS = ("res://scenes/items/loot/pools/weapons.tres", "res://scenes/items/loot/pools/armor.tres",
+                "res://scenes/items/loot/pools/jewelry.tres")
 
 
 def tier_bands() -> list[tuple[int, int]]:
@@ -522,11 +582,11 @@ def loot(match=None) -> Group:
             if not isinstance(item, R.Ref):
                 continue
             itf, it = ef.follow(item)
-            if itf.script_class not in WEAPON_CLASSES + ("Armor",):
+            if itf.script_class not in WEAPON_CLASSES + ("Armor", "IdentifiableEquipableItem"):
                 continue
             tier = int(itf.get(it, "Tier", 1))
             label = f"{itf.get(it, 'Name') or itf.path.stem} (T{tier})"
-            low, high = bands[tier - 1]
+            low, high = bands[tier - 1] if tier > 0 else (0, 0)
             g.add(label, ef, entry, "MinDepth", low)
             g.add(label, ef, entry, "MaxDepth", high)
     return g

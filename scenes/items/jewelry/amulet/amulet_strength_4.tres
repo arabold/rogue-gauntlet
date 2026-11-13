@@ -6,19 +6,19 @@
 
 [sub_resource type="Resource" id="Modifier_0"]
 script = ExtResource("3_modifier")
-Stat = 10
-Value = 3.0
+Value = 8.0
 metadata/_custom_type_script = ExtResource("3_modifier")
 
 [resource]
 script = ExtResource("1_item")
-TypeId = "amulet.protection"
+TypeId = "amulet.strength"
 IdentityCategory = "amulet"
-TrueName = "Amulet of Protection"
+TrueName = "Amulet of Strength"
 UnidentifiedNameTemplate = "{descriptor} amulet"
 IntrinsicModifiers = [SubResource("Modifier_0")]
+Tier = 4
 ValidSlots = 32
 RollTable = ExtResource("roll_table")
-Name = "Amulet of Protection"
-Value = 210
+Name = "Amulet of Strength"
+Value = 800
 metadata/_custom_type_script = ExtResource("1_item")

@@ -102,7 +102,14 @@ def report_gear():
         armor.append(f"shield {M.slot_armor('shield', 'medium', d, found=False):.1f}")
         rows.append([f"T{t}", f"{intro}-{min(P.DEPTHS, intro + P.GEAR['tier_band'] - 1)}", d, "; ".join(weapons)])
         rows.append(["", "", "", "; ".join(armor)])
+        jewelry = [f"{stat} " + "/".join("-".join(f"{v:g}" for v in M.jewelry_values(stat, slot, t)) for slot in ("ring", "amulet"))
+                   for stat in ("attribute", "armor", "health", "damage", "frailty")]
+        rows.append(["", "", "", "jewelry (ring/amulet): " + "; ".join(jewelry)])
     table(["tier", "drops", "on curve", "values"], rows)
+    s = P.SUPPLY
+    potions = ", ".join(f"{size} {M.potion_points(size)} (depths {v['intro']}-{v['last'] or ''})" for size, v in s["potion_sizes"].items())
+    food = ", ".join(f"{kind} {M.food_points(kind)}" for kind in s["food_kinds"])
+    print(f"\nHealing potions heal {potions}. Food heals {food}.")
 
 
 def report_classes():
@@ -240,9 +247,12 @@ def fight(h, state, members, skill, rng):
             mana = min(h.mana, mana + h.mana_regen * (t - last))
         last = t
         if hero_next <= t:
-            if state["hp"] < skill["potion_at"] * h.hp and state["potions"] > 0:
-                state["hp"] = min(h.hp, state["hp"] + M.lerp(P.SUPPLY["potion_heal"], h.depth) * h.hp)
-                state["potions"] -= 1
+            if state["hp"] < skill["potion_at"] * h.hp and state["potions"]:
+                # The smallest potion that heals the whole deficit, else the largest.
+                missing = h.hp - state["hp"]
+                potion = min((p for p in state["potions"] if p >= missing), default=max(state["potions"]))
+                state["potions"].remove(potion)
+                state["hp"] = min(h.hp, state["hp"] + potion)
                 hero_next = t + 1.0
                 continue
             target = max(alive, key=lambda u: u.dps / max(u.hp, 1e-6))
@@ -308,14 +318,15 @@ def fight(h, state, members, skill, rng):
 def run(name, skill_name, rng):
     """Play one run; returns the depth reached (25 = victory)."""
     skill = P.SKILL[skill_name]
-    state = {"hp": None, "potions": P.SUPPLY["starting_potions"]}
+    state = {"hp": None, "potions": [M.potion_points("small")] * P.SUPPLY["starting_potions"]}
     food, previous_max = 0, 0.0
     for d in range(1, P.DEPTHS + 1):
         h = hero_at(name, d)
         state["hp"] = h.hp if state["hp"] is None else state["hp"] + (h.hp - previous_max)
         previous_max = h.hp
-        state["potions"] += sum(1 for _ in range(poisson(rng, P.SUPPLY["healing_potions"]))
-                                if rng.random() < skill["potion_known"])
+        sizes = M.potion_sizes_at(d)
+        state["potions"] += [M.potion_points(rng.choices(list(sizes), list(sizes.values()))[0])
+                             for _ in range(poisson(rng, M.healing_potions(d))) if rng.random() < skill["potion_known"]]
         food += poisson(rng, P.SUPPLY["food"])
         if d in P.SUPPLY["fountain_depths"]:
             state["hp"] = h.hp
@@ -324,7 +335,7 @@ def run(name, skill_name, rng):
             packs.append([monster_at("boss", d)])
         for pack in packs:
             while state["hp"] < 0.6 * h.hp and food > 0:
-                state["hp"] = min(h.hp, state["hp"] + P.SUPPLY["food_heal"] * h.hp)
+                state["hp"] = min(h.hp, state["hp"] + M.food_heal())
                 food -= 1
             rest(h, state)
             if not fight(h, state, pack, skill, rng):
@@ -341,7 +352,7 @@ def floor_cost(name, depth, skill, rng, floors):
     """Mean share of max health one floor's packs take from a hero who cannot die and drinks nothing."""
     h = hero_at(name, depth)
     total = 0.0
-    state = {"hp": 1e12, "potions": 0, "mana": h.mana}
+    state = {"hp": 1e12, "potions": [], "mana": h.mana}
     for _ in range(floors):
         for pack in compose_floor(depth, rng):
             state["hp"] = 1e12
@@ -356,7 +367,7 @@ def boss_cost(name, depth, skill, rng, fights):
     h = hero_at(name, depth)
     total = 0.0
     for _ in range(fights):
-        state = {"hp": 1e12, "potions": 0, "mana": h.mana}
+        state = {"hp": 1e12, "potions": [], "mana": h.mana}
         fight(h, state, [monster_at("boss", depth)], skill, rng)
         total += (1e12 - state["hp"]) / h.hp
     return total / fights
@@ -509,10 +520,11 @@ def report_supply(depths, seeds, samples):
     rows = []
     for depth, items in sorted(report.items(), key=lambda pair: int(pair[0])):
         potions = {k.split(":")[1]: v for k, v in items.items() if k.startswith("potion.healing:")}
-        heal = sum(v * s["potion_sizes"][size] for size, v in potions.items())
+        heal = sum(v * M.potion_points(size) for size, v in potions.items()) / M.reference_hp(int(depth))
+        model_heal = M.healing_potions(int(depth)) * M.potion_heal(int(depth)) / M.reference_hp(int(depth))
         gear = ", ".join(f"{k.split(':')[1]} {v:.1f}" for k, v in sorted(items.items()) if k.startswith("gear:"))
-        rows.append([depth, f"{items.get('monsters', 0):.1f}", f"{sum(potions.values()):.2f}", f"{s['healing_potions']:.2f}",
-                     f"{heal:.0%}", f"{s['healing_potions'] * M.lerp(s['potion_heal'], int(depth)):.0%}", f"{items.get('food', 0):.2f}",
+        rows.append([depth, f"{items.get('monsters', 0):.1f}", f"{sum(potions.values()):.2f}", f"{M.healing_potions(int(depth)):.2f}",
+                     f"{heal:.0%}", f"{model_heal:.0%}", f"{items.get('food', 0):.2f}",
                      f"{s['food']:.2f}", gear])
     table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
 
@@ -634,7 +646,7 @@ def report_playtest(paths):
             used = sum(n for k, n in f["used"].items() if k.startswith("potion.healing"))
             health = f["max_health"] or 1
             level = f"{f['level']}" + (f"→{f['level_out']}" if f.get("level_out", f["level"]) != f["level"] else "")
-            expected = P.SUPPLY["healing_potions"] * M.lerp(P.SUPPLY["potion_heal"], int(f["depth"]))
+            expected = M.healing_potions(int(f["depth"])) * M.potion_heal(int(f["depth"])) / M.reference_hp(int(f["depth"]))
             planned = f"{f['monsters']}" + (f"+{f['nests']} nests" if f["nests"] else "")
             rows.append([f["depth"], f"{(f['end'] - f['start']) / 60:.1f}", f"{f['kills']}/{planned}", f["xp"],
                          level, f"{f['damage'] / health:.1f}", f"{f['healed']:.0%}", f"{expected:.0%}",

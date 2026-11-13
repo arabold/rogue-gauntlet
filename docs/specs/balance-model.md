@@ -63,9 +63,11 @@ class follows the same curves:
   **Intelligence:** +3% missile and spell damage per point above 10; mana `= 20 + 5 × Intelligence`, regenerating
   1% of the maximum per second.
 - Each level adds one attribute point, split by class (`growth` in `params.py`).
-- **Supplies:** about 0.9 healing potions per floor, restoring a share of max health (small 35%, from depth 3 medium
-  50%, from depth 7 large 70%; the runs assume 38% early, rising to 60%), as measured with `supply`; about one food per
-  floor at 10%; three health fountains per run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
+- **Supplies:** healing potions heal fixed points, so a size is worth less as the hero grows and the next size takes
+  over: small 30 (60% of a level 1 hero, dropping until depth 12), medium 85 (from depth 9), large 200 (from depth
+  17), equally likely while eligible. The hero finds 0.9 per floor at depth 1, rising to 2.0 at depth 24, as measured
+  with `supply`. Food heals 3 (fruit and drinks), 5 (bread and cheese) or 8 (meat), about one per floor; three health
+  fountains per run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
 
 ### Gear
 
@@ -81,6 +83,11 @@ depth 1 to 25% at depth 24.
 - **Armor slots** are sized against the standard monster's mean hit `m` at that depth. A Normal medium body piece
   holds `0.30 m` armor, a helmet `0.15 m`, a shield `0.22 m`. Light pieces carry half the armor and remove 5% of
   landed hits; heavy pieces carry 1.3× and let 10% more land. The game has no passive evasion, so it expresses that footwork as movement speed: a light body piece moves its wearer 5% faster, a heavy one 8% slower.
+- **Jewelry** comes in tiers 1–5 that drop in the same depth bands. At its tier's on-curve depth a ring adds 12% of
+  the standard monster's mean hit as armor (Protection), 10% of the hero's health (Health), 20% of the reference
+  weapon's range to both ends of the hero's damage (Savagery), or attribute points (2 at tier 1, one more per tier).
+  Amulets give 1.5 times as much; a Ring of Frailty takes 20% of health. Swiftness, Lethargy and Dread change speed
+  or damage by a percentage and have no tiers. Jewelry counts toward the found bonus, like quality and affixes.
 - **Tiers T1–T5** are introduced at depths 1, 6, 11, 16 and 21, drop for 8 depths and are on curve one depth after
   introduction. `simulate.py gear` prints the authoring targets: T1 sword 4–9, T3 sword 8–20, T5 sword 18–42; T3
   heavy body armor 11, and so on.
@@ -210,7 +217,7 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
 ### Game content
 
 `audit` compares the game's `.tres` files with the model's targets; `derive` writes the targets into them. Both take
-`--only monsters,weapons,armor,classes` and `--match <path text>` (repeatable). `derive` overwrites every value it
+`--only` with any of `monsters,weapons,armor,jewelry,classes,supplies,loot` and `--match <path text>` (repeatable). `derive` overwrites every value it
 owns; review the result with `git diff`.
 
 ```bash
@@ -228,6 +235,10 @@ uv run scripts/balance/simulate.py derive --match skeleton     # write the targe
   `derive` writes the base damage range and `PerformDuration` that reproduce the kind's hit and rhythm. Wand and
   staff missiles get the kind's dart share.
 - **Armor** gets its slot from `ValidSlots` and its target from `Tier` (Normal quality, medium weight).
+- **Jewelry** gets its stat from its type (`ring.protection`) and its values from `Tier`. Each type with points has
+  one definition per tier (`ring_protection_1.tres` to `_5`); percentage types get tier 0.
+- **Supplies:** healing potions get their size's points and food its kind's (meat, bread and cheese, or light), spread
+  over their buff's ticks. Every potion pool entry gets its size's depth window, and healing potions its weight.
 - **Classes** match the model's classes by `Id`. `derive` writes base attributes, and the hero sheet and stat
   profiles that reproduce the model's level-1 health, mana and crit chance with the game's current formulas. Damage
   from attributes waits for the rule change.
@@ -282,8 +293,8 @@ the bonus from quality and affixes. Item tables are free to vary around them.
 - realm 1 monsters, class sheets, every weapon and armor piece, and the loot tier bands are derived;
 - XP and floor budgets follow the monsters' threat levels, and floors spawn rat-led packs;
 - heroes level up on the fitted ladder with percentage attributes;
-- elemental damage passes armor, potions and food heal a share of max health, and realm 1 drops about one healing
-  potion per floor (`supply`);
+- elemental damage passes armor, potions and food heal fixed points by size, jewelry comes in tiers, and realm 1
+  drops about one healing potion per floor (`supply`);
 - body armor and helmets exist in three weights, and every class starts in its own.
 
 The remaining steps:

@@ -9,7 +9,7 @@ script = ExtResource("buff")
 CuredConditions = [ExtResource("blinded")]
 Name = "Large Potion of Healing"
 Duration = 3.0
-MaxHealthFractionPerTick = 0.2333
+HealthPointsPerTick = 66.6667
 metadata/_custom_type_script = ExtResource("buff")
 
 [resource]

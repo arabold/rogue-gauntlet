@@ -8,7 +8,7 @@
 [sub_resource type="Resource" id="Resource_buff"]
 script = ExtResource("1_buff")
 Name = "Roasted Turkey Drumstick"
-MaxHealthFractionPerTick = 0.1
+HealthPointsPerTick = 8.0
 metadata/_custom_type_script = ExtResource("1_buff")
 
 [resource]

@@ -21,8 +21,8 @@ public class InventoryEquipSlotTest
 	public void EquippingTwoRingsFillsBothRingSlots()
 	{
 		var inventory = new Inventory();
-		var ringA = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_strength.tres");
-		var ringB = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_dexterity.tres");
+		var ringA = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_strength_1.tres");
+		var ringB = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_dexterity_1.tres");
 		var slotA = new InventoryItemSlot { Item = ringA, Quantity = 1 };
 		var slotB = new InventoryItemSlot { Item = ringB, Quantity = 1 };
 		inventory.Items.Add(slotA);

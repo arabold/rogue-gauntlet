@@ -148,13 +148,32 @@ FLOOR = dict(
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )
 SUPPLY = dict(
-    healing_potions=0.9,       # expected healing potions found per floor (Poisson); measured with `simulate.py supply`
-    potion_heal=(0.38, 0.6),   # share of max health the average potion restores: small ones early, larger ones later
-    potion_sizes=dict(small=0.35, medium=0.5, large=0.7),  # what each potion restores; loot odds set the average
+    healing_potions=(0.9, 2.0),  # expected healing potions found per floor (Poisson), depths 1 to 24; measured with `supply`
+    # Potions heal fixed points, so a size is worth less as the hero's health grows and the next size takes over. A size
+    # drops from `intro` to `last` (0 = to the end), healing `heal` of the expected hero's health where it arrives;
+    # `weight` is its share among the sizes eligible at a depth. Small potions stop once large ones are near, or late
+    # floors fill with potions that heal a tenth of the hero. `derive` writes every potion pool entry's window and the
+    # healing potions' weights.
+    potion_sizes=dict(small=dict(intro=1, last=12, heal=0.6, weight=12),
+                      medium=dict(intro=9, last=0, heal=0.7, weight=12),
+                      large=dict(intro=17, last=0, heal=1.0, weight=12)),
     food=1.0,                  # expected food per floor
-    food_heal=0.10,
+    # Food heals fixed points by kind, as a share of a level 1 hero's health: minor healing that fades deeper down.
+    food_kinds=dict(light=0.06, bread=0.10, meat=0.15),
     fountain_depths=[5, 12, 19],  # one full heal on these floors (2-3 per run, seeded in game)
     starting_potions=0,        # healing potions every class starts with (equal for parity)
+)
+# Jewelry comes in tiers 1-5 that drop in the gear tier bands. A piece is sized at its tier's on-curve depth as a share of
+# the stat it raises: armor against the standard monster's mean hit, health against the hero's, damage against the
+# reference weapon's range (added to both ends). Attribute pieces add points that grow by tier. Amulets give more than
+# rings. Jewelry counts toward the expected hero's `found_bonus`, like quality and affixes.
+JEWELRY = dict(
+    slots=dict(ring=1.0, amulet=1.5),
+    armor=0.12,                # Protection
+    health=0.10,               # Health
+    damage=0.20,               # Savagery
+    frailty=-0.20,             # Frailty (always cursed): health lost
+    attribute=(2, 1),          # Strength, Dexterity, Vitality, Mind: points at tier 1 and per tier above
 )
 XP = dict(
     standard_xp=10.0,          # XP of a threat-level-1 standard monster

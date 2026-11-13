@@ -33,108 +33,108 @@
 [sub_resource type="Resource" id="Entry_potion_intelligence_large"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_intelligence_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_slowness_large"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_slowness_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_healing_large"]
 script = ExtResource("entry")
-Weight = 3.0
+Weight = 12.0
 Item = ExtResource("item_potion_healing_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_dexterity_large"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_dexterity_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_poison_large"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_poison_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_vitality_large"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_vitality_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_strength_large"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_strength_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_intelligence_medium"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_intelligence_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_slowness_medium"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_slowness_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_healing_medium"]
 script = ExtResource("entry")
-Weight = 6.0
+Weight = 12.0
 Item = ExtResource("item_potion_healing_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_dexterity_medium"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_dexterity_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_poison_medium"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_poison_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_vitality_medium"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_vitality_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_strength_medium"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_strength_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_intelligence_small"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_intelligence_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_slowness_small"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_slowness_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_healing_small"]
@@ -142,65 +142,65 @@ script = ExtResource("entry")
 Weight = 12.0
 Item = ExtResource("item_potion_healing_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_dexterity_small"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_dexterity_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_poison_small"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_poison_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_vitality_small"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_vitality_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_strength_small"]
 script = ExtResource("entry")
 Item = ExtResource("item_potion_strength_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_blindness_large"]
 script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_potion_blindness_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_confusion_large"]
 script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_potion_confusion_large")
-MinDepth = 7
+MinDepth = 17
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_blindness_medium"]
 script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_potion_blindness_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_confusion_medium"]
 script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_potion_confusion_medium")
-MinDepth = 3
-MaxDepth = 9
+MinDepth = 9
+MaxDepth = 0
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_blindness_small"]
@@ -208,7 +208,7 @@ script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_potion_blindness_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [sub_resource type="Resource" id="Entry_potion_confusion_small"]
@@ -216,7 +216,7 @@ script = ExtResource("entry")
 Weight = 3.0
 Item = ExtResource("item_potion_confusion_small")
 MinDepth = 1
-MaxDepth = 5
+MaxDepth = 12
 metadata/_custom_type_script = ExtResource("entry")
 
 [resource]

@@ -8,4 +8,4 @@ script = ExtResource("script")
 CuredConditions = [ExtResource("blinded")]
 Name = "Small Potion of Healing"
 Duration = 3.0
-MaxHealthFractionPerTick = 0.1167
+HealthPointsPerTick = 10.0

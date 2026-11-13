@@ -120,7 +120,7 @@ public class DebugToolkitTest
 				},
 				new HeroBuildItem
 				{
-					Definition = TestFactories.Load<Item>("res://scenes/items/jewelry/ring/ring_mind.tres"),
+					Definition = TestFactories.Load<Item>("res://scenes/items/jewelry/ring/ring_mind_1.tres"),
 					Quality = ItemQuality.Magic, Slot = EquipmentSlot.LeftRing,
 				},
 			],

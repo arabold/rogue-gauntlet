@@ -21,4 +21,5 @@ RollTable = ExtResource("roll_table")
 AlwaysCursed = true
 Name = "Ring of Lethargy"
 Value = 40
+Tier = 0
 metadata/_custom_type_script = ExtResource("1_item")

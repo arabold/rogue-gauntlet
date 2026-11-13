@@ -155,18 +155,36 @@ public class ItemCatalogTest
 	}
 
 	[TestCase]
-	public void JewelryHasOneDefinitionPerTypeGradedByQuality()
+	public void JewelryWithPointsComesInTiersThatGiveMore()
 	{
 		IdentifiableEquipableItem[] jewelry = Definitions().OfType<IdentifiableEquipableItem>().ToArray();
 		AssertInt(jewelry.Count(item => item.IdentityCategory == "ring")).IsGreater(0);
 		AssertInt(jewelry.Count(item => item.IdentityCategory == "amulet")).IsGreater(0);
-		AssertInt(jewelry.Select(item => item.TypeId).Distinct().Count()).IsEqual(jewelry.Length);
 		foreach (IdentifiableEquipableItem item in jewelry)
 		{
 			AssertObject(item.RollTable).OverrideFailureMessage($"{item.TypeId} has no roll table").IsNotNull();
 			AssertBool(item.UnidentifiedNameTemplate.StartsWith("{descriptor} ")).IsTrue();
 			AssertInt(item.IntrinsicModifiers.Length).IsGreater(0);
-			AssertInt(item.Tier).IsEqual(1);
+		}
+		foreach (var type in jewelry.GroupBy(item => item.TypeId))
+		{
+			IdentifiableEquipableItem[] tiers = type.OrderBy(item => item.Tier).ToArray();
+			// A percentage piece is worth the same at every depth: one untiered definition. A piece with points has one
+			// definition per tier, each giving more than the last, all sharing the type's name and appearance.
+			if (tiers[0].IntrinsicModifiers.All(modifier => modifier.Op == ModifierOp.Percent))
+			{
+				AssertInt(tiers.Length).IsEqual(1);
+				AssertInt(tiers[0].Tier).IsEqual(0);
+				continue;
+			}
+			AssertArray(tiers.Select(item => item.Tier).ToArray()).OverrideFailureMessage($"{type.Key} tiers")
+				.ContainsExactly(1, 2, 3, 4, 5);
+			for (int i = 1; i < tiers.Length; i++)
+			{
+				AssertString(tiers[i].TrueName).IsEqual(tiers[0].TrueName);
+				float Magnitude(IdentifiableEquipableItem item) => item.IntrinsicModifiers.Sum(modifier => Mathf.Abs(modifier.Value));
+				AssertFloat(Magnitude(tiers[i])).OverrideFailureMessage($"{type.Key} T{tiers[i].Tier}").IsGreater(Magnitude(tiers[i - 1]));
+			}
 		}
 	}
 

@@ -128,6 +128,73 @@ def weapon_mean(kind: str, depth: float, cls: dict, found: bool = True) -> float
     return base * (1 + _profile(cls, "damage_per_str") * (a["STR"] - 10))
 
 
+def tier_depth(tier: int) -> int:
+    """The depth a tier is on curve: its introduction plus the lag before the expected hero wears it."""
+    return P.GEAR["tier_intro"][tier - 1] + P.GEAR["tier_lag"]
+
+
+def reference_hp(depth: float) -> float:
+    """Max health of the reference hero arriving at `depth` at the target level."""
+    return hero_hp(P.CLASSES["reference"], level_at(depth))
+
+
+def potion_points(size: str) -> int:
+    """Health a healing potion of `size` restores: its share of the expected hero's health where the size arrives."""
+    s = P.SUPPLY["potion_sizes"][size]
+    return round(s["heal"] * reference_hp(s["intro"]) / 5) * 5
+
+
+def potion_sizes_at(depth: float) -> dict[str, float]:
+    """The odds of each healing potion size among the potions found at `depth`."""
+    sizes = {name: s["weight"] for name, s in P.SUPPLY["potion_sizes"].items()
+             if s["intro"] <= depth and (not s["last"] or depth <= s["last"])}
+    total = sum(sizes.values())
+    return {name: w / total for name, w in sizes.items()}
+
+
+def healing_potions(depth: float) -> float:
+    """Expected healing potions found on a floor at `depth`; more deeper down, where each heals a smaller share."""
+    return lerp(P.SUPPLY["healing_potions"], depth)
+
+
+def potion_heal(depth: float) -> float:
+    """Expected health one healing potion found at `depth` restores."""
+    return sum(odds * potion_points(size) for size, odds in potion_sizes_at(depth).items())
+
+
+def food_points(kind: str) -> int:
+    """Health one food of `kind` restores: its share of a level 1 hero's health."""
+    return max(1, round(P.SUPPLY["food_kinds"][kind] * reference_hp(1)))
+
+
+def food_heal() -> float:
+    """Expected health one food restores, with every kind equally likely."""
+    kinds = P.SUPPLY["food_kinds"]
+    return sum(food_points(kind) for kind in kinds) / len(kinds)
+
+
+def jewelry_values(stat: str, slot: str, tier: int) -> list[float]:
+    """
+    The modifier values of a jewelry piece of `tier` raising `stat` (`armor`, `health`, `damage` as low and high,
+    `frailty` or `attribute`): its share of that stat on curve at the tier's depth, more for an amulet than a ring.
+    """
+    j = P.JEWELRY
+    scale = j["slots"][slot]
+    if stat == "attribute":
+        first, per_tier = j["attribute"]
+        return [round((first + per_tier * (tier - 1)) * scale)]
+    d = tier_depth(tier)
+    if stat == "armor":
+        return [max(1, round(j["armor"] * scale * standard_hit(d)))]
+    if stat in ("health", "frailty"):
+        value = round(j[stat] * scale * reference_hp(d))
+        return [value or (1 if stat == "health" else -1)]
+    if stat == "damage":
+        low, high = spread_range(reference_weapon_hit(d), P.GEAR["weapon_spread"])
+        return [max(1, round(j["damage"] * scale * low)), max(1, round(j["damage"] * scale * high))]
+    raise ValueError(f"unknown jewelry stat {stat}")
+
+
 def hero(name: str, depth: float) -> Hero:
     cls = P.CLASSES[name]
     level = level_at(depth)

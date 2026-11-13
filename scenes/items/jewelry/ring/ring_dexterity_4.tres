@@ -6,18 +6,18 @@
 
 [sub_resource type="Resource" id="Modifier_0"]
 script = ExtResource("3_modifier")
-Stat = 4
-Value = -15.0
+Stat = 1
+Value = 5.0
 metadata/_custom_type_script = ExtResource("3_modifier")
 
 [resource]
 script = ExtResource("1_item")
-TypeId = "ring.frailty"
-TrueName = "Ring of Frailty"
+TypeId = "ring.dexterity"
+TrueName = "Ring of Dexterity"
 IntrinsicModifiers = [SubResource("Modifier_0")]
+Tier = 4
 ValidSlots = 192
 RollTable = ExtResource("roll_table")
-AlwaysCursed = true
-Name = "Ring of Frailty"
-Value = 40
+Name = "Ring of Dexterity"
+Value = 600
 metadata/_custom_type_script = ExtResource("1_item")

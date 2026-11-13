@@ -66,7 +66,7 @@ public class ItemQualityTest
 		ItemCreationPolicy policy = Policy;
 		QualityLadder ladder = policy.QualityLadder;
 		string[] paths = ["res://scenes/items/weapons/broadsword_common.tres", "res://scenes/items/armor/shield_common.tres",
-			"res://scenes/items/jewelry/ring/ring_strength.tres"];
+			"res://scenes/items/jewelry/ring/ring_strength_1.tres"];
 		Item[] definitions = paths.Select(path => TestFactories.Load<Item>(path)).ToArray();
 		var qualities = new HashSet<ItemQuality>();
 		using var rng = GenerationRandom.Create(42, "quality-creation");
@@ -104,9 +104,13 @@ public class ItemQualityTest
 		AssertFloat(weapon.ScaledDamageMax).IsEqual(1f);
 		AssertInt(new Armor { ArmorPoints = 3, MagnitudeScale = 1.6f }.ScaledArmorPoints).IsEqual(5);
 
-		var frailty = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_frailty.tres");
+		// A superior Ring of Frailty is the worst one, still in whole points.
+		var frailty = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_frailty_1.tres");
+		float penalty = frailty.IntrinsicModifiers[0].Value;
 		frailty.MagnitudeScale = 1.6f;
-		AssertFloat(frailty.StatModifiers.First().Value).IsEqual(-24f);
+		float scaled = frailty.StatModifiers.First().Value;
+		AssertFloat(scaled).IsLess(penalty * 1.5f);
+		AssertFloat(scaled).IsEqual(Mathf.Round(scaled));
 
 		var lethargy = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_lethargy.tres");
 		AssertFloat(lethargy.StatModifiers.First().Value).IsEqual(lethargy.IntrinsicModifiers[0].Value);
@@ -126,7 +130,7 @@ public class ItemQualityTest
 		sword.Affixes.Add(new RolledAffix { NameFragment = "Vicious", Kind = AffixKind.Prefix });
 		AssertString(sword.ComposeName(sword.Name)).IsEqual("Vicious Broadsword of the Ox");
 
-		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength.tres");
+		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength_1.tres");
 		AssertString(ring.ComposeName(ring.TrueName)).IsEqual("Ring of Strength +2");
 		ring.Quality = ItemQuality.Superior;
 		ring.QualityAdjective = "shiny";
@@ -175,7 +179,7 @@ public class ItemQualityTest
 	[TestCase]
 	public void JewelryCombinesTypeAndItemKnowledge()
 	{
-		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength.tres");
+		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength_1.tres");
 		var rng = new RandomNumberGenerator { Seed = 8 };
 		LootRoller.ApplyRoll(ring, 12, rng, Policy, ItemQuality.Magic, cursed: false);
 		var service = new IdentificationService();
@@ -199,11 +203,8 @@ public class ItemQualityTest
 			if (TestFactories.Load<Resource>(ProjectSettings.LocalizePath(path)) is not LootTable table) { continue; }
 			foreach (LootTableItem entry in table.Entries)
 			{
-				if (entry.Item is IdentifiableEquipableItem)
-				{
-					AssertInt((int)entry.MinDepth).IsEqual(1);
-				}
-				else if (entry.Item is EquipableItem equipment)
+				// Jewelry too: tiered pieces drop in their band, tier-0 pieces at every depth.
+				if (entry.Item is EquipableItem equipment)
 				{
 					Vector2I band = bands.For(equipment.Tier);
 					AssertBool(entry.MinDepth == band.X && entry.MaxDepth == band.Y)

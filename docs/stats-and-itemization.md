@@ -10,7 +10,7 @@ A weapon's damage-range and critical-chance modifiers apply only to attacks made
 
 Supported secondary stats include maximum health, maximum mana, speed, damage range, critical chance and armor. Their base values and the base attributes are authored on the player's stat sheet ([`player_stats.tres`](../scenes/player/resources/player_stats.tres)); a class then overwrites the four attributes. Dexterity does not grant passive accuracy or evasion. Resolved values drive health, movement, damage and the HUD; maximum-health derivation must not be fed back into base stats. See [active defense](combat-system.md#contact-resolution) for hit handling.
 
-Timed stat buffs expire once; permanent buffs remain until explicitly removed. Periodic healing restores a share of max health per tick (`HealingBuff.MaxHealthFractionPerTick`), so healing potions and food are worth the same at every level; poison deals authored points.
+Timed stat buffs expire once; permanent buffs remain until explicitly removed. Periodic healing restores fixed points per tick (`HealingBuff.HealthPointsPerTick`), so a healing potion or food matters less as the hero's health grows and larger potions arrive deeper (see the [balance model](specs/balance-model.md#the-hero)); poison deals authored points.
 
 ## Experience and levels
 
@@ -53,7 +53,7 @@ The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after 
 
 Equipment has two independent properties:
 
-1. **Base item.** The authored definition: kind, model and baseline values. Weapons and armor carry a `Tier` (1–5) that loot-table depth windows fence. Jewelry has no tier.
+1. **Base item.** The authored definition: kind, model and baseline values. Weapons, armor and jewelry with points carry a `Tier` (1–5) that loot-table depth windows fence; a higher tier gives more. Jewelry that changes speed or damage by a percentage is tier 0 and drops at every depth.
 2. **Quality.** `ItemQuality` is rolled once at creation, stored on the instance and never secret, not even on unidentified jewelry. Poor and Superior scale base stats; Magic and Rare add affixes instead. One color per quality is shared by loot beams, slot tints, names and tooltips (`ItemQualityPalette`); orange is reserved for future Unique items.
 
 | Quality | Color | Base scale | Affixes | Introduced | Share at depth 12 / 24 |
@@ -122,7 +122,7 @@ Weapon and armor base tiers are fenced over the 24-depth run. Each tier drops fo
 
 Every weapon, shield and armor piece's numbers come from its kind, slot, weight and tier through `derive`, so items of one kind and tier differ only in look, quality and affixes.
 
-Every jewelry type is eligible from depth 1; its quality carries the progression. See the [catalog](item-catalog.md#source-budgets-and-eligibility) and the source `.tres` files for actual eligibility and weights. Monster threat and item tier are selection/tuning concepts, not automatic depth-based stat scaling.
+Jewelry drops in its tier's band like weapons and armor, with values from the balance model; quality varies each piece around them. See the [catalog](item-catalog.md#source-budgets-and-eligibility) and the source `.tres` files for actual eligibility and weights. Monster threat and item tier are selection/tuning concepts, not automatic depth-based stat scaling.
 
 ## Portable-light equipment
 

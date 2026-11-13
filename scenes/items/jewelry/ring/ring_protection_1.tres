@@ -2,23 +2,22 @@
 
 [ext_resource type="Script" path="res://scenes/items/IdentifiableEquipableItem.cs" id="1_item"]
 [ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="3_modifier"]
-[ext_resource type="Resource" path="res://scenes/items/quality/tables/amulet.tres" id="roll_table"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/ring.tres" id="roll_table"]
 
 [sub_resource type="Resource" id="Modifier_0"]
 script = ExtResource("3_modifier")
-Stat = 2
-Value = 3.0
+Stat = 10
+Value = 1.0
 metadata/_custom_type_script = ExtResource("3_modifier")
 
 [resource]
 script = ExtResource("1_item")
-TypeId = "amulet.vitality"
-IdentityCategory = "amulet"
-TrueName = "Amulet of Vitality"
-UnidentifiedNameTemplate = "{descriptor} amulet"
+TypeId = "ring.protection"
+TrueName = "Ring of Protection"
 IntrinsicModifiers = [SubResource("Modifier_0")]
-ValidSlots = 32
+Tier = 1
+ValidSlots = 192
 RollTable = ExtResource("roll_table")
-Name = "Amulet of Vitality"
-Value = 200
+Name = "Ring of Protection"
+Value = 160
 metadata/_custom_type_script = ExtResource("1_item")
