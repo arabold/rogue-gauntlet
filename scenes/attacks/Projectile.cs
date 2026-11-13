@@ -288,6 +288,7 @@ public partial class Projectile : Node3D, IPooledNode
 			var context = new DamageContext
 			{
 				ExecutionId = _executionId,
+				Parent = _parentExecution,
 				SourceNode = this,
 				OwnerNode = GetValidAttacker(),
 				Faction = _attackerFaction,
@@ -462,6 +463,7 @@ public partial class Projectile : Node3D, IPooledNode
 				var areaContext = new DamageContext
 				{
 					ExecutionId = _executionId,
+					Parent = _parentExecution,
 					SourceNode = this,
 					OwnerNode = GetValidAttacker(),
 					Faction = _attackerFaction,

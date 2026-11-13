@@ -224,7 +224,7 @@ public class WardenTest
 
 	/// <summary>
 	/// Only death ends the slam: frozen and shoved while it winds up, the Warden still brings the wave down on the hero,
-	/// and the freeze holds it once the slam is over.
+	/// and the freeze holds it once the slam is over. The wave's hit names the slam as the attack that released it.
 	/// </summary>
 	[TestCase]
 	public async Task NeitherAFreezeNorAShoveStopsTheSlam()
@@ -242,9 +242,15 @@ public class WardenTest
 		float full = hero.HealthComponent.CurrentHealth;
 		bool? interrupted = null;
 		boss.AttackController.AttackFinished += (_, wasInterrupted) => interrupted ??= wasInterrupted;
+		AttackIdentity? released = null;
+		hero.HurtBoxComponent.ContactResolved += (in CombatContactFeedback contact) =>
+		{
+			if (contact.Outcome == DamageOutcome.Damaged) released ??= contact.Context.Parent;
+		};
 		// Out of sword reach, the slam is the only attack it can start.
 		harness.ExecuteCommand("automation", "", 1);
 		await TestFactories.AwaitPhysicsUntil(runner, () => boss.AttackController.IsAttacking, 4);
+		var slam = boss.AttackController.CurrentExecutionId;
 		boss.Frozen = true;
 		boss.MovementComponent.PushForced(Vector3.Back, 4);
 
@@ -252,6 +258,7 @@ public class WardenTest
 		AssertBool(interrupted == false).OverrideFailureMessage("The slam was interrupted").IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => hero.HealthComponent.CurrentHealth < full, 2);
 		AssertFloat(hero.HealthComponent.CurrentHealth).IsLess(full);
+		AssertObject(released).IsEqual(slam);
 		AssertBool(boss.ActionGate.IsStatusLocked).IsTrue();
 		AssertBool(boss.ActionGate.IsBusy).IsFalse();
 	}

@@ -10,6 +10,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public DamageDeliveryKind? Delivery => DamageDeliveryKind.AreaImpact;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	private readonly AreaCastLifecycle _cast = new();
 	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
@@ -31,7 +32,7 @@ public partial class AreaDamageSpell : Node, ICombatSpell
 		float radius = Definition.RadiusByLevel[level - 1];
 		AttackStats hit = power.Hit.Scaled(Definition.DamageScaleByLevel[level - 1]);
 		AttackDefenseTraits defense = Definition.DefenseTraits;
-		if (!AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, radius, out var cast)) return false;
+		if (!AreaCastLifecycle.TryCapture(this, in context, VisualRoot, random, radius, out var cast)) return false;
 		var node = VisualScene.Instantiate();
 		if (node is not Node3D visual || node is not IAreaSpellVisual area || !area.ConfigureArea(level, radius))
 		{ node?.Free(); return false; }

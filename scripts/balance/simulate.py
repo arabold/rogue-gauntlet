@@ -528,7 +528,9 @@ def report_supply(depths, seeds, samples):
     table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
 
 
-SPELL_LINGER = 5.0  # seconds after a cast that its lingering area or spell can still hit and count for it
+# How an attack's contacts arrive (`delivery` on `attack.started`) as the model's attack kinds; projectiles that home in
+# are "homing". A spell that deals no damage has none.
+TRACE_KINDS = {"DirectMelee": "melee", "Projectile": "ranged", "AreaImpact": "area"}
 
 
 def records(path):
@@ -546,10 +548,10 @@ def is_hero(actor: str) -> bool:
 def read_trace(path):
     """
     What a combat trace (`--combat-log`, or a playtest log) shows of skill: every attack with who made it, its kind and
-    whether it landed; the hero's hits with their zone and crit; and each monster's attacks over the time it fought.
+    whether it landed; the hero's hits with their zone and crit; and each monster's attacks over the time it fought. A
+    projectile's or spell's hit names the attack that released it as its parent and counts for that attack.
     """
-    attacks, parents, landed = {}, {}, set()
-    controllers, casts, spell_kinds = {}, {}, {}
+    attacks, landed = {}, set()
     hits, fighting, fights = [], {}, []
 
     def engaged(monster, time):
@@ -559,48 +561,23 @@ def read_trace(path):
         event, data, actor, time = record["event"], record["data"], record["actor"], record["time"]
         hero = is_hero(actor)
         if event == "attack.started":
-            key = (data["execution_source"], data["execution"])
-            style = str(data.get("style", ""))
-            # Casts fire homing missiles; a monster's "ranged" style shoots bolts; everything else is a melee swing
-            # until a released spell says otherwise.
-            kind = "homing" if "cast" in style else "ranged" if style == "ranged" else "melee"
-            attacks[key] = {"hero": hero, "kind": kind}
-            controllers[(actor, data["execution"])] = key
+            kind = "homing" if data["homing"] else TRACE_KINDS.get(data["delivery"])
+            attacks[(data["execution_source"], data["execution"])] = {"hero": hero, "kind": kind}
             if not hero:
                 f = engaged(actor.rsplit("/", 1)[0], time)
                 f["attacks"] += 1
                 f["end"] = time
-        elif event == "attack.spell_released":
-            key = controllers.get((actor, data["execution"]))
-            if key:
-                attacks[key]["spell"] = data["spell"]
-                casts.setdefault(actor.rsplit("/", 1)[0], []).append((time, key))
         elif event.startswith("ai.") and not hero:
             engaged(actor, time)
         elif event == "actor.died" and actor in fighting:
             f = fighting.pop(actor)
             fights.append(dict(f, end=time, name=data.get("monster", f["name"])))
-        elif event == "projectile.spawned" and "parent_source" in data:
-            parent = (data["parent_source"], data["parent_execution"])
-            parents[(data["execution_source"], data["execution"])] = parent
-            if parent in attacks and attacks[parent]["kind"] == "melee":
-                attacks[parent]["kind"] = "homing" if "Missile" in actor else "ranged"
         elif event == "damage.resolved" and data["outcome"] == "Damaged":
-            key = parents.get((data["execution_source"], data["execution"]), (data["execution_source"], data["execution"]))
-            owner = data.get("owner", "")
-            if key not in attacks:
-                # A spell hits under its own execution: credit the caster's latest cast before the hit.
-                cast = max((c for c in casts.get(owner, []) if 0 <= time - c[0] <= SPELL_LINGER), default=None)
-                if cast:
-                    key = cast[1]
-                    spell_kinds[attacks[key]["spell"]] = "area" if data["delivery"] == "AreaImpact" else "homing"
-            landed.add(key)
-            if is_hero(owner) and not hero:
+            parent = (data["parent_source"], data["parent_execution"])
+            landed.add(parent if parent[0] else (data["execution_source"], data["execution"]))
+            if is_hero(data.get("owner", "")) and not hero:
                 hits.append({"rear": data.get("zone") == "Rear", "critical": bool(data.get("critical")),
                              "damage": data["damage"]})
-    for a in attacks.values():
-        if "spell" in a:  # a spell that never hit takes its kind from its other casts; monster spells are mostly areas
-            a["kind"] = spell_kinds.get(a["spell"], "area")
     fights += fighting.values()
     return {"attacks": [dict(a, landed=key in landed) for key, a in attacks.items()], "hits": hits, "fights": fights}
 

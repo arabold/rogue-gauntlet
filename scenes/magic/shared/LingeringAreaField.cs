@@ -118,7 +118,7 @@ public partial class LingeringAreaField : Node3D
 	{
 		bool hail = _definition.Kind == LingeringAreaKind.Hailstorm;
 		var contact = new DamageContext { ExecutionId = new AttackIdentity(_cast.Caster.GetInstanceId(), ++_sequence),
-			SourceNode = _source, OwnerNode = _cast.Caster, Faction = HurtBoxComponent.GetDamageSource(_cast.Caster),
+			Parent = _cast.Parent, SourceNode = _source, OwnerNode = _cast.Caster, Faction = HurtBoxComponent.GetDamageSource(_cast.Caster),
 			Random = _cast.Random,
 			DefenseTraits = AttackDefenseTraits.Guardable, DeliveryKind = DamageDeliveryKind.AreaImpact,
 			Element = _definition.Kind == LingeringAreaKind.SolarFlares ? DamageElement.Fire : DamageElement.Water,
