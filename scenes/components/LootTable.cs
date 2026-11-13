@@ -23,24 +23,25 @@ public partial class LootTable : Resource
 	public LootTableItem[] Entries => Groups?.Length > 0
 		? Groups.Where(g => g != null).SelectMany(g => g.Pool?.Items ?? []).ToArray() : Items ?? [];
 
-	/// <summary>Chooses an eligible category, then an eligible variety within that budget. Depth is required: entry
-	/// depth windows are the only fence keeping higher-tier items off early floors.</summary>
+	/// <summary>Chooses an eligible category, then an eligible variety within that budget. Depth is required: depth
+	/// windows and pool tier bands are the only fence keeping higher-tier items off early floors.</summary>
 	public LootTableItem PickEntry(uint depth, RandomNumberGenerator rng)
 	{
 		if (rng == null) { return null; }
-		bool Eligible(LootTableItem entry) => entry?.Item != null && float.IsFinite(entry.Weight)
-			&& entry.Weight > 0 && entry.IsEligibleAt(depth);
+		bool Eligible(LootTableItem entry, LootPool pool) => entry?.Item != null && float.IsFinite(entry.Weight)
+			&& entry.Weight > 0 && (pool?.IsEligibleAt(entry, depth) ?? entry.IsEligibleAt(depth));
 		LootTableItem[] candidates;
 		if (Groups?.Length > 0)
 		{
 			var groups = Groups.Where(g => g != null && float.IsFinite(g.Weight) && g.Weight > 0
-				&& g.Pool?.Items?.Any(Eligible) == true).ToArray();
+				&& g.Pool?.Items?.Any(entry => Eligible(entry, g.Pool)) == true).ToArray();
 			if (groups.Length == 0) { return null; }
 			long selected = rng.RandWeighted(groups.Select(g => g.Weight).ToArray());
 			if (selected < 0) { return null; }
-			candidates = groups[selected].Pool.Items.Where(Eligible).ToArray();
+			LootPool pool = groups[selected].Pool;
+			candidates = pool.Items.Where(entry => Eligible(entry, pool)).ToArray();
 		}
-		else { candidates = (Items ?? []).Where(Eligible).ToArray(); }
+		else { candidates = (Items ?? []).Where(entry => Eligible(entry, null)).ToArray(); }
 		if (candidates.Length == 0) { return null; }
 		long index = rng.RandWeighted(candidates.Select(entry => entry.Weight).ToArray());
 		return index < 0 ? null : candidates[index];

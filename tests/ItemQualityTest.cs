@@ -9,7 +9,7 @@ using static GdUnit4.Assertions;
 
 /// <summary>
 /// Item qualities: introduction depths and odds of the authored <see cref="QualityLadder"/>, base-stat bands, rounding
-/// of scaled values, what creation rolls, the naming grammar, and the base-tier depth windows of every loot table.
+/// of scaled values, what creation rolls, the naming grammar, and the base-tier depth bands every loot table drops in.
 /// Needs the Godot runtime for Resources and <c>RandomNumberGenerator</c>.
 /// </summary>
 [TestSuite]
@@ -18,7 +18,7 @@ public class ItemQualityTest
 {
 	private const string LadderPath = "res://scenes/items/quality/quality_ladder.tres";
 
-	/// <summary>Base-tier depth windows (MaxDepth 0 is open-ended); see docs/stats-and-itemization.md.</summary>
+	/// <summary>Base-tier depth bands (Y 0 is open-ended); see docs/stats-and-itemization.md.</summary>
 	private static TierDepthBands TierBands => TestFactories.Load<TierDepthBands>("res://scenes/items/quality/tier_depth_bands.tres");
 
 	private static QualityLadder Ladder => TestFactories.Load<QualityLadder>(LadderPath);
@@ -196,21 +196,25 @@ public class ItemQualityTest
 	[TestCase]
 	public void LootTablesFenceBaseTiersByDepth()
 	{
-		// Entry windows are the only fence; LootTableDepthTest proves PickEntry never leaves them.
+		// Jewelry too: tiered pieces drop in their band, tier-0 pieces at every depth.
 		TierDepthBands bands = TierBands;
+		var dropped = new HashSet<int>();
 		foreach (string path in Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/loot"), "*.tres", SearchOption.AllDirectories))
 		{
 			if (TestFactories.Load<Resource>(ProjectSettings.LocalizePath(path)) is not LootTable table) { continue; }
-			foreach (LootTableItem entry in table.Entries)
+			using var rng = GenerationRandom.Create(42, "tier-fence");
+			for (uint depth = 1; depth <= 26; depth++)
 			{
-				// Jewelry too: tiered pieces drop in their band, tier-0 pieces at every depth.
-				if (entry.Item is EquipableItem equipment)
+				for (int i = 0; i < 100; i++)
 				{
+					if (table.PickEntry(depth, rng)?.Item is not EquipableItem { Tier: > 0 } equipment) { continue; }
 					Vector2I band = bands.For(equipment.Tier);
-					AssertBool(entry.MinDepth == band.X && entry.MaxDepth == band.Y)
-						.OverrideFailureMessage($"{entry.Item.ResourcePath}: T{equipment.Tier} drops {entry.MinDepth}-{entry.MaxDepth}").IsTrue();
+					AssertBool(LootTableItem.IsWithin(depth, (uint)band.X, (uint)band.Y))
+						.OverrideFailureMessage($"{equipment.ResourcePath}: T{equipment.Tier} dropped at depth {depth}").IsTrue();
+					dropped.Add(equipment.Tier);
 				}
 			}
 		}
+		AssertInt(dropped.Count).IsEqual(bands.Bands.Count);
 	}
 }

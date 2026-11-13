@@ -240,6 +240,8 @@ uv run scripts/balance/simulate.py derive --match skeleton     # write the targe
   one definition per tier (`ring_protection_1.tres` to `_5`); percentage types get tier 0.
 - **Supplies:** healing potions (`TypeId` `potion.healing`) get the points of their size (`AppearanceForm`) and food
   those of its `Portion`, spread over their buff's ticks. Every potion pool entry gets its size's depth window, and healing potions its weight.
+- **Loot** writes the tier depth bands (`tier_intro`, `tier_band`) into `tier_depth_bands.tres`. The weapon, armor
+  and jewelry pools drop each entry in its item tier's band, so their entries carry no window to write.
 - **Classes** match the model's classes by `Id`. `derive` writes base attributes, and the hero sheet and stat
   profiles that reproduce the model's level-1 health, mana and crit chance, its attribute growth and the percentage
   each attribute point adds.

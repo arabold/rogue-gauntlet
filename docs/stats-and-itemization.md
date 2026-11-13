@@ -53,7 +53,7 @@ The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after 
 
 Equipment has two independent properties:
 
-1. **Base item.** The authored definition: kind, model and baseline values. Weapons, armor and jewelry with points carry a `Tier` (1–5) that loot-table depth windows fence; a higher tier gives more. Jewelry that changes speed or damage by a percentage is tier 0 and drops at every depth.
+1. **Base item.** The authored definition: kind, model and baseline values. Weapons, armor and jewelry with points carry a `Tier` (1–5) whose depth band fences where they drop; a higher tier gives more. Jewelry that changes speed or damage by a percentage is tier 0 and drops at every depth.
 2. **Quality.** `ItemQuality` is rolled once at creation, stored on the instance and never secret, not even on unidentified jewelry. Poor and Superior scale base stats; Magic and Rare add affixes instead. One color per quality is shared by loot beams, slot tints, names and tooltips (`ItemQualityPalette`); orange is reserved for future Unique items.
 
 | Quality | Color | Base scale | Affixes | Introduced | Share at depth 12 / 24 |
@@ -110,7 +110,7 @@ Source tables own category budgets; shared loot pools own each category's depth 
 
 A source's `LootDropProfile` decides its table, drop chance, roll count and how its items roll. A monster drops only what it could carry: beasts such as rats use the [beast profile](../scenes/items/loot/drops/beast.tres), a 15% chance of raw meat, which is poisoned 40% of the time; skeletons and other humanoids roll the [common enemy table](../scenes/items/loot/loot_enemy_common.tres) of gold, potions, food, scrolls and gear (55%, skeleton warriors always). The Forsaken Warden's [profile](../scenes/enemies/forsaken_warden/forsaken_warden_drop.tres) uses its own [loot table](../scenes/enemies/forsaken_warden/forsaken_warden_loot.tres) of tier-2 weapons and the [gatekeeper policy](../scenes/items/gatekeeper_item_policy.tres), whose ladder never rolls below Magic and never curses. Rare enters that ladder at depth 5, the same depth as ordinary drops, then grows (about 12% at depth 6, 24% at depth 12, 40% at depth 24), so the depth-3 Warden's guaranteed drop is a clearly better Magic weapon to carry into depth 4 without skipping ahead of the quality curve.
 
-Weapon and armor base tiers are fenced over the 24-depth run. Each tier drops for eight depths from its introduction, so neighbors overlap and smooth the transition, and the last tier never stops. The bands come from the [balance model](specs/balance-model.md#gear) (`tier_intro`, `tier_band`) and live in [`tier_depth_bands.tres`](../scenes/items/quality/tier_depth_bands.tres); `simulate.py derive` writes them and every weapon and armor pool entry's window, and the pools validate their entries against them:
+Weapon and armor base tiers are fenced over the 24-depth run. Each tier drops for eight depths from its introduction, so neighbors overlap and smooth the transition, and the last tier never stops. The bands come from the [balance model](specs/balance-model.md#gear) (`tier_intro`, `tier_band`) and live in [`tier_depth_bands.tres`](../scenes/items/quality/tier_depth_bands.tres), which `simulate.py derive` writes. The weapon, armor and jewelry pools reference it (`LootPool.TierBands`), so each equipment entry drops in its item tier's band and stores no window of its own; tier 0 drops at every depth, and other entries keep their own window:
 
 | Base tier | Depths | Realms |
 | --- | --- | --- |
