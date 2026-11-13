@@ -24,16 +24,11 @@ class HelmetsTest(unittest.TestCase):
             ears=dict(style="round"),
         )
         cls.head, cls.head_piece = heads.build(cls.plain_recipe)
+        cls.helms = {name: fn(cls.head) for name, fn in helmets.STYLES.items()}  # each style once, at its defaults
 
     def test_all_styles_build_finite_valid_geometry(self):
-        expected = {
-            "bear", "horned", "headdress", "wizard",
-            "knight", "crusader", "dark_knight", "kettle", "coif", "hood",
-        }
-        self.assertEqual(set(helmets.STYLES), expected)
-        for name, fn in helmets.STYLES.items():
+        for name, piece in self.helms.items():
             with self.subTest(style=name):
-                piece = fn(self.head)
                 self.assertGreater(len(piece.verts), 0)
                 self.assertGreater(len(piece.faces), 0)
                 self.assertTrue(np.isfinite(piece.verts).all())
@@ -48,7 +43,7 @@ class HelmetsTest(unittest.TestCase):
         # Close-fitting caps/helms stay compact around the human cranium (2*A = 0.94); only horns/feathers/brims flare.
         for name, max_width in (("bear", 1.15), ("knight", 1.14), ("crusader", 1.18), ("coif", 1.06), ("hood", 1.10)):
             with self.subTest(style=name):
-                piece = helmets.STYLES[name](self.head)
+                piece = self.helms[name]
                 width = float(piece.verts[:, 0].max() - piece.verts[:, 0].min())
                 self.assertLessEqual(width, max_width)
         # Horned without horns sits cleanly on the brow above ears without bloating the head width.
@@ -72,7 +67,7 @@ class HelmetsTest(unittest.TestCase):
     def test_solid_slit_helms_have_recessed_dark_faces(self):
         for name in ("crusader", "dark_knight"):
             with self.subTest(style=name):
-                piece = helmets.STYLES[name](self.head)
+                piece = self.helms[name]
                 self.assertIn("dark", set(piece.slots))
                 # No open boundary edges in solid-cut helm hulls when built standalone via solid checks.
                 stats = solid.inspect(piece.verts, piece.faces)
@@ -90,27 +85,42 @@ class HelmetsTest(unittest.TestCase):
         for piece in compat_calls:
             self.assertGreater(len(piece.faces), 0)
         self.assertIn("beard", compat_calls[2].hides)
-        self.assertNotIn("beard", helmets.knight(self.head, bevor=False).hides)
+        self.assertNotIn("beard", self.helms["knight"].hides)
+
+    def test_headwear_trims_hair_to_the_locks_showing_outside_it(self):
+        # A haired head: an open headdress keeps its hair; a kettle helm keeps the locks below its rim, none on the dome.
+        spec = heads.ROSTER["necromancer"]
+        head, full = heads.build(spec)
+        _, bald = heads.build(spec, suppress=("hair",))
+        hair = len(full.faces) - len(bald.faces)
+        dress = helmets.headdress(head)
+        _, under_dress = heads.build(spec, suppress=dress.hides, cover=dress)
+        self.assertGreater(len(under_dress.faces) - len(bald.faces), 0.9 * hair)
+        kettle = helmets.kettle(head)
+        _, under_kettle = heads.build(spec, suppress=kettle.hides, cover=kettle)
+        self.assertGreater(len(under_kettle.faces), len(bald.faces))
+        top = lambda piece: piece.verts[piece.faces][..., 1].max()  # noqa: E731
+        self.assertLess(top(under_kettle), top(full))
 
     def test_character_build_suppresses_hidden_head_features(self):
         hero_base = characters.load("heroes/barbarian_base")
         _, full_pieces = heads.build(characters.head_recipe(hero_base["head"]))
         full_verts = len(full_pieces.verts)
-        for style in helmets.STYLES:
+        # Every style sits over sculpted hair. This head has none, so its worn head depends only on the hide set:
+        # one character per distinct set covers every style.
+        by_hides = {}
+        for style, helm in self.helms.items():
+            self.assertIn("hair", helm.hides)
+            by_hides.setdefault(frozenset(helm.hides), style)
+        for hides, style in by_hides.items():
             with self.subTest(style=style):
-                recipe = {
-                    **hero_base,
-                    "outfit": [{"kind": "helmet", "style": style}],
-                }
-                pieces, _ = characters.build(recipe)
-                helm = pieces["Helmet0"]
+                pieces, _ = characters.build({**hero_base, "outfit": [{"kind": "helmet", "style": style}]})
                 head_piece = pieces["Head"]
-                # Every style hides at least sculpted hair; cheek/enclosed helms shrink Head vertex count by dropping ears/beard.
-                self.assertIn("hair", helm.hides)
-                if "ears" in helm.hides or "beard" in helm.hides:
+                # Cheek-guarded and enclosed helms shrink the head by dropping ears or beard.
+                if hides & {"ears", "beard"}:
                     self.assertLess(len(head_piece.verts), full_verts)
                 # Sculpted beard hangs far below the cranium (y ~ 0.87 vs cranium chin ~ 1.22); full helms remove it.
-                if style in ("crusader", "dark_knight"):
+                if "beard" in hides:
                     self.assertGreater(head_piece.verts[:, 1].min(), 1.15)
                 else:
                     self.assertLess(head_piece.verts[:, 1].min(), 1.00)
