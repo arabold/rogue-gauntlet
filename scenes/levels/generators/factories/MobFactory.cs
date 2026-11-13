@@ -6,10 +6,10 @@ public abstract partial class MobFactory : Resource
 {
 	public abstract PackedScene CreateEnemy(uint dungeonDepth, RandomNumberGenerator rng);
 	/// <summary>
-	/// The floor's ordinary monsters in packs, each spawning together in one room. The default, for factories without
-	/// an authored budget, spawns single monsters.
+	/// The floor's ordinary monsters in packs, each spawning together in one room, priced with <paramref name="threat"/>,
+	/// the level's profile. The default, for factories without an authored budget, ignores it and spawns single monsters.
 	/// </summary>
-	public virtual System.Collections.Generic.List<PackedScene[]> CreatePacks(uint depth, RandomNumberGenerator rng)
+	public virtual System.Collections.Generic.List<PackedScene[]> CreatePacks(uint depth, ThreatProfile threat, RandomNumberGenerator rng)
 	{
 		var result = new System.Collections.Generic.List<PackedScene[]>();
 		uint count = 3 + depth % 5 + (uint)rng.RandiRange(0, 2);

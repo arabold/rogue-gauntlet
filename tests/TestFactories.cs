@@ -38,6 +38,8 @@ public static partial class TestFactories
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
 	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
 	public const string RoomPoolPath = "res://scenes/levels/rooms/room_pool.tres";
+	/// <summary>The profile the level prices encounters with, for tests that call a realm factory without a level.</summary>
+	public const string ThreatProfilePath = "res://scenes/levels/encounters/threat_profile.tres";
 
 	/// <summary>Instance a wall torch fixture, placed and turned for the test's layout; the caller adds it to a tree.</summary>
 	public static Node3D Torch(string path = LitTorch, Vector3 position = default, float yaw = 0)

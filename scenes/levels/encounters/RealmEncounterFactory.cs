@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Depth-scoped encounter definitions; runtime budget state stays local to each call. Each floor spends the budget
-/// <see cref="ThreatProfile"/> gives its depth on packs, and each pack costs what its members' threat levels are worth
-/// there as a group.
+/// Depth-scoped encounter definitions; runtime budget state stays local to each call. Each floor spends the budget its
+/// level's <see cref="ThreatProfile"/> gives its depth on packs, and each pack costs what its members' threat levels are
+/// worth there as a group. The level owns the profile and passes it in, so realms never repeat it.
 /// </summary>
 [Tool, GlobalClass]
 public partial class RealmEncounterFactory : MobFactory
@@ -15,8 +15,6 @@ public partial class RealmEncounterFactory : MobFactory
 	[Export] public uint FirstDepth { get; set; } = 1;
 	/// <summary>Floors in the realm, from <see cref="FirstDepth"/>; the last is the gatekeeper's.</summary>
 	[Export(PropertyHint.Range, "1,10")] public uint FloorCount { get; set; } = 3;
-	/// <summary>Floor budgets and monster costs.</summary>
-	[Export] public ThreatProfile ThreatProfile { get; set; }
 	[Export] public MobSpawnEntry[] Entries { get; set; } = [];
 	[Export] public MobFactory Fallback { get; set; }
 	[Export] public PackedScene NestScene { get; set; }
@@ -32,13 +30,13 @@ public partial class RealmEncounterFactory : MobFactory
 	public const int GatekeeperFloorIndex = 2;
 
 	/// <summary>Standard fights the ordinary monsters of the floor at <paramref name="depth"/> add up to.</summary>
-	public float FloorBudget(uint depth) => ThreatProfile.FloorBudget(depth, FloorIndex(depth) == GatekeeperFloorIndex);
+	public float FloorBudget(uint depth, ThreatProfile threat) => threat.FloorBudget(depth, FloorIndex(depth) == GatekeeperFloorIndex);
 
 	/// <summary>What <paramref name="entry"/>'s pack spends of a floor budget at <paramref name="depth"/>.</summary>
-	public float Cost(MobSpawnEntry entry, uint depth) => Cost(entry, depth, []);
+	public static float Cost(MobSpawnEntry entry, uint depth, ThreatProfile threat) => Cost(entry, depth, threat, []);
 
-	private float Cost(MobSpawnEntry entry, uint depth, Dictionary<string, PackedScene> scenes) =>
-		ThreatProfile.PackCost(entry.Members.Select(path => DefinitionOf(Scene(path, scenes)).ThreatLevel).ToArray(), depth);
+	private static float Cost(MobSpawnEntry entry, uint depth, ThreatProfile threat, Dictionary<string, PackedScene> scenes) =>
+		threat.PackCost(entry.Members.Select(path => DefinitionOf(Scene(path, scenes)).ThreatLevel).ToArray(), depth);
 
 	/// <summary>Every realm floor has a plan, so its level runs the realm's encounter controller; floors outside defer to the fallback.</summary>
 	public override EncounterPlan PlanEncounters(uint depth)
@@ -50,24 +48,26 @@ public partial class RealmEncounterFactory : MobFactory
 			gatekeeper ? GatekeeperFit : null, gatekeeper ? $"depth:{depth}:gatekeeper" : null);
 	}
 
-	/// <summary>One monster on its own (a summon): a random member of a pack drawn by weight.</summary>
+	/// <summary>One monster on its own (a summon): a random member of a pack drawn by weight, so no budget prices it.</summary>
 	public override PackedScene CreateEnemy(uint depth, RandomNumberGenerator rng)
 	{
 		if (!ContainsDepth(depth)) return Fallback?.CreateEnemy(depth, rng);
-		var scenes = RequireValidPool(depth);
+		var scenes = new Dictionary<string, PackedScene>();
+		Require(ValidateEntries(scenes));
 		// Every pack is affordable on an unlimited budget, so only the weights decide.
 		var entry = Pick(Eligible(depth).Select(e => (e, 0f)).ToArray(), float.PositiveInfinity, rng).Entry;
 		return entry == null ? null : Scene(entry.Members[rng.RandiRange(0, entry.Members.Length - 1)], scenes);
 	}
 
 	/// <summary>Spend the floor's budget on packs, filtering unaffordable entries before each weighted draw.</summary>
-	public override List<PackedScene[]> CreatePacks(uint depth, RandomNumberGenerator rng)
+	public override List<PackedScene[]> CreatePacks(uint depth, ThreatProfile threat, RandomNumberGenerator rng)
 	{
-		if (!ContainsDepth(depth)) return Fallback?.CreatePacks(depth, rng) ?? [];
-		var scenes = RequireValidPool(depth);
-		var costs = Costs(depth, scenes);
+		if (!ContainsDepth(depth)) return Fallback?.CreatePacks(depth, threat, rng) ?? [];
+		var scenes = new Dictionary<string, PackedScene>();
+		Require(ValidatePool(depth, threat, scenes));
+		var costs = Costs(depth, threat, scenes);
 		var result = new List<PackedScene[]>();
-		float remaining = FloorBudget(depth);
+		float remaining = FloorBudget(depth, threat);
 		int monsters = 0;
 		while (remaining > 0 && monsters < MaximumMonsters)
 		{
@@ -83,15 +83,27 @@ public partial class RealmEncounterFactory : MobFactory
 	/// <summary>A floor never spawns more ordinary monsters than this, however cheap they are.</summary>
 	public const int MaximumMonsters = 32;
 
-	/// <summary>Check authoring before the first random draw; invalid pools do not silently lose encounters.</summary>
-	public string[] ValidatePool(uint depth) => ValidatePool(depth, []);
+	/// <summary>
+	/// Check authoring before the first random draw; invalid pools do not silently lose encounters. The floor is priced
+	/// with <paramref name="threat"/>, its level's profile.
+	/// </summary>
+	public string[] ValidatePool(uint depth, ThreatProfile threat) => ValidatePool(depth, threat, []);
 
 	/// <summary>Validates the pool, loading each member scene once into <paramref name="scenes"/> for the rest of the call.</summary>
-	private string[] ValidatePool(uint depth, Dictionary<string, PackedScene> scenes)
+	private string[] ValidatePool(uint depth, ThreatProfile threat, Dictionary<string, PackedScene> scenes)
+	{
+		if (!ContainsDepth(depth)) return [];
+		if (threat == null) return ["ThreatProfile: assign the level the profile that sets floor budgets and monster costs."];
+		var errors = ValidateEntries(scenes);
+		if (errors.Count == 0 && FloorBudget(depth, threat) > 0 && !Costs(depth, threat, scenes).Any(pair => pair.Cost <= FloorBudget(depth, threat)))
+			errors.Add($"Depth {depth} has no affordable eligible pack.");
+		return errors.ToArray();
+	}
+
+	/// <summary>Checks every entry and its member scenes, loading each scene once into <paramref name="scenes"/>.</summary>
+	private List<string> ValidateEntries(Dictionary<string, PackedScene> scenes)
 	{
 		var errors = new List<string>();
-		if (!ContainsDepth(depth)) return errors.ToArray();
-		if (ThreatProfile == null) return ["ThreatProfile: assign the profile that sets floor budgets and monster costs."];
 		var ids = new Dictionary<string, string>();
 		var checkedScenes = new HashSet<string>();
 		foreach (var entry in Entries)
@@ -114,26 +126,20 @@ public partial class RealmEncounterFactory : MobFactory
 				ids[id] = path;
 			}
 		}
-		if (errors.Count == 0 && FloorBudget(depth) > 0 && !Costs(depth, scenes).Any(pair => pair.Cost <= FloorBudget(depth)))
-			errors.Add($"Depth {depth} has no affordable eligible pack.");
-		return errors.ToArray();
+		return errors;
 	}
 
-	/// <summary>Validates the pool and returns its member scenes, loaded once for this call.</summary>
-	private Dictionary<string, PackedScene> RequireValidPool(uint depth)
+	private static void Require(IReadOnlyCollection<string> errors)
 	{
-		var scenes = new Dictionary<string, PackedScene>();
-		var errors = ValidatePool(depth, scenes);
-		if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
-		return scenes;
+		if (errors.Count > 0) throw new InvalidOperationException(string.Join("\n", errors));
 	}
 
 	/// <summary>Every entry that may spawn at <paramref name="depth"/>, in authored order.</summary>
 	private IEnumerable<MobSpawnEntry> Eligible(uint depth) =>
 		Entries.Where(e => e != null && e.EligibleAt(depth) && e.Weight > 0 && e.Members is { Length: > 0 });
 
-	private (MobSpawnEntry Entry, float Cost)[] Costs(uint depth, Dictionary<string, PackedScene> scenes) =>
-		Eligible(depth).Select(e => (e, Cost(e, depth, scenes))).ToArray();
+	private (MobSpawnEntry Entry, float Cost)[] Costs(uint depth, ThreatProfile threat, Dictionary<string, PackedScene> scenes) =>
+		Eligible(depth).Select(e => (e, Cost(e, depth, threat, scenes))).ToArray();
 
 	private static (MobSpawnEntry Entry, float Cost) Pick((MobSpawnEntry Entry, float Cost)[] costs, float budget, RandomNumberGenerator rng)
 	{

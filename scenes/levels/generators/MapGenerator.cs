@@ -490,7 +490,7 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private void GenerateEnemySpawnPoints()
 	{
-		var packs = MobFactory.CreatePacks(DungeonDepth, _random.Encounters);
+		var packs = MobFactory.CreatePacks(DungeonDepth, this.GetAncestorOrNull<Level>()?.ThreatProfile, _random.Encounters);
 		var plan = Floor.Encounter;
 		GD.Print($"Generating {packs.Count} packs of {packs.Sum(pack => pack.Length)} monsters...");
 
