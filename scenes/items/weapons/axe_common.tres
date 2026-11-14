@@ -32,4 +32,5 @@ Value = 40
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
+PoiseDamage = 11.5
 metadata/_custom_type_script = ExtResource("2_nvcxl")

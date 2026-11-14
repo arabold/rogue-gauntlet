@@ -31,4 +31,5 @@ Value = 80
 BoundSpell = ExtResource("bound_spell")
 SpellPool = ExtResource("spell_pool")
 Missiles = ExtResource("missiles")
+PoiseDamage = 2.0
 metadata/_custom_type_script = ExtResource("script")

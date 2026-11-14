@@ -30,4 +30,5 @@ Value = 200
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
+PoiseDamage = 17.0
 metadata/_custom_type_script = ExtResource("2_script")

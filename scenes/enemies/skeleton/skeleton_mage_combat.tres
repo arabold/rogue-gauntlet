@@ -30,6 +30,7 @@ ProjectileAimLockDuration = 0.25
 Range = 14.0
 Element = 1
 PoiseDamage = 4.0
+Commit = 0.5
 
 [sub_resource type="Resource" id="volley"]
 resource_name = "missile volley"

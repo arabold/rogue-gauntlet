@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="2_model"]
 [ext_resource type="Resource" uid="uid://cprofbarbar0001" path="res://scenes/player/classes/stat_profile_barbarian.tres" id="3_profile"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
-[ext_resource type="Resource" uid="uid://cbattleaxestart" path="res://scenes/items/weapons/battleaxe_starter.tres" id="5_weapon"]
+[ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="5_weapon"]
 
 [ext_resource type="Resource" path="res://scenes/items/armor/body/ring_mail.tres" id="kit_body"]
 [ext_resource type="Resource" path="res://scenes/items/armor/helmet/chain_coif.tres" id="kit_helmet"]
@@ -30,7 +30,7 @@ metadata/_custom_type_script = ExtResource("4_slot")
 script = ExtResource("1_script")
 Id = "barbarian"
 DisplayName = "Barbarian"
-Description = "A raging mountain of muscle. The barbarian cleaves through crowds with a two-handed axe and shrugs off blows that would fell lesser heroes - but magic is a mystery to him."
+Description = "A raging mountain of muscle. The barbarian hacks his way in with a hand axe, cleaves through crowds once he finds a two-handed one, and shrugs off blows that would fell lesser heroes - but magic is a mystery to him."
 CharacterScene = ExtResource("2_model")
 StatProfile = ExtResource("3_profile")
 BaseStrength = 12.0
@@ -38,7 +38,7 @@ BaseDexterity = 8.0
 BaseVitality = 10.0
 BaseIntelligence = 5.0
 StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_body"), SubResource("Slot_helmet"), SubResource("Slot_weapon")])
-PreviewAnimation = "2H_Melee_Idle"
+PreviewAnimation = "Idle"
 AttachmentNodeNames = {
 0: "1H_Axe",
 1: "2H_Axe",
@@ -48,4 +48,5 @@ AttachmentNodeNames = {
 5: "Barbarian_Hat",
 6: "Barbarian_Cape"
 }
+StartingWeaponScale = 0.7
 metadata/_custom_type_script = ExtResource("1_script")

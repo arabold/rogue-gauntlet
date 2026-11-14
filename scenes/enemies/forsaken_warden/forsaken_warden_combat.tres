@@ -56,6 +56,7 @@ Interruptible = false
 HitStopDuration = 0.05
 FacingLockLead = 0.4
 WindUpTurnRate = 60.0
+Commit = 0.5
 
 [sub_resource type="Resource" id="overhead_swing"]
 script = ExtResource("attack_definition")
@@ -68,6 +69,7 @@ Interruptible = false
 HitStopDuration = 0.06
 FacingLockLead = 0.3
 WindUpTurnRate = 45.0
+Commit = 0.5
 
 [sub_resource type="Resource" id="slam_cast"]
 script = ExtResource("attack_definition")
@@ -92,8 +94,8 @@ WeightModifiers = [SubResource("slash_late")]
 Attack = SubResource("swing")
 Style = &"melee"
 Duration = 1.6
-MinDamage = 10.5
-MaxDamage = 21.5
+MinDamage = 9.5
+MaxDamage = 19.5
 
 [sub_resource type="Resource" id="overhead"]
 resource_name = "overhead"
@@ -108,8 +110,8 @@ WeightModifiers = [SubResource("overhead_mid"), SubResource("overhead_late")]
 Attack = SubResource("overhead_swing")
 Style = &"overhead"
 Duration = 1.8
-MinDamage = 17.0
-MaxDamage = 27.5
+MinDamage = 15.5
+MaxDamage = 25.0
 
 [sub_resource type="Resource" id="tremor"]
 resource_name = "tremor"
@@ -123,8 +125,8 @@ Spell = ExtResource("tremor_spell")
 Cast = SubResource("slam_cast")
 Style = &"stomp"
 Duration = 1.1
-MinDamage = 20.5
-MaxDamage = 31.0
+MinDamage = 18.5
+MaxDamage = 28.0
 
 [resource]
 script = ExtResource("profile")

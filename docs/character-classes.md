@@ -29,7 +29,7 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 
 | Class | STR | DEX | VIT | INT | HP | MP | Growth per level | Starting gear |
 |---|---|---|---|---|---|---|---|---|
-| Barbarian | 12 | 8 | 10 | 5 | 50 | 45 | STR 0.45, VIT 0.25 | Battle Axe (T1, 2H), Ring Mail and Chain Coif (medium) |
+| Barbarian | 12 | 8 | 10 | 5 | 50 | 45 | STR 0.45, VIT 0.25 | Axe (T1, 1H), Ring Mail and Chain Coif (medium) |
 | Knight | 9 | 8 | 10 | 6 | 50 | 50 | STR 0.3, VIT 0.3 | Sword + shield, Iron Breastplate and Iron Pot Helm (heavy) |
 | Rogue | 9 | 15 | 11 | 8 | 52 | 60 | DEX 0.5, VIT 0.25 | Crossbow + dagger + two lockpicks, Padded Vest and Leather Cap (light) |
 | Mage | 6 | 10 | 10 | 15 | 50 | 95 | INT 0.5, VIT 0.3 | Wand of Fireball (T1) + healing potion (pre-identified), Padded Vest and Leather Cap (light) |
@@ -38,7 +38,8 @@ Each class gains one attribute point per level in all, split as its growth says 
 The [balance model](specs/balance-model.md#class-parity) keeps the classes equally strong; `params.py` holds the
 numbers and `simulate.py derive` writes them.
 
-All starting equipment is first-tier (T1), Normal quality at its authored values; better gear comes from the dungeon.
+All starting equipment is first-tier (T1). Starting weapons are worn: Poor quality at 70% of their authored damage
+(`StartingWeaponScale`), so the first weapon found is an upgrade. Armor starts at Normal quality.
 
 Only the Mage starts with a healing potion, pre-identified via
 `GameSession.Run.Identification.Identify("potion.healing")` (`PreIdentifiedTypeIds` on its

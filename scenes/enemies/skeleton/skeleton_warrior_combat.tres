@@ -17,6 +17,7 @@ PoiseDamage = 15.0
 HitStopDuration = 0.04
 FacingLockLead = 0.15
 WindUpTurnRate = 300.0
+Commit = 0.5
 
 [sub_resource type="Resource" id="strike"]
 resource_name = "strike"
@@ -26,7 +27,7 @@ MaximumRange = 2.7
 RiposteEligible = true
 Attack = SubResource("strike_attack")
 Style = &"melee"
-Duration = 1.0
+Duration = 0.67
 MinDamage = 5.5
 MaxDamage = 11.5
 

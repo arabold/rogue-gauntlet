@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Linq;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
@@ -119,5 +120,22 @@ public partial class CharacterCatalogTest
 		int authoredQuantity = first.StartingItems[0].Quantity;
 		inventory.Items[0].Quantity = 99;
 		AssertInt(first.StartingItems[0].Quantity).IsEqual(authoredQuantity);
+	}
+
+	/// <summary>Every class starts with worn weapons that hit softer than the same weapon found in the dungeon.</summary>
+	[TestCase]
+	public void StartingWeaponsAreWorn()
+	{
+		foreach (CharacterClass characterClass in CharacterCatalog.LoadDefault().Classes)
+		{
+			var weapons = characterClass.CreateStartingInventory(20).Items.Select(slot => slot.Item).OfType<Weapon>().ToArray();
+			AssertArray(weapons).OverrideFailureMessage($"{characterClass.Id} starts without a weapon").IsNotEmpty();
+			foreach (Weapon weapon in weapons)
+			{
+				var found = (Weapon)ItemFactory.Create(TestFactories.Load<Item>(weapon.DefinitionPath));
+				AssertObject(weapon.Quality).IsEqual(ItemQuality.Poor);
+				AssertFloat(weapon.ScaledDamageMax).OverrideFailureMessage($"{characterClass.Id}'s {weapon.Name}").IsLess(found.ScaledDamageMax);
+			}
+		}
 	}
 }

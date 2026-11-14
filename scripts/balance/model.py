@@ -84,6 +84,13 @@ def found_bonus(depth: float) -> float:
     return lerp(P.GEAR["found_bonus"], depth)
 
 
+def starter_share(depth: float) -> float:
+    """Share of the on-curve weapon the expected hero wields: the worn starting weapon at depth 1, replaced by found
+    weapons over the first `starter_depths` depths."""
+    g = P.GEAR
+    return g["starter"] + (1 - g["starter"]) * min(1.0, (depth - 1) / g["starter_depths"])
+
+
 def reference_weapon_hit(depth: float) -> float:
     """Mean hit of a Normal reference sword on curve at `depth`."""
     base, growth = P.GEAR["weapon_hit"]
@@ -126,6 +133,18 @@ def weapon_mean(kind: str, depth: float, cls: dict, found: bool = True) -> float
     if "darts" in w:  # magic foci scale with Intelligence
         return base * (1 + _profile(cls, "spell_per_int") * (a["INT"] - 10))
     return base * (1 + _profile(cls, "damage_per_str") * (a["STR"] - 10))
+
+
+def weapon_poise(kind: str, scale: float = 1.0) -> float:
+    """Poise one hit of a weapon `kind` removes (one dart of a volley), times `scale`, to half a point."""
+    w = P.WEAPONS[kind]
+    share = w["hit"] * w.get("dart_scale", 1.0) * (P.POISE["blunt"] if kind.startswith("blunt") else 1.0)
+    return round(P.POISE["hit"] * share * scale * 2) / 2
+
+
+def monster_poise(archetype: str) -> float:
+    """A monster's poise meter: its archetype's reference hits; zero means no poise."""
+    return P.POISE["hits"][archetype] * P.POISE["hit"]
 
 
 def tier_depth(tier: int) -> int:
@@ -186,36 +205,43 @@ def poison_tick(points: float) -> int:
     return max(1, round(points / P.STATUS["poison_ticks"]))
 
 
-def poison_points(size: str) -> int:
-    """Health a poison potion of `size` takes: a share of what the healing potion of its size gives."""
-    return poison_tick(P.STATUS["poison"] * potion_points(size)) * P.STATUS["poison_ticks"]
+def poison_per_tick(size: str) -> int:
+    """Points each tick of a poison potion of `size` takes: in all, a share of what the healing potion of its size gives."""
+    return poison_tick(P.STATUS["poison"] * potion_points(size))
 
 
-def food_poison_points(portion: str) -> int:
-    """Health spoiled food of `portion` takes: a multiple of what it heals, so a bad bite costs more than a good one."""
-    return poison_tick(P.STATUS["food_poison"] * food_points(portion)) * P.STATUS["poison_ticks"]
+def food_poison_per_tick(portion: str) -> int:
+    """Points each tick of spoiled food of `portion` takes: in all, a multiple of what it heals."""
+    return poison_tick(P.STATUS["food_poison"] * food_points(portion))
+
+
+def _ring_values(stat: str, tier: int) -> list[float]:
+    """
+    What a ring of `tier` gives of `stat` (`armor`, `health`, `damage` as low and high, `frailty` or `attribute`),
+    before rounding: its share of that stat on curve at the tier's depth.
+    """
+    j = P.JEWELRY
+    if stat == "attribute":
+        first, per_tier = j["attribute"]
+        return [first + per_tier * (tier - 1)]
+    d = tier_depth(tier)
+    if stat == "armor":
+        return [j["armor"] * standard_hit(d)]
+    if stat in ("health", "frailty"):
+        return [j[stat] * reference_hp(d)]
+    if stat == "damage":
+        return [j["damage"] * end for end in spread_range(reference_weapon_hit(d), P.GEAR["weapon_spread"])]
+    raise ValueError(f"unknown jewelry stat {stat}")
 
 
 def jewelry_values(stat: str, slot: str, tier: int) -> list[float]:
-    """
-    The modifier values of a jewelry piece of `tier` raising `stat` (`armor`, `health`, `damage` as low and high,
-    `frailty` or `attribute`): its share of that stat on curve at the tier's depth, more for an amulet than a ring.
-    """
-    j = P.JEWELRY
-    scale = j["slots"][slot]
+    """The modifier values of a jewelry piece of `tier` raising `stat`: a ring's, more for an amulet."""
+    values = [value * P.JEWELRY["slots"][slot] for value in _ring_values(stat, tier)]
     if stat == "attribute":
-        first, per_tier = j["attribute"]
-        return [round((first + per_tier * (tier - 1)) * scale)]
-    d = tier_depth(tier)
-    if stat == "armor":
-        return [max(1, round(j["armor"] * scale * standard_hit(d)))]
+        return [round(value) for value in values]
     if stat in ("health", "frailty"):
-        value = round(j[stat] * scale * reference_hp(d))
-        return [value or (1 if stat == "health" else -1)]
-    if stat == "damage":
-        low, high = spread_range(reference_weapon_hit(d), P.GEAR["weapon_spread"])
-        return [max(1, round(j["damage"] * scale * low)), max(1, round(j["damage"] * scale * high))]
-    raise ValueError(f"unknown jewelry stat {stat}")
+        return [round(value) or (1 if stat == "health" else -1) for value in values]
+    return [max(1, round(value)) for value in values]
 
 
 def hero(name: str, depth: float) -> Hero:
@@ -228,16 +254,17 @@ def hero(name: str, depth: float) -> Hero:
     weight_avoid = P.GEAR["weight"][cls["armor"]][1]
     guard = cls.get("guard", 0.0)
     bonus = {k: weight_avoid + (guard if k in ("melee", "ranged") else 0.0) for k in ("melee", "ranged", "homing", "area")}
-    weapon = cls["weapon"]
+    worn = starter_share(depth)
+    weapon = cls["weapon"] if worn >= 1 else cls.get("starter", cls["weapon"])
     h = Hero(name=name, depth=depth, level=level, hp=hero_hp(cls, level), armor=armor, weapon=weapon,
-             hit=weapon_mean(weapon, depth, cls), crit=_profile(cls, "crit_per_dex") * a["DEX"],
+             hit=weapon_mean(weapon, depth, cls) * worn, crit=_profile(cls, "crit_per_dex") * a["DEX"],
              cycle=P.WEAPONS[weapon]["cycle"], avoid_bonus=bonus)
     if "spell" in cls:
         h.mana = P.ATTRIBUTES["mana_base"] + _profile(cls, "mana_per_int") * a["INT"]
         h.mana_regen = h.mana * P.ATTRIBUTES["mana_regen"]
         h.spell = P.SPELLS[cls["spell"]]
     if "opener" in cls:
-        h.opener_hit = weapon_mean(cls["opener"], depth, cls)
+        h.opener_hit = weapon_mean(cls["opener"], depth, cls) * worn
         h.opener_cycle = P.WEAPONS[cls["opener"]]["cycle"]
     return h
 
@@ -261,44 +288,60 @@ class Monster:
     phases: list = field(default_factory=list)
     area: float = 0.0
     boss: bool = False
+    windup: float = 0.5        # seconds from an attack's start to its contact
+
+
+@functools.cache
+def heaviest_hit(depth: float) -> float:
+    """The largest average blow among the playable classes' weapons and openers at `depth` (a volley counts whole)."""
+    def blow(h: Hero) -> float:
+        w = P.WEAPONS[h.weapon]
+        return max(h.hit * w.get("darts", 1) * w.get("dart_scale", 1.0), h.opener_hit)
+    return max(blow(hero(name, depth)) for name in P.CLASSES if name != "reference")
 
 
 def monster(archetype: str, depth: float) -> Monster:
-    """Target stats of an archetype authored for `depth`."""
+    """
+    Target stats of an archetype authored for `depth`. Health is sized in on-curve reference sword hits, at least
+    `min_hits` of the heaviest class blow for every archetype but the gatekeeper.
+    """
     a = P.ARCHETYPES[archetype]
     ref_hit = weapon_mean("sword_1h", depth, P.CLASSES["reference"])
     armor = a["armor"] * ref_hit
     per_swing = net_hit(*spread_range(ref_hit, P.GEAR["weapon_spread"]), armor)
+    hp = a["hp"] * lerp(P.STANDARD["hits_to_kill"], depth) * per_swing
+    if archetype != "boss":
+        hp = max(hp, P.STANDARD["min_hits"] * heaviest_hit(depth))
     return Monster(archetype=archetype, depth=depth,
-                   hp=a["hp"] * lerp(P.STANDARD["hits_to_kill"], depth) * per_swing,
+                   hp=hp,
                    armor=armor, hit=a["damage"] * standard_hit(depth), cycle=a["cycle"], kind=a["kind"],
                    speed=a["speed"], guard=a.get("guard", 0.0), darts=a.get("darts", 1),
                    status=a.get("status", (0.0, 0.0)), support=a.get("support"),
-                   phases=a.get("phases", []), area=a.get("area", 0.0), boss=archetype == "boss")
+                   phases=a.get("phases", []), area=a.get("area", 0.0), boss=archetype == "boss", windup=a["windup"])
 
 
 # --- Expected duel cost -----------------------------------------------------------------------------
 
 def avoid(hero_: Hero, kind: str, skill: dict) -> float:
     """Share of attempts avoided. Class and armor bonuses remove that share of the hits skill lets through,
-    so a bonus is worth the same proportion at every skill level."""
+    so a bonus is worth the same proportion at every skill level; a ranged hero kites melee monsters on top."""
     landed = (1 - skill["avoid"][kind]) * (1 - hero_.avoid_bonus.get(kind, 0.0))
+    if kind == "melee" and hero_.ranged:
+        landed *= 1 - skill["kite"]
     return min(0.95, max(0.0, 1 - landed))
 
 
-def homing_efficiency(skill: dict) -> float:
-    """Homing projectiles recover part of the attacks a hero's aim would miss."""
+def landing_efficiency(h: Hero, skill: dict) -> float:
+    """Share of the hero's attacks that land: skill's efficiency, homing projectiles recovering part of the misses."""
     eff = skill["efficiency"]
-    return eff + (1 - eff) * P.HOMING_ASSIST
+    return eff + (1 - eff) * P.HOMING_ASSIST if P.WEAPONS[h.weapon].get("homing") else eff
 
 
 def hero_dps(h: Hero, m: Monster, skill: dict) -> float:
     """Sustained damage per second against `m`, including crits, efficiency and the monster's guard."""
     w = P.WEAPONS[h.weapon]
     spread = P.GEAR["weapon_spread"]
-    eff = skill["efficiency"]
-    if w.get("homing"):
-        eff = homing_efficiency(skill)
+    eff = landing_efficiency(h, skill)
     if "darts" in w:
         dart = h.hit * w["dart_scale"]
         per_attack = w["darts"] * net_hit(*spread_range(dart, spread), m.armor * P.MAGIC_ARMOR_SHARE)
@@ -312,9 +355,14 @@ def hero_dps(h: Hero, m: Monster, skill: dict) -> float:
     return dps
 
 
+def uptime(m: Monster) -> float:
+    """Share of its attack cycles a monster actually starts while fighting (ENGAGEMENT `uptime`)."""
+    return P.ENGAGEMENT["uptime"] if m.kind == "melee" and not m.boss else 1.0
+
+
 def monster_dps(m: Monster, h: Hero, skill: dict) -> float:
     """
-    Damage per second the hero takes. Elemental damage (a caster's missiles, a gatekeeper's area attacks) meets only
+    Damage per second the hero takes, counting only the attacks that start (`uptime`). Elemental damage (a caster's missiles, a gatekeeper's area attacks) meets only
     `MAGIC_ARMOR_SHARE` of the hero's armor, like the hero's own magic.
     """
     spread = P.STANDARD["spread"]
@@ -325,24 +373,69 @@ def monster_dps(m: Monster, h: Hero, skill: dict) -> float:
     landed += chance * extra * per_dart * m.darts
     direct = landed * (1 - m.area) * (1 - avoid(h, m.kind, skill))
     area = net_hit(*spread_range(m.hit, spread), magic_armor) * m.area * (1 - avoid(h, "area", skill))
-    return (direct + area) / m.cycle
+    return (direct + area) * uptime(m) / m.cycle
+
+
+def _blow_odds(h: Hero, m: Monster, skill: dict):
+    """
+    How the hero's landed blows against `m` add up: the chance a swing lands, and the chance the monster is still
+    alive after `k` landed blows. One blow follows its roll (weapon range, crit); several add up as a normal sum.
+    """
+    lands = landing_efficiency(h, skill) * (1 - m.guard)
+    mean = hero_dps(h, m, skill) * h.cycle / lands          # a landed blow, with crits and the class spell
+    crit, mult, spread = h.crit, P.CRIT_MULTIPLIER, P.GEAR["weapon_spread"]
+    base = mean / (1 + crit * (mult - 1))
+    sd = base * math.sqrt((1 + spread ** 2 / 3) * (1 - crit + crit * mult ** 2) - (1 + crit * (mult - 1)) ** 2)
+
+    def roll_below(x: float, scale: float) -> float:
+        return min(1.0, max(0.0, (x / scale - (1 - spread)) / (2 * spread)))
+
+    def alive_after(blows: int, hp: float) -> float:
+        if hp <= 0:
+            return 0.0
+        if blows == 0:
+            return 1.0
+        if blows == 1:
+            return (1 - crit) * roll_below(hp, base) + crit * roll_below(hp, base * mult)
+        z = (hp - blows * mean) / (sd * math.sqrt(blows))
+        return 0.5 * (1 + math.erf(z / math.sqrt(2)))
+
+    return lands, alive_after
 
 
 def duel_cost(m: Monster, h: Hero, skill: dict) -> float:
-    """Share of the hero's max health lost killing `m` alone."""
-    kill = hero_dps(h, m, skill)
-    ttk = m.hp / kill
-    gap = P.ENGAGEMENT["gap"]
+    """
+    Share of the hero's max health lost killing `m` alone. Blows land one at a time: the hero's first `strike` seconds
+    after the two meet, then one per swing that lands; the monster's first its `windup` after, then one per attack
+    cycle. The hero takes only the attacks that land before the monster dies, so a monster felled by the first blow
+    costs nothing. A ranged hero gets the shots while a melee monster closes in; a melee hero walks up to a shooter.
+    """
+    e = P.ENGAGEMENT
+    lands, alive_after = _blow_odds(h, m, skill)
+    hp, first = m.hp, e["strike"]
     if h.ranged and m.kind == "melee":
-        ttk = max(0.0, ttk - gap / m.speed)          # free shots while it closes in
+        first -= e["gap"] / m.speed
     elif not h.ranged and m.kind != "melee":
-        ttk += gap / P.ENGAGEMENT["close_speed"]                              # walking up to a shooter
+        first += e["gap"] / e["close_speed"]
     elif h.opener_hit and m.kind == "melee":
-        free = gap / m.speed
-        shots = free / h.opener_cycle * skill["efficiency"]
-        dealt = shots * net_hit(*spread_range(h.opener_hit, P.GEAR["weapon_spread"]), m.armor)
-        ttk = max(0.0, (m.hp - dealt) / kill)
-    return monster_dps(m, h, skill) * ttk / h.hp
+        shots = e["gap"] / m.speed / h.opener_cycle * skill["efficiency"]
+        hp -= shots * net_hit(*spread_range(h.opener_hit, P.GEAR["weapon_spread"]), m.armor)
+
+    def alive_at(t: float) -> float:
+        if t < first:
+            return 1.0 if hp > 0 else 0.0
+        blows = lands * (1 + (t - first) / h.cycle)
+        k = int(blows)
+        lo = alive_after(k, hp)
+        return lo + (blows - k) * (alive_after(k + 1, hp) - lo)
+
+    attacks = 0.0
+    for k in range(1000):
+        alive = alive_at(m.windup + k * m.cycle)
+        attacks += alive
+        if alive < 1e-5:
+            break
+    return attacks * monster_dps(m, h, skill) * m.cycle / h.hp
 
 
 @functools.cache
@@ -382,7 +475,7 @@ def threat_level(m: Monster) -> float:
     if last >= 1:
         return P.DEPTHS + math.log(last) / growth
     lo, hi = 1.0, float(P.DEPTHS)
-    for _ in range(50):
+    while hi - lo > 1e-4:  # threat levels are authored to 0.01
         mid = (lo + hi) / 2
         if cost_units(m, mid) > 1:
             lo = mid
@@ -437,15 +530,9 @@ def curse_penalty(stat: str, tier: int) -> list[tuple[int, int]]:
     `damage` as its low and high end) at `tier`, as positive points: up to `CURSES["penalty"]` (for damage
     `CURSES["damage_penalty"]`) times what a ring of that tier gives, down to `CURSES["floor"]` of it.
     """
-    c, j = P.CURSES, P.JEWELRY
-    d = tier_depth(tier)
-    if stat == "damage":
-        rings = [j["damage"] * end for end in spread_range(reference_weapon_hit(d), P.GEAR["weapon_spread"])]
-    else:
-        rings = [{"attribute": j["attribute"][0] + j["attribute"][1] * (tier - 1), "armor": j["armor"] * standard_hit(d),
-                  "health": j["health"] * reference_hp(d)}[stat]]
+    c = P.CURSES
     penalty = c["damage_penalty"] if stat == "damage" else c["penalty"]
-    strongest = [max(1, round(penalty * ring)) for ring in rings]
+    strongest = [max(1, round(penalty * ring)) for ring in _ring_values(stat, tier)]
     return [(s, max(1, round(c["floor"] * s))) for s in strongest]
 
 
@@ -455,10 +542,14 @@ def archetype_units(archetype: str, depth: float) -> float:
     return cost_units(monster(archetype, authored_depth(depth)), depth)
 
 
-@functools.cache
 def archetype_xp(archetype: str, depth: float) -> float:
-    """XP of one ordinary monster of `archetype` on a floor at `depth`."""
-    return xp_reward(monster(archetype, authored_depth(depth)))
+    """XP of one ordinary monster of `archetype` on a floor at `depth`: the one authored for its realm."""
+    return _authored_xp(archetype, authored_depth(depth))
+
+
+@functools.cache
+def _authored_xp(archetype: str, depth: float) -> float:
+    return xp_reward(monster(archetype, depth))
 
 
 def pack_units(pack, depth: float) -> float:

@@ -18,12 +18,21 @@ STANDARD = dict(
     hits_to_kill=(2.2, 3.2),   # reference hero hits (no crit) to kill a standard monster; misses come on top
     hits_to_die=(9.6, 4.4),    # standard monster hits (after the hero's armor) to kill the reference hero
     spread=0.35,               # damage range is mean * (1 -/+ spread)
+    # Ordinary monsters (not gatekeepers) hold at least this many average hits of the heaviest class weapon at their
+    # authored depth, so a one-blow kill takes a high roll or a crit instead of being routine.
+    min_hits=1.25,
 )
 
 # How a fight opens: monsters notice the hero `gap` metres away; heroes walk up to shooters at
 # `close_speed`; at most `melee_cap` melee monsters reach the hero at once.
 # `rest` = seconds of exploring between packs, during which mana regenerates (health does not).
-ENGAGEMENT = dict(gap=4.0, close_speed=5.0, melee_cap=3, rest=20.0)
+# Blows land one at a time: the hero's first `strike` seconds after a monster comes within reach (a swing's contact),
+# a monster's first its archetype's `windup` seconds after it does, then each every attack cycle.
+# `uptime`: the share of its attack cycles, the first included, an ordinary melee monster actually starts while
+# fighting; the hero's footwork, hits and guard keep the rest from starting. Shooters, casters and the gatekeeper attack on every cycle. Playtests
+# measured 10-43% (about 23% over three logs) before monster attacks committed and hits stopped pushing them back;
+# 0.5 is a preliminary allowance for those rules. `playtest` reports it per archetype.
+ENGAGEMENT = dict(gap=4.0, close_speed=5.0, melee_cap=3, rest=20.0, strike=0.15, uptime=0.5)
 
 # --- Attributes: what one point buys ----------------------------------------------------------
 ATTRIBUTES = dict(
@@ -49,6 +58,15 @@ GEAR = dict(
     tier_intro=[1, 6, 11, 16, 21],
     tier_band=8,               # a tier drops from its introduction depth for this many depths
     tier_lag=1,                # depths before the expected hero wears a newly introduced tier
+    # A class's starting weapons are worn (Poor): this share of a tier 1 weapon's damage. The expected hero replaces
+    # them with found weapons over the first `starter_depths` depths, climbing back to the curve, and wields a class's
+    # `starter` kind (CLASSES) until then.
+    starter=0.7,
+    starter_depths=3,
+    # Wood is a terrible weapon: wooden melee weapons (practice swords, clubs, mallets: the `wooden_weapon` roll table)
+    # deal and stagger this share of their kind and tier, 1-2 damage at tier 1. Crossbows, wands and staves are wooden
+    # by nature and keep full strength.
+    wooden=0.2,
     # Armor of a Normal medium piece, as a share of the standard monster's mean hit at that depth.
     slot_armor=dict(body=0.30, helmet=0.15, shield=0.22),
     # Armor weight: armor multiplier, the share of landed hits its footwork removes (negative adds hits), and the
@@ -59,7 +77,9 @@ GEAR = dict(
 # Weapon kinds relative to the reference sword: hit multiplier, seconds per attack, hands.
 # `cleave` = average monsters hit per swing while two or more are engaged; `darts` split a volley, each dealing
 # `dart_scale` of the hit. One-handed melee kinds share the sword's damage per second and differ in hit size (bigger
-# hits cut through armor); two-handed melee kinds add cleave. Kinds no class starts with are not in the parity runs.
+# hits cut through armor); two-handed melee kinds add cleave. Ranged kinds hit less, paid for by `kite` (SKILL):
+# the crossbow is set so a rogue who never draws the dagger loses more health than the class's crossbow-then-dagger
+# plan, the wand so the mage sits at parity. Kinds no class starts with are not in the parity runs.
 WEAPONS = {
     "sword_1h": dict(hit=1.00, cycle=0.50, hands=1),
     "dagger":   dict(hit=0.72, cycle=0.36, hands=1),
@@ -69,9 +89,9 @@ WEAPONS = {
     "axe_2h":   dict(hit=1.50, cycle=0.72, hands=2, cleave=1.15),
     "blunt_2h": dict(hit=1.75, cycle=0.84, hands=2, cleave=1.10),
     "spear_2h": dict(hit=1.55, cycle=0.70, hands=2),            # thrusts one target; reach is not modeled
-    "crossbow": dict(hit=1.30, cycle=0.95, hands=2, ranged=True),
-    "wand":     dict(hit=1.00, cycle=0.60, hands=1, ranged=True, homing=True, darts=3, dart_scale=0.25),
-    "staff":    dict(hit=1.00, cycle=0.60, hands=2, ranged=True, homing=True, darts=4, dart_scale=0.28),  # volley 1.5x a wand's
+    "crossbow": dict(hit=1.00, cycle=0.95, hands=2, ranged=True),
+    "wand":     dict(hit=1.00, cycle=0.60, hands=1, ranged=True, homing=True, darts=3, dart_scale=0.16),
+    "staff":    dict(hit=1.00, cycle=0.60, hands=2, ranged=True, homing=True, darts=4, dart_scale=0.18),  # volley 1.5x a wand's
 }
 
 # Spells scale off the focus's hit like missiles. `targets` = average monsters hit in a pack.
@@ -92,10 +112,10 @@ CLASSES = {
     "knight":    dict(attrs=dict(STR=9, DEX=8, VIT=10, INT=6),
                       growth=dict(STR=0.3, DEX=0.2, VIT=0.3, INT=0.2),
                       weapon="sword_1h", armor="heavy", shield=True, guard=0.05),
-    # Two-handed cleaving damage; no shield, medium armor.
+    # Two-handed cleaving damage once found; starts with a one-handed axe. No shield, medium armor.
     "barbarian": dict(attrs=dict(STR=12, DEX=8, VIT=10, INT=5),
                       growth=dict(STR=0.45, DEX=0.15, VIT=0.25, INT=0.15),
-                      weapon="axe_2h", armor="medium", shield=False),
+                      weapon="axe_2h", starter="axe_1h", armor="medium", shield=False),
     # Fast dagger crits after crossbow openers; light armor, quick feet.
     "rogue":     dict(attrs=dict(STR=9, DEX=15, VIT=11, INT=8),
                       growth=dict(STR=0.2, DEX=0.5, VIT=0.25, INT=0.05),
@@ -111,18 +131,39 @@ MATCHUP_TOLERANCE = 0.25       # floors alone or gatekeepers alone may differ mo
 
 # --- Monster archetypes, relative to the standard monster at the same depth ------------------------
 # armor = share of the reference hero's mean hit; kind decides avoidance; support heals allies.
+# Fodder and swarmers hit softly so floors hold many of them: armor shrugs off most of a bite, a swarmer's venom does not.
+# `windup` = seconds from an attack's start to its contact, which `derive` sets through the primary attack's Duration.
+# Rats bite in 0.25 s and skeletons strike in 0.35 s (the Normal tier's floor is 0.25 s); shooters, casters and the
+# gatekeeper keep their longer, authored tells.
 ARCHETYPES = {
-    "fodder":   dict(hp=0.55, armor=0.00, damage=0.65, cycle=2.0, kind="melee", speed=3.2),
-    "swarmer":  dict(hp=0.45, armor=0.00, damage=0.70, cycle=1.9, kind="melee", speed=4.2,
+    "fodder":   dict(hp=0.55, armor=0.00, damage=0.325, cycle=2.0, windup=0.35, kind="melee", speed=3.2),
+    "swarmer":  dict(hp=0.45, armor=0.00, damage=0.35, cycle=1.9, windup=0.25, kind="melee", speed=4.2,
                      status=(0.35, 1.2)),   # venom passes armor, so heavy armor shrugs off less of a swarm
-    "standard": dict(hp=1.00, armor=0.10, damage=1.00, cycle=2.2, kind="melee", speed=2.8),
-    "brute":    dict(hp=1.70, armor=0.35, damage=1.30, cycle=2.5, kind="melee", speed=2.6, guard=0.25),
-    "shooter":  dict(hp=0.80, armor=0.05, damage=0.95, cycle=3.2, kind="ranged", speed=2.8),
-    "caster":   dict(hp=0.90, armor=0.00, damage=0.35, cycle=3.3, kind="homing", speed=2.4,
+    "standard": dict(hp=1.00, armor=0.10, damage=1.00, cycle=2.2, windup=0.35, kind="melee", speed=2.8),
+    "brute":    dict(hp=1.70, armor=0.35, damage=1.30, cycle=2.5, windup=0.45, kind="melee", speed=2.6, guard=0.25),
+    "shooter":  dict(hp=0.80, armor=0.05, damage=0.95, cycle=3.2, windup=0.63, kind="ranged", speed=2.8),
+    "caster":   dict(hp=0.90, armor=0.00, damage=0.35, cycle=3.3, windup=0.60, kind="homing", speed=2.4,
                      darts=3, support=dict(heal=0.30, cycle=9.0)),
-    "boss":     dict(hp=6.00, armor=0.35, damage=1.60, cycle=2.4, kind="melee", speed=2.6, guard=0.25,
+    "boss":     dict(hp=6.00, armor=0.35, damage=1.45, cycle=2.4, windup=0.51, kind="melee", speed=2.6, guard=0.25,
                      phases=[(0.65, 1.25), (0.30, 1.55)], area=0.35),
 }
+
+# Hit reactions. A monster attack commits at `commit` of its wind-up: from there until its contact ends, hits no longer
+# stop it, only a poise break does, so the hero must dodge, parry or block a committed swing. Poise ignores damage and
+# armor: each hit removes `hit` times its weapon kind's hit share (WEAPONS' `hit`; a missile its dart's share), `blunt`
+# times more for blunt weapons, and a monster's meter holds `hits` such reference hits by archetype (0: no poise; the
+# hit recovery of the hurtbox instead). Each break leaves the next meter `growth` larger until `memory` seconds pass
+# without one, so staggers cannot be chained. Only the weapon kinds in `knockback` push on a stagger; the hero's
+# melee secondary and signature monster attacks author their own.
+POISE = dict(
+    commit=0.5,
+    hit=10.0,
+    blunt=1.3,
+    hits=dict(fodder=2, swarmer=0, standard=3, brute=4, shooter=2, caster=2, boss=8),
+    growth=0.5,
+    memory=10.0,
+    knockback=dict(blunt_2h=3.0),
+)
 
 # Packs a floor spends its budget on. A pack spawns together in one room; it may appear from `first` to `last`
 # depth (0 = to the end). Rats lead: depth 1 opens with small rat groups, depth 2 brings hordes that can overwhelm a
@@ -141,8 +182,8 @@ PACKS = [
 
 # --- Floors, supplies and experience ------------------------------------------------------------
 FLOOR = dict(
-    budget=(9.25, 21.5),       # standard-monster equivalents per floor, packs costed as groups (model.group_factor)
-    boss_budget_share=0.6,     # a boss floor spends this share of the budget before the boss
+    budget=(12.0, 28.0),       # standard-monster equivalents per floor, packs costed as groups (model.group_factor)
+    boss_budget_share=0.2,     # a boss floor spends this share of the budget before the boss
     max_monsters=32,           # a floor stops adding packs once it holds this many (RealmEncounterFactory.MaximumMonsters)
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )
@@ -214,16 +255,18 @@ XP = dict(
 # Preliminary (2026-11-12): "skilled" is one developer's arena profile (avoided 79% of melee and 69% of ranged attacks,
 # landed 41% of swings over ~110 monster attacks). The other tiers keep their earlier spacing, with the share of hits
 # let through and the hit rate scaled to match. Homing uses the ranged scale: the measured 92% mostly reflected weak
-# Skeleton Mage casts, not skill.
+# Skeleton Mage casts, not skill. `kite`: a hero whose main weapon is ranged outruns melee monsters (7.5 m/s against
+# at most 4.2) and backs off between shots, so this share of the melee hits avoidance lets through never land.
+# Unmeasured: record a playtest with a ranged class to fit it.
 SKILL = {
     "novice":  dict(avoid=dict(melee=0.51, ranged=0.35, homing=0.27, area=0.35),
-                    efficiency=0.29, potion_at=0.20, potion_known=0.5),
+                    efficiency=0.29, potion_at=0.20, potion_known=0.5, kite=0.2),
     "regular": dict(avoid=dict(melee=0.67, ranged=0.55, homing=0.43, area=0.55),
-                    efficiency=0.36, potion_at=0.30, potion_known=0.8),
+                    efficiency=0.36, potion_at=0.30, potion_known=0.8, kite=0.4),
     "skilled": dict(avoid=dict(melee=0.79, ranged=0.69, homing=0.55, area=0.69),
-                    efficiency=0.41, potion_at=0.35, potion_known=0.95),
+                    efficiency=0.41, potion_at=0.35, potion_known=0.95, kite=0.5),
     "expert":  dict(avoid=dict(melee=0.88, ranged=0.80, homing=0.67, area=0.80),
-                    efficiency=0.44, potion_at=0.40, potion_known=1.0),
+                    efficiency=0.44, potion_at=0.40, potion_known=1.0, kite=0.6),
 }
 REFERENCE_SKILL = "regular"
 

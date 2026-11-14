@@ -27,4 +27,5 @@ DamageMax = 15.0
 CritChance = 0
 IsTwoHanded = false
 PerformDuration = 0.59
+PoiseDamage = 17.0
 metadata/_custom_type_script = ExtResource("script")

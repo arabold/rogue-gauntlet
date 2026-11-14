@@ -16,4 +16,4 @@ MaxMana = 40.0
 ManaRegenPerSecond = 1.5
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
-ThreatLevel = 1.48
+ThreatLevel = 4.65

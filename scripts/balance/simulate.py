@@ -20,6 +20,7 @@ import math
 import os
 import random
 import sys
+from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from functools import cache, partial
 from pathlib import Path
@@ -188,7 +189,7 @@ def poisson(rng, lam):
 
 
 class Live:
-    __slots__ = ("m", "hp", "max", "next", "engage", "support_next", "approached", "lo", "hi", "dps")
+    __slots__ = ("m", "hp", "max", "next", "engage", "support_next", "approached", "lo", "hi", "dps", "uptime")
 
     def __init__(self, m, h, skill, rng, gap):
         self.m, self.hp, self.max = m, m.hp, m.hp
@@ -196,12 +197,13 @@ class Live:
             self.engage = gap / m.speed if h.ranged or h.opener_hit else gap / (m.speed + P.ENGAGEMENT["close_speed"])
         else:
             self.engage = 0.3
-        self.next = self.engage + rng.uniform(0, m.cycle * 0.5)
+        self.next = self.engage + m.windup
         self.support_next = self.engage
         self.approached = h.ranged or m.kind == "melee"
         per_dart = m.hit / m.darts
         self.lo, self.hi = M.spread_range(per_dart, P.STANDARD["spread"])
         self.dps = monster_dps_at(m, h, skill)
+        self.uptime = M.uptime(m)
 
 
 def monster_dps_at(m, h, skill):
@@ -229,11 +231,12 @@ def fight(h, state, members, skill, rng):
     units = [Live(m, h, skill, rng, gap) for m in members]
     w = P.WEAPONS[h.weapon]
     spread = P.GEAR["weapon_spread"]
-    eff = M.homing_efficiency(skill) if w.get("homing") else skill["efficiency"]
+    eff = M.landing_efficiency(h, skill)
+    ranged = h.ranged
     spell = h.spell
     avoid = {kind: M.avoid(h, kind, skill) for kind in skill["avoid"]}
     mana = state.setdefault("mana", h.mana)
-    t, last, hero_next = 0.0, 0.0, 0.0
+    t, last, hero_next = 0.0, 0.0, P.ENGAGEMENT["strike"]
     melee_cap = P.ENGAGEMENT["melee_cap"]
 
     def hit_unit(u, mean, armor_scale=1.0):
@@ -264,10 +267,16 @@ def fight(h, state, members, skill, rng):
                 state["hp"] = min(h.hp, state["hp"] + potion)
                 hero_next = t + 1.0
                 continue
-            target = max(alive, key=lambda u: u.dps / max(u.hp, 1e-6))
+            opening = h.opener_hit and not any(u.m.kind == "melee" and t >= u.engage for u in alive)
+            # A melee hero reaches a melee monster only once it has closed in; the first blow lands a swing later.
+            reach = alive if ranged or opening else [u for u in alive if u.m.kind != "melee" or t >= u.engage]
+            if not reach:
+                hero_next = min(u.engage for u in alive) + P.ENGAGEMENT["strike"]
+                continue
+            target = max(reach, key=lambda u: u.dps / max(u.hp, 1e-6))
             if not target.approached:
                 target.approached = True
-                hero_next = t + gap / P.ENGAGEMENT["close_speed"]
+                hero_next = t + gap / P.ENGAGEMENT["close_speed"] + P.ENGAGEMENT["strike"]
                 continue
             if spell and mana >= spell["mana"] and (len(alive) >= 2 or target.hp > h.hit):
                 mana -= spell["mana"]
@@ -278,7 +287,6 @@ def fight(h, state, members, skill, rng):
                         hit_unit(u, h.hit * spell["scale"], P.MAGIC_ARMOR_SHARE)
                 hero_next = t + spell["cast"]
                 continue
-            opening = h.opener_hit and not any(u.m.kind == "melee" and t >= u.engage for u in alive)
             if opening:
                 if rng.random() < skill["efficiency"] * (1 - target.m.guard):
                     hit_unit(target, h.opener_hit)
@@ -307,6 +315,8 @@ def fight(h, state, members, skill, rng):
                     ally.hp = min(ally.max, ally.hp + u.m.support["heal"] * ally.max)
                     u.support_next = t + u.m.support["cycle"]
                     continue
+            if rng.random() >= u.uptime:
+                continue  # the hero kept this attack from starting
             kind = "area" if u.m.area and rng.random() < u.m.area else u.m.kind
             if rng.random() < avoid[kind]:
                 continue
@@ -509,7 +519,7 @@ def evaluate_monster(args):
     lo, hi = parse_range(args.damage)
     m = M.Monster(archetype="custom", depth=args.depth, hp=args.hp, armor=args.armor, hit=(lo + hi) / 2,
                   cycle=args.cycle, kind=args.kind, speed=args.speed, guard=args.guard, darts=args.darts,
-                  boss=args.boss)
+                  boss=args.boss, windup=args.windup)
     level = M.threat_level(m)
     print(f"Threat level {level:.1f}; XP {M.xp_reward(m):.0f}")
     for d in sorted({max(1, round(level) - 3), args.depth, min(P.DEPTHS, round(level) + 3)}):
@@ -568,11 +578,10 @@ def report_supply(depths, seeds, samples):
 TRACE_KINDS = {"DirectMelee": "melee", "Projectile": "ranged", "AreaImpact": "area"}
 
 
-def records(path):
-    """The events of a combat trace or playtest log, in order."""
-    for line in Path(path).read_text().splitlines():
-        if line.strip():
-            yield json.loads(line.removeprefix("COMBAT "))
+@cache
+def records(path) -> tuple:
+    """The events of a combat trace or playtest log, in order, parsed once per run for every report that reads them."""
+    return tuple(json.loads(line.removeprefix("COMBAT ")) for line in Path(path).read_text().splitlines() if line.strip())
 
 
 def is_hero(actor: str) -> bool:
@@ -676,7 +685,6 @@ def report_calibration(paths):
 
 def read_playtest(path):
     """Floors of a playtest log (the debug menu's Playtest tool): what each held and what the hero found, used, took and gained."""
-    from collections import Counter
     floors, floor = [], None
     for record in records(path):
         event, data, time = record["event"], record["data"], record["time"]
@@ -758,7 +766,6 @@ def report_identities(paths):
     Each hidden item type the hero found (potions, scrolls, jewelry), by its real name: how many were found and used,
     and how its identity came out. Then every cursed item the hero put on.
     """
-    from collections import Counter
     found, used, names, identified, cursed = Counter(), Counter(), {}, {}, []
     for path in paths:
         for record in records(path):
@@ -789,7 +796,6 @@ def report_statuses(paths):
     Each timed effect on the hero (potions, food, venom, spells): how often it started or was refreshed, how long it
     lasted in all, how it ended, and the health poison took.
     """
-    from collections import Counter, defaultdict
     started, refreshed, seconds, poison = Counter(), Counter(), Counter(), Counter()
     conditions, ends, open_since = {}, defaultdict(Counter), defaultdict(list)
     for path in paths:
@@ -863,6 +869,7 @@ def main():
     m.add_argument("--armor", type=float, default=0)
     m.add_argument("--damage", required=True)
     m.add_argument("--cycle", type=float, default=2.2)
+    m.add_argument("--windup", type=float, default=0.35, help="seconds from an attack's start to its contact")
     m.add_argument("--kind", choices=["melee", "ranged", "homing"], default="melee")
     m.add_argument("--speed", type=float, default=2.8)
     m.add_argument("--guard", type=float, default=0.0)
