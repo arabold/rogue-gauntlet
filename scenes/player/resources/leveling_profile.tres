@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="LevelingProfile" format=3]
+
+[ext_resource type="Script" path="res://scenes/player/resources/LevelingProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+XpToNextLevel = PackedInt32Array(53, 64, 76, 91, 109, 130, 156, 186, 222, 266, 317, 379, 453, 542, 647, 774, 925, 1105, 1321, 1578, 1886, 2254, 2694, 3219)

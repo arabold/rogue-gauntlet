@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://hshntmwu857e"]
 
+[ext_resource type="Resource" path="res://scenes/effects/world/level_up/level_up.tres" id="level_up_effect"]
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 [ext_resource type="PackedScene" path="res://scenes/player/player_light.tscn" id="player_light_scene"]
 
@@ -499,6 +500,7 @@ MovementComponent = NodePath("../MovementComponent")
 HurtBoxComponent = NodePath("../HurtBoxComponent")
 HealthComponent = NodePath("../HealthComponent")
 ManaComponent = NodePath("../ManaComponent")
+LevelUpEffect = ExtResource("level_up_effect")
 
 [node name="PlayerInventoryController" type="Node" parent="." unique_id=1371302877 node_paths=PackedStringArray("Player", "ActionManager", "StatsController")]
 script = ExtResource("15_gknh4")

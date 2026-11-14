@@ -61,24 +61,50 @@ public partial class CharacterCatalogTest
 	[TestCase]
 	public void ApplyingAClassDerivesFullPoolsAndDamageFromItsAttributes()
 	{
-		var profile = new StatProfile { HealthPerVitality = 4, ManaPerIntelligence = 3, DamagePerStrength = 0.5f, DamagePerIntelligence = 0.25f };
-		var hero = new CharacterClass { StatProfile = profile, BaseStrength = 6, BaseVitality = 10, BaseIntelligence = 8 };
+		var profile = new StatProfile { HealthPercentPerVitality = 0.05f, ManaPerIntelligence = 3, PhysicalDamagePercentPerStrength = 0.1f };
+		var hero = new CharacterClass { StatProfile = profile, BaseStrength = 6, BaseVitality = 14, BaseIntelligence = 8 };
 		var stats = new PlayerStats { BaseMaxHealth = 50, BaseMaxMana = 20, BaseMinDamage = 1, BaseMaxDamage = 3, Health = 1, Mana = 0 };
 
 		hero.ApplyToStats(stats);
 
 		AssertObject(stats.Profile).IsSame(profile);
-		AssertFloat(stats.MaxHealth).IsEqual(50f + 10 * 4);
+		// Vitality scales health by a share per point above 10: 4 points of 5% each.
+		AssertFloat(stats.MaxHealth).IsEqualApprox(50f * 1.2f, 0.001f);
 		AssertFloat(stats.MaxMana).IsEqual(20f + 8 * 3);
 		// Both pools start full.
 		AssertFloat(stats.Health).IsEqual(stats.MaxHealth);
 		AssertFloat(stats.Mana).IsEqual(stats.MaxMana);
-		// Strength and Intelligence both feed the damage range: 6 * 0.5 + 8 * 0.25 = 5.
-		AssertFloat(stats.MinDamage).IsEqual(1f + 5);
-		AssertFloat(stats.MaxDamage).IsEqual(3f + 5);
+		// Strength below 10 shrinks the unarmed hit: 4 points of 10% each.
+		AssertFloat(stats.MinDamage).IsEqualApprox(1f * 0.6f, 0.001f);
+		AssertFloat(stats.MaxDamage).IsEqualApprox(3f * 0.6f, 0.001f);
 		// Item bonuses add on top of the derived pool.
 		stats.AddModifier(this, new StatModifier { Stat = StatType.MaxMana, Value = 10 });
 		AssertFloat(stats.MaxMana).IsEqual(20f + 8 * 3 + 10);
+	}
+
+	/// <summary>Experience climbs the ladder: each level grows the class's attributes and max health without healing.</summary>
+	[TestCase]
+	public void ExperienceRaisesLevelsAttributesAndHealthUpToTheCap()
+	{
+		var profile = new StatProfile { HealthPercentPerVitality = 0.05f, VitalityPerLevel = 1, StrengthPerLevel = 0.5f };
+		var stats = new PlayerStats { Profile = profile, BaseMaxHealth = 50, BaseVitality = 10, BaseStrength = 10,
+			Leveling = new LevelingProfile { XpToNextLevel = [10, 20], HealthPerLevel = 5 } };
+		stats.Health = stats.MaxHealth - 20;
+		var levels = new System.Collections.Generic.List<int>();
+		stats.LeveledUp += levels.Add;
+
+		stats.AddXp(9);
+		AssertInt(stats.XpLevel).IsEqual(1);
+		stats.AddXp(100);
+
+		AssertArray(levels.ToArray()).IsEqual(new[] { 2, 3 });
+		AssertInt(stats.XpLevel).IsEqual(3);
+		AssertFloat(stats.BaseVitality).IsEqual(12);
+		AssertFloat(stats.BaseStrength).IsEqual(11);
+		// Two levels add 10 base health, then 2 Vitality points scale it by 10%.
+		AssertFloat(stats.MaxHealth).IsEqualApprox(60f * 1.1f, 0.001f);
+		AssertFloat(stats.MaxHealth - stats.Health).IsEqualApprox(20, 0.001f);
+		AssertObject(stats.LevelProgress).IsEqual((0, 0));
 	}
 
 	[TestCase]

@@ -14,7 +14,7 @@ public class ItemLifecycleTest
 {
 	private const string Apple = "res://scenes/items/food/food/food_apple_red.tres";
 	private const string Potion = "res://scenes/items/potions/potion_healing_small.tres";
-	private const string Ring = "res://scenes/items/jewelry/ring/ring_strength.tres";
+	private const string Ring = "res://scenes/items/jewelry/ring/ring_strength_1.tres";
 
 	[TestCase]
 	public void FixedCreationDoesNotRollAndFoodPiecesKeepIndependentState()

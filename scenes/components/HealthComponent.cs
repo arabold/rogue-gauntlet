@@ -74,15 +74,17 @@ public partial class HealthComponent : Node
 	}
 
 	/// <summary>
-	/// Heals the player by the specified amount.
+	/// Heals by <paramref name="amount"/>, up to the maximum. Potions, food, fountains and spells heal through here; growth
+	/// of the maximum (a level-up, gear) sets health directly instead.
 	/// </summary>
-	/// <param name="amount"></param>
 	public void Heal(float amount)
 	{
 		if (amount > 0)
 		{
 			GD.Print($"{GetOwner()?.Name ?? Name} healed for {amount}.");
+			float before = CurrentHealth;
 			CurrentHealth = Mathf.Clamp(CurrentHealth + amount, 0, MaxHealth);
+			CombatTrace.Write(this, "health.healed", ("amount", CurrentHealth - before), ("health", CurrentHealth), ("max_health", MaxHealth));
 			if (!IsNodeReady())
 			{
 				EmitSignalHealthChanged(CurrentHealth, MaxHealth);

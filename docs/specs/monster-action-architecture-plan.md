@@ -8,7 +8,7 @@ Goal for every remaining step: a new monster is a scene plus Resources, and a ne
 
 - **Dodge on the dash component.** `DodgeComponent` keeps its own displacement (immunity, charges, steering, pass-through). Moving its travel onto `DashComponent` waits until both have settled in play.
 - **Editor badges.** Scene-tree configuration warnings for monsters need `EnemyBase` to become `[Tool]`, which would run gameplay setters against editor placeholders. **Project → Tools → Validate monster scene** stays the editor surface.
-- **Phase content.** Phase entry actions (a roar, brief immunity) and per-phase movement or defense overrides wait for a boss that needs them; today phases only gate and weight actions.
+- **Phase content.** Phase entry actions (a roar, brief immunity) and per-phase speed or defense overrides wait for a boss that needs them; today phases gate and weight actions and scale turning (`TurnRateByPhase`).
 - **Spell cast validation.** A spell action's cast definition does not get the attack timing checks (wind-up, threat tier) that attack actions get; add them once the shared cast definitions are tuned against those rules.
 - **Consumables.** Plain buff potions and scrolls keep `BuffedItem.ApplyBuff`; an item moves to a spell only when a monster needs the same effect.
 
@@ -18,7 +18,6 @@ These tuning changes came with the migration; check them in play:
 
 - The Warden reuses the player's Tremor spell, so both shake with `tremor_shake.tres` (0.32 s decay instead of the player's former 0.18 s).
 - The Warden uses one repeat penalty (0.35) in every phase instead of 0.25 in phase 3, and its Tremor takes no attack slot, like its swings.
-- Close pressure counts from the start of the fight, so a player already hugging the Warden can draw the stomp as soon as phase 2 begins.
 - Shooters may fire while closing in when they have sight and their action's range allows it.
 
 ## Persistence

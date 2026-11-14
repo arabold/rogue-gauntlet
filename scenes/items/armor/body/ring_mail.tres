@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Armor" load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/items/armor/body/body_armor_medium.tscn" id="scene"]
+[ext_resource type="PackedScene" path="res://assets/custom-items/armor/body/body_armor_medium.glb" id="worn"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
+
+[resource]
+script = ExtResource("script")
+Weight = 1
+Tier = 1
+ValidSlots = 2
+RollTable = ExtResource("roll_table")
+Name = "Ring Mail"
+Scene = ExtResource("scene")
+WornScene = ExtResource("worn")
+Value = 40
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+ArmorPoints = 3
+metadata/_custom_type_script = ExtResource("script")

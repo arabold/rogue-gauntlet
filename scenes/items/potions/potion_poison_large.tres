@@ -6,10 +6,11 @@
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
-DamagePointsPerTick = 3
+DamagePointsPerTick = 20
 Condition = ExtResource("poisoned")
 Name = "Large Potion of Poison"
-Duration = 6.0
+Duration = 10.0
+TicksPerSecond = 0.5
 metadata/_custom_type_script = ExtResource("buff")
 
 [resource]

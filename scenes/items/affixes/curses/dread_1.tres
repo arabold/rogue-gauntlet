@@ -6,20 +6,19 @@
 [sub_resource type="Resource" id="Range_0"]
 script = ExtResource("2_range")
 Stat = 7
-Op = 1
-MinValue = -0.1
-MaxValue = -0.05
+MinValue = -2.0
+MaxValue = -1.0
 metadata/_custom_type_script = ExtResource("2_range")
 
 [sub_resource type="Resource" id="Range_1"]
 script = ExtResource("2_range")
 Stat = 8
-Op = 1
-MinValue = -0.1
-MaxValue = -0.05
+MinValue = -5.0
+MaxValue = -3.0
 metadata/_custom_type_script = ExtResource("2_range")
 
 [resource]
 script = ExtResource("1_affix")
 Modifiers = [SubResource("Range_0"), SubResource("Range_1")]
+MaxDepth = 8
 metadata/_custom_type_script = ExtResource("1_affix")

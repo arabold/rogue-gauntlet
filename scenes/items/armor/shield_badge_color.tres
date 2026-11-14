@@ -9,7 +9,7 @@
 [resource]
 script = ExtResource("2_47uxn")
 RequiredStrength = 10
-ArmorPoints = 3
+ArmorPoints = 2
 Guard = ExtResource("guard_shield")
 ValidSlots = 512
 RollTable = ExtResource("roll_table")

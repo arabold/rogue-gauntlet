@@ -62,7 +62,7 @@ public class ScreenEffectWiringTest
 			await runner.SimulateFrames(2, 20);
 			AssertFloat(poison.Intensity).IsEqual(1f);
 
-			// Blindness closes vision; healing cures it, as in Rogue.
+			// Blindness closes vision; healing cures it, as in Rogue, and poison, leaving confusion's faint overlay.
 			player.ApplyBuff(PotionBuff("blindness"));
 			await runner.SimulateFrames(2, 20);
 			AssertFloat(blindness.Intensity).IsEqual(1f);
@@ -70,6 +70,7 @@ public class ScreenEffectWiringTest
 			TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres").PerformAction(player);
 			await runner.SimulateFrames(2, 20);
 			AssertFloat(blindness.Intensity).IsEqual(0f);
+			AssertFloat(poison.Intensity).IsEqualApprox(0.35f, 0.001f);
 
 			// Rebinding a driver follows the new controller; binding the player again restores it.
 			poisonDriver.Buffs = AutoFree(new BuffController());
@@ -77,7 +78,7 @@ public class ScreenEffectWiringTest
 			AssertFloat(poison.Intensity).IsEqual(0f);
 			layer.Bind(player);
 			await runner.SimulateFrames(2, 20);
-			AssertFloat(poison.Intensity).IsEqual(1f);
+			AssertFloat(poison.Intensity).IsEqualApprox(0.35f, 0.001f);
 
 			// Slowness slows the whole game until it ends. Checked without simulating frames: the scene runner resets
 			// the time scale whenever it simulates.

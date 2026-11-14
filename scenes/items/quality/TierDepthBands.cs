@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// The dungeon depths where each equipment tier drops: the one place the tier ladder meets depth. Loot pools that
-/// reference it validate their entries against it, so retuning a band shows every entry that still needs moving.
+/// reference it drop each equipment entry in its item tier's band, so retuning a band moves every such entry.
 /// </summary>
 [Tool]
 [GlobalClass]

@@ -123,6 +123,28 @@ public class PoiseTest
 		Free(gate, poise);
 	}
 
+	/// <summary>
+	/// Uninterruptible armor drains no poise, so no number of hits staggers the attacker out of it; ordinary armor on the
+	/// next action drains again.
+	/// </summary>
+	[TestCase]
+	public void UninterruptibleArmorCannotBeBroken()
+	{
+		var (gate, poise) = Create();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var committed);
+		gate.ReportHyperArmor(committed, true, unstoppable: true);
+		AssertBool(poise.Apply(100)).IsFalse();
+		AssertFloat(poise.Current).IsEqual(20);
+		AssertBool(gate.IsLeaseCurrent(committed)).IsTrue();
+		gate.Release(committed);
+		AssertBool(gate.IsUnstoppable).IsFalse();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var ordinary);
+		gate.ReportHyperArmor(ordinary, true);
+		poise.Apply(10);
+		AssertFloat(poise.Current).IsEqual(15);
+		Free(gate, poise);
+	}
+
 	[TestCase]
 	public void InvalidDefinitionLeavesTheActorWithoutPoise()
 	{
@@ -184,9 +206,38 @@ public class PoiseTest
 		AssertBool(movement.IsPushed).IsFalse();
 
 		gate.ReportHyperArmor(lease, false);
-		hurtbox.ResolveDamage(Contact(1, 0, knockback: 4));
+		hurtbox.ResolveDamage(Contact(12, 0, knockback: 4));
 		AssertBool(gate.IsBusy).IsFalse();
 		AssertBool(movement.IsPushed).IsTrue();
+	}
+
+	/// <summary>
+	/// Without poise, a hit interrupts only if it takes a tenth of max health, and not again for a second after (Diablo
+	/// II's hit recovery), so a fast weapon cannot keep a monster from ever finishing an attack.
+	/// </summary>
+	[TestCase]
+	public void WithoutPoiseOnlyABigHitInterruptsAndNotAgainRightAfter()
+	{
+		var (hurtbox, gate, _, _) = Actor();
+		hurtbox.Poise = null;
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
+		hurtbox.ResolveDamage(Contact(5, 0));
+		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a hit under a tenth of max health").IsTrue();
+		hurtbox.ResolveDamage(Contact(12, 0));
+		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a hit over a tenth of max health").IsFalse();
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out lease);
+		hurtbox.ResolveDamage(Contact(12, 0));
+		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a second big hit inside the immunity").IsTrue();
+
+		var (fresh, freshGate, _, _) = Actor();
+		fresh.Poise = null;
+		fresh.InterruptImmunity = 0;
+		for (int hit = 0; hit < 2; hit++)
+		{
+			freshGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var attack);
+			fresh.ResolveDamage(Contact(12, 0));
+			AssertBool(freshGate.IsLeaseCurrent(attack)).OverrideFailureMessage($"hit {hit} without immunity").IsFalse();
+		}
 	}
 
 	[TestCase]

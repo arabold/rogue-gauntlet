@@ -29,14 +29,14 @@ WindUpTurnRate = 720.0
 [sub_resource type="Resource" id="bite"]
 resource_name = "bite"
 script = ExtResource("attack_action")
-Cooldown = 1.1
+Cooldown = 1.9
 MaximumRange = 1.4
 RiposteEligible = true
 Attack = SubResource("bite_attack")
 Style = &"melee"
 Duration = 0.8
-MinDamage = 2.0
-MaxDamage = 4.0
+MinDamage = 4.0
+MaxDamage = 8.0
 
 [sub_resource type="Resource" id="rush_dash"]
 script = ExtResource("dash_profile")

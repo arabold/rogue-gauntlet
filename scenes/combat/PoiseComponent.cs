@@ -42,7 +42,7 @@ public partial class PoiseComponent : Node
 	/// </summary>
 	public bool Apply(float poiseDamage)
 	{
-		if (!IsAvailable || IsBroken || ActionGate.IsStaggered || !(poiseDamage > 0)) return false;
+		if (!IsAvailable || IsBroken || ActionGate.IsStaggered || ActionGate.IsUnstoppable || !(poiseDamage > 0)) return false;
 		if (ActionGate.IsHyperArmored) poiseDamage *= Definition.ArmoredPoiseDamageScale;
 		_sinceDamage = 0;
 		Current = Mathf.Max(0, Current - poiseDamage);

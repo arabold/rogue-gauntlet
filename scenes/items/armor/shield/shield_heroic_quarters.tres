@@ -15,6 +15,6 @@ ValidSlots = 512
 Value = 120
 IsStackable = false
 RequiredStrength = 15
-ArmorPoints = 7
+ArmorPoints = 6
 SpeedModifier = 0.95
 metadata/_custom_type_script = ExtResource("script")

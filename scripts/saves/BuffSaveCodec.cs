@@ -85,7 +85,7 @@ public static class BuffSaveCodec
 			{
 				"condition" => new Buff(),
 				"healing" => new HealingBuff { TicksPerSecond = data.TicksPerSecond, HealthPointsPerTick = data.PointsPerTick },
-				"poison" => new PoisonBuff { TicksPerSecond = data.TicksPerSecond, DamagePointsPerTick = data.PointsPerTick },
+				"poison" => new PoisonBuff { TicksPerSecond = data.TicksPerSecond, DamagePointsPerTick = (int)data.PointsPerTick },
 				"time_scale" => new TimeScaleBuff { TimeScale = data.TimeScale },
 				"stat_modifier" => new StatModifierBuff { Modifiers = ItemSaveCodec.BuildModifiers(data.Modifiers) },
 				_ => throw new InvalidOperationException("Unsupported saved buff type."),

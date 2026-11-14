@@ -9,6 +9,17 @@ using Godot;
 /// identification. Plain C#: <see cref="GameSession"/> owns the active run and hands it to each <see cref="Level"/>, whose
 /// components read it from there. A level played on its own builds a default run.
 /// </summary>
+/// <summary>How the player learned an item's hidden type.</summary>
+public enum IdentificationSource
+{
+	/// <summary>Drinking, eating or reading it.</summary>
+	Use,
+	/// <summary>Equipping it.</summary>
+	Wear,
+	/// <summary>A scroll of identify.</summary>
+	Scroll,
+}
+
 public sealed class RunState
 {
 	/// <summary>The run seed of a scene played directly, without a started or loaded game.</summary>
@@ -90,7 +101,7 @@ public sealed class RunState
 	/// with no hidden type or a type already discovered. Shared by consuming, wearing and the scroll of identify; what
 	/// one item reveals about itself is the item's own business (<see cref="EquipableItem.RevealAttributes"/>).
 	/// </summary>
-	public bool IdentifyItemType(Item item)
+	public bool IdentifyItemType(Item item, IdentificationSource source)
 	{
 		if (item is IIdentifiable identifiable && identifiable.HasIdentity)
 		{
@@ -105,7 +116,7 @@ public sealed class RunState
 				string trueName = ItemIdentity.ComposeDisplayName(item, Identification);
 				GD.Print($"Identified {identifiable.TypeId} as {trueName}.");
 				SignalBus.EmitItemIdentified(identifiable.TypeId);
-				SignalBus.EmitItemIdentityRevealed(identifiable.TypeId, disguisedName, trueName);
+				SignalBus.EmitItemIdentityRevealed(identifiable.TypeId, disguisedName, trueName, source.ToString());
 				return true;
 			}
 		}

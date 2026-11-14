@@ -1,11 +1,10 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=27 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterSpellAction.cs" id="spell_action"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/HealthPhaseCondition.cs" id="phase"]
-[ext_resource type="Script" path="res://scenes/enemies/actions/TargetPressureCondition.cs" id="pressure"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterActionWeightModifier.cs" id="modifier"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
@@ -26,11 +25,6 @@ MinimumPhase = 1
 [sub_resource type="Resource" id="phase_three"]
 script = ExtResource("phase")
 MinimumPhase = 2
-
-[sub_resource type="Resource" id="close_pressure"]
-script = ExtResource("pressure")
-Range = 2.4
-Duration = 0.85
 
 [sub_resource type="Resource" id="slash_late"]
 script = ExtResource("modifier")
@@ -57,8 +51,8 @@ script = ExtResource("attack_definition")
 MeleeContact = ExtResource("swing_contact")
 PoiseDamage = 30.0
 Knockback = 5.0
-HyperArmorStart = 0.1
 HyperArmorEnd = 0.5
+Interruptible = false
 HitStopDuration = 0.05
 FacingLockLead = 0.4
 WindUpTurnRate = 60.0
@@ -69,16 +63,27 @@ MeleeContact = ExtResource("overhead_contact")
 DefenseTraits = 15
 PoiseDamage = 28.0
 Knockback = 7.0
-HyperArmorStart = 0.1
-HyperArmorEnd = 0.38
+HyperArmorEnd = 0.63
+Interruptible = false
 HitStopDuration = 0.06
 FacingLockLead = 0.3
 WindUpTurnRate = 45.0
 
+[sub_resource type="Resource" id="slam_cast"]
+script = ExtResource("attack_definition")
+HitWindowStart = 0.2
+DefenseTraits = 3
+IsRanged = true
+Range = 16.0
+PoiseDamage = 0.0
+Knockback = 0.0
+HyperArmorEnd = 1.0
+Interruptible = false
+
 [sub_resource type="Resource" id="slash"]
 resource_name = "slash"
 script = ExtResource("attack_action")
-Cooldown = 1.4
+Cooldown = 2.4
 MaximumRange = 3.2
 MaximumStartAngle = 45.0
 UsesAttackSlot = false
@@ -87,8 +92,8 @@ WeightModifiers = [SubResource("slash_late")]
 Attack = SubResource("swing")
 Style = &"melee"
 Duration = 1.6
-MinDamage = 10.0
-MaxDamage = 18.0
+MinDamage = 10.5
+MaxDamage = 21.5
 
 [sub_resource type="Resource" id="overhead"]
 resource_name = "overhead"
@@ -103,22 +108,23 @@ WeightModifiers = [SubResource("overhead_mid"), SubResource("overhead_late")]
 Attack = SubResource("overhead_swing")
 Style = &"overhead"
 Duration = 1.8
-MinDamage = 15.0
-MaxDamage = 24.0
+MinDamage = 17.0
+MaxDamage = 27.5
 
 [sub_resource type="Resource" id="tremor"]
 resource_name = "tremor"
 script = ExtResource("spell_action")
 Cooldown = 8.0
-MaximumRange = 3.9
+MaximumRange = 7.0
 UsesAttackSlot = false
-Conditions = [SubResource("phase_two_on"), SubResource("close_pressure")]
+Conditions = [SubResource("phase_two_on")]
 WeightModifiers = [SubResource("tremor_mid")]
 Spell = ExtResource("tremor_spell")
+Cast = SubResource("slam_cast")
 Style = &"stomp"
-Duration = 2.65
-MinDamage = 18.0
-MaxDamage = 27.0
+Duration = 1.1
+MinDamage = 20.5
+MaxDamage = 31.0
 
 [resource]
 script = ExtResource("profile")
@@ -127,3 +133,4 @@ MovementStrategy = ExtResource("movement")
 DefenseStrategy = ExtResource("defense")
 Actions = [SubResource("slash"), SubResource("overhead"), SubResource("tremor")]
 RepeatWeightMultiplier = 0.35
+TurnRateByPhase = PackedFloat32Array(1, 1.6, 2.2)

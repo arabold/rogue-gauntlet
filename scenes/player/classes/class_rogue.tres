@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CharacterClass" load_steps=11 format=3 uid="uid://cclassrogue0001"]
+[gd_resource type="Resource" script_class="CharacterClass" load_steps=15 format=3 uid="uid://cclassrogue0001"]
 
 [ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://dmjw7n01w133k" path="res://assets/kaykit-adventurers/Rogue.glb" id="2_model"]
@@ -8,6 +8,20 @@
 [ext_resource type="Resource" uid="uid://cfjd6iimvn0lp" path="res://scenes/items/weapons/dagger_common.tres" id="6_dagger"]
 
 [ext_resource type="Resource" path="res://scenes/items/tools/tool/tool_lockpick_set.tres" id="lockpicks"]
+
+[ext_resource type="Resource" path="res://scenes/items/armor/body/padded_vest.tres" id="kit_body"]
+[ext_resource type="Resource" path="res://scenes/items/armor/helmet/leather_cap.tres" id="kit_helmet"]
+[sub_resource type="Resource" id="Slot_body"]
+script = ExtResource("4_slot")
+Item = ExtResource("kit_body")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
+
+[sub_resource type="Resource" id="Slot_helmet"]
+script = ExtResource("4_slot")
+Item = ExtResource("kit_helmet")
+Quantity = 1
+metadata/_custom_type_script = ExtResource("4_slot")
 
 [sub_resource type="Resource" id="Slot_crossbow"]
 script = ExtResource("4_slot")
@@ -33,11 +47,11 @@ DisplayName = "Rogue"
 Description = "A quick-fingered shadow. The rogue picks enemies off with a crossbow and finishes them with a dagger - striking true far more often than luck allows."
 CharacterScene = ExtResource("2_model")
 StatProfile = ExtResource("3_profile")
-BaseStrength = 8.0
+BaseStrength = 9.0
 BaseDexterity = 15.0
-BaseVitality = 9.0
+BaseVitality = 11.0
 BaseIntelligence = 8.0
-StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_crossbow"), SubResource("Slot_dagger"), SubResource("Slot_lockpicks")])
+StartingItems = Array[ExtResource("4_slot")]([SubResource("Slot_body"), SubResource("Slot_helmet"), SubResource("Slot_crossbow"), SubResource("Slot_dagger"), SubResource("Slot_lockpicks")])
 PreviewAnimation = "Idle"
 AttachmentNodeNames = {
 0: "Knife",

@@ -90,7 +90,7 @@ public partial class MagicGuardSpell : Node, ICombatSpell
 			Vector3 direction = attacker.GlobalPosition - _owner.GlobalPosition; direction.Y = 0;
 			var reflected = new DamageContext { SourceNode = _source, OwnerNode = _owner, Faction = ownerFaction,
 				Amount = absorbed * _reflection, Random = contact.Random, IncomingDirection = direction.Normalized(),
-				DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
+				DefenseTraits = AttackDefenseTraits.Guardable,
 				DeliveryKind = DamageDeliveryKind.AreaImpact, Element = _element, IsReflected = true };
 			damageable.ResolveDamage(in reflected);
 		}

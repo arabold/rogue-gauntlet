@@ -13,49 +13,49 @@
 [sub_resource type="Resource" id="Group_gold"]
 resource_name = "Gold"
 script = ExtResource("group")
-Weight = 20.0
+Weight = 11.0
 Pool = ExtResource("pool_gold")
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Group_food"]
 resource_name = "Food"
 script = ExtResource("group")
-Weight = 10.0
+Weight = 8.5
 Pool = ExtResource("pool_food")
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Group_potions"]
 resource_name = "Potions"
 script = ExtResource("group")
-Weight = 20.0
+Weight = 38.5
 Pool = ExtResource("pool_potions")
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Group_scrolls"]
 resource_name = "Scrolls"
 script = ExtResource("group")
-Weight = 12.0
+Weight = 10.0
 Pool = ExtResource("pool_scrolls")
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Group_weapons"]
 resource_name = "Weapons"
 script = ExtResource("group")
-Weight = 18.0
+Weight = 15.0
 Pool = ExtResource("pool_weapons")
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Group_armor"]
 resource_name = "Armor"
 script = ExtResource("group")
-Weight = 10.0
+Weight = 8.5
 Pool = ExtResource("pool_armor")
 metadata/_custom_type_script = ExtResource("group")
 
 [sub_resource type="Resource" id="Group_jewelry"]
 resource_name = "Jewelry"
 script = ExtResource("group")
-Weight = 10.0
+Weight = 8.5
 Pool = ExtResource("pool_jewelry")
 metadata/_custom_type_script = ExtResource("group")
 

@@ -142,7 +142,8 @@ black potion" renames it "Small Potion of Poison" but leaves the bottle as it lo
   from the jewelry roll tables. The quality is never part of the disguise: its word leads the
   unidentified name and its color shows everywhere, so "shiny golden ruby ring" and "magic
   golden ruby ring" are the same unknown type in two qualities. One type cannot look different
-  in different qualities, which is why each jewelry type has exactly one definition.
+  in different qualities or tiers: a type's tiers (1–5, deeper ones giving more) share its
+  appearance and name.
 - **Size = potency (potions only).** A potion type has small, medium and large
   definitions that share one `TypeId`, so they share the run's color and differ only in
   bottle size and magnitude. Potency is authored entirely in the buff; there is no
@@ -179,12 +180,12 @@ genuinely diverges. Every type comes in small, medium and large, and size sets t
 
 | Potion | Effect | Buff |
 | --- | --- | --- |
-| Healing | heals over a few seconds; cures blindness | `HealingBuff` with `CuredConditions` |
+| Healing | heals over a few seconds; cures blindness and poison | `HealingBuff` with `CuredConditions` |
 | Strength, Dexterity, Vitality, Intelligence | timed attribute boost | `StatModifierBuff` |
-| Poison | damage over time | `PoisonBuff` + `poisoned` |
+| Poison | takes half what healing of its size gives, over 10 s | `PoisonBuff` + `poisoned` |
 | Slowness | slows the whole game, monsters and hero alike | `TimeScaleBuff` (`TimeScaleComponent`) |
-| Blindness | vision closes to a circle around the hero | `Buff` + `blinded` (blindness screen effect) |
-| Confusion | movement staggers off course; faint poison overlay | `Buff` + `confused` (`ConfusionComponent`) |
+| Blindness | vision closes to a circle around the hero for 30–60 s | `Buff` + `blinded` (blindness screen effect) |
+| Confusion | movement staggers off course for 15–30 s; faint poison overlay | `Buff` + `confused` (`ConfusionComponent`) |
 
 Not yet implemented:
 - Raise Level: XP accumulates, but nothing raises the character's level yet.

@@ -156,6 +156,9 @@ public partial class EnemyDefenseController : Node
 		if (!HasGuardCapability && !HasDodgeCapability) return;
 
 		float dt = (float)delta;
+		// The action gate refuses any defense during an uninterruptible action, so the monster weighs no threats then and
+		// a reaction it had scheduled lapses.
+		if (Enemy.ActionGate?.IsUnstoppable == true) { _meleeReactionTimer = 0; return; }
 		UpdateGuardHold(dt);
 		if (_ripostePending && GuardComponent?.IsGuarding != true && GuardComponent?.IsGuardRecovering != true)
 		{

@@ -1,0 +1,160 @@
+{
+  "key": "food/food_meat_raw",
+  "inputs": "f8601f4531d734e4ce1985698469925dd92287f523db0dda85a207eef113081f",
+  "files": {
+    "food_meat_raw.glb": "37069b6952e47966f32e70a736dcc12187c56a68acfcd3e3f22812e0f355cdc7",
+    "lineup.png": "9c9df9792b8ada159aa336124ee8765c1440067afc71085a95503cdd6faa25bd"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 224,
+      "bounds": [
+        [
+          -0.2750000059604645,
+          0.0,
+          -0.057999998331069946
+        ],
+        [
+          0.2750000059604645,
+          0.36000001430511475,
+          0.057999998331069946
+        ]
+      ],
+      "dimensions": [
+        0.550000011920929,
+        0.36000001430511475,
+        0.11599999666213989
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          256,
+          256
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.017715656387194915
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Food Meat Raw",
+      "backend": "source",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2400,
+        "materials": 8,
+        "texture_size": 2048
+      },
+      "export": {
+        "glb": "res://assets/custom-items/food/food/food_meat_raw.glb"
+      },
+      "provenance": {
+        "kind": "recolor",
+        "base": "food/food_meat_steak",
+        "quality_notes": "The steak's geometry with raw colors: pink-red faces and sides, pale fat and bone, dark marrow."
+      },
+      "colors": {
+        "surface_bark": [
+          166,
+          52,
+          60
+        ],
+        "surface_wood": [
+          166,
+          52,
+          60
+        ],
+        "surface_rust": [
+          128,
+          34,
+          44
+        ],
+        "surface_crimson": [
+          214,
+          88,
+          98
+        ],
+        "surface_rose": [
+          214,
+          88,
+          98
+        ],
+        "surface_tan": [
+          240,
+          222,
+          212
+        ],
+        "surface_ivory": [
+          240,
+          222,
+          212
+        ]
+      },
+      "materials": {
+        "surface_bark": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_tan": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_crimson": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_ivory": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_wood": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_rust": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        },
+        "surface_rose": {
+          "metallic": 0,
+          "roughness": 0.95,
+          "crease": 55
+        }
+      },
+      "color_mode": "character",
+      "source": "res://asset-studio/objects/food/food_meat_steak/source.glb",
+      "topology": "closed_assembly",
+      "surface": {
+        "palette": "studio_grid",
+        "slots": {
+          "bark": "surface_bark",
+          "tan": "surface_tan",
+          "crimson": "surface_crimson",
+          "ivory": "surface_ivory",
+          "wood": "surface_wood",
+          "rust": "surface_rust",
+          "rose": "surface_rose"
+        },
+        "repair": "boundaries"
+      },
+      "crease": 50
+    }
+  }
+}

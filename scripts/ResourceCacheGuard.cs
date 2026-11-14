@@ -1,4 +1,5 @@
 using System;
+using System.Runtime;
 using Godot;
 
 /// <summary>
@@ -11,6 +12,33 @@ using Godot;
 public static class ResourceCacheGuard
 {
 	private const int MaxPasses = 8;
+	/// <summary>Allocation the startup scene's load may make without a collection; a larger load collects as usual.</summary>
+	private const long StartupBudget = 192L * 1024 * 1024;
+	private static bool _holdingStartup;
+
+	/// <summary>
+	/// Suspends collections while the engine loads the startup scene. No load boundary precedes that load, so
+	/// <see cref="Settle"/> cannot protect it, and a collection in its middle can revive a dependency it already loaded.
+	/// Called before the startup scene loads; <see cref="EndStartup"/> resumes collections.
+	/// </summary>
+	public static void BeginStartup()
+	{
+		try { _holdingStartup = GC.TryStartNoGCRegion(StartupBudget); }
+		catch (Exception error) when (error is ArgumentOutOfRangeException or InvalidOperationException)
+		{
+			GD.PushWarning($"Startup loads run with collections: {error.Message}");
+		}
+	}
+
+	/// <summary>Resumes collections after the startup scene loaded and settles what the load left behind.</summary>
+	public static void EndStartup()
+	{
+		if (!_holdingStartup) return;
+		_holdingStartup = false;
+		// A load beyond the budget already ended the region with a collection.
+		if (GCSettings.LatencyMode == GCLatencyMode.NoGCRegion) GC.EndNoGCRegion();
+		Settle();
+	}
 
 	/// <summary>
 	/// Collects unreachable wrappers and waits for their finalizers. Blocking, so call it at load boundaries

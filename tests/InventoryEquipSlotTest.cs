@@ -21,8 +21,8 @@ public class InventoryEquipSlotTest
 	public void EquippingTwoRingsFillsBothRingSlots()
 	{
 		var inventory = new Inventory();
-		var ringA = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_strength.tres");
-		var ringB = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_dexterity.tres");
+		var ringA = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_strength_1.tres");
+		var ringB = TestFactories.Load<EquipableItem>("res://scenes/items/jewelry/ring/ring_dexterity_1.tres");
 		var slotA = new InventoryItemSlot { Item = ringA, Quantity = 1 };
 		var slotB = new InventoryItemSlot { Item = ringB, Quantity = 1 };
 		inventory.Items.Add(slotA);
@@ -33,6 +33,39 @@ public class InventoryEquipSlotTest
 
 		AssertObject(inventory.EquippedItems[EquipmentSlot.LeftRing]).IsEqual(slotA);
 		AssertObject(inventory.EquippedItems[EquipmentSlot.RightRing]).IsEqual(slotB);
+	}
+
+	/// <summary>Every class starts wearing body armor and a helmet.</summary>
+	[TestCase]
+	public void EveryClassStartsInBodyArmorAndAHelmet()
+	{
+		foreach (CharacterClass characterClass in CharacterCatalog.LoadDefault().Classes)
+		{
+			Inventory inventory = characterClass.CreateStartingInventory(20);
+			foreach (var slot in inventory.Items.ToArray())
+				if (slot.Item is EquipableItem) inventory.Equip(slot);
+
+			AssertObject(inventory.EquippedItems[EquipmentSlot.Head]?.Item).OverrideFailureMessage(characterClass.Id).IsInstanceOf<Armor>();
+			AssertObject(inventory.EquippedItems[EquipmentSlot.Chest]?.Item).OverrideFailureMessage(characterClass.Id).IsInstanceOf<Armor>();
+		}
+	}
+
+	/// <summary>Worn body armor adds its armor to the hero's, and a heavy piece slows them.</summary>
+	[TestCase]
+	public async Task WornBodyArmorArmorsAndSlowsTheWearer()
+	{
+		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
+		await player.ToSignal(player.GetTree(), SceneTree.SignalName.PhysicsFrame);
+		float armor = player.Stats.Armor, speed = player.Stats.Speed;
+		var plate = (Armor)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/body/iron_breastplate.tres"));
+		AssertBool(player.Inventory.TryAdd(plate).Success).IsTrue();
+
+		AssertBool(player.InventoryController.TryEquip(player.Inventory.Items.Last()).Success).IsTrue();
+
+		AssertObject(player.Inventory.EquippedItems[EquipmentSlot.Chest]?.Item).IsSame(plate);
+		AssertFloat(player.Stats.Armor).IsEqual(armor + plate.ScaledArmorPoints);
+		AssertFloat(player.HurtBoxComponent.Armor).IsEqual(player.Stats.Armor);
+		AssertFloat(player.Stats.Speed).IsEqualApprox(speed * plate.SpeedModifier, 0.001f);
 	}
 
 	[TestCase]

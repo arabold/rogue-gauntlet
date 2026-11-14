@@ -8,10 +8,12 @@
 script = ExtResource("script")
 Id = "skeleton_mage"
 DisplayName = "Skeleton Mage"
-MaxHealth = 8.0
-MoveSpeed = 2.8
+Archetype = 6
+BalanceDepth = 2.0
+MaxHealth = 14.0
+MoveSpeed = 2.4
 MaxMana = 40.0
 ManaRegenPerSecond = 1.5
-XpReward = 5
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
+ThreatLevel = 1.48

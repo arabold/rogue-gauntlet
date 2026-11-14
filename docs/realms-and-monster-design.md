@@ -125,6 +125,6 @@ Later realm monsters and bosses remain open design work. Choose them to support 
 
 ## 6. Encounter direction
 
-Mix complementary roles within finite threat budgets and respect available fighting space. Selection frequency, threat cost and actual combat strength are separate tuning decisions. Realm pools and depth eligibility control where monsters appear; monsters do not automatically scale with dungeon depth.
+Mix complementary roles within finite threat budgets and respect available fighting space. Selection frequency is a tuning decision of its own; threat cost follows from combat strength through the [balance model](specs/balance-model.md). Realm pools and depth eligibility control where monsters appear; monsters do not automatically scale with dungeon depth.
 
 Nests provide bounded reinforcement pressure, with authored interval, batch size, simultaneous cap and total summon slots. Destroying a source stops further summons; the current implementation also collapses surviving bound summons without rewards. See [Level design](level-design.md#first-realm-encounter-prototype) for current persistence and values. The monster rollout may change the summoned roster without changing those ownership rules.

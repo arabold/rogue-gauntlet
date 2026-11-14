@@ -34,7 +34,10 @@ public partial class AttackDefinition : Resource
 	/// <summary>Defensive traits (dodgeable, guardable, parryable) for this attack.</summary>
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable;
 
-	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable;
+	/// <summary>
+	/// Defensive traits of the splash around a projectile's impact. An area is never Dodgeable: only leaving it avoids it.
+	/// </summary>
+	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.None;
 
 	/// <summary>
 	/// Threat label derived from <see cref="DefenseTraits"/>. Monster Heavy (BreaksGuard) and Unblockable (neither
@@ -157,6 +160,13 @@ public partial class AttackDefinition : Resource
 
 	/// <summary>Normalized execution time at which hyper-armor ends.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float HyperArmorEnd { get; set; }
+
+	/// <summary>
+	/// False makes the hyper-armor window unstoppable, for a boss's or elite's committed attack: hits there drain no poise,
+	/// so nothing staggers the attacker out of it, and a monster never drops it to guard or dodge. True keeps ordinary
+	/// hyper-armor, where poise still drains at the actor's armored scale and a break interrupts.
+	/// </summary>
+	[Export] public bool Interruptible { get; set; } = true;
 
 	/// <summary>Seconds the attacker's execution clock pauses after its first damaging or blocked contact.</summary>
 	[Export(PropertyHint.Range, "0,0.25,0.005")] public float HitStopDuration { get; set; }

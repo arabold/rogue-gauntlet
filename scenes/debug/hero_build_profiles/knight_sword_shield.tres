@@ -5,7 +5,7 @@
 [ext_resource type="Resource" path="res://scenes/player/classes/class_knight.tres" id="class"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/longsword_common.tres" id="res_0"]
 [ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="res_1"]
-[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_protection.tres" id="res_2"]
+[ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_protection_1.tres" id="res_2"]
 [ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="res_3"]
 
 [sub_resource type="Resource" id="Equipment_0"]
