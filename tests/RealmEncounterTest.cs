@@ -17,6 +17,8 @@ public class RealmEncounterTest
 		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
 		for (uint depth = 1; depth <= 3; depth++)
 		{
+			var costs = factory.Entries.Where(e => e.EligibleAt(depth)).ToDictionary(e => e, e => RealmEncounterFactory.Cost(e, depth, threat));
+			float cheapest = costs.Values.Min();
 			for (ulong seed = 1; seed <= 8; seed++)
 			{
 				using var a = GenerationRandom.Create(seed, GenerationRandom.Monsters);
@@ -25,8 +27,7 @@ public class RealmEncounterTest
 				var second = Members(factory.CreatePacks(depth, threat, b));
 				AssertString(Fingerprint(first)).IsEqual(Fingerprint(second));
 				// The floor spends its budget on whole packs until no eligible pack still fits.
-				float spent = first.Sum(pack => RealmEncounterFactory.Cost(factory.Entries.Single(e => e.Members.SequenceEqual(pack)), depth, threat));
-				float cheapest = factory.Entries.Where(e => e.EligibleAt(depth)).Min(e => RealmEncounterFactory.Cost(e, depth, threat));
+				float spent = first.Sum(pack => costs[costs.Keys.Single(e => e.Members.SequenceEqual(pack))]);
 				AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth, threat) + 1e-4f).IsTrue();
 				AssertBool(first.Sum(pack => pack.Length) >= RealmEncounterFactory.MaximumMonsters
 					|| factory.FloorBudget(depth, threat) - spent < cheapest).IsTrue();

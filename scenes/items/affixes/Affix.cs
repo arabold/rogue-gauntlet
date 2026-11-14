@@ -29,7 +29,7 @@ public partial class Affix : Resource
 	[Export] public uint MaxDepth { get; set; }
 
 	/// <summary>Whether this tier can roll on an item dropped at <paramref name="depth"/>.</summary>
-	public bool IsEligibleAt(uint depth) => MinDepth <= depth && (MaxDepth == 0 || depth <= MaxDepth);
+	public bool IsEligibleAt(uint depth) => LootTableItem.IsWithin(depth, MinDepth, MaxDepth);
 	/// <summary>Relative weight when picking among eligible affixes.</summary>
 	[Export] public float Weight { get; set; } = 1f;
 	[Export] public AffixModifierRange[] Modifiers { get; set; } = [];
