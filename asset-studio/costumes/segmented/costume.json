@@ -48,17 +48,13 @@
   },
   "item": {
     "glb": "res://assets/custom-items/armor/body/steel_plate.glb",
-    "colors": {
-      "knight_arm_03": "armor",
-      "knight_arm_07": "armor",
-      "knight_arm_04": "armor_dark",
-      "knight_arm_06": "leather",
-      "knight_leg_03": "armor",
-      "knight_leg_07": "armor",
-      "knight_leg_06": "leather",
-      "knight_leg_17": "cloth"
+    "limb_colors": {
+      "knight_03": "armor",
+      "knight_07": "armor",
+      "knight_04": "armor_dark",
+      "knight_06": "leather",
+      "knight_17": "cloth"
     }
   },
-  "arms": "knight",
-  "legs": "knight"
+  "limbs": "knight"
 }

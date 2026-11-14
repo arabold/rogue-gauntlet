@@ -7,13 +7,14 @@
 [ext_resource type="PackedScene" path="res://scenes/components/slow_status.tscn" id="slow_status_scene"]
 
 [ext_resource type="Script" uid="uid://cdixyxoip67xq" path="res://scenes/player/Player.cs" id="1_5y8vd"]
+[ext_resource type="Resource" uid="uid://cclassbarb00001" path="res://scenes/player/classes/class_barbarian.tres" id="default_class"]
 [ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="1_jv6xc"]
 [ext_resource type="Resource" uid="uid://nmu6am3fevbi" path="res://scenes/player/resources/player_stats.tres" id="2_sug4b"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="3_uf5tr"]
 [ext_resource type="Script" uid="uid://7aetn0f4oogq" path="res://scenes/player/InteractionArea.cs" id="4_rbblq"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="4_uf5tr"]
 [ext_resource type="Script" uid="uid://tqq4nke7m3g1" path="res://scenes/player/Inventory.cs" id="5_8ydkj"]
-[ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield_badge_color.tres" id="6_8ydkj"]
+[ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield/shield_badge_color.tres" id="6_8ydkj"]
 [ext_resource type="PackedScene" uid="uid://c6276kjx70mps" path="res://scenes/components/movement_component.tscn" id="7_7mjdt"]
 [ext_resource type="PackedScene" uid="uid://b65sojfh3ktgj" path="res://scenes/player/stairs_trigger.tscn" id="7_52dmq"]
 [ext_resource type="PackedScene" uid="uid://doui3rts7bdo7" path="res://scenes/components/hurt_box_component.tscn" id="8_lcxbs"]
@@ -283,6 +284,7 @@ AttackController = NodePath("PlayerAttackController")
 InteractionArea = NodePath("InteractionArea")
 Pivot = NodePath("Pivot")
 CharacterModelNode = NodePath("Pivot/Character")
+DefaultClass = ExtResource("default_class")
 AnimationTree = NodePath("AnimationTree")
 AttachmentManager = NodePath("BoneAttachmentManager")
 
@@ -465,9 +467,7 @@ AttachmentNodes = {
 1: NodePath("../Pivot/Character/Rig/Skeleton3D/2H_Axe"),
 2: NodePath("../Pivot/Character/Rig/Skeleton3D/1H_Axe_Offhand"),
 3: NodePath("../Pivot/Character/Rig/Skeleton3D/Barbarian_Round_Shield"),
-4: NodePath("../Pivot/Character/Rig/Skeleton3D/Mug"),
-5: NodePath("../Pivot/Character/Rig/Skeleton3D/Barbarian_Hat"),
-6: NodePath("../Pivot/Character/Rig/Skeleton3D/Barbarian_Cape")
+4: NodePath("../Pivot/Character/Rig/Skeleton3D/Mug")
 }
 player = NodePath("..")
 

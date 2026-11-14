@@ -15,14 +15,8 @@
   },
   "underlayer": [
     {
-      "kind": "shorts",
-      "down": 0.3,
-      "slot": "pants",
-      "thickness": 0.02
-    },
-    {
       "kind": "tunic",
-      "y0": 0.5,
+      "y0": 0.42,
       "thickness": 0.03,
       "slot": "cloth",
       "neck": {

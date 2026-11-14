@@ -1,6 +1,6 @@
 {
   "status": "needs_visual_review",
-  "review": "The barbarian's body armor suit for the class heroes: the barbarian set's baldric, fur-trimmed boss belt and pelt cape, worn over the heroes' own tunic and shorts, with the barbarian's KayKit arms and legs.",
+  "review": "The barbarian's body armor suit for the class heroes: the barbarian set's baldric, fur-trimmed boss belt and pelt cape, worn over the heroes' own tunic, with the barbarian's KayKit arms and legs.",
   "body": {
     "torso": "standard"
   },
@@ -41,49 +41,16 @@
       "fit_slot": "cloth"
     }
   ],
-  "under": [
-    {
-      "kind": "tunic",
-      "y0": 0.5,
-      "thickness": 0.03,
-      "slot": "cloth",
-      "neck": {
-        "style": "u",
-        "front": 0.0,
-        "back": 0.0
-      }
-    }
-  ],
   "colors": {
-    "skin": [
-      244,
-      190,
-      150
-    ],
     "cloth": [
       72,
       112,
       154
     ],
-    "pants": [
-      178,
-      180,
-      188
-    ],
     "fur_trim": [
       238,
       238,
       242
-    ],
-    "boot": [
-      112,
-      92,
-      82
-    ],
-    "sole": [
-      72,
-      58,
-      52
     ],
     "strap": [
       158,
@@ -119,6 +86,5 @@
   "item": {
     "glb": "res://assets/custom-items/armor/body/barbarian_harness.glb"
   },
-  "arms": "barbarian",
-  "legs": "barbarian"
+  "limbs": "barbarian"
 }

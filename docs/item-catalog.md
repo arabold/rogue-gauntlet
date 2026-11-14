@@ -175,21 +175,21 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Royal Lily Shield](../scenes/items/armor/shield/shield_royal_lily.tres) | 4 |
 | [Wooden Guard Scutum](../scenes/items/armor/shield/shield_scutum_wood.tres) | 2 |
 | [Simple Wooden Shield](../scenes/items/armor/shield/shield_wood_simple.tres) | 1 |
-| [Shield](../scenes/items/armor/shield_badge.tres) | 1 |
-| [Shield](../scenes/items/armor/shield_badge_color.tres) | 1 |
-| [Spiked Shield](../scenes/items/armor/shield_badge_spikes.tres) | 2 |
-| [Spiked Shield](../scenes/items/armor/shield_badge_spikes_red.tres) | 2 |
-| [Wooden Shield](../scenes/items/armor/shield_common.tres) | 1 |
-| [Skull Shield](../scenes/items/armor/shield_large_skull.tres) | 2 |
-| [Spiked Shield](../scenes/items/armor/shield_large_spikes.tres) | 2 |
-| [Royal Shield](../scenes/items/armor/shield_rare.tres) | 4 |
-| [Round Shield](../scenes/items/armor/shield_round_blue.tres) | 1 |
-| [Round Shield](../scenes/items/armor/shield_round_common.tres) | 1 |
-| [Round Shield](../scenes/items/armor/shield_round_old.tres) | 1 |
-| [Round Shield](../scenes/items/armor/shield_round_red.tres) | 1 |
-| [Square Shield](../scenes/items/armor/shield_square.tres) | 2 |
-| [Square Shield](../scenes/items/armor/shield_square_red.tres) | 2 |
-| [Reinforced Shield](../scenes/items/armor/shield_uncommon.tres) | 3 |
+| [Shield](../scenes/items/armor/shield/shield_badge.tres) | 1 |
+| [Shield](../scenes/items/armor/shield/shield_badge_color.tres) | 1 |
+| [Spiked Shield](../scenes/items/armor/shield/shield_badge_spikes.tres) | 2 |
+| [Spiked Shield](../scenes/items/armor/shield/shield_badge_spikes_red.tres) | 2 |
+| [Wooden Shield](../scenes/items/armor/shield/shield_common.tres) | 1 |
+| [Skull Shield](../scenes/items/armor/shield/shield_large_skull.tres) | 2 |
+| [Spiked Shield](../scenes/items/armor/shield/shield_large_spikes.tres) | 2 |
+| [Royal Shield](../scenes/items/armor/shield/shield_rare.tres) | 4 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_blue.tres) | 1 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_common.tres) | 1 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_old.tres) | 1 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_red.tres) | 1 |
+| [Square Shield](../scenes/items/armor/shield/shield_square.tres) | 2 |
+| [Square Shield](../scenes/items/armor/shield/shield_square_red.tres) | 2 |
+| [Reinforced Shield](../scenes/items/armor/shield/shield_uncommon.tres) | 3 |
 
 ### Body armor and helmets (14)
 

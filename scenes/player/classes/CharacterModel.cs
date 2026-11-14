@@ -14,16 +14,19 @@ public static class CharacterModel
 	/// </summary>
 	public const uint PlayerRenderLayers = 4;
 
+	/// <summary>The bone a rigid helmet mounts on.</summary>
+	public const string HelmetBone = "head";
+
 	/// <summary>
-	/// Instantiates the class model ready for use: render layers applied to every mesh and
-	/// built-in prop meshes stripped from every BoneAttachment3D except the class's hat and
-	/// cape (the KayKit models ship with default weapons/shields/props attached).
+	/// Instantiates the class model ready for use: render layers applied to every mesh and the
+	/// prop meshes the KayKit template ships on its BoneAttachment3D nodes stripped (held items
+	/// and worn armor are equipment).
 	/// </summary>
 	public static Node3D Instantiate(CharacterClass characterClass, uint renderLayers = PlayerRenderLayers)
 	{
 		var model = characterClass.CharacterScene.Instantiate<Node3D>();
 		ApplyRenderLayers(model, renderLayers);
-		StripBuiltInProps(model, characterClass);
+		StripBuiltInProps(model);
 		ConfigureAnimationLoops(model);
 		return model;
 	}
@@ -76,8 +79,8 @@ public static class CharacterModel
 
 	/// <summary>
 	/// Dresses a class <paramref name="model"/> outside the game, as the menu preview shows it: in the helmet and body
-	/// armor among the class's starting items. Skinned armor goes onto the model's skeleton, a rigid helmet or breastplate
-	/// on its head or chest bone, and the model parts they cover are hidden.
+	/// armor among the class's starting items. Skinned armor goes onto the model's skeleton, a rigid helmet on its head
+	/// bone, and the model parts they cover are hidden.
 	/// </summary>
 	public static void Dress(Node3D model, CharacterClass characterClass)
 	{
@@ -90,11 +93,10 @@ public static class CharacterModel
 		foreach (InventoryItemSlot slot in characterClass.StartingItems)
 		{
 			if (slot?.Item is not Armor { WornScene: { } scene } armor) continue;
-			string bone = (armor.ValidSlots & ValidSlots.Head) != 0 ? "head" : (armor.ValidSlots & ValidSlots.Chest) != 0 ? "chest" : null;
-			if (bone == null) continue;
+			if (!armor.ValidSlots.HasFlag(ValidSlots.Head) && !armor.ValidSlots.HasFlag(ValidSlots.Chest)) continue;
 			worn.Add(armor);
-			if (WornEquipment.Wear(skeleton, scene, PlayerRenderLayers).Count > 0) continue;
-			var mount = new BoneAttachment3D { Name = $"Worn_{bone}", BoneName = bone };
+			if (WornEquipment.Wear(skeleton, scene, PlayerRenderLayers).Count > 0 || !armor.ValidSlots.HasFlag(ValidSlots.Head)) continue;
+			var mount = new BoneAttachment3D { Name = $"Worn_{HelmetBone}", BoneName = HelmetBone };
 			skeleton.AddChild(mount);
 			var piece = scene.Instantiate<Node>();
 			ApplyRenderLayers(piece, PlayerRenderLayers);
@@ -168,11 +170,10 @@ public static class CharacterModel
 	}
 
 	/// <summary>
-	/// Frees the default prop meshes the GLB ships attached (weapons, shields, spellbooks)
-	/// while keeping the hat and cape the class actually wears. Runs before the model enters
-	/// the tree, so immediate Free is safe.
+	/// Frees the prop meshes the GLB ships attached (weapons, shields, hats, capes). Runs before
+	/// the model enters the tree, so immediate Free is safe.
 	/// </summary>
-	private static void StripBuiltInProps(Node3D modelRoot, CharacterClass characterClass)
+	private static void StripBuiltInProps(Node3D modelRoot)
 	{
 		Skeleton3D skeleton = FindSkeleton(modelRoot);
 		if (skeleton == null)
@@ -180,16 +181,9 @@ public static class CharacterModel
 			return;
 		}
 
-		characterClass.AttachmentNodeNames.TryGetValue(AttachmentType.Hat, out string hatName);
-		characterClass.AttachmentNodeNames.TryGetValue(AttachmentType.Cape, out string capeName);
 		foreach (Node child in skeleton.GetChildren())
 		{
 			if (child is not BoneAttachment3D attachment)
-			{
-				continue;
-			}
-
-			if (attachment.Name == hatName || attachment.Name == capeName)
 			{
 				continue;
 			}

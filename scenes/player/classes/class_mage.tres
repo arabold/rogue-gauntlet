@@ -50,8 +50,6 @@ PreviewAnimation = "Idle"
 AttachmentNodeNames = {
 0: "1H_Wand",
 1: "2H_Staff",
-4: "Spellbook",
-5: "Mage_Hat",
-6: "Mage_Cape"
+4: "Spellbook"
 }
 metadata/_custom_type_script = ExtResource("1_script")

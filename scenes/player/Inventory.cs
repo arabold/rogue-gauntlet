@@ -13,9 +13,6 @@ public enum EquipmentSlot
 {
 	Head = 1 << 0,
 	Chest = 1 << 1,
-	Hands = 1 << 2,
-	Legs = 1 << 3,
-	Feet = 1 << 4,
 	Neck = 1 << 5,
 	LeftRing = 1 << 6,
 	RightRing = 1 << 7,
@@ -38,9 +35,6 @@ public partial class Inventory : Resource
 	public Dictionary<EquipmentSlot, InventoryItemSlot> EquippedItems { get; private set; } = new(){
 		{ EquipmentSlot.Head, null },
 		{ EquipmentSlot.Chest, null },
-		{ EquipmentSlot.Hands, null },
-		{ EquipmentSlot.Legs, null },
-		{ EquipmentSlot.Feet, null },
 		{ EquipmentSlot.Neck, null },
 		{ EquipmentSlot.LeftRing, null },
 		{ EquipmentSlot.RightRing, null },

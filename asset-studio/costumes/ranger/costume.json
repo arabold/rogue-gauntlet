@@ -55,6 +55,5 @@
   "item": {
     "glb": "res://assets/custom-items/armor/body/ranger_coat.glb"
   },
-  "arms": "rogue",
-  "legs": "rogue"
+  "limbs": "rogue"
 }

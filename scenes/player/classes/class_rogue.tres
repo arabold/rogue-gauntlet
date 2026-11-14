@@ -56,7 +56,6 @@ PreviewAnimation = "Idle"
 AttachmentNodeNames = {
 0: "Knife",
 1: "2H_Crossbow",
-2: "Knife_Offhand",
-6: "Rogue_Cape"
+2: "Knife_Offhand"
 }
 metadata/_custom_type_script = ExtResource("1_script")

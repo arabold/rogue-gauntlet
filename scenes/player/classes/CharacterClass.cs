@@ -18,9 +18,9 @@ public partial class CharacterClass : Resource
 	[Export(PropertyHint.MultilineText)] public string Description { get; set; } = "";
 
 	/// <summary>
-	/// KayKit adventurer model scene. Must expose the shared rig (Skeleton3D with the common
-	/// bone and animation names) and an AnimationPlayer named "AnimationPlayer" so the
-	/// player's AnimationTree can drive it unchanged.
+	/// The class hero's model (<c>assets/custom-heroes/</c>), exported on its KayKit template. Must
+	/// expose the shared rig (Skeleton3D with the common bone and animation names) and an
+	/// AnimationPlayer named "AnimationPlayer" so the player's AnimationTree can drive it unchanged.
 	/// </summary>
 	[Export] public PackedScene CharacterScene { get; set; }
 

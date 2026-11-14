@@ -13,7 +13,7 @@ extends SceneTree
 #   .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
 #     --script asset-studio/godot/render_item_catalog.gd -- <outdir> <res://item.tres> [more...]
 #
-# e.g. -- docs/item-catalog res://scenes/items/weapons/axe_common.tres res://scenes/items/armor/shield_common.tres
+# e.g. -- docs/item-catalog res://scenes/items/weapons/axe_common.tres res://scenes/items/armor/shield/shield_common.tres
 
 var _items = []
 var _i = 0

@@ -20,11 +20,10 @@ public partial class Armor : EquipableItem
 	/// <summary>The weight class the balance model sizes this body armor or helmet for; shields ignore it.</summary>
 	[Export] public ArmorWeight Weight { get; set => SetValue(ref field, value); } = ArmorWeight.Medium;
 	/// <summary>
-	/// Body armor's or a helmet's model on the hero. A rigid model is in its bone's rest frame (origin at the chest or
-	/// head bone, +Z forward); a skinned model is exported on the hero rig and bends with the body, its meshes moved onto
-	/// the hero's own skeleton (<see cref="WornEquipment"/>). Body armor is a whole suit, its own arms and legs included.
-	/// <see cref="Item.Scene"/> stays the pickup and inventory model (a suit's torso alone). Unassigned, nothing shows on
-	/// the body and the class model's own hat or cape stays visible.
+	/// Body armor's or a helmet's model on the hero. Body armor is a whole suit, its own arms and legs included, exported
+	/// skinned on the hero rig: its meshes move onto the hero's own skeleton and bend with the body
+	/// (<see cref="WornEquipment"/>). A helmet may be skinned too, or rigid in the head bone's rest frame (+Z forward).
+	/// <see cref="Item.Scene"/> stays the pickup and inventory model (a suit's torso alone). Unassigned, nothing shows.
 	/// </summary>
 	[Export] public PackedScene WornScene { get; set => SetValue(ref field, value); }
 	/// <summary>

@@ -55,6 +55,5 @@
   "item": {
     "glb": "res://assets/custom-items/armor/body/mage_coat.glb"
   },
-  "arms": "mage",
-  "legs": "mage"
+  "limbs": "mage"
 }

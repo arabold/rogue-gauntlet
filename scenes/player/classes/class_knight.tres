@@ -5,7 +5,7 @@
 [ext_resource type="Resource" uid="uid://cprofknight0001" path="res://scenes/player/classes/stat_profile_knight.tres" id="3_profile"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
 [ext_resource type="Resource" uid="uid://k2qh6pkx5fat" path="res://scenes/items/weapons/longsword_common.tres" id="5_weapon"]
-[ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield_badge_color.tres" id="6_shield"]
+[ext_resource type="Resource" uid="uid://kgk80xoii6kd" path="res://scenes/items/armor/shield/shield_badge_color.tres" id="6_shield"]
 
 [ext_resource type="Resource" path="res://scenes/items/armor/body/knight_armor.tres" id="kit_body"]
 [ext_resource type="Resource" path="res://scenes/items/armor/helmet/knight_helmet.tres" id="kit_helmet"]
@@ -50,8 +50,6 @@ AttachmentNodeNames = {
 0: "1H_Sword",
 1: "2H_Sword",
 2: "1H_Sword_Offhand",
-3: "Badge_Shield",
-5: "Knight_Helmet",
-6: "Knight_Cape"
+3: "Badge_Shield"
 }
 metadata/_custom_type_script = ExtResource("1_script")

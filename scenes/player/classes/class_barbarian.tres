@@ -44,8 +44,6 @@ AttachmentNodeNames = {
 1: "2H_Axe",
 2: "1H_Axe_Offhand",
 3: "Barbarian_Round_Shield",
-4: "Mug",
-5: "Barbarian_Hat",
-6: "Barbarian_Cape"
+4: "Mug"
 }
 metadata/_custom_type_script = ExtResource("1_script")

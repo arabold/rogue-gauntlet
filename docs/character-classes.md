@@ -69,8 +69,8 @@ Mage simply casts more often.
 ## The model swap
 
 Each class model is a Studio hero (`assets/custom-heroes/<class>.glb`, see the Studio's
-[class heroes](../asset-studio/README.md#class-heroes)). It is a bare body in tunic and shorts, shared by
-every class, with KayKit's plain gloved arms and booted legs, under the class's own KayKit head. The Studio exports it on the KayKit class template, so all heroes
+[class heroes](../asset-studio/README.md#class-heroes)). It is a bare body in a tunic, shared by
+every class, with KayKit's plain gloved arms and its legs, pants and boots, under the class's own KayKit head. The Studio exports it on the KayKit class template, so all heroes
 share one rig, bone names and animation names. `Player.ApplyCharacterModel` therefore simply replaces the
 `Pivot/Character` instance during `_EnterTree` (before any child `_Ready`), and the authored `AnimationTree`
 (`root_node = "../Pivot/Character"`) binds to the new model without retargeting.
@@ -92,11 +92,11 @@ render layer (mask 4, which the light and highlight cull masks rely on), and str
 - **Menu preview:** `CharacterModel.Dress` puts the same starting helmet and armor on the preview.
 
 The catch: each GLB names its attachment nodes differently (`1H_Axe` vs `1H_Sword` vs
-`Knife`…), and some models lack nodes entirely (Rogue has no shield/hat node). The class's
+`Knife`…), and some models lack nodes entirely (Rogue has no shield node). The class's
 `AttachmentNodeNames` dictionary maps `AttachmentType` → node name;
 `CharacterModel.ResolveAttachments` feeds the resolved nodes to `BoneAttachmentManager`.
 Gear without a node still equips and applies stats — it just shows no mesh (logged as a
-warning). These names are load-bearing strings: `CharacterModelTest` fails if a GLB
+warning). Helmets and body armor need no node: they go on the skeleton or the head bone. These names are load-bearing strings: `CharacterModelTest` fails if a GLB
 re-export or importer change breaks them.
 
 **`Weapon.IsTwoHanded` picks which `AttachmentType` (and therefore which bone) a weapon

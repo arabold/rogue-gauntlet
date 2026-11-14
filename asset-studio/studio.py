@@ -20,7 +20,7 @@ Commands:
     .venv/bin/python asset-studio/studio.py tile --help   (modular floor and wall tile families)
     .venv/bin/python asset-studio/studio.py list
     .venv/bin/python asset-studio/studio.py schema [section]
-    .venv/bin/python asset-studio/studio.py new heroes/elf --base heroes/barbarian_base
+    .venv/bin/python asset-studio/studio.py new heroes/elf --base heroes/hero_base
     .venv/bin/python asset-studio/studio.py reference goblin/goblin --brief "turn this mannequin into..."
     .venv/bin/python asset-studio/studio.py preview goblin/goblin
     .venv/bin/python asset-studio/studio.py export goblin/goblin heroes/barbarian   (or --all; --no-import skips Godot)
@@ -297,11 +297,9 @@ def hero_export(recipe, pieces):
     weapons being items it equips. It carries the shared shoulder hinges any armor binds to, and few nodes: its body,
     its arms and its legs (a body armor suit brings its own and hides these), and the head parts headgear hides (with
     the scalp shown in their place)."""
-    with open(characters.HERO_HINGES, encoding="utf-8") as f:
-        fixed_hinges = json.load(f)
     parts = {part.capitalize() for part in recipe.get("head_parts", ())} | {"Scalp"}
-    limbs = {side: limb.capitalize() for limb in adventurer_parts.LIMBS for side in adventurer_parts.sides(limb)}
-    return fixed_hinges, {k: limbs.get(k, "Body") for k in pieces if k not in parts}
+    limbs = {piece: limb.capitalize() for limb, pieces in adventurer_parts.LIMBS.items() for piece in pieces}
+    return characters.shared_hinges(), {k: limbs.get(k, "Body") for k in pieces if k not in parts}
 
 
 def export_glb(c, no_import=False):

@@ -350,8 +350,8 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     g = w.g
     nodes = g["nodes"]
     index = {nd.get("name"): i for i, nd in enumerate(nodes)}
-    skin = g["skins"][0]
-    joint_of = {nodes[n]["name"]: j for j, n in enumerate(skin["joints"])}
+    gltf_skin = g["skins"][0]
+    joint_of = {nodes[n]["name"]: j for j, n in enumerate(gltf_skin["joints"])}
     parent = {c: i for i, nd in enumerate(nodes) for c in nd.get("children", [])}
     rig = index["Rig"]
     worlds = _worlds(g)
@@ -366,7 +366,7 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         from core.rig import Rig
         hinge_source = Rig(TEMPLATES.get(template,template))
         hinges.install(w,hinge_source,hinge_specs)
-        joint_of = {nodes[n]["name"]:j for j,n in enumerate(skin["joints"])}
+        joint_of = {nodes[n]["name"]:j for j,n in enumerate(gltf_skin["joints"])}
 
     # palette: every slot any piece, prop or weapon uses; a weapon's slots are its colors with their materials
     raw_colors, raw_looks = dict(colors), {**MATERIALS, **(materials or {})}
@@ -564,7 +564,7 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
 
     # skin and clips keep their template data
     if not hinge_specs:
-        skin["inverseBindMatrices"] = w.copy(skin["inverseBindMatrices"])
+        gltf_skin["inverseBindMatrices"] = w.copy(gltf_skin["inverseBindMatrices"])
     if not clips:
         g.pop("animations", None)
     for anim in g.get("animations", []):

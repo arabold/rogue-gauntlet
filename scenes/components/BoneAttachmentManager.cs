@@ -8,12 +8,9 @@ public enum AttachmentType
 	OffhandWeapon,
 	Shield,
 	Item,
-	/// <summary>The class model's own hat props, which a worn helmet hides.</summary>
-	Hat,
-	/// <summary>The class model's own cape props, which worn body armor hides.</summary>
-	Cape,
+	/// <summary>Worn body armor: a skinned suit on the character's own skeleton.</summary>
 	Chest,
-	/// <summary>A worn helmet, on the head bone itself rather than a class's hat prop bone.</summary>
+	/// <summary>A worn helmet: rigid on the head bone, or skinned like a suit.</summary>
 	Helmet
 }
 
@@ -132,21 +129,20 @@ public partial class BoneAttachmentManager : Node
 			return null;
 		}
 
-		if (!WornMounts.TryGetValue(attachmentType, out var mount) || skeleton.FindBone(mount.Bone) < 0)
+		if (!WornBones.TryGetValue(attachmentType, out string bone) || skeleton.FindBone(bone) < 0)
 		{
 			return null;
 		}
-		boneAttachment = new BoneAttachment3D { Name = $"Runtime_{attachmentType}", BoneName = mount.Bone, Position = mount.Offset };
+		boneAttachment = new BoneAttachment3D { Name = $"Runtime_{attachmentType}", BoneName = bone };
 		skeleton.AddChild(boneAttachment);
 		AttachmentNodes[attachmentType] = boneAttachment;
 		return boneAttachment;
 	}
 
-	/// <summary>Where worn pieces mount: the bone and the offset from it that seats the model.</summary>
-	private static readonly System.Collections.Generic.Dictionary<AttachmentType, (string Bone, Vector3 Offset)> WornMounts = new()
+	/// <summary>The bone a rigid worn piece mounts on; its scene seats the model on it.</summary>
+	private static readonly System.Collections.Generic.Dictionary<AttachmentType, string> WornBones = new()
 	{
-		[AttachmentType.Helmet] = ("head", Vector3.Zero),
-		[AttachmentType.Chest] = ("chest", new Vector3(0f, 0.243f, 0f)),
+		[AttachmentType.Helmet] = CharacterModel.HelmetBone,
 	};
 
 	private void RemoveAttachments(AttachmentType attachmentType)
@@ -156,7 +152,6 @@ public partial class BoneAttachmentManager : Node
 			return;
 		}
 
-		if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, true);
 		if (_worn.Remove(attachmentType, out var worn))
 		{
 			foreach (MeshInstance3D mesh in worn)
@@ -174,21 +169,6 @@ public partial class BoneAttachmentManager : Node
 		}
 	}
 
-	/// <summary>Class props a worn piece covers: a helmet replaces the class's hat, body armor its cape.</summary>
-	private static readonly System.Collections.Generic.Dictionary<AttachmentType, AttachmentType> CoveredProps = new()
-	{
-		[AttachmentType.Helmet] = AttachmentType.Hat,
-		[AttachmentType.Chest] = AttachmentType.Cape,
-	};
-
-	/// <summary>Shows or hides the class model's own props under <paramref name="type"/>'s attachment node.</summary>
-	private void SetBuiltInPropsVisible(AttachmentType type, bool visible)
-	{
-		if (AttachmentNodes == null || !AttachmentNodes.TryGetValue(type, out var node) || !IsInstanceValid(node)) return;
-		foreach (Node child in node.GetChildren())
-			if (!child.HasMeta(EquippedMetaKey) && child is Node3D prop) prop.Visible = visible;
-	}
-
 	private void AddAttachment(AttachmentType attachmentType, EquipableItem item, EquipmentSlot slot)
 	{
 		PackedScene scene = item switch
@@ -201,9 +181,14 @@ public partial class BoneAttachmentManager : Node
 		{
 			return;
 		}
-		if (item is Armor && attachmentType is AttachmentType.Helmet or AttachmentType.Chest && TryWear(attachmentType, item, scene))
+		if (item is Armor && attachmentType is AttachmentType.Helmet or AttachmentType.Chest)
 		{
-			return;
+			if (TryWear(attachmentType, item, scene)) return;
+			if (attachmentType == AttachmentType.Chest)
+			{
+				GD.PushError($"{item.Name}: body armor is a skinned suit, but its WornScene has no skinned mesh.");
+				return;
+			}
 		}
 
 		WeaponGrip grip = item switch
@@ -218,7 +203,6 @@ public partial class BoneAttachmentManager : Node
 		if (boneAttachment != null)
 		{
 			RemoveAttachments(attachmentType);
-			if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, false);
 			GD.Print($"Adding attachment {item.Name} to {attachmentType}");
 			var itemAttachment = scene.Instantiate<Node>();
 			itemAttachment.SetMeta(EquippedMetaKey, true);
@@ -259,7 +243,6 @@ public partial class BoneAttachmentManager : Node
 		{
 			return false;
 		}
-		if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, false);
 		_worn[attachmentType] = meshes;
 		GD.Print($"Wearing {item.Name} on the skeleton ({attachmentType})");
 		if (AuraPresentation != null)

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Armor" load_steps=5 format=3 uid="uid://b6piy51qeve40"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_shield"]
-[ext_resource type="PackedScene" uid="uid://84xno330idjc" path="res://scenes/items/armor/shield_round_common.tscn" id="1_yd8k6"]
+[ext_resource type="PackedScene" uid="uid://84xno330idjc" path="res://scenes/items/armor/shield/shield_round_common.tscn" id="1_yd8k6"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_ql60m"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 

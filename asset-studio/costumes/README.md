@@ -101,11 +101,11 @@ A costume with an `item` (`{"glb": "res://assets/custom-items/armor/body/<id>.gl
 - **`assets/custom-heroes/armor/<id>.glb`:** what the hero wears. One skinned node on the hero rig, weighted from the hero body under it, carrying the heroes' shoulder hinges, with no props or clips. The game moves its mesh onto any class hero's skeleton.
 - **`<id>.glb`** at the item path: the static display model for floors and inventory icons, the torso alone (the limbs would float beside it).
 
-A costume's `arms` and `legs` each name a KayKit class whose own limbs (sleeves, bracers, gauntlets; pants, greaves, boots) the suit brings, in KayKit's colors and gradients. The item then hides the hero's plain limbs while worn (`HiddenModelParts: Arms, Legs`). The [item catalog](../../docs/item-catalog.md#body-armor-and-helmets-14) gives each suit's weight and tier, and which class's limbs each weight takes.
+A costume's `limbs` names the KayKit class whose own arms, legs and hips (sleeves, bracers, gauntlets; pants, greaves, boots) the suit brings, in KayKit's colors and gradients. The item then hides the hero's plain limbs while worn (`HiddenModelParts: Arms, Legs`). The [item catalog](../../docs/item-catalog.md#body-armor-and-helmets-14) gives each suit's weight and tier, and which class's limbs each weight takes.
 
-The item's `colors` recolor the suit without changing the costume: a torso slot takes an RGB (the Mithril Hauberk's silver mail), and a limb slot (`knight_leg_03`) takes an RGB or a suit slot's name (`"armor"`), keeping KayKit's shading. The class suits keep KayKit's own limb colors; the other suits dress their limbs in their own leather, cloth and plate.
+The item recolors the suit without changing the costume: its `colors` give the suit's own slots an RGB (the Mithril Hauberk's silver mail), and its `limb_colors` dress a KayKit swatch of the limbs in a suit slot's color (`{"knight_03": "armor"}`), keeping KayKit's shading. A swatch has one slot whichever limb it colors. The class suits keep KayKit's own limb colors; the other suits dress their limbs in their own leather, cloth and plate.
 
-The suit's torso fits over the heroes' own tunic and shorts, so no skin needs masking at runtime; the underclothes stay underneath. A costume fitted to those underclothes lists the garments it goes over in `under`, so its dummy study wears them too (the barbarian harness's belt is fitted to the tunic).
+The suit's torso fits over the heroes' own tunic, so no skin needs masking at runtime; the tunic stays underneath. A suit's dummy study wears the heroes' `underlayer` too, so garments fitted to the tunic (the barbarian harness's belt) fit the same way there. `armor suit <costume>` renders the suit on the class hero, its torso and KayKit limbs in place of the hero's, in temporary storage; `armor equip <costume>` then writes it into the game.
 
 | Costume | Item | Limbs | Starting gear of |
 | --- | --- | --- | --- |
@@ -126,7 +126,7 @@ Use `kind: costume_ref` and `name` to select an entire authored costume from a c
 assembly and palette with the fitting workflow while preserving the character body and explicit color overrides.
 The low-level `kind: costume` is a geometry builder used inside the authored outfit.
 
-The knight uses the practical steel costume. Necromancer, primitive barbarian and royal orc use their named
-costumes. Preserved [orc warrior](orc_warrior/README.md), [orc shaman](orc_shaman/README.md) and
+Necromancer, primitive barbarian and royal orc use their named
+costumes; the class heroes wear costumes as body armor suits. Preserved [orc warrior](orc_warrior/README.md), [orc shaman](orc_shaman/README.md) and
 [goblin](goblin/README.md) sets are marked legacy and excluded from current fittings until reworked. They retain
 their previous geometry; packaging alone does not bring them up to the approved construction standard.

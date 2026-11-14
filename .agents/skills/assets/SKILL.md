@@ -26,7 +26,8 @@ All procedural 3D character, monster, and item generation code, modular prefabs,
     - `limbs.py` — Arm and leg tubes (`normal`, `thin`, `muscular`, `gorilla`, `bony`, `stocky`).
     - `extremities.py` — Hands (`mitten`, `fist`, `claw`, `bony`) and feet (`boot`, `bare`, `paw`).
     - `appendages.py` — Wings (`bat`, `scalloped`), tails (`spade`, `whip`), exposed ribs, curved beast horns.
-    - `meshes/` — Reusable harvested meshes (e.g. skulls, jaw, ribcage).
+    - `adventurer_parts.py` — KayKit's own class heads, arms, legs and hips, harvested for the class heroes and body armor suits.
+    - `meshes/` — Reusable harvested meshes (e.g. skulls, jaw, ribcage, the KayKit heads and limbs).
   - **`prefabs/outfits/`**:
     - `clothes.py`, `cuirass.py`, `armor.py`, `helmets.py`, `crowns.py`, `pauldrons.py`, `belts.py`.
     - `meshes/` — KayKit's own headgear, harvested in the hat-prop frame by `helmets.harvest()` and refitted to any head by the `bear`, `horned`, `wizard`, `knight` and `hood` helmet styles.
@@ -70,7 +71,7 @@ The finished knight adds the existing registered `trophies.shield_emblem` sunbur
 
 ### Coordinated costumes
 
-`asset-studio/costumes/<name>/costume.json` defines an art-only outfit choice and palette. Keep its selected reference/prompt beside the recipe; staged wearable GLBs and all review images belong in OS temporary storage. Final lineups, animations and wearable GLBs belong in `catalogs/costumes/<name>/` after explicit `armor publish`. The first set is `knight_plate`, exposed as `{"kind":"costume","variant":"knight_plate"}` in character outfits and through `studio.py schema outfits`. It includes torso front/back, articulated waist plates, belt, suspension straps and thigh plates; boots, shoulders, gloves and arm protection are future separate pieces.
+`asset-studio/costumes/<name>/costume.json` defines an art-only outfit choice and palette. Keep its selected reference/prompt beside the recipe; staged wearable GLBs and all review images belong in OS temporary storage. Final lineups, animations and wearable GLBs belong in `catalogs/costumes/<name>/` after explicit `armor publish`. The first set is `knight_plate`, exposed as `{"kind":"costume","variant":"knight_plate"}` in character outfits and through `studio.py schema outfits`. It includes torso front/back, articulated waist plates, belt, suspension straps and thigh plates. A costume with an `item` is a body armor suit for the class heroes: `armor suit` reviews it on the hero with a KayKit class's own limbs, `armor equip` writes it into the game (see `costumes/README.md`).
 
 `prefabs/outfits/costumes.py` returns named physical parts rather than one deforming mesh. Each rigid plate declares its carrying `bone`; both character GLB export and software posing honor it and reject unknown bones. Do not merge parts with different attachment bones before export. Use integrated surface-colored rims, actual closed negative cutters for damage, and closed buckle frames. Validate each component's topology, inspect actual attachments in posed Godot views, and avoid equating closedness with fit or physical contact. Run `studio.py armor lineup costume_knight_plate` to render an external review candidate; `armor build costume_knight_plate` also stages the wearable-only rigged temporary `costume.glb` without publishing gameplay art or resources.
 

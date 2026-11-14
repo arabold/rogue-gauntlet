@@ -5,7 +5,7 @@ This approved gold-trimmed steel armor with its sunburst emblem fills the Paladi
 
 **Approved reference pattern:** this costume establishes the style and construction baseline for future armor. See the [armor style guide](../README.md).
 
-One selectable costume: breastplate, backplate, articulated waist plates, leather belt and suspended thigh plates. Boots, gloves, pauldrons and arm protection from the concept are future separate elements. The fitting uses our standard character body and knight animation rig rather than copying the concept's taller proportions. Humanoid body geometry now has a continuous shoulder slope and distinct neck; its skeleton and animation joint positions are unchanged.
+One selectable costume: breastplate, backplate, articulated waist plates, leather belt and suspended thigh plates. Worn by the class heroes as the Gilded Full Plate suit, it brings the KayKit knight's gauntlets and greaves. The fitting uses our standard character body and knight animation rig rather than copying the concept's taller proportions. Humanoid body geometry now has a continuous shoulder slope and distinct neck; its skeleton and animation joint positions are unchanged.
 
 - [Current Godot fitting lineup](../../catalogs/costumes/knight_plate/lineup.png): front, three-quarter, side, back, walking, overhead attack and game-camera context.
 - and.

@@ -10,10 +10,7 @@ public partial class EquipmentPanel : PanelContainer
 	public EquipmentItemPanel ArmorPanel { get; private set; }
 	public EquipmentItemPanel ShieldPanel { get; private set; }
 	public EquipmentItemPanel RightRingPanel { get; private set; }
-	public EquipmentItemPanel GlovesPanel { get; private set; }
 	public EquipmentItemPanel LeftRingPanel { get; private set; }
-	public EquipmentItemPanel LegsPanel { get; private set; }
-	public EquipmentItemPanel BootsPanel { get; private set; }
 
 	private Inventory _inventory;
 	private Action _unsubscribeInventory = () => { };
@@ -27,10 +24,7 @@ public partial class EquipmentPanel : PanelContainer
 		ArmorPanel = GetNode<EquipmentItemPanel>("%ArmorPanel");
 		ShieldPanel = GetNode<EquipmentItemPanel>("%ShieldPanel");
 		RightRingPanel = GetNode<EquipmentItemPanel>("%RightRingPanel");
-		GlovesPanel = GetNode<EquipmentItemPanel>("%GlovesPanel");
 		LeftRingPanel = GetNode<EquipmentItemPanel>("%LeftRingPanel");
-		LegsPanel = GetNode<EquipmentItemPanel>("%LegsPanel");
-		BootsPanel = GetNode<EquipmentItemPanel>("%BootsPanel");
 	}
 
 	public void Initialize(Inventory inventory)
@@ -77,10 +71,7 @@ public partial class EquipmentPanel : PanelContainer
 		ArmorPanel.SetItem(null);
 		ShieldPanel.SetItem(null);
 		RightRingPanel.SetItem(null);
-		GlovesPanel.SetItem(null);
 		LeftRingPanel.SetItem(null);
-		LegsPanel.SetItem(null);
-		BootsPanel.SetItem(null);
 	}
 
 	private void OnItemEquipped(EquipableItem item, EquipmentSlot slot)
@@ -112,17 +103,8 @@ public partial class EquipmentPanel : PanelContainer
 			case EquipmentSlot.RightRing:
 				RightRingPanel.SetItem(item);
 				break;
-			case EquipmentSlot.Hands:
-				GlovesPanel.SetItem(item);
-				break;
 			case EquipmentSlot.LeftRing:
 				LeftRingPanel.SetItem(item);
-				break;
-			case EquipmentSlot.Legs:
-				LegsPanel.SetItem(item);
-				break;
-			case EquipmentSlot.Feet:
-				BootsPanel.SetItem(item);
 				break;
 		}
 	}

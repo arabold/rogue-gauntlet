@@ -1,13 +1,14 @@
 """KayKit's adventurer heads, arms and legs (CC0), worn by the class heroes exactly as KayKit modeled them.
 
 `harvest()` reads each class head, arms and legs from the KayKit characters in the rest pose (the frame Studio
-characters are built in). It saves them to `meshes/<class>_head.npz`, `meshes/<class>_arms.npz` and
+characters are built in). The legs come with the `Hips`: the seat of the KayKit body, in the pants' swatch, closing
+the body from below. It saves them to `meshes/<class>_head.npz`, `meshes/<class>_arms.npz` and
 `meshes/<class>_legs.npz`, plus `meshes/hero_arms.npz` and `meshes/hero_legs.npz`: the rogue's plain limbs (full
 sleeves, leather bracers and gloves; pants, bare knees and boots) that every bare hero wears. A class's own limbs belong
 to a body armor suit, which hides the hero's while worn. Each face's KayKit swatch becomes a character slot (`skin`,
-`hair`, `eye`; the limbs' `cloth`, `cloth_dark`, `strap`, `glove`, `pants`, `boot`), and each corner keeps its position
-down that swatch's gradient (`uv_t`) and its authored normal. The sleeves take the hero's tunic color and the pants
-its pants color.
+`hair`, `eye`; the bare limbs' `cloth`, `cloth_dark`, `strap`, `glove`, `pants`, `boot`; a class's limbs
+`<class>_<cell>`, one slot per swatch whichever limb it colors), and each corner keeps its position down that swatch's
+gradient (`uv_t`) and its authored normal. The sleeves take the hero's tunic color and the pants its pants color.
 Run once from `asset-studio/` (`python -c "from prefabs.anatomy import adventurer_parts as a; a.harvest()"`) and
 commit the result, so builds never read the KayKit packs.
 
@@ -36,11 +37,11 @@ SOURCES = {"barbarian": "Barbarian", "knight": "Knight", "mage": "Mage", "rogue"
 SLOTS = {"00": "skin", "01": "hair", "02": "eye", "03": "metal", "11": "hair_tie"}
 HAIR = {"barbarian": (), "knight": ("hair",), "mage": ("hair", "hair_tie"), "rogue": ("hair",)}
 BARE = "Rogue"  # whose limbs every hero wears: plain sleeves, bracers and gloves; pants, bare knees and boots
-# the rogue atlas's limb swatches -> the bare hero's slots, by limb
-BARE_SLOTS = {"arms": {"10": "cloth", "11": "cloth_dark", "05": "strap", "25": "glove"},
-              "legs": {"17": "pants", "23": "boot", "00": "skin"}}
+# the rogue atlas's limb swatches -> the bare hero's slots
+BARE_SLOTS = {"10": "cloth", "11": "cloth_dark", "05": "strap", "25": "glove", "17": "pants", "23": "boot", "00": "skin"}
 HERO_COLORED = {"cloth", "cloth_dark", "pants", "skin"}  # bare limb slots in the hero's own colors, not KayKit's
-LIMBS = ("arms", "legs")
+LIMBS = {"arms": ("ArmLeft", "ArmRight"), "legs": ("LegLeft", "LegRight", "Hips")}  # the pieces each limb set builds
+SEAT = ("17", 0.55)  # the KayKit body's seat: its faces in the pants' swatch below this height
 EAR_X = 0.36  # islands centred this far out to the side are ears (and the earrings hung on them)
 SCALP_INSET = 0.008  # the scalp sits this far under the hair, so it never shows through it
 
@@ -67,8 +68,8 @@ def _skinned(g, acc, worlds, index):
 
 
 def _read(title, node="Head", cells=SLOTS):
-    """`(verts, normals, faces, slots, uv_t, colors)` of KayKit character `title`'s `node` mesh, its swatches named by
-    `cells` (a function of the cell, or a mapping)."""
+    """`(verts, normals, faces, slots, uv_t, colors, looks, cells)` of KayKit character `title`'s `node` mesh: each
+    face's slot, its swatch named by `cells` (a function of the cell, or a mapping), and its raw cell."""
     from PIL import Image
 
     from core import mesh
@@ -82,10 +83,11 @@ def _read(title, node="Head", cells=SLOTS):
     index = [n.get("name") for n in g["nodes"]].index(f"{title}_{node}")
     verts, normals, faces, uv = _skinned(g, acc, worlds, index)
     swatches, uv_t, colors, looks = decor.swatch_faces(uv, faces, texture, "")
-    name = cells if callable(cells) else lambda cell: cells[cell]
-    slots = np.array([name(c.lstrip("_")) for c in swatches], object)
-    return (verts, normals, faces, slots, uv_t, {name(c.lstrip("_")): rgb for c, rgb in colors.items()},
-            {name(c.lstrip("_")): look for c, look in looks.items()})
+    name = cells if callable(cells) else lambda cell: cells.get(cell, f"kay_{cell}")
+    raw = np.array([c.lstrip("_") for c in swatches], object)
+    return (verts, normals, faces, np.array([name(c) for c in raw], object), uv_t,
+            {name(c.lstrip("_")): rgb for c, rgb in colors.items()}, {name(c.lstrip("_")): look for c, look in looks.items()},
+            raw)
 
 
 def _welded(verts, faces):
@@ -149,33 +151,39 @@ def harvest():
                             meta=json.dumps(meta))
         print(f"  [+] {name}_head {len(faces):4d} tris  {meta['parts']}")
     for limb in LIMBS:
-        _save_limbs("hero", BARE, limb, BARE_SLOTS[limb], hero_colored=HERO_COLORED, gradients=False)
+        _save_limbs("hero", BARE, limb, BARE_SLOTS, hero_colored=HERO_COLORED, gradients=False)
         for name, title in SOURCES.items():
-            _save_limbs(name, title, limb, lambda cell, name=name, limb=limb: f"{name}_{limb[:-1]}_{cell}")
+            _save_limbs(name, title, limb, lambda cell, name=name: f"{name}_{cell}")
 
 
-def sides(limb):
-    """The KayKit nodes of `limb` (`arms`, `legs`), the pieces it builds: `("ArmLeft", "ArmRight")`."""
-    return tuple(f"{limb[:-1].capitalize()}{side}" for side in ("Left", "Right"))
+def _part(title, part, cells):
+    """KayKit character `title`'s limb `part` as `(kit.Piece, colors, looks)`: an arm or leg node, or the `Hips`, its
+    body's seat (`SEAT`)."""
+    verts, normals, faces, slots, uv_t, colors, looks, raw = _read(title, "Body" if part == "Hips" else part, cells)
+    piece = kit.Piece(verts, faces, slots, normals=normals[faces], uv_t=uv_t)
+    if part == "Hips":
+        cell, top = SEAT
+        piece = piece.faces_where((raw == cell) & (verts[faces].mean(1)[:, 1] < top))
+    used = set(piece.slots)
+    return piece, {k: v for k, v in colors.items() if k in used}, {k: v for k, v in looks.items() if k in used}
 
 
 def _save_limbs(name, title, limb, cells, hero_colored=(), gradients=True):
-    """Save KayKit character `title`'s two `limb` (`arms`, `legs`) as `meshes/<name>_<limb>.npz`, swatches named by
-    `cells`, with KayKit's own colors but for the `hero_colored` slots that take the character's, and with `gradients`
-    KayKit's exact swatch gradients."""
-    read = {side: _read(title, side, cells) for side in sides(limb)}
-    whole = kit.Piece.merge(*(kit.Piece(verts, faces, slots, normals=normals[faces], uv_t=uv_t)
-                              for verts, normals, faces, slots, uv_t, _, _ in read.values()))
+    """Save KayKit character `title`'s `limb` (`arms`, `legs`: the pieces `LIMBS` names) as
+    `meshes/<name>_<limb>.npz`, swatches named by `cells`, with KayKit's own colors but for the `hero_colored` slots
+    that take the character's, and with `gradients` KayKit's exact swatch gradients."""
+    read = {part: _part(title, part, cells) for part in LIMBS[limb]}
+    whole = kit.Piece.merge(*(piece for piece, _, _ in read.values()))
     meta = {"name": f"{name}_{limb}", "category": limb, "domain": "anatomy", "license": "CC0 (KayKit)",
             "source": f"kaykit-adventurers/{title}.glb", "verts": len(whole.verts), "tris": len(whole.faces),
             "span": [round(float(x), 4) for x in np.ptp(whole.verts, axis=0)],
-            "colors": {k: v for r in read.values() for k, v in r[5].items() if k not in hero_colored},
-            "materials": {k: {"gradient": look["gradient"]} for r in read.values() for k, look in r[6].items()}
+            "colors": {k: v for _, c, _ in read.values() for k, v in c.items() if k not in hero_colored},
+            "materials": {k: {"gradient": look["gradient"]} for _, _, l in read.values() for k, look in l.items()}
             if gradients else {}}
     np.savez_compressed(MESHES / f"{name}_{limb}.npz", verts=whole.verts.astype(np.float32),
                         faces=whole.faces.astype(np.int32), slots=np.asarray(whole.slots, str),
                         normals=whole.normals.astype(np.float32), uv_t=whole.uv_t.astype(np.float32),
-                        part=np.asarray(np.repeat(list(read), [len(r[2]) for r in read.values()]), str),
+                        part=np.asarray(np.repeat(list(read), [len(p.faces) for p, _, _ in read.values()]), str),
                         meta=json.dumps(meta))
     print(f"  [+] {name}_{limb} {len(whole.faces):4d} tris  <- {title}.glb")
 
@@ -187,14 +195,14 @@ def _stored(name):
 
 
 def limbs(name, limb):
-    """`limb` (`arms`, `legs`) as `{"ArmLeft": kit.Piece, "ArmRight": kit.Piece}` (`LegLeft`, `LegRight`), hands and
-    feet and all: the bare heroes' (`hero`, their sleeves in the tunic's `cloth`, their pants in `pants`) or a class's
-    own (`knight`), worn with a body armor suit."""
+    """`limb` (`arms`, `legs`) as its pieces (`LIMBS`: `{"ArmLeft": kit.Piece, "ArmRight": kit.Piece}`; `LegLeft`,
+    `LegRight` and the `Hips`), hands and feet and all: the bare heroes' (`hero`, their sleeves in the tunic's `cloth`,
+    their pants in `pants`) or a class's own (`knight`), worn with a body armor suit."""
     data, _ = _stored(f"{name}_{limb}")
     whole = kit.Piece(data["verts"].astype(float), data["faces"].astype(np.int64), data["slots"].astype(object),
                       normals=data["normals"].astype(float), uv_t=data["uv_t"].astype(float))
     part = data["part"].astype(object)
-    return {side: whole.faces_where(part == side) for side in sides(limb)}
+    return {piece: whole.faces_where(part == piece) for piece in LIMBS[limb]}
 
 
 def limb_colors(name, limb):
@@ -205,7 +213,7 @@ def limb_colors(name, limb):
 
 
 def tinted(look, rgb):
-    """A limb slot's `look` (KayKit's exact swatch gradient) recolored to `rgb` at its middle, keeping KayKit's shading:
+    """A limb swatch's `look` (KayKit's exact gradient) recolored to `rgb` at its middle, keeping KayKit's shading:
     every row keeps its brightness relative to the middle, so a suit can dress a class's limbs in its own colors."""
     gradient = np.asarray(look["gradient"], float)
     luma = gradient @ (0.299, 0.587, 0.114)

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Armor" load_steps=4 format=3 uid="uid://b3uaf6x2561vr"]
 
-[ext_resource type="PackedScene" uid="uid://d4d7t4im0px4j" path="res://scenes/items/armor/shield_large_spikes.tscn" id="1_8it7s"]
+[ext_resource type="PackedScene" uid="uid://d4d7t4im0px4j" path="res://scenes/items/armor/shield/shield_large_spikes.tscn" id="1_8it7s"]
 [ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_ph1o3"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
 

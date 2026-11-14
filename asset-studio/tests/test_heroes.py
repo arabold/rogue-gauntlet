@@ -1,4 +1,4 @@
-"""Class heroes are bare bodies the game dresses: one shared body and underclothes, so armor fits every class, head
+"""Class heroes are bare bodies the game dresses: one shared body and tunic, so armor fits every class, head
 parts the game can hide under headgear, and the shoulder hinges separately exported armor binds to."""
 from pathlib import Path
 import json
@@ -13,7 +13,7 @@ from core import mesh  # noqa: E402
 from prefabs.creatures import characters  # noqa: E402
 
 CLASSES = ("barbarian", "knight", "mage", "rogue")
-SHARED = ("Body", "ArmLeft", "ArmRight", "LegLeft", "LegRight")
+SHARED = ("Body", "ArmLeft", "ArmRight", "LegLeft", "LegRight", "Hips")
 
 
 class ClassHeroTest(unittest.TestCase):
@@ -21,10 +21,15 @@ class ClassHeroTest(unittest.TestCase):
     def setUpClass(cls):
         cls.heroes = {name: characters.build(characters.load(f"heroes/{name}"))[0] for name in CLASSES}
 
-    def test_every_class_shares_the_body_and_underclothes(self):
+    def test_every_class_shares_the_body_and_tunic(self):
         reference = self.heroes[CLASSES[0]]
-        under = [k for k in reference if k.rstrip("0123456789") in ("Shorts", "Tunic")]
-        self.assertEqual(len(under), 2)  # KayKit's legs bring their own boots
+        under = [k for k in reference if k.rstrip("0123456789") == "Tunic"]
+        self.assertEqual(len(under), 1)  # KayKit's legs bring their own pants and boots
+        # KayKit's hips close the body from below, so no skin shows under the tunic; the limbs keep KayKit's shading
+        body = reference["Body"]
+        self.assertGreater(body.verts[body.faces].mean(1)[:, 1].min(), reference["Hips"].verts[:, 1].max())
+        for limb in ("ArmLeft", "LegLeft", "Hips"):
+            self.assertIsNotNone(reference[limb].uv_t, limb)
         for name, pieces in self.heroes.items():
             with self.subTest(hero=name):
                 for part in (*SHARED, *under):
@@ -63,7 +68,7 @@ class ClassHeroTest(unittest.TestCase):
         # row keeps KayKit's brightness relative to it.
         from prefabs.anatomy import adventurer_parts
 
-        look = adventurer_parts.limb_colors("knight", "legs")[1]["knight_leg_03"]
+        look = adventurer_parts.limb_colors("knight", "legs")[1]["knight_03"]
         steel, bronze = np.asarray(look["gradient"], float), np.asarray([155, 145, 128], float)
         tinted = np.asarray(adventurer_parts.tinted(look, bronze)["gradient"], float)
         middle = len(steel) // 2
@@ -72,8 +77,7 @@ class ClassHeroTest(unittest.TestCase):
         np.testing.assert_allclose(luma(tinted) / luma(tinted)[middle], luma(steel) / luma(steel)[middle], atol=0.02)
 
     def test_committed_hinges_match_the_knight_costume_on_the_hero_body(self):
-        with open(characters.HERO_HINGES, encoding="utf-8") as f:
-            self.assertEqual(json.load(f), characters.hero_hinges())
+        self.assertEqual(characters.shared_hinges(), characters.hero_hinges())
 
     def test_export_carries_the_shoulder_hinges_and_few_nodes(self):
         import studio
@@ -111,7 +115,7 @@ class ClassHeroTest(unittest.TestCase):
         self.assertLessEqual({"shoulder_cap.l", "shoulder_cap.r", "chest", "upperarm.l"}, joints)
         self.assertEqual([n["name"] for n in g["nodes"] if "mesh" in n], ["Armor_Armor"])
         self.assertFalse(g.get("animations"))
-        self.assertLessEqual({"ArmLeft", "ArmRight", "LegLeft", "LegRight"}, set(knight.worn) - set(knight.torso))
+        self.assertLessEqual({"ArmLeft", "ArmRight", "LegLeft", "LegRight", "Hips"}, set(knight.worn) - set(knight.torso))
         self.assertEqual(set(knight.skin) & set(knight.torso), set())
 
 if __name__ == "__main__":

@@ -120,7 +120,7 @@ public partial class CombatIntegrationTest
 			var weapons = harness.Items.Popup.GetNode<PopupMenu>("SpawnWeaponsMenu");
 			TestFactories.Press(weapons, i => weapons.GetItemTooltip(i) == axePath);
 			AssertString(harness.Player.Inventory.EquippedWeapon?.Name).IsEqual(TestFactories.Load<Weapon>(axePath).Name);
-			// Body armor and helmets have submenus of their own, apart from the shields they are authored beside.
+			// Body armor and helmets have submenus of their own, beside the shields.
 			foreach (var (menu, path, slot) in new[]
 			{
 				("SpawnBody armorMenu", "res://scenes/items/armor/body/steel_plate.tres", EquipmentSlot.Chest),
@@ -316,7 +316,7 @@ public partial class CombatIntegrationTest
 		using (runner)
 		{
 			AssertBool(harness.RequestHeroGuard(true)).IsTrue();
-			var replacement = ItemFactory.Create(TestFactories.Load<Armor>("res://scenes/items/armor/shield_common.tres"));
+			var replacement = ItemFactory.Create(TestFactories.Load<Armor>("res://scenes/items/armor/shield/shield_common.tres"));
 			AssertBool(harness.Player.Inventory.TryAdd(replacement).Success).IsTrue();
 			var slot = harness.Player.Inventory.Items.First(entry => ReferenceEquals(entry.Item, replacement));
 			harness.Player.Inventory.Equip(slot, EquipmentSlot.ShieldHand);

@@ -151,7 +151,7 @@ def _gloves(h, style="mitten", size=1.14, slot="glove"):
     return _pair(arm.place(kit.Piece(hand.verts + [0.0, arm.length - 0.025, 0.0], hand.faces, hand.slots)))
 
 
-TORSO_PART_EXCLUSIONS=("Head", "Arm", "Leg", "Helmet", "Crown", "Cape", "Wings", "Tail")
+TORSO_PART_EXCLUSIONS=("Head", "Arm", "Leg", "Hips", "Helmet", "Crown", "Cape", "Wings", "Tail")
 
 
 def _costume_set(hosts, name):
@@ -287,7 +287,8 @@ def hide_covered(pieces, covers, reach=0.14):
             covered &= np.nan_to_num(d, nan=np.inf) < reach
         keep = ~covered
         norms = None if getattr(p, "normals", None) is None else p.normals[keep]
-        out[name] = kit.Piece(p.verts, p.faces[keep], p.slots[keep], normals=norms)
+        uv_t = None if getattr(p, "uv_t", None) is None else p.uv_t[keep]
+        out[name] = kit.Piece(p.verts, p.faces[keep], p.slots[keep], normals=norms, uv_t=uv_t)
     return out
 
 
@@ -345,7 +346,8 @@ def build(recipe):
     head_spec = head_recipe(recipe["head"])
     head = heads.Head(**head_spec.get("form", {}))  # the cranium headwear fits; its features wait for the outfit
     # `"arms"` or `"legs": {"kaykit": true}` wears KayKit's own limbs (`adventurer_parts.limbs`: sleeves, bracers and
-    # gloves; pants and boots); the body's own limbs stay the hosts garments fit around.
+    # gloves; pants and boots under the seat of KayKit's hips, which closes the body from below in place of its own
+    # pelvis); the body's own limbs stay the hosts garments fit around.
     body_spec = recipe["body"]
     kaykit_limbs = [limb for limb in adventurer_parts.LIMBS
                     if isinstance(body_spec.get(limb), dict) and body_spec[limb].get("kaykit", False)]
@@ -354,6 +356,9 @@ def build(recipe):
     hosts, pieces = body.build(body_spec)
     for limb in kaykit_limbs:
         pieces.update(adventurer_parts.limbs("hero", limb))
+    if "Hips" in pieces:
+        torso = pieces["Body"]
+        pieces["Body"] = torso.faces_where(torso.verts[torso.faces].mean(1)[:, 1] > pieces["Hips"].verts[:, 1].max())
     hosts = dict({k: clothes.Worn(v) for k, v in hosts.items()}, head=head)  # each layer goes on top of the last
     pieces = dict(Head=None, **pieces)  # built once the headwear over it is known
     # what the torso wears so far, for garments drawn tight round it (belts): the body and torso garments
@@ -431,6 +436,12 @@ def catalog():
         if recipe.get("builder", "kit") == "kit":
             pieces, colors = build(recipe)
             yield key, kit.Piece.merge(*pieces.values()), None, colors
+
+
+def shared_hinges():
+    """The class heroes' committed shoulder-cap hinges (`HERO_HINGES`), which every hero and suit export carries."""
+    with open(HERO_HINGES, encoding="utf-8") as f:
+        return json.load(f)
 
 
 def hero_hinges():
