@@ -34,17 +34,18 @@ def studies():
         if spec.get("status") in ("draft", "legacy") or path.parent.name == "gorget_study":
             continue
         result["costume_" + path.parent.name] = dict(torso=spec["body"]["torso"], body=spec["body"], colors=spec["colors"],
-            outfit=spec["outfit"], source=str(path.relative_to(STUDIO)),
+            outfit=spec["outfit"], under=spec.get("under", []), source=str(path.relative_to(STUDIO)),
             status=spec.get("status","needs_visual_review"),
             review=spec.get("review","Costume study: torso, articulated waist, belt and thigh plates. No limb armor."))
     return result
 
 
 def recipe(study):
-    """Use the production character assembler, layered hosts and coverage culling on a featureless dummy."""
+    """Use the production character assembler, layered hosts and coverage culling on a featureless dummy, wearing
+    the garments the costume goes over (`under`: chest armor fitted to the class heroes' underclothes)."""
     return dict(template="knight", head={"form": {}}, body={"torso":study["torso"],
         "arms":{"hand":"mitten","scale":1.25}, "legs":{"foot":"bare"}, **copy.deepcopy(study.get("body",{}))},
-        outfit=copy.deepcopy(study["outfit"]), colors={**study["colors"], **NEUTRAL})
+        outfit=copy.deepcopy([*study.get("under", []), *study["outfit"]]), colors={**study["colors"], **NEUTRAL})
 
 
 def lineup_path(key):
@@ -327,9 +328,64 @@ def character_review(key, empty_hands=False):
     print(f"Dressed character review (external temporary storage): {review_root}")
 
 
+def hero_fitting(spec):
+    """The costume `spec` worn over the class hero body (`heroes/hero_base` and its underclothes): `(pieces, colors,
+    hero piece names)`. Every class shares that body, so armor fitted here fits every class hero."""
+    base = characters.load("heroes/hero_base")
+    hero, _ = characters.build(base)
+    pieces, colors = characters.build({**base, "outfit": copy.deepcopy(spec["outfit"]),
+                                       "colors": {**base["colors"], **spec["colors"]}})
+    return pieces, colors, set(hero)
+
+
+def equip(key):
+    """Write costume `key` as chest armor for the class heroes, at its `item.glb` path under `assets/`.
+
+    - `assets/custom-heroes/armor/<id>.glb`: what the hero wears, one skinned node on the hero rig, weighted from the
+      hero body under it and carrying the heroes' shoulder hinges, so the game can move it onto any class hero's
+      skeleton. No props, no clips. A costume's `arms` (a KayKit class) adds that class's own arms, which the item
+      wears in place of the hero's (`HiddenModelParts: Arms`).
+    - `item.glb`: its display model for floors and inventory icons, standing on the ground.
+    """
+    from core.export import export_static, import_settings
+    from items import model
+
+    spec = json.loads(source_path(key).read_text())
+    target = spec.get("item", {}).get("glb", "")
+    if not target.startswith("res://assets/custom-items/armor/body/") or not target.endswith(".glb"):
+        raise ValueError(f"{key}: set item.glb to res://assets/custom-items/armor/body/<id>.glb")
+    display = STUDIO.parent / target[len("res://"):]
+    worn = STUDIO.parent / "assets/custom-heroes/armor" / display.name
+    for folder in (display.parent, worn.parent):
+        folder.mkdir(parents=True, exist_ok=True)
+    pieces, colors, hero = hero_fitting(spec)
+    armor = {name: piece for name, piece in pieces.items() if name not in hero}
+    looks = {}
+    if spec.get("arms"):
+        from prefabs.anatomy import adventurer_parts
+
+        armor.update(adventurer_parts.arms(spec["arms"]))
+        arm_colors, looks = adventurer_parts.arm_colors(spec["arms"])
+        colors = {**arm_colors, **colors}
+    with open(characters.HERO_HINGES, encoding="utf-8") as f:
+        hinges = json.load(f)
+    title = "".join(word.capitalize() for word in display.stem.split("_"))
+    export.export(str(worn), title, armor, colors, template="knight", fixed_hinges=hinges,
+                  groups={name: "Armor" for name in armor}, skin={name: pieces[name] for name in hero},
+                  props=False, clips=False, materials=looks)
+    import_settings(str(worn), "knight")
+    raw = CACHE / f"{display.stem}_display.glb"
+    CACHE.mkdir(parents=True, exist_ok=True)
+    export_static(str(raw), title, kit.Piece.merge(*armor.values()), colors, materials=looks)
+    model.place(raw, display, {"pivot": "ground"})
+    print(f"{key}: {worn.relative_to(STUDIO.parent)}, {display.relative_to(STUDIO.parent)} "
+          f"({sum(len(p.faces) for p in armor.values())} triangles)")
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("list", "catalog", "build", "lineup", "compare", "export", "character", "publish"))
+    parser.add_argument("command", choices=("list", "catalog", "build", "lineup", "compare", "export", "character", "publish",
+                                            "equip"))
     parser.add_argument("targets", nargs="*")
     parser.add_argument("--all", action="store_true")
     parser.add_argument("-o", "--out", help="export: output bundle directory (default: temporary review/export)")
@@ -354,6 +410,10 @@ def main(argv):
         return
     if args.command == "publish":
         publish_costumes(keys)
+        return
+    if args.command == "equip":
+        for key in keys:
+            equip(key)
         return
     records = build(keys)
     if args.command in ("lineup", "compare", "export"):

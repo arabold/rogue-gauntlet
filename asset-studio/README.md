@@ -79,6 +79,23 @@ remaining older weapon-preview dependencies. [Technical creature rigs](rigs/crea
 cover blob/spider/wolf/rat extraction and explicit external-donor tools. The old
 `creature study` builders are superseded by the normal production recipes.
 
+## Class heroes
+
+The playable classes (`characters/heroes/{barbarian,knight,mage,rogue}`) are bare bodies that the game dresses. Helmets, chest armor, capes and weapons are items the game equips. Each class extends `heroes/hero_base` (`"hero": true`) and keeps its contract:
+
+- **One shared body and underclothes:** every class has the same torso, legs, tunic, pants and boots (`underlayer`), so armor fitted once fits every class. Classes differ only in their head and clothing colors.
+- **KayKit's plain arms:** every hero wears the KayKit rogue's arms (`"arms": {"kaykit": true}`): full sleeves in the tunic's color, a leather band, bracers and gloves. They are exported as `<Class>_Arms`, so chest armor that brings a class's own KayKit arms can hide them.
+- **KayKit's own heads:** each class wears its KayKit adventurer head exactly (`"head": {"kaykit": "knight"}`, harvested by `prefabs/anatomy/adventurer_parts.py`), so KayKit's hats fit it natively.
+- **Head parts as nodes:** the hair and the ears with any earrings (`head_parts`) are exported as `<Class>_Hair` and `<Class>_Ears` so equipped headgear can hide them. KayKit hair is the top of the head itself, so a generated `<Class>_Scalp` (the hair pulled down onto the bald barbarian skull) lies under it; the game shows the scalp only while the hair is hidden. Everything else is merged into `<Class>_Body`.
+- **Shoulder hinges:** every hero carries the `shoulder_cap.l/.r` joints from `rigs/hero_hinges.json` with their motion baked into every clip, so armor with pauldrons binds to any hero. The pivots are the knight costume's caps fitted over `hero_base`; regenerate them with `characters.hero_hinges()` if that body changes.
+
+`export heroes/<class>` writes `assets/custom-heroes/<class>.glb` on the class's KayKit template, keeping its prop nodes, skeleton and clips. It rejects a class hero that wears a helmet, cape or weapons.
+
+What heroes wear is exported separately:
+
+- **Helmets:** item recipes in `objects/headgear/` built with `kaykit_headgear` are KayKit's own hats, exactly as authored, in the hat-prop frame. They are exported to `assets/custom-items/armor/helmet/`.
+- **Chest armor:** costumes with an `item`, exported with `armor equip` (see the [armor style guide](costumes/README.md#chest-armor-for-the-class-heroes)).
+
 ## Wearable armor fitting
 
 The approved reference pattern for all future armor is [Paladin plate](costumes/knight_plate/README.md) (the original `knight_plate` path is retained), documented in the [armor style guide](costumes/README.md): torso, articulated waist, belt and thigh plates as a single `{"kind":"costume","variant":"knight_plate"}` outfit choice. The builder returns separately named physical pieces so the exporter can preserve rigid plate attachments through each piece's explicit `bone`. Both software posing and skinned GLB export honor those attachments and reject unknown bones. Surface color uses the shared character palette; rims share their plate's topology. The costume recipe supplies its colors. Future boots, gloves, shoulder and arm pieces remain separate from this first set.
@@ -354,7 +371,7 @@ item=headgear/shaman_antler_headdress
   panels, the angles `item compare` renders. Worn items are drawn on the host's reference head, which the command
   renders and passes to the image model; its concepts and compares share framing.
 - **Frame and hosts:** Blender's frame is the asset's (Z up, front toward -Y). Headgear uses the game's hat-prop frame
-  on the adventurer heads (`"host": "adventurer_heads"`, see `core/hosts.py`); `ctx.host_bvh` lets a shell clear a
+  on the adventurer heads (`"host": "adventurer_parts"`, see `core/hosts.py`); `ctx.host_bvh` lets a shell clear a
   head, and `item validate` reports where each class head shows through. `ctx.origin` lets a script model around a
   local centre such as the head it was designed on.
 - **Surface:** each part's material name is its palette slot (`ctx.material`, `ctx.add(name, bm, slots)`); the

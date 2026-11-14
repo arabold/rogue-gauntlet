@@ -589,7 +589,6 @@ class ArmorFittingTest(unittest.TestCase):
         recipe["outfit"][0]["slot"] = "changed"
         self.assertEqual(study, snapshot)
         self.assertEqual(original, characters.load("heroes/knight"))
-        self.assertTrue(any(g["kind"] == "helmet" for g in original["outfit"]))
         self.assertFalse(any(g["kind"] in ("helmet", "cape") for g in study["outfit"]))
 
     def test_review_covers_distinct_constructions(self):

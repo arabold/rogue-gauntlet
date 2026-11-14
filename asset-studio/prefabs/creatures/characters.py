@@ -21,10 +21,12 @@ import numpy as np
 
 
 from core import kit
-from prefabs.anatomy import bodies as body, heads
+from prefabs.anatomy import adventurer_parts, bodies as body, heads
 from prefabs.outfits import armor, belts, clothes, costumes, crowns, cuirass, helmets, neckwear, pauldrons
 
 CHARACTERS = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../characters"))
+# The shoulder-cap hinges every class hero carries, so separately exported armor with pauldrons always binds.
+HERO_HINGES = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../rigs/hero_hinges.json"))
 
 
 def _pair(piece):
@@ -334,11 +336,23 @@ def resolve_costumes(recipe, stack=()):
 
 def build(recipe):
     """`(pieces, colors)`: the named pieces of a character recipe (`head`: see `head_recipe`; `body`: a `body`
-    recipe; `outfit`: garments) and the colors of every slot they use."""
-    recipe = resolve_costumes(recipe)
+    recipe; `outfit`: garments) and the colors of every slot they use. `underlayer` garments go on before the
+    outfit (a base's underclothes stay when a recipe extending it lists its own outfit). A `head` of
+    `{"kaykit": class}` is that KayKit adventurer's own head (`adventurer_parts`) with its colors; `head_parts`
+    (`hair`, `ears`) then keeps those parts as pieces of their own (`Hair` with its `Scalp`, `Ears`) the game can
+    hide under headgear."""
+    recipe = resolve_costumes({**recipe, "outfit": [*recipe.get("underlayer", []), *recipe.get("outfit", [])]})
     head_spec = head_recipe(recipe["head"])
     head = heads.Head(**head_spec.get("form", {}))  # the cranium headwear fits; its features wait for the outfit
-    hosts, pieces = body.build(recipe["body"])
+    # `"arms": {"kaykit": true}` wears KayKit's own arms (`adventurer_parts.arms`: sleeves, bracers and gloves); the
+    # body's own arms stay the hosts garments fit around.
+    body_spec = recipe["body"]
+    native_arms = isinstance(body_spec.get("arms"), dict) and body_spec["arms"].get("kaykit", False)
+    if native_arms:
+        body_spec = {**body_spec, "arms": {k: v for k, v in body_spec["arms"].items() if k != "kaykit"}}
+    hosts, pieces = body.build(body_spec)
+    if native_arms:
+        pieces.update(adventurer_parts.arms())
     hosts = dict({k: clothes.Worn(v) for k, v in hosts.items()}, head=head)  # each layer goes on top of the last
     pieces = dict(Head=None, **pieces)  # built once the headwear over it is known
     # what the torso wears so far, for garments drawn tight round it (belts): the body and torso garments
@@ -363,11 +377,23 @@ def build(recipe):
         raise ValueError("Choose a cape or a gorget; the cape includes its own shoulder yoke")
     # the head without the features its headwear covers; hair keeps the locks showing outside it
     headwear = [piece for piece in pieces.values() if getattr(piece, "hides", ())]
-    _, pieces["Head"] = heads.build(head_spec, suppress=set().union(*(piece.hides for piece in headwear)),
-                                    cover=kit.Piece.merge(*headwear) if headwear else None)
+    separate = tuple(recipe.get("head_parts", ()))
+    suppress = set().union(*(piece.hides for piece in headwear))
+    if "kaykit" in head_spec:
+        parts = adventurer_parts.parts(head_spec["kaykit"], suppress)
+        if "hair" not in separate and "hair" not in suppress:
+            parts.pop("Scalp", None)  # under the hair: needed only where the hair is hidden or comes off in game
+        own = {name for name in parts if name.lower() in separate or name == "Scalp" and "hair" in separate}
+        pieces.update({name: part for name, part in parts.items() if name in own},
+                      Head=kit.Piece.merge(*(part for name, part in parts.items() if name not in own)))
+    else:
+        _, pieces["Head"] = heads.build(head_spec, suppress=suppress,
+                                        cover=kit.Piece.merge(*headwear) if headwear else None)
     if recipe.get("hide_covered", True):
         pieces = hide_covered(pieces, covers)
-    explicit = {**head_spec.get("colors", {}), **recipe.get("colors", {})}
+    native = {**(adventurer_parts.colors(head_spec["kaykit"]) if "kaykit" in head_spec else {}),
+              **(adventurer_parts.arm_colors()[0] if native_arms else {})}
+    explicit = {**native, **head_spec.get("colors", {}), **recipe.get("colors", {})}
     colors = _expand_palette(
         {**kit.DEMO_COLORS, **crowns.COLORS, **cuirass.COLORS, **heads.COLORS, **body.COLORS, **clothes.COLORS,
          **armor.COLORS, **helmets.COLORS, **explicit},
@@ -404,3 +430,16 @@ def catalog():
         if recipe.get("builder", "kit") == "kit":
             pieces, colors = build(recipe)
             yield key, kit.Piece.merge(*pieces.values()), None, colors
+
+
+def hero_hinges():
+    """The class heroes' shoulder-cap hinges (`HERO_HINGES`): the knight costume's caps fitted over
+    `heroes/hero_base`, pivots rounded to 0.1 mm and mirrored so both sides match exactly."""
+    from core import hinges
+
+    pieces, _ = build({**load("heroes/hero_base"), "outfit": [{"kind": "costume_ref", "name": "knight"}]})
+    left = hinges.specifications(pieces)["shoulder_cap.l"]
+    x, y, z = (round(float(v), 4) for v in left["pivot"])
+    return {"shoulder_cap.l": {**left, "pivot": [x, y, z]},
+            "shoulder_cap.r": {**left, "follow": "upperarm.r", "pivot": [-x, y, z]}}
+

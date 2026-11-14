@@ -1,92 +1,29 @@
 {
-  "base": "heroes/barbarian_base",
+  "base": "heroes/hero_base",
   "template": "knight",
-  "outfit": [
-    {
-      "kind": "shorts",
-      "down": 0.62,
-      "slot": "pants"
-    },
-    {
-      "kind": "costume_ref",
-      "name": "knight"
-    },
-    {
-      "kind": "limb_plate",
-      "limb": "arm",
-      "y0": 0.12,
-      "y1": 0.44,
-      "straps": 1
-    },
-    {
-      "kind": "cop",
-      "limb": "arm",
-      "at": 0.55,
-      "theta": 4.712389,
-      "size": 0.075
-    },
-    {
-      "kind": "limb_plate",
-      "limb": "arm",
-      "y0": 0.62,
-      "y1": 0.96,
-      "straps": 2,
-      "flare": [
-        0.0,
-        0.02
-      ]
-    },
-    {
-      "kind": "gloves"
-    },
-    {
-      "kind": "boots",
-      "y0": 0.6,
-      "slot": "armor",
-      "sole": "leather"
-    },
-    {
-      "kind": "limb_plate",
-      "limb": "leg",
-      "y0": 0.6,
-      "y1": 0.97,
-      "straps": 2,
-      "flare": [
-        0.02,
-        0.0
-      ]
-    },
-    {
-      "kind": "cop",
-      "limb": "leg",
-      "at": 0.55,
-      "size": 0.07
-    },
-    {
-      "kind": "helmet",
-      "style": "horned"
-    }
-  ],
+  "head": {
+    "kaykit": "knight"
+  },
   "colors": {
-    "skin": [
-      244,
-      190,
-      150
+    "cloth": [
+      118,
+      128,
+      146
     ],
     "pants": [
-      80,
-      60,
+      74,
+      74,
+      86
+    ],
+    "boot": [
+      96,
+      68,
       52
     ],
-    "glove": [
-      116,
-      74,
-      50
-    ],
-    "metal": [
-      178,
-      186,
-      200
+    "sole": [
+      62,
+      46,
+      38
     ]
   }
 }

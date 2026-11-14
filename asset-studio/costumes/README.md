@@ -94,7 +94,23 @@ These helpers are discoverable through `studio.py schema`: `outfits.fitted_belt`
 
 Use a full body to author and fit clothing, but retain only visible skin in the assembled render. `characters.hide_covered` already removes body triangles conservatively under sufficiently enclosing clothing at build time. It samples face centers and near-corners against the covering garment. Partial straps and open capes do not count as skin-covering garments. This is bind-pose coverage processing, not a dynamic collision solver or runtime equipment mask.
 
-For future interchangeable player armor, export or author equipment-specific body-region/triangle masks and apply the combined coverage of equipped pieces when composing the character in Godot. Keep the intact body source and restore skin when a garment is removed. Preserve overlap margins at neck, wrists and hems; bare-chested and cutout outfits must leave their visible skin. Shared skeletons, suitable skin weights, rigid plate attachments and motion reviews are still required at visible boundaries and between overlapping equipment. Runtime masks and gameplay equipment composition belong to the later Godot integration step.
+## Chest armor for the class heroes
+
+A costume with an `item` (`{"glb": "res://assets/custom-items/armor/body/<id>.glb"}`) is chest armor the game's class heroes can wear. `armor equip <costume>` fits it over the shared hero body and its underclothes (`heroes/hero_base`) and writes two files:
+
+- **`assets/custom-heroes/armor/<id>.glb`:** what the hero wears. One skinned node on the hero rig, weighted from the hero body under it, carrying the heroes' shoulder hinges, with no props or clips. The game moves its mesh onto any class hero's skeleton.
+- **`<id>.glb`** at the item path: the static display model for floors and inventory icons.
+
+A costume's `arms` names a KayKit class whose own arms (sleeves, bracers, gauntlets) the armor brings. The item then hides the hero's plain gloved arms while worn (`HiddenModelParts: Arms`).
+
+Armor fits over the heroes' own tunic, pants and boots, so no skin needs masking at runtime; the underclothes stay underneath. A costume fitted to those underclothes lists the garments it goes over in `under`, so its dummy study wears them too (the barbarian harness's belt is fitted to the tunic).
+
+| Costume | Item | Arms | Starting gear of |
+| --- | --- | --- | --- |
+| `knight` | `knight_armor` | knight | Knight |
+| `barbarian_harness` | `barbarian_harness` | barbarian | Barbarian |
+| `arcanist` | `mage_coat` | mage | Mage |
+| `ranger` | `ranger_coat` | rogue | Rogue |
 
 ## Character costume references
 

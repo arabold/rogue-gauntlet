@@ -125,7 +125,7 @@ def mannequin(size="medium"):
 WEIGHT_SOURCES = {kind: ("Body",) for kind in ("collar", "belt", "apron", "breastplate", "backplate", "armor", "tunic",
                                                "cape", "wings", "tail", "ribs", "necklace", "fur_trim",
                                                "cuirass", "baldric", "costumecape")}
-WEIGHT_SOURCES.update({kind: ("Head",) for kind in ("helmet", "crown", "hat")})
+WEIGHT_SOURCES.update({kind: ("Head",) for kind in ("helmet", "crown", "hat", "hair", "beard", "ears", "scalp")})
 WEIGHT_SOURCES.update({kind: ("ArmLeft", "ArmRight", "LegLeft", "LegRight")  # flared cuffs must not reach the body
                        for kind in ("cuffs", "sleeves", "gloves", "boots")})
 
@@ -152,7 +152,7 @@ def _islands(faces, n):
 # shape), so the whole piece follows the one bone that carries most of it. Garments worn round the body stay soft so
 # they never part from it (a rigid belt opens gaps when the waist bends), but the hard bits hung on them (`TRIMMED`:
 # a belt's buckle and studs, a necklace's charms; every part but the biggest) each ride one bone.
-HARD = {"wings", "tail", "helmet", "crown", "hat"}
+HARD = {"wings", "tail", "helmet", "crown", "hat", "hair", "beard", "ears", "scalp"}  # head parts ride the head bone
 TRIMMED = {"belt", "necklace", "collar"}
 LIMB_HARD = {"fur_trim", "cuffs", "shackles"}  # rings on a limb: one bone per side (a boot's fur cuff over the knee)
 

@@ -1,0 +1,29 @@
+{
+  "base": "heroes/hero_base",
+  "template": "mage",
+  "head": {
+    "kaykit": "mage"
+  },
+  "colors": {
+    "cloth": [
+      84,
+      74,
+      128
+    ],
+    "pants": [
+      60,
+      52,
+      90
+    ],
+    "boot": [
+      96,
+      68,
+      52
+    ],
+    "sole": [
+      62,
+      46,
+      38
+    ]
+  }
+}
