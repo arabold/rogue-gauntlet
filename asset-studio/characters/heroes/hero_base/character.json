@@ -7,17 +7,16 @@
   "body": {
     "torso": "standard",
     "arms": {
-      "hand": "mitten",
       "kaykit": true
     },
     "legs": {
-      "foot": "bare"
+      "kaykit": true
     }
   },
   "underlayer": [
     {
       "kind": "shorts",
-      "down": 0.6,
+      "down": 0.3,
       "slot": "pants",
       "thickness": 0.02
     },
@@ -31,11 +30,6 @@
         "front": 0.0,
         "back": 0.0
       }
-    },
-    {
-      "kind": "boots",
-      "y0": 0.72,
-      "slot": "boot"
     }
   ],
   "head_parts": [
@@ -53,16 +47,6 @@
       104,
       86,
       70
-    ],
-    "boot": [
-      96,
-      68,
-      52
-    ],
-    "sole": [
-      62,
-      46,
-      38
     ]
   }
 }

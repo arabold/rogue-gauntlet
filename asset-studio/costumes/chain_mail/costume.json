@@ -46,5 +46,37 @@
       53,
       61
     ]
-  }
+  },
+  "item": {
+    "glb": "res://assets/custom-items/armor/body/mithril_hauberk.glb",
+    "colors": {
+      "mail": [
+        198,
+        210,
+        224
+      ],
+      "mail_dark": [
+        112,
+        128,
+        148
+      ],
+      "armor": [
+        176,
+        189,
+        204
+      ],
+      "trim": [
+        196,
+        206,
+        218
+      ],
+      "barbarian_arm_06": "leather",
+      "barbarian_arm_11": "cloth",
+      "barbarian_arm_03": "armor",
+      "barbarian_leg_17": "cloth",
+      "barbarian_leg_23": "leather"
+    }
+  },
+  "arms": "barbarian",
+  "legs": "barbarian"
 }

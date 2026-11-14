@@ -50,5 +50,6 @@
   "item": {
     "glb": "res://assets/custom-items/armor/body/knight_armor.glb"
   },
-  "arms": "knight"
+  "arms": "knight",
+  "legs": "knight"
 }

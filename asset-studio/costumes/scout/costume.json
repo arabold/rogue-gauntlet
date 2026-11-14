@@ -51,5 +51,18 @@
       172,
       181
     ]
-  }
+  },
+  "item": {
+    "glb": "res://assets/custom-items/armor/body/nightweave_armor.glb",
+    "colors": {
+      "rogue_arm_10": "cloth",
+      "rogue_arm_11": "cloak",
+      "rogue_arm_05": "leather_dark",
+      "rogue_arm_25": "leather_dark",
+      "rogue_leg_17": "cloth_dark",
+      "rogue_leg_23": "leather_dark"
+    }
+  },
+  "arms": "rogue",
+  "legs": "rogue"
 }

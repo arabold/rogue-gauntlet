@@ -1,11 +1,13 @@
-"""KayKit's adventurer heads and arms (CC0), worn by the class heroes exactly as KayKit modeled them.
+"""KayKit's adventurer heads, arms and legs (CC0), worn by the class heroes exactly as KayKit modeled them.
 
-`harvest()` reads each class head and arms from the KayKit characters in the rest pose (the frame Studio characters
-are built in). It saves them to `meshes/<class>_head.npz` and `meshes/<class>_arms.npz`, plus `meshes/hero_arms.npz`:
-the rogue's plain arms (full sleeves, leather bracers and gloves) that every bare hero wears. A class's own arms
-belong to its chest armor, which hides the hero's while worn. Each face's KayKit swatch becomes a character slot (`skin`,
-`hair`, `eye`; the arms' `cloth`, `cloth_dark`, `strap`, `glove`), and each corner keeps its position down that
-swatch's gradient (`uv_t`) and its authored normal. The sleeves take the hero's tunic color.
+`harvest()` reads each class head, arms and legs from the KayKit characters in the rest pose (the frame Studio
+characters are built in). It saves them to `meshes/<class>_head.npz`, `meshes/<class>_arms.npz` and
+`meshes/<class>_legs.npz`, plus `meshes/hero_arms.npz` and `meshes/hero_legs.npz`: the rogue's plain limbs (full
+sleeves, leather bracers and gloves; pants, bare knees and boots) that every bare hero wears. A class's own limbs belong
+to a body armor suit, which hides the hero's while worn. Each face's KayKit swatch becomes a character slot (`skin`,
+`hair`, `eye`; the limbs' `cloth`, `cloth_dark`, `strap`, `glove`, `pants`, `boot`), and each corner keeps its position
+down that swatch's gradient (`uv_t`) and its authored normal. The sleeves take the hero's tunic color and the pants
+its pants color.
 Run once from `asset-studio/` (`python -c "from prefabs.anatomy import adventurer_parts as a; a.harvest()"`) and
 commit the result, so builds never read the KayKit packs.
 
@@ -33,8 +35,12 @@ SOURCES = {"barbarian": "Barbarian", "knight": "Knight", "mage": "Mage", "rogue"
 # class's hair color (the barbarian's beard and brows).
 SLOTS = {"00": "skin", "01": "hair", "02": "eye", "03": "metal", "11": "hair_tie"}
 HAIR = {"barbarian": (), "knight": ("hair",), "mage": ("hair", "hair_tie"), "rogue": ("hair",)}
-ARMS = "Rogue"  # whose arms every hero wears: plain sleeves, a leather band, bracers and gloves
-ARM_SLOTS = {"10": "cloth", "11": "cloth_dark", "05": "strap", "25": "glove"}  # the rogue atlas's arm swatches
+BARE = "Rogue"  # whose limbs every hero wears: plain sleeves, bracers and gloves; pants, bare knees and boots
+# the rogue atlas's limb swatches -> the bare hero's slots, by limb
+BARE_SLOTS = {"arms": {"10": "cloth", "11": "cloth_dark", "05": "strap", "25": "glove"},
+              "legs": {"17": "pants", "23": "boot", "00": "skin"}}
+HERO_COLORED = {"cloth", "cloth_dark", "pants", "skin"}  # bare limb slots in the hero's own colors, not KayKit's
+LIMBS = ("arms", "legs")
 EAR_X = 0.36  # islands centred this far out to the side are ears (and the earrings hung on them)
 SCALP_INSET = 0.008  # the scalp sits this far under the hair, so it never shows through it
 
@@ -121,7 +127,8 @@ def _scalp(verts, faces, part, skull):
 
 
 def harvest():
-    """Read the four class heads, with their parts and scalps, and the heroes' arms, and save them to `meshes/`."""
+    """Read the four class heads, with their parts and scalps, and the heroes' and classes' limbs, and save them to
+    `meshes/`."""
     from prefabs.anatomy import heads
 
     read = {name: _read(title)[:6] for name, title in SOURCES.items()}
@@ -141,32 +148,36 @@ def harvest():
                             part=np.asarray(part, str), scalp=_scalp(verts, faces, part, skull).astype(np.float32),
                             meta=json.dumps(meta))
         print(f"  [+] {name}_head {len(faces):4d} tris  {meta['parts']}")
-    _save_arms("hero", ARMS, ARM_SLOTS)
-    for name, title in SOURCES.items():
-        _save_arms(name, title, lambda cell, name=name: f"{name}_arm_{cell}")
+    for limb in LIMBS:
+        _save_limbs("hero", BARE, limb, BARE_SLOTS[limb], hero_colored=HERO_COLORED, gradients=False)
+        for name, title in SOURCES.items():
+            _save_limbs(name, title, limb, lambda cell, name=name, limb=limb: f"{name}_{limb[:-1]}_{cell}")
 
 
-def _save_arms(name, title, cells):
-    """Save KayKit character `title`'s two arms as `meshes/<name>_arms.npz`, swatches named by `cells`, with KayKit's
-    own colors and exact gradients for every slot but the sleeves that take the hero's `cloth`."""
-    sides = {side: _read(title, side, cells) for side in ("ArmLeft", "ArmRight")}
-    offset = len(sides["ArmLeft"][0])
-    verts = np.vstack([s[0] for s in sides.values()])
-    faces = np.vstack([sides["ArmLeft"][2], sides["ArmRight"][2] + offset])
-    own = lambda slot: not slot.startswith("cloth")  # noqa: E731
-    meta = {"name": f"{name}_arms", "category": "arms", "domain": "anatomy", "license": "CC0 (KayKit)",
-            "source": f"kaykit-adventurers/{title}.glb", "verts": len(verts), "tris": len(faces),
-            "span": [round(float(x), 4) for x in np.ptp(verts, axis=0)],
-            "colors": {k: v for s in sides.values() for k, v in s[5].items() if own(k)},
-            "materials": {k: {"gradient": look["gradient"]} for s in sides.values() for k, look in s[6].items()
-                          if own(k) and name != "hero"}}
-    np.savez_compressed(MESHES / f"{name}_arms.npz", verts=verts.astype(np.float32), faces=faces.astype(np.int32),
-                        slots=np.asarray(np.concatenate([s[3] for s in sides.values()]), str),
-                        normals=np.vstack([s[1][s[2]] for s in sides.values()]).astype(np.float32),
-                        uv_t=np.vstack([s[4] for s in sides.values()]).astype(np.float32),
-                        part=np.asarray(np.repeat(list(sides), [len(s[2]) for s in sides.values()]), str),
+def sides(limb):
+    """The KayKit nodes of `limb` (`arms`, `legs`), the pieces it builds: `("ArmLeft", "ArmRight")`."""
+    return tuple(f"{limb[:-1].capitalize()}{side}" for side in ("Left", "Right"))
+
+
+def _save_limbs(name, title, limb, cells, hero_colored=(), gradients=True):
+    """Save KayKit character `title`'s two `limb` (`arms`, `legs`) as `meshes/<name>_<limb>.npz`, swatches named by
+    `cells`, with KayKit's own colors but for the `hero_colored` slots that take the character's, and with `gradients`
+    KayKit's exact swatch gradients."""
+    read = {side: _read(title, side, cells) for side in sides(limb)}
+    whole = kit.Piece.merge(*(kit.Piece(verts, faces, slots, normals=normals[faces], uv_t=uv_t)
+                              for verts, normals, faces, slots, uv_t, _, _ in read.values()))
+    meta = {"name": f"{name}_{limb}", "category": limb, "domain": "anatomy", "license": "CC0 (KayKit)",
+            "source": f"kaykit-adventurers/{title}.glb", "verts": len(whole.verts), "tris": len(whole.faces),
+            "span": [round(float(x), 4) for x in np.ptp(whole.verts, axis=0)],
+            "colors": {k: v for r in read.values() for k, v in r[5].items() if k not in hero_colored},
+            "materials": {k: {"gradient": look["gradient"]} for r in read.values() for k, look in r[6].items()}
+            if gradients else {}}
+    np.savez_compressed(MESHES / f"{name}_{limb}.npz", verts=whole.verts.astype(np.float32),
+                        faces=whole.faces.astype(np.int32), slots=np.asarray(whole.slots, str),
+                        normals=whole.normals.astype(np.float32), uv_t=whole.uv_t.astype(np.float32),
+                        part=np.asarray(np.repeat(list(read), [len(r[2]) for r in read.values()]), str),
                         meta=json.dumps(meta))
-    print(f"  [+] {name}_arms {len(faces):4d} tris  <- {title}.glb")
+    print(f"  [+] {name}_{limb} {len(whole.faces):4d} tris  <- {title}.glb")
 
 
 @lru_cache(maxsize=None)
@@ -175,21 +186,32 @@ def _stored(name):
         return {k: data[k] for k in data.files if k != "meta"}, json.loads(str(data["meta"]))
 
 
-def arms(name="hero"):
-    """Arms as `{"ArmLeft": kit.Piece, "ArmRight": kit.Piece}`, hands and all: the bare heroes' (`hero`, their sleeves
-    in the tunic's `cloth`) or a class's own (`knight`), worn with its chest armor."""
-    data, _ = _stored(f"{name}_arms")
+def limbs(name, limb):
+    """`limb` (`arms`, `legs`) as `{"ArmLeft": kit.Piece, "ArmRight": kit.Piece}` (`LegLeft`, `LegRight`), hands and
+    feet and all: the bare heroes' (`hero`, their sleeves in the tunic's `cloth`, their pants in `pants`) or a class's
+    own (`knight`), worn with a body armor suit."""
+    data, _ = _stored(f"{name}_{limb}")
     whole = kit.Piece(data["verts"].astype(float), data["faces"].astype(np.int64), data["slots"].astype(object),
                       normals=data["normals"].astype(float), uv_t=data["uv_t"].astype(float))
     part = data["part"].astype(object)
-    return {side: whole.faces_where(part == side) for side in ("ArmLeft", "ArmRight")}
+    return {side: whole.faces_where(part == side) for side in sides(limb)}
 
 
-def arm_colors(name="hero"):
-    """`(colors, looks)`: KayKit's own colors for `name`'s arm slots, and their exact gradients (a class's arms only;
-    the bare heroes' leather and gloves take the character's shading)."""
-    meta = _stored(f"{name}_arms")[1]
+def limb_colors(name, limb):
+    """`(colors, looks)`: KayKit's own colors for `name`'s `limb` slots, and their exact gradients (a class's limbs
+    only; the bare heroes' leather, gloves and boots take the character's shading)."""
+    meta = _stored(f"{name}_{limb}")[1]
     return {slot: tuple(rgb) for slot, rgb in meta["colors"].items()}, meta["materials"]
+
+
+def tinted(look, rgb):
+    """A limb slot's `look` (KayKit's exact swatch gradient) recolored to `rgb` at its middle, keeping KayKit's shading:
+    every row keeps its brightness relative to the middle, so a suit can dress a class's limbs in its own colors."""
+    gradient = np.asarray(look["gradient"], float)
+    luma = gradient @ (0.299, 0.587, 0.114)
+    shade = (luma + 1.0) / (luma[len(gradient) // 2] + 1.0)
+    rows = np.clip(np.asarray(rgb, float) * shade[:, None], 0, 255).round().astype(int)
+    return {**look, "gradient": [tuple(int(v) for v in row) for row in rows]}
 
 
 def colors(name):

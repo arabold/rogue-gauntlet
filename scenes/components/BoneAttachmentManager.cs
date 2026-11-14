@@ -270,7 +270,7 @@ public partial class BoneAttachmentManager : Node
 		return true;
 	}
 
-	/// <summary>Hides the head parts the worn helmet and body armor cover, and shows the rest.</summary>
+	/// <summary>Hides the model parts the worn helmet and body armor cover, and shows the rest.</summary>
 	private void ShowCoveredParts()
 	{
 		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);

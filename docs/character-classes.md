@@ -69,8 +69,8 @@ Mage simply casts more often.
 ## The model swap
 
 Each class model is a Studio hero (`assets/custom-heroes/<class>.glb`, see the Studio's
-[class heroes](../asset-studio/README.md#class-heroes)). It is a bare body in tunic, pants and boots, shared by
-every class, with KayKit's plain gloved arms, under the class's own KayKit head. The Studio exports it on the KayKit class template, so all heroes
+[class heroes](../asset-studio/README.md#class-heroes)). It is a bare body in tunic and shorts, shared by
+every class, with KayKit's plain gloved arms and booted legs, under the class's own KayKit head. The Studio exports it on the KayKit class template, so all heroes
 share one rig, bone names and animation names. `Player.ApplyCharacterModel` therefore simply replaces the
 `Pivot/Character` instance during `_EnterTree` (before any child `_Ready`), and the authored `AnimationTree`
 (`root_node = "../Pivot/Character"`) binds to the new model without retargeting.
@@ -83,11 +83,11 @@ render layer (mask 4, which the light and highlight cull masks rely on), and str
 
 - **Skinned armor** is exported on the hero rig with the heroes' shoulder hinges. Its meshes move onto the hero's
   own skeleton and bind by bone name, so they bend with the body.
-- **Rigid helmets and breastplates** mount on the head or chest bone.
+- **Rigid helmets** mount on the head bone.
 - **Covered head parts:** a helmet hides the parts it covers (`Armor.HiddenModelParts`: the `_Hair` and `_Ears`
   nodes). Hidden hair shows the `_Scalp` the Studio generated under it.
-- **Class arms:** each class's starting chest armor brings that class's own KayKit arms and hides the hero's plain ones
-  (`HiddenModelParts: Arms`).
+- **Whole suits:** body armor brings a KayKit class's own arms and legs (the starting suits their class's) and hides
+  the hero's plain ones (`HiddenModelParts: Arms, Legs`).
 - **Taking a piece off** restores the bare hero.
 - **Menu preview:** `CharacterModel.Dress` puts the same starting helmet and armor on the preview.
 

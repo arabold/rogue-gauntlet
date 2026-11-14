@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://od7hkwk01qiw"
-path="res://.godot/imported/ranger_coat_rangercoat_texture.png-d4a97d87ac153381eb0e1ad89665f90c.ctex"
+path.s3tc="res://.godot/imported/ranger_coat_rangercoat_texture.png-d4a97d87ac153381eb0e1ad89665f90c.s3tc.ctex"
+path.etc2="res://.godot/imported/ranger_coat_rangercoat_texture.png-d4a97d87ac153381eb0e1ad89665f90c.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "e0db70a35a131eee8abaa3134bee5a2a"
+"md5": "8031e87ea19a295d60511a26689bfcf4"
 }
 
 [deps]
 
 source_file="res://assets/custom-heroes/armor/ranger_coat_rangercoat_texture.png"
-dest_files=["res://.godot/imported/ranger_coat_rangercoat_texture.png-d4a97d87ac153381eb0e1ad89665f90c.ctex"]
+dest_files=["res://.godot/imported/ranger_coat_rangercoat_texture.png-d4a97d87ac153381eb0e1ad89665f90c.s3tc.ctex", "res://.godot/imported/ranger_coat_rangercoat_texture.png-d4a97d87ac153381eb0e1ad89665f90c.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

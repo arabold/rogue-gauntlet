@@ -22,14 +22,16 @@ public partial class Armor : EquipableItem
 	/// <summary>
 	/// Body armor's or a helmet's model on the hero. A rigid model is in its bone's rest frame (origin at the chest or
 	/// head bone, +Z forward); a skinned model is exported on the hero rig and bends with the body, its meshes moved onto
-	/// the hero's own skeleton (<see cref="WornEquipment"/>). <see cref="Item.Scene"/> stays the pickup and inventory
-	/// model. Unassigned, nothing shows on the body and the class model's own hat or cape stays visible.
+	/// the hero's own skeleton (<see cref="WornEquipment"/>). Body armor is a whole suit, its own arms and legs included.
+	/// <see cref="Item.Scene"/> stays the pickup and inventory model (a suit's torso alone). Unassigned, nothing shows on
+	/// the body and the class model's own hat or cape stays visible.
 	/// </summary>
 	[Export] public PackedScene WornScene { get; set => SetValue(ref field, value); }
 	/// <summary>
 	/// Parts of the hero's model this piece covers and hides while worn, named like the model's nodes end
-	/// (<c>Hair</c>, <c>Ears</c>, <c>Beard</c>, <c>Arms</c>): a helmet hides the hair it would otherwise poke through, and
-	/// chest armor that brings its own arms hides the hero's. Hidden hair shows the head's scalp in its place.
+	/// (<c>Hair</c>, <c>Ears</c>, <c>Arms</c>, <c>Legs</c>): a helmet hides the hair it would otherwise
+	/// poke through, and a body armor suit hides the hero's arms and legs for its own. Hidden hair shows the head's scalp
+	/// in its place.
 	/// </summary>
 	[Export] public string[] HiddenModelParts { get; set => SetValue(ref field, value ?? []); } = [];
 	/// <summary>

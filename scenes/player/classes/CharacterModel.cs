@@ -77,7 +77,7 @@ public static class CharacterModel
 	/// <summary>
 	/// Dresses a class <paramref name="model"/> outside the game, as the menu preview shows it: in the helmet and body
 	/// armor among the class's starting items. Skinned armor goes onto the model's skeleton, a rigid helmet or breastplate
-	/// on its head or chest bone, and the head parts they cover are hidden.
+	/// on its head or chest bone, and the model parts they cover are hidden.
 	/// </summary>
 	public static void Dress(Node3D model, CharacterClass characterClass)
 	{

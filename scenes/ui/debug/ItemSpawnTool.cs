@@ -26,8 +26,8 @@ public partial class ItemSpawnTool : DebugTool
 
 	/// <summary>
 	/// Category label to the res:// folder its submenu lists: every <c>.tres</c> item in the folder or its subfolders, so an
-	/// item authored into a listed folder shows up without a menu edit. Wands and staves get the
-	/// <see cref="SpellWeaponCategories"/> submenus instead.
+	/// item authored into a listed folder shows up without a menu edit. Wands, staves, body armor and helmets get the
+	/// <see cref="KindCategories"/> submenus instead.
 	/// </summary>
 	[Export]
 	public Godot.Collections.Dictionary<string, string> Categories { get; set; } = new()
@@ -62,13 +62,16 @@ public partial class ItemSpawnTool : DebugTool
 	[Export] public Item FillItem { get; set; }
 
 	/// <summary>
-	/// Spell weapons are authored among the other weapons but listed in their own submenus, right after the folder they are
-	/// found in: one-handed wands apart from the stronger two-handed staves.
+	/// Kinds authored among other items but listed in their own submenus, right after the folder they are found in:
+	/// one-handed wands apart from the stronger two-handed staves among the weapons, and body armor and helmets apart from
+	/// the shields among the armor.
 	/// </summary>
-	private static readonly (string Label, System.Func<Item, bool> Matches)[] SpellWeaponCategories =
+	private static readonly (string Label, System.Func<Item, bool> Matches)[] KindCategories =
 	[
 		("Wands", item => item is MagicStaff { IsTwoHanded: false }),
 		("Staves", item => item is MagicStaff { IsTwoHanded: true }),
+		("Body armor", item => item is Armor armor && armor.ValidSlots.HasFlag(ValidSlots.Chest)),
+		("Helmets", item => item is Armor armor && armor.ValidSlots.HasFlag(ValidSlots.Head)),
 	];
 
 	protected override void BuildMenu(PopupMenu menu)
@@ -77,10 +80,10 @@ public partial class ItemSpawnTool : DebugTool
 		foreach (var (label, directory) in Categories)
 		{
 			var entries = DebugCatalog.Resources<Item>(directory);
-			categories.Add((label, entries.Where(e => e.Resource is not MagicStaff)));
-			categories.AddRange(SpellWeaponCategories.Select(c => (c.Label, entries.Where(e => c.Matches(e.Resource)))));
+			categories.Add((label, entries.Where(e => !KindCategories.Any(c => c.Matches(e.Resource)))));
+			categories.AddRange(KindCategories.Select(c => (c.Label, entries.Where(e => c.Matches(e.Resource)))));
 		}
-		// Merges spell weapons found in several folders into one submenu, placed where they first appear.
+		// Merges a kind found in several folders into one submenu, placed where it first appears.
 		foreach (var category in categories.GroupBy(c => c.Label, c => c.Entries))
 		{
 			AddCategory(menu, category.Key, category.SelectMany(entries => entries));

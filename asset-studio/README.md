@@ -81,10 +81,10 @@ cover blob/spider/wolf/rat extraction and explicit external-donor tools. The old
 
 ## Class heroes
 
-The playable classes (`characters/heroes/{barbarian,knight,mage,rogue}`) are bare bodies that the game dresses. Helmets, chest armor, capes and weapons are items the game equips. Each class extends `heroes/hero_base` (`"hero": true`) and keeps its contract:
+The playable classes (`characters/heroes/{barbarian,knight,mage,rogue}`) are bare bodies that the game dresses. Helmets, body armor suits, capes and weapons are items the game equips. Each class extends `heroes/hero_base` (`"hero": true`) and keeps its contract:
 
-- **One shared body and underclothes:** every class has the same torso, legs, tunic, pants and boots (`underlayer`), so armor fitted once fits every class. Classes differ only in their head and clothing colors.
-- **KayKit's plain arms:** every hero wears the KayKit rogue's arms (`"arms": {"kaykit": true}`): full sleeves in the tunic's color, a leather band, bracers and gloves. They are exported as `<Class>_Arms`, so chest armor that brings a class's own KayKit arms can hide them.
+- **One shared body and underclothes:** every class has the same torso, tunic and shorts (`underlayer`), so armor fitted once fits every class. Classes differ only in their head and clothing colors.
+- **KayKit's plain limbs:** every hero wears the KayKit rogue's arms and legs (`"arms"`, `"legs": {"kaykit": true}`): full sleeves in the tunic's color, bracers and gloves; pants in the pants color, bare knees and boots. They are exported as `<Class>_Arms` and `<Class>_Legs`, so a body armor suit that brings a class's own KayKit limbs can hide them.
 - **KayKit's own heads:** each class wears its KayKit adventurer head exactly (`"head": {"kaykit": "knight"}`, harvested by `prefabs/anatomy/adventurer_parts.py`), so KayKit's hats fit it natively.
 - **Head parts as nodes:** the hair and the ears with any earrings (`head_parts`) are exported as `<Class>_Hair` and `<Class>_Ears` so equipped headgear can hide them. KayKit hair is the top of the head itself, so a generated `<Class>_Scalp` (the hair pulled down onto the bald barbarian skull) lies under it; the game shows the scalp only while the hair is hidden. Everything else is merged into `<Class>_Body`.
 - **Shoulder hinges:** every hero carries the `shoulder_cap.l/.r` joints from `rigs/hero_hinges.json` with their motion baked into every clip, so armor with pauldrons binds to any hero. The pivots are the knight costume's caps fitted over `hero_base`; regenerate them with `characters.hero_hinges()` if that body changes.
@@ -94,7 +94,7 @@ The playable classes (`characters/heroes/{barbarian,knight,mage,rogue}`) are bar
 What heroes wear is exported separately:
 
 - **Helmets:** item recipes in `objects/headgear/` built with `kaykit_headgear` are KayKit's own hats, exactly as authored, in the hat-prop frame. They are exported to `assets/custom-items/armor/helmet/`.
-- **Chest armor:** costumes with an `item`, exported with `armor equip` (see the [armor style guide](costumes/README.md#chest-armor-for-the-class-heroes)).
+- **Body armor suits:** costumes with an `item`, exported with `armor equip` (see the [armor style guide](costumes/README.md#body-armor-suits-for-the-class-heroes)).
 
 ## Wearable armor fitting
 

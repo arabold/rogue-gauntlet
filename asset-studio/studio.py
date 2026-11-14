@@ -50,6 +50,7 @@ if STUDIO_DIR not in sys.path:
 from core import catalog, export, kit, match  # noqa: E402
 from core import mesh as mm  # noqa: E402
 from core.rig import Rig, mannequin, skin, skinned  # noqa: E402
+from prefabs.anatomy import adventurer_parts  # noqa: E402
 from prefabs.creatures import characters, golems  # noqa: E402
 from prefabs import registry  # noqa: E402
 
@@ -294,12 +295,13 @@ def _write(path, data):
 def hero_export(recipe, pieces):
     """`(fixed_hinges, groups)` for exporting a class hero: the bare body the game dresses, its headgear, capes and
     weapons being items it equips. It carries the shared shoulder hinges any armor binds to, and few nodes: its body,
-    its arms (chest armor brings its class's own and hides these), and the head parts headgear hides (with the scalp
-    shown in their place)."""
+    its arms and its legs (a body armor suit brings its own and hides these), and the head parts headgear hides (with
+    the scalp shown in their place)."""
     with open(characters.HERO_HINGES, encoding="utf-8") as f:
         fixed_hinges = json.load(f)
     parts = {part.capitalize() for part in recipe.get("head_parts", ())} | {"Scalp"}
-    return fixed_hinges, {k: "Arms" if k in ("ArmLeft", "ArmRight") else "Body" for k in pieces if k not in parts}
+    limbs = {side: limb.capitalize() for limb in adventurer_parts.LIMBS for side in adventurer_parts.sides(limb)}
+    return fixed_hinges, {k: limbs.get(k, "Body") for k in pieces if k not in parts}
 
 
 def export_glb(c, no_import=False):

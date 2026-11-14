@@ -51,5 +51,18 @@
       57,
       51
     ]
-  }
+  },
+  "item": {
+    "glb": "res://assets/custom-items/armor/body/studded_leather.glb",
+    "colors": {
+      "rogue_arm_10": "cloth",
+      "rogue_arm_11": "leather_dark",
+      "rogue_arm_05": "leather",
+      "rogue_arm_25": "leather_dark",
+      "rogue_leg_17": "cloth",
+      "rogue_leg_23": "leather"
+    }
+  },
+  "arms": "rogue",
+  "legs": "rogue"
 }

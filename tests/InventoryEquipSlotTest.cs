@@ -57,7 +57,7 @@ public class InventoryEquipSlotTest
 		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
 		await player.ToSignal(player.GetTree(), SceneTree.SignalName.PhysicsFrame);
 		float armor = player.Stats.Armor, speed = player.Stats.Speed;
-		var plate = (Armor)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/body/iron_breastplate.tres"));
+		var plate = (Armor)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/body/steel_plate.tres"));
 		AssertBool(player.Inventory.TryAdd(plate).Success).IsTrue();
 
 		AssertBool(player.InventoryController.TryEquip(player.Inventory.Items.Last()).Success).IsTrue();

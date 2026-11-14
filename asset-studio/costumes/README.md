@@ -23,7 +23,7 @@ This is a shared quality and construction pattern, not a requirement to repeat t
 
 See the [current plate-family comparison](../catalogs/costumes/plate_family.png) and individual current animated fittings. Build these through the common costume constructor rather than separate copies of the approved recipe's geometry. New fittings use ray hits on the triangulated plate; the analytical surface alone can leave details floating near tapered facets. Tests union the original indexed islands individually to establish actual support contact, in addition to checking closed topology and rigged motion.
 
-This pass covers torso, waist, belt, hip protection and cloth shoulder connections. The five steel costumes now include gorget-supported articulated pauldrons. Boots and gloves remain separate equipment work. Legacy character assemblies still need migration and combined fitting review; generating a replacement study does not automatically update every character using older armor.
+This pass covers torso, waist, belt, hip protection and cloth shoulder connections. The five steel costumes now include gorget-supported articulated pauldrons. Gloves and boots come from KayKit's class limbs when a costume is worn as a [suit](#body-armor-suits-for-the-class-heroes). Legacy character assemblies still need migration and combined fitting review; generating a replacement study does not automatically update every character using older armor.
 
 ## Segmented, leather and padded armor
 
@@ -94,23 +94,31 @@ These helpers are discoverable through `studio.py schema`: `outfits.fitted_belt`
 
 Use a full body to author and fit clothing, but retain only visible skin in the assembled render. `characters.hide_covered` already removes body triangles conservatively under sufficiently enclosing clothing at build time. It samples face centers and near-corners against the covering garment. Partial straps and open capes do not count as skin-covering garments. This is bind-pose coverage processing, not a dynamic collision solver or runtime equipment mask.
 
-## Chest armor for the class heroes
+## Body armor suits for the class heroes
 
-A costume with an `item` (`{"glb": "res://assets/custom-items/armor/body/<id>.glb"}`) is chest armor the game's class heroes can wear. `armor equip <costume>` fits it over the shared hero body and its underclothes (`heroes/hero_base`) and writes two files:
+A costume with an `item` (`{"glb": "res://assets/custom-items/armor/body/<id>.glb"}`) is a body armor suit the game's class heroes can wear: its torso plus a KayKit class's own arms and legs. `armor equip <costume>` fits it over the shared hero body and its underclothes (`heroes/hero_base`) and writes two files:
 
 - **`assets/custom-heroes/armor/<id>.glb`:** what the hero wears. One skinned node on the hero rig, weighted from the hero body under it, carrying the heroes' shoulder hinges, with no props or clips. The game moves its mesh onto any class hero's skeleton.
-- **`<id>.glb`** at the item path: the static display model for floors and inventory icons.
+- **`<id>.glb`** at the item path: the static display model for floors and inventory icons, the torso alone (the limbs would float beside it).
 
-A costume's `arms` names a KayKit class whose own arms (sleeves, bracers, gauntlets) the armor brings. The item then hides the hero's plain gloved arms while worn (`HiddenModelParts: Arms`).
+A costume's `arms` and `legs` each name a KayKit class whose own limbs (sleeves, bracers, gauntlets; pants, greaves, boots) the suit brings, in KayKit's colors and gradients. The item then hides the hero's plain limbs while worn (`HiddenModelParts: Arms, Legs`). The [item catalog](../../docs/item-catalog.md#body-armor-and-helmets-14) gives each suit's weight and tier, and which class's limbs each weight takes.
 
-Armor fits over the heroes' own tunic, pants and boots, so no skin needs masking at runtime; the underclothes stay underneath. A costume fitted to those underclothes lists the garments it goes over in `under`, so its dummy study wears them too (the barbarian harness's belt is fitted to the tunic).
+The item's `colors` recolor the suit without changing the costume: a torso slot takes an RGB (the Mithril Hauberk's silver mail), and a limb slot (`knight_leg_03`) takes an RGB or a suit slot's name (`"armor"`), keeping KayKit's shading. The class suits keep KayKit's own limb colors; the other suits dress their limbs in their own leather, cloth and plate.
 
-| Costume | Item | Arms | Starting gear of |
+The suit's torso fits over the heroes' own tunic and shorts, so no skin needs masking at runtime; the underclothes stay underneath. A costume fitted to those underclothes lists the garments it goes over in `under`, so its dummy study wears them too (the barbarian harness's belt is fitted to the tunic).
+
+| Costume | Item | Limbs | Starting gear of |
 | --- | --- | --- | --- |
-| `knight` | `knight_armor` | knight | Knight |
-| `barbarian_harness` | `barbarian_harness` | barbarian | Barbarian |
-| `arcanist` | `mage_coat` | mage | Mage |
 | `ranger` | `ranger_coat` | rogue | Rogue |
+| `arcanist` | `mage_coat` | mage | Mage |
+| `brigandine` | `studded_leather` | rogue | |
+| `scout` | `nightweave_armor` | rogue | |
+| `barbarian_harness` | `barbarian_harness` | barbarian | Barbarian |
+| `scale` | `scale_mail` | barbarian | |
+| `chain_mail` | `mithril_hauberk` | barbarian | |
+| `knight` | `knight_armor` | knight | Knight |
+| `segmented` | `steel_plate` | knight | |
+| `knight_plate` | `gilded_full_plate` | knight | |
 
 ## Character costume references
 

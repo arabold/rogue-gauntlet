@@ -76,13 +76,16 @@ public class HeroEquipmentTest
 			AssertBool(Part(skeleton, "Ears").Visible).IsTrue();
 			AssertBool(Part(skeleton, "Scalp").Visible).IsFalse();
 
-			// The knight's armor brings the knight's own plated arms in place of the hero's sleeves and gloves.
+			// The knight's suit brings the knight's own plated arms and greaves in place of the hero's sleeves, gloves,
+			// pants and boots.
 			AssertBool(Part(skeleton, "Arms").Visible).IsFalse();
+			AssertBool(Part(skeleton, "Legs").Visible).IsFalse();
 			var armor = player.Inventory.EquippedItems[EquipmentSlot.Chest];
 			AssertBool(player.InventoryController.TryUnequip(armor).Success).IsTrue();
 			await player.ToSignal(player.GetTree(), SceneTree.SignalName.ProcessFrame);
 			AssertInt(WornMeshes(skeleton).Length).IsEqual(0);
 			AssertBool(Part(skeleton, "Arms").Visible).IsTrue();
+			AssertBool(Part(skeleton, "Legs").Visible).IsTrue();
 		}
 		finally
 		{

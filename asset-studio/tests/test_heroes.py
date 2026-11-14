@@ -23,8 +23,8 @@ class ClassHeroTest(unittest.TestCase):
 
     def test_every_class_shares_the_body_and_underclothes(self):
         reference = self.heroes[CLASSES[0]]
-        under = [k for k in reference if k.rstrip("0123456789") in ("Shorts", "Tunic", "Boots")]
-        self.assertEqual(len(under), 3)
+        under = [k for k in reference if k.rstrip("0123456789") in ("Shorts", "Tunic")]
+        self.assertEqual(len(under), 2)  # KayKit's legs bring their own boots
         for name, pieces in self.heroes.items():
             with self.subTest(hero=name):
                 for part in (*SHARED, *under):
@@ -58,6 +58,19 @@ class ClassHeroTest(unittest.TestCase):
                 self.assertLessEqual(np.linalg.norm(scalp.verts - centre, axis=1).max(),
                                      np.linalg.norm(hair.verts - centre, axis=1).max() + 1e-6)
 
+    def test_suits_recolor_class_limbs_on_kaykit_shading(self):
+        # A suit dresses a class's KayKit limbs in its own colors: the swatch's middle takes the new color and every
+        # row keeps KayKit's brightness relative to it.
+        from prefabs.anatomy import adventurer_parts
+
+        look = adventurer_parts.limb_colors("knight", "legs")[1]["knight_leg_03"]
+        steel, bronze = np.asarray(look["gradient"], float), np.asarray([155, 145, 128], float)
+        tinted = np.asarray(adventurer_parts.tinted(look, bronze)["gradient"], float)
+        middle = len(steel) // 2
+        np.testing.assert_allclose(tinted[middle], bronze, atol=1)
+        luma = lambda rows: rows @ (0.299, 0.587, 0.114)  # noqa: E731
+        np.testing.assert_allclose(luma(tinted) / luma(tinted)[middle], luma(steel) / luma(steel)[middle], atol=0.02)
+
     def test_committed_hinges_match_the_knight_costume_on_the_hero_body(self):
         with open(characters.HERO_HINGES, encoding="utf-8") as f:
             self.assertEqual(json.load(f), characters.hero_hinges())
@@ -78,33 +91,28 @@ class ClassHeroTest(unittest.TestCase):
         joints = {g["nodes"][j]["name"] for j in g["skins"][0]["joints"]}
         self.assertLessEqual({"shoulder_cap.l", "shoulder_cap.r", "head", "chest"}, joints)
         skinned = sorted(n["name"] for n in g["nodes"] if "skin" in n)
-        self.assertEqual(skinned, ["Rogue_Arms", "Rogue_Body", "Rogue_Ears", "Rogue_Hair", "Rogue_Scalp"])
+        self.assertEqual(skinned, ["Rogue_Arms", "Rogue_Body", "Rogue_Ears", "Rogue_Hair", "Rogue_Legs", "Rogue_Scalp"])
         clips = {a["name"]: a for a in g["animations"]}
         cap = next(i for i, n in enumerate(g["nodes"]) if n.get("name") == "shoulder_cap.l")
         self.assertTrue(any(ch["target"]["node"] == cap for ch in clips["Walking_A"]["channels"]))
 
-    def test_chest_armor_binds_to_any_class_hero(self):
-        # Armor is exported apart, weighted from the hero body under it; the game moves it onto any class's skeleton,
-        # so its joints must be the hero's (shoulder hinges included), in one node, without clips of its own.
+    def test_body_armor_binds_to_any_class_hero(self):
+        # A suit is exported apart, weighted from the hero body under it; the game moves it onto any class's skeleton,
+        # so its joints must be the hero's (shoulder hinges included), in one node, without clips of its own. It wears
+        # its class's KayKit limbs, which its display model leaves out.
         import fittings
-        from core import export
 
-        pieces, colors, hero = fittings.hero_fitting(json.loads((Path(fittings.STUDIO) / "costumes/knight/costume.json").read_text()))
-        armor = {name: piece for name, piece in pieces.items() if name not in hero}
-        with open(characters.HERO_HINGES, encoding="utf-8") as f:
-            hinges = json.load(f)
+        knight = fittings.suit(json.loads((Path(fittings.STUDIO) / "costumes/knight/costume.json").read_text()))
         with tempfile.TemporaryDirectory() as folder:
-            path = str(Path(folder) / "armor.glb")
-            export.export(path, "Armor", armor, colors, template="knight", fixed_hinges=hinges,
-                          groups={name: "Armor" for name in armor}, skin={name: pieces[name] for name in hero},
-                          props=False, clips=False)
-            g, _, _ = mesh.read_glb(path)
+            path = Path(folder) / "armor.glb"
+            fittings.write_worn(path, "Armor", knight)
+            g, _, _ = mesh.read_glb(str(path))
         joints = {g["nodes"][j]["name"] for j in g["skins"][0]["joints"]}
         self.assertLessEqual({"shoulder_cap.l", "shoulder_cap.r", "chest", "upperarm.l"}, joints)
         self.assertEqual([n["name"] for n in g["nodes"] if "mesh" in n], ["Armor_Armor"])
         self.assertFalse(g.get("animations"))
-        self.assertEqual(set(hero) & set(armor), set())
-
+        self.assertLessEqual({"ArmLeft", "ArmRight", "LegLeft", "LegRight"}, set(knight.worn) - set(knight.torso))
+        self.assertEqual(set(knight.skin) & set(knight.torso), set())
 
 if __name__ == "__main__":
     unittest.main()

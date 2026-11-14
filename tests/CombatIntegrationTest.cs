@@ -107,7 +107,7 @@ public partial class CombatIntegrationTest
 
 	/// <summary>
 	/// Exercise the arena's debug menu and harness buttons so a disconnected arena cannot pass command-only tests: the
-	/// menu equips a listed weapon and spawns a discovered monster passive, target invulnerability and defense modes stay
+	/// menu equips a listed weapon, body armor and helmet and spawns a discovered monster passive, target invulnerability and defense modes stay
 	/// independent, and the overlay, guard, reset and attack controls drive the hero.
 	/// </summary>
 	[TestCase]
@@ -120,6 +120,17 @@ public partial class CombatIntegrationTest
 			var weapons = harness.Items.Popup.GetNode<PopupMenu>("SpawnWeaponsMenu");
 			TestFactories.Press(weapons, i => weapons.GetItemTooltip(i) == axePath);
 			AssertString(harness.Player.Inventory.EquippedWeapon?.Name).IsEqual(TestFactories.Load<Weapon>(axePath).Name);
+			// Body armor and helmets have submenus of their own, apart from the shields they are authored beside.
+			foreach (var (menu, path, slot) in new[]
+			{
+				("SpawnBody armorMenu", "res://scenes/items/armor/body/steel_plate.tres", EquipmentSlot.Chest),
+				("SpawnHelmetsMenu", "res://scenes/items/armor/helmet/knight_helmet.tres", EquipmentSlot.Head),
+			})
+			{
+				var armor = harness.Items.Popup.GetNode<PopupMenu>(menu);
+				TestFactories.Press(armor, i => armor.GetItemTooltip(i) == path);
+				AssertString(harness.Player.Inventory.EquippedItems[slot]?.Item?.Name).IsEqual(TestFactories.Load<Item>(path).Name);
+			}
 
 			var monsters = harness.Monsters.Popup;
 			TestFactories.Press(monsters, "Invulnerable");

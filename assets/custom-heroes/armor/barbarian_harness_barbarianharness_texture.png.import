@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://54hsoah0g5io"
-path="res://.godot/imported/barbarian_harness_barbarianharness_texture.png-4e854414330a9b22584f6a1c20178bdb.ctex"
+path.s3tc="res://.godot/imported/barbarian_harness_barbarianharness_texture.png-4e854414330a9b22584f6a1c20178bdb.s3tc.ctex"
+path.etc2="res://.godot/imported/barbarian_harness_barbarianharness_texture.png-4e854414330a9b22584f6a1c20178bdb.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "45f8cc994837f3b96856cec6a1b3a095"
+"md5": "1ce48981f7507127dd96e00a4b107d77"
 }
 
 [deps]
 
 source_file="res://assets/custom-heroes/armor/barbarian_harness_barbarianharness_texture.png"
-dest_files=["res://.godot/imported/barbarian_harness_barbarianharness_texture.png-4e854414330a9b22584f6a1c20178bdb.ctex"]
+dest_files=["res://.godot/imported/barbarian_harness_barbarianharness_texture.png-4e854414330a9b22584f6a1c20178bdb.s3tc.ctex", "res://.godot/imported/barbarian_harness_barbarianharness_texture.png-4e854414330a9b22584f6a1c20178bdb.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

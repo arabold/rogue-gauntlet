@@ -3,22 +3,24 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://gd4f25dgi5l"
-path="res://.godot/imported/mage_coat_magecoat_texture.png-286248c578b0ab00477181a75232f268.ctex"
+path.s3tc="res://.godot/imported/mage_coat_magecoat_texture.png-286248c578b0ab00477181a75232f268.s3tc.ctex"
+path.etc2="res://.godot/imported/mage_coat_magecoat_texture.png-286248c578b0ab00477181a75232f268.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "a93e7b74b35dd4fe4cbea2a9cae01efc"
+"md5": "d310efc5743fb28043af90457422bff5"
 }
 
 [deps]
 
 source_file="res://assets/custom-heroes/armor/mage_coat_magecoat_texture.png"
-dest_files=["res://.godot/imported/mage_coat_magecoat_texture.png-286248c578b0ab00477181a75232f268.ctex"]
+dest_files=["res://.godot/imported/mage_coat_magecoat_texture.png-286248c578b0ab00477181a75232f268.s3tc.ctex", "res://.godot/imported/mage_coat_magecoat_texture.png-286248c578b0ab00477181a75232f268.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

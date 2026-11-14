@@ -5,12 +5,15 @@ import copy
 import json
 import os
 import shutil
+from collections import namedtuple
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw
 
 from core import export, kit
+from prefabs.anatomy import adventurer_parts
 from prefabs.creatures import characters
 from core.paths import work_root
 from core import publication
@@ -42,7 +45,7 @@ def studies():
 
 def recipe(study):
     """Use the production character assembler, layered hosts and coverage culling on a featureless dummy, wearing
-    the garments the costume goes over (`under`: chest armor fitted to the class heroes' underclothes)."""
+    the garments the costume goes over (`under`: a suit fitted to the class heroes' underclothes)."""
     return dict(template="knight", head={"form": {}}, body={"torso":study["torso"],
         "arms":{"hand":"mitten","scale":1.25}, "legs":{"foot":"bare"}, **copy.deepcopy(study.get("body",{}))},
         outfit=copy.deepcopy([*study.get("under", []), *study["outfit"]]), colors={**study["colors"], **NEUTRAL})
@@ -328,24 +331,63 @@ def character_review(key, empty_hands=False):
     print(f"Dressed character review (external temporary storage): {review_root}")
 
 
-def hero_fitting(spec):
-    """The costume `spec` worn over the class hero body (`heroes/hero_base` and its underclothes): `(pieces, colors,
-    hero piece names)`. Every class shares that body, so armor fitted here fits every class hero."""
+Suit = namedtuple("Suit", "worn torso colors looks skin")
+
+
+@lru_cache(maxsize=None)
+def _hero_parts():
+    """The bare class hero's own piece names (body, limbs, head parts), built once."""
+    return frozenset(characters.build(characters.load("heroes/hero_base"))[0])
+
+
+def suit(spec):
+    """The costume `spec` as a body armor suit over the class hero body (`heroes/hero_base` and its underclothes),
+    which every class shares, so a suit fitted here fits every class hero: a `Suit` of the pieces the hero wears
+    (`worn`: the torso and, by the costume's `arms` and `legs`, each a KayKit class, that class's own limbs), the
+    `torso` alone for the display model, `colors`, `looks` and the hero pieces it is weighted from (`skin`).
+
+    The item's `colors` recolor the suit over the costume's own palette: a torso slot takes an RGB, a limb slot
+    (`knight_leg_03`) an RGB or the name of a suit slot whose color it takes (`"armor"`), on KayKit's shading
+    (`adventurer_parts.tinted`). Limbs not named keep KayKit's colors.
+    """
     base = characters.load("heroes/hero_base")
-    hero, _ = characters.build(base)
+    recolor = spec["item"].get("colors", {})
+    own = {slot: rgb for slot, rgb in recolor.items() if not isinstance(rgb, str)}
     pieces, colors = characters.build({**base, "outfit": copy.deepcopy(spec["outfit"]),
-                                       "colors": {**base["colors"], **spec["colors"]}})
-    return pieces, colors, set(hero)
+                                       "colors": {**base["colors"], **spec["colors"], **own}})
+    torso = {name: piece for name, piece in pieces.items() if name not in _hero_parts()}
+    worn, looks = dict(torso), {}
+    for limb in adventurer_parts.LIMBS:
+        if spec.get(limb):
+            worn.update(adventurer_parts.limbs(spec[limb], limb))
+            limb_colors, limb_looks = adventurer_parts.limb_colors(spec[limb], limb)
+            colors, looks = {**limb_colors, **colors}, {**looks, **limb_looks}
+    for slot, value in recolor.items():
+        if isinstance(value, str) and (slot not in looks or value not in colors):
+            raise ValueError(f"item color {slot} = {value!r} needs a limb slot and a suit slot")
+        if slot in looks:
+            rgb = colors[value] if isinstance(value, str) else value
+            colors[slot], looks[slot] = tuple(rgb), adventurer_parts.tinted(looks[slot], rgb)
+    return Suit(worn, torso, colors, looks, {name: pieces[name] for name in _hero_parts()})
+
+
+def write_worn(path, title, suit):
+    """Write `suit` as the hero wears it: one skinned node on the hero rig, weighted from the hero body under it and
+    carrying the heroes' shoulder hinges, so the game can move it onto any class hero's skeleton. No props, no clips."""
+    with open(characters.HERO_HINGES, encoding="utf-8") as f:
+        hinges = json.load(f)
+    export.export(str(path), title, suit.worn, suit.colors, template="knight", fixed_hinges=hinges,
+                  groups={name: "Armor" for name in suit.worn}, skin=suit.skin, props=False, clips=False,
+                  materials=suit.looks)
 
 
 def equip(key):
-    """Write costume `key` as chest armor for the class heroes, at its `item.glb` path under `assets/`.
+    """Write costume `key` as a body armor suit for the class heroes (`suit`), at its `item.glb` path under `assets/`:
 
-    - `assets/custom-heroes/armor/<id>.glb`: what the hero wears, one skinned node on the hero rig, weighted from the
-      hero body under it and carrying the heroes' shoulder hinges, so the game can move it onto any class hero's
-      skeleton. No props, no clips. A costume's `arms` (a KayKit class) adds that class's own arms, which the item
-      wears in place of the hero's (`HiddenModelParts: Arms`).
-    - `item.glb`: its display model for floors and inventory icons, standing on the ground.
+    - `assets/custom-heroes/armor/<id>.glb`: what the hero wears (`write_worn`). Its limbs replace the hero's
+      (`HiddenModelParts: Arms, Legs`).
+    - `item.glb`: its display model for floors and inventory icons, standing on the ground: the torso alone, without
+      the limbs, which would float beside it.
     """
     from core.export import export_static, import_settings
     from items import model
@@ -358,28 +400,17 @@ def equip(key):
     worn = STUDIO.parent / "assets/custom-heroes/armor" / display.name
     for folder in (display.parent, worn.parent):
         folder.mkdir(parents=True, exist_ok=True)
-    pieces, colors, hero = hero_fitting(spec)
-    armor = {name: piece for name, piece in pieces.items() if name not in hero}
-    looks = {}
-    if spec.get("arms"):
-        from prefabs.anatomy import adventurer_parts
-
-        armor.update(adventurer_parts.arms(spec["arms"]))
-        arm_colors, looks = adventurer_parts.arm_colors(spec["arms"])
-        colors = {**arm_colors, **colors}
-    with open(characters.HERO_HINGES, encoding="utf-8") as f:
-        hinges = json.load(f)
+    built = suit(spec)
     title = "".join(word.capitalize() for word in display.stem.split("_"))
-    export.export(str(worn), title, armor, colors, template="knight", fixed_hinges=hinges,
-                  groups={name: "Armor" for name in armor}, skin={name: pieces[name] for name in hero},
-                  props=False, clips=False, materials=looks)
+    write_worn(worn, title, built)
     import_settings(str(worn), "knight")
     raw = CACHE / f"{display.stem}_display.glb"
     CACHE.mkdir(parents=True, exist_ok=True)
-    export_static(str(raw), title, kit.Piece.merge(*armor.values()), colors, materials=looks)
+    export_static(str(raw), title, kit.Piece.merge(*built.torso.values()), built.colors, materials=built.looks)
     model.place(raw, display, {"pivot": "ground"})
     print(f"{key}: {worn.relative_to(STUDIO.parent)}, {display.relative_to(STUDIO.parent)} "
-          f"({sum(len(p.faces) for p in armor.values())} triangles)")
+          f"({sum(len(p.faces) for p in built.worn.values())} triangles worn, "
+          f"{sum(len(p.faces) for p in built.torso.values())} shown)")
 
 
 def main(argv):

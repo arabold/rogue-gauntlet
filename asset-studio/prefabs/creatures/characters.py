@@ -344,15 +344,16 @@ def build(recipe):
     recipe = resolve_costumes({**recipe, "outfit": [*recipe.get("underlayer", []), *recipe.get("outfit", [])]})
     head_spec = head_recipe(recipe["head"])
     head = heads.Head(**head_spec.get("form", {}))  # the cranium headwear fits; its features wait for the outfit
-    # `"arms": {"kaykit": true}` wears KayKit's own arms (`adventurer_parts.arms`: sleeves, bracers and gloves); the
-    # body's own arms stay the hosts garments fit around.
+    # `"arms"` or `"legs": {"kaykit": true}` wears KayKit's own limbs (`adventurer_parts.limbs`: sleeves, bracers and
+    # gloves; pants and boots); the body's own limbs stay the hosts garments fit around.
     body_spec = recipe["body"]
-    native_arms = isinstance(body_spec.get("arms"), dict) and body_spec["arms"].get("kaykit", False)
-    if native_arms:
-        body_spec = {**body_spec, "arms": {k: v for k, v in body_spec["arms"].items() if k != "kaykit"}}
+    kaykit_limbs = [limb for limb in adventurer_parts.LIMBS
+                    if isinstance(body_spec.get(limb), dict) and body_spec[limb].get("kaykit", False)]
+    body_spec = {**body_spec, **{limb: {k: v for k, v in body_spec[limb].items() if k != "kaykit"}
+                                 for limb in kaykit_limbs}}
     hosts, pieces = body.build(body_spec)
-    if native_arms:
-        pieces.update(adventurer_parts.arms())
+    for limb in kaykit_limbs:
+        pieces.update(adventurer_parts.limbs("hero", limb))
     hosts = dict({k: clothes.Worn(v) for k, v in hosts.items()}, head=head)  # each layer goes on top of the last
     pieces = dict(Head=None, **pieces)  # built once the headwear over it is known
     # what the torso wears so far, for garments drawn tight round it (belts): the body and torso garments
@@ -392,7 +393,7 @@ def build(recipe):
     if recipe.get("hide_covered", True):
         pieces = hide_covered(pieces, covers)
     native = {**(adventurer_parts.colors(head_spec["kaykit"]) if "kaykit" in head_spec else {}),
-              **(adventurer_parts.arm_colors()[0] if native_arms else {})}
+              **{k: v for limb in kaykit_limbs for k, v in adventurer_parts.limb_colors("hero", limb)[0].items()}}
     explicit = {**native, **head_spec.get("colors", {}), **recipe.get("colors", {})}
     colors = _expand_palette(
         {**kit.DEMO_COLORS, **crowns.COLORS, **cuirass.COLORS, **heads.COLORS, **body.COLORS, **clothes.COLORS,
