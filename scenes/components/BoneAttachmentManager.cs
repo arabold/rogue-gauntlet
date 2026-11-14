@@ -85,6 +85,8 @@ public partial class BoneAttachmentManager : Node
 	}
 
 	private readonly System.Collections.Generic.Dictionary<AttachmentType, BoneAttachment3D> _weaponMounts = new();
+	/// <summary>Skinned armor meshes worn on the character's own skeleton, by the attachment they replace.</summary>
+	private readonly System.Collections.Generic.Dictionary<AttachmentType, System.Collections.Generic.List<MeshInstance3D>> _worn = new();
 
 	/// <summary>Use the shared hand socket rather than a character's weapon- or shield-specific prop bone.</summary>
 	private BoneAttachment3D GetWeaponMount(AttachmentType type, WeaponGrip grip)
@@ -155,6 +157,11 @@ public partial class BoneAttachmentManager : Node
 		}
 
 		if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, true);
+		if (_worn.Remove(attachmentType, out var worn))
+		{
+			foreach (MeshInstance3D mesh in worn)
+				if (IsInstanceValid(mesh)) { mesh.GetParent()?.RemoveChild(mesh); mesh.QueueFree(); }
+		}
 		AttachmentNodes.TryGetValue(attachmentType, out var boneAttachment);
 		if (boneAttachment != null)
 		{
@@ -194,6 +201,10 @@ public partial class BoneAttachmentManager : Node
 		{
 			return;
 		}
+		if (item is Armor && attachmentType is AttachmentType.Helmet or AttachmentType.Chest && TryWear(attachmentType, item, scene))
+		{
+			return;
+		}
 
 		WeaponGrip grip = item switch
 		{
@@ -229,6 +240,46 @@ public partial class BoneAttachmentManager : Node
 				aura.Initialize(item, model, player?.WorldEffects); model.AddChild(aura);
 			}
 		}
+	}
+
+	/// <summary>
+	/// Wears skinned armor on the character's own skeleton (see <see cref="WornEquipment"/>); false for a rigid model, which
+	/// mounts on its bone instead.
+	/// </summary>
+	private bool TryWear(AttachmentType attachmentType, EquipableItem item, PackedScene scene)
+	{
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
+		if (skeleton == null)
+		{
+			return false;
+		}
+		RemoveAttachments(attachmentType);
+		var meshes = WornEquipment.Wear(skeleton, scene, CharacterModel.PlayerRenderLayers, EquippedMetaKey);
+		if (meshes.Count == 0)
+		{
+			return false;
+		}
+		if (CoveredProps.TryGetValue(attachmentType, out var covered)) SetBuiltInPropsVisible(covered, false);
+		_worn[attachmentType] = meshes;
+		GD.Print($"Wearing {item.Name} on the skeleton ({attachmentType})");
+		if (AuraPresentation != null)
+		{
+			var aura = AuraPresentation.Instantiate<ItemAuraPresenter>();
+			aura.Initialize(item, meshes[0], player?.WorldEffects); meshes[0].AddChild(aura);
+		}
+		return true;
+	}
+
+	/// <summary>Hides the head parts the worn helmet and body armor cover, and shows the rest.</summary>
+	private void ShowCoveredParts()
+	{
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
+		if (skeleton == null || player?.Inventory == null)
+		{
+			return;
+		}
+		WornEquipment.ShowModelParts(skeleton, WornEquipment.CoveredParts(
+			System.Linq.Enumerable.Select(player.Inventory.EquippedItems.Values, entry => entry?.Item)));
 	}
 
 	private static void ApplyRenderLayers(Node node, uint renderLayers)
@@ -298,11 +349,19 @@ public partial class BoneAttachmentManager : Node
 		}
 
 		AddAttachment(attachmentType, item, slot);
+		if (attachmentType is AttachmentType.Helmet or AttachmentType.Chest)
+		{
+			ShowCoveredParts();
+		}
 	}
 
 	private void OnItemUnequipped(EquipableItem item, EquipmentSlot slot)
 	{
 		var attachmentType = GetAttachmentType(item, slot);
 		RemoveAttachments(attachmentType);
+		if (attachmentType is AttachmentType.Helmet or AttachmentType.Chest)
+		{
+			ShowCoveredParts();
+		}
 	}
 }

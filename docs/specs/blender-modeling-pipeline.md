@@ -7,10 +7,9 @@ are the first assets. This plan lists what remains.
 
 ## Open items
 
-1. **Headgear in the game.** Head-slot armor items for the two helmets (`EquipmentSlot.Head`; `BoneAttachmentManager`
-   already mounts an armor scene in the class's hat frame), and a per-class decision on what hides under headgear: the
-   knight's crown and the class ears show through today (`item validate` → `host_fit`). Verify that `Runtime_Hat`'s
-   offset survives under `BoneAttachment3D`.
+1. **The modeled helmets in the game.** Helmets and body armor are worn in the game, and the class heroes wear
+   KayKit's own heads (`docs/character-classes.md`). Head-slot items for the two Blender helmets, with their
+   `HiddenModelParts`, remain.
 2. **Fit every class head.** Re-model the shaman cap and the dark knight shell against all four class heads (or
    per-class variants) once item 1 settles which features hide; `ctx.host_bvh` takes any host head.
 3. **Iterate both helmets.** Use `item compare --audit`: antler splay and skull proportions on the shaman, ear

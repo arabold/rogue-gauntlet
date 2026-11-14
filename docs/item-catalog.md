@@ -158,7 +158,7 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Stone Maul](../scenes/items/weapons/warhammer/warhammer_stone.tres) | 4 |
 | [Gilded Warhammer](../scenes/items/weapons/warhammer_gold.tres) | 5 |
 
-### Armor (28)
+### Shields (28)
 
 | Definition | Tier |
 | --- | --- |
@@ -190,6 +190,51 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Square Shield](../scenes/items/armor/shield_square.tres) | 2 |
 | [Square Shield](../scenes/items/armor/shield_square_red.tres) | 2 |
 | [Reinforced Shield](../scenes/items/armor/shield_uncommon.tres) | 3 |
+
+### Body armor and helmets (38)
+
+Body armor and helmets show on the hero: skinned armor is worn on the hero's own skeleton and bends with it, rigid pieces mount on the chest or head bone, and a helmet hides the head parts it covers. Each class starts in its own pair (see [character classes](character-classes.md#the-shipped-roster)).
+
+| Definition | Slot | Weight | Tier |
+| --- | --- | --- | --- |
+| [Barbarian Harness](../scenes/items/armor/body/barbarian_harness.tres) | Body | Medium | 1 |
+| [Iron Breastplate](../scenes/items/armor/body/iron_breastplate.tres) | Body | Heavy | 1 |
+| [Knight Armor](../scenes/items/armor/body/knight_armor.tres) | Body | Heavy | 1 |
+| [Mage Coat](../scenes/items/armor/body/mage_coat.tres) | Body | Light | 1 |
+| [Padded Vest](../scenes/items/armor/body/padded_vest.tres) | Body | Light | 1 |
+| [Ranger Coat](../scenes/items/armor/body/ranger_coat.tres) | Body | Light | 1 |
+| [Ring Mail](../scenes/items/armor/body/ring_mail.tres) | Body | Medium | 1 |
+| [Banded Mail](../scenes/items/armor/body/banded_mail.tres) | Body | Heavy | 2 |
+| [Chain Shirt](../scenes/items/armor/body/chain_shirt.tres) | Body | Medium | 2 |
+| [Leather Jerkin](../scenes/items/armor/body/leather_jerkin.tres) | Body | Light | 2 |
+| [Scale Mail](../scenes/items/armor/body/scale_mail.tres) | Body | Medium | 3 |
+| [Steel Plate](../scenes/items/armor/body/steel_plate.tres) | Body | Heavy | 3 |
+| [Studded Leather](../scenes/items/armor/body/studded_leather.tres) | Body | Light | 3 |
+| [Brigandine](../scenes/items/armor/body/brigandine.tres) | Body | Medium | 4 |
+| [Knight's Plate](../scenes/items/armor/body/knights_plate.tres) | Body | Heavy | 4 |
+| [Shadow Leathers](../scenes/items/armor/body/shadow_leathers.tres) | Body | Light | 4 |
+| [Gilded Full Plate](../scenes/items/armor/body/gilded_full_plate.tres) | Body | Heavy | 5 |
+| [Mithril Hauberk](../scenes/items/armor/body/mithril_hauberk.tres) | Body | Medium | 5 |
+| [Nightweave Armor](../scenes/items/armor/body/nightweave_armor.tres) | Body | Light | 5 |
+| [Bear Hood](../scenes/items/armor/helmet/bear_hood.tres) | Helmet | Medium | 1 |
+| [Chain Coif](../scenes/items/armor/helmet/chain_coif.tres) | Helmet | Medium | 1 |
+| [Iron Pot Helm](../scenes/items/armor/helmet/iron_pot_helm.tres) | Helmet | Heavy | 1 |
+| [Knight Helmet](../scenes/items/armor/helmet/knight_helmet.tres) | Helmet | Heavy | 1 |
+| [Leather Cap](../scenes/items/armor/helmet/leather_cap.tres) | Helmet | Light | 1 |
+| [Rogue Hood](../scenes/items/armor/helmet/rogue_hood.tres) | Helmet | Light | 1 |
+| [Wizard Hat](../scenes/items/armor/helmet/wizard_hat.tres) | Helmet | Light | 1 |
+| [Great Helm](../scenes/items/armor/helmet/great_helm.tres) | Helmet | Heavy | 2 |
+| [Nasal Helm](../scenes/items/armor/helmet/nasal_helm.tres) | Helmet | Medium | 2 |
+| [Padded Coif](../scenes/items/armor/helmet/padded_coif.tres) | Helmet | Light | 2 |
+| [Scale Helm](../scenes/items/armor/helmet/scale_helm.tres) | Helmet | Medium | 3 |
+| [Steel Bascinet](../scenes/items/armor/helmet/steel_bascinet.tres) | Helmet | Heavy | 3 |
+| [Studded Cap](../scenes/items/armor/helmet/studded_cap.tres) | Helmet | Light | 3 |
+| [Barbute](../scenes/items/armor/helmet/barbute.tres) | Helmet | Medium | 4 |
+| [Knight's Armet](../scenes/items/armor/helmet/knights_armet.tres) | Helmet | Heavy | 4 |
+| [Shadow Cowl](../scenes/items/armor/helmet/shadow_cowl.tres) | Helmet | Light | 4 |
+| [Gilded Crown Helm](../scenes/items/armor/helmet/gilded_crown_helm.tres) | Helmet | Heavy | 5 |
+| [Mithril Helm](../scenes/items/armor/helmet/mithril_helm.tres) | Helmet | Medium | 5 |
+| [Nightweave Hood](../scenes/items/armor/helmet/nightweave_hood.tres) | Helmet | Light | 5 |
 
 ### Jewelry (16 types, 68 definitions)
 

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LootPool" load_steps=120 format=3]
+[gd_resource type="Resource" script_class="LootPool" load_steps=136 format=3]
 
 [ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
 [ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
@@ -62,6 +62,14 @@
 [ext_resource type="Resource" path="res://scenes/items/armor/helmet/shadow_cowl.tres" id="item_helmet_shadow_cowl"]
 [ext_resource type="Resource" path="res://scenes/items/armor/helmet/steel_bascinet.tres" id="item_helmet_steel_bascinet"]
 [ext_resource type="Resource" path="res://scenes/items/armor/helmet/studded_cap.tres" id="item_helmet_studded_cap"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/barbarian_harness.tres" id="item_body_barbarian_harness"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/knight_armor.tres" id="item_body_knight_armor"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/mage_coat.tres" id="item_body_mage_coat"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/ranger_coat.tres" id="item_body_ranger_coat"]
+[ext_resource type="Resource" path="res://scenes/items/armor/helmet/bear_hood.tres" id="item_helmet_bear_hood"]
+[ext_resource type="Resource" path="res://scenes/items/armor/helmet/knight_helmet.tres" id="item_helmet_knight_helmet"]
+[ext_resource type="Resource" path="res://scenes/items/armor/helmet/rogue_hood.tres" id="item_helmet_rogue_hood"]
+[ext_resource type="Resource" path="res://scenes/items/armor/helmet/wizard_hat.tres" id="item_helmet_wizard_hat"]
 
 [sub_resource type="Resource" id="Entry_shield_aegis_gold"]
 script = ExtResource("entry")
@@ -353,8 +361,48 @@ script = ExtResource("entry")
 Item = ExtResource("item_helmet_studded_cap")
 metadata/_custom_type_script = ExtResource("entry")
 
+[sub_resource type="Resource" id="Entry_body_barbarian_harness"]
+script = ExtResource("entry")
+Item = ExtResource("item_body_barbarian_harness")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_body_knight_armor"]
+script = ExtResource("entry")
+Item = ExtResource("item_body_knight_armor")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_body_mage_coat"]
+script = ExtResource("entry")
+Item = ExtResource("item_body_mage_coat")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_body_ranger_coat"]
+script = ExtResource("entry")
+Item = ExtResource("item_body_ranger_coat")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_helmet_bear_hood"]
+script = ExtResource("entry")
+Item = ExtResource("item_helmet_bear_hood")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_helmet_knight_helmet"]
+script = ExtResource("entry")
+Item = ExtResource("item_helmet_knight_helmet")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_helmet_rogue_hood"]
+script = ExtResource("entry")
+Item = ExtResource("item_helmet_rogue_hood")
+metadata/_custom_type_script = ExtResource("entry")
+
+[sub_resource type="Resource" id="Entry_helmet_wizard_hat"]
+script = ExtResource("entry")
+Item = ExtResource("item_helmet_wizard_hat")
+metadata/_custom_type_script = ExtResource("entry")
+
 [resource]
 script = ExtResource("pool")
-Items = [SubResource("Entry_shield_aegis_gold"), SubResource("Entry_shield_buckler_spiked"), SubResource("Entry_shield_dragon_scale"), SubResource("Entry_shield_heater_iron"), SubResource("Entry_shield_heroic_quarters"), SubResource("Entry_shield_heroic_sun"), SubResource("Entry_shield_iron_tower"), SubResource("Entry_shield_kite_crusader"), SubResource("Entry_shield_round_wood"), SubResource("Entry_shield_royal_crown"), SubResource("Entry_shield_royal_lily"), SubResource("Entry_shield_scutum_wood"), SubResource("Entry_shield_wood_simple"), SubResource("Entry_shield_badge"), SubResource("Entry_shield_badge_color"), SubResource("Entry_shield_badge_spikes"), SubResource("Entry_shield_badge_spikes_red"), SubResource("Entry_shield_common"), SubResource("Entry_shield_large_skull"), SubResource("Entry_shield_large_spikes"), SubResource("Entry_shield_rare"), SubResource("Entry_shield_round_blue"), SubResource("Entry_shield_round_common"), SubResource("Entry_shield_round_old"), SubResource("Entry_shield_round_red"), SubResource("Entry_shield_square"), SubResource("Entry_shield_square_red"), SubResource("Entry_shield_uncommon"), SubResource("Entry_body_banded_mail"), SubResource("Entry_body_brigandine"), SubResource("Entry_body_chain_shirt"), SubResource("Entry_body_gilded_full_plate"), SubResource("Entry_body_iron_breastplate"), SubResource("Entry_body_knights_plate"), SubResource("Entry_body_leather_jerkin"), SubResource("Entry_body_mithril_hauberk"), SubResource("Entry_body_nightweave_armor"), SubResource("Entry_body_padded_vest"), SubResource("Entry_body_ring_mail"), SubResource("Entry_body_scale_mail"), SubResource("Entry_body_shadow_leathers"), SubResource("Entry_body_steel_plate"), SubResource("Entry_body_studded_leather"), SubResource("Entry_helmet_barbute"), SubResource("Entry_helmet_chain_coif"), SubResource("Entry_helmet_gilded_crown_helm"), SubResource("Entry_helmet_great_helm"), SubResource("Entry_helmet_iron_pot_helm"), SubResource("Entry_helmet_knights_armet"), SubResource("Entry_helmet_leather_cap"), SubResource("Entry_helmet_mithril_helm"), SubResource("Entry_helmet_nasal_helm"), SubResource("Entry_helmet_nightweave_hood"), SubResource("Entry_helmet_padded_coif"), SubResource("Entry_helmet_scale_helm"), SubResource("Entry_helmet_shadow_cowl"), SubResource("Entry_helmet_steel_bascinet"), SubResource("Entry_helmet_studded_cap")]
+Items = [SubResource("Entry_shield_aegis_gold"), SubResource("Entry_shield_buckler_spiked"), SubResource("Entry_shield_dragon_scale"), SubResource("Entry_shield_heater_iron"), SubResource("Entry_shield_heroic_quarters"), SubResource("Entry_shield_heroic_sun"), SubResource("Entry_shield_iron_tower"), SubResource("Entry_shield_kite_crusader"), SubResource("Entry_shield_round_wood"), SubResource("Entry_shield_royal_crown"), SubResource("Entry_shield_royal_lily"), SubResource("Entry_shield_scutum_wood"), SubResource("Entry_shield_wood_simple"), SubResource("Entry_shield_badge"), SubResource("Entry_shield_badge_color"), SubResource("Entry_shield_badge_spikes"), SubResource("Entry_shield_badge_spikes_red"), SubResource("Entry_shield_common"), SubResource("Entry_shield_large_skull"), SubResource("Entry_shield_large_spikes"), SubResource("Entry_shield_rare"), SubResource("Entry_shield_round_blue"), SubResource("Entry_shield_round_common"), SubResource("Entry_shield_round_old"), SubResource("Entry_shield_round_red"), SubResource("Entry_shield_square"), SubResource("Entry_shield_square_red"), SubResource("Entry_shield_uncommon"), SubResource("Entry_body_banded_mail"), SubResource("Entry_body_brigandine"), SubResource("Entry_body_chain_shirt"), SubResource("Entry_body_gilded_full_plate"), SubResource("Entry_body_iron_breastplate"), SubResource("Entry_body_knights_plate"), SubResource("Entry_body_leather_jerkin"), SubResource("Entry_body_mithril_hauberk"), SubResource("Entry_body_nightweave_armor"), SubResource("Entry_body_padded_vest"), SubResource("Entry_body_ring_mail"), SubResource("Entry_body_scale_mail"), SubResource("Entry_body_shadow_leathers"), SubResource("Entry_body_steel_plate"), SubResource("Entry_body_studded_leather"), SubResource("Entry_helmet_barbute"), SubResource("Entry_helmet_chain_coif"), SubResource("Entry_helmet_gilded_crown_helm"), SubResource("Entry_helmet_great_helm"), SubResource("Entry_helmet_iron_pot_helm"), SubResource("Entry_helmet_knights_armet"), SubResource("Entry_helmet_leather_cap"), SubResource("Entry_helmet_mithril_helm"), SubResource("Entry_helmet_nasal_helm"), SubResource("Entry_helmet_nightweave_hood"), SubResource("Entry_helmet_padded_coif"), SubResource("Entry_helmet_scale_helm"), SubResource("Entry_helmet_shadow_cowl"), SubResource("Entry_helmet_steel_bascinet"), SubResource("Entry_helmet_studded_cap"), SubResource("Entry_body_barbarian_harness"), SubResource("Entry_body_knight_armor"), SubResource("Entry_body_mage_coat"), SubResource("Entry_body_ranger_coat"), SubResource("Entry_helmet_bear_hood"), SubResource("Entry_helmet_knight_helmet"), SubResource("Entry_helmet_rogue_hood"), SubResource("Entry_helmet_wizard_hat")]
 TierBands = ExtResource("bands")
 metadata/_custom_type_script = ExtResource("pool")

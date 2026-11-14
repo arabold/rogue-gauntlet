@@ -74,6 +74,35 @@ public static class CharacterModel
 		return null;
 	}
 
+	/// <summary>
+	/// Dresses a class <paramref name="model"/> outside the game, as the menu preview shows it: in the helmet and body
+	/// armor among the class's starting items. Skinned armor goes onto the model's skeleton, a rigid helmet or breastplate
+	/// on its head or chest bone, and the head parts they cover are hidden.
+	/// </summary>
+	public static void Dress(Node3D model, CharacterClass characterClass)
+	{
+		Skeleton3D skeleton = FindSkeleton(model);
+		if (skeleton == null)
+		{
+			return;
+		}
+		var worn = new System.Collections.Generic.List<Item>();
+		foreach (InventoryItemSlot slot in characterClass.StartingItems)
+		{
+			if (slot?.Item is not Armor { WornScene: { } scene } armor) continue;
+			string bone = (armor.ValidSlots & ValidSlots.Head) != 0 ? "head" : (armor.ValidSlots & ValidSlots.Chest) != 0 ? "chest" : null;
+			if (bone == null) continue;
+			worn.Add(armor);
+			if (WornEquipment.Wear(skeleton, scene, PlayerRenderLayers).Count > 0) continue;
+			var mount = new BoneAttachment3D { Name = $"Worn_{bone}", BoneName = bone };
+			skeleton.AddChild(mount);
+			var piece = scene.Instantiate<Node>();
+			ApplyRenderLayers(piece, PlayerRenderLayers);
+			mount.AddChild(piece);
+		}
+		WornEquipment.ShowModelParts(skeleton, WornEquipment.CoveredParts(worn));
+	}
+
 	/// <summary>Depth-first search for the model's Skeleton3D.</summary>
 	public static Skeleton3D FindSkeleton(Node root)
 	{

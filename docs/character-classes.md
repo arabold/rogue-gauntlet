@@ -2,8 +2,8 @@
 
 Status: current-system documentation. Future ideas, where included, are proposals rather than implemented behavior. See the [documentation index](README.md) for related systems and implementation plans.
 
-Playable classes give each run a distinct starting identity: a different KayKit adventurer
-model, attribute spread, stat-derivation profile, and starting gear. The class is chosen on
+Playable classes give each run a distinct starting identity: a different hero model (built in
+the Asset Studio on a KayKit adventurer's head), attribute spread, stat-derivation profile, and starting gear. The class is chosen on
 the character-select panel after picking a save slot for a new game, stored in the save file,
 and re-applied every time the player spawns (new game, load, stairs).
 
@@ -29,10 +29,10 @@ Everything is designer-authored resources under `scenes/player/classes/`:
 
 | Class | STR | DEX | VIT | INT | HP | MP | Growth per level | Starting gear |
 |---|---|---|---|---|---|---|---|---|
-| Barbarian | 12 | 8 | 10 | 5 | 50 | 45 | STR 0.45, VIT 0.25 | Battle Axe (T1, 2H), Ring Mail and Chain Coif (medium) |
-| Knight | 9 | 8 | 10 | 6 | 50 | 50 | STR 0.3, VIT 0.3 | Sword + shield, Iron Breastplate and Iron Pot Helm (heavy) |
-| Rogue | 9 | 15 | 11 | 8 | 52 | 60 | DEX 0.5, VIT 0.25 | Crossbow + dagger + two lockpicks, Padded Vest and Leather Cap (light) |
-| Mage | 6 | 10 | 10 | 15 | 50 | 95 | INT 0.5, VIT 0.3 | Wand of Fireball (T1) + healing potion (pre-identified), Padded Vest and Leather Cap (light) |
+| Barbarian | 12 | 8 | 10 | 5 | 50 | 45 | STR 0.45, VIT 0.25 | Battle Axe (T1, 2H), Barbarian Harness and Bear Hood (medium) |
+| Knight | 9 | 8 | 10 | 6 | 50 | 50 | STR 0.3, VIT 0.3 | Sword + shield, Knight Armor and Knight Helmet (heavy) |
+| Rogue | 9 | 15 | 11 | 8 | 52 | 60 | DEX 0.5, VIT 0.25 | Crossbow + dagger + two lockpicks, Ranger Coat and Rogue Hood (light) |
+| Mage | 6 | 10 | 10 | 15 | 50 | 95 | INT 0.5, VIT 0.3 | Wand of Fireball (T1) + healing potion (pre-identified), Mage Coat and Wizard Hat (light) |
 
 Each class gains one attribute point per level in all, split as its growth says (the table lists the larger shares).
 The [balance model](specs/balance-model.md#class-parity) keeps the classes equally strong; `params.py` holds the
@@ -68,14 +68,28 @@ Mage simply casts more often.
 
 ## The model swap
 
-All KayKit adventurers share one rig, bone names, and animation names, so
-`Player.ApplyCharacterModel` simply replaces the `Pivot/Character` instance during
-`_EnterTree` — before any child `_Ready` — and the authored `AnimationTree`
+Each class model is a Studio hero (`assets/custom-heroes/<class>.glb`, see the Studio's
+[class heroes](../asset-studio/README.md#class-heroes)). It is a bare body in tunic, pants and boots, shared by
+every class, with KayKit's plain gloved arms, under the class's own KayKit head. The Studio exports it on the KayKit class template, so all heroes
+share one rig, bone names and animation names. `Player.ApplyCharacterModel` therefore simply replaces the
+`Pivot/Character` instance during `_EnterTree` (before any child `_Ready`), and the authored `AnimationTree`
 (`root_node = "../Pivot/Character"`) binds to the new model without retargeting.
-`CharacterModel` (static helper, shared with the menu preview) instantiates the scene,
-applies the player render layer (mask 4, relied on by light/highlight cull masks), and
-strips the built-in prop meshes the GLBs ship with (default weapons, shields, spellbooks),
-keeping only the class's hat and cape.
+
+`CharacterModel` is a static helper shared with the menu preview. It instantiates the scene, applies the player
+render layer (mask 4, which the light and highlight cull masks rely on), and strips the built-in prop meshes.
+
+**What the hero wears is equipment** (`Armor.WornScene`, mounted by `BoneAttachmentManager` through
+`WornEquipment`):
+
+- **Skinned armor** is exported on the hero rig with the heroes' shoulder hinges. Its meshes move onto the hero's
+  own skeleton and bind by bone name, so they bend with the body.
+- **Rigid helmets and breastplates** mount on the head or chest bone.
+- **Covered head parts:** a helmet hides the parts it covers (`Armor.HiddenModelParts`: the `_Hair` and `_Ears`
+  nodes). Hidden hair shows the `_Scalp` the Studio generated under it.
+- **Class arms:** each class's starting chest armor brings that class's own KayKit arms and hides the hero's plain ones
+  (`HiddenModelParts: Arms`).
+- **Taking a piece off** restores the bare hero.
+- **Menu preview:** `CharacterModel.Dress` puts the same starting helmet and armor on the preview.
 
 The catch: each GLB names its attachment nodes differently (`1H_Axe` vs `1H_Sword` vs
 `Knife`…), and some models lack nodes entirely (Rogue has no shield/hat node). The class's

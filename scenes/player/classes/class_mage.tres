@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="CharacterClass" load_steps=13 format=3 uid="uid://cclassmage00001"]
 
 [ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://csow2twtpsgnu" path="res://assets/kaykit-adventurers/Mage.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/custom-heroes/mage.glb" id="2_model"]
 [ext_resource type="Resource" uid="uid://cprofmage000001" path="res://scenes/player/classes/stat_profile_mage.tres" id="3_profile"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/wand.tres" id="5_staff"]
 [ext_resource type="Resource" uid="uid://b0ek7egdqm8bc" path="res://scenes/items/potions/potion_healing_small.tres" id="6_potion"]
 
-[ext_resource type="Resource" path="res://scenes/items/armor/body/padded_vest.tres" id="kit_body"]
-[ext_resource type="Resource" path="res://scenes/items/armor/helmet/leather_cap.tres" id="kit_helmet"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/mage_coat.tres" id="kit_body"]
+[ext_resource type="Resource" path="res://scenes/items/armor/helmet/wizard_hat.tres" id="kit_helmet"]
 [sub_resource type="Resource" id="Slot_body"]
 script = ExtResource("4_slot")
 Item = ExtResource("kit_body")

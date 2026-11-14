@@ -13,7 +13,7 @@ public enum RunOutcome
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 87;
+	public const int CurrentVersion = 88;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
