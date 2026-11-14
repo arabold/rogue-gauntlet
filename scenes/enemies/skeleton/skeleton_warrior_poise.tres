@@ -9,3 +9,4 @@ RegenDelay = 2.0
 RegenPerSecond = 20.0
 BreakStaggerDuration = 1.2
 StaggeredDamageMultiplier = 1.5
+BreakGrowth = 0.5

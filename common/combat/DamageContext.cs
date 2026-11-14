@@ -34,7 +34,7 @@ public static class AttackThreatRules
 	{
 		AttackThreatTier.Heavy => .5f,
 		AttackThreatTier.Unblockable => .6f,
-		_ => .35f
+		_ => .25f
 	};
 }
 
@@ -44,7 +44,7 @@ public static class AttackThreatRules
 /// </summary>
 public readonly record struct AttackImpact(float PoiseDamage, float Knockback, bool ForcePushback = false)
 {
-	public static readonly AttackImpact Default = new(AttackDefinition.DefaultPoiseDamage, AttackDefinition.DefaultKnockback);
+	public static readonly AttackImpact Default = new(AttackDefinition.DefaultPoiseDamage, 0);
 }
 
 public enum DamageDeliveryKind

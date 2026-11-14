@@ -237,6 +237,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 
 	private void OnAttackFinished(AttackIdentity identity, bool interrupted)
 	{
+		if (interrupted && _attackController.FinishedBeforeContact) _context?.Actions.RefundAttack();
 		_context?.Tactics.AttackFinished(identity, interrupted);
 		_context?.TacticalSelector?.AttackFinished(identity);
 	}
@@ -269,8 +270,8 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	/// </summary>
 	public ActorActionRequestResult TryRequestAction(MonsterActionFilter filter = MonsterActionFilter.All)
 	{
-		if (_context?.CombatProfile == null || CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed)
-			return ActorActionRequestResult.Busy;
+		// Another action holding the gate (a raised guard) is no failed attempt: it arms no retry delay.
+		if (!IsFreeToAct || Actor.ActionGate?.IsBusy == true) return ActorActionRequestResult.Busy;
 		if (_context.Actions.Select(filter) is not { } choice) return ActorActionRequestResult.Unavailable;
 		var (action, target) = choice;
 		var result = action.TryStart(_context, target, out var run);
@@ -289,6 +290,14 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_running = run;
 		return ActorActionRequestResult.Success;
 	}
+
+	/// <summary>
+	/// Whether <see cref="TryRequestAction"/> would find an action for <paramref name="filter"/> now, without starting one
+	/// and whatever holds the action gate, which a caller such as a counter frees first.
+	/// </summary>
+	public bool CanRequestAction(MonsterActionFilter filter) => IsFreeToAct && _context.Actions.HasReady(filter);
+
+	private bool IsFreeToAct => _context?.CombatProfile != null && CurrentAction == EnemyAction.None && !IsDead && !MovementComponent.IsPushed;
 
 	/// <summary>Request one of the monster's weapon attacks now, through the same selection and executors as the AI.</summary>
 	public bool TryAttack() => TryRequestAction(MonsterActionFilter.Attacks) == ActorActionRequestResult.Success;

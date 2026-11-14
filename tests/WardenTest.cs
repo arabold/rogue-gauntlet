@@ -365,7 +365,7 @@ public class WardenTest
 
 	/// <summary>
 	/// The Warden's shipped reaction and timing answer an ordinary hero swing: it raises its shield in view, parries the
-	/// contact and ripostes once its guard is released.
+	/// contact and ripostes at once.
 	/// </summary>
 	[TestCase]
 	public async Task ParriesAnOrdinaryHeroSwingAndRipostes()

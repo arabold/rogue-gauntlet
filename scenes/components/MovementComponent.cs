@@ -201,6 +201,12 @@ public partial class MovementComponent : Node
 		LookAtDirection = -Actor.GlobalTransform.Basis.Z;
 	}
 
+	/// <summary>
+	/// Never pushed: every push (knockback, forced pushback) leaves this actor in place. Intended for gatekeepers, as
+	/// Diablo II's act bosses resist knockback.
+	/// </summary>
+	[Export] public bool ResistsKnockback { get; set; }
+
 	public void Push(Vector3 direction, float strength)
 	{
 		SetPush(direction, strength, false);
@@ -214,6 +220,11 @@ public partial class MovementComponent : Node
 
 	private void SetPush(Vector3 direction, float strength, bool bypassStatusLock)
 	{
+		if (ResistsKnockback && strength > 0)
+		{
+			CombatTrace.Write(this, "effect.knockback_resisted", ("strength", strength));
+			return;
+		}
 		CancelLunge();
 		_pushDirection = direction.Normalized();
 		_pushStrength = strength;

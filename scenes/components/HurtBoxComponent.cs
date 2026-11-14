@@ -40,6 +40,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Export(PropertyHint.Range, "0,1,0.01")] public float InterruptThreshold { get; set; } = 0.1f;
 	/// <summary>Without poise, seconds after an interruption during which further hits only make the actor flinch, so it gets its next action off.</summary>
 	[Export(PropertyHint.Range, "0,5,0.05")] public float InterruptImmunity { get; set; } = 1f;
+	/// <summary>Without poise, seconds an interrupted actor reels in place (a short stagger), like Diablo II's hit recovery.</summary>
+	[Export(PropertyHint.Range, "0,2,0.05")] public float HitRecovery { get; set; } = 0.3f;
 	private ulong _interruptibleFromFrame;
 	/// <summary>Optional directional and sneak-attack vulnerability. Unassigned means every contact counts as frontal.</summary>
 	[Export] public HitVulnerabilityProfile Vulnerability { get; set; }
@@ -121,8 +123,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			DefenseTraits = AttackDefenseTraits.None,
 			DeliveryKind = DamageDeliveryKind.DirectMelee,
 			// Unauthored sources (traps, scripted hits) carry poise in proportion to their damage.
-			PoiseDamage = amount,
-			Knockback = AttackDefinition.DefaultKnockback
+			PoiseDamage = amount
 		};
 		return ResolveDamageInternal(context, random);
 	}
@@ -271,19 +272,22 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	/// <summary>The actor's facing: its movement's look direction, or the hurtbox's own forward without one.</summary>
 	private Vector3 Facing => MovementComponent?.LookAtDirection ?? -GlobalTransform.Basis.Z;
 
-	/// <summary>
-	/// Poise decides whether an unprotected hit flinches or staggers. Without poise, a hit interrupts the
-	/// current action unless the gate reports hyper-armor. Interruptions and staggers push; a forced pushback
-	/// also pushes and interrupts a flinch, unless the defender is hyper-armored or resists it. A running
-	/// stagger is pushed but never cut short.
-	/// </summary>
 	/// <summary>Without poise: a hit big enough for <see cref="InterruptThreshold"/>, once the last interruption's immunity has passed.</summary>
 	private bool Interrupts(float damage) => Engine.GetPhysicsFrames() >= _interruptibleFromFrame
 		&& damage >= InterruptThreshold * (HealthComponent?.MaxHealth ?? 0);
 
+	/// <summary>
+	/// Poise decides whether an unprotected hit flinches or staggers. Without poise, a big enough hit interrupts the
+	/// current action unless the gate reports hyper-armor, and the actor reels in place for <see cref="HitRecovery"/>.
+	/// Only an attack's own knockback pushes: on an interruption or stagger, and with a forced pushback also on a flinch,
+	/// which it then interrupts, unless the defender is hyper-armored or resists knockback (gatekeepers), which only
+	/// flinches. A running stagger is pushed but never cut short.
+	/// </summary>
+
 	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage, float damage)
 	{
 		var gate = MovementComponent?.ActionGate;
+		bool resists = MovementComponent?.ResistsKnockback == true;
 		HitReaction reaction;
 		if (Poise?.IsAvailable == true)
 			reaction = Poise.Apply(poiseDamage) ? HitReaction.Staggered : HitReaction.Flinch;
@@ -291,18 +295,18 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			reaction = HitReaction.Flinch;
 		else
 		{
-			gate?.CancelCurrent(ActionInterruptReason.HitStun);
+			if (gate != null && (HitRecovery <= 0 || !gate.TryStagger(HitRecovery))) gate.CancelCurrent(ActionInterruptReason.HitStun);
 			_interruptibleFromFrame = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(InterruptImmunity * Engine.PhysicsTicksPerSecond);
 			reaction = HitReaction.Interrupted;
 		}
-		bool forced = reaction == HitReaction.Flinch && contact.ForcePushback && gate?.IsHyperArmored != true
-			&& Poise?.Definition?.ResistsForcedPushback != true;
+		bool forced = reaction == HitReaction.Flinch && contact.ForcePushback && gate?.IsHyperArmored != true && !resists;
 		if (forced && gate?.IsStaggered != true)
 		{
 			gate?.CancelCurrent(ActionInterruptReason.HitStun);
 			reaction = HitReaction.Interrupted;
 		}
-		if (reaction != HitReaction.Flinch || forced) MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
+		if ((reaction != HitReaction.Flinch || forced) && contact.Knockback > 0)
+			MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
 		EmitSignalHitReacted((int)reaction);
 		return reaction;
 	}

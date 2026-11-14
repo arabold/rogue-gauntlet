@@ -86,6 +86,27 @@ public class PoiseTest
 		Free(gate, poise);
 	}
 
+	/// <summary>Each break grows the next meter by half, so staggers cannot be chained; quiet time forgets the breaks.</summary>
+	[TestCase]
+	public void EachBreakGrowsTheNextMeterUntilTheMemoryPasses()
+	{
+		var definition = Definition();
+		definition.BreakGrowth = .5f;
+		definition.BreakMemory = 3;
+		var (gate, poise) = Create(definition);
+		for (int breaks = 1; breaks <= 2; breaks++)
+		{
+			AssertBool(poise.Apply(100)).IsTrue();
+			gate._PhysicsProcess(.6);
+			poise._PhysicsProcess(.01);
+			AssertFloat(poise.Current).IsEqual(20 * (1 + .5f * breaks));
+		}
+		poise._PhysicsProcess(3.1);
+		AssertFloat(poise.Maximum).IsEqual(20);
+		AssertFloat(poise.Current).IsEqual(20);
+		Free(gate, poise);
+	}
+
 	[TestCase]
 	public void PoiseRegeneratesOnlyAfterTheQuietDelay()
 	{
@@ -194,11 +215,16 @@ public class PoiseTest
 		AssertArray(reactions).ContainsExactly(HitReaction.Flinch, HitReaction.Staggered, HitReaction.Flinch);
 	}
 
+	/// <summary>
+	/// Without poise, a hit interrupts unless the action is hyper-armored, and the actor reels in place for its hit
+	/// recovery; only an attack that authors knockback pushes it.
+	/// </summary>
 	[TestCase]
 	public void WithoutPoiseHitsInterruptUnlessTheActionIsHyperArmored()
 	{
 		var (hurtbox, gate, movement, _) = Actor();
 		hurtbox.Poise = null;
+		hurtbox.InterruptImmunity = 0;
 		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var lease);
 		gate.ReportHyperArmor(lease, true);
 		hurtbox.ResolveDamage(Contact(1, 0));
@@ -206,9 +232,16 @@ public class PoiseTest
 		AssertBool(movement.IsPushed).IsFalse();
 
 		gate.ReportHyperArmor(lease, false);
-		hurtbox.ResolveDamage(Contact(12, 0, knockback: 4));
+		hurtbox.ResolveDamage(Contact(12, 0, knockback: 0));
+		AssertBool(gate.IsLeaseCurrent(lease)).IsFalse();
+		AssertBool(gate.IsStaggered).OverrideFailureMessage("reels for its hit recovery").IsTrue();
+		AssertBool(movement.IsPushed).OverrideFailureMessage("an ordinary hit holds it in place").IsFalse();
+		gate._PhysicsProcess(hurtbox.HitRecovery + .05);
 		AssertBool(gate.IsBusy).IsFalse();
-		AssertBool(movement.IsPushed).IsTrue();
+
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out lease);
+		hurtbox.ResolveDamage(Contact(12, 0, knockback: 4));
+		AssertBool(movement.IsPushed).OverrideFailureMessage("an attack with knockback").IsTrue();
 	}
 
 	/// <summary>
@@ -225,6 +258,7 @@ public class PoiseTest
 		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a hit under a tenth of max health").IsTrue();
 		hurtbox.ResolveDamage(Contact(12, 0));
 		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a hit over a tenth of max health").IsFalse();
+		gate._PhysicsProcess(hurtbox.HitRecovery + .05);
 		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out lease);
 		hurtbox.ResolveDamage(Contact(12, 0));
 		AssertBool(gate.IsLeaseCurrent(lease)).OverrideFailureMessage("a second big hit inside the immunity").IsTrue();
@@ -237,6 +271,7 @@ public class PoiseTest
 			freshGate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, null, out var attack);
 			fresh.ResolveDamage(Contact(12, 0));
 			AssertBool(freshGate.IsLeaseCurrent(attack)).OverrideFailureMessage($"hit {hit} without immunity").IsFalse();
+			freshGate._PhysicsProcess(fresh.HitRecovery + .05);
 		}
 	}
 
@@ -266,11 +301,14 @@ public class PoiseTest
 		AssertBool(movement.IsPushed).IsFalse();
 
 		gate.ReportHyperArmor(lease, false);
-		var resistant = Definition();
-		resistant.ResistsForcedPushback = true;
-		hurtbox.Poise.Definition = resistant;
+		movement.ResistsKnockback = true;
 		hurtbox.ResolveDamage(Contact(1, 1, forced: true));
 		AssertBool(gate.IsLeaseCurrent(lease)).IsTrue();
+		AssertBool(movement.IsPushed).IsFalse();
+
+		// Nothing moves an actor that resists knockback: neither a stagger's knockback nor a forced push (a whirlwind).
+		hurtbox.ResolveDamage(Contact(1, 100) with { ForcedPush = 4 });
+		AssertBool(gate.IsStaggered).IsTrue();
 		AssertBool(movement.IsPushed).IsFalse();
 	}
 

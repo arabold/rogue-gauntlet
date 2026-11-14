@@ -10,6 +10,8 @@ public partial class AttackController : Node, IParryInterruptible
 {
 	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>
 	public event System.Action<AttackIdentity, bool> AttackFinished;
+	/// <summary>Whether the attack that just finished ended before its contact window opened; read it in <see cref="AttackFinished"/>.</summary>
+	public bool FinishedBeforeContact { get; private set; }
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	[Export] public AttackIndicatorComponent Indicator { get; set; }
 	[Export] public CombatVisualMotionComponent VisualMotion { get; set; }
@@ -125,6 +127,7 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowStart = (float)duration * playback.ContactStart;
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
+		if (copy.Commit > 0) Commit(copy, (float)duration, copy.Commit * copy.HitWindowStart / (float)duration);
 		if (!copy.HasValidImpact(copy.HitWindowStart) || !copy.HasValidFlight(copy.HitWindowStart, duration)) return false;
 		if (!PreparedHitStatus.TryCapture(copy.OnHitStatuses, out var onHitStatuses)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
@@ -132,6 +135,30 @@ public partial class AttackController : Node, IParryInterruptible
 		var feedback = copy.FeedbackProfile?.Capture();
 		attack = new PreparedAttack(copy, playback, duration, Feedback: feedback, OnHitStatuses: onHitStatuses);
 		return true;
+	}
+
+	/// <summary>
+	/// Arms the snapshot from <paramref name="start"/> (a share of <paramref name="duration"/>: the commit point,
+	/// <see cref="AttackDefinition.Commit"/> of the wind-up, or 0 for a counter) until its contact ends, joined with any
+	/// authored hyper-armor window.
+	/// </summary>
+	private static void Commit(AttackDefinition attack, float duration, float start)
+	{
+		float end = Mathf.Min(1, Mathf.Max(attack.HitWindowStart, attack.HitWindowEnd) / duration);
+		bool authored = attack.HyperArmorEnd > attack.HyperArmorStart;
+		attack.HyperArmorStart = authored ? Mathf.Min(attack.HyperArmorStart, start) : start;
+		attack.HyperArmorEnd = authored ? Mathf.Max(attack.HyperArmorEnd, end) : end;
+	}
+
+	/// <summary>
+	/// Arms the running attack from now until its contact ends, as a counter: hits no longer stop it before contact, only
+	/// a poise break does. The snapshot belongs to this execution, so the authored definition is untouched.
+	/// </summary>
+	public void CommitCurrentAttack()
+	{
+		if (!IsAttacking || _currentAttack == null) return;
+		Commit(_currentAttack, (float)_preparedAttack.Duration, 0);
+		ReportProgress();
 	}
 
 	/// <summary>Commit an already validated execution snapshot to this actor.</summary>
@@ -238,6 +265,7 @@ public partial class AttackController : Node, IParryInterruptible
 		if (interrupted) ReportFeedback("Interrupted");
 		else if (!_currentAttack.IsRanged && ContactCount == 0) ReportFeedback(_blockedContact ? "Obstructed" : "No contact");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.ended", ("execution", _executionSequence), ("interrupted", interrupted), ("contacts", ContactCount), ("result", LastResult));
+		FinishedBeforeContact = _elapsedTime < _currentAttack.HitWindowStart;
 		_execution.Finish();
 		Indicator?.End(identity, interrupted);
 		_projectileAimTarget = null;
