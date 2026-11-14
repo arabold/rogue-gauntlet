@@ -696,6 +696,8 @@ def read_playtest(path):
             floor["xp"] += data["xp"]
         elif event == "damage.resolved" and hero and data["outcome"] == "Damaged":
             floor["damage"] += data["damage"]
+        elif event == "poison.tick" and hero:
+            floor["damage"] += data["amount"]
         elif event == "health.healed" and hero:
             floor["healed"] += data["amount"] / data["max_health"]
         elif event == "item.picked_up":
@@ -747,6 +749,7 @@ def report_playtest(paths):
            "used", "gear found", ""], rows)
     print()
     report_identities(paths)
+    report_statuses(paths)
     report_calibration(paths)
 
 
@@ -779,6 +782,42 @@ def report_identities(paths):
             for type_id in sorted(set(found) | set(identified))]
     table(["type", "real name", "found", "used", "identified by"], rows)
     print(f"Cursed items put on: {', '.join(cursed) if cursed else 'none'}\n")
+
+
+def report_statuses(paths):
+    """
+    Each timed effect on the hero (potions, food, venom, spells): how often it started or was refreshed, how long it
+    lasted in all, how it ended, and the health poison took.
+    """
+    from collections import Counter, defaultdict
+    started, refreshed, seconds, poison = Counter(), Counter(), Counter(), Counter()
+    conditions, ends, open_since = {}, defaultdict(Counter), defaultdict(list)
+    for path in paths:
+        for record in records(path):
+            event, data, actor = record["event"], record["data"], record["actor"]
+            if not is_hero(actor) or not event.startswith(("buff.", "poison.")):
+                continue
+            name = data.get("buff", "")
+            if event == "poison.tick":
+                poison[name] += data["amount"]
+                continue
+            if event in ("buff.applied", "buff.restored"):
+                started[name] += 1
+                conditions[name] = data.get("condition") or ""
+                open_since[(path, name)].append(record["time"])
+            elif event == "buff.refreshed":
+                refreshed[name] += 1
+            elif event == "buff.ended":
+                ends[name][data.get("cause") or "?"] += 1
+                if open_since[(path, name)]:
+                    seconds[name] += record["time"] - open_since[(path, name)].pop(0)
+    if not started:
+        return
+    print("Timed effects on the hero: starts, refreshes, time active, how they ended and poison taken\n")
+    rows = [[name, conditions[name], started[name], refreshed[name], f"{seconds[name]:.0f}",
+             ", ".join(f"{cause} {n}" for cause, n in sorted(ends[name].items())), f"{poison[name]:g}" if poison[name] else ""]
+            for name in sorted(started)]
+    table(["effect", "condition", "started", "refreshed", "seconds", "ended", "poison"], rows)
 
 
 def derive(categories, match):

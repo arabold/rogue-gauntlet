@@ -163,6 +163,19 @@ SUPPLY = dict(
     fountain_depths=[5, 12, 19],  # one full heal on these floors (2-3 per run, seeded in game)
     starting_potions=0,        # healing potions every class starts with (equal for parity)
 )
+# Harmful potions and spoiled food. Poison takes fixed points, as healing gives them, in `poison_ticks` whole ticks over
+# `poison_seconds`: a poison potion takes `poison` of what the healing potion of its size gives, spoiled food
+# `food_poison` times what its portion heals. Any healing potion cures poison and blindness. Blindness and confusion
+# last, by potion size, long enough that a pack finds the hero before they pass (Rogue blinds for hundreds of turns and
+# confuses for about twenty). Rat venom is priced with the rat (ARCHETYPES' `status`).
+STATUS = dict(
+    poison=0.5,
+    food_poison=2.0,
+    poison_seconds=10.0,
+    poison_ticks=5,
+    blindness=dict(small=30, medium=45, large=60),
+    confusion=dict(small=15, medium=20, large=30),
+)
 # Jewelry comes in tiers 1-5 that drop in the gear tier bands. A piece is sized at its tier's on-curve depth as a share of
 # the stat it raises: armor against the standard monster's mean hit, health against the hero's, damage against the
 # reference weapon's range (added to both ends). Attribute pieces add points that grow by tier. Amulets give more than

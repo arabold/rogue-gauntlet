@@ -10,7 +10,7 @@ A weapon's damage-range and critical-chance modifiers apply only to attacks made
 
 Supported secondary stats include maximum health, maximum mana, speed, damage range, critical chance and armor. Their base values and the base attributes are authored on the player's stat sheet ([`player_stats.tres`](../scenes/player/resources/player_stats.tres)); a class then overwrites the four attributes. Dexterity does not grant passive accuracy or evasion. Resolved values drive health, movement, damage and the HUD; maximum-health derivation must not be fed back into base stats. See [active defense](combat-system.md#contact-resolution) for hit handling.
 
-Timed stat buffs expire once; permanent buffs remain until explicitly removed. Periodic healing restores fixed points per tick (`HealingBuff.HealthPointsPerTick`), so a healing potion or food matters less as the hero's health grows and larger potions arrive deeper (see the [balance model](specs/balance-model.md#the-hero)); poison deals authored points.
+Timed stat buffs expire once; permanent buffs remain until explicitly removed. Periodic healing restores fixed points per tick (`HealingBuff.HealthPointsPerTick`), so a healing potion or food matters less as the hero's health grows and larger potions arrive deeper (see the [balance model](specs/balance-model.md#the-hero)); poison takes whole points per tick past armor, from the same model.
 
 ## Experience and levels
 
@@ -45,9 +45,9 @@ statuses without a magnitude, and to buff subclasses for effects with one:
 - `TimeScaleBuff` (Slowness) slows the whole game. The player's `TimeScaleComponent` applies the
   slowest active one to `Engine.TimeScale` and restores normal speed when the last one ends or the
   scene unloads. Durations count game time.
-- `Buff.CuredConditions` ends conditions when any buff is applied; healing potions cure blindness.
+- `Buff.CuredConditions` ends conditions when any buff is applied; healing potions cure blindness and poison.
 
-The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after a surviving damaging contact. Venom is the same periodic poison effect used by other sources. Attack payloads reference a timed buff saved as its own file and use `Buff.Stacking = Refresh`, so repeated applications of the same definition, from any source, preserve one activation and its tick progress. Dodged, parried, blocked, absorbed, invulnerable, filtered and lethal contacts do not apply venom. Splash and poison ticks do not carry attack payloads. Active poison duration and tick progress are saved with the player's buffs; a refreshing buff restores as its definition file, so it keeps refreshing under the same identity.
+The Plague Rat's direct bite can apply `rat_venom.tres` with a 35% chance after a surviving damaging contact. Venom is the same periodic poison effect used by other sources and imposes `poisoned`, so healing cures it too. Attack payloads reference a timed buff saved as its own file and use `Buff.Stacking = Refresh`, so repeated applications of the same definition, from any source, preserve one activation and its tick progress. Dodged, parried, blocked, absorbed, invulnerable, filtered and lethal contacts do not apply venom. Splash and poison ticks do not carry attack payloads. Active poison duration and tick progress are saved with the player's buffs; a refreshing buff restores as its definition file, so it keeps refreshing under the same identity.
 
 ## Equipment quality, affixes and enchantment
 

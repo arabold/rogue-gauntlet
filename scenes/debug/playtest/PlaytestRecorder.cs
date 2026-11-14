@@ -4,9 +4,9 @@ using System.Linq;
 
 /// <summary>
 /// Records a whole playtest, across floors, into one JSONL file for <c>simulate.py playtest</c>: the combat trace
-/// (attacks, contacts, damage, defenses, healing, monster deaths) plus the game events a balance review needs — each floor
-/// entered with its planned monsters and loot, items picked up, used, equipped, dropped and identified, XP, level-ups and
-/// the hero's death, with a snapshot of the hero on every floor and level-up. It lives under the tree root, so floor
+/// (attacks, contacts, damage, defenses, healing, timed effects and poison, monster deaths) plus the game events a balance
+/// review needs — each floor entered with its planned monsters and loot, items picked up, used, equipped, dropped and
+/// identified, XP, level-ups and the hero's death, with a snapshot of the hero on every floor and level-up. It lives under the tree root, so floor
 /// changes, which reload the gameplay scene, do not end it. Started from the debug menu's Playtest tool, or with
 /// <c>-- --playtest-log[=PATH]</c>.
 /// </summary>

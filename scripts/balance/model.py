@@ -181,6 +181,21 @@ def food_heal() -> float:
     return sum(food_points(portion) for portion in portions) / len(portions)
 
 
+def poison_tick(points: float) -> int:
+    """Whole points each poison tick takes, so the whole poison takes about `points`."""
+    return max(1, round(points / P.STATUS["poison_ticks"]))
+
+
+def poison_points(size: str) -> int:
+    """Health a poison potion of `size` takes: a share of what the healing potion of its size gives."""
+    return poison_tick(P.STATUS["poison"] * potion_points(size)) * P.STATUS["poison_ticks"]
+
+
+def food_poison_points(portion: str) -> int:
+    """Health spoiled food of `portion` takes: a multiple of what it heals, so a bad bite costs more than a good one."""
+    return poison_tick(P.STATUS["food_poison"] * food_points(portion)) * P.STATUS["poison_ticks"]
+
+
 def jewelry_values(stat: str, slot: str, tier: int) -> list[float]:
     """
     The modifier values of a jewelry piece of `tier` raising `stat` (`armor`, `health`, `damage` as low and high,

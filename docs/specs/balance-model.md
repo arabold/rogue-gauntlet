@@ -69,6 +69,12 @@ class follows the same curves:
   with `supply`. Healing potions are only about a quarter of the potions found, so their bottle stays a guess until
   one is drunk or identified. Food heals 3, 5 or 8 by its portion (small: fruit and drinks; medium: bread and cheese; large: meat), about one per floor; three health
   fountains per run. Health never regenerates on its own. Classes start without potions (today only the Mage starts with one).
+- **Harmful supplies:** poison takes fixed points as healing gives them, in five ticks over 10 s: a poison potion
+  takes half of what the healing potion of its size gives (15, 40, 100), spoiled food twice what its portion heals
+  (5, 10, 15), so a bad bite costs more than a good one gives. Any healing potion cures poison and blindness.
+  Blindness lasts 30, 45 or 60 s and confusion 15, 20 or 30 s by potion size, long enough that a pack finds the hero
+  before they pass (Rogue blinds for hundreds of turns and confuses for about twenty). The survival simulation does
+  not charge them yet.
 
 ### Gear
 
@@ -228,7 +234,7 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
 ### Game content
 
 `audit` compares the game's `.tres` files with the model's targets; `derive` writes the targets into them. Both take
-`--only` with any of `monsters,encounters,weapons,armor,jewelry,classes,supplies,loot` and `--match <path text>`
+`--only` with any of `monsters,encounters,weapons,armor,jewelry,curses,classes,supplies,statuses,loot` and `--match <path text>`
 (repeatable). `derive` overwrites every value it owns; review the result with `git diff`.
 
 ```bash
@@ -257,6 +263,9 @@ uv run scripts/balance/simulate.py derive --match skeleton     # write the targe
   one definition per tier (`ring_protection_1.tres` to `_5`); percentage types get tier 0.
 - **Supplies:** healing potions (`TypeId` `potion.healing`) get the points of their size (`AppearanceForm`) and food
   those of its `Portion`, spread over their buff's ticks. Every potion pool entry gets its size's depth window, and healing potions its weight.
+- **Statuses:** poison potions (`potion.poison`) get their size's poison points and spoiled food (each food's
+  `PoisonEffect`, one per portion: `food_poison_small.tres` to `_large`) its portion's, as `DamagePointsPerTick`,
+  `Duration` and `TicksPerSecond`. Blindness and confusion potions get their size's `Duration`.
 - **Loot** writes the tier depth bands (`tier_intro`, `tier_band`) into `tier_depth_bands.tres`. The weapon, armor
   and jewelry pools drop each entry in its item tier's band, so their entries carry no window to write.
 - **Classes** match the model's classes by `Id`. `derive` writes base attributes, and the hero sheet and stat
@@ -302,8 +311,9 @@ The model can be no better than its skill tiers. Measure them before tuning numb
   `playtest` reports per floor the time spent, kills, XP, level, damage taken and healing (in max health), the
   healing potions found by size against the model's supply, and gear found. It then lists every hidden item type
   found (potions, scrolls, jewelry) by its real name, how many were found and used, and how each was identified (used,
-  worn, or by a scroll of identify), and the cursed items the hero put on, followed by the same skill profile as
-  `calibrate`. A playtest measures the whole loop the model predicts, so compare its floors with `survival` at the
+  worn, or by a scroll of identify), the cursed items the hero put on, and each timed effect on the hero (how often
+  it started, how long it lasted, whether it expired or was cured, and the health poison took; poison also counts as
+  damage taken), followed by the same skill profile as `calibrate`. A playtest measures the whole loop the model predicts, so compare its floors with `survival` at the
   matching skill tier.
 
 ## Implementation plan
@@ -336,6 +346,6 @@ The remaining steps:
 
 ## Not modeled yet
 
-Shops and gold, traps, stealth and skipped fights, partial floor clears, status effects beyond venom, and the
+Shops and gold, traps, stealth and skipped fights, partial floor clears, the cost of harmful potions, spoiled food, blindness and confusion, and the
 gatekeepers' individual attacks. Each gatekeeper is the archetype above. Add them to the model before relying on it
 for those systems.

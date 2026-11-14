@@ -13,7 +13,8 @@ import model as M
 import params as P
 import resources as R
 
-CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "curses", "classes", "supplies", "loot")
+CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "curses", "classes", "supplies", "statuses",
+              "loot")
 
 
 @dataclass
@@ -89,7 +90,8 @@ def _selected(path, match) -> bool:
 
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
     groups = [{"monsters": monsters, "encounters": encounters, "weapons": weapons, "armor": armor, "jewelry": jewelry,
-               "curses": curses, "classes": classes, "supplies": supplies, "loot": loot}[c](match) for c in categories]
+               "curses": curses, "classes": classes, "supplies": supplies, "statuses": statuses,
+               "loot": loot}[c](match) for c in categories]
     _merge_shared(groups)
     return groups
 
@@ -616,14 +618,13 @@ def curses(match=None) -> Group:
 
 # --- Supplies -------------------------------------------------------------------------------------
 
-def _healing_buffs(file: R.TextResource, section: R.Section, seen=None):
-    """Every `HealingBuff` a consumable reaches through its references (its own buff or its spell's effect)."""
+def _buffs(file: R.TextResource, section: R.Section, script: str = "HealingBuff", seen=None):
+    """Every buff of class `script` a consumable reaches through its references (its own buff or its spell's effect)."""
     seen = seen if seen is not None else set()
     if (file.path, section.start) in seen:
         return []
     seen.add((file.path, section.start))
-    script = file.script_of(section) or ""
-    found = [(file, section)] if script.endswith("/HealingBuff.cs") else []
+    found = [(file, section)] if (file.script_of(section) or "").endswith(f"/{script}.cs") else []
     for key in section.props:
         if key == "script" or key.startswith("metadata/"):
             continue
@@ -631,7 +632,7 @@ def _healing_buffs(file: R.TextResource, section: R.Section, seen=None):
         for ref in value if isinstance(value, list) else [value]:
             if not isinstance(ref, R.Ref) or (ref.kind == "ExtResource" and not file.ext_path(ref.id).endswith(".tres")):
                 continue
-            found += _healing_buffs(*file.follow(ref), seen)
+            found += _buffs(*file.follow(ref), script, seen)
     return found
 
 
@@ -669,7 +670,7 @@ def supplies(match=None) -> Group:
         if not _selected(f.path, match):
             continue
         name = f.get(f.main, "Name") or f.path.stem
-        for bf, buff in _healing_buffs(f, f.main):
+        for bf, buff in _buffs(f, f.main):
             ticks = _ticks(bf, buff)
             g.add(name, bf, buff, "HealthPointsPerTick", round(points / ticks, 4))
             g.rows.append([name, f"{bf.get(buff, 'HealthPointsPerTick', 0.0) * ticks:.0f}", f"{points}"])
@@ -684,6 +685,53 @@ def supplies(match=None) -> Group:
             g.add(label, ef, entry, "MaxDepth", size["last"])
             if itf.get(it, "TypeId") == HEALING_POTION:
                 g.add(label, ef, entry, "Weight", float(size["weight"]))
+    return g
+
+
+# --- Statuses -------------------------------------------------------------------------------------
+
+STATUS_POTIONS = {"potion.poison": "poison", "potion.blindness": "blindness", "potion.confusion": "confusion"}
+
+
+def statuses(match=None) -> Group:
+    """
+    Poison potions and spoiled food take their model's points in whole ticks over the model's poison time; blindness
+    and confusion potions last their size's seconds. Foods of one portion share one spoiled-food poison.
+    """
+    g = Group("Statuses", headers=["item", "now", "derived"])
+    seconds, ticks = P.STATUS["poison_seconds"], P.STATUS["poison_ticks"]
+    done = set()
+
+    def poison(label: str, bf: R.TextResource, buff: R.Section, points: int):
+        g.add(label, bf, buff, "DamagePointsPerTick", points // ticks, exact=True)
+        g.add(label, bf, buff, "Duration", seconds)
+        g.add(label, bf, buff, "TicksPerSecond", ticks / seconds)
+        if (bf.path, buff.start) not in done:  # foods of one portion share their poison
+            done.add((bf.path, buff.start))
+            now = bf.get(buff, "DamagePointsPerTick", 0) * _ticks(bf, buff)
+            g.rows.append([label, f"{now:g} over {bf.get(buff, 'Duration', 1.0):g} s", f"{points} over {seconds:g} s"])
+
+    for path in sorted(R.ROOT.glob("scenes/items/potions/*.tres")):
+        f = R.load(path)
+        kind = STATUS_POTIONS.get(f.get(f.main, "TypeId"))
+        if kind is None or not _selected(path, match):
+            continue
+        size, label = f.get(f.main, "AppearanceForm"), f.get(f.main, "Name") or path.stem
+        for bf, buff in _buffs(f, f.main, "PoisonBuff" if kind == "poison" else "Buff"):
+            if kind == "poison":
+                poison(label, bf, buff, M.poison_points(size))
+                continue
+            g.add(label, bf, buff, "Duration", float(P.STATUS[kind][size]))
+            g.rows.append([label, f"{bf.get(buff, 'Duration', 1.0):g} s", f"{P.STATUS[kind][size]} s"])
+    portions = R.csharp_enum("FoodPortion")
+    for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres")):
+        f = R.load(path)
+        ref = f.get(f.main, "PoisonEffect") if f.script_class == "FoodItem" else None
+        if not isinstance(ref, R.Ref) or not _selected(path, match):
+            continue
+        bf, buff = f.follow(ref)
+        portion = portions[f.get(f.main, "Portion")].lower()
+        poison(f"{bf.get(buff, 'Name') or bf.path.stem} ({portion})", bf, buff, M.food_poison_points(portion))
     return g
 
 
