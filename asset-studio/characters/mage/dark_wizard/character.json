@@ -114,8 +114,7 @@
       "kind": "helmet",
       "style": "wizard",
       "slot": "hat",
-      "band": "trim",
-      "runes": "glow"
+      "band": "trim"
     }
   ],
   "colors": {

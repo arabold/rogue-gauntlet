@@ -48,6 +48,13 @@ def _bind_pose(g, acc, worlds, index):
     return p, acc(primitive["indices"]).reshape(-1, 3).astype(np.int64)
 
 
+def _hat_frame(worlds, names):
+    """The hat-prop frame of a KayKit character: its `head` bone, `HAT_OFFSET` below it."""
+    frame = worlds[names.index("head")].copy()
+    frame[:3, 3] += frame[:3, :3] @ HAT_OFFSET
+    return frame
+
+
 def class_head(name):
     """`(verts, faces)` of adventurer class `name`'s head in the hat-prop frame."""
     title = name.capitalize()
@@ -55,10 +62,17 @@ def class_head(name):
     worlds = mesh._node_worlds(g)
     names = [node.get("name", "") for node in g["nodes"]]
     verts, faces = _bind_pose(g, acc, worlds, names.index(f"{title}_Head"))
-    frame = worlds[names.index("head")].copy()
-    frame[:3, 3] += frame[:3, :3] @ HAT_OFFSET
-    local = (np.linalg.inv(frame) @ np.column_stack([verts, np.ones(len(verts))]).T).T[:, :3]
+    local = (np.linalg.inv(_hat_frame(worlds, names)) @ np.column_stack([verts, np.ones(len(verts))]).T).T[:, :3]
     return local, faces
+
+
+def hat_prop(source, node):
+    """The 4x4 transform from KayKit character `source`'s prop `node` (`Mage_Hat`) into its hat-prop frame. Most
+    hats sit at the frame's origin; the mage hats are raised and tipped back."""
+    g, _, _ = mesh.read_glb(str(source))
+    worlds = mesh._node_worlds(g)
+    names = [n.get("name", "") for n in g["nodes"]]
+    return np.linalg.inv(_hat_frame(worlds, names)) @ worlds[names.index(node)]
 
 
 def write(destination, meshes):

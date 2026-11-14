@@ -142,7 +142,7 @@ asset-studio/
 │   │   ├── clothes.py        # Tunics, robes, sleeves, shorts, loincloths, aprons, collars, cuffs, wraps
 │   │   ├── cuirass.py        # Fitted plate cuirasses (knight, orc, corset)
 │   │   ├── armor.py          # Breastplates, backplates, lames, mail, scales, tabards, faulds, limb plates, cops
-│   │   ├── helmets.py        # Procedural helmets (bear, horned, headdress, wizard, knight, crusader, kettle, ...)
+│   │   ├── helmets.py        # KayKit's own hats refitted to any head (bear, horned, wizard, knight, hood); procedural headdress, crusader, kettle, ...
 │   │   ├── crowns.py         # Crowns, circlets, diadems, halos
 │   │   ├── pauldrons.py      # Layered, spiked, and skull shoulder armor
 │   │   └── belts.py          # Belts, sashes, ropes, chains, buckles, pouches, trophies

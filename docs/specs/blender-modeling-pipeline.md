@@ -15,8 +15,9 @@ are the first assets. This plan lists what remains.
    per-class variants) once item 1 settles which features hide; `ctx.host_bvh` takes any host head.
 3. **Iterate both helmets.** Use `item compare --audit`: antler splay and skull proportions on the shaman, ear
    clearance on the dark knight, and colors against both concepts.
-4. **Kit characters.** Map hat-frame headgear onto studio `heads.Head` forms (landmark refit), so kit characters can
-   wear modeled helmets; `characters.GARMENTS["helmet"]` takes only procedural styles today.
+4. **Kit characters.** Let kit characters wear modeled helmets. `helmets._original` already refits hat-frame art from
+   the KayKit head it sits on to any studio `heads.Head` (KayKit's own hats are worn that way); give modeled helmets
+   the same refit so `characters.GARMENTS["helmet"]` can take them.
 5. **More hosts.** Hand hosts for weapons and props, body hosts for armor plates bound per bone.
 6. **Organic forms.** Sculpt and remesh helpers in `blender/modeling/`, committed sculpt inputs as
    `source.<part>.glb`, and optional reconstruction blockouts as fitting targets.

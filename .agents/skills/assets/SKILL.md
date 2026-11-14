@@ -29,7 +29,7 @@ All procedural 3D character, monster, and item generation code, modular prefabs,
     - `meshes/` — Reusable harvested meshes (e.g. skulls, jaw, ribcage).
   - **`prefabs/outfits/`**:
     - `clothes.py`, `cuirass.py`, `armor.py`, `helmets.py`, `crowns.py`, `pauldrons.py`, `belts.py`.
-    - `meshes/` — Reusable harvested meshes (e.g. helmets, wizard hats).
+    - `meshes/` — KayKit's own headgear, harvested in the hat-prop frame by `helmets.harvest()` and refitted to any head by the `bear`, `horned`, `wizard`, `knight` and `hood` helmet styles.
   - **`prefabs/items/`**:
     - `weapons.py`, `shields.py`, `props.py`.
     - `meshes/` — Reusable harvested meshes (e.g. swords, axes, daggers, wands, crossbow, shields, tomes, flasks).
@@ -184,7 +184,7 @@ Game-side wiring (`Prop`/`PropGroup` resources, lit and composed scenes, room ty
 
 ### Concept-faithful models in Blender
 
-For a concept-driven asset that must match its design (headgear, props, items with complex forms), write a Blender model script rather than hand-placing geometry in a live session. The full workflow is in the Studio README's [Model a concept faithfully in Blender](../../../asset-studio/README.md#model-a-concept-faithfully-in-blender); its examples are `objects/headgear/shaman_antler_headdress` and `objects/headgear/dark_knight_winged_helm`.
+When KayKit already has the piece, copy it instead of modeling it: harvest it with its swatch regions as the decor props and `helmets.SOURCES` do, so it matches KayKit exactly. For a concept-driven asset that must match its design (headgear, props, items with complex forms), write a Blender model script rather than hand-placing geometry in a live session. The full workflow is in the Studio README's [Model a concept faithfully in Blender](../../../asset-studio/README.md#model-a-concept-faithfully-in-blender); its examples are `objects/headgear/shaman_antler_headdress` and `objects/headgear/dark_knight_winged_helm`.
 
 1. Create the recipe (`backend: source`, `model: source.py`, `surface: {palette: materials}`, a `host` for worn art) and a `--turnaround` concept.
 2. Write `source.py` (`build(ctx)`) with the helpers in `asset-studio/blender/modeling/`: slot materials, host clearance and shell thickness, tapered tubes, blades and rail lofts. Name each part; its materials are palette slots colored by the recipe. Add a helper to `modeling/` when a form is reusable; keep the design's own shapes in the script.

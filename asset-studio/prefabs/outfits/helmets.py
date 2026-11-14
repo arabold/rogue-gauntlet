@@ -3,22 +3,26 @@ Helmets: separate pieces over a head (`heads.Head`), fitted tightly to the crani
 bloating the head silhouette. Features on `heads.Head` that an enclosed or cheek-guarded helm covers are declared via
 `piece.hides` so character assembly suppresses them automatically.
 
-Existing styles refitted to a snug profile:
-- `bear`: tight barbarian pelt cowl above the ears with brow snout, tucked ears, eyes, and fangs.
-- `horned`: snug riveted half-helm with nose guard, spangen seams, crown ridge, and horns.
-- `headdress`: war bonnet with brow band, horned skull, and feathered halo.
-- `wizard`: crooked tall hat tilted back with a wavy rim, buckled band, runes, and clear crown envelope.
+KayKit originals, worn exactly as KayKit modeled them and fitted from their KayKit head to the wearer's (`SOURCES`):
+- `bear`: the barbarian's bear-head hood.
+- `horned`: the skeleton warrior's spiked half-helm with wrapped horns.
+- `wizard`: the mage's wide-brimmed pointed hat.
+- `knight`: the knight's open-faced great helm.
+- `hood`: the skeleton rogue's pointed cowl.
 
-Hero armor family styles:
-- `knight`: tight open-face visored helm with keeled crest, angled brow visor, cheek plates, and optional `bevor`.
+Procedural styles, for headgear KayKit does not have:
+- `headdress`: war bonnet with brow band, horned skull, and feathered halo.
 - `crusader`: solid-cut cylindrical greathelm with flat chamfered crown, recessed dark eye slits, breathers, and cross trim.
 - `dark_knight`: angular keeled dread helm with V-slit visor, forehead gem, swept brow-temple horns, and cheek gash.
 - `kettle`: snug kettle helm above the ears with flared sloped brim, spangen ribs, and buckled cheek straps.
 - `coif`: tight chain-mail hood and camail with curved wire-ring relief, circlet, and optional nasal bar.
-- `hood`: draped ranger cowl with peaked brow overhang, folded cuff rim, center seam, and draped back tail.
 
     python asset-studio/studio.py catalog helmets -o helmets.png --yaws 0,-40,-90,180
 """
+
+import json
+from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 
@@ -56,21 +60,11 @@ def _rim(head, line, theta, peak=0.0):
     return head.phi(np.clip(end, -0.97, 0.97))
 
 
-def _lump(c, r, slot):
-    return kit.lump(c, r, slot, n=8, lat=(-55, -15, 25, 60))
-
-
 def _over_crown(head, theta, phi0, phi1, out, n=14):
     """Points from `phi0` at angle `theta` up over the crown and down to `phi1` on the opposite side."""
     up = head.surface(np.full(n, theta), np.linspace(phi0, 0.0, n), out)
     down = head.surface(np.full(n - 1, theta + np.pi), np.linspace(0.0, phi1, n)[1:], out)
     return np.vstack([up, down])
-
-
-def _head_frame(head, theta, phi, out):
-    """A surface `Frame` (`z` = outward normal, `y` = up) on `head` at `(theta, phi)` lifted `out`."""
-    (P,), (n,) = head.surface(theta, phi, out, normals=True)
-    return kit.Frame.make(P, n, up=(0.0, 1.0, 0.0))
 
 
 def _shell(head, line, thickness=0.032, inner=-0.014, slot="metal", rim_slot=None, rim_drop=0.035,
@@ -166,144 +160,6 @@ def _merge_creased(*parts, crease=52.0):
     return res
 
 
-def bear(head, line=((0, 0.25), (52, 0.22), (98, 0.22), (132, -0.38), (160, -0.68), (180, -0.74)),
-         thickness=0.036, slot="pelt", inner="pelt_dark", nose="dark", teeth="tooth", ears=1.0, snout=1.0,
-         tooth_count=9, tilt=0.0, y_offset=0.0):
-    """A tight bear-pelt hood hugging above the ears and dipping behind the nape, with compact brow snout,
-    tucked concave ears, eyes, and sharp fangs."""
-    A = head.A
-
-    def _fur_sculpt(t, th, P, n):
-        crest = 0.018 * A * np.sin(np.pi * t) ** 0.7 * (np.abs(np.sin(th)) ** 5)
-        return P + crest[:, None] * n
-
-    cap = _shell(head, line=line, thickness=thickness, slot=slot, rim_slot=inner, rim_drop=0.025, rim_lip=0.45,
-                 rim_outer=False, sculpt=_fur_sculpt)
-    parts = [cap]
-    for sgn in (-1, 1):
-        (P,), (n,) = head.surface(FRONT + sgn * 1.12, 0.56, thickness, normals=True)
-        r = 0.27 * A * ears
-        facing = [np.cos(FRONT + sgn * 0.52), 0.12, np.sin(FRONT + sgn * 0.52)]
-        f = kit.Frame.make(P + 0.35 * r * n + [0, 0.32 * r, 0], facing)
-        parts.append(_lump((0, 0, 0), (r, r, 0.42 * r), slot).moved(f))
-        parts.append(_lump((0, -0.06 * r, 0.26 * r), (0.62 * r, 0.62 * r, 0.24 * r), inner).moved(f))
-    brow = float(np.interp(0, *np.asarray(line, float).T))
-    (P,), (n,) = head.surface(FRONT, head.phi(brow + 0.16), thickness, normals=True)
-    s = 0.28 * A * snout
-    f = kit.Frame.make(P - 0.008 * n, n)
-    parts.append(_lump((0, 0.04 * s, 0.36 * s), (0.95 * s, 0.65 * s, 0.78 * s), slot).moved(f))
-    parts.append(_lump((0, 0.14 * s, 0.98 * s), (0.45 * s, 0.30 * s, 0.25 * s), nose).moved(f))
-    for sgn in (-1, 1):
-        (Pe,), (ne,) = head.surface(FRONT + sgn * 0.42, head.phi(brow + 0.34), thickness, normals=True)
-        parts.append(kit.gem(0.06 * A, nose, depth=0.025).moved(kit.Frame.make(Pe - 0.004 * ne, ne)))
-    theta = FRONT + np.radians(np.linspace(-66, 66, tooth_count))
-    phi = _rim(head, line, theta)
-    rim = head.surface(theta, phi, 0.92 * thickness)
-    along = head.surface(theta + 0.01, phi, 0.92 * thickness) - rim
-    for k, (p, d, th) in enumerate(zip(rim, along, theta)):
-        df = abs(th - FRONT)
-        is_fang = abs(df - 0.42) < 0.14
-        front = np.cos(0.5 * (th - FRONT)) ** 2
-        w = (0.115 if is_fang else 0.082) * A
-        h = A * ((0.24 if is_fang else 0.085 + 0.06 * front) * (1.0 if k % 2 == 0 or is_fang else 0.80))
-        down = np.array([0.0, -1.0, 0.0])
-        dx = d / max(np.linalg.norm(d), 1e-9)
-        ft = kit.Frame(p, dx, -down, np.cross(dx, -down))
-        parts.append(kit.prism([(-w, 0.03 * A), (w, 0.03 * A), (0.0, -h)], 0.026, teeth, bevel=0.005).moved(ft))
-    res = _merge_creased(*parts, crease=60.0)
-    return _with_hides(_apply_tilt_y(res, head, tilt=tilt, y_offset=y_offset), "hair")
-
-
-def horned(head, brim=0.22, thickness=0.030, slot="metal", band="leather", horn="bone", rivet="metal", horns=1.0,
-           horn_height=0.56, horn_angle=np.pi / 2, horn_radius=0.165, horn_spread=0.45, guard=1.0, ridge=True,
-           seams=True, guard_upright=False, patina=False, dents=False, tilt=0.0, y_offset=0.0):
-    """
-    A tight viking half-helm clearing the ears: a riveted brow band, nasal guard with diamond boss, crown ridge
-    and spangen ribs, and curved horns seated in beveled temple sockets.
-    """
-    A = head.A
-    line = ((0, brim), (72, max(brim + 0.01, 0.22)), (108, max(brim + 0.01, 0.22)), (145, brim - 0.14), (180, brim - 0.24))
-    cap = _shell(head, line=line, thickness=thickness, slot=slot, sides=32)
-    band_out = thickness + 0.012
-    brow_band = heads.surface_band(head, brim + 0.05, 0.15, band_out, band, tilt=(0.03, 0.0), sides=32, bevel=0.38)
-
-    if patina or dents:
-        light_s, worn_s, dark_s = f"{slot}_light", f"{slot}_worn", f"{slot}_dark"
-        paintable_cap = {slot, light_s, worn_s, dark_s, "tarnish", "rust"}
-        if patina:
-            cap = kit.weather(cap, slot, light_slot=light_s, worn_slot=worn_s, dark_slot=dark_s)
-            p_rust = np.array([(-0.07, -0.035), (0.06, -0.04), (0.08, 0.03), (-0.03, 0.05)]) * A
-            cap = kit.paint_cut_local(cap, _head_frame(head, FRONT + 0.52, head.phi(brim + 0.28), thickness),
-                                      [p_rust], "tarnish", paintable=paintable_cap)
-            cap = kit.paint_cut_local(cap, _head_frame(head, FRONT - 0.58, head.phi(brim + 0.28), thickness),
-                                      [p_rust], "rust", paintable=paintable_cap)
-            is_l_band = "leather" in band or "hide" in band
-            brow_band = kit.weather(brow_band, band, worn_slot="grime" if is_l_band else "tarnish",
-                                    dark_slot="dirt" if is_l_band else "rust")
-            p_band_rust = np.array([(-0.06, -0.03), (0.05, -0.03), (0.07, 0.025), (-0.02, 0.035)]) * A
-            brow_band = kit.paint_cut_local(
-                brow_band, _head_frame(head, FRONT + 0.35, head.phi(brim + 0.05), band_out),
-                [p_band_rust], "rust" if not is_l_band else "grime")
-        d_cnt, d_scale = kit.parse_dents(dents, max_allowed=2)
-        if d_cnt >= 1:
-            f_d1 = _head_frame(head, FRONT + 0.44, head.phi(brim + 0.46), thickness).rotated(32.0, "z")
-            cap = kit.gash(cap, f_d1, length=0.45 * A * d_scale, width=0.12 * A * d_scale, depth=0.026 * A * d_scale,
-                           slot=worn_s, shadow_slot=dark_s, paintable=paintable_cap)
-        if d_cnt >= 2:
-            f_d2 = _head_frame(head, FRONT - 0.46, head.phi(brim + 0.52), thickness).rotated(-36.0, "z")
-            cap = kit.gash(cap, f_d2, length=0.34 * A * d_scale, width=0.10 * A * d_scale, depth=0.022 * A * d_scale,
-                           slot=worn_s, shadow_slot=dark_s, paintable=paintable_cap)
-            paintable_band = {band, "tarnish", "rust", "grime", "dirt"}
-            f_b1 = _head_frame(head, FRONT + 0.58, head.phi(brim + 0.06), band_out).rotated(18.0, "z")
-            brow_band = kit.gash(brow_band, f_b1, length=0.17 * A * d_scale, width=0.058 * A * d_scale,
-                                 depth=0.014 * A * d_scale, slot="tarnish", shadow_slot="rust",
-                                 paintable=paintable_band)
-
-    parts = [cap, brow_band]
-    if ridge:
-        ridge_slot = f"{slot}_worn" if patina else slot
-        r_piece = _crown_keel(head, head.phi(brim + 0.12), head.phi(brim - 0.06), thickness + 0.008,
-                              0.14, 0.034, 0.010, ridge_slot)
-        if patina:
-            r_piece = kit.weather(r_piece, ridge_slot, light_slot=f"{slot}_light", dark_slot=f"{slot}_dark",
-                                  rust_slot="tarnish", seed=23)
-        parts.append(r_piece)
-    if seams:
-        seam_slot = f"{slot}_dark" if patina else slot
-        parts.extend(_spangen_ribs(head, (FRONT - 0.92, FRONT + 0.92, 3 * np.pi / 2 - 0.92, 3 * np.pi / 2 + 0.92),
-                                   head.phi(brim + 0.14), 0.30, thickness + 0.006, seam_slot,
-                                   width=0.048, depth=0.018, bevel=0.005))
-    (P,), (n,) = head.surface(FRONT, head.phi(brim + 0.03), thickness + 0.014, normals=True)
-    g = guard * A
-    f = kit.Frame.make(P, n * [1.0, 0.0, 1.0] if guard_upright else n).rotated(-5.0, "x")
-    guard_piece = kit.prism([(-0.12 * g, 0.07 * g), (0.12 * g, 0.07 * g), (0.08 * g, -0.42 * g), (0.0, -0.58 * g),
-                             (-0.08 * g, -0.42 * g)], 0.045 * max(guard, 0.3), slot, bevel=0.012)
-    if patina:
-        guard_piece = kit.weather(guard_piece, slot, light_slot=f"{slot}_light", worn_slot=f"{slot}_worn",
-                                  dark_slot=f"{slot}_dark", seed=29)
-    parts.append(guard_piece.moved(f))
-    boss_slot = f"{slot}_light" if patina else slot
-    parts.append(kit.gem(0.085 * g, boss_slot, cut="diamond", depth=0.038).moved(kit.Frame(f.to_world([0, 0.03 * g, 0.042]),
-                                                                                           *f.R.T)))
-    for idx_r, deg in enumerate(np.arange(-150, 151, 25)):
-        (Pr,), (nr,) = head.surface(FRONT + np.radians(deg), head.phi(brim + 0.09), band_out + 0.005, normals=True)
-        r_slot = (f"{slot}_light" if idx_r % 2 == 0 else "rust") if patina else rivet
-        parts.append(kit.stud(0.038 * A, 0.018, r_slot).moved(kit.Frame.make(Pr, nr)))
-    L, r = 0.96 * A * horns, horn_radius * A * horns
-    for sgn in ((-1, 1) if horns else ()):
-        theta = FRONT - sgn * horn_angle
-        (Ph,), (nh,) = head.surface(theta, head.phi(horn_height), thickness - 0.004, normals=True)
-        side = np.array([np.sign(np.cos(theta)) or sgn, 0.0, 0.0])
-        up = np.array([0.0, 1.0, 0.0])
-        k = horn_spread
-        path = kit.spline([Ph - 0.02 * nh, Ph + 0.72 * k * L * side + 0.10 * L * up, Ph + k * L * side + 0.48 * L * up,
-                           Ph + 0.78 * k * L * side + L * up], 10)
-        parts.append(kit.tube(path, r, horn, sides=8, taper=0.82))
-        parts.append(_horn_cuff(Ph + 0.042 * nh, path[1] - path[0], 1.15 * r, 0.08 * A, 0.042, band))
-    res = _merge_creased(*parts, crease=55.0)
-    return _with_hides(_apply_tilt_y(res, head, tilt=tilt, y_offset=y_offset), "hair")
-
-
 def headdress(head, band_y=0.25, slot="leather", skull="bone", feather="feather", tip="feather_tip", count=13,
               length=0.90, spread=200.0, splay=(12.0, 72.0), horn_length=0.80, skull_size=0.55,
               skull_y=None, tilt=0.0, y_offset=0.0):
@@ -339,166 +195,6 @@ def headdress(head, band_y=0.25, slot="leather", skull="bone", feather="feather"
         parts.append(kit.tube(path, r, skull, sides=6, taper=0.7))
     res = kit.Piece.merge(*parts)
     return _with_hides(_apply_tilt_y(res, head, tilt=tilt, y_offset=y_offset), "hair")
-
-
-def wizard(head, brim_y=0.28, brim=1.68, height=2.25, bend=0.78, slot="hat", band="trim", runes="rune",
-           sides=18, tilt=-7.0, y_offset=0.0):
-    """A tilted wizard's hat: wide wavy brim with trimmed perimeter, clean buckled foot band with rune studs,
-    and a tall crooked spire whose base clears the cranium completely."""
-    from prefabs.outfits import belts
-
-    A = head.A
-    cx, cy, cz = head.centre
-    y0 = head.y(brim_y)
-    gap = 0.036  # the spire's clearance off the cranium
-    sec = head.section([y0])
-    r0_x, r0_z = float(sec[1][0]) + gap, float(sec[3][0]) + gap
-
-    def around(a):
-        """Directions at angles `a` round the cranium's squircle cross-section (`head.p`)."""
-        return heads._spow(np.cos(a), 2.0 / head.p), heads._spow(np.sin(a), 2.0 / head.p)
-
-    n_brim = sides * 2
-    th = 2 * np.pi * np.arange(n_brim) / n_brim
-    wave = (0.045 * np.cos(2 * th - 0.6) + 0.028 * np.sin(3 * th + 0.4)) * A
-    notch = 1.0 - 0.06 * np.exp(-((th - 0.45) / 0.12) ** 2)
-
-    def brim_ring(rx, rz, dy, add_wave=1.0):
-        return np.column_stack([cx + rx * np.cos(th), y0 + dy + add_wave * wave, cz + rz * np.sin(th)])
-
-    R_out = brim * A * notch
-    brim_rings = [
-        brim_ring(0.84 * r0_x, 0.84 * r0_z, 0.008 * A, 0.0),
-        brim_ring(0.70 * R_out, 0.70 * R_out, -0.045 * A, 0.45),
-        brim_ring(0.98 * R_out, 0.98 * R_out, -0.15 * A, 0.9),
-        brim_ring(R_out, R_out, -0.19 * A, 1.0),
-        brim_ring(0.96 * R_out, 0.96 * R_out, -0.23 * A, 0.95),
-        brim_ring(0.70 * R_out, 0.70 * R_out, -0.11 * A, 0.45),
-        brim_ring(0.84 * r0_x, 0.84 * r0_z, -0.07 * A, 0.0),
-    ]
-    bv, bf = kit._loft(brim_rings, closed_rings=True, closed_profile=True)
-    bslots = np.full(len(bf), slot, dtype=object)
-    # Color outer brim bevel bands (rings 2->3->4) in `band`.
-    bslots[4 * n_brim:8 * n_brim] = band
-    parts = [kit.Piece(bv, kit._orient_closed(bv, bf), bslots)]
-
-    H = height * A
-    y_crown = cy + head.Hh + 0.08 * A
-    cone_rings = []
-    steps = 14
-    t_vals = np.linspace(0.0, 1.0, steps)
-    dark_slot = f"{slot}_dark"
-    th_cone = 2 * np.pi * np.arange(sides) / sides
-    ux, uz = around(th_cone)
-    for t in t_vals:
-        rise = max(0.0, (t - 0.42) / 0.58)  # 0 up to the crown, then 0 -> 1 along the crooked spire
-        y_ring = y0 + (y_crown - y0) * min(t / 0.42, 1.0) + rise * (y0 + 0.88 * H - y_crown)
-        # Keep the spire centered over the cranium until above y_crown, then crook back cleanly.
-        bend_t = rise ** 1.35
-        zc = cz - 0.72 * bend * H * bend_t
-        yc_drop = -0.14 * bend * H * max(0.0, (t - 0.68) / 0.32) ** 1.5
-        k = max((1.0 - t) ** 0.85, 0.035)
-        rx_t, rz_t = r0_x * k, r0_z * k
-        if y_ring < cy + head.Hh + 0.02:
-            s_ring = head.section([np.clip(y_ring, head.y(-0.9), head.y(0.99))])
-            rx_t = max(rx_t, float(s_ring[1][0]) + gap)
-            rz_t = max(rz_t, float(s_ring[3][0]) + gap)
-        crinkle = 1.0 - 0.045 * rise * np.sin(np.pi * t) * np.cos(3 * th_cone + 2.0 * t)
-        cone_rings.append(np.column_stack([
-            cx + rx_t * crinkle * ux,
-            np.full(sides, y_ring + yc_drop),
-            zc + rz_t * crinkle * uz,
-        ]))
-    cv, cf = kit._loft(cone_rings, closed_rings=True, closed_profile=False)
-    cv, cf = kit._cap_loops(cv, cf, [list(range(sides)), list(range((steps - 1) * sides, steps * sides))])
-    parts.append(kit.Piece(cv, kit._orient_closed(cv, cf), slot))
-
-    # Fitted squircle band hugging the spire base cleanly above the brim.
-    y_band = y0 + 0.11 * A
-    band_loop = np.column_stack([cx + 1.02 * r0_x * ux, np.full(sides, y_band),
-                                 cz + 1.02 * r0_z * uz])
-    parts.append(kit.sweep(band_loop, kit.rect_profile(0.032, 0.13 * A, 0.008), dark_slot if band == slot else band,
-                           closed=True, up=(0.0, 1.0, 0.0)))
-    ba = FRONT + 0.68
-    b_ux, b_uz = around(ba)
-    bp = np.array([cx + 1.04 * r0_x * b_ux, y_band, cz + 1.04 * r0_z * b_uz])
-    parts.append(belts.frame_buckle(0.11 * A, band).moved(kit.Frame.make(bp, (np.cos(ba), 0.0, np.sin(ba)))))
-    for k in range(5):
-        a = FRONT + np.radians(-48 + 24 * k)
-        a_ux, a_uz = around(a)
-        P = np.array([cx + 1.055 * r0_x * a_ux, y_band + 0.005 * A, cz + 1.055 * r0_z * a_uz])
-        f = kit.Frame.make(P, (np.cos(a), 0.0, np.sin(a)))
-        parts.append(kit.prism([(-0.030, -0.035), (0.030, -0.035), (0.0, 0.042)] if k % 2 else
-                               [(-0.025, -0.035), (0.025, -0.035), (0.025, 0.035), (-0.025, 0.035)],
-                               0.012, runes, bevel=0.003).moved(f))
-    res = _merge_creased(*parts, crease=52.0)
-    return _with_hides(_apply_tilt_y(res, head, tilt=tilt, y_offset=y_offset), "hair")
-
-
-def knight(head, slot="armor", trim="trim", rivet="rivet", bevor=False, crest=True, tilt=0.0, y_offset=0.0):
-    """Snug open-face knight helm: raised keeled sallet dome, forward-peaked faceted brow visor, temple-hinged
-    cheek plates, deep nape skirt, and optional `bevor` chin guard."""
-    A = head.A
-    line = ((0, 0.24), (52, 0.16), (82, -0.34), (118, -0.66), (180, -0.82))
-
-    def _keel_sculpt(t, th, P, n):
-        # Tall medieval sagittal crest ridge + subtle crown raise over the top.
-        keel = 0.095 * A * np.sin(np.pi * t) ** 0.7 * (np.abs(np.sin(th)) ** 7)
-        lift_top = 0.045 * A * ((1.0 - t) ** 1.4) * np.array([0.0, 1.0, 0.0])
-        brow = 0.045 * A * (t ** 1.8) * (np.clip(np.sin(th), 0.0, None) ** 4)
-        return P + (keel + brow)[:, None] * n + lift_top[None, :]
-
-    cap = _shell(head, line=line, slot=slot, rim_slot=trim, rim_drop=0.03, rim_lip=0.55, peak=0.08,
-                 sculpt=_keel_sculpt)
-    parts = [cap]
-
-    # Forward-angled faceted brow visor projecting cleanly over the forehead.
-    th_v = FRONT + np.linspace(-1.02, 1.02, 17)
-    outer_v, inner_v = [], []
-    y_upper = 0.36 - 0.10 * np.cos(1.5 * (th_v - FRONT))
-    y_lower = 0.22 - 0.13 * np.cos(1.5 * (th_v - FRONT))
-    prow_v = 0.095 * A * np.exp(-((th_v - FRONT) / 0.56) ** 2)
-    outer_v.append(head.surface(th_v, head.phi(y_upper), 0.034 + 0.35 * prow_v))
-    outer_v.append(head.surface(th_v, head.phi(y_lower), 0.056 + prow_v))
-    inner_v.append(head.surface(th_v, head.phi(y_upper), 0.010))
-    inner_v.append(head.surface(th_v, head.phi(y_lower), 0.012))
-    parts.append(kit.patch_shell(np.asarray(outer_v), np.asarray(inner_v), trim))
-
-    # Thicker faceted cheek guards wrapping cleanly down along the temples/jaw.
-    for sgn in (-1, 1):
-        th_c = FRONT + sgn * np.linspace(0.58, 1.38, 8)
-        y_rows = (-0.64, -0.26, 0.14)
-        out_rows = (0.040, 0.046, 0.042)
-        g_out = np.asarray([head.surface(th_c, head.phi(yr - 0.12 * np.linspace(0, 1, 8)), oo)
-                            for yr, oo in zip(y_rows, out_rows)])
-        g_in = np.asarray([head.surface(th_c, head.phi(yr - 0.12 * np.linspace(0, 1, 8)), -0.008)
-                           for yr in y_rows])
-        parts.append(kit.patch_shell(g_out, g_in, slot))
-        (Ph,), (nh,) = head.surface(FRONT + sgn * 1.12, head.phi(0.14), 0.046, normals=True)
-        fh = kit.Frame.make(Ph, nh)
-        parts.append(kit.stud(0.090 * A, 0.024, trim).moved(fh))
-        parts.append(kit.stud(0.042 * A, 0.034, rivet).moved(fh))
-
-    if crest:
-        # Raised architectural comb arch over the crown.
-        parts.append(_crown_keel(head, head.phi(0.32), head.phi(-0.74), 0.048, 0.12, 0.052, 0.012, trim))
-        parts.extend(_spangen_ribs(head, (FRONT - 0.92, FRONT + 0.92), head.phi(0.16), 0.25, 0.036, trim,
-                                   width=0.046, depth=0.016, bevel=0.004))
-
-    if bevor:
-        th_b = FRONT + np.linspace(-1.08, 1.08, 17)
-        y_rows = (-0.84, -0.52, -0.22)
-        prow = 0.068 * A * np.cos(1.15 * (th_b - FRONT)) ** 2
-        b_out = np.asarray([head.surface(th_b, head.phi(yr), 0.044 + prow) for yr in y_rows])
-        b_in = np.asarray([head.surface(th_b, head.phi(yr), -0.008 + 0.4 * prow) for yr in y_rows])
-        parts.append(kit.patch_shell(b_out, b_in, slot))
-        parts.extend(_rivet_arc(head, (-42, 42), -0.44, 0.050, 0.036, 0.016, rivet))
-        hides = ("ears", "hair", "beard")
-    else:
-        hides = ("ears", "hair")
-
-    res = _merge_creased(*parts, crease=46.0)
-    return _with_hides(_apply_tilt_y(res, head, tilt=tilt, y_offset=y_offset), *hides)
 
 
 def crusader(head, slot="armor", trim="trim", rivet="rivet", dark="dark", tilt=0.0, y_offset=0.0):
@@ -704,62 +400,141 @@ def coif(head, slot="mail", dark_slot="mail_dark", band="leather", rivet="rivet"
     return _with_hides(_apply_tilt_y(res, head, tilt=tilt, y_offset=y_offset), "ears", "hair")
 
 
-def hood(head, slot="cloak", dark_slot="cloak_dark", stitch="stitch", peak=0.10, tail=0.85,
-         tilt=0.0, y_offset=0.0):
-    """Snug draped ranger cowl with a peaked brow overhang, folded cuff rim, center seam, and draped back tail."""
-    A = head.A
-    line = ((0, 0.34), (48, 0.14), (66, -0.42), (90, -0.82), (180, -0.92))
+# KayKit's own headgear (CC0), harvested into `meshes/` in the hat-prop frame by `harvest()`: prefab name ->
+# (character model under `assets/`, prop node, the adventurer class head it is fitted from). The skeletons' helm
+# and hood were modeled on skulls but fit the barbarian head more closely than any skull.
+SOURCES = {
+    "barbarian_hat": ("kaykit-adventurers/Barbarian.glb", "Barbarian_Hat", "barbarian"),
+    "knight_helmet": ("kaykit-adventurers/Knight.glb", "Knight_Helmet", "knight"),
+    "mage_hat": ("kaykit-adventurers/Mage.glb", "Mage_Hat", "mage"),
+    "skeleton_warrior_helmet": ("kaykit-skeletons/Skeleton_Warrior.glb", "Skeleton_Warrior_Helmet", "barbarian"),
+    "skeleton_rogue_hood": ("kaykit-skeletons/Skeleton_Rogue.glb", "Skeleton_Rogue_Hood", "barbarian"),
+}
+MESHES = Path(__file__).resolve().parent / "meshes"
 
-    def _cowl_sculpt(t, th, P, n):
-        front_w = np.clip(np.sin(th), 0.0, None) ** 3
-        back_w = np.clip(-np.sin(th), 0.0, None) ** 2.5
-        brow_out = 0.11 * A * (t ** 1.35) * front_w
-        peak_up = (0.055 * A * (t ** 1.5) * (front_w ** 2))[:, None] * np.array([0.0, 1.0, 0.0])
-        back_pull = 0.10 * A * (np.sin(np.pi * 0.5 * t) ** 0.8) * back_w
-        folds = 0.022 * A * np.sin(np.pi * t) * np.cos(4.0 * th)
-        return P + (brow_out + back_pull + folds)[:, None] * n + peak_up
 
-    cowl = _shell(head, line=line, slot=slot, rim_slot=dark_slot, rim_lip=0.68, peak=peak, rows=11,
-                  sculpt=_cowl_sculpt)
-    parts = [cowl]
+def _reach(centre, directions, verts, faces, spread=10.0, rays=24):
+    """Distance from `centre` to a head mesh along each unit direction, as the median over a cone of `rays` within
+    `spread` degrees: the cranium's own shape, barely dented by ears, a nose or a brow ridge."""
+    jitter = np.random.default_rng(0).normal(size=(rays, 3)) * np.radians(spread) / 2
+    samples = directions[:, None, :] + jitter[None, :, :]
+    samples /= np.linalg.norm(samples, axis=2, keepdims=True)
+    distance = kit.ray_distance(centre, samples.reshape(-1, 3), verts, faces).reshape(len(directions), rays)
+    return np.nanmedian(distance, axis=1)
 
-    parts.append(_crown_keel(head, head.phi(0.42), head.phi(-0.68), 0.035, 0.052, 0.014, 0.004, stitch))
 
-    # Softly drooping tapered cloth hood tail flowing smoothly down the back of the cowl.
-    (Pt,), (nt,) = head.surface(3 * np.pi / 2, 0.68, 0.024, normals=True)
-    back = np.array([0.0, 0.0, -1.0])
-    up = np.array([0.0, 1.0, 0.0])
-    L = tail * A
-    tail_path = kit.spline([
-        Pt - 0.04 * nt,
-        Pt + 0.24 * L * back - 0.18 * L * up,
-        Pt + 0.44 * L * back - 0.54 * L * up,
-        Pt + 0.50 * L * back - 0.96 * L * up,
-    ], 12)
-    parts.append(kit.tube(tail_path, 0.29 * A, slot, sides=10, taper=0.88))
+def harvest():
+    """Read each `SOURCES` prop from its KayKit character into the hat-prop frame and save it to
+    `meshes/<name>.npz`, with how far its KayKit head reaches under each vertex (run once from `asset-studio/`:
+    `python -c "from prefabs.outfits import helmets; helmets.harvest()"`; the result is committed). Swatch regions,
+    gradient positions and authored normals are kept as KayKit drew them."""
+    from core import hosts, mesh
+    from prefabs import decor
 
-    res = _merge_creased(*parts, crease=60.0)
-    return _with_hides(_apply_tilt_y(res, head, tilt=tilt, y_offset=y_offset), "ears", "hair")
+    for name, (file, node, reference) in SOURCES.items():
+        source = decor.ASSETS / file
+        g, _, _ = mesh.read_glb(str(source))
+        mesh_name = g["meshes"][next(n["mesh"] for n in g["nodes"] if n.get("name") == node)]["name"]
+        piece, colors, _ = decor.material_piece(source, (mesh_name,))
+        to_frame = hosts.hat_prop(source, node)
+        verts = piece.verts @ to_frame[:3, :3].T + to_frame[:3, 3]
+        normals = piece.normals @ np.linalg.inv(to_frame[:3, :3])
+        normals /= np.linalg.norm(normals, axis=2, keepdims=True)
+        head_verts, head_faces = hosts.class_head(reference)
+        centre = heads.Head.fit(head_verts).centre
+        offset = verts - centre
+        reach = _reach(centre, offset / np.linalg.norm(offset, axis=1)[:, None], head_verts, head_faces)
+        meta = {"name": name, "category": "headgear", "domain": "outfits", "source": file, "node": node,
+                "license": "CC0 (KayKit)", "verts": len(verts), "tris": len(piece.faces),
+                "span": [round(float(x), 4) for x in np.ptp(verts, axis=0)], "colors": colors,
+                "head": {"class": reference, "centre": [round(float(x), 5) for x in centre]}}
+        np.savez_compressed(MESHES / f"{name}.npz", verts=verts.astype(np.float32), faces=piece.faces.astype(np.int32),
+                            slots=np.asarray(piece.slots, str), normals=normals.astype(np.float32),
+                            uv_t=np.asarray(piece.uv_t, np.float32), reach=reach.astype(np.float32),
+                            meta=json.dumps(meta))
+        print(f"  [+] {name:24s} {len(piece.faces):4d} tris  {meta['span']}  <- {file}:{node}")
+
+
+@lru_cache(maxsize=None)
+def _stored(name):
+    with np.load(MESHES / f"{name}.npz") as data:
+        return {"verts": data["verts"].astype(float), "faces": data["faces"].astype(np.int64),
+                "swatches": data["slots"].astype(object), "normals": data["normals"].astype(float),
+                "uv_t": data["uv_t"].astype(float), "reach": data["reach"].astype(float),
+                "meta": json.loads(str(data["meta"]))}
+
+
+def _face_turns(before, after):
+    """Per-face rotations turning each triangle's normal in `before` to its normal in `after` (n, 3, 3)."""
+    def unit_normals(tri):
+        n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+        return n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
+
+    a, b = unit_normals(before), unit_normals(after)
+    v, c = np.cross(a, b), np.sum(a * b, axis=1)
+    skew = np.zeros((len(a), 3, 3))
+    skew[:, 0, 1], skew[:, 0, 2], skew[:, 1, 2] = -v[:, 2], v[:, 1], -v[:, 0]
+    skew -= skew.transpose(0, 2, 1)
+    return np.eye(3) + skew + skew @ skew / np.maximum(1.0 + c, 1e-6)[:, None, None]
+
+
+def _original(prefab, regions, hides, summary):
+    """A style that wears KayKit's `prefab` exactly as authored, refitted from the KayKit head it sits on to the
+    wearer's: along each direction from the head's centre, distances scale from where the KayKit head's surface
+    lies to where the wearer's cranium does, so the clearance KayKit modeled carries over. `regions` is
+    `{keyword: (KayKit swatch, default slot)}`: a recipe recolors a region by naming another slot, such as
+    `slot="hat"`; any other keyword is an error, so a recipe never asks for detail the original lacks."""
+
+    def style(head, tilt=0.0, y_offset=0.0, **slots):
+        unknown = sorted(set(slots) - set(regions))
+        if unknown:
+            raise TypeError(f"{prefab} has no {unknown}; its regions are {sorted(regions)}")
+        art = _stored(prefab)
+        offset = art["verts"] - art["meta"]["head"]["centre"]
+        direction = offset / np.linalg.norm(offset, axis=1)[:, None]
+        verts = head.centre + offset * (head.radius(direction) / art["reach"])[:, None]
+        faces = art["faces"]
+        # Corner normals turn with their face, so KayKit's smooth and hard edges survive the refit.
+        normals = np.einsum("fij,fcj->fci", _face_turns(art["verts"][faces], verts[faces]), art["normals"])
+        names = {swatch: slots.get(keyword, default) for keyword, (swatch, default) in regions.items()}
+        piece = kit.Piece(verts, faces, np.array([names[s] for s in art["swatches"]], object), normals=normals,
+                          uv_t=art["uv_t"])
+        return _with_hides(_apply_tilt_y(piece, head, tilt=tilt, y_offset=y_offset), *hides)
+
+    style.__doc__ = f"{summary} (KayKit `{SOURCES[prefab][1]}`); regions: {', '.join(sorted(regions))}."
+    style.prefab = prefab
+    return style
 
 
 # Characters merge this palette over every other module's, so it adds helmet-only slots and never re-colors shared
 # ones (`armor`, `mail`, `rivet`, `gem`, `gold`, `stitch`, `metal_*` come from the armor and demo palettes).
 COLORS = {"pelt": (112, 96, 88), "pelt_dark": (86, 72, 66), "dark": (28, 24, 26), "tooth": (240, 240, 236),
           "metal": (170, 178, 190), "leather": (122, 78, 52), "bone": (232, 222, 196), "feather": (236, 232, 220),
-          "feather_tip": (60, 44, 40), "hat": (40, 44, 80), "hat_dark": (30, 32, 64), "trim": (190, 196, 210),
-          "rune": (150, 110, 230), "mail_dark": (92, 98, 108), "cloak": (62, 82, 66), "cloak_dark": (42, 56, 46)}
+          "feather_tip": (60, 44, 40), "hat": (72, 68, 113), "hat_band": (180, 88, 41), "horn": (224, 189, 155),
+          "horn_wrap": (108, 35, 60), "trim": (190, 196, 210), "mail_dark": (92, 98, 108), "cloak": (62, 82, 66),
+          "cloak_dark": (42, 56, 46)}
 
 STYLES = {
-    "bear": bear,
-    "horned": horned,
+    "bear": _original("barbarian_hat", {"slot": ("kay_barbarian_07", "pelt"), "dark": ("kay_barbarian_02", "dark"),
+                                        "tooth": ("kay_barbarian_12", "tooth")}, ("hair",),
+                      "The barbarian's bear-head hood with ears, snout and fangs"),
+    "horned": _original("skeleton_warrior_helmet",
+                        {"slot": ("kay_skeleton_03", "metal"), "dark": ("kay_skeleton_04", "metal_dark"),
+                         "horn": ("kay_skeleton_11", "horn"), "wrap": ("kay_skeleton_22", "horn_wrap"),
+                         "band": ("kay_skeleton_26", "leather")}, ("ears", "hair"),
+                        "A spiked, riveted half-helm with wrapped horns and cheek guards"),
     "headdress": headdress,
-    "wizard": wizard,
-    "knight": knight,
+    "wizard": _original("mage_hat", {"slot": ("kay_mage_11", "hat"), "band": ("kay_mage_05", "hat_band"),
+                                     "buckle": ("kay_mage_03", "metal")}, ("hair",),
+                        "The mage's wide-brimmed pointed hat with a crooked tip and a buckled band"),
+    "knight": _original("knight_helmet", {"slot": ("kay_knight_03", "armor"), "crest": ("kay_knight_07", "armor")},
+                        ("ears", "hair"), "The knight's open-faced great helm with a visor and crest"),
     "crusader": crusader,
     "dark_knight": dark_knight,
     "kettle": kettle,
     "coif": coif,
-    "hood": hood,
+    "hood": _original("skeleton_rogue_hood", {"slot": ("kay_skeleton_22", "cloak")}, ("ears", "hair"),
+                      "A pointed, deep cowl"),
 }
 
 

@@ -6,6 +6,7 @@ import unittest
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from core import kit
 from items import solid
 from prefabs.anatomy import heads
 from prefabs.creatures import characters
@@ -40,29 +41,31 @@ class HelmetsTest(unittest.TestCase):
                     self.assertEqual(piece.normals.shape, (len(piece.faces), 3, 3))
 
     def test_snug_lateral_width_against_cranium(self):
-        # Close-fitting caps/helms stay compact around the human cranium (2*A = 0.94); only horns/feathers/brims flare.
-        for name, max_width in (("bear", 1.15), ("knight", 1.14), ("crusader", 1.18), ("coif", 1.06), ("hood", 1.10)):
+        # Close-fitting procedural helms stay compact around the human cranium (2*A = 0.94).
+        for name, max_width in (("crusader", 1.18), ("coif", 1.06)):
             with self.subTest(style=name):
                 piece = self.helms[name]
                 width = float(piece.verts[:, 0].max() - piece.verts[:, 0].min())
                 self.assertLessEqual(width, max_width)
-        # Horned without horns sits cleanly on the brow above ears without bloating the head width.
-        plain_horned = helmets.horned(self.head, horns=0)
-        horned_width = float(plain_horned.verts[:, 0].max() - plain_horned.verts[:, 0].min())
-        self.assertLessEqual(horned_width, 1.10)
 
-    def test_wizard_encloses_cranium_without_protrusion(self):
-        # Untilt for exact axis-aligned containment above the brim line (y >= 1.88).
-        wiz = helmets.wizard(self.head, tilt=0.0)
-        head_pts = self.head_piece.verts[self.head_piece.verts[:, 1] >= self.head.y(0.32)]
-        self.assertGreater(len(head_pts), 0)
-        for y in np.unique(np.round(head_pts[:, 1], 3)):
-            sub_h = head_pts[np.abs(head_pts[:, 1] - y) <= 0.025]
-            hat_band = wiz.verts[np.abs(wiz.verts[:, 1] - y) <= 0.045]
-            self.assertGreater(len(hat_band), 0)
-            r_head = np.hypot(sub_h[:, 0], sub_h[:, 2]).max()
-            r_hat = np.hypot(hat_band[:, 0], hat_band[:, 2]).max()
-            self.assertGreater(r_hat, r_head)
+    def test_kaykit_originals_cover_the_cranium_of_every_head(self):
+        # Refitted from KayKit's head to a human's and an orc's (narrower, taller, flatter at the back), no original
+        # lets the cranium poke through where it covers it. The underside of the jaw, which the neck hides, is exempt.
+        orc = dict(self.plain_recipe, form=dict(width=0.86, height=1.08, depth=1.0, back=0.92))
+        for label, spec in (("human", self.plain_recipe), ("orc", orc)):
+            head, _ = heads.build(spec)
+            _, cranium = heads.build(spec, suppress=("ears", "nose", "eyes", "brows", "mouth", "hair", "beard"))
+            points = cranium.verts[cranium.verts[:, 1] >= head.y(-0.5)]
+            offset = points - head.centre
+            reach = np.linalg.norm(offset, axis=1)
+            direction = offset / reach[:, None]
+            for name in (name for name, style in helmets.STYLES.items() if hasattr(style, "prefab")):
+                with self.subTest(head=label, style=name):
+                    helm = helmets.STYLES[name](head)
+                    covered = np.nan_to_num(kit.ray_distance(head.centre, direction, helm.verts, helm.faces),
+                                            nan=np.inf) < reach - 0.004
+                    outside = np.isnan(kit.ray_distance(points + 1e-4 * direction, direction, helm.verts, helm.faces))
+                    self.assertEqual(int((covered & outside).sum()), 0)
 
     def test_solid_slit_helms_have_recessed_dark_faces(self):
         for name in ("crusader", "dark_knight"):
@@ -75,17 +78,19 @@ class HelmetsTest(unittest.TestCase):
                 self.assertEqual(stats["nonmanifold_edges"], 0)
 
     def test_variants_and_recipe_compat(self):
-        compat_calls = [
-            helmets.horned(self.head, horns=0, brim=0.26, tilt=-10.0, y_offset=0.05,
-                           patina=True, dents=True, guard=0.6, guard_upright=True),
-            helmets.headdress(self.head, tilt=-8.0),
-            helmets.knight(self.head, bevor=True),
-            helmets.coif(self.head, nasal=True),
-        ]
+        compat_calls = [helmets.headdress(self.head, tilt=-8.0), helmets.coif(self.head, nasal=True)]
         for piece in compat_calls:
             self.assertGreater(len(piece.faces), 0)
-        self.assertIn("beard", compat_calls[2].hides)
         self.assertNotIn("beard", self.helms["knight"].hides)
+
+    def test_kaykit_originals_recolor_regions_and_reject_detail_they_lack(self):
+        default = self.helms["wizard"]
+        recolored = helmets.STYLES["wizard"](self.head, slot="robe", band="trim")
+        self.assertIn("hat", set(default.slots))
+        self.assertEqual(set(recolored.slots), {"robe", "trim", "metal"})
+        np.testing.assert_allclose(recolored.verts, default.verts)
+        with self.assertRaises(TypeError):
+            helmets.STYLES["wizard"](self.head, runes="glow")
 
     def test_headwear_trims_hair_to_the_locks_showing_outside_it(self):
         # A haired head: an open headdress keeps its hair; a kettle helm keeps the locks below its rim, none on the dome.
