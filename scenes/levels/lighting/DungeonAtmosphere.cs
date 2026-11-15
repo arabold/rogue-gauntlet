@@ -61,8 +61,8 @@ public partial class DungeonAtmosphere : Node3D
 
 	private void ApplyDarkness(bool isDark)
 	{
-		Visible = _effects.Count > 0 && !isDark;
-		foreach (var effect in _effects) effect.SetActive(Visible);
+		Visible = _effects.Count > 0;
+		foreach (var effect in _effects) effect.SetActive(Visible, isDark);
 	}
 
 	public override void _ExitTree() => Clear();

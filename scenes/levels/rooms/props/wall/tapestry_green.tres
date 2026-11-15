@@ -1,10 +1,13 @@
-[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
 [ext_resource type="PackedScene" path="res://assets/custom-props/wall/tapestry_green.glb" id="2_tapestry_gre"]
 
+[ext_resource type="PackedScene" path="res://scenes/effects/ambient_motion/cloth_motion.tscn" id="motion"]
+
 [resource]
 script = ExtResource("1_Prop")
+Motion = ExtResource("motion")
 Id = "tapestry_green"
 Scenes = [ExtResource("2_tapestry_gre")]
 Mount = 1

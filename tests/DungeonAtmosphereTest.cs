@@ -73,7 +73,7 @@ public class DungeonAtmosphereTest
 		layer.ParticlesPerTile = 1;
 		AssertBool(layer.Particles.Visible && layer.Particles.Emitting).IsTrue();
 		level.Lighting.IsDark = true;
-		AssertBool(air.Visible || layer.Particles.Emitting).IsFalse();
+		AssertBool(layer.IsVisibleInTree() || layer.Particles.Emitting).IsFalse();
 		level.Lighting.IsDark = false;
 		AssertBool(air.Visible && layer.Particles.Emitting).IsTrue();
 		var runtimeMotion = (ParticleProcessMaterial)layer.Particles.ProcessMaterial;
@@ -121,6 +121,25 @@ public class DungeonAtmosphereTest
 		AssertInt(air.GetChildCount()).IsEqual(0);
 		air.Initialize(floor, null, 23);
 		AssertBool(air.Visible).IsFalse();
+	}
+
+	[TestCase]
+	public void CpuAndGpuEmissionConsumersShareTheSameDryFloorPositions()
+	{
+		var map = new MapData(4, 4);
+		map.SetTile(1, 1, MapTile.Room);
+		map.SetTile(2, 2, MapTile.Chasm);
+		using var context = new AtmosphereContext(map, 23);
+		var field = context.GetEmission(.025f, .025f, 4, .25f, true);
+		AssertInt(field.Count).IsEqual(4);
+		using var image = field.Points.GetImage();
+		for (int i = 0; i < field.Count; i++)
+		{
+			Vector3 point = field.Positions[i];
+			Color pixel = image.GetPixel(i, 0);
+			AssertThat(new Vector3(pixel.R, pixel.G, pixel.B)).IsEqual(point);
+			AssertThat(map.WorldToTile(point)).IsEqual(new Vector2I(1, 1));
+		}
 	}
 
 	private static AtmosphereParticles[] Layers(DungeonAtmosphere air) => air.GetChildren().OfType<AtmosphereParticles>().ToArray();

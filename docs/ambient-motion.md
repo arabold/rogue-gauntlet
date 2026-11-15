@@ -1,6 +1,6 @@
 # Ambient motion
 
-Generated levels animate the existing banner variants and both jungle ferns with a shared indoor draft. The motion is continuous, with a 7.5-second base gust cycle and spatially varied overlapping waves; it is not a random event or room-entry trigger. Scene pause and airflow playback speed control the same clock for geometry and shadows.
+Generated levels animate the existing banner variants, tapestries, ferns, broadleaf plants and bushes with a shared indoor draft. The motion is continuous, with a 7.5-second base gust cycle and spatially varied overlapping waves; it is not a random event or room-entry trigger. Scene pause and airflow playback speed control the same clock for geometry and shadows.
 
 ## Component ownership
 

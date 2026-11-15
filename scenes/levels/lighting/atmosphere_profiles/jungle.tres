@@ -1,10 +1,14 @@
-[gd_resource type="Resource" script_class="AtmosphereProfile" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="AtmosphereProfile" load_steps=7 format=3]
 
 [ext_resource type="Script" uid="uid://dljt3e3wp3eho" path="res://scenes/levels/lighting/AtmosphereProfile.cs" id="1_profile"]
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/haze_jungle.tscn" id="2_effect"]
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/dust_jungle.tscn" id="3_effect"]
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/motes_jungle.tscn" id="4_effect"]
 
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/drips_jungle.tscn" id="drips"]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/wet_spots_jungle.tscn" id="wet"]
+
 [resource]
 script = ExtResource("1_profile")
-Effects = [ExtResource("2_effect"), ExtResource("3_effect"), ExtResource("4_effect")]
+Effects = [ExtResource("2_effect"), ExtResource("3_effect"), ExtResource("4_effect"), ExtResource("drips"), ExtResource("wet")]

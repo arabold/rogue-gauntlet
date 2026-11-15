@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/levels/lighting/AtmosphereSurfaceMarks.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/wet_mark.tscn" id="mark"]
+[node name="WetSpots" type="Node3D"]
+script = ExtResource("script")
+MarkScene = ExtResource("mark")
+ActiveInDarkness = true
+MarksPerTile = 0.08
+MaximumCount = 96

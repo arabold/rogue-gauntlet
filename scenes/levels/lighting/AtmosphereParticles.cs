@@ -26,6 +26,13 @@ public partial class AtmosphereParticles : AtmosphereEffect
 		set { field = value; if (IsNodeReady()) Rebuild(); }
 	} = "";
 	[ExportGroup("Placement")]
+	/// <summary>Restricts emission to dry walkable floor for surface-bound effects such as drops and splashes.</summary>
+	[Export]
+	public bool DryFloorOnly
+	{
+		get;
+		set { field = value; if (IsNodeReady()) Rebuild(); }
+	}
 	[Export]
 	public float MinHeight
 	{
@@ -86,7 +93,8 @@ public partial class AtmosphereParticles : AtmosphereEffect
 				Particles.ProcessMaterial = _motion;
 			}
 			float min = Mathf.Min(MinHeight, MaxHeight), max = Mathf.Max(MinHeight, MaxHeight);
-			var emission = Context.GetEmission(min, max, SamplesPerTile, TileInset);
+			var emission = Context.GetEmission(min, max, SamplesPerTile, TileInset, DryFloorOnly);
+			_populated = emission.Count > 0;
 			_motion.EmissionPointTexture = emission.Points;
 			_motion.EmissionPointCount = emission.Count;
 			Rect2 bounds = Context.Bounds;

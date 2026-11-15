@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=26 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -25,6 +25,8 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="world_lighting"]
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/dungeon_atmosphere.tscn" id="atmosphere"]
 [ext_resource type="PackedScene" path="res://scenes/effects/ambient_motion/airflow.tscn" id="airflow"]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/local_reflections.tscn" id="reflections"]
 
 [sub_resource type="Resource" id="Resource_mbbpy"]
 script = ExtResource("3_xog87")
@@ -73,3 +75,6 @@ PickupScene = ExtResource("10_lootitem")
 Lighting = NodePath("../WorldLighting")
 
 [node name="Airflow" parent="." instance=ExtResource("airflow")]
+
+[node name="LocalReflections" parent="." node_paths=PackedStringArray("Lighting") instance=ExtResource("reflections")]
+Lighting = NodePath("../WorldLighting")

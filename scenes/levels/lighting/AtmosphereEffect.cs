@@ -11,6 +11,15 @@ public abstract partial class AtmosphereEffect : Node3D
 		set { field = value; if (IsNodeReady()) ApplyActive(); }
 	} = true;
 
+	/// <summary>Physical effects such as dripping persist when environmental lighting is off.</summary>
+	[Export]
+	public bool ActiveInDarkness
+	{
+		get;
+		set { field = value; if (IsNodeReady()) ApplyActive(); }
+	}
+
+	private bool _isDark;
 	protected AtmosphereContext Context { get; private set; }
 	protected bool IsActive => _prepared && _requestedActive && Enabled;
 	private bool _requestedActive;
@@ -18,16 +27,17 @@ public abstract partial class AtmosphereEffect : Node3D
 
 	public override void _Ready() => ApplyActive();
 
-	/// <summary>Supplies immutable floor context; preparation waits until the effect is enabled in a lit world.</summary>
+	/// <summary>Supplies immutable floor context; preparation waits until the effect is enabled and its lighting policy allows it.</summary>
 	public void Initialize(AtmosphereContext context)
 	{
 		Clear();
 		Context = context;
 	}
 
-	public void SetActive(bool active)
+	public void SetActive(bool active, bool isDark = false)
 	{
 		_requestedActive = active;
+		_isDark = isDark;
 		ApplyActive();
 	}
 
@@ -41,7 +51,7 @@ public abstract partial class AtmosphereEffect : Node3D
 
 	private void ApplyActive()
 	{
-		bool active = _requestedActive && Enabled && Context != null;
+		bool active = _requestedActive && (!_isDark || ActiveInDarkness) && Enabled && Context != null;
 		if (active && !_prepared) _prepared = Prepare(Context);
 		active &= _prepared;
 		Visible = active;

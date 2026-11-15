@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/levels/lighting/LocalReflectionProbe.cs" id="script"]
+[node name="LocalReflections" type="ReflectionProbe"]
+size = Vector3(28, 10, 28)
+max_distance = 32.0
+intensity = 1.0
+interior = true
+box_projection = true
+ambient_mode = 0
+cull_mask = 1
+update_mode = 0
+script = ExtResource("script")
+FollowDistance = 6.0
+MinimumInterval = 1.5
+CaptureOffset = Vector3(0, 1.5, 0)
