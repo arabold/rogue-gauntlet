@@ -17,18 +17,19 @@ ProjectileAimLockDuration = 0.3
 Range = 20.0
 HitWindowStart = 0.45
 PoiseDamage = 8.0
+Commit = 0.5
 
 [sub_resource type="Resource" id="shot"]
 resource_name = "shot"
 script = ExtResource("attack_action")
-Cooldown = 1.8
+Cooldown = 3.2
 MaximumRange = 14.0
 RiposteEligible = true
 Attack = SubResource("shot_attack")
 Style = &"ranged"
 Duration = 1.4
 MinDamage = 3.0
-MaxDamage = 6.0
+MaxDamage = 6.5
 
 [resource]
 script = ExtResource("profile")

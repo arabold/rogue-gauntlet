@@ -21,7 +21,7 @@ public sealed class EnemyContext
 	private const float TargetScanInterval = 0.2f;
 	// How often the reachability of the current target is re-checked against its chase field.
 	private const float TargetReachabilityCheckInterval = 0.35f;
-	// How often a monster waiting for an attack slot recomputes its ring point.
+	// How often a monster on a ring goal (waiting for an attack slot, flanking) recomputes its ring point.
 	private const float RingRefreshInterval = 0.3f;
 
 	private static readonly StringName EnemyGroup = "enemy";
@@ -35,6 +35,8 @@ public sealed class EnemyContext
 	public EnemyCombatProfile CombatProfile => Profile.Combat;
 	public EnemyTacticsState Tactics { get; } = new();
 	public EnemyTacticalSelector TacticalSelector { get; }
+	/// <summary>This actor's flank episodes, when its combat profile flanks (<see cref="EnemyCombatProfile.Flank"/>).</summary>
+	public FlankRuntime Flanking { get; }
 	/// <summary>Cooldowns, condition memory and the per-frame evaluation of this actor's actions.</summary>
 	public MonsterActionRuntime Actions { get; }
 	private EnemyTacticalDecision? _lastDecision;
@@ -43,6 +45,7 @@ public sealed class EnemyContext
 	private Cooldown _ringRefresh;
 	private Vector3 _ringPoint;
 	private bool _hasRingPoint;
+	private EnemyMovementGoal _ringGoal;
 	private ulong _sightFrame = ulong.MaxValue;
 	private Node3D _sightTarget;
 	private bool _sightResult;
@@ -104,6 +107,7 @@ public sealed class EnemyContext
 			{
 				Tactics.ClearTarget();
 				TacticalSelector?.ClearTarget();
+				Flanking?.Reset();
 				Actions.ClearTargetMemory();
 				_lastDecision = null;
 				_hasRingPoint = false;
@@ -175,6 +179,7 @@ public sealed class EnemyContext
 		Navigation = navigation;
 		Profile = profile;
 		TacticalSelector = profile.Combat?.TacticalStrategy?.CreateRuntime();
+		Flanking = profile.Combat?.Flank?.CreateRuntime();
 		Actions = new MonsterActionRuntime(this);
 		RequestAction = requestAction;
 		HomePosition = actor.GlobalPosition;
@@ -287,7 +292,10 @@ public sealed class EnemyContext
 		if (Target != null) LastKnownTargetPosition = Target.GlobalPosition;
 	}
 
-	/// <summary>Low-health movement temporarily overrides ordinary tactics after action commitment permits it.</summary>
+	/// <summary>
+	/// The movement strategy's decision, reshaped by the profile's flank; low-health movement temporarily overrides both
+	/// after action commitment permits it.
+	/// </summary>
 	public EnemyMovementIntent EvaluateMovement()
 	{
 		var retreat = CombatProfile.RetreatCondition;
@@ -298,7 +306,8 @@ public sealed class EnemyContext
 				return HorizontalTargetDistance < retreat.DesiredDistance
 					? new(EnemyMovementGoal.Retreat, false, retreat.DesiredDistance) : new(EnemyMovementGoal.Hold, false);
 		}
-		return CombatProfile.MovementStrategy.Evaluate(this);
+		var intent = CombatProfile.MovementStrategy.Evaluate(this);
+		return Flanking?.Apply(this, intent) ?? intent;
 	}
 
 	/// <summary>
@@ -320,8 +329,9 @@ public sealed class EnemyContext
 			FollowTargetPath();
 		}
 		else if (decision.Intent.Goal is EnemyMovementGoal.Hold or EnemyMovementGoal.Approach) Navigation.Stop();
-		else if (decision.Intent.Goal == EnemyMovementGoal.Encircle) FollowEngagementRing(decision.Intent.DesiredDistance, decision.Intent.PreferRear);
-		if (decision.Intent.Goal != EnemyMovementGoal.Encircle) _hasRingPoint = false;
+		bool ring = decision.Intent.Goal is EnemyMovementGoal.Encircle or EnemyMovementGoal.Flank;
+		if (ring) FollowRing(decision.Intent);
+		else _hasRingPoint = false;
 		// Every goal but an approach faces the target, limited by the actor's movement turn rate; approaching faces its path.
 		if (!approaching && Target != null) Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
 		if (_lastDecision != decision)
@@ -342,18 +352,45 @@ public sealed class EnemyContext
 	}
 
 	/// <summary>
-	/// Wait for an attack slot at this actor's spread ring position, facing the target. The ring point is refreshed on
-	/// a throttle and moved to the nearest spot this body fits; without one the actor holds where it is.
+	/// The attack slots of the current target and the kind this actor's primary action takes; false without a target,
+	/// slots or a slotted primary action, whose actors have no place on the target's ring.
 	/// </summary>
-	private void FollowEngagementRing(float distance, bool preferRear)
+	public bool TryGetPrimarySlot(out AttackSlotsComponent slots, out AttackSlotKind kind)
 	{
-		var slots = TargetSlots;
-		if (Target == null || slots == null || Actions.PrimaryOffense?.ReservedSlot is not { } kind) { Navigation.Stop(); return; }
-		if (_ringRefresh.IsReady || !_hasRingPoint)
+		slots = Target != null ? TargetSlots : null;
+		kind = default;
+		if (slots == null || Actions.PrimaryOffense?.ReservedSlot is not { } reserved) return false;
+		kind = reserved;
+		return true;
+	}
+
+	/// <summary>
+	/// Degrees between this actor's bearing from the target and its ring bearing on an arc of <paramref name="arcDegrees"/>
+	/// (<see cref="AttackSlotsComponent.GetRingBearing"/>); 0 for an actor without a place on the ring.
+	/// </summary>
+	public float RingBearingError(float arcDegrees) => TryGetPrimarySlot(out var slots, out var kind)
+		? (Actor.GlobalPosition - Target.GlobalPosition).HorizontalAngleTo(slots.GetRingBearing(Actor, kind, arcDegrees)) : 0;
+
+	/// <summary>
+	/// Move toward this actor's point on the target's ring (<paramref name="intent"/>'s radius and arc), facing the target:
+	/// at most the intent's orbit step around the target per ring point, since the straight line to a point across the
+	/// target runs through it. The point refreshes on a throttle, or at once when the ring goal changes, and moves to the
+	/// nearest spot this body fits; without one the actor holds where it is.
+	/// </summary>
+	private void FollowRing(EnemyMovementIntent intent)
+	{
+		if (!TryGetPrimarySlot(out var slots, out var kind)) { Navigation.Stop(); return; }
+		if (_ringRefresh.IsReady || !_hasRingPoint || _ringGoal != intent.Goal)
 		{
 			_ringRefresh.Start(RingRefreshInterval);
-			Vector3 ring = slots.GetRingPoint(Actor, kind, distance, preferRear);
-			_hasRingPoint = Navigation.TryFindTraversable(ring, distance, out _ringPoint);
+			_ringGoal = intent.Goal;
+			Vector3 center = Target.GlobalPosition;
+			Vector3 to = slots.GetRingBearing(Actor, kind, intent.Arc);
+			Vector3 from = (Actor.GlobalPosition - center).TryNormalizeHorizontal(out var bearing) ? bearing : to;
+			float limit = Mathf.DegToRad(intent.OrbitStep);
+			float step = Mathf.Clamp(from.SignedAngleTo(to, Vector3.Up), -limit, limit);
+			float distance = intent.DesiredDistance;
+			_hasRingPoint = Navigation.TryFindTraversable(center + from.Rotated(Vector3.Up, step) * distance, distance, out _ringPoint);
 		}
 		if (!_hasRingPoint || !Navigation.MoveTo(_ringPoint) || Navigation.IsStuck) Navigation.Stop();
 	}

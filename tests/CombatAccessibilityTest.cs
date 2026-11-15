@@ -99,24 +99,24 @@ public partial class CombatAccessibilityTest
 		return (hurtBox, health, dodge);
 	}
 
-	/// <summary>A dodge evades weapons and projectiles, never hazards or the environment.</summary>
+	/// <summary>A dodge evades weapons and projectiles, never a trap's or other unauthored damage, which declares no defense.</summary>
 	[TestCase]
 	public void DodgeRejectsWeaponsAndArrowsButEnvironmentalDamageStillLands()
 	{
 		var (hurtBox, health, dodge) = CreateDodger();
 		AssertObject(dodge.TryDodge(Vector3.Right)).IsEqual(DefenseRequestResult.Success);
 		dodge._PhysicsProcess(.05);
-		foreach (var kind in new[] { DamageDeliveryKind.DirectMelee, DamageDeliveryKind.Projectile, DamageDeliveryKind.Hazard, DamageDeliveryKind.Environmental })
+		foreach (var kind in new[] { DamageDeliveryKind.DirectMelee, DamageDeliveryKind.Projectile })
 		{
 			var result = hurtBox.ResolveDamage(new DamageContext
 			{
 				Amount = 1, Faction = DamageSourceFlags.Enemy, DeliveryKind = kind,
 				DefenseTraits = AttackDefenseTraits.Dodgeable, IncomingDirection = Vector3.Forward
 			});
-			bool lands = kind is DamageDeliveryKind.Hazard or DamageDeliveryKind.Environmental;
-			AssertObject(result.Outcome).OverrideFailureMessage(kind.ToString()).IsEqual(lands ? DamageOutcome.Damaged : DamageOutcome.Dodged);
+			AssertObject(result.Outcome).OverrideFailureMessage(kind.ToString()).IsEqual(DamageOutcome.Dodged);
 		}
-		AssertFloat(health.CurrentHealth).IsEqual(98);
+		hurtBox.TakeDamage(1, Vector3.Forward, null, DamageSourceFlags.Trap);
+		AssertFloat(health.CurrentHealth).IsEqual(99);
 	}
 
 	/// <summary>A dodge may cut a primary or secondary attack's recovery short, never its active contact.</summary>

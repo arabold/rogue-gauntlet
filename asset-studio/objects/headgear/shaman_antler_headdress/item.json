@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "name": "Shaman Antler Headdress",
+  "backend": "source",
+  "source": "source.glb",
+  "model": "source.py",
+  "host": "adventurer_heads",
+  "reference": "reference.png",
+  "color_mode": "character",
+  "surface": {"palette": "materials", "height_range": [0.0, 1.6]},
+  "colors": {
+    "leather": [147, 97, 66], "leather_light": [164, 110, 75], "leather_dark": [97, 63, 41],
+    "bone": [239, 225, 197], "bone_dark": [209, 191, 162], "socket": [48, 39, 39],
+    "feather": [89, 151, 158], "feather_tip": [234, 170, 80]
+  },
+  "materials": {},
+  "crease": 50,
+  "topology": "closed_assembly",
+  "placement": {"pivot": "authored"},
+  "budget": {"triangles": 3000, "materials": 8},
+  "export": {"glb": "res://assets/custom-items/armor/helmet/shaman_antler_headdress.glb"},
+  "provenance": {"kind": "blender_model", "concept": "generated from the master style prompt with the dummy-head turnaround; see reference.prompt.txt"}
+}

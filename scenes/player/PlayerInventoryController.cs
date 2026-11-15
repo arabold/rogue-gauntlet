@@ -44,10 +44,10 @@ public partial class PlayerInventoryController : Node
 	}
 
 	/// <summary>Reading a targeted scroll far enough to pick a target reveals its type, even if the player then cancels.</summary>
-	public void BeginTargeting(Scroll scroll) => IdentifyItemType(scroll);
+	public void BeginTargeting(Scroll scroll) => IdentifyItemType(scroll, IdentificationSource.Use);
 
 	/// <summary>Records the item's hidden type with the run. A player outside a level (previews, harnesses) learns nothing.</summary>
-	private void IdentifyItemType(Item item) => Level?.Run?.IdentifyItemType(item);
+	private void IdentifyItemType(Item item, IdentificationSource source) => Level?.Run?.IdentifyItemType(item, source);
 
 	public void AutoEquipItems()
 	{
@@ -259,7 +259,7 @@ public partial class PlayerInventoryController : Node
 			else { consumable.PerformAction(Player); }
 			Inventory.RemoveItem(source, 1);
 			// Using an item reveals its type before anyone observes the consumption.
-			IdentifyItemType(consumable);
+			IdentifyItemType(consumable, IdentificationSource.Use);
 			Inventory.NotifyConsumed(consumable);
 			SignalBus.EmitItemConsumed(Player, consumable);
 			return Report(ItemFailure.None);
@@ -329,7 +329,7 @@ public partial class PlayerInventoryController : Node
 		item.OnEquipped(Player);
 		StatsController.SyncStats();
 		// Wearing an item reveals its type, auto-equipped starting gear included.
-		IdentifyItemType(item);
+		IdentifyItemType(item, IdentificationSource.Wear);
 		SignalBus.EmitItemEquipped(Player, item);
 
 		if (item is Weapon weapon && slot == EquipmentSlot.WeaponHand)

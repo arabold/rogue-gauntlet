@@ -219,18 +219,34 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 	/// <summary>Whether the primary action's slot is free; actions without a slot always are.</summary>
 	public bool CanTakePrimarySlot => PrimaryOffense is not { } primary || CanTakeSlot(primary);
 
-	/// <summary>Choose one ready action and its target, or null. Never changes cooldowns or history.</summary>
+	/// <summary>
+	/// Choose one ready action and its target, or null. Never changes cooldowns or history. A riposte answers a defended
+	/// hit, so it ignores the attack's cooldown and the retry delay after a rejected start; accepting it still starts a
+	/// cooldown.
+	/// </summary>
 	public (MonsterAction Action, Node3D Target)? Select(MonsterActionFilter filter)
 	{
-		if (!DecisionReady) return null;
+		if (!Gather(filter)) return null;
+		int index = Weighted.PickIndex(_weights, _random);
+		return index < 0 ? null : _choices[index];
+	}
+
+	/// <summary>Whether <see cref="Select"/> would choose an action for <paramref name="filter"/> now; draws no random number.</summary>
+	public bool HasReady(MonsterActionFilter filter) => Gather(filter);
+
+	/// <summary>Collect the ready actions of the highest priority for <paramref name="filter"/>, with their targets and weights.</summary>
+	private bool Gather(MonsterActionFilter filter)
+	{
 		_choices.Clear();
 		_weights.Clear();
+		bool riposte = filter == MonsterActionFilter.Riposte;
+		if (!DecisionReady && !riposte) return false;
 		int priority = int.MinValue;
 		float repeat = context.CombatProfile?.RepeatWeightMultiplier ?? 1;
 		foreach (var entry in Entries)
 		{
 			var action = entry.Action;
-			if (!Admits(filter, action) || IsCoolingDown(action) || !CanTakeSlot(action)) continue;
+			if (!Admits(filter, action) || (!riposte && IsCoolingDown(action)) || !CanTakeSlot(action)) continue;
 			var target = EvaluateTarget(action);
 			if (target == null) continue;
 			float weight = ResolveWeight(action, target) * (ReferenceEquals(action, _lastAccepted) ? repeat : 1);
@@ -244,9 +260,7 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 			_choices.Add((action, target));
 			_weights.Add(weight);
 		}
-		if (_choices.Count == 0) return null;
-		int index = Weighted.PickIndex(_weights, _random);
-		return index < 0 ? null : _choices[index];
+		return _choices.Count > 0;
 	}
 
 	private static bool Admits(MonsterActionFilter filter, MonsterAction action) => filter switch
@@ -269,6 +283,15 @@ public sealed class MonsterActionRuntime(EnemyContext context)
 		}
 		_retry.Start(RetryDelay);
 		_lastDecision = (action, target, ActorActionRequestResult.Success);
+	}
+
+	/// <summary>
+	/// Give back the cooldown of the last accepted attack, stopped before its contact: an attack that never landed costs
+	/// only the retry delay, so a monster that reels attacks again once it recovers, as in Diablo II.
+	/// </summary>
+	public void RefundAttack()
+	{
+		if (_lastAccepted is MonsterAttackAction) _cooldowns.Remove(_lastAccepted);
 	}
 
 	/// <summary>Wait a short while before the next attempt instead of retrying every frame.</summary>

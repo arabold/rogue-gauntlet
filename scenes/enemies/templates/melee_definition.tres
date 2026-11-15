@@ -10,6 +10,5 @@ Id = "example_melee"
 DisplayName = "Melee Example"
 MaxHealth = 8.0
 MoveSpeed = 3.2
-XpReward = 2
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")

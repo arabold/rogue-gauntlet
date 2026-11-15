@@ -4,6 +4,17 @@ using System.Globalization;
 using System.Linq;
 using Godot;
 
+/// <summary>How the player learned an item's hidden type.</summary>
+public enum IdentificationSource
+{
+	/// <summary>Drinking, eating or reading it.</summary>
+	Use,
+	/// <summary>Equipping it.</summary>
+	Wear,
+	/// <summary>A scroll of identify.</summary>
+	Scroll,
+}
+
 /// <summary>
 /// State every floor of one run shares: the run seed, the gameplay loot counter, the cleared-entity set and item
 /// identification. Plain C#: <see cref="GameSession"/> owns the active run and hands it to each <see cref="Level"/>, whose
@@ -90,7 +101,7 @@ public sealed class RunState
 	/// with no hidden type or a type already discovered. Shared by consuming, wearing and the scroll of identify; what
 	/// one item reveals about itself is the item's own business (<see cref="EquipableItem.RevealAttributes"/>).
 	/// </summary>
-	public bool IdentifyItemType(Item item)
+	public bool IdentifyItemType(Item item, IdentificationSource source)
 	{
 		if (item is IIdentifiable identifiable && identifiable.HasIdentity)
 		{
@@ -105,7 +116,7 @@ public sealed class RunState
 				string trueName = ItemIdentity.ComposeDisplayName(item, Identification);
 				GD.Print($"Identified {identifiable.TypeId} as {trueName}.");
 				SignalBus.EmitItemIdentified(identifiable.TypeId);
-				SignalBus.EmitItemIdentityRevealed(identifiable.TypeId, disguisedName, trueName);
+				SignalBus.EmitItemIdentityRevealed(identifiable.TypeId, disguisedName, trueName, source.ToString());
 				return true;
 			}
 		}

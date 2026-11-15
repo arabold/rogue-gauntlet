@@ -9,6 +9,7 @@ using static GdUnit4.Assertions;
 /// <summary>
 /// A weapon's damage and crit chance count only for attacks made with it, so two worn weapons never add their damage
 /// together, while character-wide modifiers (other gear, buffs, a weapon's attribute affixes) apply to every attack.
+/// A weapon replaces the bare hands' base damage. The sheets carry no stat profile, so attributes scale nothing.
 /// Needs the Godot runtime for the stat and item Resources.
 /// </summary>
 [TestSuite]
@@ -33,8 +34,8 @@ public class WeaponAttackStatsTest
 		AssertFloat(stats.MinDamage).IsEqual(unarmed.MinDamage);
 		AssertFloat(stats.MaxDamage).IsEqual(unarmed.MaxDamage);
 		AttackStats attack = stats.ResolveAttack(sword);
-		AssertFloat(attack.MinDamage).IsEqual(unarmed.MinDamage + sword.ScaledDamageMin);
-		AssertFloat(attack.MaxDamage).IsEqual(unarmed.MaxDamage + sword.ScaledDamageMax);
+		AssertFloat(attack.MinDamage).IsEqual(sword.ScaledDamageMin);
+		AssertFloat(attack.MaxDamage).IsEqual(sword.ScaledDamageMax);
 	}
 
 	[TestCase]
@@ -43,13 +44,12 @@ public class WeaponAttackStatsTest
 		var stats = new PlayerStats();
 		var sword = Create(Sword);
 		var dagger = Create(Dagger);
-		AttackStats unarmed = stats.ResolveAttack(null);
 
 		stats.AddWeaponModifiers(sword, sword.StatModifiers);
 		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
 
-		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual(unarmed.MaxDamage + sword.ScaledDamageMax);
-		AssertFloat(stats.ResolveAttack(dagger).MaxDamage).IsEqual(unarmed.MaxDamage + dagger.ScaledDamageMax);
+		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual(sword.ScaledDamageMax);
+		AssertFloat(stats.ResolveAttack(dagger).MaxDamage).IsEqual(dagger.ScaledDamageMax);
 	}
 
 	[TestCase]
@@ -58,14 +58,13 @@ public class WeaponAttackStatsTest
 		var stats = new PlayerStats();
 		var sword = Create(Sword);
 		var dagger = Create(Dagger);
-		AttackStats unarmed = stats.ResolveAttack(null);
 
 		stats.AddWeaponModifiers(sword, sword.StatModifiers);
 		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
 
 		AttackStats paired = stats.ResolveAttack(sword, dagger);
-		float expectedMin = unarmed.MinDamage + sword.ScaledDamageMin + (dagger.ScaledDamageMin * dagger.OffhandDamageScale);
-		float expectedMax = unarmed.MaxDamage + sword.ScaledDamageMax + (dagger.ScaledDamageMax * dagger.OffhandDamageScale);
+		float expectedMin = sword.ScaledDamageMin + (dagger.ScaledDamageMin * dagger.OffhandDamageScale);
+		float expectedMax = sword.ScaledDamageMax + (dagger.ScaledDamageMax * dagger.OffhandDamageScale);
 
 		AssertFloat(paired.MinDamage).IsEqual(expectedMin);
 		AssertFloat(paired.MaxDamage).IsEqual(expectedMax);
@@ -93,7 +92,6 @@ public class WeaponAttackStatsTest
 		var stats = new PlayerStats();
 		var sword = Create(Sword);
 		var dagger = Create(Dagger);
-		float unarmedMax = stats.MaxDamage;
 
 		stats.AddWeaponModifiers(sword, sword.StatModifiers);
 		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
@@ -102,8 +100,8 @@ public class WeaponAttackStatsTest
 		]);
 
 		AttackStats paired = stats.ResolveAttack(sword, dagger);
-		// The +4 character-wide modifier is folded into unarmed/base damage once, not twice
-		float expectedMax = unarmedMax + 4 + sword.ScaledDamageMax + (dagger.ScaledDamageMax * dagger.OffhandDamageScale);
+		// The +4 character-wide modifier is folded in once, not twice
+		float expectedMax = 4 + sword.ScaledDamageMax + (dagger.ScaledDamageMax * dagger.OffhandDamageScale);
 		AssertFloat(paired.MaxDamage).IsEqual(expectedMax);
 	}
 
@@ -121,7 +119,7 @@ public class WeaponAttackStatsTest
 		]);
 
 		AssertFloat(stats.MaxDamage).IsEqual((unarmedMax + 2) * 1.5f);
-		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual((unarmedMax + sword.ScaledDamageMax + 2) * 1.5f);
+		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual((sword.ScaledDamageMax + 2) * 1.5f);
 	}
 
 	[TestCase]
@@ -134,15 +132,16 @@ public class WeaponAttackStatsTest
 
 		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
 		stats.AddWeaponModifiers(sword, [
+			.. sword.StatModifiers,
 			new StatModifier { Stat = StatType.Strength, Value = 3 },
 			new StatModifier { Stat = StatType.MaxDamage, Op = ModifierOp.Percent, Value = -0.5f },
 			new StatModifier { Stat = StatType.CritChance, Value = 0.1f },
 		]);
 
 		AssertFloat(stats.Strength).IsEqual(strength + 3);
-		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual(stats.MaxDamage * 0.5f);
+		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual(sword.ScaledDamageMax * 0.5f);
 		AssertFloat(stats.ResolveAttack(sword).CritChance).IsEqualApprox(stats.CritChance + 0.1f, 0.0001f);
-		AssertFloat(stats.ResolveAttack(dagger).MaxDamage).IsEqual(stats.MaxDamage + dagger.ScaledDamageMax);
+		AssertFloat(stats.ResolveAttack(dagger).MaxDamage).IsEqual(dagger.ScaledDamageMax);
 		AssertFloat(stats.ResolveAttack(dagger).CritChance).IsEqual(stats.CritChance);
 	}
 
@@ -155,7 +154,7 @@ public class WeaponAttackStatsTest
 
 		stats.RemoveModifiersFrom(sword);
 
-		AssertBool(stats.ResolveAttack(sword) == stats.ResolveAttack(null)).IsTrue();
+		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual(0f);
 	}
 
 	[TestCase]
@@ -175,6 +174,7 @@ public class WeaponAttackStatsTest
 		AssertBool(player.InventoryController.TryEquip(player.Inventory.Items.Last()).Success).IsTrue();
 
 		AssertBool(player.Stats.ResolveAttack(null) == unarmed).IsTrue();
-		AssertFloat(player.Stats.ResolveAttack(dagger).MaxDamage).IsEqual(unarmed.MaxDamage + dagger.ScaledDamageMax);
+		// The dagger replaces the bare hands; the hero's Strength scales it.
+		AssertFloat(player.Stats.ResolveAttack(dagger).MaxDamage).IsEqualApprox(dagger.ScaledDamageMax * player.Stats.DamageMultiplier(dagger), 0.0001f);
 	}
 }

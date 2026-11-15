@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="FlankStrategy" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/strategies/FlankStrategy.cs" id="flank"]
+
+[resource]
+script = ExtResource("flank")
+Arc = 60.0
+Distance = 3.0
+CommitDistance = 2.0
+Tolerance = 35.0
+OrbitStep = 60.0
+MaximumDuration = 2.0

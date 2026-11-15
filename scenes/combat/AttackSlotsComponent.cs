@@ -52,23 +52,30 @@ public partial class AttackSlotsComponent : Node
 	}
 
 	/// <summary>
-	/// Evenly spread point at <paramref name="distance"/> around the target for this attacker's ring
-	/// index. Rear-preferring attackers start behind the target's facing; others use a fixed world bearing.
+	/// This attacker's point at <paramref name="distance"/> from the target, on its <see cref="GetRingBearing"/>.
 	/// </summary>
-	public Vector3 GetRingPoint(Node3D attacker, AttackSlotKind kind, float distance, bool preferRear)
+	public Vector3 GetRingPoint(Node3D attacker, AttackSlotKind kind, float distance, float arcDegrees = 360) =>
+		Target == null ? attacker?.GlobalPosition ?? Vector3.Zero : Target.GlobalPosition + GetRingBearing(attacker, kind, arcDegrees) * distance;
+
+	/// <summary>
+	/// This attacker's horizontal direction from the target: engaged attackers spread by arrival order over an arc of
+	/// <paramref name="arcDegrees"/> centered behind the target's facing. 360 surrounds the target evenly, starting straight
+	/// behind it; a narrower arc keeps every attacker at the target's back.
+	/// </summary>
+	public Vector3 GetRingBearing(Node3D attacker, AttackSlotKind kind, float arcDegrees = 360)
 	{
-		if (Target == null || !Track(attacker, out ulong id)) return attacker?.GlobalPosition ?? Vector3.Zero;
+		if (Target == null || !Track(attacker, out ulong id)) return Vector3.Back;
 		int index = Ledger.Engage(id, kind);
-		Vector3 bearing = Vector3.Back;
-		if (preferRear)
-		{
-			bearing = Target.GlobalTransform.Basis.Z;
-			bearing.Y = 0;
-			bearing = bearing.LengthSquared() > 0.0001f ? bearing.Normalized() : Vector3.Back;
-		}
-		float step = Mathf.Tau / Mathf.Max(1, Ledger.EngagedCount);
-		return Target.GlobalPosition + bearing.Rotated(Vector3.Up, index * step) * distance;
+		Vector3 rear = Target.GlobalBasis.Z.TryNormalizeHorizontal(out var back) ? back : Vector3.Back;
+		return rear.Rotated(Vector3.Up, SpreadOffset(index, Ledger.EngagedCount, Mathf.DegToRad(Mathf.Clamp(arcDegrees, 0, 360))));
 	}
+
+	/// <summary>
+	/// Radians from an arc's center for ring index <paramref name="index"/> of <paramref name="count"/>: a full circle
+	/// shares it in equal steps, a partial arc spreads from one end to the other.
+	/// </summary>
+	public static float SpreadOffset(int index, int count, float arc) =>
+		count <= 1 ? 0 : arc >= Mathf.Tau - 0.001f ? index * arc / count : (index / (float)(count - 1) - 0.5f) * arc;
 
 	public override void _PhysicsProcess(double delta)
 	{
@@ -96,8 +103,7 @@ public partial class AttackSlotsComponent : Node
 		id = 0;
 		if (attacker == null || !GodotObject.IsInstanceValid(attacker)) return false;
 		id = attacker.GetInstanceId();
-		_attackers[id] = attacker;
-		SetPhysicsProcess(true);
+		if (_attackers.TryAdd(id, attacker)) SetPhysicsProcess(true);
 		return true;
 	}
 }

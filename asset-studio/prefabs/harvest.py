@@ -170,18 +170,7 @@ def harvest_all():
         v -= v.mean(0)
         save_prefab(name, "shields", v, f, slots="base", source="Knight.glb")
 
-    # 5. Headgear & Accessories
-    mage_hat_v, mage_hat_f = _extract_node("Mage.glb", "Mage_Hat")
-    mage_hat_v -= mage_hat_v.mean(0)
-    save_prefab("wizard_hat", "headgear", mage_hat_v, mage_hat_f, slots="cloth", source="Mage.glb")
-
-    skel_hat_v, skel_hat_f = _extract_node("Skeleton_Mage.glb", "Skeleton_Mage_Hat")
-    skel_hat_v -= skel_hat_v.mean(0)
-    save_prefab("wizard_hat_ragged", "headgear", skel_hat_v, skel_hat_f, slots="cloth", source="Skeleton_Mage.glb")
-
-    knight_helm_v, knight_helm_f = _extract_node("Knight.glb", "Knight_Helmet")
-    knight_helm_v -= knight_helm_v.mean(0)
-    save_prefab("knight_helmet", "headgear", knight_helm_v, knight_helm_f, slots="metal", source="Knight.glb")
+    # 5. Headgear is harvested colored, in the hat-prop frame, by `prefabs.outfits.helmets.harvest()`.
 
     # 6. Tomes & Flasks
     book_v, book_f = _extract_node("Mage.glb", "Spellbook")

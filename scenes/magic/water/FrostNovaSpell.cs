@@ -7,6 +7,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 {
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public DamageDeliveryKind? Delivery => DamageDeliveryKind.AreaImpact;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
 		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
@@ -28,7 +29,7 @@ public partial class FrostNovaSpell : Node, IStatusRestoreSource, ICombatSpell
 		int level = power.Level;
 		if (!CanCast(in context)) return false;
 		float radius = Definition.RadiusByLevel[level - 1];
-		if (!AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, radius, out var cast)) return false;
+		if (!AreaCastLifecycle.TryCapture(this, in context, VisualRoot, random, radius, out var cast)) return false;
 		var node = VisualScene.Instantiate();
 		if (node is not WaterSpellVisual visual || visual.Timeline == null || !visual.ConfigureArea(level, radius))
 		{

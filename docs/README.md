@@ -45,6 +45,8 @@ These documents explain code that exists today. Any proposed extension or future
 
 | Document | Remaining scope |
 | --- | --- |
+| [Balance model](specs/balance-model.md) | Progression, threat-based XP, leveling, armor slots and class parity derived from one model with a simulator; realm 1 monsters, class sheets, XP and floor budgets follow it, the rest of the game's data does not yet |
+| [Balance rework](specs/balance-rework-plan.md) | Proposed: role and floor targets, gear pacing from loot, percentage armor, faster monsters, role behaviors and traps in the budget |
 | [Room-owned secret entrances](specs/room-owned-secrets-plan.md) | Room-selected concealed doorways, access and discovery |
 | [Exact wall placement experiment](specs/exact-wall-placement-plan.md) | Geometry contracts, room boundaries and doorway fit, corridor and interior follow-up |
 | [Dungeon progression](specs/level-progression-prototype-plan.md) | Realm definitions, corridor factories, realm tags, and room-owned doorways landed; per-depth room roles/recipes and visible Warden stair seal remain |
@@ -55,6 +57,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Monster action architecture](specs/monster-action-architecture-plan.md) | Landed; dodge on the dash component, editor badges, phase content and spell cast validation remain |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 | [Shared debug toolkit](specs/debug-toolkit-plan.md) | Implemented; remaining class switching, captured builds and open harness decisions |
+| [Blender-modeled Studio assets](specs/blender-modeling-pipeline.md) | Model scripts, concept scoring and head hosts landed; game wiring, per-class fit, kit heads and organic forms remain |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 

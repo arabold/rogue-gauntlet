@@ -35,12 +35,12 @@ public partial class StatModifier : Resource
 	/// <summary><paramref name="value"/> rounded half away from zero to <see cref="Unit"/>.</summary>
 	public float Round(float value) => MathF.Round(value / Unit, MidpointRounding.AwayFromZero) * Unit;
 
-	/// <summary>The signed value as players read it: "+3", "-15" or "+10%".</summary>
+	/// <summary>The signed value as players read it, in whole points or whole percents: "+3", "-15" or "+10%".</summary>
 	public string FormatValue() => FormatValue(Value, IsFraction);
 
 	public static string FormatValue(float value, bool isFraction)
 	{
-		string sign = value < 0 ? "" : "+";
-		return isFraction ? $"{sign}{value * 100:0.#}%" : $"{sign}{value:0.##}";
+		float shown = MathF.Round(isFraction ? value * 100 : value, MidpointRounding.AwayFromZero);
+		return $"{(shown < 0 ? "" : "+")}{shown:0}{(isFraction ? "%" : "")}";
 	}
 }

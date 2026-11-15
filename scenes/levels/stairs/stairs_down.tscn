@@ -107,7 +107,6 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -8.7
 script = ExtResource("4_13fvs")
 SpawnAfterTravelDirection = 1
 AutoWalkDirection = Vector3(0, 0, -1)
-AutoWalkSeconds = 0.45
 Landing = NodePath("../Landing")
 
 [node name="DownTransitionTrigger" type="Area3D" parent="." unique_id=284877892]

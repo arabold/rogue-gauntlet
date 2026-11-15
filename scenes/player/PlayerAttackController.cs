@@ -12,12 +12,18 @@ public partial class PlayerAttackController : AttackController
 	[Export] public CombatFeedbackProfile PrimaryFeedbackProfile { get; set; }
 	[Export] public CombatFeedbackProfile SecondaryFeedbackProfile { get; set; }
 
-	/// <summary>Impact of weapon attacks without a custom definition. Custom definitions author their own.</summary>
+	/// <summary>
+	/// Impact of weapon attacks without a custom definition. Custom definitions author their own. A weapon's primary hit
+	/// takes the weapon's <see cref="Weapon.PoiseDamage"/> and <see cref="Weapon.Knockback"/>.
+	/// </summary>
 	[ExportGroup("Default impact")]
-	[Export] public float PrimaryPoiseDamage { get; set; } = AttackDefinition.DefaultPoiseDamage;
+	[Export] public float UnarmedPoiseDamage { get; set; } = AttackDefinition.DefaultPoiseDamage;
 	[Export] public float PrimaryHitStop { get; set; } = 0.05f;
-	[Export] public float SecondaryPoiseDamage { get; set; } = 25f;
+	/// <summary>The secondary's poise damage as a multiple of the primary's.</summary>
+	[Export] public float SecondaryPoiseScale { get; set; } = 2.5f;
 	[Export] public float SecondaryHitStop { get; set; } = 0.08f;
+	/// <summary>Push of the default melee secondary, which forces pushback; ranged secondaries never push.</summary>
+	[Export] public float SecondaryKnockback { get; set; } = 3f;
 	/// <summary>Normalized hyper-armor window of the default secondary technique, so a heavy swing can trade through light hits.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float SecondaryHyperArmorStart { get; set; } = 0.1f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float SecondaryHyperArmorEnd { get; set; } = 0.75f;
@@ -282,9 +288,11 @@ public partial class PlayerAttackController : AttackController
 
 	private AttackDefinition CreateDefaultDefinition(Weapon weapon, bool isSpecial)
 	{
+		float poise = weapon?.PoiseDamage ?? UnarmedPoiseDamage;
 		var def = new AttackDefinition
 		{
-			PoiseDamage = isSpecial ? SecondaryPoiseDamage : PrimaryPoiseDamage,
+			PoiseDamage = isSpecial ? poise * SecondaryPoiseScale : poise,
+			Knockback = isSpecial ? 0 : weapon?.Knockback ?? 0,
 			HitStopDuration = isSpecial ? SecondaryHitStop : PrimaryHitStop,
 			HyperArmorStart = isSpecial ? SecondaryHyperArmorStart : 0,
 			HyperArmorEnd = isSpecial ? SecondaryHyperArmorEnd : 0
@@ -300,6 +308,7 @@ public partial class PlayerAttackController : AttackController
 			if (def.IsRanged) def.DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 			if (isSpecial && !def.IsRanged && SecondaryBreaksGuard) def.DefenseTraits |= AttackDefenseTraits.BreaksGuard;
 			def.ForcePushback = isSpecial && !def.IsRanged && SecondaryForcesPushback;
+			if (def.ForcePushback) def.Knockback = SecondaryKnockback;
 
 			if (weapon is RangedWeapon rangedWeapon)
 			{

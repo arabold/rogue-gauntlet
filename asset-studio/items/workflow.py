@@ -55,7 +55,9 @@ SCHEMA = {
         "materials": {"type": "object"},
         "color_mode": {"enum": ["character", "vertex", "palette", "world"]},
         "surface": {"type": "object", "additionalProperties": False, "required": ["palette"],
-                    "properties": {"palette": {"enum": ["studio_grid"]}, "slots": {"type": "object"},
+                    "properties": {"palette": {"enum": ["studio_grid", "materials"]}, "slots": {"type": "object"},
+                                   "height_range": {"type": "array", "minItems": 2, "maxItems": 2,
+                                                    "items": {"type": "number"}},
                                    "repair": {"enum": ["boundaries"]},
                                    "paint": {"enum": ["scroll_ink", "potion_liquid"]},
                                    "potion_size": {"enum": ["small", "medium", "large"]},
@@ -64,6 +66,10 @@ SCHEMA = {
         "crease": {"type": "number", "minimum": 0, "maximum": 180},
         "concept": {"type": "string"}, "reference": {"type": "string"},
         "source": {"type": "string"}, "blend": {"type": "string"},
+        # A Blender model script that `item model` runs headless to regenerate `source` (core/blender.py).
+        "model": {"type": "string"},
+        # The committed host a worn source is modeled in and fitted to (core/hosts.py), e.g. "adventurer_heads".
+        "host": {"type": "string", "pattern": "^[a-z0-9_]+$"},
         "provenance": {"type": "object"},
         "palette": {"type": "array", "minItems": 1, "items": {"enum": sorted(align.SWATCH_NAMES)}},
         "parts": {"type": "array", "minItems": 1, "items": {
@@ -167,7 +173,12 @@ class Item:
         placement = data.get("placement", {})
         if placement.get("dimensions") and any(v <= 0 for v in placement["dimensions"]):
             raise ValueError("dimensions must be positive")
-        for key in ("source", "reference", "blend"):
+        if data.get("model") and not (backend == "source" and data.get("surface", {}).get("palette") == "materials"):
+            raise ValueError("A model script regenerates a source read through material slots (surface.palette: materials)")
+        if data.get("host"):
+            from core import hosts
+            hosts.path(data["host"])
+        for key in ("source", "reference", "blend", "model"):
             if data.get(key):
                 self.resolve(data[key])
         self.destination(data)
@@ -214,16 +225,43 @@ class Item:
         save(self.path, data)
         print(self.path)
 
-    def reference(self, brief=None, provider="gemini", image=None, prompt_only=False):
-        """Import a concept (including ImageGen output) or explicitly request a provider call."""
+    def host_turnaround(self, data):
+        """The host's reference head in the compare views, grey on white: the dummy a worn concept is drawn on."""
+        from core import catalog, concept_score, hosts, kit
+        verts, faces = next(iter(hosts.read(data["host"]).values()))
+        head = kit.Piece(verts, faces, "dummy")
+        extent = float(np.ptp(verts, axis=0).max()) * 2.2
+        # The head sits low in each panel, leaving room above it for tall headgear (crests, antlers, hats).
+        center = (verts.min(axis=0) + verts.max(axis=0)) / 2 + [0.0, 0.25 * extent, 0.0]
+        sheet = Image.new("RGB", (1536, 864), "white")
+        for i, (_, yaw) in enumerate(concept_score.VIEWS):
+            panel = catalog.render(head, yaw=yaw, pitch=0, size=512, extent=extent, center=center,
+                                   colors={"dummy": (96, 98, 106)}, background=(255, 255, 255))
+            sheet.paste(panel, (512 * i, 176))
+        path = self.built.parent / "host_turnaround.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        sheet.save(path)
+        return path
+
+    def reference(self, brief=None, provider="gemini", image=None, prompt_only=False, turnaround=False):
+        """Import a concept (including ImageGen output) or explicitly request a provider call.
+
+        `turnaround` asks for the three-view sheet `item compare` scores against; a worn item's sheet is drawn on
+        its host's reference head, which is passed as the first image.
+        """
         data = self.recipe()
-        from core.prompts import item_prompt, style_images, STYLE_REFERENCES
+        from core.prompts import item_prompt, style_images, turnaround_prompt, STYLE_REFERENCES
+        worn = turnaround and bool(data.get("host"))
+        prompt = (turnaround_prompt(brief or data.get("concept"), worn) if turnaround
+                  else item_prompt(brief or data.get("concept")))
+        dummy = self.host_turnaround(data) if worn else None
+        aspect = "16:9" if turnaround else "1:1"
         if prompt_only:
             if image:
                 raise ValueError("--prompt-only cannot be combined with --image")
-            print(json.dumps({"prompt": item_prompt(brief or data.get("concept")),
-                              "referenced_image_paths": [str(p) for p in STYLE_REFERENCES],
-                              "aspect": "1:1"}, indent=2))
+            print(json.dumps({"prompt": prompt,
+                              "referenced_image_paths": [str(p) for p in ([dummy] if dummy else []) + list(STYLE_REFERENCES)],
+                              "aspect": aspect}, indent=2))
             return
         target = self.resolve(data.get("reference", "reference.png"))
         within(target, self.folder)
@@ -233,14 +271,55 @@ class Item:
         else:
             from core.ai import get_provider
             brief = brief or data.get("concept")
-            prompt = item_prompt(brief)
-            get_provider(provider).edit_image(prompt, style_images(), aspect="1:1").save(target)
+            references = style_images()
+            if dummy:
+                with Image.open(dummy) as im:
+                    references.insert(0, im.copy())
+            get_provider(provider).edit_image(prompt, references, aspect=aspect).save(target)
             target.with_suffix(".prompt.txt").write_text(prompt + "\n")
         if brief:
             data["concept"] = brief
         data["reference"] = str(target.relative_to(self.folder))
         save(self.path, data)
         print(target)
+
+    def model_palette(self, data):
+        """Slot colors for the Blender preview materials: the recipe's colors and their derived tints."""
+        from core.export import resolve_palette
+        colors = data.get("colors", {})
+        tints = [f"{slot}{suffix}" for slot in colors for suffix in ("", "_light", "_dark", "_worn", "_mid")]
+        resolved, _ = resolve_palette(tints, colors)
+        return {slot: [int(c) for c in rgb[:3]] for slot, rgb in resolved.items()}
+
+    def model_staleness(self, data):
+        """Why the committed `source.glb` no longer matches its model script, helpers or host (empty when current)."""
+        from core import blender, hosts
+        host = hosts.path(data["host"]) if data.get("host") else None
+        return blender.stale(self.folder / "source.json", self.resolve(data["model"]), host, self.resolve(data["source"]))
+
+    def model(self):
+        """Regenerate `source.glb` from the recipe's Blender model script, headless, and record its provenance.
+
+        The previous `source.glb` and `source.json` stay untouched unless the job succeeds.
+        """
+        from core import blender, hosts
+        data = self.recipe()
+        if not data.get("model"):
+            raise ValueError(f"{self.key} has no model script")
+        script = self.resolve(data["model"])
+        host = hosts.path(data["host"]) if data.get("host") else None
+        work = self.built.parent / "model"
+        shutil.rmtree(work, ignore_errors=True)
+        work.mkdir(parents=True)
+        job = {"script": str(script), "host": str(host) if host else None, "palette": self.model_palette(data),
+               "glb": str(work / "source.glb"), "report": str(work / "report.json")}
+        report = blender.run(job, work)
+        target = self.resolve(data["source"])
+        shutil.copy2(work / "source.glb", target)
+        save(self.folder / "source.json", {"blender": report["blender"], **blender.provenance(script, host, target),
+                                           "objects": report["objects"]})
+        triangles = sum(o["triangles"] for o in report["objects"])
+        print(f"{self.key}: {len(report['objects'])} parts, {triangles} triangles -> {target.relative_to(REPO)}")
 
     def build(self):
         """Build locally with one explicit backend; failed AI calls never substitute a different asset."""
@@ -252,10 +331,17 @@ class Item:
             source = self.resolve(data["source"])
             if not source.is_file():
                 raise ValueError(f"Export a self-contained GLB from Blender to {source}")
+            if data.get("model"):
+                reasons = self.model_staleness(data)
+                if reasons:
+                    raise ValueError(f"{self.key}: {'; '.join(reasons)}; run `item model {self.key}`")
             if data.get("surface"):
-                from items.source_surface import palette_piece
+                from items.source_surface import material_piece, palette_piece
                 from core.export import export_static
-                piece, colors = palette_piece(source, PALETTE, data["surface"].get("slots"))
+                if data["surface"]["palette"] == "materials":
+                    piece, colors = material_piece(source, data["surface"].get("slots")), {}
+                else:
+                    piece, colors = palette_piece(source, PALETTE, data["surface"].get("slots"))
                 if data["surface"].get("paint"):
                     if data["surface"]["paint"] == "potion_liquid":
                         from items.source_surface import potion_liquid
@@ -273,7 +359,8 @@ class Item:
                     piece, report = carve_holes(piece)
                     save(self.built.parent / "source-carving.json", report)
                 export_static(str(raw), self.id, piece, {**colors, **data.get("colors", {})},
-                              materials=data.get("materials"), crease=data.get("crease", 50))
+                              materials=data.get("materials"), crease=data.get("crease", 50),
+                              height_range=data["surface"].get("height_range"))
                 source = raw
         elif backend == "image3d":
             from core.ai import image_to_3d
@@ -407,9 +494,18 @@ class Item:
                 textures.append(list(im.size))
                 if max(im.size) > data["budget"].get("texture_size", math.inf):
                     errors.append(f"Texture {im.size} exceeds texture_size budget")
+        fit = None
+        if data.get("host"):
+            # Worn art is checked on every host head; showing through is reported for review, since whether a class
+            # hides its hair or crown under headgear is a game-side choice.
+            from core import hosts
+            fit = hosts.show_through(data["host"], p, f)
+            for name, shown in fit.items():
+                if shown["vertices"]:
+                    warnings.append(f"{name} host shows through in {shown['vertices']} vertices (up to {shown['depth']:.3f})")
         report = {"triangles": len(f), "bounds": [p.min(axis=0).tolist(), p.max(axis=0).tolist()],
                   "dimensions": np.ptp(p, axis=0).tolist(), "materials": materials, "textures": textures,
-                  "topology": topology, "warnings": warnings, "errors": errors}
+                  "topology": topology, "host_fit": fit, "warnings": warnings, "errors": errors}
         save(self.built.parent / "validation.json", report)
         if errors:
             raise ValueError(f"{self.key}: {'; '.join(errors)}")
@@ -420,7 +516,15 @@ class Item:
         paths = []
         if data["backend"] == "source":
             paths.append(self.resolve(data["source"]))
-            if data.get("surface"):
+            if data.get("model"):
+                from core import hosts
+                paths.extend([self.resolve(data["model"]), self.folder / "source.json"])
+                if data.get("host"):
+                    paths.append(hosts.path(data["host"]))
+            if data.get("surface", {}).get("palette") == "materials":
+                paths.extend([STUDIO / "items/source_surface.py", STUDIO / "items/model.py", STUDIO / "core/export.py",
+                              STUDIO / "core/mesh.py"])
+            elif data.get("surface"):
                 paths.extend([PALETTE, STUDIO / "items/source_surface.py", STUDIO / "items/model.py",
                               STUDIO / "items/align.py", STUDIO / "core/export.py", STUDIO / "core/mesh.py"])
                 if data["surface"].get("repair"):
@@ -454,14 +558,19 @@ class Item:
             paths.append(STUDIO / "core/mesh.py")
         return {str(path.relative_to(REPO)): digest(path) for path in paths}
 
-    def preview(self):
-        """Render a multi-angle geometry/base-color study without changing any game content."""
-        from core import catalog, kit
+    def colored_piece(self):
+        """The staged build as a renderable piece with its sampled face colors."""
+        from core import kit
         p, f, cols = model.geometry(self.built)
         palette, labels = np.unique(cols, axis=0, return_inverse=True)
         names = [f"color_{i}" for i in range(len(palette))]
-        piece = kit.Piece(p, f, np.array(names, dtype=object)[labels])
-        colors = dict(zip(names, palette))
+        return kit.Piece(p, f, np.array(names, dtype=object)[labels]), dict(zip(names, palette))
+
+    def preview(self):
+        """Render a multi-angle geometry/base-color study without changing any game content."""
+        from core import catalog
+        piece, colors = self.colored_piece()
+        p = piece.verts
         panels = [catalog.render(piece, colors=colors, yaw=yaw, size=360, crease=0,
                                   center=(p.min(axis=0) + p.max(axis=0)) / 2,
                                   extent=float(np.ptp(p, axis=0).max()) * 1.7)
@@ -473,13 +582,53 @@ class Item:
         sheet.save(self.built.parent / "preview.png")
         print(self.built.parent / "preview.png")
 
+    def compare(self, audit=False, host_node=None):
+        """Score the staged build against the concept turnaround: per-view silhouette overlap and a diff sheet, plus
+        an optional vision audit. Worn items render on their host's reference head and keep one scale across views."""
+        from core import catalog, concept_score, hosts, kit
+        data = self.recipe()
+        reference = self.resolve(data.get("reference", "reference.png"))
+        if not reference.is_file():
+            raise ValueError(f"{self.key} has no concept to compare against; add a turnaround with `item reference`")
+        self.build()
+        piece, colors = self.colored_piece()
+        host = None
+        if data.get("host"):
+            heads = hosts.read(data["host"])
+            verts, faces = heads[host_node or next(iter(heads))]
+            host = kit.Piece(verts, faces, "host")
+        whole = piece if host is None else kit.Piece.merge(piece, host)
+        center = (whole.verts.min(axis=0) + whole.verts.max(axis=0)) / 2
+        extent = float(np.ptp(whole.verts, axis=0).max()) * 1.15
+        renders = []
+        for _, yaw in concept_score.VIEWS:
+            image, covered = catalog.render(piece, host=host, yaw=yaw, pitch=0, size=720, extent=extent,
+                                            center=center, colors=colors, with_mask=True)
+            renders.append((np.asarray(image), covered))
+        out = self.built.parent / "compare"
+        report = concept_score.score(reference, renders, out / "compare.png", out_json=out / "compare.json",
+                                     shared_scale=host is not None)
+        views = "  ".join(f"{name} {v['iou_pct']:.1f}%" for name, v in report["views"].items())
+        print(f"{self.key}: mean IoU {report['mean_iou_pct']:.1f}% ({views}) -> {out / 'compare.png'}")
+        if audit:
+            prompt = reference.with_name("reference.prompt.txt")
+            result = concept_score.audit(reference, out / "compare.png", data["name"],
+                                         prompt.read_text() if prompt.is_file() else None, out_json=out / "audit.json")
+            print(json.dumps(result, indent=2))
+        return report
+
     def lineup(self, mount="ground"):
         """Render the staged art in Godot, including a gameplay-camera view beside/on a mannequin."""
         self.validate()
         outdir = self.built.parent / "lineup"
         outdir.mkdir(parents=True, exist_ok=True)
+        if mount == "head":
+            from core import hosts
+            context = hosts.wearer(self.recipe().get("host") or "adventurer_heads")
+        else:
+            context = STUDIO / "rigs/mannequin_medium.glb"
         result = run_godot(["--script", str(STUDIO / "godot/render_item_lineup.gd"), "--",
-                           str(self.built), str(STUDIO / "rigs/mannequin_medium.glb"), str(outdir), mount], headless=False)
+                           str(self.built), str(context), str(outdir), mount], headless=False)
         if result.count("ITEM_SHOT ") != 4:
             raise ValueError(f"Godot did not render every lineup panel:\n{result}")
         self.compose_lineup(mount)
@@ -670,7 +819,8 @@ def main(argv=None):
     adoption = sub.add_parser("adopt", help="Register existing custom-items models without modifying them")
     adoption.add_argument("paths", nargs="*", type=Path)
     adoption.add_argument("--all", action="store_true")
-    for name in ["reference", "build", "preview", "lineup", "validate", "export", "recreate", "preserve", "publish"]:
+    for name in ["reference", "model", "build", "compare", "preview", "lineup", "validate", "export", "recreate",
+                 "preserve", "publish"]:
         cmd = sub.add_parser(name)
         cmd.add_argument("key", nargs="?")
         cmd.add_argument("--all", action="store_true", help="Apply to all item recipes")
@@ -681,11 +831,16 @@ def main(argv=None):
             cmd.add_argument("--provider", choices=["gemini", "openai"], default="gemini")
             cmd.add_argument("--image", type=Path, help="Import a concept from ImageGen or another source")
             cmd.add_argument("--prompt-only", action="store_true", help="Print shared prompt and style image paths without generation or writes")
+            cmd.add_argument("--turnaround", action="store_true",
+                             help="Three-view sheet in the compare views (worn items: drawn on the host's dummy head)")
         elif name == "export":
             cmd.add_argument("--no-import", action="store_true")
             cmd.add_argument("--force", action="store_true")
         elif name == "lineup":
-            cmd.add_argument("--mount", choices=["ground", "right_hand", "left_hand", "shield"], default="ground")
+            cmd.add_argument("--mount", choices=["ground", "right_hand", "left_hand", "shield", "head"], default="ground")
+        elif name == "compare":
+            cmd.add_argument("--audit", action="store_true", help="Also ask a vision model to review the sheet")
+            cmd.add_argument("--host-node", help="Host head to render (default: the host's reference, its first)")
     args = parser.parse_args(argv)
     try:
         if args.command == "schema":
@@ -723,9 +878,11 @@ def main(argv=None):
             failures, published = [], []
             for key in keys:
                 item = Item(key)
+                if args.command == "model" and args.all and not item.recipe().get("model"):
+                    continue
                 try:
                     if args.command == "reference":
-                        item.reference(args.brief, args.provider, args.image, args.prompt_only)
+                        item.reference(args.brief, args.provider, args.image, args.prompt_only, args.turnaround)
                     elif args.command == "preserve":
                         from items.preserve import preserve
                         if preserve(item, args.revision):
@@ -743,6 +900,8 @@ def main(argv=None):
                         print(f"{key}: {json.dumps(item.validate())}")
                     elif args.command == "lineup":
                         item.lineup(args.mount)
+                    elif args.command == "compare":
+                        item.compare(args.audit, args.host_node)
                     else:
                         getattr(item, args.command)()
                 except (ValueError, OSError, KeyError) as exc:

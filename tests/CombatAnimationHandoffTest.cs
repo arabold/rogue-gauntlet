@@ -73,6 +73,7 @@ public class CombatAnimationHandoffTest
 	private static MovementComponent PushLong(Node actor)
 	{
 		var movement = actor.GetNode<MovementComponent>("MovementComponent");
+		movement.ResistsKnockback = false; // the animation handoff, not who resists a push (the Warden does)
 		movement.Push(Vector3.Right, movement.Speed * 1.2f);
 		return movement;
 	}

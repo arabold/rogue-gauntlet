@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_meat_raw.tres" id="item_meat"]
+
+[sub_resource type="Resource" id="Entry_meat"]
+script = ExtResource("entry")
+Item = ExtResource("item_meat")
+metadata/_custom_type_script = ExtResource("entry")
+
+[resource]
+script = ExtResource("table")
+Items = [SubResource("Entry_meat")]
+metadata/_custom_type_script = ExtResource("table")

@@ -337,10 +337,10 @@ def build(recipe):
     recipe; `outfit`: garments) and the colors of every slot they use."""
     recipe = resolve_costumes(recipe)
     head_spec = head_recipe(recipe["head"])
-    head, head_piece = heads.build(head_spec)
+    head = heads.Head(**head_spec.get("form", {}))  # the cranium headwear fits; its features wait for the outfit
     hosts, pieces = body.build(recipe["body"])
     hosts = dict({k: clothes.Worn(v) for k, v in hosts.items()}, head=head)  # each layer goes on top of the last
-    pieces = dict(Head=head_piece, **pieces)
+    pieces = dict(Head=None, **pieces)  # built once the headwear over it is known
     # what the torso wears so far, for garments drawn tight round it (belts): the body and torso garments
     hosts["built"] = lambda: [p for k, p in pieces.items()
                               if not k.startswith(TORSO_PART_EXCLUSIONS)]
@@ -361,6 +361,10 @@ def build(recipe):
     if any(getattr(p,"garment_type",None)=="cape" for p in pieces.values()) and any(
             "Gorget" in name for name in pieces):
         raise ValueError("Choose a cape or a gorget; the cape includes its own shoulder yoke")
+    # the head without the features its headwear covers; hair keeps the locks showing outside it
+    headwear = [piece for piece in pieces.values() if getattr(piece, "hides", ())]
+    _, pieces["Head"] = heads.build(head_spec, suppress=set().union(*(piece.hides for piece in headwear)),
+                                    cover=kit.Piece.merge(*headwear) if headwear else None)
     if recipe.get("hide_covered", True):
         pieces = hide_covered(pieces, covers)
     explicit = {**head_spec.get("colors", {}), **recipe.get("colors", {})}

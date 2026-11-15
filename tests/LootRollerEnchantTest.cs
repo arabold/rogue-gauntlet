@@ -16,7 +16,7 @@ using static GdUnit4.Assertions;
 public class LootRollerEnchantTest
 {
 	private const string AxeCommonPath = "res://scenes/items/weapons/axe_common.tres";
-	private const string RingPath = "res://scenes/items/jewelry/ring/ring_strength.tres";
+	private const string RingPath = "res://scenes/items/jewelry/ring/ring_strength_1.tres";
 
 	private static QualityLadder Ladder => TestFactories.Load<QualityLadder>("res://scenes/items/quality/quality_ladder.tres");
 

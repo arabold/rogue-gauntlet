@@ -7,7 +7,8 @@ using static GdUnit4.Assertions;
 
 /// <summary>
 /// Depth-banding tests for <see cref="LootTable"/>/<see cref="LootTableItem"/>: entries must
-/// only be picked within their authored depth band, and quantity must scale with depth. These
+/// only be picked within their authored depth band, or their tier's band in a <see cref="LootPool"/>
+/// with tier bands, and quantity must scale with depth. These
 /// need the Godot runtime because both types are Resources and the RNG is Godot's
 /// <c>RandomNumberGenerator</c>.
 /// </summary>
@@ -24,6 +25,53 @@ public class LootTableDepthTest
 			MinDepth = minDepth,
 			MaxDepth = maxDepth,
 		};
+	}
+
+	private static LootTableItem MakeEquipment(int tier)
+	{
+		var item = new EquipableItem();
+		item.Set(EquipableItem.PropertyName.Tier, tier);
+		return new LootTableItem { Item = item };
+	}
+
+	[TestCase]
+	public void TieredPoolsDropEquipmentInItsTiersBand()
+	{
+		var first = MakeEquipment(1);
+		var second = MakeEquipment(2);
+		var untiered = MakeEquipment(0);
+		var supply = MakeItem(5, 0);
+		var pool = new LootPool
+		{
+			Items = [first, second, untiered, supply],
+			TierBands = new TierDepthBands { Bands = [new Vector2I(1, 3), new Vector2I(4, 0)] },
+		};
+		var table = new LootTable { Groups = [new LootTableGroup { Weight = 1, Pool = pool }] };
+		using var rng = GenerationRandom.Create(42, "tier-band-test");
+		foreach ((uint depth, LootTableItem[] expected) in new (uint, LootTableItem[])[]
+		{
+			(1, [first, untiered]), (3, [first, untiered]), (4, [second, untiered]), (30, [second, untiered, supply]),
+		})
+		{
+			var picked = Enumerable.Range(0, 200).Select(_ => table.PickEntry(depth, rng)).ToHashSet();
+			AssertBool(picked.SetEquals(expected)).OverrideFailureMessage($"depth {depth}").IsTrue();
+		}
+
+		// Without a pool's bands, equipment keeps its own (here open) window, like a boss's flat reward table.
+		AssertObject(new LootTable { Items = [second] }.PickEntry(1, rng)).IsEqual(second);
+	}
+
+	[TestCase]
+	public void TieredPoolsRejectEquipmentWindowsAndUnbandedTiers()
+	{
+		var windowed = MakeEquipment(1);
+		windowed.MinDepth = 1;
+		var pool = new LootPool
+		{
+			Items = [windowed, MakeEquipment(3), MakeEquipment(0), MakeItem(5, 0)],
+			TierBands = new TierDepthBands { Bands = [new Vector2I(1, 3), new Vector2I(4, 0)] },
+		};
+		AssertArray(pool.Validate()).HasSize(2);
 	}
 
 	[TestCase]

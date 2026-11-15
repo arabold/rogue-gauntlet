@@ -9,7 +9,7 @@ using static GdUnit4.Assertions;
 
 /// <summary>
 /// Item qualities: introduction depths and odds of the authored <see cref="QualityLadder"/>, base-stat bands, rounding
-/// of scaled values, what creation rolls, the naming grammar, and the base-tier depth windows of every loot table.
+/// of scaled values, what creation rolls, the naming grammar, and the base-tier depth bands every loot table drops in.
 /// Needs the Godot runtime for Resources and <c>RandomNumberGenerator</c>.
 /// </summary>
 [TestSuite]
@@ -18,7 +18,7 @@ public class ItemQualityTest
 {
 	private const string LadderPath = "res://scenes/items/quality/quality_ladder.tres";
 
-	/// <summary>Base-tier depth windows (MaxDepth 0 is open-ended); see docs/stats-and-itemization.md.</summary>
+	/// <summary>Base-tier depth bands (Y 0 is open-ended); see docs/stats-and-itemization.md.</summary>
 	private static TierDepthBands TierBands => TestFactories.Load<TierDepthBands>("res://scenes/items/quality/tier_depth_bands.tres");
 
 	private static QualityLadder Ladder => TestFactories.Load<QualityLadder>(LadderPath);
@@ -66,7 +66,7 @@ public class ItemQualityTest
 		ItemCreationPolicy policy = Policy;
 		QualityLadder ladder = policy.QualityLadder;
 		string[] paths = ["res://scenes/items/weapons/broadsword_common.tres", "res://scenes/items/armor/shield_common.tres",
-			"res://scenes/items/jewelry/ring/ring_strength.tres"];
+			"res://scenes/items/jewelry/ring/ring_strength_1.tres"];
 		Item[] definitions = paths.Select(path => TestFactories.Load<Item>(path)).ToArray();
 		var qualities = new HashSet<ItemQuality>();
 		using var rng = GenerationRandom.Create(42, "quality-creation");
@@ -103,10 +103,18 @@ public class ItemQualityTest
 		AssertFloat(weapon.ScaledDamageMin).IsEqual(1f);
 		AssertFloat(weapon.ScaledDamageMax).IsEqual(1f);
 		AssertInt(new Armor { ArmorPoints = 3, MagnitudeScale = 1.6f }.ScaledArmorPoints).IsEqual(5);
+		// Players read whole points and whole percents, never fractions.
+		AssertString(StatModifier.FormatValue(11.5f, false)).IsEqual("+12");
+		AssertString(StatModifier.FormatValue(-2.5f, false)).IsEqual("-3");
+		AssertString(StatModifier.FormatValue(0.125f, true)).IsEqual("+13%");
 
-		var frailty = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_frailty.tres");
+		// A superior Ring of Frailty is the worst one, still in whole points.
+		var frailty = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_frailty_1.tres");
+		float penalty = frailty.IntrinsicModifiers[0].Value;
 		frailty.MagnitudeScale = 1.6f;
-		AssertFloat(frailty.StatModifiers.First().Value).IsEqual(-24f);
+		float scaled = frailty.StatModifiers.First().Value;
+		AssertFloat(scaled).IsLess(penalty * 1.5f);
+		AssertFloat(scaled).IsEqual(Mathf.Round(scaled));
 
 		var lethargy = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_lethargy.tres");
 		AssertFloat(lethargy.StatModifiers.First().Value).IsEqual(lethargy.IntrinsicModifiers[0].Value);
@@ -126,7 +134,7 @@ public class ItemQualityTest
 		sword.Affixes.Add(new RolledAffix { NameFragment = "Vicious", Kind = AffixKind.Prefix });
 		AssertString(sword.ComposeName(sword.Name)).IsEqual("Vicious Broadsword of the Ox");
 
-		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength.tres");
+		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength_1.tres");
 		AssertString(ring.ComposeName(ring.TrueName)).IsEqual("Ring of Strength +2");
 		ring.Quality = ItemQuality.Superior;
 		ring.QualityAdjective = "shiny";
@@ -175,7 +183,7 @@ public class ItemQualityTest
 	[TestCase]
 	public void JewelryCombinesTypeAndItemKnowledge()
 	{
-		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength.tres");
+		var ring = Copy<IdentifiableEquipableItem>("res://scenes/items/jewelry/ring/ring_strength_1.tres");
 		var rng = new RandomNumberGenerator { Seed = 8 };
 		LootRoller.ApplyRoll(ring, 12, rng, Policy, ItemQuality.Magic, cursed: false);
 		var service = new IdentificationService();
@@ -192,24 +200,25 @@ public class ItemQualityTest
 	[TestCase]
 	public void LootTablesFenceBaseTiersByDepth()
 	{
-		// Entry windows are the only fence; LootTableDepthTest proves PickEntry never leaves them.
+		// Jewelry too: tiered pieces drop in their band, tier-0 pieces at every depth.
 		TierDepthBands bands = TierBands;
+		var dropped = new HashSet<int>();
 		foreach (string path in Directory.EnumerateFiles(ProjectSettings.GlobalizePath("res://scenes/items/loot"), "*.tres", SearchOption.AllDirectories))
 		{
 			if (TestFactories.Load<Resource>(ProjectSettings.LocalizePath(path)) is not LootTable table) { continue; }
-			foreach (LootTableItem entry in table.Entries)
+			using var rng = GenerationRandom.Create(42, "tier-fence");
+			for (uint depth = 1; depth <= 26; depth++)
 			{
-				if (entry.Item is IdentifiableEquipableItem)
+				for (int i = 0; i < 100; i++)
 				{
-					AssertInt((int)entry.MinDepth).IsEqual(1);
-				}
-				else if (entry.Item is EquipableItem equipment)
-				{
+					if (table.PickEntry(depth, rng)?.Item is not EquipableItem { Tier: > 0 } equipment) { continue; }
 					Vector2I band = bands.For(equipment.Tier);
-					AssertBool(entry.MinDepth == band.X && entry.MaxDepth == band.Y)
-						.OverrideFailureMessage($"{entry.Item.ResourcePath}: T{equipment.Tier} drops {entry.MinDepth}-{entry.MaxDepth}").IsTrue();
+					AssertBool(LootTableItem.IsWithin(depth, (uint)band.X, (uint)band.Y))
+						.OverrideFailureMessage($"{equipment.ResourcePath}: T{equipment.Tier} dropped at depth {depth}").IsTrue();
+					dropped.Add(equipment.Tier);
 				}
 			}
 		}
+		AssertInt(dropped.Count).IsEqual(bands.Bands.Count);
 	}
 }

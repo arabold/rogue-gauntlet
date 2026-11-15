@@ -61,6 +61,34 @@ public partial class ActorActionGateTest
 		AssertBool(gate.IsLeaseCurrent(attackLease)).IsFalse();
 	}
 
+	/// <summary>
+	/// An unstoppable action refuses every other action, a stagger included, and outlasts a status lock until its
+	/// uninterruptible window closes; death ends it at once.
+	/// </summary>
+	[TestCase]
+	public void AnUnstoppableActionRefusesEveryActionAndOutlastsAStatusLock()
+	{
+		var gate = AutoFree(new ActorActionGateComponent());
+		ActionInterruptReason? reason = null;
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, r => reason = r, out var attack);
+		gate.ReportHyperArmor(attack, true, unstoppable: true);
+		foreach (var kind in new[] { ActorActionKind.Dodge, ActorActionKind.Guard, ActorActionKind.ForcedReaction })
+			AssertObject(gate.TryAcquire(kind, ActorActionPhase.Active, null, out _)).OverrideFailureMessage(kind.ToString())
+				.IsEqual(ActorActionRequestResult.Busy);
+		AssertBool(gate.TryStagger(1)).IsFalse();
+
+		gate.SetStatusLock(this, true);
+		AssertBool(gate.IsLeaseCurrent(attack)).IsTrue();
+		gate.ReportHyperArmor(attack, true);
+		AssertObject(reason).OverrideFailureMessage("The lock must take hold once the window closes").IsEqual(ActionInterruptReason.Invalidated);
+		gate.SetStatusLock(this, false);
+
+		gate.TryAcquire(ActorActionKind.PrimaryAttack, ActorActionPhase.WindUp, r => reason = r, out attack);
+		gate.ReportHyperArmor(attack, true, unstoppable: true);
+		gate.Disable();
+		AssertObject(reason).IsEqual(ActionInterruptReason.Death);
+	}
+
 	[TestCase]
 	public void StaleLeaseCannotReleaseOrReportPhase()
 	{

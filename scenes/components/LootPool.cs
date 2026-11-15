@@ -11,10 +11,21 @@ using System.Collections.Generic;
 public partial class LootPool : Resource
 {
 	[Export] public LootTableItem[] Items { get; set; } = [];
-	/// <summary>Optional: requires every tiered equipment entry's depth window to match its tier's band.</summary>
+	/// <summary>Optional: equipment entries drop in their item tier's band instead of a window of their own; tier 0
+	/// drops at every depth. Other entries keep their own window.</summary>
 	[Export] public TierDepthBands TierBands { get; set; }
 
-	/// <summary>Authoring problems: empty or invalid entries, and equipment windows that disagree with <see cref="TierBands"/>.</summary>
+	/// <summary>True if <paramref name="entry"/> may drop at <paramref name="depth"/>: equipment in a pool with
+	/// <see cref="TierBands"/> by its tier's band, everything else by its own window.</summary>
+	public bool IsEligibleAt(LootTableItem entry, uint depth)
+	{
+		if (TierBands == null || entry.Item is not EquipableItem equipment) { return entry.IsEligibleAt(depth); }
+		Vector2I band = TierBands.For(equipment.Tier);
+		return LootTableItem.IsWithin(depth, (uint)band.X, (uint)band.Y);
+	}
+
+	/// <summary>Authoring problems: empty or invalid entries, equipment tiers without a band, and equipment windows
+	/// that <see cref="TierBands"/> would ignore.</summary>
 	public string[] Validate()
 	{
 		var problems = new List<string>();
@@ -27,11 +38,8 @@ public partial class LootPool : Resource
 			if (entry.MaxDepth != 0 && entry.MaxDepth < entry.MinDepth) { problems.Add($"{name}: depth window ends before it starts."); }
 			if (TierBands != null && entry.Item is EquipableItem equipment)
 			{
-				Vector2I band = TierBands.For(equipment.Tier);
-				if (entry.MinDepth != band.X || entry.MaxDepth != band.Y)
-				{
-					problems.Add($"{name}: tier {equipment.Tier} drops at depths {band.X}–{band.Y}, but the entry says {entry.MinDepth}–{entry.MaxDepth}.");
-				}
+				if (equipment.Tier < 0 || equipment.Tier > (TierBands.Bands?.Count ?? 0)) { problems.Add($"{name}: tier {equipment.Tier} has no depth band."); }
+				if (entry.MinDepth != 0 || entry.MaxDepth != 0) { problems.Add($"{name}: drops in its tier's band; remove the entry's own depth window."); }
 			}
 		}
 		problems.AddRange(TierBands?.Validate() ?? []);

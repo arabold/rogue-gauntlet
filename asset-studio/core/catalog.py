@@ -71,11 +71,14 @@ def shoulder_stand():
 
 
 def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=None, center=None, colors=None,
-           crease=50.0, zoom=1.0, pan=(0.0, 0.0), gradient_strength=0.68, background=(245, 245, 247), shading=True):
+           crease=50.0, zoom=1.0, pan=(0.0, 0.0), gradient_strength=0.68, background=(245, 245, 247), shading=True,
+           with_mask=False):
     """
     Z-buffered orthographic render of `piece` (and an optional `host` in pale grey) at `(yaw, pitch, roll)` degrees,
     lit from upper-front-left with soft top-down vertical gradient ramps, smooth normals (`crease` degrees; 0 = flat
-    facets), and specular highlights on metallic/glossy slots (`eye`, `metal`, `armor`, `gold`, `gem`).
+    facets), and specular highlights on metallic/glossy slots (`eye`, `metal`, `armor`, `gold`, `gem`). `with_mask`
+    also returns the boolean coverage mask, so pale surfaces never blend into the background when silhouettes are
+    compared.
     """
     from core.export import DEFAULT_MATERIALS, corner_normals, resolve_palette
     from core.mesh import Atlas
@@ -84,7 +87,8 @@ def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=No
     neutral_host = kit.Piece(host.verts, host.faces, "__catalog_host", normals=host.normals) if host is not None else None
     full = kit.Piece.merge(neutral_host, piece) if neutral_host is not None else piece
     if not len(full.faces):
-        return Image.new("RGB", (size, size), tuple(background))
+        empty = Image.new("RGB", (size, size), tuple(background))
+        return (empty, np.zeros((size, size), bool)) if with_mask else empty
     R = kit.rotation([0, 0, 1], roll) @ kit.rotation([1, 0, 0], pitch) @ kit.rotation([0, 1, 0], yaw)
     v = full.verts @ R.T
     c = full.verts.mean(0) if center is None else np.asarray(center, float)
@@ -168,8 +172,9 @@ def render(piece, host=None, yaw=25.0, pitch=14.0, roll=0.0, size=240, extent=No
     px = np.column_stack([0.5 * size + k * flat_v[:, 0], 0.5 * size - k * flat_v[:, 1]])
     z, img = m3._rasterize(px, flat_v[:, 2], col, faces, (size, size))
     bg = np.asarray(background, dtype=np.uint8)
-    out = np.where(np.isfinite(z)[..., None], img, bg).astype(np.uint8)
-    return Image.fromarray(out)
+    covered = np.isfinite(z)
+    out = np.where(covered[..., None], img, bg).astype(np.uint8)
+    return (Image.fromarray(out), covered) if with_mask else Image.fromarray(out)
 
 
 def sheet(items, yaws=(0, 32, 90, 180), pitch=14.0, cell=230):

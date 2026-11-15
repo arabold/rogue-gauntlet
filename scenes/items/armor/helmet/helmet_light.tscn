@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-items/armor/helmet/helmet_light.glb" id="model"]
+
+[node name="HelmetLight" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("model")]
+transform = Transform3D(0.45, 0, 0, 0, 0.45, 0, 0, 0, 0.45, 0, 0.027, 0)

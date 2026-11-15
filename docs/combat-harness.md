@@ -79,7 +79,8 @@ Each line is one JSON object with `schema`, `run`, monotonically increasing `seq
 | `harness.command` | Command, arguments and acceptance, including rejected requests |
 | `harness.equipped`, `harness.spawned` | Authored weapon/monster path, style and seed |
 | `action.acquired`, `action.phase`, `action.released`, `action.interrupted`, `action.hyper_armor` | Kind, phase, lease, interruption reason or armored state |
-| `attack.started`, `attack.contact`, `attack.ended` | Execution/source, style, contact timing, duration, target, base damage, crit, interruption and contact count |
+| `attack.started`, `attack.contact`, `attack.ended` | Execution/source, style, delivery (how its contacts arrive: melee, projectile, a spell's delivery or `None`) and whether its projectiles home, contact timing, duration, target, base damage, crit, interruption and contact count |
+| `attack.spell_released` | Execution/source, spell, level and whether it cast |
 | `attack.combo_step` | Execution and the primary combo step it plays |
 | `attack.aim_locked`, `attack.facing_committed` | Execution, captured origin/direction and time until projectile release; elapsed time and committed melee facing |
 | `poise.broken` | Break stagger duration |
@@ -88,7 +89,7 @@ Each line is one JSON object with `schema`, `run`, monotonically increasing `seq
 | `defense.out_of_sector`, `defense.guard_broken`, `defense.pass_through_exit`, `defense.perfect_dodge` | Facing and threat direction of an attacker outside the guard sector; guard-break damage and stagger; time spent leaving a pass-through body; dodge time and charges after a perfect-dodge refund |
 | `slots.reserved` | Attacker, slot kind and slots now held |
 | `projectile.spawned`, `projectile.contact`, `projectile.world_impact`, `projectile.expired` | Projectile identity, parent attack identity, owner, origin/direction, speed/range, seed, defensive flags, contact and impact |
-| `damage.resolved` | Source/owner/execution, delivery/eligibility, incoming direction, raw amount, armor and its roll, poise damage, hit reaction and remaining poise, hit zone, sneak attack, critical roll, final outcome, damage and health |
+| `damage.resolved` | Source/owner/execution, the parent attack that released a projectile or spell, delivery/eligibility, incoming direction, raw amount, armor and its roll, poise damage, hit reaction and remaining poise, hit zone, sneak attack, critical roll, final outcome, damage and health |
 | `simulation.tick`, `actor.state` | Delta/time scale; actor position, velocity, facing, health, action/phase, attack identity, stagger and defense timers, parry-window eligibility and dodge immunity |
 
 The analyzer validates schema, run identity, record sequence and monotonic clocks. It summarizes event counts, outcomes, interrupted attacks, damage per target and rejected commands. `--require-complete` rejects a truncated capture. Keep raw records for contact-by-contact analysis; aggregates alone cannot explain timing or geometry.

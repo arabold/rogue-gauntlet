@@ -1,8 +1,8 @@
 using Godot;
 
 /// <summary>
-/// How a monster fights: positioning, engagement tactics, defense, an optional low-health retreat and the actions it
-/// chooses from. The first offensive attack or spell is the primary action: movement strategies close to its range and
+/// How a monster fights: positioning, engagement tactics, defense, an optional flank and low-health retreat, and the
+/// actions it chooses from. The first offensive attack or spell is the primary action: movement strategies close to its range and
 /// wait for its attack slot, while every other eligible action (a rush, a support spell) can still fire.
 /// </summary>
 [Tool]
@@ -12,6 +12,8 @@ public partial class EnemyCombatProfile : Resource
 	[ExportGroup("Tactics")]
 	[Export] public EnemyTacticalStrategy TacticalStrategy { get; set; }
 	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
+	/// <summary>Optional: close in from a bearing behind the target rather than straight on, whatever the movement strategy.</summary>
+	[Export] public FlankStrategy Flank { get; set; }
 	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }
 	[Export] public EnemyRetreatCondition RetreatCondition { get; set; }
 	[ExportGroup("Actions")]
@@ -19,6 +21,15 @@ public partial class EnemyCombatProfile : Resource
 	[Export] public Godot.Collections.Array<MonsterAction> Actions { get; set; } = [];
 	/// <summary>Weight factor for repeating the action that started last, so a monster varies its moves.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float RepeatWeightMultiplier { get; set; } = 0.5f;
+	[ExportGroup("Phases")]
+	/// <summary>
+	/// Turning speed per health phase (index 0 is full health), scaling the actor's movement turn rate: a boss that grows
+	/// harder to flank as it weakens. Phases past the list, and actors without phases, keep the last entry or 1.
+	/// </summary>
+	[Export] public float[] TurnRateByPhase { get; set; } = [];
+
+	/// <summary>The turn-rate factor for <paramref name="phase"/>.</summary>
+	public float TurnRateScale(int phase) => TurnRateByPhase.Length == 0 ? 1 : TurnRateByPhase[System.Math.Clamp(phase, 0, TurnRateByPhase.Length - 1)];
 
 	/// <summary>The first offensive attack or spell, which sets the engagement range and attack slot for movement.</summary>
 	public MonsterAction PrimaryOffense
@@ -31,6 +42,9 @@ public partial class EnemyCombatProfile : Resource
 		}
 	}
 
+	/// <summary>Whether a monster standing <paramref name="distance"/> from its target is beyond its primary action's reach.</summary>
+	public bool IsOutsidePrimaryReach(float distance) => PrimaryOffense is not { } primary || distance > primary.EffectiveMaximumRange;
+
 	/// <summary>Only an offensive attack or spell can anchor engagement; a dash has no reach or slot of its own.</summary>
 	public static bool IsPrimaryCandidate(MonsterAction action) => action is MonsterTimedAction { IsOffensive: true };
 
@@ -38,10 +52,14 @@ public partial class EnemyCombatProfile : Resource
 	{
 		context.Check(MonsterValidationContext.IsProbability(RepeatWeightMultiplier),
 			"RepeatWeightMultiplier must lie between 0 and 1.");
+		context.Check(System.Array.TrueForAll(TurnRateByPhase, scale => MonsterValidationContext.IsPositive(scale))
+			&& TurnRateByPhase.Length <= context.PhaseCount + 1,
+			"TurnRateByPhase needs positive factors and at most one per health phase.");
 		if (context.Check(TacticalStrategy != null, "TacticalStrategy: assign an engagement priority strategy."))
 			TacticalStrategy.Validate(context);
 		if (context.Check(MovementStrategy != null, "MovementStrategy: assign a positioning strategy."))
 			MovementStrategy.Validate(context, this);
+		Flank?.Validate(context, this);
 		DefenseStrategy?.Validate(context);
 		RetreatCondition?.Validate(context);
 		var seen = new System.Collections.Generic.HashSet<MonsterAction>();
