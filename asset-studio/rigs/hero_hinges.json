@@ -1,0 +1,22 @@
+{
+  "shoulder_cap.l": {
+    "parent": "chest",
+    "follow": "upperarm.l",
+    "share": 0.5,
+    "pivot": [
+      0.2901,
+      1.2924,
+      0.0
+    ]
+  },
+  "shoulder_cap.r": {
+    "parent": "chest",
+    "follow": "upperarm.r",
+    "share": 0.5,
+    "pivot": [
+      -0.2901,
+      1.2924,
+      0.0
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Armor" load_steps=4 format=3 uid="uid://b3uaf6x2561vr"]
+
+[ext_resource type="PackedScene" uid="uid://d4d7t4im0px4j" path="res://scenes/items/armor/shield/shield_large_spikes.tscn" id="1_8it7s"]
+[ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_ph1o3"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
+
+[resource]
+script = ExtResource("2_ph1o3")
+Tier = 2
+RequiredStrength = 10
+ArmorPoints = 1
+SpeedModifier = 1.0
+ValidSlots = 512
+RollTable = ExtResource("roll_table")
+Name = "Spiked Shield"
+Scene = ExtResource("1_8it7s")
+Value = 80
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+metadata/_custom_type_script = ExtResource("2_ph1o3")

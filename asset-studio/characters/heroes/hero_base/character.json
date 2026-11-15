@@ -1,0 +1,46 @@
+{
+  "hero": true,
+  "template": "barbarian",
+  "head": {
+    "kaykit": "barbarian"
+  },
+  "body": {
+    "torso": "standard",
+    "arms": {
+      "kaykit": true
+    },
+    "legs": {
+      "kaykit": true
+    }
+  },
+  "underlayer": [
+    {
+      "kind": "tunic",
+      "y0": 0.42,
+      "thickness": 0.03,
+      "slot": "cloth",
+      "neck": {
+        "style": "u",
+        "front": 0.0,
+        "back": 0.0
+      }
+    }
+  ],
+  "head_parts": [
+    "hair",
+    "ears"
+  ],
+  "outfit": [],
+  "colors": {
+    "cloth": [
+      170,
+      150,
+      120
+    ],
+    "pants": [
+      104,
+      86,
+      70
+    ]
+  }
+}

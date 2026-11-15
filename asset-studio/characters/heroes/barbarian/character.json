@@ -1,110 +1,18 @@
 {
-  "base": "heroes/barbarian_base",
-  "outfit": [
-    {
-      "kind": "costume_set",
-      "name": "barbarian"
-    },
-    {
-      "kind": "sleeves",
-      "y1": 0.5,
-      "thickness": 0.03,
-      "slot": "cloth"
-    },
-    {
-      "kind": "boots",
-      "y0": 0.72,
-      "slot": "boot"
-    },
-    {
-      "kind": "cuffs",
-      "limb": "leg",
-      "at": 0.42,
-      "width": 0.08,
-      "thickness": 0.035,
-      "slot": "strap",
-      "side": "right"
-    },
-    {
-      "kind": "fur_trim",
-      "y": 0.72,
-      "limb": "leg",
-      "toward": -1,
-      "count": 10,
-      "length": 0.06
-    },
-    {
-      "kind": "cuffs",
-      "at": 0.86,
-      "width": 0.16,
-      "thickness": 0.035,
-      "slot": "strap"
-    },
-    {
-      "kind": "helmet",
-      "style": "bear"
-    }
-  ],
+  "base": "heroes/hero_base",
+  "head": {
+    "kaykit": "barbarian"
+  },
   "colors": {
-    "skin": [
-      244,
-      190,
-      150
-    ],
     "cloth": [
-      72,
-      112,
-      154
-    ],
-    "pants": [
-      178,
-      180,
-      188
-    ],
-    "fur_trim": [
-      238,
-      238,
-      242
-    ],
-    "boot": [
-      112,
-      92,
-      82
-    ],
-    "sole": [
-      72,
-      58,
-      52
-    ],
-    "strap": [
-      158,
-      84,
-      62
-    ],
-    "leather": [
-      158,
-      84,
-      62
-    ],
-    "metal": [
-      164,
-      174,
-      190
-    ],
-    "pelt": [
-      112,
-      96,
-      88
-    ],
-    "metal_dark": [
-      118,
-      126,
+      74,
+      104,
       140
     ],
-    "pelt_dark": [
-      85,
-      72,
-      64
+    "pants": [
+      112,
+      86,
+      66
     ]
   }
 }

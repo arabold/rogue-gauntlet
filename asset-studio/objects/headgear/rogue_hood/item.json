@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "name": "Rogue Hood",
+  "backend": "procedural",
+  "builder": "kaykit_headgear",
+  "design": {
+    "prefab": "skeleton_rogue_hood"
+  },
+  "color_mode": "character",
+  "colors": {
+    "kay_skeleton_22": [
+      0,
+      131,
+      83
+    ]
+  },
+  "materials": {},
+  "crease": 50,
+  "placement": {
+    "pivot": "authored"
+  },
+  "budget": {
+    "triangles": 1000,
+    "materials": 6
+  },
+  "export": {
+    "glb": "res://assets/custom-items/armor/helmet/rogue_hood.glb"
+  },
+  "topology": "authored_assembly",
+  "provenance": {
+    "kind": "kaykit_original",
+    "source": "KayKit (CC0): the skeleton rogue's cowl in the rogue's green (KayKit's hooded rogue), harvested by helmets.harvest()"
+  }
+}

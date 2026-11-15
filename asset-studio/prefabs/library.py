@@ -3,7 +3,7 @@
 Provides unified loading, scaling, positioning, and on-demand recoloring for curated
 geometric prefabs embedded directly inside their respective domain folders:
 - `prefabs/anatomy/meshes/`: skulls, skeletal parts
-- `prefabs/outfits/meshes/`: helmets, hats
+- `prefabs/outfits/meshes/`: colored KayKit headgear in the hat-prop frame; see `prefabs/outfits/helmets.py`
 - `prefabs/items/meshes/`: weapons, shields, props
 - `prefabs/details/meshes/`: gems, horns
 - `prefabs/decor/meshes/`: colored KayKit decor (books, bottles, candles, coins, keys, skull); see `prefabs/decor.py`
@@ -57,7 +57,6 @@ PREF_COLORS = {
 }
 
 ITEM_COLORS = {
-    "knight_helmet": ("metal", (170, 180, 190)),
     "flask_potion": ("glass", (90, 180, 230)),
     "wand_arcane": ("wood", (135, 95, 60)),
     "crossbow_1h": ("wood", (135, 95, 60)),

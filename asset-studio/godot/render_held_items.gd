@@ -124,12 +124,13 @@ func _point_camera(dir: Vector3):
 	var distance = max(_player_aabb_size.x, _player_aabb_size.y, _player_aabb_size.z) * 4.0
 	_cam.look_at_from_position(_player_aabb_center + dir.normalized() * distance, _player_aabb_center, Vector3.UP)
 
-func _unequip_all_starting_items():
+# Inventory.Equip/Unequip return a C# struct GDScript cannot receive, so items change hands the way GDScript can
+# reach: removing an entry releases its slots, and the controller equips what the backpack holds.
+func _clear_inventory():
 	if _inventory == null:
 		return
-	for slot in _inventory.Items:
-		if slot != null and _inventory.IsEquipped(slot):
-			_inventory.Unequip(slot)
+	for slot in _inventory.Items.duplicate():
+		_inventory.RemoveItem(slot, slot.Quantity)
 
 func _process(_d):
 	if _finish_frames > 0:
@@ -142,7 +143,7 @@ func _process(_d):
 	if not _started:
 		_started = true
 		_inventory = _player.Inventory
-		_unequip_all_starting_items()
+		_clear_inventory()
 		return false
 	if _settle < SETTLE_FRAMES:
 		_settle += 1
@@ -154,13 +155,10 @@ func _process(_d):
 
 	if _wait == 0:
 		if _angle_i == 0:
-			if _current_slot != null:
-				_inventory.Unequip(_current_slot)
-				_inventory.RemoveItem(_current_slot, _current_slot.Quantity)
-			var item = load(_items[_i])
-			_inventory.AddItem(item, 1)
+			_clear_inventory()
+			_inventory.AddItem(load(_items[_i]), 1)
 			_current_slot = _inventory.Items[_inventory.Items.size() - 1]
-			_inventory.Equip(_current_slot)
+			_player.InventoryController.AutoEquipItems()
 		_measure_player() # Include the equipped model so long weapons remain inside the review frame.
 		var dir = ANGLES[_angle_i][1]
 		# For shields (equipped in left/shield hand at -X), flip the "side" angle to -X

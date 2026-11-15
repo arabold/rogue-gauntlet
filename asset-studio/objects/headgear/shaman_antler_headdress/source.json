@@ -1,0 +1,123 @@
+{
+  "blender": "5.2.2",
+  "script": "0097de6e94b159fe6027cc0e4a1940d01d53265fbd06757bbaa6f419bdd213bd",
+  "helpers": "120c759eef85bff4db183e28c22a8c821f936c65e16e8efe162c625a31b7d88b",
+  "host": "cdea10bdab66946e50c6df41254598a540d391460471dbcb92ea055e45b69872",
+  "glb": "432b8b861a10bd274ea1695bc6765185d8e7e0d0c4a82847023275fe0b2394b6",
+  "objects": [
+    {
+      "name": "AntlerCollarL",
+      "triangles": 44,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "leather_light"
+      ]
+    },
+    {
+      "name": "AntlerCollarR",
+      "triangles": 44,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "leather_light"
+      ]
+    },
+    {
+      "name": "AntlerL",
+      "triangles": 210,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "bone"
+      ]
+    },
+    {
+      "name": "AntlerR",
+      "triangles": 210,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "bone"
+      ]
+    },
+    {
+      "name": "AntlerWrapL",
+      "triangles": 40,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "leather_dark"
+      ]
+    },
+    {
+      "name": "AntlerWrapR",
+      "triangles": 40,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "leather_dark"
+      ]
+    },
+    {
+      "name": "BoneSkull",
+      "triangles": 156,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "bone",
+        "socket",
+        "bone_dark"
+      ]
+    },
+    {
+      "name": "FeatherBossL",
+      "triangles": 78,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "leather_light"
+      ]
+    },
+    {
+      "name": "FeatherBossR",
+      "triangles": 78,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "leather_light"
+      ]
+    },
+    {
+      "name": "FeathersL",
+      "triangles": 176,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "feather",
+        "feather_tip"
+      ]
+    },
+    {
+      "name": "FeathersR",
+      "triangles": 176,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "feather",
+        "feather_tip"
+      ]
+    },
+    {
+      "name": "LeatherCap",
+      "triangles": 576,
+      "open_edges": 0,
+      "non_manifold_edges": 0,
+      "slots": [
+        "leather",
+        "leather_light",
+        "leather_dark"
+      ]
+    }
+  ]
+}

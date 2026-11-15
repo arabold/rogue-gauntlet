@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Armor" load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/items/armor/helmet/rogue_hood.tscn" id="scene"]
+[ext_resource type="PackedScene" path="res://scenes/items/armor/helmet/rogue_hood_worn.tscn" id="worn"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
+
+[resource]
+script = ExtResource("script")
+Weight = 0
+Tier = 1
+ValidSlots = 1
+RollTable = ExtResource("roll_table")
+Name = "Rogue Hood"
+Scene = ExtResource("scene")
+WornScene = ExtResource("worn")
+HiddenModelParts = PackedStringArray("Hair", "Ears")
+Value = 25
+ShowInInventory = true
+IsStackable = false
+IsQuestItem = false
+ArmorPoints = 1
+metadata/_custom_type_script = ExtResource("script")

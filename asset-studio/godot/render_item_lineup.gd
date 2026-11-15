@@ -1,6 +1,8 @@
 extends SceneTree
 ## GPU-rendered art-only item study and game-camera scale context. No gameplay resources are loaded.
-## Windowed only: --script ... -- <staged.glb> <mannequin.glb> <output_dir> <ground|right_hand|left_hand|shield>
+## Windowed only: --script ... -- <staged.glb> <mannequin.glb> <output_dir> <ground|right_hand|left_hand|shield|head>
+## The head mount wears headgear in the hat-prop frame (head bone, 0.0255 below it; see core/hosts.py) on a class
+## model passed as the mannequin, whose own hat and held props are hidden.
 
 var viewport: SubViewport
 var camera: Camera3D
@@ -17,6 +19,8 @@ var wait_frames := 0
 var jobs: Array = []
 var job_index := 0
 const SHOTS = ["front", "three_quarter", "side", "game_context"]
+const HAT_OFFSET := Vector3(0, -0.0255, 0)
+const WORN_PARTS := ["_Head", "_Body", "_Arm", "_Leg"]
 const SurfaceColors = preload("res://asset-studio/godot/item_surface_colors.gd")
 
 func load_glb(path: String) -> Node3D:
@@ -136,6 +140,17 @@ func configure_shot() -> void:
 		if mount == "ground":
 			holder.position = Vector3(man_bounds.size.x * .65 + bounds.size.x * .5 + .15 - center.x,
 				-bounds.position.y, -center.z)
+		elif mount == "head":
+			for part in mannequin.find_children("*", "MeshInstance3D", true, false):
+				part.visible = WORN_PARTS.any(func(key): return key in String(part.name))
+			var head_skeleton := find_skeleton(mannequin)
+			var head := head_skeleton.find_bone("head") if head_skeleton else -1
+			if head < 0:
+				push_error("Head mount needs a model with a head bone")
+				quit(1)
+				return
+			var head_transform := head_skeleton.global_transform * head_skeleton.get_bone_global_pose(head)
+			holder.global_transform = head_transform * Transform3D(Basis.IDENTITY, HAT_OFFSET)
 		else:
 			var skeleton := find_skeleton(mannequin)
 			var bone := skeleton.find_bone("hand.r" if mount == "right_hand" else "hand.l") if skeleton else -1

@@ -187,7 +187,7 @@
 			],
 			"compatibility_group": "kaykit",
 			"acquired": "2026-10-11",
-			"notes": "Low-poly flat-shaded 3D items UV-mapped to KayKit's dungeon_texture.png and aligned to KayKit reference AABBs."
+			"notes": "Low-poly flat-shaded 3D items, each with its own palette texture baked from KayKit dungeon_texture swatches, aligned to KayKit reference AABBs."
 		},
 		{
 			"id": "custom-props",

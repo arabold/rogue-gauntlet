@@ -54,5 +54,16 @@
       162,
       176
     ]
-  }
+  },
+  "item": {
+    "glb": "res://assets/custom-items/armor/body/scale_mail.glb",
+    "limb_colors": {
+      "barbarian_06": "leather",
+      "barbarian_11": "cloth",
+      "barbarian_03": "armor",
+      "barbarian_17": "cloth",
+      "barbarian_23": "leather"
+    }
+  },
+  "limbs": "barbarian"
 }

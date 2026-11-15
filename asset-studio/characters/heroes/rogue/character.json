@@ -1,0 +1,19 @@
+{
+  "base": "heroes/hero_base",
+  "template": "rogue",
+  "head": {
+    "kaykit": "rogue"
+  },
+  "colors": {
+    "cloth": [
+      52,
+      120,
+      84
+    ],
+    "pants": [
+      110,
+      78,
+      56
+    ]
+  }
+}

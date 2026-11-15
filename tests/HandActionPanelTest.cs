@@ -42,7 +42,7 @@ public class HandActionPanelTest
 		AssertObject(panel.ViewportContainer.Modulate).IsNotEqual(Colors.White);
 
 		// Off hand with a shield: equipping alone makes the guard key live and undims the preview.
-		Equip(player, "res://scenes/items/armor/shield_common.tres", EquipmentSlot.ShieldHand);
+		Equip(player, "res://scenes/items/armor/shield/shield_common.tres", EquipmentSlot.ShieldHand);
 		AssertBool(panel.FirstActionKey.IsDisabled).IsFalse();
 		AssertObject(panel.Preview.Scene).IsNotNull();
 		AssertObject(panel.ViewportContainer.Modulate).IsEqual(Colors.White);
