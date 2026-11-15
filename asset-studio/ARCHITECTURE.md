@@ -22,6 +22,13 @@ standard executable locations; Studio commands no longer depend on an agent skil
   publishes one reviewed lineup to `catalogs/tiles/` and exports GLBs to `assets/custom-tiles/`;
   GridMap mesh libraries, collision and generator rules stay game-side.
 
+Concept-driven items can be modeled in Blender by a committed script (`source.py`). Blender runs only at
+authoring time: `item model` runs the script in a fresh headless Blender (`core/blender.py`, pinned release) and
+commits the result as the item's `source.glb` with a provenance sidecar `source.json`. Builds, lineups and exports
+read that GLB and reject it when the script, the modeling helpers or the host changed since, so they never need
+Blender. Worn art is modeled in the frame it is worn in, on committed hosts (`rigs/hosts/`, `core/hosts.py`), and
+`item compare` scores a build against its concept turnaround as a review aid (`core/concept_score.py`).
+
 `lineup` stages and renders a candidate without publishing. Explicit `export` for a bound
 source or golem builds, validates and renders the candidate, writes art/import metadata to
 the configured destination, verifies the actual Godot import, and publishes the selected

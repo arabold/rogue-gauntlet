@@ -24,7 +24,7 @@ STUDIO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 REPO_ROOT = os.path.abspath(os.path.join(STUDIO_ROOT, ".."))
 
 DEFAULT_MODELS = {
-    "gemini": {"image": "gemini-3-pro-image", "text": "gemini-3.1-pro-preview"},
+    "gemini": {"image": "gemini-3-pro-image", "text": "gemini-3.8-flash"},
     "openai": {"image": "gpt-image-2", "text": "gpt-5.4"},
 }
 
@@ -32,16 +32,23 @@ DEFAULT_MODELS = {
 _OPENAI_SIZES = {"1:1": "1024x1024", "16:9": "1536x1024", "4:3": "1536x1024", "3:2": "1536x1024", "9:16": "1024x1536"}
 
 
+# Provider keys some agent environments export under their own names; used when the standard name is unset.
+KEY_ALIASES = {"GEMINI_API_KEY": "SKILL_IMAGE_GEN_GEMINI_KEY", "OPENAI_API_KEY": "SKILL_IMAGE_GEN_OPENAI_KEY"}
+
+
 def load_dotenv(path=os.path.join(REPO_ROOT, ".env")):
-    """Loads `KEY=value` lines into `os.environ` without overriding variables that are already set."""
-    if not os.path.exists(path):
-        return
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                os.environ.setdefault(k.strip(), v.strip().strip("'").strip('"'))
+    """Loads `KEY=value` lines into `os.environ` without overriding variables that are already set, then fills unset
+    provider keys from their `KEY_ALIASES`."""
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip("'").strip('"'))
+    for key, alias in KEY_ALIASES.items():
+        if os.environ.get(alias):
+            os.environ.setdefault(key, os.environ[alias])
 
 
 def _png_bytes(img):

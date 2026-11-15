@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "name": "Dark Knight Winged Helm",
+  "backend": "source",
+  "source": "source.glb",
+  "model": "source.py",
+  "host": "adventurer_heads",
+  "reference": "reference.png",
+  "color_mode": "character",
+  "surface": {"palette": "materials", "height_range": [0.0, 1.6]},
+  "colors": {
+    "armor": [128, 134, 148], "metal": [165, 171, 182], "gold": [232, 196, 132], "gem": [229, 64, 95],
+    "dark": [53, 53, 60]
+  },
+  "materials": {"gem": {"metallic": 0.22, "roughness": 0.18, "crease": 30.0}},
+  "crease": 50,
+  "topology": "closed_assembly",
+  "placement": {"pivot": "authored"},
+  "budget": {"triangles": 4000, "materials": 8},
+  "export": {"glb": "res://assets/custom-items/armor/helmet/dark_knight_winged_helm.glb"},
+  "provenance": {"kind": "blender_model", "concept": "generated from the master style prompt with the dummy-head turnaround; see reference.prompt.txt"}
+}

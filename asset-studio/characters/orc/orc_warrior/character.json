@@ -49,18 +49,7 @@
     },
     {
       "kind": "helmet",
-      "style": "horned",
-      "horns": 0,
-      "brim": 0.26,
-      "tilt": -10.0,
-      "y_offset": 0.05,
-      "slot": "metal",
-      "band": "metal_dark",
-      "rivet": "metal_dark",
-      "guard": 0.6,
-      "guard_upright": true,
-      "patina": true,
-      "dents": true
+      "style": "horned"
     }
   ],
   "concept": "turn this mannequin into a burly orc warrior: green skin, a heavy underbite jaw with two big tusks at the mouth corners, small angry eyes under a thick brow, a dented iron half-helm with a nose guard, a big spiked iron pauldron on one shoulder and a leather one on the other, a studded leather chest harness over a bare muscular chest, a wide belt with a big iron buckle, a short ragged hide skirt, wrapped forearms and heavy boots; for the whole roster: a chunky stylized dungeon-crawler monster with heroic stylized proportions (big head, short limbs), a bold readable silhouette, exaggerated oversized accessories, a limited palette of four to six flat colors, empty hands (no weapons)",
