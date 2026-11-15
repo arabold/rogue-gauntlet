@@ -54,7 +54,7 @@ Save data stores discovered/locked/current-open deviations by stable connection 
 
 ## Authoring and verification
 
-Assign `AccessProfile` on a level's MapGenerator to enable generated locks. Assign `SecretDoorChance` and `SecretDetection` on a room type to author concealed entrances. For an authored lock, assign a definition to the prewired `DoorLock` child and set a canonical required key/pickability/duration. Mark `LockEligible` only when automatic optional-room locking is appropriate. Unassigned optional capabilities stay absent; regeneration applies Resource changes. Do not mutate shared definitions during play.
+Assign `AccessProfile` on a level's MapGenerator to enable generated locks. Assign `SecretDoorChance` and `SecretDetection` on a room type to author concealed entrances. For an authored lock, assign a definition to the prewired `DoorLock` child and set a canonical required key/pickability/duration. Unassigned optional capabilities stay absent; regeneration applies Resource changes. Do not mutate shared definitions during play.
 
 Regression coverage exercises consumption, wrong colors, key preference, stack round trips, interruption/tool loss, reservations, markers, all six published models, deterministic generation, reachable quantities, accessible sides and regenerated saved access. Existing timed-interaction/loot tests remain relevant. Windowed review checks marker readability and concealed/revealed wall appearance; real navigation across a generated secret is checked separately because headless path tests are unreliable. Probability, optional counts, detection radius, reward density and monster pressure still need playtesting.
 

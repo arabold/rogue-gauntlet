@@ -23,7 +23,7 @@ public partial class MapGenerator : Node3D
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
 	/// <summary>The shared room pool; each floor takes the rooms of its realm.</summary>
-	[Export] public RoomFactory Rooms { get; set; }
+	[Export] public AssembledRoomFactory Rooms { get; set; }
 	/// <summary>
 	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> picks the floor's rooms from <see cref="Rooms"/>
 	/// and supplies its corridor tiles; the deepest realm carries on below the last band.
@@ -32,7 +32,7 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
 	public Realm CurrentRealm { get; private set; }
-	private RoomFactory _realmRooms;
+	private AssembledRoomFactory _realmRooms;
 	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
 	private readonly HashSet<Vector3I> _dividerCells = [];
 	private readonly HashSet<(Vector3I Center, bool Horizontal)> _framedEdges = [];
@@ -109,45 +109,22 @@ public partial class MapGenerator : Node3D
 		field = value;
 	}
 
-	protected void MergeRoomGridMaps(Room room, Vector3I placement)
+	/// <summary>
+	/// Copies the room's floor, wall and decoration cells into the floor's GridMaps, shifted by <paramref name="offset"/>,
+	/// and frees the room's own maps. The room is not in the tree yet, so they never reach the servers.
+	/// </summary>
+	private void MergeRoomGridMaps(Room room, Vector3I offset)
 	{
-		// Generate the tile map from the room scene
-		var roomFloorGridMap = room.FloorGridMap;
-		var roomWallGridMap = room.WallGridMap;
-		var roomDecorationGridMap = room.DecorationGridMap;
-
-		var gridMapOffset = Map.TileToWorld(placement.X, placement.Z) - room.Origin;
-		foreach (var cell in room.DividerCells) _dividerCells.Add(cell + gridMapOffset);
-		foreach (var (center, horizontal) in room.FramedEdges) _framedEdges.Add((center + gridMapOffset, horizontal));
-		MergeGridMaps(roomFloorGridMap, FloorGridMap, gridMapOffset);
-		MergeGridMaps(roomWallGridMap, WallGridMap, gridMapOffset);
-		MergeGridMaps(roomDecorationGridMap, DecorationGridMap, gridMapOffset);
-
-		roomFloorGridMap.QueueFree();
-		roomWallGridMap.QueueFree();
-		roomDecorationGridMap.QueueFree();
-		room.FloorGridMap = null;
-		room.WallGridMap = null;
-		room.DecorationGridMap = null;
-	}
-
-	private void MergeGridMaps(GridMap sourceGridMap, GridMap targetGridMap, Vector3I offset)
-	{
-		// Get all used cells in the source GridMap
-		GD.Print($"Merging GridMaps from {sourceGridMap.Name} to {targetGridMap.Name}");
-		foreach (Vector3I cell in sourceGridMap.GetUsedCells())
+		foreach (var cell in room.DividerCells) _dividerCells.Add(cell + offset);
+		foreach (var (center, horizontal) in room.FramedEdges) _framedEdges.Add((center + offset, horizontal));
+		foreach (var (source, target) in new[] { (room.FloorGridMap, FloorGridMap), (room.WallGridMap, WallGridMap), (room.DecorationGridMap, DecorationGridMap) })
 		{
-			// Get the tile index at this cell
-			int tileIndex = sourceGridMap.GetCellItem(cell);
-			if (tileIndex != -1) // Skip empty cells
-			{
-				int transformIndex = sourceGridMap.GetCellItemOrientation(cell);
-
-				// Apply the offset and copy the tile to the target GridMap
-				Vector3I targetCell = cell + new Vector3I((int)offset.X, (int)offset.Y, (int)offset.Z);
-				targetGridMap.SetCellItem(targetCell, tileIndex, transformIndex);
-			}
+			foreach (Vector3I cell in source.GetUsedCells())
+				target.SetCellItem(cell + offset, source.GetCellItem(cell), source.GetCellItemOrientation(cell));
+			room.RemoveChild(source);
+			source.Free();
 		}
+		room.FloorGridMap = room.WallGridMap = room.DecorationGridMap = null;
 	}
 
 	private LevelGenerationContext _random;
@@ -175,33 +152,22 @@ public partial class MapGenerator : Node3D
 		{
 			var placement = roomPlacements[roomIndex];
 			var room = placement.Room;
-			var traps = new List<(FloorTrap Trap, string Id)>();
-			foreach (Node source in room.FindChildren("*", "", true, false))
-			{
-				if (source is FloorTrap trap) traps.Add((trap, $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}"));
-				if (source is LootableItem)
-				{ source.SetMeta("persistent_id", $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}"); }
-				if (source is LootTableComponent loot)
-				{
-					loot.SourceId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}";
-				}
-				if (source is SpawnPoint spawn && string.IsNullOrEmpty(spawn.PersistentId))
-				{
-					spawn.PersistentId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(source)}";
-				}
-			}
-			var position = new Vector3I(placement.Position.X, 0, placement.Position.Y);
-			MergeRoomGridMaps(room, position);
+			var offset = Map.TileToWorld(placement.Position) - room.Origin;
+			MergeRoomGridMaps(room, offset);
+			var nodes = room.FindChildren("*", "", true, false).ToList();
+			// Loot props (the treasury chest) roll their rewards from a stream keyed to their place on the floor, and the
+			// stairs' player spawners take an ID from it too.
+			foreach (var loot in nodes.OfType<LootTableComponent>())
+				loot.SourceId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(loot)}";
+			foreach (var spawn in nodes.OfType<SpawnPoint>().Where(spawn => string.IsNullOrEmpty(spawn.PersistentId)))
+				spawn.PersistentId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(spawn)}";
 
+			// Moved into place before it enters the tree: Godot defers transform notifications, so a room moved after
+			// AddChild would keep its colliders at the origin for the rest of the frame, under every placement query.
 			// Rooms join the floor content, whose solids the reachability and navigation grids read.
+			room.Translate(offset);
 			FloorContent.AddChild(room);
-
-			room.Translate(Map.TileToWorld(placement.Position) - room.Origin);
-			// Placed and merged: each authored trap can now find the floor cell it conceals.
-			foreach (var (trap, id) in traps)
-				trap.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(trap.GlobalPosition)));
-
-			RegisterRoomRegion(placement);
+			RegisterRoomRegion(placement, nodes.OfType<Door>());
 		}
 	}
 
@@ -209,19 +175,17 @@ public partial class MapGenerator : Node3D
 	/// Records which master tiles belong to a placed room so the room can later be
 	/// looked up by tile and revealed by its exact (possibly non-rectangular) shape.
 	/// </summary>
-	private void RegisterRoomRegion(RoomPlacement placement)
+	private void RegisterRoomRegion(RoomPlacement placement, IEnumerable<Door> doors)
 	{
 		var roomMap = placement.Room.Map;
-		var region = new RoomRegion(Floor.Rooms.Count) { LayoutAxis = placement.Room.LayoutAxis };
+		var region = new RoomRegion(Floor.Rooms.Count);
+		placement.Room.RegionId = region.Id;
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
 			{
-				bool isRoom = roomMap.IsRoom(lx, lz);
-				bool isConnector = roomMap.IsConnector(lx, lz);
-				// Chasms (interior pits) reveal with the room but are not walkable.
-				bool isChasm = roomMap.IsChasm(lx, lz);
-				if (!isRoom && !isConnector && !isChasm)
+				// Floor, doorways and chasms (interior pits, not walkable) reveal with the room.
+				if (!roomMap.IsExplorable(lx, lz))
 				{
 					continue;
 				}
@@ -233,19 +197,19 @@ public partial class MapGenerator : Node3D
 				// Connectors are doorway thresholds: counting them would announce room entry
 				// when the player merely stands against its closed door, since the
 				// position rounds onto the connector tile.
-				if (isRoom)
+				if (roomMap.IsRoom(lx, lz))
 				{
 					Floor.AssignTile(tile, region.Id);
 				}
 
-				if (isConnector)
+				if (roomMap.IsConnector(lx, lz))
 				{
 					region.ConnectorTiles.Add(tile);
 				}
 			}
 		}
 
-		RegisterDoors(placement, region);
+		RegisterDoors(placement, region, doors);
 		Floor.AddRoom(region);
 	}
 
@@ -253,7 +217,7 @@ public partial class MapGenerator : Node3D
 	/// Takes over the doors the room set into its doorways, each guarding its doorway's connector (closed, it stops fog
 	/// reveal there), and gives interior doors (cell gates) their room-scoped connection IDs.
 	/// </summary>
-	private void RegisterDoors(RoomPlacement placement, RoomRegion region)
+	private void RegisterDoors(RoomPlacement placement, RoomRegion region, IEnumerable<Door> doors)
 	{
 		foreach (var (tile, door) in placement.Room.Doors)
 		{
@@ -261,7 +225,7 @@ public partial class MapGenerator : Node3D
 		}
 
 		var interiorIds = new HashSet<string>();
-		foreach (var door in placement.Room.FindChildren("*", "", true, false).OfType<Door>().Where(door => door.Interior != null))
+		foreach (var door in doors.Where(door => door.Interior != null))
 		{
 			if (string.IsNullOrWhiteSpace(door.Interior.Id) || !interiorIds.Add(door.Interior.Id)
 				|| door.Lock?.Definition != null || door.Secret?.IsSecret == true)
@@ -423,32 +387,22 @@ public partial class MapGenerator : Node3D
 		}
 	}
 
-	/// <summary>Resolve a placed node through its owning room, even when a staircase trigger extends beyond its floor tiles.</summary>
-	internal int RoomRegionFor(Node node)
-	{
-		while (node != null && node is not Room) node = node.GetParent();
-		if (node is not Room room || room.Map == null) return -1;
-		for (int x = 0; x < room.Map.Width; x++)
-		for (int z = 0; z < room.Map.Height; z++)
-		{
-			if (!room.Map.IsRoom(x, z)) continue;
-			var local = (Vector3)room.Origin + new Vector3(x * Room.TileSize, 0, z * Room.TileSize);
-			int region = Floor.RoomIdAt(Map.WorldToTile(room.ToGlobal(local)));
-			if (region >= 0) return region;
-		}
-		return -1;
-	}
+	/// <summary>
+	/// The region of the room holding <paramref name="node"/>, even when a staircase trigger extends beyond its floor
+	/// tiles; -1 outside every room.
+	/// </summary>
+	internal int RoomRegionFor(Node node) => node.GetAncestorOrNull<Room>()?.RegionId ?? -1;
 
 	private void FindProgressionAnchors()
 	{
 		// Rooms are generated content, so this is a typed query over them rather than an authored reference. The exit
 		// room carries a spawn point too, for arriving from below; the descent arrival is the one the floor is built around.
-		var nodes = FloorContent.FindChildren("*", "", true, false).OfType<Node3D>().ToList();
+		var nodes = LiveNodes<Node3D>().ToList();
 		Floor.Arrival = nodes.OfType<PlayerSpawnPoint>()
 			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Down);
 		Floor.Descent = nodes.OfType<LevelTransitionTrigger>()
 			.FirstOrDefault(trigger => trigger.Direction == GameSession.LevelTravelDirection.Down);
-		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => (point.Landing ?? point).GlobalPosition).ToList();
+		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => point.LandingPosition).ToList();
 		Floor.SpawnAnchors = nodes.Where(node => node is IProgressionAnchor || node.IsInGroup("stairs"))
 			.Select(node => node.GlobalPosition).Concat(Floor.StairLandings).ToList();
 		if (Floor.Arrival == null)

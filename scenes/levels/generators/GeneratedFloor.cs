@@ -89,12 +89,6 @@ public sealed class GeneratedFloor
 		_tileToRoom[tile] = roomId;
 	}
 
-	internal void UnassignTile(Vector2I tile)
-	{
-		RequireLive();
-		_tileToRoom.Remove(tile);
-	}
-
 	internal void AddDoor(Door door, Vector2I connector)
 	{
 		RequireLive();

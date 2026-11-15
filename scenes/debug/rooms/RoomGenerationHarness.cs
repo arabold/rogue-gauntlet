@@ -39,7 +39,7 @@ public partial class RoomGenerationHarness : Node3D
 	/// <summary>The room pool narrowed to the selected realm.</summary>
 	public AssembledRoomFactory Factory { get; private set; }
 	/// <summary>The realm's ordinary rooms followed by entrances and exits.</summary>
-	public IReadOnlyList<RoomType> Recipes => [.. Factory.RoomTypes, .. Factory.EntranceTypes, .. Factory.ExitTypes];
+	public IReadOnlyList<RoomType> Recipes => Factory.AllTypes;
 
 	private int _quarterTurns;
 	private OptionButton _modePicker, _realmPicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
@@ -53,7 +53,7 @@ public partial class RoomGenerationHarness : Node3D
 	public override void _Ready()
 	{
 		if (Generator == null || PreviewRoot == null || PreviewCamera == null || Controls == null || Status == null
-			|| Generator.Rooms is not AssembledRoomFactory || Generator.Realms.Length == 0 || Generator.Realms.Any(realm => realm == null))
+			|| Generator.Rooms == null || Generator.Realms.Length == 0 || Generator.Realms.Any(realm => realm == null))
 		{
 			LastError = "Assign the map generator (with an assembled room pool and realms), preview root, camera, controls and status label in the harness scene.";
 			GD.PushError(LastError);
@@ -151,7 +151,7 @@ public partial class RoomGenerationHarness : Node3D
 	{
 		SelectedRealm = index;
 		Generator.DungeonDepth = Realm.FirstDepth;
-		Factory = (AssembledRoomFactory)Generator.Rooms.ForRealm(Realm.Id);
+		Factory = Generator.Rooms.ForRealm(Realm.Id);
 		_recipePicker.Clear();
 		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
 	}

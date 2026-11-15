@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=30 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="5_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/mossy_walls.tres" id="mossy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/overgrown_walls.tres" id="overgrown_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="6_earth_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/groups/supply_corner.tres" id="7_supply_corner"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate_stack.tres" id="8_crate_stack"]
@@ -82,7 +83,7 @@ MinDoorways = 1
 MaxDoorways = 2
 DoorChance = 0.6
 Circulation = 0
-Walls = [ExtResource("5_cave_walls")]
+Walls = [ExtResource("mossy_walls"), ExtResource("overgrown_walls")]
 Floors = [ExtResource("6_earth_floor")]
 Steps = [SubResource("CornersStep_2"), SubResource("AlongWallsStep_3"), SubResource("ScatterStep_4"), SubResource("WallDecorStep_5")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

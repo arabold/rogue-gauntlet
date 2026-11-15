@@ -48,6 +48,7 @@ public partial class PoolStep : FurnishingStep
 		var errors = new List<string>();
 		if (string.IsNullOrWhiteSpace(Id)) errors.Add($"{GetType().Name}: assign a stable ID.");
 		if (Pieces.Any(piece => piece == null)) errors.Add($"Step {Id}: assign every pool piece.");
+		else if (Pieces.Any(piece => !piece.Sunken)) errors.Add($"Step {Id}: pool pieces must be sunken to cut their water.");
 		if (MinimumCount > MaximumCount) errors.Add($"Step {Id}: the minimum exceeds the maximum.");
 		if (Layout != PoolLayout.Walkway && (MinimumSize.X < 1 || MinimumSize.Y < 1 || MinimumSize.X > MaximumSize.X || MinimumSize.Y > MaximumSize.Y
 			|| MinimumSize.X * MinimumSize.Y < 2))
@@ -133,7 +134,6 @@ public partial class PoolStep : FurnishingStep
 	private bool PlaceAreas(RoomBlueprint room, IReadOnlyList<Rect2I> areas, RandomNumberGenerator rng)
 	{
 		var plan = new PlacementPlan();
-		var tiles = new List<Vector2I>();
 		foreach (var area in areas)
 		for (int x = area.Position.X; x < area.End.X; x++)
 		for (int z = area.Position.Y; z < area.End.Y; z++)
@@ -142,9 +142,9 @@ public partial class PoolStep : FurnishingStep
 			var (prop, degrees) = Piece(area, tile);
 			var local = new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(degrees)), RoomFootprint.TileCenter(tile));
 			plan.Add(prop, room.PickVariant(prop, rng), local, optional: false);
-			tiles.Add(tile);
 		}
-		if (!room.TryPlace(plan, Transform3D.Identity, tiles)) return false;
+		// The sunken water pieces cut their tiles as pits, in this order.
+		if (!room.TryPlace(plan, Transform3D.Identity)) return false;
 		foreach (var area in areas)
 			room.AddWalkingBarrier(new Rect2((Vector2)area.Position * Room.TileSize - Vector2.One * (Room.TileSize / 2f), (Vector2)area.Size * Room.TileSize));
 		return true;

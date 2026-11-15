@@ -19,7 +19,6 @@ public partial class Door : Node3D
 	[Export] public MeshInstance3D Leaf { get; set; }
 	/// <summary>The leaf's collider, authored in its shut pose.</summary>
 	[Export] public CollisionShape3D Collision { get; set; }
-	[Export] public bool LockEligible { get; set; } = false;
 	public string ConnectionId { get; set; } = "";
 	public bool IsDiscovered => Secret?.IsDiscovered ?? true;
 

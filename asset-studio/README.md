@@ -501,7 +501,7 @@ Tests cover source round trips, transforms across mesh instances/primitives, piv
 
 ## Modular Floor and Wall Tiles
 
-Floor, wall and rug tiles in the KayKit dungeon style, on the KayKit footprints (4x4 and 2x2 floors, 4x4x1 walls with half and corner pieces), extend the existing dungeon set. A recipe under `tilesets/<set>/` builds one family: every piece and variant of a material, so they can be validated and reviewed together. Floor patterns repeat every two units, so large and small tiles and all variants mix in one room without the visible grid of KayKit's repeating wood joints; walls join through shared end cross-sections. `tile build` checks this on every tile edge, and `tile lineup` renders the family on the game grid in Godot. See the [tileset guide](tilesets/README.md) for footprints, the seam contract, the current families and recipe parameters.
+Floor, wall and rug tiles in the KayKit dungeon style, on the KayKit footprints (4x4 and 2x2 floors, 4x4x1 walls with half and corner pieces), extend the existing dungeon set. A recipe under `tilesets/<set>/` builds one family: every piece and variant of a material, so they can be validated and reviewed together. Floor patterns repeat every two units, so large and small tiles and all variants mix in one room without the visible grid of KayKit's repeating wood joints; walls join through shared end cross-sections and keep KayKit's face depth where the game hangs decor. `tile build` checks this on every tile edge and wall face, and `tile lineup` renders the family on the game grid in Godot. See the [tileset guide](tilesets/README.md) for footprints, the seam contract, the current families and recipe parameters.
 
 ```bash
 ./.venv/bin/python asset-studio/studio.py tile list
