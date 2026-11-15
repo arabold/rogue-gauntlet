@@ -18,7 +18,7 @@ The studio owns the art only. Mesh libraries, collision, navigation, realm palet
 | inlay | `channel`, `pool` | KayKit's grate footprints: x in [-2, 2], z in [-1, 1] (channel) or [-2, 2] (pool), rim top at 0.05 | `floor_tile_grate`, `floor_tile_big_grate` |
 | pool | `center`, `edge`, `corner`, `runner`, `runner_end` | x, z in [-2, 2], from the bed (about -1.65) to the quay coping at the floor top (0.05) | none; pools are new |
 
-Builds fail when a tile leaves its footprint, is not a closed solid, or exceeds the recipe's triangle budget. Two wall styles relax this on the faces only, never on the ends: cave boulders may sit up to 0.25 inside the footprint, and dressing on KayKit walls may stand up to 0.15 proud of the faces and 0.25 above the cap. Dressed walls keep KayKit's open panel meshes (a carving may remove a few open accent bricks, never add defects); everything added must be closed.
+Builds fail when a tile leaves its footprint, is not a closed solid, or exceeds the recipe's triangle budget. Two wall styles relax this on the faces only, never on the ends: cave boulders may sit up to 0.25 inside the footprint, and dressing on KayKit walls may stand up to 0.15 proud of the faces and 0.25 above the cap. Built walls still have to keep KayKit's face depth (below). Dressed walls keep KayKit's open panel meshes (a carving may remove a few open accent bricks, never add defects); everything added must be closed.
 
 ## The seam contract
 
@@ -36,6 +36,15 @@ Walls stitch the same way along their length. Masonry stones crossing an end are
 
 `tile build` checks the contract geometrically. It samples every tile edge and requires floor edges to repeat one family cross-section, wall ends to match the straight wall's end and be mirror-symmetric, rug edges to agree by role (field, border run, open end), and dressed walls' ends to be identical to their KayKit source. Colors are continuous by construction; review the lineup for them.
 
+## Wall face depth
+
+A wall is as thick as KayKit's: its trim, plinth and cap reach z = ±0.5, its panel lies at ±0.25, and its accent bricks stand out to ±0.33. That outer plane is where the game hangs tapestries, shields and banners (`Prop.WallInset`, 0.17 inside the trim). Between the plinth and the cap (y 0.5 to 3.2, away from the ends) of a straight or half wall, a studio-built wall must keep it:
+
+- Nothing stands proud of ±0.33. A thicker face swallows wall decor: it clips into the stones or disappears behind them.
+- The face sits no more than 0.05 behind KayKit's panel, or decor floats in front of it.
+
+`tile build` measures the outermost surface across that band against KayKit's own wall and fails otherwise. Exceed it only on purpose: set `design.face_relief` (the units a face may stray past these limits) and keep wall decor off the family's wall style in the game. Dressed walls are KayKit's own wall, so they pass by construction; their growth has its own allowance above.
+
 ## Families
 
 | Family | Kind / style | Use |
@@ -49,14 +58,14 @@ Walls stitch the same way along their length. Masonry stones crossing an end are
 | `floor_bricks` | floor / flagstones (`running`) | Sewers, cellars |
 | `floor_earth` | floor / ground | Packed earth, pebbles and clods (named apart from KayKit's `floor_dirt_*` tiles, which share the mesh libraries) |
 | `floor_cave` | floor / ground | Cave ground in KayKit's floor swatch (as its rocky floors), stones in its rubble color |
-| `wall_ashlar` | wall / masonry | The one well-masoned wall, for royal and noble settings |
+| `wall_ashlar` | wall / masonry | The one well-masoned wall, for royal and noble settings. Out of the game: its stones stand out to the trim; rebuild it at KayKit's face depth |
 | `wall_mossy` | wall / dressed | Jungle: KayKit dungeon wall with moss over the cap, hanging roots and leafy vines, ferns and grass |
 | `wall_overgrown` | wall / dressed | Deep jungle: the same wall swallowed by moss mats, curtains of roots and vines, dense ferns (heavy: up to 18k triangles) |
 | `wall_slimy` | wall / dressed | Sewer: KayKit dungeon wall with a drain pipe run through the wall leaking into a puddle, slime runs and algae |
 | `wall_prison` | wall / dressed | KayKit dungeon wall with pairs of iron manacles on chains bolted to the face |
 | `wall_crypt` | wall / dressed | KayKit dungeon wall with a shelved alcove holding a single KayKit skull among candles, coins and a book |
 | `wall_alcove` | wall / dressed | KayKit dungeon wall with one deep alcove in KayKit's proportions: books and bottles, keys and coins (a key ring hangs beside it), candles, bare shelves, or empty; each variant shows the next kind |
-| `wall_cave` | wall / cave | Big stacked boulders and cracked rubble between split timber posts on stone footings, open rock top; rock matches `rubble_large`. Also builds a T-split, crossing, timber-framed doorway and gate, a wall end slumping into rubble, and a free-standing boulder pillar with a bolted collar |
+| `wall_cave` | wall / cave | Big stacked boulders and cracked rubble between split timber posts on stone footings, open rock top; rock matches `rubble_large`. Also builds a T-split, crossing, timber-framed doorway and gate, a wall end slumping into rubble, and a free-standing boulder pillar with a bolted collar. Only the doorway, gate and pillar are in the game: the boulders stand proud of KayKit's face, so the walls wait for a rebuild at its depth |
 | `carpet_red`, `carpet_blue` | overlay / carpet | Rugs of any size and runners of any length |
 | `floor_water` | inlay / water | Sewer channels (4x2, laid in runs) and basins (4x4): KayKit's grate rim and shaft without the bars, still water just under the rim, scum islands on later variants |
 | `floor_pool` | pool / quay | Deep water sunk into the floor: open water over a dark bed, with quay walls in KayKit's foundation profile, swatch and accent bricks on bordered sides |
@@ -98,9 +107,9 @@ Main `design` parameters per style (see the builders for all):
 - `herringbone`: `brick_width` 0.5 or 0.25, the only widths whose lattice repeats every 2 units.
 - `flagstones`: `layout` `random` (`smallest`, `largest`, `grid`), `grid` (`cell`, optional `checker` with four `tones`) or `running` (`course`, `length`); `chips`, `cracks`, `missing`.
 - `ground`: `amplitude`, `bumps`, `stones`, `stone_size`, `clods`, `clod_size`.
-- `masonry` (`tiles/walls.py`): `courses`, `min_length`/`max_length`, `quoin` (long/short corner stones), `jitter`, `tilt`, `cap_drop`.
+- `masonry` (`tiles/walls.py`): `courses`, `min_length`/`max_length`, `quoin` (long/short corner stones), `jitter`, `tilt`, `cap_drop`; `core` and `face`, the half-depths of the mortar core and the stone faces (the default `face` of 0.47 stands proud of KayKit's 0.33, see [Wall face depth](#wall-face-depth)); `face_relief`.
 - `dressed` (`tiles/dressing.py`): densities per 4 units of wall for `patches`, `cap_moss`, `vines`, `roots`, `grass`, `ferns`, `slime`, `pools`, `pipes`, `chains`; `alcove` (`chance`, `contents` from `books`, `keys`, `skulls`, `shelves`, `candles`, `empty`, and overrides of the measured `ALCOVE` shape) on straight pieces, where `pipes` also run through both faces; `moss_tones`, `thickness`; `source` maps a piece to another KayKit wall. Alcoves follow KayKit's own alcove walls, measured on its 4-unit wall: about 2 wide, from just above the plinth to just under the cap with a flattened head, 0.4 deep, with 0.19-thick boards in KayKit's plank swatch 0.7 apart. Their contents are the KayKit decor prefabs (`prefabs/decor.py`), a few different things per shelf from hand-composed `LAYOUTS`, shrunk only where a shelf or the arch leaves too little room; KayKit's own accent bricks frame the arch and line its back. Placed decor keeps KayKit's authored topology (the open book, spellbook, mug and coin stack have open or shared edges), and validation allows exactly those. Alcoves and pipe bores are real openings cut into KayKit's face panel, lined in the wall's own hue a shade darker (`recess`, `recess_side`); fixtures are sized like KayKit's exaggerated props.
-- `cave` (`tiles/caves.py`): `rows` of `[height, boulder size]`, `post` half width and depth, `splits` per post face, `collar` height on pillars, `core`. Pieces are arms in `caves.PIECES`: open ends carry seam posts, arms meeting at the origin share a hub post.
+- `cave` (`tiles/caves.py`): `rows` of `[height, boulder size]`, `post` half width and depth, `splits` per post face, `collar` height on pillars, `core`; `face_relief`. Pieces are arms in `caves.PIECES`: open ends carry seam posts, arms meeting at the origin share a hub post.
 - `carpet` (`tiles/overlays.py`): `inset`, `band`, `stripe`, `motif`, fringe spacing.
 - `water` (`tiles/inlays.py`): `source` (the KayKit grate per piece), water `level` and `depth`. Tile edges must equal the source grate's.
 - `quay` (`tiles/pools.py`): `drop` (surface below the floor top), `depth` (bed below the surface), wall `thickness`. Pieces turn like rug pieces; edges are checked by role as rug edges are, walled ends against each other.

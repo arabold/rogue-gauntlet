@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import shutil
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -39,6 +40,12 @@ INSET = {"cave": .25}
 DERIVED = {"dressed", "water"}
 # Growth may rise above a wall's cap and stand slightly proud of its faces, never past its ends.
 GROWTH_ALLOWANCE = np.array([.15, .25, .15])
+# Where the game hangs wall decor (tapestries, shields, banners) on a straight wall: between the plinth and the cap,
+# away from the ends. Studio-built walls must present KayKit's face there (see `face_report`).
+FACE_BAND = {"wall": ((-1.9, 1.9), (.5, 3.2)), "wall_half": ((.1, 1.9), (.5, 3.2))}
+# How far a built face may stray from KayKit's before decor visibly floats or sinks into it.
+FACE_TOLERANCE = .02
+RECESS_TOLERANCE = .05
 PIECES = {"floor": list(floors.SIZES), "wall": list(dict.fromkeys([*walls.PIECES, *caves.PIECES])),
           "overlay": list(overlays.BORDERS), "inlay": list(inlays.SOURCES), "pool": list(overlays.BORDERS)}
 # Pieces each wall style can build; the rest of a kind's pieces are rejected at recipe load.
@@ -220,6 +227,9 @@ class Family:
         seams = seam_report(data, pieces)
         report["seams"] = seams
         errors.extend(seams["errors"])
+        face = face_report(data, pieces)
+        report["face"] = face
+        errors.extend(face["errors"])
         report["errors"] = errors
         save(self.staged / "validation.json", report)
         if errors:
@@ -432,6 +442,75 @@ def wall_seams(pieces):
             if mismatch > .004:
                 errors.append(f"{stem}: end at {'xyz'[axis]}={value:+} differs from the family seam ({mismatch:.1%})")
     return {"worst_mismatch": worst, "errors": errors}
+
+
+def face_depths(piece, xs, ys):
+    """The outermost surface depth on each face (+z, -z) at every (x, y) sample; NaN where nothing covers it."""
+    tri = piece.verts[piece.faces]
+    a, b, c = tri[:, 0], tri[:, 1], tri[:, 2]
+    e0, e1 = (b - a)[:, :2], (c - a)[:, :2]
+    d00, d01, d11 = (e0 * e0).sum(1), (e0 * e1).sum(1), (e1 * e1).sum(1)
+    det = d00 * d11 - d01 ** 2
+    # Faces seen edge-on from the front (ends, tops) never form the face itself.
+    keep = np.abs(det) > 1e-12
+    a, b, c, e0, e1, d00, d01, d11, det = (v[keep] for v in (a, b, c, e0, e1, d00, d01, d11, det))
+    points = np.array([(x, y) for y in ys for x in xs])
+    depths = np.full((len(points), 2), np.nan)
+    for i, point in enumerate(points):
+        e2 = point - a[:, :2]
+        d20, d21 = (e2 * e0).sum(1), (e2 * e1).sum(1)
+        v = (d11 * d20 - d01 * d21) / det
+        w = (d00 * d21 - d01 * d20) / det
+        u = 1 - v - w
+        hit = (u >= -1e-9) & (v >= -1e-9) & (w >= -1e-9)
+        if hit.any():
+            z = u[hit] * a[hit, 2] + v[hit] * b[hit, 2] + w[hit] * c[hit, 2]
+            depths[i] = z.max(), -z.min()
+    return depths
+
+
+def band_depths(piece, kind, step=.1):
+    (x0, x1), (y0, y1) = FACE_BAND[kind]
+    return face_depths(piece, np.arange(x0, x1 + 1e-9, step), np.arange(y0, y1 + 1e-9, step))
+
+
+@lru_cache(maxsize=None)
+def kaykit_face():
+    """(mounting face, panel) depths of KayKit's straight wall: its accent bricks stand out to where the game hangs
+    decor (`Prop.WallInset`, 0.17 inside the 0.5 trim); its panel lies behind them."""
+    depths = band_depths(kaykit.load("wall")[0], "wall")
+    return float(np.nanmax(depths)), float(np.nanmedian(depths))
+
+
+def face_report(data, pieces):
+    """Studio-built walls carry the game's wall decor, so they must present KayKit's face where it hangs.
+
+    Nothing may stand proud of KayKit's mounting face (decor would sink into it or vanish), and the face may not sit
+    far behind KayKit's panel (decor would float). Dressed walls keep KayKit's own wall, whose dressing has its own
+    allowance. A recipe exceeds the face only on purpose, with `design.face_relief` in units; its game wall style must
+    then keep wall decor off it.
+    """
+    if data["kind"] != "wall" or data["style"] in DERIVED:
+        return {"errors": []}
+    face, panel = kaykit_face()
+    relief = float(data.get("design", {}).get("face_relief", 0.0))
+    errors, worst = [], {}
+    for stem, (piece, built) in pieces.items():
+        if piece not in FACE_BAND:
+            continue
+        depths = band_depths(built, piece)
+        for side, column in (("front", depths[:, 0]), ("back", depths[:, 1])):
+            covered = column[np.isfinite(column)]
+            if covered.size == 0:
+                errors.append(f"{stem}: no {side} face where wall decor hangs")
+                continue
+            outer, typical = float(covered.max()), float(np.median(covered))
+            worst[f"{stem}:{side}"] = [round(typical, 3), round(outer, 3)]
+            if outer > face + FACE_TOLERANCE + relief:
+                errors.append(f"{stem}: {side} face reaches {outer:.2f} where wall decor hangs; KayKit's stops at {face:.2f}")
+            if typical < panel - RECESS_TOLERANCE - relief:
+                errors.append(f"{stem}: {side} face sits at {typical:.2f}, behind KayKit's panel at {panel:.2f}")
+    return {"kaykit_face": round(face, 3), "kaykit_panel": round(panel, 3), "faces": worst, "errors": errors}
 
 
 def overlay_seams(pieces, ys=None, walled=False):

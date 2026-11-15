@@ -92,6 +92,19 @@ class TileGeometryTest(unittest.TestCase):
         pieces["wall"] = ("wall", type(wall)(skewed, wall.faces, wall.slots))
         self.assertTrue(workflow.wall_seams(pieces)["errors"], "A one-sided end must fail the mirrored-end check")
 
+    def test_built_walls_hang_decor_on_kaykits_face_unless_a_recipe_allows_relief(self):
+        face, panel = workflow.kaykit_face()
+        self.assertAlmostEqual(face, .33, delta=.01, msg="The game hangs wall decor 0.17 inside KayKit's 0.5 trim")
+        masonry = {"kind": "wall", "style": "masonry"}
+        self.assertEqual(workflow.face_report(masonry, {"wall": ("wall", kaykit.load("wall")[0])})["errors"], [])
+        # Masonry stones standing out to the trim would swallow a tapestry.
+        stones = {"wall": ("wall", walls.masonry({"courses": 7}, "wall", "A", "test/wall"))}
+        self.assertTrue(workflow.face_report(masonry, stones)["errors"])
+        self.assertEqual(workflow.face_report({**masonry, "design": {"face_relief": .2}}, stones)["errors"], [],
+                         "An explicit relief lets a family leave KayKit's face on purpose")
+        dressed = {"wall": ("wall", dressing.dressed({"vines": 2}, "wall", "A", "test/moss"))}
+        self.assertEqual(workflow.face_report({"kind": "wall", "style": "dressed"}, dressed)["errors"], [])
+
     def test_dressing_keeps_the_kaykit_wall_and_its_ends_untouched(self):
         design = {"patches": 2, "grass": 3, "vines": 2, "cap_moss": 2, "slime": 2, "pools": 2}
         pieces = {p: (p, dressing.dressed(design, p, "A", "test/moss")) for p in walls.PIECES}
