@@ -5,7 +5,6 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 | Harness | Entry point | Purpose |
 | --- | --- | --- |
 | Room generation | [rooms/room_generation_harness.tscn](rooms/room_generation_harness.tscn) | Inspect each realm's room types alone or in a production floor |
-| Ambient motion | [atmosphere/ambient_motion_workbench.tscn](atmosphere/ambient_motion_workbench.tscn) | Inspect banner/foliage motion and matching shadows using the production components; [guide](../../docs/ambient-motion.md) |
 | Combat | [combat/combat_harness.tscn](combat/combat_harness.tscn) | Interactive combat with the game's debug menu, monster tactics and scripted traces; [guide](../../docs/combat-harness.md) |
 | World effects | [effects/world_effect_harness.tscn](effects/world_effect_harness.tscn) | Replay and tune production trap/secret discovery, loot glow, blood hit and prop x-rays |
 | Actor/item effects | [effects/actor_item_effect_preview.tscn](effects/actor_item_effect_preview.tscn) | Inspect one effect/subject, skin finishes, teleport fades and fitted curse wisps; [guide](../../docs/world-effects.md) |

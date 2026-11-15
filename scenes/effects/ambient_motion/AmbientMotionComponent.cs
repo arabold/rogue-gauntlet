@@ -94,11 +94,7 @@ public partial class AmbientMotionComponent : Node
 		SetProcess(false);
 		Restore();
 		_response = _velocity = Vector2.Zero;
-		if (!Enabled || Target == null || Profile == null || Material?.Shader == null || !IsInstanceValid(Airflow))
-		{
-			SetProcess(false);
-			return;
-		}
+		if (!Enabled || Target == null || Profile == null || Material?.Shader == null || !IsInstanceValid(Airflow)) return;
 		if (!SurfaceMaterialFactory.CanCapture(Target)) return;
 		Capture(Target);
 		ApplyProfile();
@@ -113,6 +109,9 @@ public partial class AmbientMotionComponent : Node
 			var snapshot = new MeshMaterialSnapshot(mesh);
 			var materials = new ShaderMaterial[snapshot.SurfaceCount];
 			Transform3D toTarget = Target.GlobalTransform.AffineInverse() * mesh.GlobalTransform;
+			Transform3D toMesh = toTarget.AffineInverse();
+			Vector3 position = Target.GlobalPosition;
+			float phase = Mathf.PosMod(position.X * .73f + position.Z * .37f, Mathf.Tau);
 			Aabb bounds = toTarget * mesh.GetAabb();
 			_bounds = _surfaces.Count == 0 ? bounds : _bounds.Merge(bounds);
 			for (int i = 0; i < materials.Length; i++)
@@ -124,8 +123,8 @@ public partial class AmbientMotionComponent : Node
 					material.SetShaderParameter(VertexColor, source.VertexColorUseAsAlbedo);
 				}
 				material.SetShaderParameter(MeshToTarget, toTarget);
-				material.SetShaderParameter(TargetToMesh, toTarget.AffineInverse());
-				material.SetShaderParameter(Phase, Mathf.PosMod(Target.GlobalPosition.X * .73f + Target.GlobalPosition.Z * .37f, Mathf.Tau));
+				material.SetShaderParameter(TargetToMesh, toMesh);
+				material.SetShaderParameter(Phase, phase);
 			}
 			_surfaces.Add(new(snapshot, materials, mesh.ExtraCullMargin));
 			snapshot.ApplySurfaces(materials);

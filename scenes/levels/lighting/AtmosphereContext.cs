@@ -49,12 +49,14 @@ public sealed class AtmosphereContext : IDisposable
 		using var random = GenerationRandom.Create(Seed, GenerationRandom.Cosmetic, "atmosphere");
 		random.State = _emissionState;
 		using var points = Image.CreateEmpty(TileCount * samplesPerTile, 1, false, Image.Format.Rgbf);
-		for (int i = 0; i < points.GetWidth(); i++)
+		float inset = Room.TileSize * tileInset;
+		int i = 0;
+		foreach (var tile in _tiles)
 		{
-			Vector3 center = _map.TileToWorld(_tiles[i / samplesPerTile]);
-			float inset = Room.TileSize * tileInset;
-			points.SetPixel(i, 0, new Color(center.X + random.RandfRange(-inset, inset),
-				random.RandfRange(minHeight, maxHeight), center.Z + random.RandfRange(-inset, inset)));
+			Vector3 center = _map.TileToWorld(tile);
+			for (int sample = 0; sample < samplesPerTile; sample++)
+				points.SetPixel(i++, 0, new Color(center.X + random.RandfRange(-inset, inset),
+					random.RandfRange(minHeight, maxHeight), center.Z + random.RandfRange(-inset, inset)));
 		}
 		emission = new(ImageTexture.CreateFromImage(points), points.GetWidth(), (uint)random.Randi());
 		_emissions.Add(key, emission);

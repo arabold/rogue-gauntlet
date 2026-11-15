@@ -34,4 +34,4 @@ The banner and foliage presets share an implementation and differ only in export
 
 Assign a compatible response scene to a prop's `Motion` property to opt it in. The placement factory supplies the target; a playing world's explicitly assigned airflow supplies the force. The source asset needs no wrapper or material edits, and scene-based and mesh-library props use the same capability path. Profile edits update the response and conservative render bounds while playing.
 
-Run `res://scenes/debug/atmosphere/ambient_motion_workbench.tscn` for a close view of banners, ferns and their shadows using the game camera, lighting and sample floor. The generated game and room-generation harness show the actual placed props. The floor atmosphere's fog and dust retain their independently authored motion.
+Inspect placed props and their shadows in the generated game or the [room-generation harness](../scenes/debug/rooms/room_generation_harness.tscn). The floor atmosphere's fog and dust retain their independently authored motion.
