@@ -12,10 +12,6 @@
 			"look": "Clean vector/flat UI and input-prompt iconography.",
 			"notes": "2D UI helper art; no 3D-style constraints."
 		},
-		"game-icons-net": {
-			"look": "Monochrome single-path silhouette icons, recolored at runtime via modulate.",
-			"notes": "Inventory/ability iconography. Mixed individual authors under one CC BY license."
-		},
 		"quaternius": {
 			"look": "Flat-shaded low-poly, cleaner/cartoonier than KayKit, single Atlas texture per model, slightly chunkier proportions.",
 			"scale": "Y-up, ~1 Godot unit = 1m, rigged humanoid armature (EnemyArmature/CharacterArmature) with its own animation set (Idle/Walk/Run/Attack/Death/HitReact).",
@@ -24,6 +20,10 @@
 		"unsorted": {
 			"look": "Not yet classified.",
 			"notes": "Triage required \u2014 assign a real group or document why it stands alone."
+		},
+		"game-ui": {
+			"look": "The game's own interface kit: hand-carved warm-brown wood with chipped, wandering edges, oversized gold curls that differ per corner, recessed translucent slots that glow ochre when filled and white when selected, a tone-on-tone scroll-relief backdrop, cream serif titles over curl-ended dividers. Storybook fantasy in the manner of recent Zelda remakes, kept muted: in-game UI is translucent shades and thin carved outlines, with heavy frames only on menus.",
+			"notes": "Rendered by asset-studio/ui/ui_kit.py and applied through scenes/ui/theme.tres. Fonts: Alegreya (display) and Alegreya Sans (body). New interface art extends the generator rather than mixing in third-party UI kits."
 		}
 	},
 	"packs": [
@@ -142,38 +142,6 @@
 			"notes": "Keyboard + Xbox controller button prompt SVGs for UI hints. Directory name keeps the original 'kenny' spelling."
 		},
 		{
-			"id": "game-icons",
-			"name": "game-icons.net icon set",
-			"dir": "assets/game-icons",
-			"author": "Various authors via game-icons.net (per-icon attribution required)",
-			"source": "https://game-icons.net/",
-			"license": "CC-BY-3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"attribution_required": true,
-			"types": [
-				"2d"
-			],
-			"compatibility_group": "game-icons-net",
-			"acquired": "unknown (predates manifest)",
-			"notes": "ATTRIBUTION REQUIRED. Item/equipment SVG icons. Each icon has an individual author that must be credited in shipped builds. Per-icon authorship is not yet recorded here \u2014 needs backfill (see AGENTS.md)."
-		},
-		{
-			"id": "ui",
-			"name": "UI background art (unverified)",
-			"dir": "assets/ui",
-			"author": "UNKNOWN \u2014 needs triage",
-			"source": "UNKNOWN",
-			"license": "UNKNOWN",
-			"license_url": "",
-			"attribution_required": null,
-			"types": [
-				"2d"
-			],
-			"compatibility_group": "unsorted",
-			"acquired": "unknown (predates manifest)",
-			"notes": "main_menu_background.png has no recorded source or license. MUST be triaged before shipping: confirm origin/terms, or replace with an asset of known provenance."
-		},
-		{
 			"id": "custom-items",
 			"name": "Rogue Gauntlet - Custom Generated 3D Items",
 			"dir": "assets/custom-items",
@@ -252,6 +220,38 @@
 			"compatibility_group": "kaykit",
 			"acquired": "2026-10-16",
 			"notes": "Hero models built from the scripted character kit (head, body, outfit pieces). Each GLB is a drop-in for the KayKit adventurer it names as template (kaykit-adventurers/<Class>.glb): that model's Rig, 41 joints, baked clips and prop nodes (1H_Axe, <Class>_Hat, ...) are copied unchanged and only the meshes are ours, so size, orientation, clip names and attachment names match. Concept drawings: Google gemini-3-pro-image over KayKit's CC0 mannequin."
+		},
+		{
+			"id": "fonts",
+			"name": "UI fonts: Alegreya and Alegreya Sans",
+			"dir": "assets/fonts",
+			"author": "The Alegreya Project Authors and The Alegreya Sans Project Authors / Huerta Tipografica",
+			"source": "https://github.com/google/fonts/tree/main/ofl/alegreya ; https://github.com/google/fonts/tree/main/ofl/alegreyasans",
+			"license": "OFL-1.1",
+			"license_url": "https://openfontlicense.org/open-font-license-official-text/",
+			"attribution_required": true,
+			"types": [
+				"font"
+			],
+			"compatibility_group": "game-ui",
+			"acquired": "2026-11-15",
+			"notes": "SIL Open Font License: free to bundle in commercial games; each font's OFL.txt must ship with the credits. Alegreya is the variable-weight serif (the theme picks weights with FontVariation); Alegreya Sans ships its Bold and ExtraBold static files."
+		},
+		{
+			"id": "ui-kit",
+			"name": "Rogue Gauntlet UI kit",
+			"dir": "assets/ui-kit",
+			"author": "Rogue Gauntlet project (procedural, asset-studio/ui/)",
+			"source": "asset-studio/ui/",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"2d"
+			],
+			"compatibility_group": "game-ui",
+			"acquired": "2026-11-15",
+			"notes": "Carved frames, plaques, slots, glow, card, divider, ribbon, header band, backdrop, feathered shade, thin outline frame, carousel arrows, gear-slot icons, touch action icons and the coin, all drawn from distance fields; regenerate with ./.venv/bin/python asset-studio/ui/ui_kit.py rather than editing the PNGs. Rendered at 1x for 1080p. title_logo.png is the title screen's logo, drawn by asset-studio/ui/title_logo.py from the glyphs of the project's Alegreya display font (OFL, see the fonts pack) at 2x."
 		}
 	]
 }

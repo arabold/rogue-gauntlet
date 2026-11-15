@@ -16,7 +16,7 @@ public partial class MessageSystemIntegrationTest
 	public void AGameplayEventReachesTheHudFeed()
 	{
 		var hud = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/ui/hud.tscn").Instantiate<Hud>());
-		var feed = hud.GetNode<HudMessageFeed>("BottomArea/HudMessageFeed");
+		var feed = hud.GetNode<HudMessageFeed>("HudMessageFeed");
 		int before = feed.ActiveMessageCount;
 
 		SignalBus.EmitItemEquipped(null, new TestFactories.TestEquipableItem("Steel Longsword", ValidSlots.WeaponHand));

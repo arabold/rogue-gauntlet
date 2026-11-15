@@ -35,7 +35,7 @@ public partial class CharacterCatalogTest
 		{
 			AssertString(characterClass.Id).IsNotEmpty();
 			AssertString(characterClass.DisplayName).IsNotEmpty();
-			AssertString(characterClass.Description).IsNotEmpty();
+			AssertString(characterClass.Tagline).IsNotEmpty();
 			AssertObject(characterClass.CharacterScene).IsNotNull();
 			AssertObject(characterClass.StatProfile).IsNotNull();
 			AssertInt(characterClass.StartingItems.Count).IsGreater(0);

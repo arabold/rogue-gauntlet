@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/ItemIcon.cs" id="1_icon"]
+[ext_resource type="PackedScene" uid="uid://cmguxod8mb5o6" path="res://scenes/ui/preview.tscn" id="2_preview"]
+[ext_resource type="Material" path="res://scenes/ui/item_icon.tres" id="3_halo"]
+
+[node name="ItemIcon" type="Control" node_paths=PackedStringArray("View", "Preview")]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("1_icon")
+View = NodePath("View")
+Preview = NodePath("View/Preview")
+Halo = ExtResource("3_halo")
+
+[node name="View" type="SubViewportContainer" parent="."]
+material = ExtResource("3_halo")
+layout_mode = 0
+scale = Vector2(0.5, 0.5)
+mouse_filter = 2
+stretch = true
+
+[node name="Preview" parent="View" instance=ExtResource("2_preview")]

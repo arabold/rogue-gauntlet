@@ -69,19 +69,12 @@ public partial class GameSession : Node
 	public LevelTravelDirection? PendingTravelDirection { get; private set; }
 	private double _stairArrivalTicks;
 	private const double StairArrivalLockSeconds = 1.0;
-	private const double LevelFadeOutSeconds = 0.25;
-	private const double LevelFadeInSeconds = 0.45;
-	private const int LevelFadeLayer = 128;
-	private static readonly Color TransparentBlack = new(0f, 0f, 0f, 0f);
 
 	private SaveGame _activeSave;
 	private SaveGame _pendingLoadedSave;
 	private double _sessionStartedAtMsec;
 	private bool _isSceneTransitioning;
 	private bool _saveAfterNextSpawn;
-	private CanvasLayer _levelFadeLayer;
-	private ColorRect _levelFadeRect;
-	private Tween _levelFadeTween;
 
 	/// <summary>Autoloads are built before the engine loads the startup scene, which no load boundary precedes.</summary>
 	public GameSession() => ResourceCacheGuard.BeginStartup();
@@ -179,12 +172,14 @@ public partial class GameSession : Node
 		};
 	}
 
-	/// <summary>Opens the gameplay scene behind a black screen; the first floor's arrival fades it in.</summary>
-	private void EnterGameplay()
+	/// <summary>Opens the gameplay scene behind the loading screen; the first floor's arrival reveals it.</summary>
+	private async void EnterGameplay()
 	{
 		GetTree().Paused = false;
 		_isSceneTransitioning = true;
-		ShowBlackScreen();
+		// The menu stays up under the card until the scene changes; nothing on it may act meanwhile.
+		GetViewport().GuiReleaseFocus();
+		await CoverScreen();
 		GetTree().ChangeSceneToFile(GameplayScenePath);
 	}
 
@@ -347,7 +342,7 @@ public partial class GameSession : Node
 		GD.Print($"Transitioning {direction} to depth {ActiveDungeonDepth}...");
 
 		_isSceneTransitioning = true;
-		FadeOutAndReloadLevel();
+		CoverAndReloadLevel();
 
 		return true;
 	}
@@ -546,6 +541,8 @@ public partial class GameSession : Node
 	{
 		GetTree().Paused = false;
 		SignalBus.EmitGamePaused(false);
+		// A floor that failed to generate returns here while the loading screen still covers it.
+		LoadingScreen.Instance?.Dismiss();
 		// The menu should not keep a run active just because this autoload survives
 		// scene changes. Clearing here releases save data and prevents stale state reuse.
 		ClearSession();
@@ -641,24 +638,24 @@ public partial class GameSession : Node
 			_pendingLoadedSave = null;
 		}
 
-		// A new run and every floor it travels to save as the hero arrives, still behind the black screen.
+		// A new run and every floor it travels to save as the hero arrives, still behind the loading screen.
 		if (_saveAfterNextSpawn)
 		{
 			_saveAfterNextSpawn = false;
 			SaveRun();
 		}
 
-		CallDeferred(MethodName.FadeInAfterLevelSettled);
+		CallDeferred(MethodName.RevealAfterLevelSettled);
 	}
 
-	private async void FadeOutAndReloadLevel()
+	private async void CoverAndReloadLevel()
 	{
 		GetTree().Paused = false;
-		await FadeToBlack();
+		await CoverScreen();
 		if (IsRunOver)
 		{
 			// The hero died on the way out: stay on this floor so the death screen can report it.
-			await FadeFromBlack();
+			await RevealScreen();
 			_isSceneTransitioning = false;
 			return;
 		}
@@ -669,83 +666,18 @@ public partial class GameSession : Node
 		GetTree().CallDeferred(SceneTree.MethodName.ReloadCurrentScene);
 	}
 
-	private async void FadeInAfterLevelSettled()
+	private async void RevealAfterLevelSettled()
 	{
 		// Player spawning can happen while Main is still wiring the camera. Let the
 		// scene finish _Ready and process a frame before revealing the level.
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-		await FadeFromBlack();
+		await RevealScreen();
 		_isSceneTransitioning = false;
 	}
 
-	private async Task FadeToBlack()
-	{
-		EnsureLevelFadeOverlay();
-		if (!_levelFadeLayer.Visible)
-		{
-			_levelFadeRect.Color = TransparentBlack;
-		}
+	/// <summary>Shows the depth card for the floor the run is headed to; complete once it covers the screen.</summary>
+	private Task CoverScreen() => LoadingScreen.Instance?.Cover(ActiveDungeonDepth) ?? Task.CompletedTask;
 
-		_levelFadeLayer.Visible = true;
-		await TweenFadeAlpha(1f, LevelFadeOutSeconds);
-	}
-
-	private void ShowBlackScreen()
-	{
-		EnsureLevelFadeOverlay();
-		_levelFadeTween?.Kill();
-		_levelFadeRect.Color = Colors.Black;
-		_levelFadeLayer.Visible = true;
-	}
-
-	private async Task FadeFromBlack()
-	{
-		EnsureLevelFadeOverlay();
-		if (!_levelFadeLayer.Visible && _levelFadeRect.Color.A <= 0f)
-		{
-			return;
-		}
-
-		_levelFadeLayer.Visible = true;
-		await TweenFadeAlpha(0f, LevelFadeInSeconds);
-		_levelFadeLayer.Visible = false;
-	}
-
-	private async Task TweenFadeAlpha(float targetAlpha, double seconds)
-	{
-		_levelFadeTween?.Kill();
-		_levelFadeTween = CreateTween();
-		_levelFadeTween.TweenProperty(_levelFadeRect, "color:a", targetAlpha, seconds)
-			.SetTrans(Tween.TransitionType.Sine)
-			.SetEase(Tween.EaseType.InOut);
-		await ToSignal(_levelFadeTween, Tween.SignalName.Finished);
-	}
-
-	private void EnsureLevelFadeOverlay()
-	{
-		if (GodotObject.IsInstanceValid(_levelFadeLayer) && GodotObject.IsInstanceValid(_levelFadeRect))
-		{
-			return;
-		}
-
-		_levelFadeLayer = new CanvasLayer
-		{
-			Name = "LevelTransitionFade",
-			Layer = LevelFadeLayer,
-			ProcessMode = ProcessModeEnum.Always,
-			Visible = false,
-		};
-
-		_levelFadeRect = new ColorRect
-		{
-			Name = "FadeRect",
-			Color = TransparentBlack,
-			MouseFilter = Control.MouseFilterEnum.Stop,
-		};
-		_levelFadeRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-
-		AddChild(_levelFadeLayer);
-		_levelFadeLayer.AddChild(_levelFadeRect);
-	}
+	private static Task RevealScreen() => LoadingScreen.Instance?.Reveal() ?? Task.CompletedTask;
 }

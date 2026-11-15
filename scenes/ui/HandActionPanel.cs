@@ -18,8 +18,8 @@ public partial class HandActionPanel : PanelContainer
 			Refresh();
 		}
 	}
-	[Export] public Preview Preview { get; set; }
-	[Export] public SubViewportContainer ViewportContainer { get; set; }
+	/// <summary>The held item's icon; dimmed while the hand has nothing it can do.</summary>
+	[Export] public ItemIcon Icon { get; set; }
 	[Export] public KeyBinding FirstActionKey { get; set; }
 	[Export] public KeyBinding SecondActionKey { get; set; }
 	[Export] public ProgressBar FirstActionCooldownBar { get; set; }
@@ -177,10 +177,11 @@ public partial class HandActionPanel : PanelContainer
 			}
 		}
 
-		if (Preview != null)
+		if (Icon != null)
 		{
-			Preview.Scene = displayedItem != null ? ItemIdentity.ResolveScene(displayedItem) : null;
-			Preview.Diagonal = displayedItem is Weapon or Armor;
+			Icon.Preview.Scene = displayedItem != null ? ItemIdentity.ResolveScene(displayedItem) : null;
+			Icon.Preview.Diagonal = displayedItem is Weapon or Armor;
+			Icon.Filled = displayedItem != null;
 		}
 
 		if (Hand == EquipmentSlot.WeaponHand)
@@ -195,9 +196,9 @@ public partial class HandActionPanel : PanelContainer
 
 	private void RefreshMainHand()
 	{
-		if (ViewportContainer != null)
+		if (Icon != null)
 		{
-			ViewportContainer.Modulate = (_player != null && _player.IsDead) ? DimmedColor : Colors.White;
+			Icon.Modulate = (_player != null && _player.IsDead) ? DimmedColor : Colors.White;
 		}
 
 		if (FirstActionKey != null)
@@ -248,9 +249,9 @@ public partial class HandActionPanel : PanelContainer
 			panelDimmed = displayedItem != null;
 		}
 
-		if (ViewportContainer != null)
+		if (Icon != null)
 		{
-			ViewportContainer.Modulate = panelDimmed ? DimmedColor : Colors.White;
+			Icon.Modulate = panelDimmed ? DimmedColor : Colors.White;
 		}
 
 		if (FirstActionKey != null)

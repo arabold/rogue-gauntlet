@@ -3,8 +3,7 @@
 [ext_resource type="Script" uid="uid://cdal8n3nlw3ng" path="res://scenes/main/Main.cs" id="1_dl2xl"]
 [ext_resource type="PackedScene" uid="uid://beddkxj3k6x7i" path="res://scenes/ui/hud.tscn" id="3_stuk7"]
 [ext_resource type="PackedScene" uid="uid://b1b1kyg5ak1kw" path="res://scenes/levels/level.tscn" id="5_nxjfc"]
-[ext_resource type="PackedScene" uid="uid://bgq1h0jm4ybvw" path="res://scenes/ui/character_dialog.tscn" id="7_hujxm"]
-[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="9_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/run_menu.tscn" id="7_menu"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="10_effects"]
 [ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="11_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="12_death"]
@@ -29,13 +28,7 @@ Seed = 30
 
 [node name="GameCamera" parent="." instance=ExtResource("11_camera")]
 
-[node name="CharacterDialog" parent="." unique_id=237802221 instance=ExtResource("7_hujxm")]
-unique_name_in_owner = true
-visible = false
-
-[node name="PauseMenu" parent="." instance=ExtResource("9_pause")]
-unique_name_in_owner = true
-visible = false
+[node name="RunMenu" parent="." instance=ExtResource("7_menu")]
 
 [node name="DeathScreen" parent="." instance=ExtResource("12_death")]
 visible = false

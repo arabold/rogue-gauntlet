@@ -141,6 +141,35 @@ public partial class PlayerQuickItemController : Node
 		return _bindings[slotIndex].IsAssigned && GetSlotCount(slotIndex) == 0;
 	}
 
+	/// <summary>
+	/// Gives the slot the item, as the player asks from the pack. An item sits in one quick slot at a time, so it leaves
+	/// any other, and asking for the slot it already has takes it out.
+	/// </summary>
+	public void ToggleAssignment(int slotIndex, ConsumableItem item)
+	{
+		if (slotIndex < 0 || slotIndex >= SlotCount || item is not { AllowQuickUse: true }) return;
+
+		bool wasHere = Holds(slotIndex, item);
+		for (int i = 0; i < SlotCount; i++)
+		{
+			if (Holds(i, item)) ClearSlot(i);
+		}
+		if (!wasHere)
+		{
+			_bindings[slotIndex] = BindingFor(item);
+			RefreshSlot(slotIndex);
+		}
+	}
+
+	/// <summary>Whether the slot is bound to the item: a stack by its kind, a single thing by itself.</summary>
+	private bool Holds(int slotIndex, ConsumableItem item) => item.CanStack
+		? _bindings[slotIndex].Kind == QuickItemBindingKind.Variety && _bindings[slotIndex].DefinitionPath == item.DefinitionPath
+		: _bindings[slotIndex].Kind == QuickItemBindingKind.Instance && _bindings[slotIndex].InstanceId == item.InstanceId;
+
+	private static QuickItemBinding BindingFor(ConsumableItem item) => item.CanStack
+		? QuickItemBinding.ForVariety(item.DefinitionPath)
+		: QuickItemBinding.ForInstance(item.InstanceId, item.DefinitionPath);
+
 	public void OnItemAcquired(Item item, int quantity)
 	{
 		if (IsRestoringSave) return;
@@ -149,10 +178,7 @@ public partial class PlayerQuickItemController : Node
 		// Check if variety or instance is already represented
 		for (int i = 0; i < SlotCount; i++)
 		{
-			bool matches = consumable.CanStack
-				? (_bindings[i].Kind == QuickItemBindingKind.Variety && _bindings[i].DefinitionPath == consumable.DefinitionPath)
-				: (_bindings[i].Kind == QuickItemBindingKind.Instance && _bindings[i].InstanceId == consumable.InstanceId);
-			if (matches)
+			if (Holds(i, consumable))
 			{
 				RefreshSlot(i);
 				return;
@@ -164,9 +190,7 @@ public partial class PlayerQuickItemController : Node
 		{
 			if (_bindings[i].Kind == QuickItemBindingKind.Unassigned)
 			{
-				_bindings[i] = consumable.CanStack
-					? QuickItemBinding.ForVariety(consumable.DefinitionPath)
-					: QuickItemBinding.ForInstance(consumable.InstanceId, consumable.DefinitionPath);
+				_bindings[i] = BindingFor(consumable);
 				RefreshSlot(i);
 				return;
 			}

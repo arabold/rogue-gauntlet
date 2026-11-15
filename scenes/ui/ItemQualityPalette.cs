@@ -1,7 +1,7 @@
 using Godot;
 
 /// <summary>
-/// One color per <see cref="ItemQuality"/>, shared by loot beams, slot tints, names and tooltips. The quality is
+/// One color per <see cref="ItemQuality"/>, shared by loot beams, slot tints, names and item lines. The quality is
 /// never secret, so unidentified items show their color too. Orange is reserved for future Unique items.
 /// </summary>
 public static class ItemQualityPalette

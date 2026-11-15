@@ -1,0 +1,294 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/menu/GearTab.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="2_slot"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/attribute_readout.tscn" id="3_attribute"]
+[ext_resource type="PackedScene" path="res://scenes/player/showcase/hero_showcase.tscn" id="4_hero"]
+[ext_resource type="Resource" uid="uid://cclassbarb00001" path="res://scenes/player/classes/class_barbarian.tres" id="5_class"]
+[ext_resource type="Script" path="res://scenes/ui/ItemDetailsView.cs" id="6_details"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/icon_helmet.png" id="10_helmet"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/icon_armor.png" id="11_armor"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/icon_weapon.png" id="12_weapon"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/icon_shield.png" id="13_shield"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/icon_ring.png" id="14_ring"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/icon_amulet.png" id="15_amulet"]
+[ext_resource type="Texture2D" path="res://scenes/ui/menu/oval_shade.tres" id="20_oval"]
+
+[node name="Gear" type="Control" node_paths=PackedStringArray("HelmetSlot", "MainHandSlot", "ArmorSlot", "OffHandSlot", "LeftRingSlot", "AmuletSlot", "RightRingSlot", "Hero", "NameLabel", "Details", "Strength", "Dexterity", "Vitality", "Intelligence", "DamageLabel", "ArmorLabel", "CritLabel", "GearHeading", "GearGrid", "EmptyHint")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+HelmetSlot = NodePath("Columns/Worn/Slots/HelmetSlot")
+MainHandSlot = NodePath("Columns/Worn/Slots/MainHandSlot")
+ArmorSlot = NodePath("Columns/Worn/Slots/ArmorSlot")
+OffHandSlot = NodePath("Columns/Worn/Slots/OffHandSlot")
+LeftRingSlot = NodePath("Columns/Worn/Slots/LeftRingSlot")
+AmuletSlot = NodePath("Columns/Worn/Slots/AmuletSlot")
+RightRingSlot = NodePath("Columns/Worn/Slots/RightRingSlot")
+Hero = NodePath("Columns/Center/HeroView/Viewport/SubViewport/Hero")
+FallbackClass = ExtResource("5_class")
+NameLabel = NodePath("Columns/Center/Info/NameLabel")
+Details = NodePath("Columns/Center/Info/Details")
+Strength = NodePath("Columns/Worn/Attributes/Strength")
+Dexterity = NodePath("Columns/Worn/Attributes/Dexterity")
+Vitality = NodePath("Columns/Worn/Attributes/Vitality")
+Intelligence = NodePath("Columns/Worn/Attributes/Intelligence")
+DamageLabel = NodePath("Columns/Worn/Stats/DamageLabel")
+ArmorLabel = NodePath("Columns/Worn/Stats/ArmorLabel")
+CritLabel = NodePath("Columns/Worn/Stats/CritLabel")
+GearHeading = NodePath("Columns/Pack/GearHeading")
+GearGrid = NodePath("Columns/Pack/GearGrid")
+SlotScene = ExtResource("2_slot")
+EmptyHint = NodePath("Columns/Pack/EmptyHint")
+
+[node name="Columns" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 144.0
+offset_top = 176.0
+offset_right = -144.0
+offset_bottom = -136.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 48
+
+[node name="Worn" type="VBoxContainer" parent="Columns"]
+custom_minimum_size = Vector2(336, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Heading" type="Label" parent="Columns/Worn"]
+layout_mode = 2
+theme_type_variation = &"SmallCapsLabel"
+text = "Worn"
+uppercase = true
+
+[node name="Slots" type="GridContainer" parent="Columns/Worn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="TopLeft" type="Control" parent="Columns/Worn/Slots"]
+custom_minimum_size = Vector2(104, 104)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="HelmetSlot" parent="Columns/Worn/Slots" instance=ExtResource("2_slot")]
+layout_mode = 2
+EmptyIcon = ExtResource("10_helmet")
+
+[node name="TopRight" type="Control" parent="Columns/Worn/Slots"]
+custom_minimum_size = Vector2(104, 104)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MainHandSlot" parent="Columns/Worn/Slots" instance=ExtResource("2_slot")]
+layout_mode = 2
+EmptyIcon = ExtResource("12_weapon")
+
+[node name="ArmorSlot" parent="Columns/Worn/Slots" instance=ExtResource("2_slot")]
+layout_mode = 2
+EmptyIcon = ExtResource("11_armor")
+
+[node name="OffHandSlot" parent="Columns/Worn/Slots" instance=ExtResource("2_slot")]
+layout_mode = 2
+EmptyIcon = ExtResource("13_shield")
+
+[node name="LeftRingSlot" parent="Columns/Worn/Slots" instance=ExtResource("2_slot")]
+layout_mode = 2
+EmptyIcon = ExtResource("14_ring")
+
+[node name="AmuletSlot" parent="Columns/Worn/Slots" instance=ExtResource("2_slot")]
+layout_mode = 2
+EmptyIcon = ExtResource("15_amulet")
+
+[node name="RightRingSlot" parent="Columns/Worn/Slots" instance=ExtResource("2_slot")]
+layout_mode = 2
+EmptyIcon = ExtResource("14_ring")
+
+[node name="AttributeGap" type="Control" parent="Columns/Worn"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Attributes" type="HBoxContainer" parent="Columns/Worn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Strength" parent="Columns/Worn/Attributes" instance=ExtResource("3_attribute")]
+layout_mode = 2
+Caption = "Str"
+
+[node name="Dexterity" parent="Columns/Worn/Attributes" instance=ExtResource("3_attribute")]
+layout_mode = 2
+Caption = "Dex"
+
+[node name="Vitality" parent="Columns/Worn/Attributes" instance=ExtResource("3_attribute")]
+layout_mode = 2
+Caption = "Vit"
+
+[node name="Intelligence" parent="Columns/Worn/Attributes" instance=ExtResource("3_attribute")]
+layout_mode = 2
+Caption = "Int"
+
+[node name="StatGap" type="Control" parent="Columns/Worn"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Stats" type="GridContainer" parent="Columns/Worn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="DamageCaption" type="Label" parent="Columns/Worn/Stats"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CaptionLabel"
+text = "Damage"
+
+[node name="DamageLabel" type="Label" parent="Columns/Worn/Stats"]
+layout_mode = 2
+theme_type_variation = &"ValueLabel"
+text = "0"
+horizontal_alignment = 2
+
+[node name="ArmorCaption" type="Label" parent="Columns/Worn/Stats"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CaptionLabel"
+text = "Armor"
+
+[node name="ArmorLabel" type="Label" parent="Columns/Worn/Stats"]
+layout_mode = 2
+theme_type_variation = &"ValueLabel"
+text = "0"
+horizontal_alignment = 2
+
+[node name="CritCaption" type="Label" parent="Columns/Worn/Stats"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CaptionLabel"
+text = "Crit"
+
+[node name="CritLabel" type="Label" parent="Columns/Worn/Stats"]
+layout_mode = 2
+theme_type_variation = &"ValueLabel"
+text = "0"
+horizontal_alignment = 2
+
+[node name="Center" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="HeroView" type="Control" parent="Columns/Center"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Oval" type="TextureRect" parent="Columns/Center/HeroView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("20_oval")
+expand_mode = 1
+
+[node name="Viewport" type="SubViewportContainer" parent="Columns/Center/HeroView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Columns/Center/HeroView/Viewport"]
+own_world_3d = true
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(748, 560)
+
+[node name="Hero" parent="Columns/Center/HeroView/Viewport/SubViewport" instance=ExtResource("4_hero")]
+
+[node name="Camera3D" type="Camera3D" parent="Columns/Center/HeroView/Viewport/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 0.996195, 0.0871557, 0, -0.0871557, 0.996195, 0, 1.75, 6.2)
+fov = 30.0
+
+[node name="KeyLight" type="DirectionalLight3D" parent="Columns/Center/HeroView/Viewport/SubViewport"]
+transform = Transform3D(0.815939, -0.0041906, -0.578122, 0.434696, 0.663717, 0.608702, 0.381159, -0.747972, 0.543375, 0, 0, 0)
+
+[node name="FillLight" type="DirectionalLight3D" parent="Columns/Center/HeroView/Viewport/SubViewport"]
+transform = Transform3D(-1, 0, 0, 0, 0.825, 0.564, 0, 0.564, -0.825, 0, 0, 0)
+light_energy = 0.4
+
+[node name="Info" type="VBoxContainer" parent="Columns/Center"]
+custom_minimum_size = Vector2(0, 328)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="NameLabel" type="Label" parent="Columns/Center/Info"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+horizontal_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Rule" type="HSeparator" parent="Columns/Center/Info"]
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Details" type="VBoxContainer" parent="Columns/Center/Info"]
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_constants/separation = 0
+script = ExtResource("6_details")
+ShowName = false
+LineVariation = &"CaptionLabel"
+
+[node name="Pack" type="VBoxContainer" parent="Columns"]
+custom_minimum_size = Vector2(452, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="GearHeading" type="Label" parent="Columns/Pack"]
+layout_mode = 2
+theme_type_variation = &"SmallCapsLabel"
+text = "Gear"
+uppercase = true
+
+[node name="GearGrid" type="GridContainer" parent="Columns/Pack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 4
+
+[node name="EmptyHint" type="Label" parent="Columns/Pack"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Nothing to wear."

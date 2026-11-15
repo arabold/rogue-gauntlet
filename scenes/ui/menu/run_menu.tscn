@@ -1,0 +1,194 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/menu/RunMenu.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/gear_tab.tscn" id="2_gear"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/pack_tab.tscn" id="3_pack"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/system_tab.tscn" id="4_system"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/menu_prompt.tscn" id="5_prompt"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/header_band.png" id="6_band"]
+[ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="7_key"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/coin.png" id="8_coin"]
+
+[node name="RunMenu" type="Control" node_paths=PackedStringArray("GearTab", "PackTab", "SystemTab", "GearButton", "PackButton", "SystemButton", "GoldLabel", "Banner", "PromptRow", "ActionMenu")]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+GearTab = NodePath("Pages/Gear")
+PackTab = NodePath("Pages/Pack")
+SystemTab = NodePath("Pages/System")
+GearButton = NodePath("Header/Tabs/GearButton")
+PackButton = NodePath("Header/Tabs/PackButton")
+SystemButton = NodePath("Header/Tabs/SystemButton")
+GoldLabel = NodePath("Header/Gold/GoldLabel")
+Banner = NodePath("Banner")
+PromptRow = NodePath("Prompts")
+PromptScene = ExtResource("5_prompt")
+ActionMenu = NodePath("ActionMenu")
+
+[node name="Veil" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0352941, 0.0235294, 0.0156863, 0.84)
+
+[node name="Pages" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Gear" parent="Pages" instance=ExtResource("2_gear")]
+visible = false
+layout_mode = 1
+
+[node name="Pack" parent="Pages" instance=ExtResource("3_pack")]
+visible = false
+layout_mode = 1
+
+[node name="System" parent="Pages" instance=ExtResource("4_system")]
+visible = false
+layout_mode = 1
+
+[node name="Header" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 148.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("6_band")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Tabs" type="HBoxContainer" parent="Header"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -480.0
+offset_right = 480.0
+offset_bottom = 84.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="PreviousKey" parent="Header/Tabs" instance=ExtResource("7_key")]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = null
+expand_mode = 1
+stretch_mode = 5
+ActionBinding = "menu_previous_tab"
+
+[node name="LeftGap" type="Control" parent="Header/Tabs"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="GearButton" type="Button" parent="Header/Tabs"]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "Gear"
+
+[node name="PackButton" type="Button" parent="Header/Tabs"]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "Pack"
+
+[node name="SystemButton" type="Button" parent="Header/Tabs"]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "System"
+
+[node name="RightGap" type="Control" parent="Header/Tabs"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="NextKey" parent="Header/Tabs" instance=ExtResource("7_key")]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = null
+expand_mode = 1
+stretch_mode = 5
+ActionBinding = "menu_next_tab"
+
+[node name="Gold" type="HBoxContainer" parent="Header"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -344.0
+offset_top = 20.0
+offset_right = -144.0
+offset_bottom = 68.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="Coin" type="TextureRect" parent="Header/Gold"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldLabel" type="Label" parent="Header/Gold"]
+layout_mode = 2
+theme_type_variation = &"AccentLabel"
+text = "0"
+
+[node name="Banner" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 184.0
+offset_bottom = 228.0
+grow_horizontal = 2
+theme_type_variation = &"AccentLabel"
+horizontal_alignment = 1
+
+[node name="Prompts" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 144.0
+offset_top = -112.0
+offset_right = -144.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 40
+alignment = 2
+
+[node name="ActionMenu" type="PopupMenu" parent="."]

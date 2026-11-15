@@ -103,28 +103,33 @@ public class InventoryEquipSlotTest
 	}
 
 	[TestCase]
-	public async Task OpeningEquipmentPanelShowsTwoHandedWeaponInBothHands()
+	public async Task GearTabShowsATwoHandedWeaponInBothHands()
 	{
-		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/ui/equipment_panel.tscn");
-		await runner.SimulateFrames(1, 20);
-		var panel = (EquipmentPanel)runner.Scene();
-		var inventory = new Inventory();
-		var weapon = (Weapon)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/weapons/crossbow_common.tres"));
-		inventory.TryAdd(weapon);
-		inventory.Equip(inventory.Items[0]);
+		using var runner = TestFactories.LoadCombatHarness();
+		(RunMenu menu, GearTab gear, Player player) = await OpenGear(runner);
+		try
+		{
+			Item weapon = Carry(player, "res://scenes/items/weapons/crossbow_common.tres");
+			player.InventoryController.TryEquip(Entry(player, weapon));
 
-		panel.Initialize(inventory);
-		AssertObject(panel.WeaponPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsEqual(weapon);
-		AssertObject(panel.ShieldPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsEqual(weapon);
-		// The mirrored preview must not create a second equipment owner.
-		AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsNull();
+			AssertObject(gear.MainHandSlot.Slot.Item).IsEqual(weapon);
+			AssertObject(gear.OffHandSlot.Slot.Item).IsEqual(weapon);
+			// The mirrored slot must not create a second equipment owner.
+			AssertObject(player.Inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsNull();
 
-		panel.Initialize(null);
-		panel.Initialize(inventory);
-		AssertObject(panel.ShieldPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsEqual(weapon);
-		inventory.Unequip(EquipmentSlot.WeaponHand);
-		AssertObject(panel.WeaponPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsNull();
-		AssertObject(panel.ShieldPanel.GetNode<ItemSlotPanel>("%ItemSlotPanel").Slot.Item).IsNull();
+			// Turning away and back keeps it; taking the weapon off empties both hands.
+			menu.Open(player, RunMenuPage.Pack);
+			menu.Open(player, RunMenuPage.Gear);
+			AssertObject(gear.OffHandSlot.Slot.Item).IsEqual(weapon);
+			gear.OffHandSlot.FocusSlot();
+			gear.Invoke("ui_accept");
+			AssertObject(gear.MainHandSlot.Slot).IsNull();
+			AssertObject(gear.OffHandSlot.Slot).IsNull();
+		}
+		finally
+		{
+			menu.Close();
+		}
 	}
 
 	[TestCase]
@@ -164,66 +169,75 @@ public class InventoryEquipSlotTest
 	}
 
 	[TestCase]
-	public async Task ContextMenuConfiguresHandOptionsAccurately()
+	public async Task GearTabOffersEachHandOnlyToWhatFitsIt()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/ui/inventory_item_context_menu.tscn");
-		await runner.SimulateFrames(1, 20);
-		var menu = (InventoryItemContextMenu)runner.Scene();
-		var inventory = new Inventory();
+		using var runner = TestFactories.LoadCombatHarness();
+		(RunMenu menu, GearTab gear, Player player) = await OpenGear(runner);
+		try
+		{
+			Inventory inventory = player.Inventory;
+			foreach (InventoryItemSlot worn in inventory.Items.Where(inventory.IsEquipped).ToArray())
+			{
+				inventory.Unequip(worn);
+			}
+			Item sword = Carry(player, "res://scenes/items/weapons/sword_common.tres");
+			Item twoHanded = Carry(player, "res://scenes/items/weapons/greatsword/claymore_iron.tres");
+			Item shield = Carry(player, "res://scenes/items/armor/shield_common.tres");
+			Item torch = Carry(player, "res://scenes/items/tools/lamp/tool_torch_wooden.tres");
 
-		var sword = TestFactories.Load<EquipableItem>("res://scenes/items/weapons/sword_common.tres");
-		var twoHanded = TestFactories.Load<EquipableItem>("res://scenes/items/weapons/greatsword/claymore_iron.tres");
-		var shield = TestFactories.Load<EquipableItem>("res://scenes/items/armor/shield_common.tres");
-		var torch = TestFactories.Load<EquipableItem>("res://scenes/items/tools/lamp/tool_torch_wooden.tres");
+			// What the tab offers for an item once it is selected in the gear list.
+			string[] Offers(Item item)
+			{
+				gear.GearGrid.GetChildren().OfType<ItemSlotPanel>().First(panel => panel.Slot.Item == item).FocusSlot();
+				return [.. gear.Prompts.Select(prompt => prompt.Label)];
+			}
 
-		var slotSword = new InventoryItemSlot { Item = sword, Quantity = 1 };
-		var slot2H = new InventoryItemSlot { Item = twoHanded, Quantity = 1 };
-		var slotShield = new InventoryItemSlot { Item = shield, Quantity = 1 };
-		var slotTorch = new InventoryItemSlot { Item = torch, Quantity = 1 };
+			// A one-handed sword goes in either hand; a two-handed one only in the main hand.
+			AssertArray(Offers(sword)).ContainsExactly("Main Hand", "Off Hand", "Drop");
+			AssertArray(Offers(twoHanded)).ContainsExactly("Equip", "Drop");
 
-		inventory.Items.Add(slotSword);
-		inventory.Items.Add(slot2H);
-		inventory.Items.Add(slotShield);
-		inventory.Items.Add(slotTorch);
+			// A shield and a torch have one hand to go to, so choosing them puts them there.
+			AssertArray(Offers(shield)).ContainsExactly("Equip", "Drop");
+			gear.Invoke("ui_accept");
+			AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]?.Item).IsEqual(shield);
+			AssertArray(Offers(torch)).ContainsExactly("Equip", "Drop");
+			gear.Invoke("ui_accept");
+			AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]?.Item).IsEqual(torch);
 
-		var equipMain = menu.GetNode<Button>("%EquipButton");
-		var equipOff = menu.GetNode<Button>("%EquipOtherHandButton");
-		var unequip = menu.GetNode<Button>("%UnequipButton");
-
-		// 1H Sword: both hands enabled
-		menu.Initialize(inventory, slotSword);
-		AssertBool(equipMain.Visible).IsTrue();
-		AssertBool(equipMain.Disabled).IsFalse();
-		AssertBool(equipOff.Visible).IsTrue();
-		AssertBool(equipOff.Disabled).IsFalse();
-		AssertBool(unequip.Visible).IsFalse();
-
-		// 2H Greatsword: main hand enabled, off hand disabled
-		menu.Initialize(inventory, slot2H);
-		AssertBool(equipMain.Visible).IsTrue();
-		AssertBool(equipMain.Disabled).IsFalse();
-		AssertBool(equipOff.Visible).IsTrue();
-		AssertBool(equipOff.Disabled).IsTrue();
-
-		// Shield: main hand disabled, off hand enabled
-		menu.Initialize(inventory, slotShield);
-		AssertBool(equipMain.Visible).IsTrue();
-		AssertBool(equipMain.Disabled).IsTrue();
-		AssertBool(equipOff.Visible).IsTrue();
-		AssertBool(equipOff.Disabled).IsFalse();
-
-		// Torch: main hand disabled, off hand enabled
-		menu.Initialize(inventory, slotTorch);
-		AssertBool(equipMain.Visible).IsTrue();
-		AssertBool(equipMain.Disabled).IsTrue();
-		AssertBool(equipOff.Visible).IsTrue();
-		AssertBool(equipOff.Disabled).IsFalse();
-
-		// When sword is equipped in main hand: main hand disabled, off hand enabled, unequip visible
-		inventory.Equip(slotSword, EquipmentSlot.WeaponHand);
-		menu.Initialize(inventory, slotSword);
-		AssertBool(equipMain.Disabled).IsTrue();
-		AssertBool(equipOff.Disabled).IsFalse();
-		AssertBool(unequip.Visible).IsTrue();
+			// Worn, the sword can come off or change to the other hand, and cannot be dropped.
+			Offers(sword);
+			gear.Invoke("ui_accept");
+			AssertObject(inventory.EquippedItems[EquipmentSlot.WeaponHand]?.Item).IsEqual(sword);
+			AssertArray(Offers(sword)).ContainsExactly("Unequip", "Off Hand");
+			gear.Invoke("menu_alternate");
+			AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]?.Item).IsEqual(sword);
+			AssertArray(Offers(sword)).ContainsExactly("Unequip", "Main Hand");
+			gear.Invoke("menu_alternate");
+			AssertObject(inventory.EquippedItems[EquipmentSlot.WeaponHand]?.Item).IsEqual(sword);
+			AssertObject(inventory.EquippedItems[EquipmentSlot.ShieldHand]).IsNull();
+		}
+		finally
+		{
+			menu.Close();
+		}
 	}
+
+	/// <summary>Opens the run menu's Gear tab for the combat harness's hero. The menu pauses the game: close it again.</summary>
+	private static async Task<(RunMenu Menu, GearTab Gear, Player Player)> OpenGear(ISceneRunner runner)
+	{
+		CombatHarness harness = await TestFactories.SettleCombatHarness(runner, 3);
+		RunMenu menu = TestFactories.AddToSceneTree(
+			TestFactories.Load<PackedScene>("res://scenes/ui/menu/run_menu.tscn").Instantiate<RunMenu>());
+		menu.Open(harness.Player, RunMenuPage.Gear);
+		return (menu, (GearTab)menu.GearTab, harness.Player);
+	}
+
+	private static Item Carry(Player player, string path)
+	{
+		Item item = ItemFactory.Create(TestFactories.Load<Item>(path));
+		AssertBool(player.Inventory.TryAdd(item).Success).IsTrue();
+		return item;
+	}
+
+	private static InventoryItemSlot Entry(Player player, Item item) => player.Inventory.Items.First(entry => entry.Item == item);
 }

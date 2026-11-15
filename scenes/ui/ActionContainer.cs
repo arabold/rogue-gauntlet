@@ -31,8 +31,8 @@ public partial class ActionContainer : PanelContainer
 
 	private ProgressBar _cooldownProgressBar;
 	private KeyBinding _keyBinding;
+	private ItemIcon _icon;
 	private Preview _preview;
-	private SubViewportContainer _viewportContainer;
 	private Label _quantityLabel;
 	private ActionSlot _actionSlot;
 	private ManaComponent _mana;
@@ -46,9 +46,10 @@ public partial class ActionContainer : PanelContainer
 		_keyBinding.ActionBinding = ActionBinding;
 		_keyBinding.IsDisabled = true;
 
-		_preview = GetNode<Preview>("%Preview");
+		_icon = GetNode<ItemIcon>("%Icon");
+		_preview = _icon.Preview;
 		_preview.Scene = PreviewScene;
-		_viewportContainer = GetNodeOrNull<SubViewportContainer>("SubViewportContainer");
+		_icon.Filled = PreviewScene != null;
 		_quantityLabel = GetNodeOrNull<Label>("%QuantityLabel");
 
 		this.SubscribeUntilExit(
@@ -95,6 +96,7 @@ public partial class ActionContainer : PanelContainer
 		_preview.Diagonal = action?.AssignedAction is ICombatAttackAction;
 		// The preview scene is already the run appearance model (see PlayerQuickItemController).
 		_preview.Scene = action?.PreviewScene;
+		_icon.Filled = action?.PreviewScene != null;
 		Refresh();
 	}
 
@@ -106,10 +108,7 @@ public partial class ActionContainer : PanelContainer
 		IPlayerAction assigned = _actionSlot?.AssignedAction;
 		float manaCost = (assigned as SpellCastAction)?.ManaCost ?? 0;
 		bool isDepleted = assigned != null && (_actionSlot.Quantity == 0 || !(_mana?.CanSpend(manaCost) ?? manaCost == 0));
-		if (_viewportContainer != null)
-		{
-			_viewportContainer.Modulate = isDepleted ? new Color(0.4f, 0.4f, 0.4f, 0.6f) : new Color(1, 1, 1, 1);
-		}
+		_icon.Modulate = isDepleted ? new Color(0.4f, 0.4f, 0.4f, 0.6f) : Colors.White;
 		_keyBinding.IsDisabled = Slot != ActionManager.PrimarySlotIndex && (assigned == null || isDepleted);
 
 		if (_quantityLabel != null)

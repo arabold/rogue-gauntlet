@@ -40,7 +40,7 @@ expensive to undo than to avoid.
 | **KayKit — itch/Patreon** (kaylousberg.itch.io) | 3D | CC0 | ⚠️ manual download only | **Perfect** (our group) |
 | **Quaternius** (quaternius.com / itch) | 3D | CC0 | ⚠️ itch.io / site download | Low-poly but **reads cartoony** — rejected for dungeon-crawler tone |
 | **Poly Pizza** (poly.pizza) | 3D | CC0 + CC-BY | ✅ REST API v1.1, `x-auth-token` header → GLB URLs | Mixed; indexes Kenney + Quaternius. Filter by creator for consistency |
-| **game-icons.net** | 2D SVG | CC BY 3.0 | ✅ GitHub repo `game-icons/icons` + metadata JSON, no key | Our icon group |
+| **game-icons.net** | 2D SVG | CC BY 3.0 | ✅ GitHub repo `game-icons/icons` + metadata JSON, no key | Flat silhouettes; replaced by the UI kit's own carved icons, none in use |
 | **Kenney** (kenney.nl) | 2D/3D/audio | CC0 | ✅ direct zip URLs | UI/audio; 3D is a different group |
 | **Freesound** (freesound.org) | audio | CC0 / CC-BY / CC-BY-NC | ✅ REST API v2 (token to search, OAuth2 to download) | n/a — filter license carefully |
 
@@ -129,7 +129,7 @@ When authoring smaller or larger monsters on a shared rig (e.g., Goblins at `0.7
   in-game/credits attribution must exist before release.
 - **CC BY-NC**: non-commercial only. The project ships under Apache-2.0 + Commons Clause
   (commercial use intended) — **do not add NC assets.** Reject them at discovery time.
-- **Unknown license = do not ship.** Mark it (see the `ui` entry) and triage before release.
+- **Unknown license = do not ship.** Mark it (`license: UNKNOWN`, group `unsorted`) and triage before release.
 
 ## Adding a pack — checklist
 
@@ -151,7 +151,6 @@ When authoring smaller or larger monsters on a shared rig (e.g., Goblins at `0.7
 ## Maintenance
 
 - Keep `ATTRIBUTIONS.json` in lockstep with the directories — no orphan dirs, no orphan entries.
-- Backfill missing provenance (currently: `game-icons` per-icon authors, the `ui` background).
 - A human-readable `CREDITS` for shipping can be generated from this manifest (every
   `attribution_required: true` pack and its authors); regenerate it when packs change.
 - Don't commit temporary download archives — extract, keep the assets, delete the zip.

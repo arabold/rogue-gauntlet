@@ -1,0 +1,41 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/menu/MenuPromptButton.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="2_key"]
+
+[node name="MenuPrompt" type="HBoxContainer" node_paths=PackedStringArray("FirstKey", "Dash", "LastKey", "Label")]
+mouse_filter = 0
+theme_override_constants/separation = 10
+script = ExtResource("1_script")
+FirstKey = NodePath("FirstKey")
+Dash = NodePath("Dash")
+LastKey = NodePath("LastKey")
+Label = NodePath("Label")
+
+[node name="FirstKey" parent="." instance=ExtResource("2_key")]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = null
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Dash" type="Label" parent="."]
+visible = false
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "–"
+
+[node name="LastKey" parent="." instance=ExtResource("2_key")]
+visible = false
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = null
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2

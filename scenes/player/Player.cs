@@ -114,6 +114,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 
 		// The controllers act on this runtime copy, never on the authored inventory, so it is injected rather than wired.
 		InventoryController.Inventory = Inventory;
+		AttachmentManager.Inventory = Inventory;
+		AttachmentManager.Effects = WorldEffects;
 		if (ItemUseEffects != null)
 		{ ItemUseEffects.Inventory = Inventory; ItemUseEffects.Identification = _level?.Run?.Identification; }
 		QuickItemController.Inventory = Inventory;

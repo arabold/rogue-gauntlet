@@ -1,0 +1,103 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scenes/menu/stage/MenuStage.cs" id="1_stage"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="2_lighting"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_light.tscn" id="3_light"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/entrance.tres" id="4_room"]
+[ext_resource type="PackedScene" path="res://scenes/player/showcase/hero_showcase.tscn" id="5_hero"]
+[ext_resource type="Script" path="res://scenes/player/showcase/ShowcasePose.cs" id="6_pose"]
+
+[sub_resource type="Resource" id="Pose_cheer"]
+script = ExtResource("6_pose")
+Clips = Array[StringName]([&"Cheer"])
+
+[sub_resource type="Resource" id="Pose_inspect"]
+script = ExtResource("6_pose")
+Clips = Array[StringName]([&"Use_Item"])
+
+[sub_resource type="Resource" id="Pose_reach"]
+script = ExtResource("6_pose")
+Clips = Array[StringName]([&"Interact"])
+
+[sub_resource type="Resource" id="Pose_pick_up"]
+script = ExtResource("6_pose")
+Clips = Array[StringName]([&"PickUp"])
+
+[sub_resource type="Resource" id="Pose_rest"]
+script = ExtResource("6_pose")
+Clips = Array[StringName]([&"Sit_Floor_Down", &"Sit_Floor_Idle", &"Sit_Floor_StandUp"])
+
+[sub_resource type="Gradient" id="Gradient_motes"]
+offsets = PackedFloat32Array(0, 0.2, 0.75, 1)
+colors = PackedColorArray(1, 0.72, 0.35, 0, 1, 0.74, 0.38, 0.95, 1, 0.58, 0.24, 0.7, 1, 0.45, 0.18, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_motes"]
+gradient = SubResource("Gradient_motes")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_motes"]
+emission_shape = 3
+emission_box_extents = Vector3(7, 2.5, 7)
+direction = Vector3(0.3, 1, -0.2)
+spread = 70.0
+initial_velocity_min = 0.05
+initial_velocity_max = 0.3
+gravity = Vector3(0, 0.06, 0)
+scale_min = 0.5
+scale_max = 1.5
+color_ramp = SubResource("GradientTexture1D_motes")
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+offsets = PackedFloat32Array(0, 0.25, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.45, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
+gradient = SubResource("Gradient_glow")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mote"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.82, 0.55, 1)
+albedo_texture = SubResource("GradientTexture2D_glow")
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_mote"]
+material = SubResource("StandardMaterial3D_mote")
+size = Vector2(0.16, 0.16)
+
+[node name="MenuStage" type="Node3D" node_paths=PackedStringArray("Lighting", "Camera", "Hero", "HeroLight", "Atmosphere")]
+script = ExtResource("1_stage")
+Lighting = NodePath("WorldLighting")
+RoomType = ExtResource("4_room")
+Camera = NodePath("Camera3D")
+Hero = NodePath("Hero")
+HeroLight = NodePath("HeroLight")
+Atmosphere = NodePath("Embers")
+
+[node name="WorldLighting" parent="." instance=ExtResource("2_lighting")]
+
+[node name="Hero" parent="." instance=ExtResource("5_hero")]
+Poses = [SubResource("Pose_cheer"), SubResource("Pose_inspect"), SubResource("Pose_reach"), SubResource("Pose_pick_up"), SubResource("Pose_rest")]
+
+[node name="HeroLight" parent="." instance=ExtResource("3_light")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+projection = 1
+current = true
+size = 9.0
+
+[node name="Embers" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+amount = 60
+lifetime = 9.0
+preprocess = 9.0
+visibility_aabb = AABB(-9, -4, -9, 18, 9, 18)
+process_material = SubResource("ParticleProcessMaterial_motes")
+draw_pass_1 = SubResource("QuadMesh_mote")

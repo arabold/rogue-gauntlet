@@ -1,0 +1,108 @@
+[gd_scene load_steps=6 format=3 uid="uid://b3loadingscrn1"]
+
+[ext_resource type="Script" uid="uid://cwd1ot3jruei7" path="res://scenes/ui/loading/LoadingScreen.cs" id="1_screen"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/backdrop.png" id="2_backdrop"]
+[ext_resource type="Script" uid="uid://btv6qdm4hqd14" path="res://scenes/ui/widgets/LoadingPips.cs" id="3_pips"]
+
+[sub_resource type="Gradient" id="Gradient_vignette"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0, 0, 0, 0.35, 0, 0, 0, 0.55, 0, 0, 0, 0.9)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vignette"]
+gradient = SubResource("Gradient_vignette")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.48)
+fill_to = Vector2(1.1, 1.1)
+
+[node name="LoadingScreen" type="CanvasLayer" node_paths=PackedStringArray("Card", "DepthLabel", "TipLabel")]
+process_mode = 3
+layer = 128
+visible = false
+script = ExtResource("1_screen")
+Card = NodePath("Card")
+DepthLabel = NodePath("Card/Center/Depth")
+TipLabel = NodePath("Card/Center/Tip")
+Tips = PackedStringArray("Death is permanent.", "Every floor saves on arrival.", "Unknown potions hide their names.", "Cursed gear cannot be taken off.", "Remove Curse frees a cursed item.", "Dodge through a blow to avoid it.", "Guard as a blow lands to parry.", "Armor softens blows, never stops them.", "Keep a wall at your back.", "Missiles are free. Spells cost mana.", "Lockpicks open any lock, slowly.", "Quick slots work mid-fight.")
+
+[node name="Card" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Backdrop" type="TextureRect" parent="Card"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_backdrop")
+stretch_mode = 1
+
+[node name="Vignette" type="TextureRect" parent="Card"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_vignette")
+expand_mode = 1
+
+[node name="Center" type="VBoxContainer" parent="Card"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_top = -160.0
+offset_right = 480.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Depth" type="Label" parent="Card/Center"]
+layout_mode = 2
+theme_type_variation = &"DisplayLabel"
+text = "Depth 1"
+horizontal_alignment = 1
+
+[node name="Divider" type="HSeparator" parent="Card/Center"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Tip" type="Label" parent="Card/Center"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+theme_override_font_sizes/font_size = 28
+text = "Keep a wall at your back."
+horizontal_alignment = 1
+
+[node name="Pips" type="Control" parent="Card"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -43.0
+offset_top = -132.0
+offset_right = 43.0
+offset_bottom = -96.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("3_pips")

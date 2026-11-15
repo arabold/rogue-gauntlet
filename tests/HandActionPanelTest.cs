@@ -32,19 +32,19 @@ public class HandActionPanelTest
 		panel.Hand = EquipmentSlot.WeaponHand;
 		Equip(player, "res://scenes/items/weapons/sword_common.tres", EquipmentSlot.WeaponHand);
 		AssertBool(panel.FirstActionKey.IsDisabled).IsFalse();
-		AssertObject(panel.Preview.Scene).IsNotNull();
+		AssertObject(panel.Icon.Preview.Scene).IsNotNull();
 
 		// Off hand with a melee dagger: shown, but it has no off-hand action, so the key is off and the preview dimmed.
 		panel.Hand = EquipmentSlot.ShieldHand;
 		Equip(player, "res://scenes/items/weapons/dagger_common.tres", EquipmentSlot.ShieldHand);
 		AssertBool(panel.FirstActionKey.IsDisabled).IsTrue();
-		AssertObject(panel.Preview.Scene).IsNotNull();
-		AssertObject(panel.ViewportContainer.Modulate).IsNotEqual(Colors.White);
+		AssertObject(panel.Icon.Preview.Scene).IsNotNull();
+		AssertObject(panel.Icon.Modulate).IsNotEqual(Colors.White);
 
 		// Off hand with a shield: equipping alone makes the guard key live and undims the preview.
 		Equip(player, "res://scenes/items/armor/shield_common.tres", EquipmentSlot.ShieldHand);
 		AssertBool(panel.FirstActionKey.IsDisabled).IsFalse();
-		AssertObject(panel.Preview.Scene).IsNotNull();
-		AssertObject(panel.ViewportContainer.Modulate).IsEqual(Colors.White);
+		AssertObject(panel.Icon.Preview.Scene).IsNotNull();
+		AssertObject(panel.Icon.Modulate).IsEqual(Colors.White);
 	}
 }

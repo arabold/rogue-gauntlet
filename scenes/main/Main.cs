@@ -2,13 +2,12 @@ using Godot;
 using System.Linq;
 
 /// <summary>
-/// The gameplay scene: has the session configure and generate the level, binds the screen effects to the hero, opens
-/// the character dialog, and reports the run on the death screen once the hero dies. The <see cref="GameCameraRig"/>
+/// The gameplay scene: has the session configure and generate the level, binds the screen effects to the hero, and
+/// reports the run on the death screen once the hero dies. The <see cref="GameCameraRig"/>
 /// follows the hero on its own.
 /// </summary>
 public partial class Main : Node
 {
-	private Player _player;
 	private Tween _deathScreenDelay;
 	private bool _pausedForDeath;
 
@@ -54,8 +53,7 @@ public partial class Main : Node
 
 	private void OnPlayerSpawned(Player player)
 	{
-		// Spawning can report the same player more than once; rebind so each signal connects only once.
-		_player = player;
+		// Spawning can report the same player more than once; binding again connects each signal only once.
 		ScreenEffects?.Bind(player);
 	}
 
@@ -95,31 +93,5 @@ public partial class Main : Node
 			GetTree().Paused = false;
 		}
 		base._ExitTree();
-	}
-
-	public override void _UnhandledInput(InputEvent @event)
-	{
-		if (@event is InputEventKey { Echo: true })
-		{
-			return;
-		}
-
-		if (@event.IsActionReleased("inventory"))
-		{
-			var characterDialog = GetNode<CharacterDialog>("%CharacterDialog");
-			if (characterDialog.Visible)
-			{
-				characterDialog.Close();
-			}
-			else
-			{
-				var player = GodotObject.IsInstanceValid(_player) ? _player : GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
-				if (player != null)
-				{
-					characterDialog.Open(player);
-				}
-			}
-		}
-		base._UnhandledInput(@event);
 	}
 }

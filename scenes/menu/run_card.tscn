@@ -1,0 +1,70 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/menu/RunCard.cs" id="1_card"]
+[ext_resource type="PackedScene" uid="uid://ccharpreviewtsn" path="res://scenes/menu/character_preview.tscn" id="2_preview"]
+
+[node name="RunCard" type="Button" node_paths=PackedStringArray("Portrait", "PortraitView", "EmptyMark", "NameLabel", "LineLabel", "SavedLabel")]
+custom_minimum_size = Vector2(360, 508)
+focus_mode = 2
+theme_type_variation = &"CardButton"
+script = ExtResource("1_card")
+Portrait = NodePath("Layout/PortraitView/Portrait")
+PortraitView = NodePath("Layout/PortraitView")
+EmptyMark = NodePath("Layout/EmptyMark")
+NameLabel = NodePath("Layout/Name")
+LineLabel = NodePath("Layout/Line")
+SavedLabel = NodePath("Layout/Saved")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 28.0
+offset_right = -28.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="PortraitView" type="SubViewportContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 316)
+layout_mode = 2
+mouse_filter = 2
+stretch = true
+
+[node name="Portrait" parent="Layout/PortraitView" instance=ExtResource("2_preview")]
+size = Vector2i(304, 316)
+RotationSpeed = 0.0
+
+[node name="Camera3D" parent="Layout/PortraitView/Portrait" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 2.7)
+
+[node name="EmptyMark" type="Label" parent="Layout"]
+visible = false
+modulate = Color(0.8, 0.73, 0.6, 0.8)
+custom_minimum_size = Vector2(0, 316)
+layout_mode = 2
+theme_type_variation = &"DisplayLabel"
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Name" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 36
+text = "New Run"
+horizontal_alignment = 1
+
+[node name="Line" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+horizontal_alignment = 1
+
+[node name="Saved" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"SmallCapsLabel"
+horizontal_alignment = 1

@@ -12,7 +12,7 @@ and re-applied every time the player spawns (new game, load, stairs).
 Everything is designer-authored resources under `scenes/player/classes/`:
 
 - **`CharacterClass`** (`CharacterClass.cs`, one `.tres` per class) — `Id` (stable, stored in
-  saves; never rename), `DisplayName`/`Description` (selector text), `CharacterScene` (the
+  saves; never rename), `DisplayName`/`Tagline` (selector text), `CharacterScene` (the
   `.glb`), `StatProfile`, the four base attributes, `StartingItems`
   (`InventoryItemSlot` list; auto-equip lets the last item of a slot win, so the intended
   main-hand weapon goes last), `PreIdentifiedTypeIds` (item types identified at run start —

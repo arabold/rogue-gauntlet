@@ -26,6 +26,7 @@ These documents explain code that exists today. Any proposed extension or future
 | --- | --- |
 | [Monster design and authoring](monster-authoring-design.md) | Six-monster roster, data-driven actions (targets, conditions, weights), health phases, dashes, shared monster spells, validation and tuning |
 | [Runs, saving and permadeath](run-lifecycle.md) | Run start, the endless descent, saving on floor arrival and exit, death records and the death screen |
+| [User interface](user-interface.md) | Visual language and layout rules, fonts, the generated UI kit, the theme and its variations, the front end on its 3D stage, depth card, HUD, run menu (Gear, Pack, System), death and confirmation |
 | [Character classes](character-classes.md) | Authored classes, starting gear, stat profiles, and model integration |
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
@@ -56,6 +57,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Combat redesign](specs/combat-redesign-plan.md) | Warden phases, swings and Tremor slam are implemented; a guard-breaking attack, guard walking and open tuning risks remain |
 | [Monster action architecture](specs/monster-action-architecture-plan.md) | Landed; dodge on the dash component, editor badges, phase content and spell cast validation remain |
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
+| [UI redesign](specs/ui-system-plan.md) | Front end, depth card, desktop HUD, run menu, death and confirmation landed; the touch HUD, credits and settings remain |
 | [Shared debug toolkit](specs/debug-toolkit-plan.md) | Implemented; remaining class switching, captured builds and open harness decisions |
 | [Blender-modeled Studio assets](specs/blender-modeling-pipeline.md) | Model scripts, concept scoring and head hosts landed; game wiring, per-class fit, kit heads and organic forms remain |
 

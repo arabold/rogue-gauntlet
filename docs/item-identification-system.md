@@ -103,8 +103,8 @@ might be a crimson bottle this run and a cobalt one the next. Identifying a "sma
 black potion" renames it "Small Potion of Poison" but leaves the bottle as it looked.
 
 - **Inventory / labels**: `ItemIdentity.ResolveDisplayName(item)` returns the disguised
-  descriptor name until identified, then the true name. It surfaces as the item slot's
-  hover tooltip and the title of the inventory context menu. When a type is discovered,
+  descriptor name until identified, then the true name. It surfaces as the selected
+  item's name in the run menu's Gear and Pack tabs. When a type is discovered,
   the run's `RunState` emits `SignalBus.ItemIdentified`; each `ItemSlotPanel` listens and
   relabels, so every stack of that type reveals at once. The model is the same
   either way.
@@ -248,11 +248,11 @@ Run-wide and per-item knowledge have separate owners:
 - `IsFullyIdentified(item)` also needs the curse status. It is what makes an item a valid target
   for the scroll of identify.
 
-`EquipableItem.CurseStatusKnown` gates the "Cursed"/"Uncursed" tooltip line, the penalty lines,
+`EquipableItem.CurseStatusKnown` gates the "Cursed"/"Uncursed" line under the item's name, the penalty lines,
 the "Cursed" name prefix, and the dark-veil curse aura presentation (`ItemAuraPresenter`) on world/equipped models
 and inventory preview slots.
 
-The quality is deliberately visible either way, so name color, the tooltip's quality line and
+The quality is deliberately visible either way, so name color, the quality line and
 `ItemSlotPanel`'s tint use `ItemQualityPalette` without those checks.
 
 ## Scrolls: A Resource-Strategy Effect, Not A Buff
@@ -265,12 +265,11 @@ for effects that need a chosen inventory slot (identify, enchant, remove curse).
 scrolls (haste, protection, rage, weakness, vitality, clarity) need no `ScrollEffect` at all — they just set `Buff`,
 exactly like a potion.
 
-**Targeting flow**: reading a targeted scroll's "Read" button emits
-`InventoryItemContextMenu.TargetedUseRequested` instead of consuming immediately.
-`InventoryPanel` handles it: if nothing is a valid target, it shows a transient banner and
+**Targeting flow**: **Read** on a targeted scroll in the run menu's Pack tab does not
+consume it immediately. `PackTab` handles it: if nothing is a valid target, it shows a transient banner and
 the scroll is *not* consumed; otherwise it identifies the scroll's own type (reading it far
-enough to pick a target reveals what it is, even on cancel) and enters targeting mode via
-`InventoryTargetRequest` — ineligible slots dim and disable their button
+enough to pick a target reveals what it is, even on cancel) and enters targeting mode —
+ineligible slots dim and disable their button
 (`ItemSlotPanel.SetTargetingState`), `Esc` cancels, and confirming an eligible slot applies
 `PlayerInventoryController.TryUse`, which revalidates both entries, applies the effect once, and then consumes the scroll. This ordering means a cancelled or no-target read
 never wastes the scroll. Enchant reuses the identical mechanism with a different predicate.
@@ -303,7 +302,7 @@ equip hook identifies the type, as its consume hook does for consumed items, and
    each (see [Potion Effects](#potion-effects)).
 3. **Scrolls**: `ScrollEffect`/`Scroll`, `scroll_appearances.tres` (gibberish titles),
    identify/enchant/remove-curse/teleport/summon effects, plus haste/protection/rage/weakness buff
-   scrolls; the inventory targeting flow (`InventoryTargetRequest`, `InventoryPanel`,
+   scrolls; the inventory targeting flow (`PackTab`,
    `ItemSlotPanel.SetTargetingState`) for the targeted effects.
 4. **Jewelry**: `IdentifiableEquipableItem`, `ring_appearances.tres` /
    `amulet_appearances.tres`, 9 ring and 7 amulet types graded by visible quality,

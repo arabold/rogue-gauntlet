@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://beddkxj3k6x7i"]
+[gd_scene load_steps=8 format=3 uid="uid://beddkxj3k6x7i"]
 
 [ext_resource type="Script" uid="uid://bqo7ff6mav3rv" path="res://scenes/ui/Hud.cs" id="1_fp313"]
 [ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="2_kicr4"]
@@ -6,145 +6,240 @@
 [ext_resource type="PackedScene" uid="uid://bvyqk5m278bce" path="res://scenes/ui/hand_action_panel.tscn" id="4_hand_panel"]
 [ext_resource type="PackedScene" uid="uid://cmsgfeed001" path="res://scenes/ui/hud_message_feed.tscn" id="5_msg_feed"]
 [ext_resource type="Script" path="res://scripts/logging/GameNarrator.cs" id="6_narrator"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/coin.png" id="7_coin"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_136eg"]
-content_margin_left = 50.0
-content_margin_top = 50.0
-content_margin_right = 50.0
-content_margin_bottom = 50.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vfmfx"]
-bg_color = Color(0.0748453, 0.0748453, 0.0748452, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0nu8"]
-bg_color = Color(0.6, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mana"]
-bg_color = Color(0.12, 0.32, 0.85, 1)
-
-[node name="HUD" type="PanelContainer"]
+[node name="HUD" type="Control" node_paths=PackedStringArray("HealthBar", "HealthLabel", "ManaBar", "ManaLabel", "XpBar", "LevelLabel", "GoldLabel", "DepthLabel", "InteractionContainer", "InteractionProgressBar")]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-size_flags_vertical = 8
-theme_override_styles/panel = SubResource("StyleBoxEmpty_136eg")
-script = ExtResource("1_fp313")
-
-[node name="BottomArea" type="VBoxContainer" parent="."]
-layout_mode = 2
-size_flags_vertical = 8
-theme_override_constants/separation = 12
 mouse_filter = 2
+script = ExtResource("1_fp313")
+HealthBar = NodePath("Vitals/Bars/Health/HealthBar")
+HealthLabel = NodePath("Vitals/Bars/Health/HealthLabel")
+ManaBar = NodePath("Vitals/Bars/Mana/ManaBar")
+ManaLabel = NodePath("Vitals/Bars/Mana/ManaLabel")
+XpBar = NodePath("Vitals/Bars/XpBar")
+LevelLabel = NodePath("Vitals/LevelBadge/LevelLabel")
+GoldLabel = NodePath("Run/Gold/GoldLabel")
+DepthLabel = NodePath("Run/DepthLabel")
+InteractionContainer = NodePath("Interaction")
+InteractionProgressBar = NodePath("Interaction/InteractionProgressBar")
 
-[node name="HudMessageFeed" parent="BottomArea" instance=ExtResource("5_msg_feed")]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="HBoxContainer" type="HBoxContainer" parent="BottomArea"]
-layout_mode = 2
-size_flags_vertical = 8
-
-[node name="PanelContainer" type="VBoxContainer" parent="BottomArea/HBoxContainer"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="XpLabel" type="Label" parent="BottomArea/HBoxContainer/PanelContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "XP: 0"
-
-[node name="GoldLabel" type="Label" parent="BottomArea/HBoxContainer/PanelContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "Gold: 0"
-
-[node name="HealthBar" type="ProgressBar" parent="BottomArea/HBoxContainer/PanelContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(450, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_styles/background = SubResource("StyleBoxFlat_vfmfx")
-theme_override_styles/fill = SubResource("StyleBoxFlat_e0nu8")
-value = 75.0
-show_percentage = false
-
-[node name="ManaBar" type="ProgressBar" parent="BottomArea/HBoxContainer/PanelContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(450, 24)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_styles/background = SubResource("StyleBoxFlat_vfmfx")
-theme_override_styles/fill = SubResource("StyleBoxFlat_mana")
-value = 75.0
-show_percentage = false
-
-[node name="Spacer" type="Control" parent="BottomArea/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="ActionHBox" type="HBoxContainer" parent="BottomArea/HBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 8
+[node name="Vitals" type="HBoxContainer" parent="."]
+layout_mode = 1
+offset_left = 32.0
+offset_top = 32.0
+mouse_filter = 2
 theme_override_constants/separation = 16
 
-[node name="MainHandActionPanel" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("4_hand_panel")]
+[node name="LevelBadge" type="PanelContainer" parent="Vitals"]
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
-Hand = 256
+mouse_filter = 2
+theme_type_variation = &"SlotPanel"
 
-[node name="OffHandActionPanel" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("4_hand_panel")]
+[node name="LevelLabel" type="Label" parent="Vitals/LevelBadge"]
 layout_mode = 2
-Hand = 512
+theme_type_variation = &"AccentLabel"
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Spacer" type="Control" parent="BottomArea/HBoxContainer/ActionHBox"]
-custom_minimum_size = Vector2(16, 0)
+[node name="Bars" type="VBoxContainer" parent="Vitals"]
 layout_mode = 2
-
-[node name="ActionContainer1" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
-layout_mode = 2
-ActionBinding = "quick_item_1"
-
-[node name="ActionContainer2" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
-layout_mode = 2
-Slot = 1
-ActionBinding = "quick_item_2"
-
-[node name="ActionContainer3" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
-layout_mode = 2
-Slot = 2
-ActionBinding = "quick_item_3"
-
-[node name="ActionContainer4" parent="BottomArea/HBoxContainer/ActionHBox" instance=ExtResource("2_kicr4")]
-layout_mode = 2
-Slot = 3
-ActionBinding = "quick_item_4"
-
-[node name="InteractionContainer" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_horizontal = 4
 size_flags_vertical = 4
+mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="InteractionProgressBar" type="ProgressBar" parent="InteractionContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 16)
+[node name="Health" type="HBoxContainer" parent="Vitals/Bars"]
 layout_mode = 2
-size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="HealthBar" type="ProgressBar" parent="Vitals/Bars/Health"]
+custom_minimum_size = Vector2(320, 22)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"HealthBar"
+value = 75.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="Vitals/Bars/Health"]
+layout_mode = 2
+theme_type_variation = &"CountLabel"
+text = "50"
+
+[node name="Mana" type="HBoxContainer" parent="Vitals/Bars"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="ManaBar" type="ProgressBar" parent="Vitals/Bars/Mana"]
+custom_minimum_size = Vector2(240, 14)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"ManaBar"
+value = 75.0
+show_percentage = false
+
+[node name="ManaLabel" type="Label" parent="Vitals/Bars/Mana"]
+layout_mode = 2
+theme_type_variation = &"CountLabel"
+text = "45"
+
+[node name="XpBar" type="ProgressBar" parent="Vitals/Bars"]
+custom_minimum_size = Vector2(320, 6)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+theme_type_variation = &"ThinBar"
+value = 40.0
+show_percentage = false
+
+[node name="Run" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -32.0
+offset_top = 32.0
+offset_right = -32.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="DepthLabel" type="Label" parent="Run"]
+layout_mode = 2
+theme_type_variation = &"SmallCapsLabel"
+theme_override_font_sizes/font_size = 24
+text = "Depth 1"
+horizontal_alignment = 2
+uppercase = true
+
+[node name="Gold" type="HBoxContainer" parent="Run"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="Coin" type="TextureRect" parent="Run/Gold"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("7_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldLabel" type="Label" parent="Run/Gold"]
+layout_mode = 2
+theme_type_variation = &"AccentLabel"
+text = "0"
+
+[node name="HudMessageFeed" parent="." instance=ExtResource("5_msg_feed")]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -480.0
+offset_top = -232.0
+offset_right = 480.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 0
+MaxVisibleMessages = 3
+TextAlignment = 1
+
+[node name="Interaction" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = 104.0
+offset_right = 100.0
+offset_bottom = 114.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="InteractionProgressBar" type="ProgressBar" parent="Interaction"]
+custom_minimum_size = Vector2(200, 10)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"ThinBar"
 value = 50.0
 show_percentage = false
 
-[node name="DebugMenu" parent="." instance=ExtResource("3_debug_menu")]
+[node name="Actions" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = -32.0
+offset_right = -32.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="MainHandActionPanel" parent="Actions" instance=ExtResource("4_hand_panel")]
 layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 0
+size_flags_vertical = 8
+Hand = 256
+
+[node name="OffHandActionPanel" parent="Actions" instance=ExtResource("4_hand_panel")]
+layout_mode = 2
+size_flags_vertical = 8
+Hand = 512
+
+[node name="Gap" type="Control" parent="Actions"]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ActionContainer1" parent="Actions" instance=ExtResource("2_kicr4")]
+layout_mode = 2
+size_flags_vertical = 8
+ActionBinding = "quick_item_1"
+
+[node name="ActionContainer2" parent="Actions" instance=ExtResource("2_kicr4")]
+layout_mode = 2
+size_flags_vertical = 8
+Slot = 1
+ActionBinding = "quick_item_2"
+
+[node name="ActionContainer3" parent="Actions" instance=ExtResource("2_kicr4")]
+layout_mode = 2
+size_flags_vertical = 8
+Slot = 2
+ActionBinding = "quick_item_3"
+
+[node name="ActionContainer4" parent="Actions" instance=ExtResource("2_kicr4")]
+layout_mode = 2
+size_flags_vertical = 8
+Slot = 3
+ActionBinding = "quick_item_4"
+
+[node name="DebugMenu" parent="." instance=ExtResource("3_debug_menu")]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 8.0
+grow_horizontal = 2
 
 [node name="GameNarrator" type="Node" parent="."]
 script = ExtResource("6_narrator")

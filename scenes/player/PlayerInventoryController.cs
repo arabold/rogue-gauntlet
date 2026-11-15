@@ -51,13 +51,7 @@ public partial class PlayerInventoryController : Node
 
 	public void AutoEquipItems()
 	{
-		foreach (var item in Inventory.Items)
-		{
-			if (item.Item is EquipableItem)
-			{
-				Inventory.Equip(item);
-			}
-		}
+		Inventory.EquipAll();
 		RefreshEffectiveGuard();
 	}
 
