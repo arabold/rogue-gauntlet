@@ -366,7 +366,7 @@ public partial class CombatIntegrationTest
 			var resolution = events.First(e => e.GetProperty("event").GetString() == "damage.resolved");
 			AssertString(contact.GetProperty("data").GetProperty("execution").GetRawText())
 				.IsEqual(resolution.GetProperty("data").GetProperty("execution").GetRawText());
-			AssertBool(resolution.GetProperty("data").TryGetProperty("armor_roll", out _)).IsTrue();
+			AssertBool(resolution.GetProperty("data").TryGetProperty("armor_reduction", out _)).IsTrue();
 			AssertInt(resolution.GetProperty("schema").GetInt32()).IsEqual(1);
 		}
 	}

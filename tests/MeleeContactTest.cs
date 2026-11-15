@@ -386,6 +386,7 @@ public class MeleeContactTest
 		harness.Player.Stats.BaseMinDamage = 0;
 		harness.Player.Stats.BaseMaxDamage = 0;
 		harness.Player.Stats.BaseCritChance = 0;
+		harness.Player.Stats.BaseDexterity = 0; // no crit chance from Dexterity either, so no roll doubles a hit
 		harness.Player.Stats.BaseStrength = StatProfile.AttributeBaseline; // the weapon's own damage, unscaled
 		var controller = harness.Player.AttackController;
 

@@ -131,6 +131,11 @@ class TextResource:
     def main(self) -> Section:
         return next(s for s in self.sections if s.kind == "resource")
 
+    @property
+    def root(self) -> Section:
+        """A scene's root node."""
+        return next(s for s in self.sections if s.kind == "node")
+
     def sub(self, id_: str) -> Section:
         return next(s for s in self.sections if s.kind == "sub_resource" and s.id == id_)
 
@@ -185,8 +190,10 @@ class TextResource:
         return True
 
     def _current(self, section: Section) -> Section:
-        """The live section matching one parsed before earlier edits moved its lines."""
-        return next(s for s in self.sections if s.kind == section.kind and s.id == section.id)
+        """The live section matching one parsed before earlier edits moved its lines; scene nodes match by name and parent."""
+        def key(s: Section):
+            return s.kind, s.id, s.attrs.get("name"), s.attrs.get("parent")
+        return next(s for s in self.sections if key(s) == key(section))
 
     def _insert(self, section: Section, line: str):
         props = sorted(section.props.values())

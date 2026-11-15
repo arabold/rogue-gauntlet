@@ -58,6 +58,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	}
 
 	[Export] public float Armor { get; set; } = 0;
+	/// <summary>The least a physical hit deals through armor; a smaller hit deals itself (<see cref="ArmorRules"/>).</summary>
+	[Export(PropertyHint.Range, "0,5,0.5")] public float MinimumDamage { get; set; } = 1f;
 	[Export] public bool Invulnerable { get; set; } = false;
 
 	public override void _Ready() => RefreshDebugDraw();
@@ -131,7 +133,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	private DamageResolution ResolveDamageInternal(in DamageContext contact, RandomNumberGenerator random)
 	{
 		var snapshot = contact;
-		float armorRoll = 0;
+		float armorReduction = 0;
 		HitReaction? reaction = null;
 		var zone = HitZone.Front;
 		bool unaware = false;
@@ -145,7 +147,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 				("parent_source", snapshot.Parent.SourceInstanceId), ("delivery", snapshot.DeliveryKind.ToString()),
 				("traits", snapshot.DefenseTraits.ToString()), ("incoming", CombatTrace.Vector(snapshot.IncomingDirection)),
 				("raw_damage", snapshot.Amount), ("armor", Armor),
-				("armor_roll", armorRoll), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
+				("armor_reduction", armorReduction), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
 				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware), ("critical", snapshot.Critical),
 				("outcome", outcome.ToString()), ("damage", amount), ("health", HealthComponent?.CurrentHealth));
 			var emphasis = outcome != DamageOutcome.Damaged ? DamageEmphasis.None
@@ -186,9 +188,6 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			}
 		}
 
-		static float Roll(RandomNumberGenerator rng, float maximum) =>
-			rng?.RandfRange(0, Mathf.Max(0, maximum)) ?? (float)GD.RandRange(0f, Mathf.Max(0, maximum));
-
 		// Blocked and guard-broken contacts both carry the guard's reduced amount; the guard owns their reaction.
 		bool isDefended = defenseEval.Outcome is DamageOutcome.Blocked or DamageOutcome.GuardBroken;
 		if (Invulnerable) return isDefended ? Resolved(defenseEval.Outcome, 0f) : Resolved(DamageOutcome.Invulnerable, 0f);
@@ -209,9 +208,10 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		// A staggered defender (poise break or parry) is the punish window: its hits land harder before armor.
 		if (Poise?.IsAvailable == true && Poise.ActionGate.IsStaggered)
 			incomingAmount *= Poise.Definition.StaggeredDamageMultiplier;
-		// Armor stops physical blows only: elemental damage (missiles, spells, burning) passes it.
-		armorRoll = contact.BypassArmor || contact.Element != DamageElement.None ? 0 : Roll(random, Armor);
-		float finalDamage = Mathf.Max(0, incomingAmount - armorRoll);
+		// Armor blocks a roll of physical blows only (ArmorRules): elemental damage (missiles, spells, burning) passes it.
+		float armor = contact.BypassArmor || contact.Element != DamageElement.None ? 0 : Armor;
+		float finalDamage = ArmorRules.Mitigate(incomingAmount, armor, MinimumDamage, random);
+		armorReduction = Mathf.Max(0, incomingAmount) - finalDamage;
 		if (unaware) Awareness.NoticeAttacker(contact.OwnerNode);
 		// Capture the guard before absorption: the final hit can deplete it but still reflects.
 		var shield = _shield;

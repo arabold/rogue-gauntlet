@@ -132,6 +132,8 @@ public partial class PlayerStats : ObservableResource, IStatModifierTarget
 
 	// Resolved secondary stats: base + attribute derivation + active modifiers.
 	public float Speed => ResolveStat(StatType.Speed, BaseSpeed);
+	/// <summary>Share of the dodge's full distance the hero covers: medium body armor cuts it by a third, heavy halves it.</summary>
+	public float DodgeDistanceScale => Mathf.Max(0.1f, ResolveStat(StatType.DodgeDistance, 1f));
 	public float MaxHealth => ResolveStat(StatType.MaxHealth, (BaseMaxHealth + (Leveling?.HealthPerLevel ?? 0) * (XpLevel - 1))
 		* Mathf.Max(0, 1 + Coefficient(p => p.HealthPercentPerVitality) * (Vitality - StatProfile.AttributeBaseline)));
 	public float MaxMana => ResolveStat(StatType.MaxMana, BaseMaxMana + Intelligence * Coefficient(p => p.ManaPerIntelligence));

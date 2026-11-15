@@ -6,8 +6,8 @@
 [sub_resource type="Resource" id="Range_0"]
 script = ExtResource("2_range")
 Stat = 10
-MinValue = -7.0
-MaxValue = -5.0
+MinValue = -3.0
+MaxValue = -2.0
 metadata/_custom_type_script = ExtResource("2_range")
 
 [resource]

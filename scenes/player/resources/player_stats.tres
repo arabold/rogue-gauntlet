@@ -10,3 +10,4 @@ Profile = ExtResource("2_profile")
 Leveling = ExtResource("leveling")
 BaseMaxHealth = 50.0
 ManaRegenRate = 0.01
+BaseSpeed = 6.0

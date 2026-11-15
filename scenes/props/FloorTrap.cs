@@ -4,7 +4,10 @@ using System;
 /// <summary>A concealed, reusable spike trap. Discovery warns the player but never disarms it.</summary>
 public partial class FloorTrap : Node3D, IProximityDiscoverable
 {
+	/// <summary>Damage on the first depth; the balance model derives it (`simulate.py derive`).</summary>
 	[Export] public int Damage { get; set; } = 5;
+	/// <summary>Damage added per depth below the first, so a trap keeps its share of the hero's growing health.</summary>
+	[Export] public float DamagePerDepth { get; set; }
 	[Export] public TriggerComponent Trigger { get; set; }
 	[Export] public MeshInstance3D Spikes { get; set; }
 	[Export] public DiscoveryPulse DiscoveryEffect { get; set; }
@@ -16,6 +19,9 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 	public string PersistentId { get; private set; } = "";
 	public bool IsDiscovered { get; private set; }
 	public bool IsTriggered { get; private set; }
+	/// <summary>What a spring deals on its level's depth (the first outside a level), at least 1.</summary>
+	public int CurrentDamage => Mathf.Max(1, Mathf.RoundToInt(Damage + DamagePerDepth * ((int)(_level?.Depth ?? 1) - 1)));
+	private Level _level;
 	private GridMap _surfaceGrid;
 	private Vector3I _surfaceCell;
 	private ulong _levelSeed = 42;
@@ -23,6 +29,7 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 	private ExplorationVisibility _exploration;
 	private Tween _activeTween;
 	private ulong DiscoverySeed => GenerationRandom.DeriveSeed(_levelSeed, "trap-discovery", PersistentId);
+	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
 	public override void _Ready()
 	{
 		if (Trigger == null || Spikes == null || FloorSurface == null)
@@ -82,7 +89,7 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 		IsTriggered = true;
 		DiscoveryEffect?.Stop();
 		Reveal(false); // Stepping on it exposes the trap; its spike attack supplies the feedback.
-		damageable.TakeDamage(Damage, node.Basis.Z, this);
+		damageable.TakeDamage(CurrentDamage, node.Basis.Z, this);
 		_activeTween?.Kill();
 		_activeTween = CreateTween();
 		_activeTween.TweenProperty(Spikes, "position:y", 0f, 0.2f);

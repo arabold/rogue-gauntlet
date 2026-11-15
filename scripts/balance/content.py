@@ -15,7 +15,7 @@ import params as P
 import resources as R
 
 CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "curses", "classes", "supplies", "statuses",
-              "loot")
+              "traps", "loot")
 
 
 @dataclass
@@ -92,7 +92,7 @@ def _selected(path, match) -> bool:
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
     groups = [{"monsters": monsters, "encounters": encounters, "weapons": weapons, "armor": armor, "jewelry": jewelry,
                "curses": curses, "classes": classes, "supplies": supplies, "statuses": statuses,
-               "loot": loot}[c](match) for c in categories]
+               "traps": traps, "loot": loot}[c](match) for c in categories]
     _merge_shared(groups)
     return groups
 
@@ -308,8 +308,7 @@ def _realms(match=None):
 def _definition_of(scene: str):
     """The monster definition a scene's root saves, which is what the game reads: (file, section), or None."""
     f = R.load(scene)
-    root = next(s for s in f.sections if s.kind == "node")
-    ref = f.get(root, "Definition")
+    ref = f.get(f.root, "Definition")
     return f.follow(ref) if isinstance(ref, R.Ref) else None
 
 
@@ -419,7 +418,7 @@ def _is_wooden(file: R.TextResource, section: R.Section) -> bool:
     return isinstance(table, R.Ref) and table.kind == "ExtResource" and file.ext_path(table.id).endswith("/wooden_weapon.tres")
 
 
-def _combo_scales(file: R.TextResource, section: R.Section) -> tuple[float, float]:
+def combo_scales(file: R.TextResource, section: R.Section) -> tuple[float, float]:
     """Average damage and duration scale over a combo's steps; (1, 1) without a combo."""
     combo = file.get(section, "PrimaryCombo")
     if not isinstance(combo, R.Ref):
@@ -463,10 +462,10 @@ def weapons(match=None) -> Group:
             g.note(f"{name}: attack style {f.get(s, 'AttackStyle')!r} matches no weapon kind in params.WEAPONS")
             continue
         tier, w = int(f.get(s, "Tier", 1)), P.WEAPONS[kind]
-        damage_scale, duration_scale = _combo_scales(f, s)
+        damage_scale, duration_scale = combo_scales(f, s)
         material = P.GEAR["wooden"] if _is_wooden(f, s) and not w.get("ranged") else 1.0
         mean = M.reference_weapon_hit(M.tier_depth(tier)) * w["hit"] * material / damage_scale
-        lo, hi = (snap(x, 1, 1) for x in M.spread_range(mean, P.GEAR["weapon_spread"]))  # whole points, as players read them
+        lo, hi = (snap(x, 1, 1) for x in M.spread_range(mean, M.weapon_spread(kind)))  # whole points, as players read them
         fixed = f.get(s, "Delay", 0.0) + f.get(s, "CooldownDuration", 0.0)
         perform = round((w["cycle"] - fixed) / duration_scale, 2)
         label = f"{name} (T{tier})"
@@ -493,6 +492,9 @@ def weapons(match=None) -> Group:
 SLOT_FLAGS = {1 << 0: "helmet", 1 << 1: "body", 1 << 9: "shield"}  # EquipmentSlot in Inventory.cs
 
 
+HURTBOX = "res://scenes/components/HurtBoxComponent.cs"
+
+
 def _weight(file: R.TextResource, section: R.Section) -> str:
     return R.csharp_enum("ArmorWeight")[file.get(section, "Weight")].lower()
 
@@ -500,6 +502,9 @@ def _weight(file: R.TextResource, section: R.Section) -> str:
 def armor(match=None) -> Group:
     """Body armor and helmets by slot, weight and tier; shields by tier. Body armor also gets its weight's speed."""
     g = Group("Armor", headers=["armor", "slot", "weight", "tier", "armor", "derived"])
+    authored = R.script_default(HURTBOX, "MinimumDamage")
+    if abs(authored - P.ARMOR["minimum"]) > 1e-6:
+        g.note(f"HurtBoxComponent.MinimumDamage is {authored:g}; params.ARMOR['minimum'] is {P.ARMOR['minimum']:g}")
     for path in sorted(R.ROOT.glob("scenes/items/armor/**/*.tres")):
         if not _selected(path, match):
             continue
@@ -517,7 +522,8 @@ def armor(match=None) -> Group:
         target = max(1, round(M.slot_armor(slot, weight, M.tier_depth(tier), found=False)))
         g.add(f"{name} (T{tier})", f, s, "ArmorPoints", target)
         if slot == "body":
-            g.add(f"{name} (T{tier})", f, s, "SpeedModifier", P.GEAR["weight"][weight][2])
+            g.add(f"{name} (T{tier})", f, s, "SpeedModifier", P.GEAR["weight"][weight]["speed"])
+            g.add(f"{name} (T{tier})", f, s, "DodgeDistanceModifier", P.GEAR["weight"][weight]["dodge"])
         g.rows.append([name, slot, "" if slot == "shield" else weight, tier, f.get(s, "ArmorPoints"), target])
     return g
 
@@ -567,6 +573,7 @@ def classes(match=None) -> Group:
         g.add("Hero sheet", sheet, hs, "BaseMaxMana", a["mana_base"])
         g.add("Hero sheet", sheet, hs, "ManaRegenRate", a["mana_regen"])
         g.add("Hero sheet", sheet, hs, "BaseCritChance", 0.0)
+        g.add("Hero sheet", sheet, hs, "BaseSpeed", P.ENGAGEMENT["hero_speed"])
         pf, p = sheet.follow(sheet.get(hs, "Profile"))
         for key, value in _profile_values(P.CLASSES["reference"]).items():
             g.add("Default profile", pf, p, key, value)
@@ -710,6 +717,30 @@ def _ticks(file: R.TextResource, buff: R.Section) -> int:
 
 POTION_POOL = "res://scenes/items/loot/pools/potions.tres"
 HEALING_POTION = "potion.healing"
+TRAP_SCENE = "res://scenes/props/floor_trap.tscn"
+TRAP_PLACEMENT = "res://scenes/levels/generators/MapGenerator.Loot.cs"
+
+
+def traps(match=None) -> Group:
+    """
+    A floor trap's damage on depth 1 and per depth (`model.trap_line`), and the traps a floor places against TRAPS
+    `per_floor`.
+    """
+    g = Group("Traps", headers=["depth", "spring", "derived"])
+    f = R.load(TRAP_SCENE)
+    if not _selected(f.path, match):
+        return g
+    first, per_depth = M.trap_line()
+    g.add("Floor trap", f, f.root, "Damage", first)
+    g.add("Floor trap", f, f.root, "DamagePerDepth", per_depth)
+    authored = f.get(f.root, "Damage", 0), f.get(f.root, "DamagePerDepth", 0.0)
+    for d in (1, 12, P.DEPTHS):
+        g.rows.append([d, f"{max(1, round(authored[0] + authored[1] * (d - 1)))}", f"{M.trap_damage(d):.0f}"])
+    placed = (R.script_default(TRAP_PLACEMENT, "MinTraps") + R.script_default(TRAP_PLACEMENT, "MaxTraps")) / 2
+    if abs(placed - P.TRAPS["per_floor"]) > 1e-9:
+        g.note(f"Floors place {placed:g} traps on average (MapGenerator.MinTraps..MaxTraps); TRAPS per_floor is "
+               f"{P.TRAPS['per_floor']:g}")
+    return g
 
 
 def _pool_items(pool: R.TextResource):

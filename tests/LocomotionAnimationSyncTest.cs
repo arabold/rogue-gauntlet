@@ -48,7 +48,10 @@ public class LocomotionAnimationSyncTest
 
 		try
 		{
-			// Running: the 0.8 s run clip at about 2.8x completes several loops instead of freezing on its last frame.
+			// Running at the hero's run speed (6 m/s, above the 5.5 m/s blend end): the 0.8 s run clip plays at about 2.2x
+			// and completes several loops instead of freezing on its last frame.
+			float run = player.MovementComponent.Speed;
+			float walk = run * player.InputComponent.WalkSpeedFactor;
 			Input.ActionPress("move_right");
 			int wrapCount = 0;
 			float lastPosition = 0f;
@@ -63,20 +66,20 @@ public class LocomotionAnimationSyncTest
 			AssertString(playback.GetCurrentNode()).IsEqual("Walking");
 			AssertInt(wrapCount).IsGreaterEqual(2);
 			AssertFloat(Parameter("TimeScale/scale")).IsBetween(2.0f, 3.5f);
-			AssertFloat(player.MovementComponent.GroundSpeed).IsGreater(7.0f);
+			AssertFloat(player.MovementComponent.GroundSpeed).IsEqualApprox(run, 0.1f);
 			AssertObject(player.MovementComponent.LastMotionKind).IsEqual(MovementMotionKind.Locomotion);
-			// At full run speed (7.5 m/s) the blend is pure run.
+			// At full run speed the blend is pure run.
 			AssertFloat(Parameter("Blend2/blend_amount")).IsEqualApprox(1.0f, 0.05f);
 
-			// Walking: 40 % of 7.5 m/s is 3.0 m/s, which blends (3.0 - 1.5) / 4.0 = 0.375 toward the run clip.
+			// Walking: 40 % of 6 m/s is 2.4 m/s, which blends (2.4 - 1.5) / 4.0 = 0.225 toward the run clip.
 			Input.ActionPress("walk");
 			float HorizontalSpeed() => new Vector2(player.MovementComponent.Velocity.X, player.MovementComponent.Velocity.Z).Length();
-			await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(HorizontalSpeed() - 3.0f) < 0.1f, 1);
+			await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(HorizontalSpeed() - walk) < 0.1f, 1);
 			await runner.SimulateFrames(5, 20);
 			AssertBool(player.IsMoving).IsTrue();
 			AssertString(playback.GetCurrentNode()).IsEqual("Walking");
-			AssertFloat(Parameter("Blend2/blend_amount")).IsEqualApprox(0.375f, 0.05f);
-			AssertFloat(HorizontalSpeed()).IsEqualApprox(3.0f, 0.1f);
+			AssertFloat(Parameter("Blend2/blend_amount")).IsEqualApprox((walk - 1.5f) / 4.0f, 0.05f);
+			AssertFloat(HorizontalSpeed()).IsEqualApprox(walk, 0.1f);
 			Input.ActionRelease("walk");
 			Input.ActionRelease("move_right");
 			await TestFactories.AwaitPhysicsUntil(runner, () => !player.IsMoving, 1);

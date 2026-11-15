@@ -19,9 +19,11 @@ import json
 import math
 import os
 import random
+import statistics
 import sys
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor
+from contextlib import contextmanager
 from functools import cache, partial
 from pathlib import Path
 
@@ -61,7 +63,7 @@ def report_progression():
         h, m = M.hero("reference", d), M.monster("standard", d)
         per_hit = M.net_hit(*M.spread_range(m.hit, P.STANDARD["spread"]), h.armor)
         rows.append([d, "boss" if M.is_gatekeeper_floor(d) else "", levels[d], f"{h.hp:.0f}", f"{h.armor:.1f}",
-                     rng_range(h.hit, P.GEAR["weapon_spread"]), f"{m.hp:.0f}", f"{m.armor:.1f}",
+                     rng_range(h.hit, M.weapon_spread(h.weapon)), f"{m.hp:.0f}", f"{m.armor:.1f}",
                      rng_range(m.hit, P.STANDARD["spread"]), f"{h.hp / per_hit:.1f}",
                      f"{M.duel_cost(m, h, skill):.1%}", f"{M.lerp(P.FLOOR['budget'], d):.1f}",
                      f"{cumulative[d] - cumulative.get(d - 1, 0.0):.0f}"])
@@ -91,7 +93,7 @@ def report_gear():
         weapons = []
         for kind, w in P.WEAPONS.items():
             mean = M.reference_weapon_hit(d) * w["hit"]
-            weapons.append(f"{kind} {rng_range(mean, P.GEAR['weapon_spread'])}")
+            weapons.append(f"{kind} {rng_range(mean, M.weapon_spread(kind))}")
         armor = [f"{slot}/{weight} {M.slot_armor(slot, weight, d, found=False):.1f}"
                  for slot in ("body", "helmet") for weight in P.GEAR["weight"]]
         armor.append(f"shield {M.slot_armor('shield', 'medium', d, found=False):.1f}")
@@ -117,7 +119,7 @@ def report_classes():
         for name in P.CLASSES:
             h = M.hero(name, d)
             cost = M.duel_cost(m, h, skill)
-            rows.append([name, f"{h.hp:.0f}", f"{h.armor:.1f}", rng_range(h.hit, P.GEAR["weapon_spread"]),
+            rows.append([name, f"{h.hp:.0f}", f"{h.armor:.1f}", rng_range(h.hit, M.weapon_spread(h.weapon)),
                          f"{h.crit:.0%}", f"{M.hero_dps(h, m, skill):.1f}", f"{h.mana:.0f}",
                          f"{cost:.1%}", f"{cost / ref:.2f}"])
         print(f"Depth {d}")
@@ -189,7 +191,7 @@ def poisson(rng, lam):
 
 
 class Live:
-    __slots__ = ("m", "hp", "max", "next", "engage", "support_next", "approached", "lo", "hi", "dps", "uptime")
+    __slots__ = ("m", "hp", "max", "next", "engage", "support_next", "approached", "lo", "hi", "dps", "uptime", "avoid")
 
     def __init__(self, m, h, skill, rng, gap):
         self.m, self.hp, self.max = m, m.hp, m.hp
@@ -204,6 +206,7 @@ class Live:
         self.lo, self.hi = M.spread_range(per_dart, P.STANDARD["spread"])
         self.dps = monster_dps_at(m, h, skill)
         self.uptime = M.uptime(m)
+        self.avoid = M.avoid(h, m.kind, skill, m.speed)  # its own kind, kited by its speed
 
 
 def monster_dps_at(m, h, skill):
@@ -230,7 +233,8 @@ def fight(h, state, members, skill, rng):
     gap = P.ENGAGEMENT["gap"]
     units = [Live(m, h, skill, rng, gap) for m in members]
     w = P.WEAPONS[h.weapon]
-    spread = P.GEAR["weapon_spread"]
+    spread = M.weapon_spread(h.weapon)
+    opener_spread = M.weapon_spread(h.opener) if h.opener else spread
     eff = M.landing_efficiency(h, skill)
     ranged = h.ranged
     spell = h.spell
@@ -239,11 +243,11 @@ def fight(h, state, members, skill, rng):
     t, last, hero_next = 0.0, 0.0, P.ENGAGEMENT["strike"]
     melee_cap = P.ENGAGEMENT["melee_cap"]
 
-    def hit_unit(u, mean, armor_scale=1.0):
+    def hit_unit(u, mean, armor_scale=1.0, spread=spread):
         dmg = rng.uniform(*M.spread_range(mean, spread))
         if rng.random() < h.crit:
             dmg *= P.CRIT_MULTIPLIER
-        dmg = max(0.0, dmg - rng.uniform(0, u.m.armor * armor_scale))
+        dmg = M.roll_armor(dmg, u.m.armor * armor_scale, rng)
         u.hp -= dmg
 
     while True:
@@ -289,7 +293,7 @@ def fight(h, state, members, skill, rng):
                 continue
             if opening:
                 if rng.random() < skill["efficiency"] * (1 - target.m.guard):
-                    hit_unit(target, h.opener_hit)
+                    hit_unit(target, h.opener_hit, spread=opener_spread)
                 hero_next = t + h.opener_cycle
                 continue
             if rng.random() < eff * (1 - target.m.guard):
@@ -318,12 +322,12 @@ def fight(h, state, members, skill, rng):
             if rng.random() >= u.uptime:
                 continue  # the hero kept this attack from starting
             kind = "area" if u.m.area and rng.random() < u.m.area else u.m.kind
-            if rng.random() < avoid[kind]:
+            if rng.random() < (u.avoid if kind == u.m.kind else avoid[kind]):
                 continue
             mult = phase_multiplier(u)
             for _ in range(u.m.darts):
                 dmg = rng.uniform(u.lo, u.hi) * mult
-                dmg = max(0.0, dmg - rng.uniform(0, h.armor))
+                dmg = M.roll_armor(dmg, h.armor, rng)
                 chance, extra = u.m.status
                 if dmg > 0 and rng.random() < chance:
                     dmg += extra * (u.lo + u.hi) / 2
@@ -349,6 +353,10 @@ def run(name, skill_name, rng):
         food += poisson(rng, P.SUPPLY["food"])
         if d in P.SUPPLY["fountain_depths"]:
             state["hp"] = h.hp
+        for _ in range(poisson(rng, P.TRAPS["per_floor"] * P.TRAPS["triggers"])):
+            state["hp"] -= M.roll_armor(M.trap_damage(d), h.armor, rng)
+            if state["hp"] <= 0:
+                return d
         packs = compose_floor(d, rng)
         if M.is_gatekeeper_floor(d):
             packs.append([monster_at("boss", d)])
@@ -374,8 +382,8 @@ def health_lost(h, state, pack, skill, rng):
     return (1e12 - state["hp"]) / h.hp
 
 
-def floor_cost(name, depth, skill, rng, floors):
-    """Mean share of max health one floor's packs take, resting between packs."""
+def packs_cost(name, depth, skill, rng, floors):
+    """Mean share of max health one floor's packs take, resting between packs; its traps cost `M.trap_cost`."""
     h = hero_at(name, depth)
     state = {"potions": [], "mana": h.mana}
     total = 0.0
@@ -419,33 +427,118 @@ def in_parallel(job, *args):
 GATEKEEPER_DEPTHS = [d for d in range(1, P.DEPTHS + 1) if M.is_gatekeeper_floor(d)]
 
 
-def parity_job(name, floors, seed):
-    """One class's ordinary floor and gatekeeper costs at every gatekeeper depth."""
-    rng, skill = job_rng(seed, P.REFERENCE_SKILL, name), P.SKILL[P.REFERENCE_SKILL]
-    return ({d: floor_cost(name, d, skill, rng, floors) for d in GATEKEEPER_DEPTHS},
-            {d: boss_cost(name, d, skill, rng, floors) for d in GATEKEEPER_DEPTHS})
+@contextmanager
+def floor_settings(floor=None):
+    """FLOOR with `floor`'s overrides for the duration of the block; its own values come back afterwards."""
+    saved = dict(P.FLOOR)
+    P.FLOOR.update(floor or {})
+    try:
+        yield
+    finally:
+        P.FLOOR.clear()
+        P.FLOOR.update(saved)
+
+
+def attrition_job(name, floors, seed, floor=None, gatekeepers=True):
+    """
+    One class's attrition at every depth, at REFERENCE_SKILL without potions and under FLOOR `floor` overrides: each
+    floor's packs, its traps, and with `gatekeepers` each gatekeeper.
+    """
+    with floor_settings(floor):
+        rng, skill = job_rng(seed, P.REFERENCE_SKILL, name), P.SKILL[P.REFERENCE_SKILL]
+        depths = range(1, P.DEPTHS + 1)
+        return ({d: packs_cost(name, d, skill, rng, floors) for d in depths},
+                {d: M.trap_cost(hero_at(name, d)) for d in depths},
+                {d: boss_cost(name, d, skill, rng, floors) for d in GATEKEEPER_DEPTHS} if gatekeepers else {})
+
+
+def class_attrition(names, floors, seed, floor=None, gatekeepers=True) -> dict:
+    """`attrition_job` for each class of `names`, in parallel: {name: (packs, traps, gatekeepers)}."""
+    job = partial(attrition_job, floors=floors, seed=seed, floor=floor, gatekeepers=gatekeepers)
+    return dict(zip(names, in_parallel(job, names)))
+
+
+def class_mean(costs: dict, part: int) -> dict:
+    """The playable classes' mean of one part of `class_attrition`'s results, per depth."""
+    return {d: sum(costs[n][part][d] for n in CLASS_NAMES) / len(CLASS_NAMES) for d in costs[CLASS_NAMES[0]][part]}
 
 
 def report_parity(floors, seed):
     names = ["reference"] + CLASS_NAMES
-    costs = dict(zip(names, in_parallel(partial(parity_job, floors=floors, seed=seed), names)))
-    floor = {d: {n: costs[n][0][d] for n in names} for d in GATEKEEPER_DEPTHS}
-    boss = {d: {n: costs[n][1][d] for n in names} for d in GATEKEEPER_DEPTHS}
-    realm = {d: {n: P.REALM_SIZE * floor[d][n] + boss[d][n] for n in names} for d in GATEKEEPER_DEPTHS}
+    costs = class_attrition(names, floors, seed)
+
+    def floor_cost(name, d):
+        packs, traps, _ = costs[name]
+        return packs[d] + traps[d]
+
+    # A realm's ordinary floors are costed by the one before its gatekeeper's.
+    floor = {d: {n: floor_cost(n, d - 1) for n in names} for d in GATEKEEPER_DEPTHS}
+    boss = {d: {n: floor_cost(n, d) + costs[n][2][d] for n in names} for d in GATEKEEPER_DEPTHS}
+    realm = {d: {n: (P.REALM_SIZE - 1) * floor[d][n] + boss[d][n] for n in names} for d in GATEKEEPER_DEPTHS}
     print(f"Health lost relative to the class mean ({P.REFERENCE_SKILL} skill, no potions, {floors} samples). "
           "Below 1 is stronger; * = outside tolerance.\n")
     print(f"Realm: {P.REALM_SIZE} floors and the gatekeeper (parity, +-{P.PARITY_TOLERANCE:.0%})")
     parity_table(realm, P.PARITY_TOLERANCE)
-    print(f"Ordinary floor (matchup, +-{P.MATCHUP_TOLERANCE:.0%})")
+    print(f"Ordinary floor, the one before the gatekeeper's (matchup, +-{P.MATCHUP_TOLERANCE:.0%})")
     parity_table(floor, P.MATCHUP_TOLERANCE)
-    print(f"Gatekeeper (matchup, +-{P.MATCHUP_TOLERANCE:.0%})")
+    print(f"Gatekeeper floor: its packs and traps and the gatekeeper (matchup, +-{P.MATCHUP_TOLERANCE:.0%})")
     parity_table(boss, P.MATCHUP_TOLERANCE)
 
 
-def survival_job(skill_name, name, runs, seed):
-    """The depth each of `runs` runs of one class at one skill reached."""
-    rng = job_rng(seed, skill_name, name)
-    return [run(name, skill_name, rng) for _ in range(runs)]
+def survival_job(skill_name, name, runs, seed, floor=None):
+    """The depth each of `runs` runs of one class at one skill reached, under FLOOR `floor` overrides."""
+    with floor_settings(floor):
+        rng = job_rng(seed, skill_name, name)
+        return [run(name, skill_name, rng) for _ in range(runs)]
+
+
+def arrival(reached, depth) -> float:
+    """Share of runs that arrived at `depth`."""
+    return sum(r >= depth for r in reached) / len(reached)
+
+
+def report_fit(floors, seed, rounds=3, runs=1000):
+    """
+    Sizes FLOOR's budget (a line from depth 1 to 24) and gatekeeper share to ATTRITION, the class mean at
+    REFERENCE_SKILL without potions: packs cost in proportion to the budget they spend, traps and gatekeepers do not.
+    Prints the attrition it reaches and the arrival odds of the reference hero against TARGETS.
+    """
+    target = P.ATTRITION
+    floor = dict(budget=P.FLOOR["budget"], boss_budget_share=P.FLOOR["boss_budget_share"])
+    ordinary = [d for d in range(1, P.DEPTHS + 1) if not M.is_gatekeeper_floor(d)]
+    costs = class_attrition(CLASS_NAMES, floors, seed, floor)
+    traps, boss = class_mean(costs, 1), class_mean(costs, 2)  # neither depends on the budget
+    for _ in range(rounds):
+        packs = class_mean(costs, 0)
+        need = [M.lerp(floor["budget"], d) * (target["floor"] - traps[d]) / packs[d] for d in ordinary]
+        slope, intercept = statistics.linear_regression(ordinary, need)
+        share = floor["boss_budget_share"]
+        shares = [share * max(0.0, target["gatekeeper_floor"] - traps[d] - boss[d]) / packs[d] for d in GATEKEEPER_DEPTHS]
+        floor = dict(budget=(round(intercept + slope, 1), round(intercept + slope * P.DEPTHS, 1)),
+                     boss_budget_share=round(min(1.0, sum(shares) / len(shares)), 2))
+        costs = class_attrition(CLASS_NAMES, floors, seed, floor, gatekeepers=False)
+    packs = class_mean(costs, 0)
+    changed = floor != {k: P.FLOOR[k] for k in floor}
+    print(f"Attrition: {P.REFERENCE_SKILL} skill, class mean, no potions; targets: ordinary floor "
+          f"{target['floor']:.0%}, gatekeeper floor {target['gatekeeper_floor']:.0%}\n")
+    rng, rows = random.Random(seed), []
+    with floor_settings(floor):
+        for d in range(1, P.DEPTHS + 1):
+            gatekeeper = boss.get(d, 0.0)
+            monsters = sum(sum(len(p) for p in compose_floor(d, rng)) for _ in range(200)) / 200
+            rows.append([d, "gatekeeper" if gatekeeper else "", f"{M.floor_budget(d):.1f}", f"{monsters:.1f}",
+                         f"{packs[d]:.0%}", f"{traps[d]:.0%}", f"{gatekeeper:.0%}" if gatekeeper else "",
+                         f"{packs[d] + traps[d] + gatekeeper:.0%}"])
+    table(["depth", "", "budget", "monsters", "packs", "traps", "gatekeeper", "attrition"], rows)
+    print(f"\nFLOOR: budget={floor['budget']}, boss_budget_share={floor['boss_budget_share']}"
+          + ("  (differs from params.py: set it, then `derive`)" if changed else ""))
+    skills = list(P.SKILL)
+    reached = dict(zip(skills, in_parallel(partial(survival_job, name="reference", runs=runs, seed=seed, floor=floor), skills)))
+    depths = sorted({d for t in P.TARGETS.values() for d in t})
+    print(f"\nArrival odds of the reference hero ({runs} runs) against TARGETS")
+    table(["skill"] + [f"depth {d}" for d in depths],
+          [[skill] + [f"{arrival(reached[skill], d):.0%}" + (f" / {P.TARGETS[skill][d]:.0%}" if d in P.TARGETS[skill] else "")
+                      for d in depths] for skill in skills])
 
 
 def report_survival(runs, seed, classes):
@@ -460,10 +553,10 @@ def report_survival(runs, seed, classes):
             reached = results[skill_name, name]
             row = [name]
             for d in shown:
-                row.append(f"{sum(1 for r in reached if r >= d) / runs:.0%}")
+                row.append(f"{arrival(reached, d):.0%}")
             rows.append(row)
             for d, target in P.TARGETS.get(skill_name, {}).items():
-                actual = sum(1 for r in reached if r >= d) / runs
+                actual = arrival(reached, d)
                 if abs(actual - target) > P.TARGET_TOLERANCE:
                     flagged.append(f"{skill_name} {name}: reach {d} = {actual:.0%}, target {target:.0%}")
         print(f"{skill_name} (targets: " + ", ".join(f"{d}: {p:.0%}" for d, p in P.TARGETS.get(skill_name, {}).items()) + ")")
@@ -488,9 +581,9 @@ def evaluate_weapon(args):
     ref = M.hero("reference", d)
     budget = M.reference_weapon_hit(d)
     item = net_dps(lo, hi, args.cycle, m)
-    reference = net_dps(*M.spread_range(budget, P.GEAR["weapon_spread"]), P.WEAPONS["sword_1h"]["cycle"], m)
+    reference = net_dps(*M.spread_range(budget, M.weapon_spread("sword_1h")), P.WEAPONS["sword_1h"]["cycle"], m)
     ratio = item / reference
-    print(f"T{args.tier} on curve at depth {d}; reference sword {rng_range(budget, P.GEAR['weapon_spread'])} "
+    print(f"T{args.tier} on curve at depth {d}; reference sword {rng_range(budget, M.weapon_spread('sword_1h'))} "
           f"every {P.WEAPONS['sword_1h']['cycle']}s")
     print(f"Damage per second vs the standard monster: {item:.1f} ({ratio:.0%} of the reference sword)")
     if args.hands == 2:
@@ -551,8 +644,11 @@ def report_audit(categories, match):
 GODOT = R.ROOT / ".agents/skills/godot-mcp/scripts/godot.sh"
 
 
-def report_supply(depths, seeds, samples):
-    """Runs the game's loot supply probe headless and compares healing, food and gear per floor with SUPPLY."""
+def report_supply(depths, seeds, samples, save=False):
+    """
+    Runs the game's loot supply probe headless and compares healing, food and gear per floor with SUPPLY. With `save`,
+    writes the weapons each depth drops to `weapon_supply.json` (params.WEAPON_SUPPLY).
+    """
     import subprocess
     import tempfile
     out = Path(tempfile.mkdtemp()) / "supply.json"
@@ -560,6 +656,10 @@ def report_supply(depths, seeds, samples):
                     "--", f"--supply-out={out}", f"--supply-depths={depths}", f"--supply-seeds={seeds}",
                     f"--supply-samples={samples}"], check=True, capture_output=True)
     report = json.loads(out.read_text())
+    if save:
+        path = P.WEAPON_SUPPLY_PATH
+        path.write_text(json.dumps(dict(seeds=seeds, samples=samples, depths=weapon_supply(report)), indent=1) + "\n")
+        print(f"Wrote the weapon supply of depths {depths} to {path.name}\n")
     s = P.SUPPLY
     print(f"Items per floor from the real loot generator ({seeds} floors per depth), against SUPPLY\n")
     rows = []
@@ -571,6 +671,28 @@ def report_supply(depths, seeds, samples):
                      f"{heal:.0%}", f"{M.healing_share(int(depth)):.0%}", f"{items.get('food', 0):.2f}",
                      f"{s['food']:.2f}", gear])
     table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
+
+
+def weapon_supply(report: dict) -> dict:
+    """
+    The probe's weapons per depth as [kind, mean hit per swing, expected count]: each rolled weapon's mean damage times
+    its combo's average damage scale, merged by kind and mean.
+    """
+    supply = {}
+    for depth, items in report.items():
+        merged = {}
+        for key, count in items.items():
+            if not key.startswith("weapon|"):
+                continue
+            _, definition, mean = key.split("|")
+            f = R.load(definition)
+            kind = C.weapon_kind(f, f.main)
+            if kind is None:
+                continue
+            per_swing = round(float(mean) * C.combo_scales(f, f.main)[0], 3)
+            merged[(kind, per_swing)] = merged.get((kind, per_swing), 0.0) + count
+        supply[depth] = [[kind, mean, round(count, 4)] for (kind, mean), count in sorted(merged.items())]
+    return supply
 
 
 # How an attack's contacts arrive (`delivery` on `attack.started`) as the model's attack kinds; projectiles that home in
@@ -756,9 +878,87 @@ def report_playtest(paths):
     table(["depth", "minutes", "kills", "xp", "level", "damage taken", "healed", "model healing", "healing potions found",
            "used", "gear found", ""], rows)
     print()
+    report_fights(paths)
     report_identities(paths)
     report_statuses(paths)
     report_calibration(paths)
+
+
+def _actor_root(path: str) -> str:
+    """The node path of the actor a node belongs to: the level's runtime child it sits under."""
+    parts = path.split("/")
+    return "/".join(parts[:parts.index("RuntimeWorld") + 2]) if "RuntimeWorld" in parts else path
+
+
+def read_fights(path):
+    """
+    What each monster in a playtest log took and dealt: the hero's contacts on it (blocked ones included) from the first
+    to its death, and its damage to the hero; plus floor hazard damage and the first weapon the hero picked up. A
+    monster is named by its death, else by its node's name when that is a monster's (pooled rats and minions get
+    generated node names, so one of those that never died is unidentified).
+    """
+    fights, names = defaultdict(lambda: dict(contacts=0, first=None, died=None, dealt=0.0, hits=0)), {}
+    hazard, hazard_hits, first_weapon, depth = 0.0, 0, None, 0
+    for record in records(path):
+        event, data, time = record["event"], record["data"], record["time"]
+        if event == "floor.entered":
+            depth = data["depth"]
+        elif event == "actor.died" and data.get("monster"):
+            names[record["actor"]] = data["monster"]
+            fights[record["actor"]]["died"] = time
+        elif event == "item.picked_up" and data["item"]["kind"] == "Weapon" and first_weapon is None:
+            first_weapon = dict(time=time, depth=depth, **data["item"])
+        elif event == "damage.resolved":
+            owner, target, damage = data.get("owner", ""), _actor_root(record["actor"]), data.get("damage") or 0.0
+            if is_hero(owner + "/"):
+                fight = fights[target]
+                fight["contacts"] += 1
+                fight["first"] = time if fight["first"] is None else fight["first"]
+            elif is_hero(record["actor"]):
+                if "/FloorContent/" in owner:
+                    hazard, hazard_hits = hazard + damage, hazard_hits + 1
+                else:
+                    fight = fights[_actor_root(owner)]
+                    fight["dealt"] += damage
+                    fight["hits"] += 1
+    by_node = {name.lower().removeprefix("the ").replace(" ", ""): name for name in C.monster_archetypes()}
+    for actor, fight in fights.items():
+        fight["name"] = names.get(actor) or by_node.get(actor.rsplit("/", 1)[-1].lower(), "unidentified")
+    return list(fights.values()), (hazard, hazard_hits), first_weapon
+
+
+def report_fights(paths):
+    """Per monster type: hero hits to kill, time to kill and the damage it dealt; then trap damage and first weapons."""
+    archetypes = C.monster_archetypes()
+    by_name, hazard, hazard_hits, weapons = defaultdict(list), 0.0, 0, []
+    for path in paths:
+        fights, (damage, hits), weapon = read_fights(path)
+        for fight in fights:
+            by_name[fight["name"]].append(fight)
+        hazard, hazard_hits = hazard + damage, hazard_hits + hits
+        if weapon:
+            weapons.append((Path(path).name, weapon))
+    rows = []
+    for name, fights in sorted(by_name.items(), key=lambda item: -sum(f["dealt"] for f in item[1])):
+        killed = [f for f in fights if f["died"] is not None and f["contacts"]]
+        contacts = [f["contacts"] for f in killed]
+        seconds = [f["died"] - f["first"] for f in killed]
+        dealt = sum(f["dealt"] for f in fights)
+        if not killed and not dealt:
+            continue  # props the hero struck, which neither die as monsters nor hit back
+        rows.append([name, archetypes.get(name, "-"), len(killed),
+                     f"{sum(contacts) / len(contacts):.1f} ({min(contacts)}-{max(contacts)})" if contacts else "-",
+                     sum(1 for n in contacts if n == 1), f"{sum(seconds) / len(seconds):.1f}" if seconds else "-",
+                     sum(f["hits"] for f in fights), f"{dealt:.1f}", f"{dealt / max(len(fights), 1):.1f}"])
+    print("Monsters the hero fought: hero contacts to kill (blocked ones count), seconds from the first contact, and the "
+          "damage they dealt\n")
+    table(["monster", "archetype", "killed", "hits to kill", "one-hit kills", "seconds", "hits on hero", "damage dealt",
+           "per monster"], rows)
+    print(f"\nFloor traps: {hazard_hits} hits, {hazard:.1f} damage.")
+    for name, w in weapons:
+        print(f"First weapon found ({name}): {w['name']} (T{w['tier']} {w['quality']}{', cursed' if w.get('cursed') else ''})"
+              f" on depth {w['depth']} at {int(w['time'] // 60)}:{int(w['time'] % 60):02d}.")
+    print()
 
 
 def report_identities(paths):
@@ -849,6 +1049,9 @@ def main():
     pa = sub.add_parser("parity")
     pa.add_argument("--floors", type=int, default=200)
     pa.add_argument("--seed", type=int, default=1)
+    fi = sub.add_parser("fit", help="size the floor budget to ATTRITION and report arrival odds")
+    fi.add_argument("--floors", type=int, default=100)
+    fi.add_argument("--seed", type=int, default=1)
     s = sub.add_parser("survival")
     s.add_argument("--runs", type=int, default=300)
     s.add_argument("--seed", type=int, default=1)
@@ -883,6 +1086,7 @@ def main():
     sp.add_argument("--depths", default="1-3")
     sp.add_argument("--seeds", type=int, default=12)
     sp.add_argument("--samples", type=int, default=40)
+    sp.add_argument("--save", action="store_true", help="write the weapons each depth drops to weapon_supply.json")
     for name in ("audit", "derive"):
         c = sub.add_parser(name)
         c.add_argument("--only", default=",".join(C.CATEGORIES), help="categories: " + ", ".join(C.CATEGORIES))
@@ -901,6 +1105,8 @@ def main():
             report_xp()
         case "parity":
             report_parity(args.floors, args.seed)
+        case "fit":
+            report_fit(args.floors, args.seed)
         case "survival":
             report_survival(args.runs, args.seed, args.classes.split(","))
         case "weapon":
@@ -914,7 +1120,7 @@ def main():
         case "playtest":
             report_playtest(args.logs)
         case "supply":
-            report_supply(args.depths, args.seeds, args.samples)
+            report_supply(args.depths, args.seeds, args.samples, args.save)
         case "audit" | "derive":
             categories = [c.strip() for c in args.only.split(",")]
             unknown = set(categories) - set(C.CATEGORIES)

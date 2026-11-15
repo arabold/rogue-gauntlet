@@ -1,8 +1,8 @@
 using Godot;
 
 /// <summary>
-/// How a monster fights: positioning, engagement tactics, defense, an optional low-health retreat and the actions it
-/// chooses from. The first offensive attack or spell is the primary action: movement strategies close to its range and
+/// How a monster fights: positioning, engagement tactics, defense, an optional flank and low-health retreat, and the
+/// actions it chooses from. The first offensive attack or spell is the primary action: movement strategies close to its range and
 /// wait for its attack slot, while every other eligible action (a rush, a support spell) can still fire.
 /// </summary>
 [Tool]
@@ -12,6 +12,8 @@ public partial class EnemyCombatProfile : Resource
 	[ExportGroup("Tactics")]
 	[Export] public EnemyTacticalStrategy TacticalStrategy { get; set; }
 	[Export] public EnemyMovementStrategy MovementStrategy { get; set; }
+	/// <summary>Optional: close in from a bearing behind the target rather than straight on, whatever the movement strategy.</summary>
+	[Export] public FlankStrategy Flank { get; set; }
 	[Export] public EnemyDefenseStrategy DefenseStrategy { get; set; }
 	[Export] public EnemyRetreatCondition RetreatCondition { get; set; }
 	[ExportGroup("Actions")]
@@ -40,6 +42,9 @@ public partial class EnemyCombatProfile : Resource
 		}
 	}
 
+	/// <summary>Whether a monster standing <paramref name="distance"/> from its target is beyond its primary action's reach.</summary>
+	public bool IsOutsidePrimaryReach(float distance) => PrimaryOffense is not { } primary || distance > primary.EffectiveMaximumRange;
+
 	/// <summary>Only an offensive attack or spell can anchor engagement; a dash has no reach or slot of its own.</summary>
 	public static bool IsPrimaryCandidate(MonsterAction action) => action is MonsterTimedAction { IsOffensive: true };
 
@@ -54,6 +59,7 @@ public partial class EnemyCombatProfile : Resource
 			TacticalStrategy.Validate(context);
 		if (context.Check(MovementStrategy != null, "MovementStrategy: assign a positioning strategy."))
 			MovementStrategy.Validate(context, this);
+		Flank?.Validate(context, this);
 		DefenseStrategy?.Validate(context);
 		RetreatCondition?.Validate(context);
 		var seen = new System.Collections.Generic.HashSet<MonsterAction>();

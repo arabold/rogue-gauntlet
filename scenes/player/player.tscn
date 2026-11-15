@@ -493,10 +493,11 @@ script = ExtResource("13_0dcb4")
 Player = NodePath("..")
 InteractionArea = NodePath("../InteractionArea")
 
-[node name="PlayerStatsController" type="Node" parent="." unique_id=2034814739 node_paths=PackedStringArray("Player", "MovementComponent", "HurtBoxComponent", "HealthComponent", "ManaComponent")]
+[node name="PlayerStatsController" type="Node" parent="." unique_id=2034814739 node_paths=PackedStringArray("Player", "MovementComponent", "DodgeComponent", "HurtBoxComponent", "HealthComponent", "ManaComponent")]
 script = ExtResource("14_ilumj")
 Player = NodePath("..")
 MovementComponent = NodePath("../MovementComponent")
+DodgeComponent = NodePath("../DodgeComponent")
 HurtBoxComponent = NodePath("../HurtBoxComponent")
 HealthComponent = NodePath("../HealthComponent")
 ManaComponent = NodePath("../ManaComponent")

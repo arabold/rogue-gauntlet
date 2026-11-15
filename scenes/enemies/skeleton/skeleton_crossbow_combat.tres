@@ -28,8 +28,8 @@ RiposteEligible = true
 Attack = SubResource("shot_attack")
 Style = &"ranged"
 Duration = 1.4
-MinDamage = 5.5
-MaxDamage = 11.0
+MinDamage = 3.0
+MaxDamage = 6.5
 
 [resource]
 script = ExtResource("profile")

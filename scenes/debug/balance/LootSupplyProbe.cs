@@ -6,7 +6,9 @@ using Godot;
 /// Headless probe behind the balance model's supply check (<c>simulate.py supply</c>). It generates seeded floors for each
 /// depth, finds every loot source on them (loose pickups, chests, monsters, the gatekeeper) and samples each source's
 /// loot many times through the game's own <see cref="LootTableComponent.GenerateOutcome(LootDropProfile, uint, RandomNumberGenerator, string)"/>,
-/// then writes the average items per floor as JSON and quits. Nest summons are not counted.
+/// then writes the average items per floor as JSON and quits. Nest summons are not counted. Each weapon also counts under
+/// its definition and the mean damage it deals as rolled (quality, affixes and curse included), which the model's
+/// expected weapon draws from.
 /// <code>godot --headless --path . res://scenes/debug/balance/loot_supply_probe.tscn -- --supply-out=FILE [--supply-depths=1-3] [--supply-seeds=12] [--supply-samples=40]</code>
 /// </summary>
 public partial class LootSupplyProbe : Node
@@ -79,6 +81,11 @@ public partial class LootSupplyProbe : Node
 	private static void Add(Dictionary<string, double> totals, Item item, double quantity)
 	{
 		if (item == null) return;
+		if (item is Weapon weapon)
+		{
+			string rolled = $"weapon|{weapon.DefinitionPath}|{MeanDamage(weapon):0.##}";
+			totals[rolled] = totals.GetValueOrDefault(rolled) + quantity;
+		}
 		string key = item switch
 		{
 			Gold => "gold",
@@ -90,5 +97,13 @@ public partial class LootSupplyProbe : Node
 			_ => item.GetType().Name,
 		};
 		totals[key] = totals.GetValueOrDefault(key) + quantity;
+	}
+
+	/// <summary>The mean of a weapon's own damage range, folded by the same ledger the wielder's attack uses.</summary>
+	private static float MeanDamage(Weapon weapon)
+	{
+		var ledger = new StatModifierLedger();
+		ledger.Register(weapon, weapon.StatModifiers, handLocal: true);
+		return (ledger.Resolve(StatType.MinDamage, 0, weapon) + ledger.Resolve(StatType.MaxDamage, 0, weapon)) / 2;
 	}
 }

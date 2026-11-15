@@ -27,7 +27,7 @@ Components execute capabilities; strategies and actions request them; the [share
 
 | Policy | Supported behavior |
 | --- | --- |
-| Movement | Close distance, engagement ring (wait for an attack slot around the player), maintain distance, attack then retreat |
+| Movement | Close distance, engagement ring (wait for an attack slot around the player), maintain distance, attack then retreat; plus an optional flank on any of them (close in from behind or from around the player: `flank_rear`, `surround`) |
 | Actions | Any mix of `MonsterAttackAction`, `MonsterSpellAction` and `MonsterDashAction`, each with priority, weight, cooldown, range, target selector, conditions and weight modifiers |
 | Defense | One categorical guard/dodge/no-response choice per observed threat |
 | Low-health override | Optional retreat with duration bounds and health hysteresis |

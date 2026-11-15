@@ -23,31 +23,51 @@ def lerp(pair, depth: float) -> float:
     return a + (b - a) * t
 
 
+def mitigate(hit: float, armor: float) -> float:
+    """
+    Mean damage of a physical hit through `armor`, as the game's `ArmorRules.Mitigate`: armor blocks a uniform roll in
+    [0, armor], but the hit deals at least the minimum (a smaller hit deals itself).
+    """
+    floor = P.ARMOR["minimum"]
+    if hit <= floor or armor <= 0:
+        return max(0.0, hit)
+    if hit >= floor + armor:
+        return hit - armor / 2
+    return floor + (hit - floor) ** 2 / (2 * armor)
+
+
+def roll_armor(hit: float, armor: float, rng) -> float:
+    """One physical hit through `armor`, rolled as the game does (`mitigate` is its mean)."""
+    if hit <= 0:
+        return 0.0
+    return max(min(hit, P.ARMOR["minimum"]), hit - rng.uniform(0, armor)) if armor > 0 else hit
+
+
 def net_hit(lo: float, hi: float, armor: float) -> float:
-    """Mean damage of a hit rolled in [lo, hi] after armor absorbs a uniform roll in [0, armor]."""
+    """Mean damage of a hit rolled uniformly in [lo, hi] through `armor` (`mitigate`), in closed form."""
     lo, hi = max(0.0, lo), max(0.0, hi)
     if armor <= 0:
         return (lo + hi) / 2
     if hi - lo < 1e-9:
-        h = lo
-        return h - armor / 2 if h >= armor else h * h / (2 * armor)
-
-    def above(a, b):  # integral of (h - armor / 2)
-        return (b * b - a * a) / 2 - armor * (b - a) / 2
-
-    def below(a, b):  # integral of h^2 / (2 armor)
-        return (b ** 3 - a ** 3) / (6 * armor)
-
-    total = 0.0
-    if lo < armor:
-        total += below(lo, min(hi, armor))
-    if hi > armor:
-        total += above(max(lo, armor), hi)
+        return mitigate(lo, armor)
+    floor = P.ARMOR["minimum"]
+    knee = floor + armor  # above it the whole roll comes off; between floor and knee the minimum may hold
+    pieces = (
+        (0.0, floor, lambda h: h * h / 2),
+        (floor, knee, lambda h: floor * h + (h - floor) ** 3 / (6 * armor)),
+        (knee, float("inf"), lambda h: h * h / 2 - armor * h / 2),
+    )
+    total = sum(f(min(hi, b)) - f(max(lo, a)) for a, b, f in pieces if lo < b and hi > a)
     return total / (hi - lo)
 
 
 def spread_range(mean: float, spread: float):
     return mean * (1 - spread), mean * (1 + spread)
+
+
+def weapon_spread(kind: str) -> float:
+    """How far a weapon kind's damage range reaches either side of its mean, as a share of it."""
+    return P.WEAPONS[kind]["spread"]
 
 
 # --- Hero ---------------------------------------------------------------------------------------
@@ -67,6 +87,8 @@ class Hero:
     mana_regen: float = 0.0
     spell: dict | None = None  # the class spell, which scales off the focus's hit
     avoid_bonus: dict = field(default_factory=dict)
+    speed: float = P.ENGAGEMENT["hero_speed"]   # movement speed in the class's armor
+    opener: str | None = None  # the weapon kind of a ranged opener before closing in
     opener_hit: float = 0.0
     opener_cycle: float = 0.0
 
@@ -82,13 +104,6 @@ def level_at(depth: float) -> float:
 
 def found_bonus(depth: float) -> float:
     return lerp(P.GEAR["found_bonus"], depth)
-
-
-def starter_share(depth: float) -> float:
-    """Share of the on-curve weapon the expected hero wields: the worn starting weapon at depth 1, replaced by found
-    weapons over the first `starter_depths` depths."""
-    g = P.GEAR
-    return g["starter"] + (1 - g["starter"]) * min(1.0, (depth - 1) / g["starter_depths"])
 
 
 def reference_weapon_hit(depth: float) -> float:
@@ -115,24 +130,75 @@ def standard_hit(depth: float) -> float:
     """Mean hit of the standard monster: the reference hero dies in `hits_to_die` of them after armor."""
     ref = P.CLASSES["reference"]
     hp = hero_hp(ref, level_at(depth))
-    armor_share = (P.GEAR["slot_armor"]["body"] + P.GEAR["slot_armor"]["helmet"]) * (1 + found_bonus(depth))
-    return hp / (lerp(P.STANDARD["hits_to_die"], depth) * (1 - armor_share / 2))
+    armor = slot_armor("body", ref["armor"], depth) + slot_armor("helmet", ref["armor"], depth)
+    return hp / lerp(P.STANDARD["hits_to_die"], depth) + armor / 2  # the hero's armor blocks half its value per hit
 
 
 def slot_armor(slot: str, weight: str, depth: float, found: bool = True) -> float:
     """Armor of one piece on curve at `depth`; `found` adds the expected quality and affix bonus."""
-    mult = P.GEAR["weight"][weight][0] if slot != "shield" else 1.0
-    value = P.GEAR["slot_armor"][slot] * mult * standard_hit(depth)
+    mult = P.GEAR["weight"][weight]["armor"] if slot != "shield" else 1.0
+    value = P.GEAR["slot_armor"][slot] * mult * reference_weapon_hit(depth)
     return value * (1 + found_bonus(depth)) if found else value
 
 
-def weapon_mean(kind: str, depth: float, cls: dict, found: bool = True) -> float:
+def weapon_hit(kind: str, power: float, cls: dict, depth: float) -> float:
+    """Mean hit of a `kind` weapon of sword-equivalent `power` in the hands of `cls` at its level for `depth`."""
     w = P.WEAPONS[kind]
     a = attributes(cls, level_at(depth))
-    base = reference_weapon_hit(depth) * w["hit"] * (1 + found_bonus(depth) if found else 1)
+    base = power * w["hit"]
     if "darts" in w:  # magic foci scale with Intelligence
         return base * (1 + _profile(cls, "spell_per_int") * (a["INT"] - 10))
     return base * (1 + _profile(cls, "damage_per_str") * (a["STR"] - 10))
+
+
+def _found(kinds: frozenset, depth: int) -> list[tuple[float, float]]:
+    """
+    (sword-equivalent power, expected count) of the `kinds` weapons found before fighting on `depth`: every earlier
+    floor's drops (WEAPON_SUPPLY) and half of this floor's. Power is a weapon's mean hit over its kind's `hit`.
+    """
+    found = {}
+    for floor in range(1, depth + 1):
+        share = 1.0 if floor < depth else 0.5
+        for kind, mean, count in P.WEAPON_SUPPLY.get(floor, []):
+            if kind in kinds:
+                power = mean / P.WEAPONS[kind]["hit"]
+                found[power] = found.get(power, 0.0) + count * share
+    return list(found.items())
+
+
+def _expected_best(floor_value: float, found: list[tuple[float, float]]) -> float:
+    """
+    Expected best of `floor_value` and the found items: each power turns up a Poisson number of times with its
+    expected count, so the best exceeds `x` with chance `1 - exp(-count above x)`.
+    """
+    best, count = floor_value, 0.0
+    above = sorted(((p, c) for p, c in found if p > floor_value), reverse=True)
+    for i, (power, c) in enumerate(above):
+        count += c
+        below = above[i + 1][0] if i + 1 < len(above) else floor_value
+        best += (1 - math.exp(-count)) * (power - below)
+    return best
+
+
+@functools.cache
+def expected_weapon(name: str, depth: int, opener: bool = False) -> tuple[str, float]:
+    """
+    The weapon kind the expected hero of class `name` wields on `depth` (its opener with `opener`) and that weapon's
+    expected sword-equivalent power: the better of the worn starter and the best weapon of the class's `uses` found
+    so far. A class that starts with a kind of other hands than its main one (the barbarian's one-handed axe) wields
+    whichever hands' weapons it can expect to be stronger.
+    """
+    cls = P.CLASSES[name]
+    main = cls["opener"] if opener else cls["weapon"]
+    start = main if opener else cls.get("starter", main)
+    usable = [main] if opener else cls["uses"]
+    worn = P.GEAR["starter"] * reference_weapon_hit(tier_depth(1))
+    hands = frozenset(k for k in usable if P.WEAPONS[k]["hands"] == P.WEAPONS[main]["hands"])
+    if P.WEAPONS[start]["hands"] == P.WEAPONS[main]["hands"]:
+        return main, _expected_best(worn, _found(frozenset(usable), depth))
+    main_power = _expected_best(worn, _found(hands, depth))
+    other_power = _expected_best(worn, _found(frozenset(usable) - hands, depth))
+    return (main, main_power) if main_power >= other_power else (start, other_power)
 
 
 def weapon_poise(kind: str, scale: float = 1.0) -> float:
@@ -226,22 +292,32 @@ def _ring_values(stat: str, tier: int) -> list[float]:
         return [first + per_tier * (tier - 1)]
     d = tier_depth(tier)
     if stat == "armor":
-        return [j["armor"] * standard_hit(d)]
+        return [j["armor"] * reference_weapon_hit(d)]
     if stat in ("health", "frailty"):
         return [j[stat] * reference_hp(d)]
     if stat == "damage":
-        return [j["damage"] * end for end in spread_range(reference_weapon_hit(d), P.GEAR["weapon_spread"])]
+        return [j["damage"] * end for end in spread_range(reference_weapon_hit(d), weapon_spread("sword_1h"))]
     raise ValueError(f"unknown jewelry stat {stat}")
 
 
 def jewelry_values(stat: str, slot: str, tier: int) -> list[float]:
-    """The modifier values of a jewelry piece of `tier` raising `stat`: a ring's, more for an amulet."""
+    """
+    The modifier values of a jewelry piece of `tier` raising `stat`: a ring's, more for an amulet. Each tier gives at
+    least a point more than the tier below, where small values would otherwise round to the same.
+    """
     values = [value * P.JEWELRY["slots"][slot] for value in _ring_values(stat, tier)]
     if stat == "attribute":
-        return [round(value) for value in values]
-    if stat in ("health", "frailty"):
-        return [round(value) or (1 if stat == "health" else -1) for value in values]
-    return [max(1, round(value)) for value in values]
+        values = [round(value) for value in values]
+    elif stat in ("health", "frailty"):
+        values = [round(value) or (1 if stat == "health" else -1) for value in values]
+    else:
+        values = [max(1, round(value)) for value in values]
+    if tier > 1:
+        below = jewelry_values(stat, slot, tier - 1)
+        values = [max(v, b) if b >= 0 else min(v, b) for v, b in zip(values, below)]
+        if sum(map(abs, values)) <= sum(map(abs, below)):
+            values[-1] += 1 if values[-1] >= 0 else -1
+    return values
 
 
 def hero(name: str, depth: float) -> Hero:
@@ -251,20 +327,21 @@ def hero(name: str, depth: float) -> Hero:
     armor = slot_armor("body", cls["armor"], depth) + slot_armor("helmet", cls["armor"], depth)
     if cls.get("shield"):
         armor += slot_armor("shield", "medium", depth)
-    weight_avoid = P.GEAR["weight"][cls["armor"]][1]
+    weight_avoid = P.GEAR["weight"][cls["armor"]]["avoid"]
     guard = cls.get("guard", 0.0)
     bonus = {k: weight_avoid + (guard if k in ("melee", "ranged") else 0.0) for k in ("melee", "ranged", "homing", "area")}
-    worn = starter_share(depth)
-    weapon = cls["weapon"] if worn >= 1 else cls.get("starter", cls["weapon"])
+    weapon, power = expected_weapon(name, round(depth))
     h = Hero(name=name, depth=depth, level=level, hp=hero_hp(cls, level), armor=armor, weapon=weapon,
-             hit=weapon_mean(weapon, depth, cls) * worn, crit=_profile(cls, "crit_per_dex") * a["DEX"],
-             cycle=P.WEAPONS[weapon]["cycle"], avoid_bonus=bonus)
+             hit=weapon_hit(weapon, power, cls, depth), crit=_profile(cls, "crit_per_dex") * a["DEX"],
+             cycle=P.WEAPONS[weapon]["cycle"], avoid_bonus=bonus,
+             speed=P.ENGAGEMENT["hero_speed"] * P.GEAR["weight"][cls["armor"]]["speed"])
     if "spell" in cls:
         h.mana = P.ATTRIBUTES["mana_base"] + _profile(cls, "mana_per_int") * a["INT"]
         h.mana_regen = h.mana * P.ATTRIBUTES["mana_regen"]
         h.spell = P.SPELLS[cls["spell"]]
     if "opener" in cls:
-        h.opener_hit = weapon_mean(cls["opener"], depth, cls) * worn
+        h.opener = cls["opener"]
+        h.opener_hit = weapon_hit(cls["opener"], expected_weapon(name, round(depth), opener=True)[1], cls, depth)
         h.opener_cycle = P.WEAPONS[cls["opener"]]["cycle"]
     return h
 
@@ -302,13 +379,14 @@ def heaviest_hit(depth: float) -> float:
 
 def monster(archetype: str, depth: float) -> Monster:
     """
-    Target stats of an archetype authored for `depth`. Health is sized in on-curve reference sword hits, at least
-    `min_hits` of the heaviest class blow for every archetype but the gatekeeper.
+    Target stats of an archetype authored for `depth`. Health is sized in the expected reference hero's hits (its
+    found weapon, `expected_weapon`), at least `min_hits` of the heaviest class blow for every archetype but the
+    gatekeeper.
     """
     a = P.ARCHETYPES[archetype]
-    ref_hit = weapon_mean("sword_1h", depth, P.CLASSES["reference"])
+    ref_hit = hero("reference", depth).hit
     armor = a["armor"] * ref_hit
-    per_swing = net_hit(*spread_range(ref_hit, P.GEAR["weapon_spread"]), armor)
+    per_swing = net_hit(*spread_range(ref_hit, weapon_spread("sword_1h")), armor)
     hp = a["hp"] * lerp(P.STANDARD["hits_to_kill"], depth) * per_swing
     if archetype != "boss":
         hp = max(hp, P.STANDARD["min_hits"] * heaviest_hit(depth))
@@ -322,13 +400,27 @@ def monster(archetype: str, depth: float) -> Monster:
 
 # --- Expected duel cost -----------------------------------------------------------------------------
 
-def avoid(hero_: Hero, kind: str, skill: dict) -> float:
-    """Share of attempts avoided. Class and armor bonuses remove that share of the hits skill lets through,
-    so a bonus is worth the same proportion at every skill level; a ranged hero kites melee monsters on top."""
-    landed = (1 - skill["avoid"][kind]) * (1 - hero_.avoid_bonus.get(kind, 0.0))
+def avoid(hero_: Hero, kind: str, skill: dict, speed: float = 0.0) -> float:
+    """
+    Share of attempts avoided. Skill avoids a melee monster of `speed` only by its `footwork` share; class and armor
+    bonuses remove that share of the hits skill lets through, so a bonus is worth the same proportion at every skill
+    level; a ranged hero kites a melee monster on top, the more the slower it is than the hero.
+    """
+    share = skill["avoid"][kind] * (footwork(hero_, speed) if kind == "melee" else 1.0)
+    landed = (1 - share) * (1 - hero_.avoid_bonus.get(kind, 0.0))
     if kind == "melee" and hero_.ranged:
-        landed *= 1 - skill["kite"]
+        landed *= 1 - skill["kite"] * max(0.0, 1 - speed / hero_.speed)
     return min(0.95, max(0.0, 1 - landed))
+
+
+def footwork(hero_: Hero, speed: float) -> float:
+    """
+    How much of the skill's melee avoidance works against a monster of `speed`: all of it against monsters at most
+    ENGAGEMENT `footwork` of the hero's speed, fading to none against one as fast as the hero, which the hero cannot
+    step away from.
+    """
+    full = P.ENGAGEMENT["footwork"]
+    return min(1.0, max(0.0, (1 - speed / hero_.speed) / (1 - full)))
 
 
 def landing_efficiency(h: Hero, skill: dict) -> float:
@@ -340,7 +432,7 @@ def landing_efficiency(h: Hero, skill: dict) -> float:
 def hero_dps(h: Hero, m: Monster, skill: dict) -> float:
     """Sustained damage per second against `m`, including crits, efficiency and the monster's guard."""
     w = P.WEAPONS[h.weapon]
-    spread = P.GEAR["weapon_spread"]
+    spread = weapon_spread(h.weapon)
     eff = landing_efficiency(h, skill)
     if "darts" in w:
         dart = h.hit * w["dart_scale"]
@@ -371,7 +463,7 @@ def monster_dps(m: Monster, h: Hero, skill: dict) -> float:
     landed = m.darts * net_hit(*spread_range(per_dart, spread), magic_armor if m.kind == "homing" else h.armor)
     chance, extra = m.status
     landed += chance * extra * per_dart * m.darts
-    direct = landed * (1 - m.area) * (1 - avoid(h, m.kind, skill))
+    direct = landed * (1 - m.area) * (1 - avoid(h, m.kind, skill, m.speed))
     area = net_hit(*spread_range(m.hit, spread), magic_armor) * m.area * (1 - avoid(h, "area", skill))
     return (direct + area) * uptime(m) / m.cycle
 
@@ -383,7 +475,7 @@ def _blow_odds(h: Hero, m: Monster, skill: dict):
     """
     lands = landing_efficiency(h, skill) * (1 - m.guard)
     mean = hero_dps(h, m, skill) * h.cycle / lands          # a landed blow, with crits and the class spell
-    crit, mult, spread = h.crit, P.CRIT_MULTIPLIER, P.GEAR["weapon_spread"]
+    crit, mult, spread = h.crit, P.CRIT_MULTIPLIER, weapon_spread(h.weapon)
     base = mean / (1 + crit * (mult - 1))
     sd = base * math.sqrt((1 + spread ** 2 / 3) * (1 - crit + crit * mult ** 2) - (1 + crit * (mult - 1)) ** 2)
 
@@ -419,7 +511,7 @@ def duel_cost(m: Monster, h: Hero, skill: dict) -> float:
         first += e["gap"] / e["close_speed"]
     elif h.opener_hit and m.kind == "melee":
         shots = e["gap"] / m.speed / h.opener_cycle * skill["efficiency"]
-        hp -= shots * net_hit(*spread_range(h.opener_hit, P.GEAR["weapon_spread"]), m.armor)
+        hp -= shots * net_hit(*spread_range(h.opener_hit, weapon_spread(h.opener)), m.armor)
 
     def alive_at(t: float) -> float:
         if t < first:
@@ -555,6 +647,27 @@ def _authored_xp(archetype: str, depth: float) -> float:
 def pack_units(pack, depth: float) -> float:
     """Budget cost of a pack at `depth`, in standard monsters."""
     return group_factor(len(pack["members"])) * sum(archetype_units(a, depth) for a in pack["members"])
+
+
+def trap_line() -> tuple[int, float]:
+    """
+    A floor trap's authored damage on depth 1 and per depth (`FloorTrap.Damage`, `DamagePerDepth`): a line through its
+    share of the reference hero's health on depths 1 and 24 (TRAPS `damage`).
+    """
+    first, last = (P.TRAPS["damage"] * reference_hp(d) for d in (1, P.DEPTHS))
+    return round(first), round((last - first) / (P.DEPTHS - 1), 2)
+
+
+def trap_damage(depth: float) -> float:
+    """A trap's spring on `depth` before armor, as the game computes it from the authored line (`FloorTrap.CurrentDamage`)."""
+    first, per_depth = trap_line()
+    return max(1, round(first + per_depth * (round(depth) - 1)))
+
+
+def trap_cost(h: Hero) -> float:
+    """Expected share of `h`'s max health a floor's traps take."""
+    t = P.TRAPS
+    return t["per_floor"] * t["triggers"] * mitigate(trap_damage(h.depth), h.armor) / h.hp
 
 
 def is_gatekeeper_floor(depth: int) -> bool:

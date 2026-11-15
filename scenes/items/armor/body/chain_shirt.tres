@@ -18,5 +18,6 @@ Value = 80
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
-ArmorPoints = 5
+ArmorPoints = 4
+DodgeDistanceModifier = 0.67
 metadata/_custom_type_script = ExtResource("script")
