@@ -52,4 +52,5 @@ AttachmentNodeNames = {
 2: "1H_Sword_Offhand",
 3: "Badge_Shield"
 }
+StartingWeaponScale = 0.7
 metadata/_custom_type_script = ExtResource("1_script")

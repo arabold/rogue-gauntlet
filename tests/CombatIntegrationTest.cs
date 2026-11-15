@@ -177,10 +177,15 @@ public partial class CombatIntegrationTest
 		}
 	}
 
-	/// <summary>Real contacts must finish the defensive sequence before a range-checked counterattack.</summary>
-	[TestCase(true, false)]
-	[TestCase(false, true)]
-	public async Task SkeletonRiposteWaitsForGuardReleaseAndRechecksReach(bool parry, bool retreat)
+	/// <summary>
+	/// A blocked or parried hit is answered on the next step by a counter that a hit cannot stop before contact; with the
+	/// attacker out of reach by then, or every melee attack slot taken, the guard stays up instead.
+	/// </summary>
+	[TestCase(true, false, false)]
+	[TestCase(false, false, false)]
+	[TestCase(false, true, false)]
+	[TestCase(false, false, true)]
+	public async Task SkeletonCountersADefendedHitAtOnce(bool parry, bool retreat, bool slotsTaken)
 	{
 		var (runner, harness) = await Load();
 		using (runner)
@@ -195,49 +200,37 @@ public partial class CombatIntegrationTest
 			guard.ApplyGuardDefinition(definition);
 			int ripostes = 0;
 			enemy.DefenseController.RiposteTriggered += () => ripostes++;
+			var strangers = new[] { new Node3D(), new Node3D() };
+			if (slotsTaken)
+				foreach (var stranger in strangers)
+					AssertBool(harness.Player.AttackSlots.TryReserve(TestFactories.AddToSceneTree(stranger), AttackSlotKind.Melee)).IsTrue();
 			harness.Attack();
 			string expected = parry ? "Parried" : "Blocked";
 			for (int i = 0; i < 30 && harness.Player.AttackController.LastResult != expected; i++)
 				await PhysicsFrames(runner, 1);
 			AssertString(harness.Player.AttackController.LastResult).IsEqual(expected);
-			AssertBool(guard.IsGuarding).IsTrue();
 			AssertInt(ripostes).IsEqual(0);
-			float reactionDuration = (float)enemy.GetNode<CombatAnimationComponent>("CombatAnimationComponent").PoseLength(guard);
-			float minimumSequence = Mathf.Max(enemy.EnemyBehaviorComponent.Profile.Combat.DefenseStrategy.GuardPressureWindow, reactionDuration)
-				+ definition.ReleaseRecovery;
-			ulong contactFrame = Engine.GetPhysicsFrames();
-			bool sawRecovery = false;
-			bool finished = false;
-			for (int i = 0; i < 150; i++)
-			{
-				bool wasCommitted = guard.IsGuarding || guard.IsGuardRecovering;
-				await PhysicsFrames(runner, 1);
-				if (wasCommitted)
-				{
-					AssertInt(ripostes).IsEqual(0);
-					AssertBool(enemy.AttackController.IsAttacking).IsFalse();
-				}
-				if (guard.IsGuardRecovering)
-				{
-					sawRecovery = true;
-					if (retreat)
-						harness.Player.Position = enemy.Position + Vector3.Back * (enemy.EnemyBehaviorComponent.Profile.Combat.PrimaryOffense.EffectiveMaximumRange + .2f);
-				}
-				if (sawRecovery && !guard.IsGuardRecovering && !guard.IsGuarding)
-				{
-					AssertFloat((Engine.GetPhysicsFrames() - contactFrame) / (float)Engine.PhysicsTicksPerSecond)
-						.IsGreaterEqual(minimumSequence - .05f);
-					finished = true;
-					break;
-				}
-			}
-			AssertBool(sawRecovery && finished).IsTrue();
-			await PhysicsFrames(runner, 3);
-			AssertInt(ripostes).IsEqual(retreat ? 0 : 1);
-			AssertBool(enemy.AttackController.IsAttacking).IsEqual(!retreat);
+			// The AI asking for its ordinary attack behind the raised guard is refused, and does not hold the counter back.
+			AssertBool(enemy.EnemyBehaviorComponent.TryAttack()).IsFalse();
+			if (retreat)
+				harness.Player.Position = enemy.Position + Vector3.Back * (enemy.EnemyBehaviorComponent.Profile.Combat.PrimaryOffense.EffectiveMaximumRange + .2f);
+			await PhysicsFrames(runner, 1);
+			foreach (var stranger in strangers) stranger.Free();
+
+			bool held = retreat || slotsTaken;
+			AssertInt(ripostes).IsEqual(held ? 0 : 1);
+			AssertBool(guard.IsGuarding).IsEqual(held);
+			AssertBool(enemy.AttackController.IsAttacking).IsEqual(!held);
 			using var trace = JsonDocument.Parse(harness.Recorder.RecentRecordsJson);
 			var attempt = trace.RootElement.EnumerateArray().Single(record => record.GetProperty("event").GetString() == "defense.riposte");
-			AssertString(attempt.GetProperty("data").GetProperty("reason").GetString()).IsEqual(retreat ? "out_of_reach" : "accepted");
+			AssertString(attempt.GetProperty("data").GetProperty("reason").GetString())
+				.IsEqual(retreat ? "out_of_reach" : slotsTaken ? "attack_unavailable" : "accepted");
+			if (held) return;
+
+			// Swinging back at once only makes the countering monster flinch.
+			enemy.HurtBoxComponent.ResolveDamage(2, Vector3.Forward, null, DamageSourceFlags.Player);
+			AssertBool(enemy.AttackController.IsAttacking).IsTrue();
+			AssertBool(enemy.ActionGate.IsStaggered).IsFalse();
 		}
 	}
 
@@ -384,7 +377,7 @@ public partial class CombatIntegrationTest
 			var resolution = events.First(e => e.GetProperty("event").GetString() == "damage.resolved");
 			AssertString(contact.GetProperty("data").GetProperty("execution").GetRawText())
 				.IsEqual(resolution.GetProperty("data").GetProperty("execution").GetRawText());
-			AssertBool(resolution.GetProperty("data").TryGetProperty("armor_roll", out _)).IsTrue();
+			AssertBool(resolution.GetProperty("data").TryGetProperty("armor_reduction", out _)).IsTrue();
 			AssertInt(resolution.GetProperty("schema").GetInt32()).IsEqual(1);
 		}
 	}

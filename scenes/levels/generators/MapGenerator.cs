@@ -68,6 +68,11 @@ public partial class MapGenerator : Node3D
 
 	public Array<SpawnPoint> EnemySpawnPoints;
 
+	/// <summary>The level this generator builds, if any: its gatekeeper marker and threat profile.</summary>
+	private Level _level;
+
+	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
+
 	public override void _Ready()
 	{
 		GD.Print("Initializing map generator...");
@@ -461,7 +466,7 @@ public partial class MapGenerator : Node3D
 	{
 		var plan = Floor.Encounter = MobFactory.PlanEncounters(DungeonDepth);
 		if (plan?.Gatekeeper == null) return true;
-		var marker = GatekeeperSpawnMarker.Find(this.GetAncestorOrNull<Level>());
+		var marker = GatekeeperSpawnMarker.Find(_level);
 		if (marker != null)
 		{
 			// SpawnPoint turns what it spawns around; the marker's own facing is the boss's.
@@ -490,7 +495,7 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private void GenerateEnemySpawnPoints()
 	{
-		var packs = MobFactory.CreatePacks(DungeonDepth, this.GetAncestorOrNull<Level>()?.ThreatProfile, _random.Encounters);
+		var packs = MobFactory.CreatePacks(DungeonDepth, _level?.ThreatProfile, _random.Encounters);
 		var plan = Floor.Encounter;
 		GD.Print($"Generating {packs.Count} packs of {packs.Sum(pack => pack.Length)} monsters...");
 

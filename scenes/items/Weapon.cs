@@ -51,6 +51,13 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	[Export] public float Delay { get; set => SetValue(ref field, value); } = 0f;
 	[Export] public float PerformDuration { get; set => SetValue(ref field, value); } = 0.5f;
 	[Export] public float CooldownDuration { get; set => SetValue(ref field, value); } = 0f;
+	/// <summary>
+	/// Poise each primary hit removes: heavier weapons stagger sooner. The default attack and its secondary scale from it;
+	/// <c>simulate.py derive</c> writes it from the balance model's weapon kind.
+	/// </summary>
+	[Export] public float PoiseDamage { get; set => SetValue(ref field, value); } = 10f;
+	/// <summary>Push of a primary hit that interrupts or staggers; zero for all but heavy weapons (from the model's weapon kind).</summary>
+	[Export] public float Knockback { get; set => SetValue(ref field, value); }
 
 	// Secondary Attack Configuration
 	[Export] public StringName SecondaryAttackStyle { get; set => SetValue(ref field, value); } = "";

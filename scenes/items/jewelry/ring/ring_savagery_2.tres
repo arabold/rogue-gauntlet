@@ -13,7 +13,7 @@ metadata/_custom_type_script = ExtResource("3_modifier")
 [sub_resource type="Resource" id="Modifier_1"]
 script = ExtResource("3_modifier")
 Stat = 8
-Value = 3.0
+Value = 2.0
 metadata/_custom_type_script = ExtResource("3_modifier")
 
 [resource]

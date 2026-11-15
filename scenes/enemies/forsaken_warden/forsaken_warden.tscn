@@ -124,10 +124,9 @@ anim_player = NodePath("../../Pivot/WardenModel/AnimationPlayer")
 
 [node name="DeathComponent" parent="." index="5"]
 
-[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("MovementComponent", "Poise")]
+[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("Poise")]
 Poise = NodePath("../PoiseComponent")
 position = Vector3(0, 2.25, 0)
-MovementComponent = NodePath("")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("cap_hurt")
@@ -150,6 +149,7 @@ ActionGate = NodePath("../ActorActionGateComponent")
 process_physics_priority = 1
 RotationSpeed = 5.0
 MaxTurnRate = 90.0
+ResistsKnockback = true
 
 [node name="Nameplate" parent="."]
 transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 5.1, 0)

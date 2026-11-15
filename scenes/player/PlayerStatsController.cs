@@ -9,6 +9,7 @@ public partial class PlayerStatsController : Node
 	[Export] public PlayerStats Stats { get; set; }
 	[Export] public Inventory Inventory { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
+	[Export] public DodgeComponent DodgeComponent { get; set; }
 	[Export] public HurtBoxComponent HurtBoxComponent { get; set; }
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public ManaComponent ManaComponent { get; set; }
@@ -21,6 +22,7 @@ public partial class PlayerStatsController : Node
 		Stats ??= Player.Stats;
 		Inventory ??= Player.Inventory;
 		MovementComponent ??= Player.MovementComponent;
+		DodgeComponent ??= Player.DodgeComponent;
 		HurtBoxComponent ??= Player.HurtBoxComponent;
 		HealthComponent ??= Player.HealthComponent;
 		ManaComponent ??= Player.ManaComponent;
@@ -55,6 +57,7 @@ public partial class PlayerStatsController : Node
 	public void SyncStats()
 	{
 		MovementComponent.Speed = Stats.Speed;
+		if (DodgeComponent != null) DodgeComponent.DistanceScale = Stats.DodgeDistanceScale;
 		HurtBoxComponent.Armor = Stats.Armor;
 		HealthComponent.SetHealth(Stats.Health, Stats.MaxHealth);
 		// The component owns current mana; stats only set its limits (see RestoreMana).

@@ -4,11 +4,6 @@ using System.Globalization;
 using System.Linq;
 using Godot;
 
-/// <summary>
-/// State every floor of one run shares: the run seed, the gameplay loot counter, the cleared-entity set and item
-/// identification. Plain C#: <see cref="GameSession"/> owns the active run and hands it to each <see cref="Level"/>, whose
-/// components read it from there. A level played on its own builds a default run.
-/// </summary>
 /// <summary>How the player learned an item's hidden type.</summary>
 public enum IdentificationSource
 {
@@ -20,6 +15,11 @@ public enum IdentificationSource
 	Scroll,
 }
 
+/// <summary>
+/// State every floor of one run shares: the run seed, the gameplay loot counter, the cleared-entity set and item
+/// identification. Plain C#: <see cref="GameSession"/> owns the active run and hands it to each <see cref="Level"/>, whose
+/// components read it from there. A level played on its own builds a default run.
+/// </summary>
 public sealed class RunState
 {
 	/// <summary>The run seed of a scene played directly, without a started or loaded game.</summary>

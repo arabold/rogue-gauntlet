@@ -5,8 +5,9 @@ maps to the model is described under "Game content" in docs/specs/balance-model.
 """
 from __future__ import annotations
 
+import functools
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field, replace
 
 import model as M
@@ -14,7 +15,7 @@ import params as P
 import resources as R
 
 CATEGORIES = ("monsters", "encounters", "weapons", "armor", "jewelry", "curses", "classes", "supplies", "statuses",
-              "loot")
+              "traps", "loot")
 
 
 @dataclass
@@ -91,7 +92,7 @@ def _selected(path, match) -> bool:
 def collect(categories=CATEGORIES, match=None) -> list[Group]:
     groups = [{"monsters": monsters, "encounters": encounters, "weapons": weapons, "armor": armor, "jewelry": jewelry,
                "curses": curses, "classes": classes, "supplies": supplies, "statuses": statuses,
-               "loot": loot}[c](match) for c in categories]
+               "traps": traps, "loot": loot}[c](match) for c in categories]
     _merge_shared(groups)
     return groups
 
@@ -210,6 +211,15 @@ def monsters(match=None) -> Group:
         lo, hi = snap(lo, 0.5, 0.5), snap(hi, 0.5, 0.5)
         cooldown = snap(target.cycle, 0.05)
         duration = pf.get(primary, "Duration")
+        share = _contact_share(d, pf.get(primary, "Style"))
+        if share:
+            # The clip plays over Duration, so its contact lands at the archetype's wind-up; within 0.02 s of the authored
+            # Duration the authored timing stands.
+            if abs(target.windup / share - duration) > 0.02:
+                duration = round(target.windup / share, 2)
+            g.add(f"{name}: {pf.get(primary, 'resource_name') or primary.id}", pf, primary, "Duration", duration)
+        else:
+            g.note(f"{name}: no attack animation binding for style {pf.get(primary, 'Style')!r}; wind-up not derived")
         derived = replace(target, hp=float(max(1, round(target.hp))), armor=snap(target.armor, 0.5),
                           hit=(lo + hi) / 2 * dart_scale * darts, cycle=max(cooldown, duration),
                           speed=round(target.speed, 1), darts=darts)
@@ -232,10 +242,56 @@ def monsters(match=None) -> Group:
                                                               snap(f.get(a, "MaxDamage") * damage_scale, 0.5, 0.5))
             g.add(label, f, a, "MinDamage", new_lo)
             g.add(label, f, a, "MaxDamage", new_hi)
+            attack = f.get(a, "Attack")
+            if isinstance(attack, R.Ref):
+                g.add(label, *f.follow(attack), "Commit", P.POISE["commit"])
+        _poise(g, d, name, archetype)
         g.rows.append([name, archetype, f"{depth:g}", f"{d.get(s, 'ThreatLevel', 1.0):.1f}",
                        f"{M.threat_level(now):.1f}", f"{threat:.1f}",
                        f"{M.xp_reward(derived):.0f}"])
     return g
+
+
+def _poise_definitions(definition: R.TextResource):
+    """The poise definitions of the scenes whose root saves `definition`."""
+    return [f for f in _scene_resources().get(definition.path, []) if f.script_class == "PoiseDefinition"]
+
+
+def _contact_share(definition: R.TextResource, style: str) -> float | None:
+    """The share of its clip at which an attack of `style` makes contact, from the monster's attack animation profile."""
+    for f in _scene_resources().get(definition.path, []):
+        if f.script_class == "AttackAnimationProfile":
+            for ref in f.get(f.main, "Bindings", []):
+                bf, b = f.follow(ref)
+                if bf.get(b, "Style") == style:
+                    return bf.get(b, "ContactStart")
+    return None
+
+
+@functools.cache
+def _scene_resources() -> dict:
+    """Each monster definition's path, with the resource files its scenes reference."""
+    index = defaultdict(list)
+    for scene in sorted(R.ROOT.glob("scenes/enemies/*/*.tscn")):
+        found = None if "templates" in scene.parts else _definition_of(scene)
+        if found is None:
+            continue
+        for section in R.load(scene).sections:
+            if section.kind == "ext_resource" and section.attrs.get("path", "").endswith(".tres"):
+                index[found[0].path].append(R.load(section.attrs["path"]))
+    return index
+
+
+def _poise(g: Group, definition: R.TextResource, name: str, archetype: str):
+    """A monster's poise meter from its archetype, growing after each break."""
+    poise = M.monster_poise(archetype)
+    for pf in _poise_definitions(definition):
+        if not poise:
+            g.note(f"{name}: the model gives {archetype}s no poise, but {R.to_res(pf.path)} gives it some")
+            continue
+        g.add(f"{name}: poise", pf, pf.main, "MaxPoise", poise)
+        g.add(f"{name}: poise", pf, pf.main, "BreakGrowth", P.POISE["growth"])
+        g.add(f"{name}: poise", pf, pf.main, "BreakMemory", P.POISE["memory"])
 
 
 # --- Encounters -----------------------------------------------------------------------------------
@@ -252,8 +308,7 @@ def _realms(match=None):
 def _definition_of(scene: str):
     """The monster definition a scene's root saves, which is what the game reads: (file, section), or None."""
     f = R.load(scene)
-    root = next(s for s in f.sections if s.kind == "node")
-    ref = f.get(root, "Definition")
+    ref = f.get(f.root, "Definition")
     return f.follow(ref) if isinstance(ref, R.Ref) else None
 
 
@@ -357,7 +412,13 @@ def weapon_kind(file: R.TextResource, section: R.Section) -> str | None:
     return next((kind for prefix, kind in STYLE_KINDS.items() if style.startswith(prefix)), None)
 
 
-def _combo_scales(file: R.TextResource, section: R.Section) -> tuple[float, float]:
+def _is_wooden(file: R.TextResource, section: R.Section) -> bool:
+    """Whether a weapon rolls on the wooden weapon table."""
+    table = file.get(section, "RollTable")
+    return isinstance(table, R.Ref) and table.kind == "ExtResource" and file.ext_path(table.id).endswith("/wooden_weapon.tres")
+
+
+def combo_scales(file: R.TextResource, section: R.Section) -> tuple[float, float]:
     """Average damage and duration scale over a combo's steps; (1, 1) without a combo."""
     combo = file.get(section, "PrimaryCombo")
     if not isinstance(combo, R.Ref):
@@ -401,17 +462,22 @@ def weapons(match=None) -> Group:
             g.note(f"{name}: attack style {f.get(s, 'AttackStyle')!r} matches no weapon kind in params.WEAPONS")
             continue
         tier, w = int(f.get(s, "Tier", 1)), P.WEAPONS[kind]
-        damage_scale, duration_scale = _combo_scales(f, s)
-        mean = M.reference_weapon_hit(M.tier_depth(tier)) * w["hit"] / damage_scale
-        lo, hi = (snap(x, 1, 1) for x in M.spread_range(mean, P.GEAR["weapon_spread"]))  # whole points, as players read them
+        damage_scale, duration_scale = combo_scales(f, s)
+        material = P.GEAR["wooden"] if _is_wooden(f, s) and not w.get("ranged") else 1.0
+        mean = M.reference_weapon_hit(M.tier_depth(tier)) * w["hit"] * material / damage_scale
+        lo, hi = (snap(x, 1, 1) for x in M.spread_range(mean, M.weapon_spread(kind)))  # whole points, as players read them
         fixed = f.get(s, "Delay", 0.0) + f.get(s, "CooldownDuration", 0.0)
         perform = round((w["cycle"] - fixed) / duration_scale, 2)
         label = f"{name} (T{tier})"
         g.add(label, f, s, "DamageMin", lo)
         g.add(label, f, s, "DamageMax", hi)
         g.add(label, f, s, "PerformDuration", perform)
+        g.add(label, f, s, "PoiseDamage", M.weapon_poise(kind, material))
+        g.add(label, f, s, "Knockback", P.POISE["knockback"].get(kind, 0.0) * material)
         for af, a in _missiles(f, s):
             g.add(f"{label}: {af.path.stem}", af, a, "ProjectileDamageScale", w["dart_scale"])
+            g.add(f"{label}: {af.path.stem}", af, a, "PoiseDamage", M.weapon_poise(kind))
+            g.add(f"{label}: {af.path.stem}", af, a, "Knockback", 0.0)
             if af.get(a, "ProjectileCount", 1) != w["darts"]:
                 g.note(f"{af.path.stem}: {af.get(a, 'ProjectileCount', 1)} missiles, the model assumes {w['darts']}")
         if (w["hands"] == 2) != bool(f.get(s, "IsTwoHanded")):
@@ -426,6 +492,9 @@ def weapons(match=None) -> Group:
 SLOT_FLAGS = {1 << 0: "helmet", 1 << 1: "body", 1 << 9: "shield"}  # EquipmentSlot in Inventory.cs
 
 
+HURTBOX = "res://scenes/components/HurtBoxComponent.cs"
+
+
 def _weight(file: R.TextResource, section: R.Section) -> str:
     return R.csharp_enum("ArmorWeight")[file.get(section, "Weight")].lower()
 
@@ -433,6 +502,9 @@ def _weight(file: R.TextResource, section: R.Section) -> str:
 def armor(match=None) -> Group:
     """Body armor and helmets by slot, weight and tier; shields by tier. Body armor also gets its weight's speed."""
     g = Group("Armor", headers=["armor", "slot", "weight", "tier", "armor", "derived"])
+    authored = R.script_default(HURTBOX, "MinimumDamage")
+    if abs(authored - P.ARMOR["minimum"]) > 1e-6:
+        g.note(f"HurtBoxComponent.MinimumDamage is {authored:g}; params.ARMOR['minimum'] is {P.ARMOR['minimum']:g}")
     for path in sorted(R.ROOT.glob("scenes/items/armor/**/*.tres")):
         if not _selected(path, match):
             continue
@@ -450,7 +522,8 @@ def armor(match=None) -> Group:
         target = max(1, round(M.slot_armor(slot, weight, M.tier_depth(tier), found=False)))
         g.add(f"{name} (T{tier})", f, s, "ArmorPoints", target)
         if slot == "body":
-            g.add(f"{name} (T{tier})", f, s, "SpeedModifier", P.GEAR["weight"][weight][2])
+            g.add(f"{name} (T{tier})", f, s, "SpeedModifier", P.GEAR["weight"][weight]["speed"])
+            g.add(f"{name} (T{tier})", f, s, "DodgeDistanceModifier", P.GEAR["weight"][weight]["dodge"])
         g.rows.append([name, slot, "" if slot == "shield" else weight, tier, f.get(s, "ArmorPoints"), target])
     return g
 
@@ -500,6 +573,7 @@ def classes(match=None) -> Group:
         g.add("Hero sheet", sheet, hs, "BaseMaxMana", a["mana_base"])
         g.add("Hero sheet", sheet, hs, "ManaRegenRate", a["mana_regen"])
         g.add("Hero sheet", sheet, hs, "BaseCritChance", 0.0)
+        g.add("Hero sheet", sheet, hs, "BaseSpeed", P.ENGAGEMENT["hero_speed"])
         pf, p = sheet.follow(sheet.get(hs, "Profile"))
         for key, value in _profile_values(P.CLASSES["reference"]).items():
             g.add("Default profile", pf, p, key, value)
@@ -520,11 +594,12 @@ def classes(match=None) -> Group:
             continue
         for attr, key in ATTRIBUTE_KEYS.items():
             g.add(name, f, s, key, float(cls["attrs"][attr]))
+        g.add(name, f, s, "StartingWeaponScale", P.GEAR["starter"])
         pf, p = f.follow(f.get(s, "StatProfile"))
         for key, value in _profile_values(cls).items():
             g.add(f"{name} profile", pf, p, key, value)
         kinds = _kit_kinds(f, s)
-        expected = {cls["weapon"]} | ({cls["opener"]} if "opener" in cls else set())
+        expected = {cls.get("starter", cls["weapon"])} | ({cls["opener"]} if "opener" in cls else set())
         if not expected <= kinds:
             g.note(f"{name}: starts with {', '.join(sorted(kinds)) or 'no weapon'}; "
                    f"the model expects {', '.join(sorted(expected))}")
@@ -642,6 +717,30 @@ def _ticks(file: R.TextResource, buff: R.Section) -> int:
 
 POTION_POOL = "res://scenes/items/loot/pools/potions.tres"
 HEALING_POTION = "potion.healing"
+TRAP_SCENE = "res://scenes/props/floor_trap.tscn"
+TRAP_PLACEMENT = "res://scenes/levels/generators/MapGenerator.Loot.cs"
+
+
+def traps(match=None) -> Group:
+    """
+    A floor trap's damage on depth 1 and per depth (`model.trap_line`), and the traps a floor places against TRAPS
+    `per_floor`.
+    """
+    g = Group("Traps", headers=["depth", "spring", "derived"])
+    f = R.load(TRAP_SCENE)
+    if not _selected(f.path, match):
+        return g
+    first, per_depth = M.trap_line()
+    g.add("Floor trap", f, f.root, "Damage", first)
+    g.add("Floor trap", f, f.root, "DamagePerDepth", per_depth)
+    authored = f.get(f.root, "Damage", 0), f.get(f.root, "DamagePerDepth", 0.0)
+    for d in (1, 12, P.DEPTHS):
+        g.rows.append([d, f"{max(1, round(authored[0] + authored[1] * (d - 1)))}", f"{M.trap_damage(d):.0f}"])
+    placed = (R.script_default(TRAP_PLACEMENT, "MinTraps") + R.script_default(TRAP_PLACEMENT, "MaxTraps")) / 2
+    if abs(placed - P.TRAPS["per_floor"]) > 1e-9:
+        g.note(f"Floors place {placed:g} traps on average (MapGenerator.MinTraps..MaxTraps); TRAPS per_floor is "
+               f"{P.TRAPS['per_floor']:g}")
+    return g
 
 
 def _pool_items(pool: R.TextResource):
@@ -653,19 +752,28 @@ def _pool_items(pool: R.TextResource):
             yield ef, entry, *ef.follow(item)
 
 
+def _potions():
+    return [R.load(path) for path in sorted(R.ROOT.glob("scenes/items/potions/*.tres"))]
+
+
+def _foods():
+    return [f for f in (R.load(path) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres")))
+            if f.script_class == "FoodItem"]
+
+
+def _portion(food: R.TextResource) -> str:
+    return R.csharp_enum("FoodPortion")[food.get(food.main, "Portion")].lower()
+
+
 def supplies(match=None) -> Group:
     """
     Healing potions and food restore their model's points, spread over their buff's ticks. Every potion drops in its
     size's depth window; healing potions also take their size's weight.
     """
     g = Group("Supplies", headers=["item", "heals", "derived"])
-    potions = [R.load(path) for path in sorted(R.ROOT.glob("scenes/items/potions/*.tres"))]
-    items = [(f, M.potion_points(f.get(f.main, "AppearanceForm"))) for f in potions
+    items = [(f, M.potion_points(f.get(f.main, "AppearanceForm"))) for f in _potions()
              if f.get(f.main, "TypeId") == HEALING_POTION]
-    portions = R.csharp_enum("FoodPortion")
-    items += [(f, M.food_points(portions[f.get(f.main, "Portion")].lower()))
-              for f in (R.load(path) for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres")))
-              if f.script_class == "FoodItem"]
+    items += [(f, M.food_points(_portion(f))) for f in _foods()]
     for f, points in items:
         if not _selected(f.path, match):
             continue
@@ -702,8 +810,9 @@ def statuses(match=None) -> Group:
     seconds, ticks = P.STATUS["poison_seconds"], P.STATUS["poison_ticks"]
     done = set()
 
-    def poison(label: str, bf: R.TextResource, buff: R.Section, points: int):
-        g.add(label, bf, buff, "DamagePointsPerTick", points // ticks, exact=True)
+    def poison(label: str, bf: R.TextResource, buff: R.Section, per_tick: int):
+        points = per_tick * ticks
+        g.add(label, bf, buff, "DamagePointsPerTick", per_tick, exact=True)
         g.add(label, bf, buff, "Duration", seconds)
         g.add(label, bf, buff, "TicksPerSecond", ticks / seconds)
         if (bf.path, buff.start) not in done:  # foods of one portion share their poison
@@ -711,27 +820,24 @@ def statuses(match=None) -> Group:
             now = bf.get(buff, "DamagePointsPerTick", 0) * _ticks(bf, buff)
             g.rows.append([label, f"{now:g} over {bf.get(buff, 'Duration', 1.0):g} s", f"{points} over {seconds:g} s"])
 
-    for path in sorted(R.ROOT.glob("scenes/items/potions/*.tres")):
-        f = R.load(path)
+    for f in _potions():
         kind = STATUS_POTIONS.get(f.get(f.main, "TypeId"))
-        if kind is None or not _selected(path, match):
+        if kind is None or not _selected(f.path, match):
             continue
-        size, label = f.get(f.main, "AppearanceForm"), f.get(f.main, "Name") or path.stem
+        size, label = f.get(f.main, "AppearanceForm"), f.get(f.main, "Name") or f.path.stem
         for bf, buff in _buffs(f, f.main, "PoisonBuff" if kind == "poison" else "Buff"):
             if kind == "poison":
-                poison(label, bf, buff, M.poison_points(size))
+                poison(label, bf, buff, M.poison_per_tick(size))
                 continue
             g.add(label, bf, buff, "Duration", float(P.STATUS[kind][size]))
             g.rows.append([label, f"{bf.get(buff, 'Duration', 1.0):g} s", f"{P.STATUS[kind][size]} s"])
-    portions = R.csharp_enum("FoodPortion")
-    for path in sorted(R.ROOT.glob("scenes/items/food/**/*.tres")):
-        f = R.load(path)
-        ref = f.get(f.main, "PoisonEffect") if f.script_class == "FoodItem" else None
-        if not isinstance(ref, R.Ref) or not _selected(path, match):
+    for f in _foods():
+        ref = f.get(f.main, "PoisonEffect")
+        if not isinstance(ref, R.Ref) or not _selected(f.path, match):
             continue
         bf, buff = f.follow(ref)
-        portion = portions[f.get(f.main, "Portion")].lower()
-        poison(f"{bf.get(buff, 'Name') or bf.path.stem} ({portion})", bf, buff, M.food_poison_points(portion))
+        portion = _portion(f)
+        poison(f"{bf.get(buff, 'Name') or bf.path.stem} ({portion})", bf, buff, M.food_poison_per_tick(portion))
     return g
 
 

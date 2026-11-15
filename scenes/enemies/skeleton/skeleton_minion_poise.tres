@@ -4,8 +4,9 @@
 
 [resource]
 script = ExtResource("1_poise")
-MaxPoise = 15.0
+MaxPoise = 20.0
 RegenDelay = 2.0
 RegenPerSecond = 15.0
 BreakStaggerDuration = 1.0
 StaggeredDamageMultiplier = 1.5
+BreakGrowth = 0.5

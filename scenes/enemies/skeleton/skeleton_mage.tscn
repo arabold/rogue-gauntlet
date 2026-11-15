@@ -9,7 +9,7 @@
 
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="action_gate_script"]
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
-[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_minion_poise.tres" id="poise_definition"]
+[ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_mage_poise.tres" id="poise_definition"]
 [ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="stagger_animation"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]

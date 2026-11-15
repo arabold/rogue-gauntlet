@@ -20,4 +20,6 @@ public enum StatType
 	CritChance,
 	Armor,
 	MaxMana,
+	/// <summary>Share of its full distance a dodge travels; heavier body armor shortens it.</summary>
+	DodgeDistance,
 }

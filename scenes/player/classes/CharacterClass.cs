@@ -39,6 +39,12 @@ public partial class CharacterClass : Resource
 	[Export] public Array<InventoryItemSlot> StartingItems { get; set; } = new();
 
 	/// <summary>
+	/// Share of its damage each starting weapon keeps. The kit is worn (Poor quality), so the first weapon the hero finds
+	/// is an upgrade and the first floors take more blows; <c>simulate.py derive</c> writes it from the balance model.
+	/// </summary>
+	[Export(PropertyHint.Range, "0.1,1,0.05")] public float StartingWeaponScale { get; set; } = 1f;
+
+	/// <summary>
 	/// Item type ids identified at run start (e.g. "potion.healing") — the hero knows what
 	/// they packed, so their own supplies are never disguised.
 	/// </summary>
@@ -74,11 +80,20 @@ public partial class CharacterClass : Resource
 	}
 
 	/// <summary>
-	/// Builds a fresh runtime inventory from the starting items; the authored slot
-	/// definitions are never mutated.
+	/// Builds a fresh runtime inventory from the starting items, with worn weapons (<see cref="StartingWeaponScale"/>);
+	/// the authored slot definitions are never mutated.
 	/// </summary>
 	public Inventory CreateStartingInventory(int capacity)
 	{
-		return new Inventory { Capacity = capacity, Items = StartingItems }.CreateRuntimeCopy();
+		var inventory = new Inventory { Capacity = capacity, Items = StartingItems }.CreateRuntimeCopy();
+		if (StartingWeaponScale >= 1) return inventory;
+		foreach (var slot in inventory.Items)
+		{
+			if (slot.Item is not Weapon weapon) continue;
+			weapon.Quality = ItemQuality.Poor;
+			weapon.QualityAdjective = "worn";
+			weapon.MagnitudeScale = StartingWeaponScale;
+		}
+		return inventory;
 	}
 }
