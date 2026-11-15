@@ -8,7 +8,14 @@ public abstract partial class RoomLayoutStrategy : Resource
 	/// <summary>
 	/// Populates the map with room data (e.g., which tiles are rooms)
 	/// </summary>
-	public abstract List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng);
+	public abstract List<RoomPlacement> GenerateRooms(MapData map, AssembledRoomFactory factory, uint maxRooms, RandomNumberGenerator rng);
+
+	/// <summary>Keeps <paramref name="room"/> at <paramref name="placement"/> and stamps its tiles into the map.</summary>
+	protected static void AddPlacement(MapData map, List<RoomPlacement> rooms, Room room, Vector2I placement)
+	{
+		rooms.Add(new RoomPlacement(room, placement));
+		StampRoom(map, room.Map, placement);
+	}
 
 	/// <summary>
 	/// Stamps a room's local tile map into the master map at the given placement. Local
@@ -21,7 +28,6 @@ public abstract partial class RoomLayoutStrategy : Resource
 	/// </summary>
 	protected static void StampRoom(MapData map, MapData roomMap, Vector2I placement)
 	{
-		GD.Print($"Placing room at {placement}");
 		for (var x = 0; x < roomMap.Width; x++)
 		{
 			for (var y = 0; y < roomMap.Height; y++)

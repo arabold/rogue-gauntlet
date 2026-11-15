@@ -6,10 +6,11 @@ using Godot;
 /// Assembles every room from weighted <see cref="RoomType"/>s: entrances and exits from their own types (they carry
 /// the stairs), every other slot from <see cref="RoomTypes"/>. Each room gets its own seed from the layout stream.
 /// The authored pool holds every realm's types; <see cref="ForRealm"/> narrows it to one realm's types, styles and steps.
+/// The layout strategies place the rooms it returns.
 /// </summary>
 [Tool]
 [GlobalClass]
-public partial class AssembledRoomFactory : RoomFactory
+public partial class AssembledRoomFactory : Resource
 {
 	/// <summary>Weighted room types for the level entrance, each with up-stairs.</summary>
 	[Export] public RoomType[] EntranceTypes { get; set; } = [];
@@ -21,16 +22,19 @@ public partial class AssembledRoomFactory : RoomFactory
 	/// <summary>The realm this view assembles for; null on the authored pool.</summary>
 	public string RealmId { get; private init; }
 
-	public override RoomFactory ForRealm(string realm) => new AssembledRoomFactory
+	/// <summary>Every type the pool assembles: ordinary rooms, then entrances, then exits.</summary>
+	public RoomType[] AllTypes => [.. RoomTypes, .. EntranceTypes, .. ExitTypes];
+
+	public AssembledRoomFactory ForRealm(string realm) => new()
 	{
 		RealmId = realm, EntranceTypes = In(EntranceTypes, realm), ExitTypes = In(ExitTypes, realm), RoomTypes = In(RoomTypes, realm),
 	};
 
 	private static RoomType[] In(RoomType[] types, string realm) => types.Where(type => type == null || Realm.Allows(type.Realms, realm)).ToArray();
 
-	public override Room CreateEntrance(RandomNumberGenerator rng) => Assemble(EntranceTypes, "entrance", rng);
-	public override Room CreateExit(RandomNumberGenerator rng) => Assemble(ExitTypes, "exit", rng);
-	public override Room CreateStandardRoom(RandomNumberGenerator rng) => Assemble(RoomTypes, "room", rng);
+	public Room CreateEntrance(RandomNumberGenerator rng) => Assemble(EntranceTypes, "entrance", rng);
+	public Room CreateExit(RandomNumberGenerator rng) => Assemble(ExitTypes, "exit", rng);
+	public Room CreateStandardRoom(RandomNumberGenerator rng) => Assemble(RoomTypes, "room", rng);
 
 	/// <summary>A selected type must succeed: substituting another room would hide broken authoring.</summary>
 	private Room Assemble(RoomType[] types, string slot, RandomNumberGenerator rng)

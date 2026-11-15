@@ -10,4 +10,5 @@ Library = ExtResource("2_library")
 Items = ["floor_pool_corner_A", "floor_pool_corner_B"]
 Gap = 0.0
 Weight = 1.0
+Sunken = true
 metadata/_custom_type_script = ExtResource("1_Prop")

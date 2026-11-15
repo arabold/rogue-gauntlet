@@ -127,12 +127,10 @@ public sealed class RoomBlueprint
 	/// <summary>Registers floor, void and the placed wall geometry with the walkability grid. Call once, after walls.</summary>
 	public void FinishStructure()
 	{
-		float half = Room.TileSize / 2f;
 		for (int x = -1; x <= Footprint.Width; x++)
 		for (int z = -1; z <= Footprint.Length; z++)
 		{
-			var center = RoomFootprint.TileCenter(new(x, z));
-			var area = new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize);
+			var area = RoomFootprint.TileArea(RoomFootprint.TileCenter(new(x, z)));
 			if (Footprint.IsFloor(x, z)) Grid.AddFloor(area);
 			else Grid.AddObstacle(area);
 		}
@@ -150,7 +148,7 @@ public sealed class RoomBlueprint
 	public bool StartsAtCorner(WallRun run) => !Footprint.IsFloor(run.Start - run.Along) && !IsDoorway(run.Start, -run.Along);
 	public bool EndsAtCorner(WallRun run) => !Footprint.IsFloor(run.Last + run.Along) && !IsDoorway(run.Last, run.Along);
 
-	public RandomNumberGenerator Random(string key) => GenerationRandom.Create(Seed, GenerationRandom.Arrangements, $"{Type?.Id}:{key}");
+	public RandomNumberGenerator Random(string key) => GenerationRandom.Create(Seed, GenerationRandom.Arrangements, $"{Type.Id}:{key}");
 
 	/// <summary>
 	/// Weighted choice balanced over the room: each option scores (uses + a random fraction) / weight and the lowest wins.
@@ -198,7 +196,7 @@ public sealed class RoomBlueprint
 				var cell = Grid.CellAt(landing.GetCenter());
 				if (!Grid.Contains(cell) || !reached[cell.Y * Grid.Size.X + cell.X]) return false;
 			}
-			if (Type == null || Type.MaxPocketShare >= 1) return true;
+			if (Type.MaxPocketShare >= 1) return true;
 			int standable = 0, reachable = 0;
 			for (int index = 0; index < reached.Length; index++)
 			{
@@ -227,28 +225,27 @@ public sealed class RoomBlueprint
 	/// <summary>
 	/// Places a plan at <paramref name="at"/>. Required pieces go in together or not at all and must keep the room
 	/// <see cref="IsAcceptable"/>; optional pieces are then tried one by one. Leaves the blueprint unchanged on false.
-	/// The required pieces may sink into a <paramref name="pit"/> cut from the floor tiles under them. Pit-contained
-	/// pieces may extend under perimeter walls; circulation and prop overlap checks still apply. They may also claim a
-	/// <paramref name="landing"/>: an area in front of stairs that no floor prop may ever cover and that every doorway
+	/// Required <see cref="Prop.Sunken"/> pieces sink into a pit cut from the floor tiles whose centers they cover, in
+	/// piece order. They may extend under perimeter walls; circulation and prop overlap checks still apply. The required
+	/// pieces may also claim a <paramref name="landing"/>: an area in front of stairs that no floor prop may ever cover and that every doorway
 	/// must keep reaching, for the rest of the assembly.
 	/// <paramref name="allowPitOverhang"/> lets rail corners span existing pits; only overlaps inside those pits are exempt.
 	/// </summary>
-	public bool TryPlace(PlacementPlan plan, Transform3D at, IReadOnlyCollection<Vector2I> pit = null, Rect2? landing = null, bool allowPitOverhang = false)
+	public bool TryPlace(PlacementPlan plan, Transform3D at, Rect2? landing = null, bool allowPitOverhang = false)
 	{
 		if (plan.IsEmpty) return false;
 		var start = Save();
 		foreach (var piece in plan.Pieces.Where(piece => !piece.Optional))
 		{
-			if (TryAdd(piece, at * piece.Local, checkConnectivity: false, pit, allowPitOverhang)) continue;
+			if (TryAdd(piece, at * piece.Local, checkConnectivity: false, allowPitOverhang)) continue;
 			Restore(start);
 			return false;
 		}
-		float half = Room.TileSize / 2f;
-		foreach (var tile in pit ?? [])
+		foreach (var sunken in _pieces.Skip(start.Pieces).Where(piece => piece.Prop.Sunken).ToList())
+		foreach (var tile in Footprint.Tiles.Where(tile => XZ(sunken.Envelope).HasPoint(RoomFootprint.TileCenter(tile).Xz())))
 		{
 			_pits.Add(tile);
-			var center = RoomFootprint.TileCenter(tile);
-			Grid.AddObstacle(new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize));
+			Grid.AddObstacle(RoomFootprint.TileArea(RoomFootprint.TileCenter(tile)));
 		}
 		if (!IsAcceptable)
 		{
@@ -334,7 +331,7 @@ public sealed class RoomBlueprint
 	public bool HasWallSupport(Aabb envelope, WallRun run) =>
 		HasWallSupport(envelope, run, IsDecoratable);
 
-	private bool TryAdd(PlannedPiece piece, Transform3D transform, bool checkConnectivity, IReadOnlyCollection<Vector2I> pit = null, bool allowPitOverhang = false)
+	private bool TryAdd(PlannedPiece piece, Transform3D transform, bool checkConnectivity, bool allowPitOverhang = false)
 	{
 		var geometry = piece.Prop.Geometry(piece.Variant);
 		var envelope = transform * geometry.Envelope;
@@ -342,8 +339,7 @@ public sealed class RoomBlueprint
 		if (piece.Prop.Mount == PropMount.Floor)
 		{
 			if (!HasTileSupport(area.Grow(-.05f), allowPitOverhang ? Footprint.IsFloor : IsFloor)) return Reject(piece, "extends past the floor");
-			bool insidePit = pit != null && HasTileSupport(area.Grow(-.05f), pit.Contains);
-			if (!insidePit && _wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return Reject(piece, "overlaps a wall");
+			if (!piece.Prop.Sunken && _wallBoxes.Any(wall => XZ(wall).Grow(-Tolerance).Intersects(area))) return Reject(piece, "overlaps a wall");
 			if (piece.Prop.Blocking && _reserved.Any(reserved => reserved.Intersects(area))) return Reject(piece, "blocks reserved circulation");
 			if (_landings.Any(landing => landing.Intersects(area))) return Reject(piece, "covers a stair landing");
 		}

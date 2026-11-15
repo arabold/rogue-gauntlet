@@ -148,7 +148,7 @@ public class CorridorDecorationTest
 	{
 		string label = $"depth {depth}";
 		var realm = generator.CurrentRealm;
-		var rooms = generator.FloorContent.GetChildren().OfType<Room>().Where(room => room.Type != null).ToArray();
+		var rooms = generator.FloorContent.GetChildren().OfType<Room>().ToArray();
 		AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Realms.Contains(realm.Id)))
 			.OverrideFailureMessage($"{label}: rooms outside the {realm.Id} realm").IsTrue();
 		AssertArray(TestFactories.ConnectivityFailures(generator).ToArray()).OverrideFailureMessage(label).IsEmpty();

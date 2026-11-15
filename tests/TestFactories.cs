@@ -278,7 +278,7 @@ public static partial class TestFactories
 	/// <see cref="ResourceCacheGuard"/> works around, and the aborted engine hangs the run.
 	/// </summary>
 	public static async Task<(ISceneRunner Runner, MapGenerator Generator)> LoadGenerator(
-		RoomLayoutStrategy layout, RoomFactory factory = null)
+		RoomLayoutStrategy layout, AssembledRoomFactory factory = null)
 	{
 		factory ??= RoomPool();
 		ISceneRunner runner = LoadScene("res://scenes/levels/generators/map_generator.tscn");
@@ -294,7 +294,7 @@ public static partial class TestFactories
 	/// floor's runtime services: discovery and exploration saves. Regenerate with <see cref="Level.Generate"/>. Like there,
 	/// the pool loads before the scene.
 	/// </summary>
-	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(RoomLayoutStrategy layout, RoomFactory factory = null)
+	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(RoomLayoutStrategy layout, AssembledRoomFactory factory = null)
 	{
 		factory ??= RoomPool();
 		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
@@ -326,7 +326,7 @@ public static partial class TestFactories
 		return (runner, level);
 	}
 
-	private static void Configure(MapGenerator mapGenerator, RoomLayoutStrategy layout, RoomFactory factory)
+	private static void Configure(MapGenerator mapGenerator, RoomLayoutStrategy layout, AssembledRoomFactory factory)
 	{
 		mapGenerator.RoomLayout = layout;
 		mapGenerator.CorridorConnector = new AStarCorridorConnector();

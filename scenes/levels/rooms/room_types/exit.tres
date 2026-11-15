@@ -67,7 +67,6 @@ Id = "stairs"
 Content = [ExtResource("14_stairs_down")]
 MinimumCount = 1
 MaximumCount = 1
-Sunken = true
 metadata/_custom_type_script = ExtResource("13_StairsStep")
 
 [sub_resource type="Resource" id="ScatterStep_scatter"]

@@ -25,6 +25,7 @@ Create `props/<category>/<name>.tres` with script `Prop`:
 | `Blocking` | Off for things actors walk over or that rest on other props |
 | `TurnJitter`, `ShiftJitter` | Seeded random turn (degrees either way) and shift (units) so loose props never line up perfectly; placement measures the turned prop. Leave at 0 for anchors that carry members (tables), fitted pieces and wall props |
 | `Interactive` | Keeps the space in front clear |
+| `Sunken` | Sinks into a pit cut from the floor tiles under it and may reach under the walls there: down-stairs, pool water |
 
 Studio-made furnishings (altars, statues, candles, racks, wall decor, sarcophagi, sewer fixtures and goo, jungle plants) are exported to `assets/custom-props/<theme>/` by the [Asset Studio](../../../../asset-studio/README.md#room-furnishings). Lit variants are game scenes in `scenes/props/furnishings/` (`*_lit.tscn`): the model, its separate flames model or a fire effect as `Flame`, a `FlickeringLight`, and the exploration-gate and environmental-light components that put both out on dark floors. List lit and unlit scenes as variants of one prop. Composed scenes in the same folder combine a Studio model with existing art (the bunk bed carries KayKit's own bedding; the chopping block holds KayKit's woodcutter's axe).
 
@@ -72,7 +73,7 @@ Keep `MinimumFloorTiles` consistent with the smallest intended footprint: smalle
 | `WallDecorStep` | Wall mounts beside doorways or spread along plain walls |
 | `CellsStep` | Barred cells with operable gates, corner and junction pieces where bars meet, and content against each back wall; rows start flush in a room corner when they fit |
 | `FencedAreaStep` | A wall or corner bay (with content), a fenced walkway, or a divider |
-| `StairsStep` | The level's stairs: up-stairs against a wall, or `Sunken` down-stairs in a two-tile stairwell cut into open floor (floor on every side); the landing at the walk-on end must stay reachable from every doorway |
+| `StairsStep` | The level's stairs: up-stairs against a wall, or down-stairs (a `Sunken` prop) in a two-tile stairwell cut into open floor (floor on every side); the landing at the walk-on end must stay reachable from every doorway |
 | `PoolStep` | Impassable water using [`rooms/props/pool/`](../../rooms/props/pool/). `Layout`: scattered rectangles, a centered cistern (`MinimumSize`..`MaximumSize`), or a walkway with water to the side walls. Walkways use `Sides` (random/left/right/both), `WalkwayWidth` and `EndInset` in tiles. An optional `Fence`, `FenceCorner` and `FenceChance` add rails with joined turns on dry banks. Put it first so furniture works around the water; cisterns need doorway approaches rather than a reserved spine through the center, and no competing central columns |
 
 A new kind of placement is a new `FurnishingStep` subclass that composes plans from `Content` and places them through `RoomBlueprint.TryPlace` (or `AgainstWall` for wall runs); the blueprint enforces floor support, overlap, circulation, connectivity and the pocket budget.
