@@ -161,8 +161,10 @@ class Item:
         backend = data["backend"]
         if data.get("surface") and (backend != "source" or data.get("color_mode", "character") != "character"):
             raise ValueError("Source surface conversion requires the source backend and character shading")
-        if data.get("topology") == "authored_assembly" and not (backend == "source" and data.get("surface", {}).get("repair")):
-            raise ValueError("Authored surface exceptions require explicit repaired source conversion")
+        # Openings are allowed only in original geometry kept as authored: a repaired source, or KayKit's own hats.
+        authored = (backend == "source" and data.get("surface", {}).get("repair")) or data.get("builder") == "kaykit_headgear"
+        if data.get("topology") == "authored_assembly" and not authored:
+            raise ValueError("Authored surface exceptions require repaired source conversion or KayKit's own headgear")
         required = {"source": "source", "prefab": "parts"}
         if backend in required and not data.get(required[backend]):
             raise ValueError(f"{self.key}: {backend} requires {required[backend]}")
@@ -385,8 +387,13 @@ class Item:
                 else:
                     # Weapon recipes start from the shared weapon palette and list only the slots they change.
                     weapon = data["builder"] in WEAPONS
-                    colors = {**COLORS, **(forge.COLORS if weapon else {}), **data.get("colors", {})}
-                    materials = {**MATERIALS, **(forge.MATERIALS if weapon else {}), **data.get("materials", {})}
+                    # A built piece may bring its own colors and looks (KayKit's swatches); a recipe color recolors a
+                    # slot, dropping the original gradient that would otherwise keep the old color.
+                    looks = {slot: look for slot, look in getattr(built_piece, "looks", {}).items()
+                             if slot not in data.get("colors", {})}
+                    colors = {**COLORS, **(forge.COLORS if weapon else {}), **getattr(built_piece, "colors", {}),
+                              **data.get("colors", {})}
+                    materials = {**MATERIALS, **(forge.MATERIALS if weapon else {}), **looks, **data.get("materials", {})}
                     export_static(str(raw), self.id, built_piece, colors, materials=materials, crease=data.get("crease", 50),
                                   parts=parts)
                 source = raw

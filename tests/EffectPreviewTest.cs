@@ -60,8 +60,8 @@ public class EffectPreviewTest
 		await runner.SimulateFrames(38, 20);
 		AssertBool(player.GlobalPosition.IsEqualApprox(destination)).IsTrue(); AssertInt(host.ActiveInstanceCount).IsEqual(1);
 		// The iron skin shows again once the traveler has arrived.
-		var head = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().Contains("Head"));
-		var skin = ((ShaderMaterial)head.GetActiveMaterial(0)).GetShaderParameter("skin_kind");
+		var body = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().EndsWith("_Body"));
+		var skin = ((ShaderMaterial)body.GetActiveMaterial(0)).GetShaderParameter("skin_kind");
 		AssertBool(skin.VariantType == Variant.Type.Int && skin.AsInt32() == 0).IsTrue();
 	}
 	[TestCase]
@@ -85,8 +85,8 @@ public class EffectPreviewTest
 	{
 		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(0); preview.SetSurfaceStyle(true, true);
-		var head = preview.Stage.GetChild(0).FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().Contains("Head"));
-		var material = (ShaderMaterial)head.GetActiveMaterial(0);
+		var body = preview.Stage.GetChild(0).FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().EndsWith("_Body"));
+		var material = (ShaderMaterial)body.GetActiveMaterial(0);
 		AssertBool(material.GetShaderParameter("faceted").AsBool()).IsTrue(); AssertFloat(material.GetShaderParameter("polish").AsSingle()).IsEqual(1);
 		var definition = TestFactories.Load<WorldEffectDefinition>("res://scenes/effects/world/iron_skin/iron_skin.tres");
 		var template = AutoFree(definition.Scene.Instantiate<WorldEffectInstance>());
@@ -100,8 +100,8 @@ public class EffectPreviewTest
 		Vector3 origin = player.GlobalPosition;
 		TeleportEffect.Play(player, player.WorldEffects, origin + Vector3.Right * 4, preview.TeleportDeparture, preview.TeleportArrival, 42);
 		player.Invisibility.SetInvisible(true, true);
-		var head = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().Contains("Head"));
-		AssertBool(((ShaderMaterial)head.GetActiveMaterial(0)).Shader.Code.Contains("body_opacity")).IsTrue();
+		var body = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().EndsWith("_Body"));
+		AssertBool(((ShaderMaterial)body.GetActiveMaterial(0)).Shader.Code.Contains("body_opacity")).IsTrue();
 		player.HealthComponent.TakeDamage(100000);
 		await runner.SimulateFrames(24, 20);
 		AssertBool(player.GlobalPosition.IsEqualApprox(origin)).IsTrue(); AssertInt(preview.InstanceCount).IsEqual(0);
@@ -132,8 +132,8 @@ public class EffectPreviewTest
 		player.WorldEffects.PlayBurst(preview.TeleportDeparture, 42);
 		var effect = player.WorldEffects.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(e => !e.IsQueuedForDeletion());
 		effect.Seek(.15f);
-		var head = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().Contains("Head"));
-		var depth = (ShaderMaterial)head.GetActiveMaterial(0); var color = (ShaderMaterial)depth.NextPass;
+		var body = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().EndsWith("_Body"));
+		var depth = (ShaderMaterial)body.GetActiveMaterial(0); var color = (ShaderMaterial)depth.NextPass;
 		AssertFloat(depth.GetShaderParameter("amount").AsSingle()).IsEqual(color.GetShaderParameter("amount").AsSingle());
 		AssertBool(color != effect.Surface.Material.NextPass).IsTrue();
 	}

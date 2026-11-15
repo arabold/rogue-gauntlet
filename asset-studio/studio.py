@@ -20,7 +20,7 @@ Commands:
     .venv/bin/python asset-studio/studio.py tile --help   (modular floor and wall tile families)
     .venv/bin/python asset-studio/studio.py list
     .venv/bin/python asset-studio/studio.py schema [section]
-    .venv/bin/python asset-studio/studio.py new heroes/elf --base heroes/barbarian_base
+    .venv/bin/python asset-studio/studio.py new heroes/elf --base heroes/hero_base
     .venv/bin/python asset-studio/studio.py reference goblin/goblin --brief "turn this mannequin into..."
     .venv/bin/python asset-studio/studio.py preview goblin/goblin
     .venv/bin/python asset-studio/studio.py export goblin/goblin heroes/barbarian   (or --all; --no-import skips Godot)
@@ -50,6 +50,7 @@ if STUDIO_DIR not in sys.path:
 from core import catalog, export, kit, match  # noqa: E402
 from core import mesh as mm  # noqa: E402
 from core.rig import Rig, mannequin, skin, skinned  # noqa: E402
+from prefabs.anatomy import adventurer_parts  # noqa: E402
 from prefabs.creatures import characters, golems  # noqa: E402
 from prefabs import registry  # noqa: E402
 
@@ -291,6 +292,16 @@ def _write(path, data):
         f.write("\n")
 
 
+def hero_export(recipe, pieces):
+    """`(fixed_hinges, groups)` for exporting a class hero: the bare body the game dresses, its headgear, capes and
+    weapons being items it equips. It carries the shared shoulder hinges any armor binds to, and few nodes: its body,
+    its arms and its legs (a body armor suit brings its own and hides these), and the head parts headgear hides (with
+    the scalp shown in their place)."""
+    parts = {part.capitalize() for part in recipe.get("head_parts", ())} | {"Scalp"}
+    limbs = {piece: limb.capitalize() for limb, pieces in adventurer_parts.LIMBS.items() for piece in pieces}
+    return characters.shared_hinges(), {k: limbs.get(k, "Body") for k in pieces if k not in parts}
+
+
 def export_glb(c, no_import=False):
     """Write the character's GLB to `assets/` and its `.import` (template import settings, looping clips)."""
     if c.recipe().get("builder") in {"skinned_source", "golem", "warden"}:
@@ -312,6 +323,11 @@ def export_glb(c, no_import=False):
         if mm.read_glb(c.glb)[0].get("asset", {}).get("generator") not in KNOWN_GENERATORS:
             shutil.copy2(c.glb, legacy)
             print(f"{c.key}: kept the earlier {os.path.relpath(c.glb, REPO)} as {os.path.relpath(legacy, REPO)}")
+    fixed_hinges = groups = None
+    if r.get("hero"):
+        if hat or cape or r.get("weapons"):
+            raise SystemExit(f"{c.key}: a class hero wears no helmet, cape or weapons; the game equips those as items")
+        fixed_hinges, groups = hero_export(r, worn)
     export.export(
         c.glb,
         c.title,
@@ -323,6 +339,8 @@ def export_glb(c, no_import=False):
         cape=kit.Piece.merge(*cape) if cape else None,
         weapons=c.weapons(r),
         materials=r.get("materials"),
+        fixed_hinges=fixed_hinges,
+        groups=groups,
     )
     export.import_settings(c.glb, template)
     print(f"{c.key}: {os.path.relpath(c.glb, REPO)} ({os.path.getsize(c.glb) // 1024} KB)")

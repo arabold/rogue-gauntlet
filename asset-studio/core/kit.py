@@ -77,6 +77,14 @@ class Piece:
         return Piece(np.vstack([p.verts for p in pieces]), np.vstack([p.faces + o for p, o in zip(pieces, offsets)]),
                      np.concatenate([p.slots for p in pieces]), normals=norms, uv_t=uv_t)
 
+    def faces_where(self, mask):
+        """The faces `mask` selects, as a piece of their own (only the vertices they use; corner data kept)."""
+        mask = np.asarray(mask, bool)
+        used, faces = np.unique(self.faces[mask], return_inverse=True)
+        return Piece(self.verts[used], faces.reshape(-1, 3), self.slots[mask],
+                     normals=None if self.normals is None else self.normals[mask],
+                     uv_t=None if self.uv_t is None else self.uv_t[mask])
+
     def moved(self, frame):
         """This piece, built in local axes (x along, y up, z out), placed in `frame`."""
         norms = None if self.normals is None else (self.normals @ frame.R.T)

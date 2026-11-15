@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scenes/player/classes/HeroBuildItem.cs" id="item"]
 [ext_resource type="Resource" path="res://scenes/player/classes/class_knight.tres" id="class"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/longsword_common.tres" id="res_0"]
-[ext_resource type="Resource" path="res://scenes/items/armor/shield_common.tres" id="res_1"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_common.tres" id="res_1"]
 [ext_resource type="Resource" path="res://scenes/items/jewelry/ring/ring_protection_1.tres" id="res_2"]
 [ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="res_3"]
 

@@ -20,6 +20,12 @@ def specifications(pieces):
     return result
 
 
+def same(a, b, tolerance=1e-3):
+    """Whether two hinge specs describe the same joint: parents and share equal, pivots within `tolerance`."""
+    return (a["parent"], a["follow"], a["share"]) == (b["parent"], b["follow"], b["share"]) and np.allclose(
+        a["pivot"], b["pivot"], atol=tolerance)
+
+
 def _turn(deltas,spec):
     parent,follow=deltas[spec["parent"]],deltas[spec["follow"]]
     # Some source spawn/death clips hide the character with zero bone scale.

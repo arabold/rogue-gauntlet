@@ -79,9 +79,26 @@ remaining older weapon-preview dependencies. [Technical creature rigs](rigs/crea
 cover blob/spider/wolf/rat extraction and explicit external-donor tools. The old
 `creature study` builders are superseded by the normal production recipes.
 
+## Class heroes
+
+The playable classes (`characters/heroes/{barbarian,knight,mage,rogue}`) are bare bodies that the game dresses. Helmets, body armor suits and weapons are items the game equips. Each class extends `heroes/hero_base` (`"hero": true`) and keeps its contract:
+
+- **One shared body and tunic:** every class has the same torso and tunic (`underlayer`), so armor fitted once fits every class. Classes differ only in their head and clothing colors.
+- **KayKit's plain limbs:** every hero wears the KayKit rogue's arms and legs (`"arms"`, `"legs": {"kaykit": true}`): full sleeves in the tunic's color, bracers and gloves; pants in the pants color, bare knees and boots. The legs come with KayKit's hips, the seat of its body, which closes the hero's body from below in place of the body's own pelvis, so the pants belong to the legs as the sleeves belong to the arms. They are exported as `<Class>_Arms` and `<Class>_Legs`, so a body armor suit that brings a class's own KayKit limbs can hide them.
+- **KayKit's own heads:** each class wears its KayKit adventurer head exactly (`"head": {"kaykit": "knight"}`, harvested by `prefabs/anatomy/adventurer_parts.py`), so KayKit's hats fit it natively.
+- **Head parts as nodes:** the hair and the ears with any earrings (`head_parts`) are exported as `<Class>_Hair` and `<Class>_Ears` so equipped headgear can hide them. KayKit hair is the top of the head itself, so a generated `<Class>_Scalp` (the hair pulled down onto the bald barbarian skull) lies under it; the game shows the scalp only while the hair is hidden. Everything else is merged into `<Class>_Body`.
+- **Shoulder hinges:** every hero carries the `shoulder_cap.l/.r` joints from `rigs/hero_hinges.json` with their motion baked into every clip, so armor with pauldrons binds to any hero. The pivots are the knight costume's caps fitted over `hero_base`; regenerate them with `characters.hero_hinges()` if that body changes.
+
+`export heroes/<class>` writes `assets/custom-heroes/<class>.glb` on the class's KayKit template, keeping its prop nodes, skeleton and clips. It rejects a class hero that wears a helmet, cape or weapons.
+
+What heroes wear is exported separately:
+
+- **Helmets:** item recipes in `objects/headgear/` built with `kaykit_headgear` are KayKit's own hats, exactly as authored, in the hat-prop frame. They are exported to `assets/custom-items/armor/helmet/`.
+- **Body armor suits:** costumes with an `item`. `armor suit` renders one on the class hero in temporary storage for review; `armor equip` writes it into the game (see the [armor style guide](costumes/README.md#body-armor-suits-for-the-class-heroes)).
+
 ## Wearable armor fitting
 
-The approved reference pattern for all future armor is [Paladin plate](costumes/knight_plate/README.md) (the original `knight_plate` path is retained), documented in the [armor style guide](costumes/README.md): torso, articulated waist, belt and thigh plates as a single `{"kind":"costume","variant":"knight_plate"}` outfit choice. The builder returns separately named physical pieces so the exporter can preserve rigid plate attachments through each piece's explicit `bone`. Both software posing and skinned GLB export honor those attachments and reject unknown bones. Surface color uses the shared character palette; rims share their plate's topology. The costume recipe supplies its colors. Future boots, gloves, shoulder and arm pieces remain separate from this first set.
+The approved reference pattern for all future armor is [Paladin plate](costumes/knight_plate/README.md) (the original `knight_plate` path is retained), documented in the [armor style guide](costumes/README.md): torso, articulated waist, belt and thigh plates as a single `{"kind":"costume","variant":"knight_plate"}` outfit choice. The builder returns separately named physical pieces so the exporter can preserve rigid plate attachments through each piece's explicit `bone`. Both software posing and skinned GLB export honor those attachments and reject unknown bones. Surface color uses the shared character palette; rims share their plate's topology. The costume recipe supplies its colors. Worn by the class heroes, a costume becomes a [body armor suit](costumes/README.md#body-armor-suits-for-the-class-heroes) whose gauntlets, greaves and boots are a KayKit class's own limbs.
 
 The costume's `belt_y` parameter controls the lower stylized belt position and moves its hanging plates and straps together. Pelvis-mounted thigh plates share the hips attachment with their straps; binding them to upper-leg sockets causes separation during motion. The fitting dummy uses fuller arm geometry while preserving the reference skeleton's shoulder joints.
 
@@ -137,7 +154,8 @@ asset-studio/
 │   │   ├── bodies.py         # Torso trunks (standard, hero, female, brute, round, skinny, goblin) and body assembly
 │   │   ├── limbs.py          # Arm and leg limb tubes (normal, thin, muscular, gorilla, bony, stocky)
 │   │   ├── extremities.py    # Hands (mitten, fist, claw, bony) and feet (boot, bare, paw)
-│   │   └── appendages.py     # Wings (bat, scalloped), tails (spade, whip), exposed ribs, curved beast horns
+│   │   ├── appendages.py     # Wings (bat, scalloped), tails (spade, whip), exposed ribs, curved beast horns
+│   │   └── adventurer_parts.py # KayKit's own class heads, arms, legs and hips for the class heroes and suits
 │   ├── outfits/              # 2. WEARABLE EQUIPMENT (ARMOR & CLOTHES)
 │   │   ├── clothes.py        # Tunics, robes, sleeves, shorts, loincloths, aprons, collars, cuffs, wraps
 │   │   ├── cuirass.py        # Fitted plate cuirasses (knight, orc, corset)
@@ -508,7 +526,7 @@ The five steel armor costumes now include gorget-mounted pauldrons through `kind
 
 ## Primitive and royal orc costumes
 
-`costumes/barbarian/` preserves the existing blue barbarian as a coordinated `costume_set`. Its `parts` are the original shorts, tunic, harness, belt and cape recipes. The character references that set and retains its headgear and limb accessories. A `costume_set` expands normal garment layering with original fitting semantics; nested sets are rejected.
+`costumes/barbarian/` preserves the existing blue barbarian as a coordinated `costume_set`. Its `parts` are the original shorts, tunic, harness, belt and cape recipes. Its fitting study and `test_primal_costumes` use it; the class heroes are dressed by items instead. A `costume_set` expands normal garment layering with original fitting semantics; nested sets are rejected.
 
 `costumes/barbarian_primitive/` is a separate bare-chested hero-body costume: a continuous leather harness, one hinged fur-lined pauldron, a fitted belt, hide skirt and curved hip panels. `costumes/orc_king/` fits the brute torso and retains the king's established head, crown and limbs while replacing his obsolete torso and shoulder armor. Their selected image concepts and exact master prompts are authoring inputs; generated models remain visual-review candidates until publication. Other orc costumes are unchanged.
 

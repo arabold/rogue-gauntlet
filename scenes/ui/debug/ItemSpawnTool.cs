@@ -33,7 +33,9 @@ public partial class ItemSpawnTool : DebugTool
 	public Godot.Collections.Dictionary<string, string> Categories { get; set; } = new()
 	{
 		{ "Weapons", "res://scenes/items/weapons/" },
-		{ "Shields", "res://scenes/items/armor/" },
+		{ "Body armor", "res://scenes/items/armor/body/" },
+		{ "Helmets", "res://scenes/items/armor/helmet/" },
+		{ "Shields", "res://scenes/items/armor/shield/" },
 		{ "Potions", "res://scenes/items/potions/" },
 		{ "Scrolls", "res://scenes/items/scrolls/" },
 		{ "Jewelry", "res://scenes/items/jewelry/" },

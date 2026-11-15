@@ -2,6 +2,7 @@ namespace RogueGauntlet.Tests;
 
 using GdUnit4;
 using Godot;
+using System.Linq;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -42,32 +43,20 @@ public partial class CharacterModelTest
 		}
 	}
 
+	/// <summary>Heroes are bare: the template's props (weapons, shields, hats, capes) are stripped; gear is equipment.</summary>
 	[TestCase]
-	public void InstantiateStripsBuiltInPropsButKeepsHatAndCape()
+	public void InstantiateStripsEveryBuiltInProp()
 	{
 		CharacterCatalog catalog = CharacterCatalog.LoadDefault();
 
 		foreach (CharacterClass characterClass in catalog.Classes)
 		{
 			Node3D model = AutoFree(CharacterModel.Instantiate(characterClass));
-			Skeleton3D skeleton = CharacterModel.FindSkeleton(model);
-			var attachments = CharacterModel.ResolveAttachments(model, characterClass);
-
-			foreach (Node child in skeleton.GetChildren())
+			foreach (BoneAttachment3D attachment in CharacterModel.FindSkeleton(model).GetChildren().OfType<BoneAttachment3D>())
 			{
-				if (child is not BoneAttachment3D attachment)
-				{
-					continue;
-				}
-
-				bool isWorn = (attachments.TryGetValue(AttachmentType.Hat, out BoneAttachment3D hat) && attachment == hat)
-					|| (attachments.TryGetValue(AttachmentType.Cape, out BoneAttachment3D cape) && attachment == cape);
-				if (!isWorn)
-				{
-					AssertInt(attachment.GetChildCount())
-						.OverrideFailureMessage($"{characterClass.Id}: built-in prop left on '{attachment.Name}'")
-						.IsEqual(0);
-				}
+				AssertInt(attachment.GetChildCount())
+					.OverrideFailureMessage($"{characterClass.Id}: built-in prop left on '{attachment.Name}'")
+					.IsEqual(0);
 			}
 		}
 	}

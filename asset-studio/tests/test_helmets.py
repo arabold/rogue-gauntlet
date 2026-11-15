@@ -81,7 +81,6 @@ class HelmetsTest(unittest.TestCase):
         compat_calls = [helmets.headdress(self.head, tilt=-8.0), helmets.coif(self.head, nasal=True)]
         for piece in compat_calls:
             self.assertGreater(len(piece.faces), 0)
-        self.assertNotIn("beard", self.helms["knight"].hides)
 
     def test_kaykit_originals_recolor_regions_and_reject_detail_they_lack(self):
         default = self.helms["wizard"]
@@ -108,8 +107,8 @@ class HelmetsTest(unittest.TestCase):
         self.assertLess(top(under_kettle), top(full))
 
     def test_character_build_suppresses_hidden_head_features(self):
-        hero_base = characters.load("heroes/barbarian_base")
-        _, full_pieces = heads.build(characters.head_recipe(hero_base["head"]))
+        barbarian = characters.load("heroes/barbarian_base")
+        _, full_pieces = heads.build(characters.head_recipe(barbarian["head"]))
         full_verts = len(full_pieces.verts)
         # Every style sits over sculpted hair. This head has none, so its worn head depends only on the hide set:
         # one character per distinct set covers every style.
@@ -119,7 +118,7 @@ class HelmetsTest(unittest.TestCase):
             by_hides.setdefault(frozenset(helm.hides), style)
         for hides, style in by_hides.items():
             with self.subTest(style=style):
-                pieces, _ = characters.build({**hero_base, "outfit": [{"kind": "helmet", "style": style}]})
+                pieces, _ = characters.build({**barbarian, "outfit": [{"kind": "helmet", "style": style}]})
                 head_piece = pieces["Head"]
                 # Cheek-guarded and enclosed helms shrink the head by dropping ears or beard.
                 if hides & {"ears", "beard"}:

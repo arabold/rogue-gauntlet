@@ -51,5 +51,9 @@
       172,
       181
     ]
-  }
+  },
+  "item": {
+    "glb": "res://assets/custom-items/armor/body/mage_coat.glb"
+  },
+  "limbs": "mage"
 }
