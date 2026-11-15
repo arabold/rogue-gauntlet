@@ -9,7 +9,8 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 	[Export] public GameSession.LevelTravelDirection Direction { get; set; } = GameSession.LevelTravelDirection.Down;
 	[Export] public bool RequireExitBeforeActivation { get; set; } = true;
 	[Export] public Vector3 RejectedWalkDirection { get; set; } = Vector3.Zero;
-	[Export] public double RejectedWalkSeconds { get; set; } = 0.75;
+	/// <summary>How far a refused traveller is walked back off the trigger, in meters.</summary>
+	[Export(PropertyHint.Range, "0,20,0.1,suffix:m")] public float RejectedWalkDistance { get; set; } = 5.6f;
 
 	private readonly HashSet<Node3D> _blockedBodies = [];
 	private bool _isTransitioning;
@@ -53,7 +54,7 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 		_isTransitioning = allowed && GameSession.Instance?.ChangeDungeonDepth(Direction) == true;
 		if (!_isTransitioning && RejectedWalkDirection != Vector3.Zero)
 		{
-			StairAutoWalk.Start(player, GlobalTransform.Basis * RejectedWalkDirection, RejectedWalkSeconds);
+			StairAutoWalk.Start(player, GlobalTransform.Basis * RejectedWalkDirection, RejectedWalkDistance);
 		}
 	}
 
