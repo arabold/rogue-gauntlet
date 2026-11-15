@@ -71,7 +71,7 @@ public static class ItemIdentity
 		item is not IIdentifiable identifiable || service == null || service.IsIdentified(identifiable);
 
 	/// <summary>
-	/// Whether the tooltip may show the item's stats: its type is known and, for equipment, its own attributes
+	/// Whether the item's lines may show its stats: its type is known and, for equipment, its own attributes
 	/// (unidentified Magic and Rare items hide them).
 	/// </summary>
 	public static bool AreStatsKnown(Item item) => IsTypeKnown(item) && item is not EquipableItem { AttributesKnown: false };

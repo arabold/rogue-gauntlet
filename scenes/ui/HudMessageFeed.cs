@@ -13,6 +13,8 @@ public partial class HudMessageFeed : VBoxContainer, ILogSink
 	private static readonly Color FontShadowColor = new(0, 0, 0, 0.85f);
 
 	[Export(PropertyHint.Range, "1,10,1")] public int MaxVisibleMessages { get; set; } = 5;
+	/// <summary>How each line sits across the feed's width; the HUD centers them under the hero.</summary>
+	[Export] public HorizontalAlignment TextAlignment { get; set; } = HorizontalAlignment.Left;
 	[Export(PropertyHint.Range, "1,15,0.5")] public float MessageDurationSeconds { get; set; } = 5.0f;
 	[Export(PropertyHint.Range, "0.1,3,0.05")] public float FadeDurationSeconds { get; set; } = 0.75f;
 
@@ -141,6 +143,7 @@ public partial class HudMessageFeed : VBoxContainer, ILogSink
 			ScrollActive = false,
 			MouseFilter = MouseFilterEnum.Ignore,
 			AutowrapMode = TextServer.AutowrapMode.WordSmart,
+			HorizontalAlignment = TextAlignment,
 			SizeFlagsHorizontal = SizeFlags.ExpandFill
 		};
 

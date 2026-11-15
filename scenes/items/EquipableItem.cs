@@ -18,7 +18,6 @@ public enum ValidSlots
 	RightRing = EquipmentSlot.RightRing,
 	WeaponHand = EquipmentSlot.WeaponHand,
 	ShieldHand = EquipmentSlot.ShieldHand,
-	Arrows = EquipmentSlot.Arrows,
 }
 
 [Tool]
@@ -101,7 +100,7 @@ public partial class EquipableItem : BuffedItem
 		BuildIntrinsicModifiers().Concat(Affixes?.Where(affix => affix?.Modifiers != null)
 			.SelectMany(affix => affix.Modifiers).Where(modifier => modifier != null) ?? []);
 
-	/// <summary>The curse penalty's stats while cursed; hidden in the tooltip until the curse is revealed.</summary>
+	/// <summary>The curse penalty's stats while cursed; hidden from the item's lines until the curse is revealed.</summary>
 	public IEnumerable<StatModifier> CurseModifiers => CursePenalty?.Where(modifier => modifier != null) ?? [];
 
 	/// <summary>Everything this item grants while equipped: its attributes and any curse penalty.</summary>

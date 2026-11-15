@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 /// <summary>How a run stands: still playable, or ended.</summary>
 public enum RunOutcome
@@ -64,6 +66,9 @@ public sealed class SaveSlotMetadata
 	public string RunId { get; set; } = string.Empty;
 	public string CharacterClassId { get; set; } = string.Empty;
 	public string SavedAtUtc { get; set; } = string.Empty;
+	/// <summary>When the run was last saved, in UTC; null for a slot without a readable time.</summary>
+	public DateTime? SavedAt => DateTime.TryParse(SavedAtUtc, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime saved)
+		? saved : null;
 	public uint DungeonDepth { get; set; }
 	public int XpLevel { get; set; }
 	public int Gold { get; set; }

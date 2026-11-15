@@ -26,11 +26,12 @@ public partial class BoneAttachmentManager : Node
 	public Dictionary<AttachmentType, BoneAttachment3D> AttachmentNodes { get; set; } =
 		new Dictionary<AttachmentType, BoneAttachment3D>();
 
-	/// <summary>
-	/// The player that this BoneAttachmentManager is attached to.
-	/// This is used to listen to the player's inventory events.
-	/// </summary>
-	[Export] public Player player { get; set; }
+	/// <summary>The actor or model whose skeleton carries the attachments.</summary>
+	[Export] public Node Subject { get; set; }
+	/// <summary>The inventory whose worn items are shown; injected by the owner before this node is ready.</summary>
+	public Inventory Inventory { get; set; }
+	/// <summary>Where held items' auras play; without one, items show no aura.</summary>
+	public WorldEffectHost Effects { get; set; }
 
 	/// <summary>Decorates each held item with its aura: a known curse or a spell weapon's element.</summary>
 	[Export] public PackedScene AuraPresentation { get; set; }
@@ -57,20 +58,18 @@ public partial class BoneAttachmentManager : Node
 			RemoveAttachments(AttachmentType.Chest);
 			RemoveAttachments(AttachmentType.Helmet);
 
-			if (player != null)
+			if (Inventory != null)
 			{
-				GD.Print($"Setting up BoneAttachmentManager for {player.Name}");
-				Inventory playerInventory = player.Inventory;
 				this.SubscribeUntilExit(
-					playerInventory,
+					Inventory,
 					inventory => inventory.ItemEquipped += OnItemEquipped,
 					inventory => inventory.ItemEquipped -= OnItemEquipped);
 				this.SubscribeUntilExit(
-					playerInventory,
+					Inventory,
 					inventory => inventory.ItemUnequipped += OnItemUnequipped,
 					inventory => inventory.ItemUnequipped -= OnItemUnequipped);
 
-				foreach (var (slot, item) in playerInventory.EquippedItems)
+				foreach (var (slot, item) in Inventory.EquippedItems)
 				{
 					if (item != null)
 					{
@@ -88,7 +87,7 @@ public partial class BoneAttachmentManager : Node
 	/// <summary>Use the shared hand socket rather than a character's weapon- or shield-specific prop bone.</summary>
 	private BoneAttachment3D GetWeaponMount(AttachmentType type, WeaponGrip grip)
 	{
-		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(Subject);
 		if (skeleton == null || skeleton.FindBone(grip.Bone) < 0)
 		{
 			GD.PushWarning($"{Name}: missing weapon grip bone '{grip.Bone}'.");
@@ -118,12 +117,12 @@ public partial class BoneAttachmentManager : Node
 			return boneAttachment;
 		}
 
-		if (player == null)
+		if (Subject == null)
 		{
 			return null;
 		}
 
-		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(Subject);
 		if (skeleton == null)
 		{
 			return null;
@@ -221,7 +220,7 @@ public partial class BoneAttachmentManager : Node
 			if (AuraPresentation != null && itemAttachment is Node3D model)
 			{
 				var aura = AuraPresentation.Instantiate<ItemAuraPresenter>();
-				aura.Initialize(item, model, player?.WorldEffects); model.AddChild(aura);
+				aura.Initialize(item, model, Effects); model.AddChild(aura);
 			}
 		}
 	}
@@ -232,7 +231,7 @@ public partial class BoneAttachmentManager : Node
 	/// </summary>
 	private bool TryWear(AttachmentType attachmentType, EquipableItem item, PackedScene scene)
 	{
-		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(Subject);
 		if (skeleton == null)
 		{
 			return false;
@@ -248,7 +247,7 @@ public partial class BoneAttachmentManager : Node
 		if (AuraPresentation != null)
 		{
 			var aura = AuraPresentation.Instantiate<ItemAuraPresenter>();
-			aura.Initialize(item, meshes[0], player?.WorldEffects); meshes[0].AddChild(aura);
+			aura.Initialize(item, meshes[0], Effects); meshes[0].AddChild(aura);
 		}
 		return true;
 	}
@@ -256,13 +255,13 @@ public partial class BoneAttachmentManager : Node
 	/// <summary>Hides the model parts the worn helmet and body armor cover, and shows the rest.</summary>
 	private void ShowCoveredParts()
 	{
-		Skeleton3D skeleton = CharacterModel.FindSkeleton(player);
-		if (skeleton == null || player?.Inventory == null)
+		Skeleton3D skeleton = CharacterModel.FindSkeleton(Subject);
+		if (skeleton == null || Inventory == null)
 		{
 			return;
 		}
 		WornEquipment.ShowModelParts(skeleton, WornEquipment.CoveredParts(
-			System.Linq.Enumerable.Select(player.Inventory.EquippedItems.Values, entry => entry?.Item)));
+			System.Linq.Enumerable.Select(Inventory.EquippedItems.Values, entry => entry?.Item)));
 	}
 
 	private static void ApplyRenderLayers(Node node, uint renderLayers)

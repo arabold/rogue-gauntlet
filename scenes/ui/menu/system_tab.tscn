@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/menu/SystemTab.cs" id="1_script"]
+
+[node name="System" type="Control" node_paths=PackedStringArray("ResumeButton", "SaveAndQuitButton", "StatusLabel")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+ResumeButton = NodePath("Center/Column/ResumeButton")
+SaveAndQuitButton = NodePath("Center/Column/SaveAndQuitButton")
+StatusLabel = NodePath("Center/Column/StatusLabel")
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Center/Column"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Paused"
+horizontal_alignment = 1
+
+[node name="Rule" type="HSeparator" parent="Center/Column"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+
+[node name="ResumeButton" type="Button" parent="Center/Column"]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "Resume"
+
+[node name="SaveAndQuitButton" type="Button" parent="Center/Column"]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 2
+text = "Save & Quit"
+
+[node name="StatusLabel" type="Label" parent="Center/Column"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_type_variation = &"WarningLabel"
+horizontal_alignment = 1

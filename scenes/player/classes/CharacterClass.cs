@@ -15,7 +15,8 @@ public partial class CharacterClass : Resource
 
 	[Export] public string DisplayName { get; set; } = "";
 
-	[Export(PropertyHint.MultilineText)] public string Description { get; set; } = "";
+	/// <summary>The class in a glance for the hero picker: five words at most.</summary>
+	[Export] public string Tagline { get; set; } = "";
 
 	/// <summary>
 	/// The class hero's model (<c>assets/custom-heroes/</c>), exported on its KayKit template. Must

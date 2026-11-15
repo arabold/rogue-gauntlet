@@ -12,62 +12,62 @@ public enum SlotTargetingState
 [Tool]
 public partial class ItemSlotPanel : PanelContainer
 {
+	/// <summary>The slot was chosen: by the accept key while it holds the focus, or by a click with either mouse button.</summary>
 	[Signal] public delegate void ItemSelectedEventHandler(ItemSlotPanel itemSlotPanel);
+	/// <summary>The slot took the focus, by keys or by the pointer moving onto it; its item is the one to describe.</summary>
+	[Signal] public delegate void ItemHighlightedEventHandler(ItemSlotPanel itemSlotPanel);
 
 	/// <summary>Opacity of the <see cref="ItemQualityPalette"/> tint behind Magic and Rare equipment.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float QualityTintAlpha { get; set; } = 0.25f;
 	[Export] public Color DefaultColor { get; set; } = new(0.8f, 0.8f, 0.8f, 0.1f);
+	/// <summary>What an empty slot shows: the kit's icon for the kind of item it holds. Unset, an empty slot stays bare.</summary>
+	[Export] public Texture2D EmptyIcon { get; set { field = value; if (IsNodeReady()) { Update(); } } }
+	/// <summary>Fades the slot back without disabling it, e.g. gear that does not fit the slot being filled.</summary>
+	public bool Dimmed { get; set { field = value; ApplyModulate(); } }
 
-	private ItemSlotButton _button;
+	private static readonly StringName Empty = "SlotPanel", Worn = "FilledSlotPanel";
+	private Button _button;
+	private TextureRect _emptyIcon;
+	/// <summary>The selection glow, drawn behind the item so the model stands on it rather than under it.</summary>
+	private Panel _glow;
+	private SlotTargetingState _targeting;
 	private ColorRect _colorRect;
+	private ItemIcon _icon;
 	private Preview _preview;
 	private Label _quantityLabel;
-	private Panel _equippedBorder;
 	private Action _unsubscribeSlot = () => { };
 	private Action _unsubscribeItem = () => { };
 	/// <summary>The item whose own <c>Changed</c> relabels this slot, e.g. when its attributes or curse are revealed.</summary>
 	private Item _observedItem;
-	/// <summary>
-	/// Whether the button should stay disabled for a reason other than targeting-mode
-	/// ineligibility (currently always false — no such condition exists yet). Composed with
-	/// targeting ineligibility in <see cref="SetTargetingState"/> rather than that method
-	/// unconditionally overwriting <c>Disabled</c>, so a future base-disabled reason can't be
-	/// silently re-enabled by leaving targeting mode.
-	/// </summary>
-	private bool _baseDisabled;
 	private bool _isPointedAt;
 
-	public bool IsEquipped
-	{
-		get;
-		private set
-		{
-			field = value;
-			if (IsNodeReady()) { Update(); }
-		}
-	}
-
-	public InventoryItemSlot Slot
-	{
-		get;
-		private set
-		{
-			field = value;
-			if (IsNodeReady()) { Update(); }
-		}
-	}
+	public bool IsEquipped { get; private set; }
+	public InventoryItemSlot Slot { get; private set; }
 
 	public override void _Ready()
 	{
 		// Tool only for the authored layout; slot content, its script-typed nodes and bus events are runtime concerns.
 		if (Engine.IsEditorHint()) return;
 		CacheNodes();
-		_button.ButtonUp += () => EmitSignalItemSelected(this);
-		// The pointed-at or focused item comes alive; every other slot stays a still, render-once icon.
-		_button.MouseEntered += () => SetPointedAt(true);
+		_button.Pressed += () => EmitSignalItemSelected(this);
+		// The right button means the same as the left: both ask what to do with the item.
+		_button.GuiInput += @event =>
+		{
+			if (!_button.Disabled && @event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Right })
+			{
+				EmitSignalItemSelected(this);
+			}
+		};
+		// Pointing at a slot focuses it, so pointer and keys always agree on which item is being looked at. The
+		// focused item comes alive; every other slot stays a still, render-once icon.
+		_button.MouseEntered += () =>
+		{
+			SetPointedAt(true);
+			if (!_button.Disabled && _button.FocusMode != FocusModeEnum.None) { _button.GrabFocus(); }
+		};
 		_button.MouseExited += () => SetPointedAt(false);
-		_button.FocusEntered += UpdatePreviewAnimation;
-		_button.FocusExited += UpdatePreviewAnimation;
+		_button.FocusEntered += () => { OnFocusChanged(); EmitSignalItemHighlighted(this); };
+		_button.FocusExited += OnFocusChanged;
 
 		// Relabel live when a hidden type is discovered elsewhere this run, so every stack of
 		// the identified type reveals its true name at once.
@@ -81,12 +81,34 @@ public partial class ItemSlotPanel : PanelContainer
 
 	private void CacheNodes()
 	{
-		_button ??= GetNode<ItemSlotButton>("%Button");
+		_button ??= GetNode<Button>("%Button");
+		_emptyIcon ??= GetNode<TextureRect>("%EmptyIcon");
+		_glow ??= GetNode<Panel>("%Glow");
 		_colorRect ??= GetNode<ColorRect>("%ColorRect");
-		_preview ??= GetNode<Preview>("%Preview");
+		_icon ??= GetNode<ItemIcon>("%Icon");
+		_preview ??= _icon.Preview;
 		_quantityLabel ??= GetNode<Label>("%QuantityLabel");
-		_equippedBorder ??= GetNode<Panel>("%EquippedBorder");
 	}
+
+	/// <summary>Gives the slot the keyboard focus, if it can take it.</summary>
+	public void FocusSlot()
+	{
+		CacheNodes();
+		if (!_button.Disabled && _button.FocusMode != FocusModeEnum.None) { _button.GrabFocus(); }
+	}
+
+	/// <summary>Whether the slot can be focused and pressed; an empty pack niche cannot.</summary>
+	public bool Selectable
+	{
+		get;
+		set
+		{
+			field = value;
+			CacheNodes();
+			_button.FocusMode = value ? FocusModeEnum.All : FocusModeEnum.None;
+			_button.MouseFilter = value ? MouseFilterEnum.Stop : MouseFilterEnum.Ignore;
+		}
+	} = true;
 
 	public void SetItem(InventoryItemSlot slot, bool isEquipped)
 	{
@@ -111,6 +133,12 @@ public partial class ItemSlotPanel : PanelContainer
 		UpdatePreviewAnimation();
 	}
 
+	private void OnFocusChanged()
+	{
+		_glow.Visible = _button.HasFocus();
+		UpdatePreviewAnimation();
+	}
+
 	private void UpdatePreviewAnimation() => _preview.Animated = _isPointedAt || _button.HasFocus();
 
 	private void OnItemIdentified(string typeId)
@@ -127,9 +155,13 @@ public partial class ItemSlotPanel : PanelContainer
 	public void SetTargetingState(SlotTargetingState state)
 	{
 		CacheNodes();
-		_button.Disabled = _baseDisabled || state == SlotTargetingState.Ineligible;
-		Modulate = state == SlotTargetingState.Ineligible ? new Color(1f, 1f, 1f, 0.35f) : Colors.White;
+		_targeting = state;
+		_button.Disabled = state == SlotTargetingState.Ineligible;
+		ApplyModulate();
 	}
+
+	private void ApplyModulate() =>
+		Modulate = _targeting == SlotTargetingState.Ineligible || Dimmed ? new Color(1f, 1f, 1f, 0.35f) : Colors.White;
 
 	/// <summary>Follows the shown item's own <c>Changed</c>, so per-item reveals and in-place changes relabel the slot.</summary>
 	private void ObserveItem(Item item)
@@ -148,11 +180,11 @@ public partial class ItemSlotPanel : PanelContainer
 		if (Slot != null && Slot.Item != null)
 		{
 			_preview.ShowItem(Slot.Item);
-			// Plain text is the fallback; the rich hover tooltip is built by ItemSlotButton.
-			_button.Item = Slot.Item;
-			_button.TooltipText = ItemIdentity.ResolveDisplayName(Slot.Item);
+			_icon.Filled = true;
 			_quantityLabel.Text = Slot.Item.CanStack ? Slot.Quantity.ToString() : "";
-			_equippedBorder.Visible = IsEquipped;
+			// A worn item's niche is lit gold.
+			ThemeTypeVariation = IsEquipped ? Worn : Empty;
+			_emptyIcon.Visible = false;
 
 			// The quality is never secret, so unidentified items tint too; only Magic and Rare stand out.
 			_colorRect.Color = Slot.Item is EquipableItem { Quality: >= ItemQuality.Magic } equipment
@@ -162,10 +194,11 @@ public partial class ItemSlotPanel : PanelContainer
 		else
 		{
 			_preview.ShowItem(null);
-			_button.Item = null;
-			_button.TooltipText = "";
+			_icon.Filled = false;
 			_quantityLabel.Text = "";
-			_equippedBorder.Visible = false;
+			ThemeTypeVariation = Empty;
+			_emptyIcon.Texture = EmptyIcon;
+			_emptyIcon.Visible = EmptyIcon != null;
 			_colorRect.Color = DefaultColor;
 		}
 	}

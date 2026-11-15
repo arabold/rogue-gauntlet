@@ -69,15 +69,15 @@ public class RunLifecycleTest
 		DeathScreen screen = main.DeathScreen;
 		await TestFactories.AwaitPhysicsUntil(runner, () => screen.Visible, 3);
 		AssertBool(main.GetTree().Paused).IsTrue();
-		AssertString(screen.EpitaphLabel.Text).IsEqual("The Barbarian fell on depth 1.");
-		AssertString(screen.DetailsLabel.Text).Contains("Gold 77");
+		AssertString(screen.EpitaphLabel.Text).IsEqual("Barbarian · Depth 1");
+		AssertString(screen.GoldLabel.Text).IsEqual("77");
 
 		// Under the screen the heartbeat stops while the near-death red holds.
 		await TestFactories.AwaitPhysicsUntil(runner, () => nearDeath.Motion == 0, 3);
 		AssertFloat(nearDeath.Intensity).IsEqual(1f);
 	}
 
-	/// <summary>The menu marks a fallen slot and, asked to load it, shows its record instead of continuing the run.</summary>
+	/// <summary>The menu's card marks a fallen run and, pressed, shows its record instead of continuing the run.</summary>
 	[TestCase]
 	public async Task LoadingAFallenRunShowsItsDeathScreen()
 	{
@@ -89,19 +89,51 @@ public class RunLifecycleTest
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/menu/main_menu.tscn");
 		await runner.SimulateFrames(2, 20);
 		var menu = (MainMenu)runner.Scene();
-		menu.GetNode<Button>("%LoadGameButton").EmitSignal(BaseButton.SignalName.Pressed);
-		var slot = menu.GetNode<Button>("%Slot2Button");
-		AssertString(slot.Text).StartsWith("Slot 2 - Barbarian (fallen)");
+		menu.RunsButton.EmitSignal(BaseButton.SignalName.Pressed);
+		var card = menu.CardRow.GetChild<RunCard>(1);
+		AssertString(card.NameLabel.Text).IsEqual("Barbarian");
+		AssertString(card.LineLabel.Text).IsEqual("Fell on Depth 4");
 
-		slot.EmitSignal(BaseButton.SignalName.Pressed);
+		card.EmitSignal(BaseButton.SignalName.Pressed);
 		AssertBool(menu.DeathScreen.Visible).IsTrue();
-		AssertString(menu.DeathScreen.EpitaphLabel.Text).IsEqual("The Barbarian fell on depth 4.");
-		AssertString(menu.DeathScreen.DetailsLabel.Text).Contains("Level 3");
+		AssertString(menu.DeathScreen.EpitaphLabel.Text).IsEqual("Barbarian · Depth 4");
+		AssertString(menu.DeathScreen.LevelLabel.Text).IsEqual("3");
 		AssertBool(GameSession.Instance.IsGameActive).IsFalse();
 
 		menu.DeathScreen.DismissButton.EmitSignal(BaseButton.SignalName.Pressed);
 		AssertBool(menu.DeathScreen.Visible).IsFalse();
-		AssertBool(slot.IsVisibleInTree()).IsTrue();
+		AssertBool(card.IsVisibleInTree()).IsTrue();
+	}
+
+	/// <summary>With every slot taken a new run still begins with its hero, and only then asks which run to replace.</summary>
+	[TestCase]
+	public async Task ANewRunPicksItsHeroBeforeTheRunItReplaces()
+	{
+		using var saves = new ScratchSaves();
+		for (int slot = 1; slot <= SaveService.SlotCount; slot++)
+		{
+			AssertBool(SaveService.Save(new SaveGame { SlotId = slot, CharacterClassId = "barbarian", Seed = Seed, DungeonDepth = 2 })).IsTrue();
+		}
+
+		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/menu/main_menu.tscn");
+		await runner.SimulateFrames(2, 20);
+		var menu = (MainMenu)runner.Scene();
+		menu.NewRunButton.EmitSignal(BaseButton.SignalName.Pressed);
+		AssertBool(menu.HeroScreen.Visible).IsTrue();
+		AssertBool(menu.RunsScreen.Visible).IsFalse();
+
+		menu.HeroScreen.StartButton.EmitSignal(BaseButton.SignalName.Pressed);
+		AssertBool(menu.RunsScreen.Visible).IsTrue();
+		AssertString(menu.RunsTitle.Text).IsEqual("Replace a Run");
+		AssertBool(GameSession.Instance.IsGameActive).IsFalse();
+
+		// Choosing a run only asks; backing out of the choice returns to the hero.
+		menu.CardRow.GetChild<RunCard>(0).EmitSignal(BaseButton.SignalName.Pressed);
+		AssertBool(menu.ReplaceDialog.Visible).IsTrue();
+		AssertBool(GameSession.Instance.IsGameActive).IsFalse();
+		menu.ReplaceDialog.Hide();
+		menu.RunsBackButton.EmitSignal(BaseButton.SignalName.Pressed);
+		AssertBool(menu.HeroScreen.Visible).IsTrue();
 	}
 
 	/// <summary>Points saves at a scratch folder, then ends any run and removes the folder, so no state leaks into later suites.</summary>

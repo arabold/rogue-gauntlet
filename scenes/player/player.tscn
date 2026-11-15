@@ -461,7 +461,7 @@ script = ExtResource("mana_component_script")
 [node name="SpellCaster" type="Node" parent="." unique_id=1402981735]
 script = ExtResource("spell_caster_script")
 
-[node name="BoneAttachmentManager" parent="." unique_id=986814577 node_paths=PackedStringArray("AttachmentNodes", "player") instance=ExtResource("10_0gr6c")]
+[node name="BoneAttachmentManager" parent="." unique_id=986814577 node_paths=PackedStringArray("AttachmentNodes", "Subject") instance=ExtResource("10_0gr6c")]
 AttachmentNodes = {
 0: NodePath("../Pivot/Character/Rig/Skeleton3D/1H_Axe"),
 1: NodePath("../Pivot/Character/Rig/Skeleton3D/2H_Axe"),
@@ -469,7 +469,7 @@ AttachmentNodes = {
 3: NodePath("../Pivot/Character/Rig/Skeleton3D/Barbarian_Round_Shield"),
 4: NodePath("../Pivot/Character/Rig/Skeleton3D/Mug")
 }
-player = NodePath("..")
+Subject = NodePath("..")
 
 [node name="ActionManager" parent="." unique_id=1729590091 instance=ExtResource("8_ywc1u")]
 

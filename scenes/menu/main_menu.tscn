@@ -1,47 +1,25 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scenes/menu/MainMenu.cs" id="1_menu"]
-[ext_resource type="Texture2D" path="res://assets/ui/main_menu/main_menu_background.png" id="2_background"]
-[ext_resource type="PackedScene" uid="uid://ccharpaneltscn1" path="res://scenes/menu/character_panel.tscn" id="3_charpanel"]
+[ext_resource type="PackedScene" path="res://scenes/menu/stage/menu_stage.tscn" id="2_stage"]
+[ext_resource type="PackedScene" uid="uid://ccharpaneltscn1" path="res://scenes/menu/character_panel.tscn" id="3_hero"]
 [ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="4_death"]
+[ext_resource type="Resource" uid="uid://ccharcatalog001" path="res://scenes/player/classes/character_catalog.tres" id="5_catalog"]
+[ext_resource type="PackedScene" path="res://scenes/menu/run_card.tscn" id="6_card"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/header_band.png" id="7_band"]
+[ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog.tscn" id="8_confirm"]
+[ext_resource type="Texture2D" path="res://assets/ui-kit/title_logo.png" id="9_logo"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.0352941, 0.0431373, 0.054902, 0.82)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.85, 0.59, 0.29, 0.35)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+[sub_resource type="Gradient" id="Gradient_shade"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0.0705882, 0.0431373, 0.0235294, 0.9, 0.0705882, 0.0431373, 0.0235294, 0.6, 0.0705882, 0.0431373, 0.0235294, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.14, 0.101, 0.075, 0.95)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.79, 0.48, 0.2, 0.65)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_shade"]
+gradient = SubResource("Gradient_shade")
+width = 256
+height = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0.32, 0.19, 0.105, 0.97)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.69, 0.32, 0.9)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[node name="MainMenu" type="Control" node_paths=PackedStringArray("DeathScreen")]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("Stage", "TitleScreen", "ContinueRow", "ContinueButton", "ContinueCaption", "NewRunButton", "RunsButton", "QuitButton", "RunsScreen", "RunsTitle", "CardRow", "RunsBackButton", "HeroScreen", "DeathScreen", "ReplaceDialog")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15
@@ -49,199 +27,198 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_menu")
+Stage = NodePath("Stage")
+Catalog = ExtResource("5_catalog")
+TitleScreen = NodePath("Title")
+ContinueRow = NodePath("Title/Column/ContinueRow")
+ContinueButton = NodePath("Title/Column/ContinueRow/ContinueButton")
+ContinueCaption = NodePath("Title/Column/ContinueRow/Caption")
+NewRunButton = NodePath("Title/Column/NewRunButton")
+RunsButton = NodePath("Title/Column/RunsButton")
+QuitButton = NodePath("Title/Column/QuitButton")
+RunsScreen = NodePath("Runs")
+RunsTitle = NodePath("Runs/Header/Title")
+CardRow = NodePath("Runs/Cards")
+RunsBackButton = NodePath("Runs/BackButton")
+HeroScreen = NodePath("Hero")
 DeathScreen = NodePath("DeathScreen")
+ReplaceDialog = NodePath("ReplaceDialog")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Stage" parent="." instance=ExtResource("2_stage")]
+
+[node name="Shade" type="TextureRect" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 9
 anchor_bottom = 1.0
-grow_horizontal = 2
+offset_right = 1100.0
 grow_vertical = 2
-texture = ExtResource("2_background")
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_shade")
 expand_mode = 1
-stretch_mode = 6
 
-[node name="Shade" type="ColorRect" parent="."]
+[node name="Title" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.25)
+mouse_filter = 2
 
-[node name="MenuPanel" type="PanelContainer" parent="."]
+[node name="Column" type="VBoxContainer" parent="Title"]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.06
-anchor_top = 0.1
-anchor_right = 0.39
-anchor_bottom = 0.9
-grow_horizontal = 2
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 128.0
+offset_right = 1138.0
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_constants/separation = 16
 
-[node name="MarginContainer" type="MarginContainer" parent="MenuPanel"]
+[node name="Logo" type="TextureRect" parent="Title/Column"]
+custom_minimum_size = Vector2(1010, 400)
 layout_mode = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 42
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 42
+size_flags_horizontal = 0
+mouse_filter = 2
+texture = ExtResource("9_logo")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Content" type="VBoxContainer" parent="MenuPanel/MarginContainer"]
+[node name="Gap" type="Control" parent="Title/Column"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="ContinueRow" type="HBoxContainer" parent="Title/Column"]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="Title" type="Label" parent="MenuPanel/MarginContainer/Content"]
+[node name="ContinueButton" type="Button" parent="Title/Column/ContinueRow"]
+custom_minimum_size = Vector2(320, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 60
-theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
-text = "Rogue Gauntlet"
-
-[node name="Subtitle" type="Label" parent="MenuPanel/MarginContainer/Content"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-theme_override_colors/font_color = Color(0.78, 0.83, 0.9, 1)
-text = "Descend, survive, return stronger."
-autowrap_mode = 3
-
-[node name="MainButtons" type="VBoxContainer" parent="MenuPanel/MarginContainer/Content"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 14
-
-[node name="Spacer" type="Control" parent="MenuPanel/MarginContainer/Content/MainButtons"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 40)
-
-[node name="NewGameButton" type="Button" parent="MenuPanel/MarginContainer/Content/MainButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
+size_flags_horizontal = 0
 focus_mode = 2
-theme_override_font_sizes/font_size = 30
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
-text = "New Game"
+theme_type_variation = &"PrimaryButton"
+text = "Continue"
 
-[node name="LoadGameButton" type="Button" parent="MenuPanel/MarginContainer/Content/MainButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
+[node name="Caption" type="Label" parent="Title/Column/ContinueRow"]
 layout_mode = 2
-focus_mode = 2
-theme_override_font_sizes/font_size = 30
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
-text = "Load Game"
+theme_type_variation = &"CaptionLabel"
+text = "Barbarian · Depth 1"
 
-[node name="QuitButton" type="Button" parent="MenuPanel/MarginContainer/Content/MainButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
+[node name="NewRunButton" type="Button" parent="Title/Column"]
+custom_minimum_size = Vector2(320, 64)
 layout_mode = 2
+size_flags_horizontal = 0
 focus_mode = 2
-theme_override_font_sizes/font_size = 30
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "New Run"
+
+[node name="RunsButton" type="Button" parent="Title/Column"]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 2
+size_flags_horizontal = 0
+focus_mode = 2
+text = "Runs"
+
+[node name="QuitButton" type="Button" parent="Title/Column"]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 2
+size_flags_horizontal = 0
+focus_mode = 2
 text = "Quit"
 
-[node name="SlotPanel" type="VBoxContainer" parent="MenuPanel/MarginContainer/Content"]
-unique_name_in_owner = true
+[node name="Runs" type="Control" parent="."]
 visible = false
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 12
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="SlotTitle" type="Label" parent="MenuPanel/MarginContainer/Content/SlotPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
-text = "Choose a Slot"
+[node name="Dim" type="ColorRect" parent="Runs"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0352941, 0.0235294, 0.0117647, 0.6)
 
-[node name="Slot1Button" type="Button" parent="MenuPanel/MarginContainer/Content/SlotPanel"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 86)
+[node name="Header" type="TextureRect" parent="Runs"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 148.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("7_band")
+stretch_mode = 1
+
+[node name="Title" type="Label" parent="Runs/Header"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 88.0
+grow_horizontal = 2
+theme_type_variation = &"HeaderLabel"
+text = "Runs"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cards" type="HBoxContainer" parent="Runs"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -232.0
+offset_bottom = 248.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="Card1" parent="Runs/Cards" instance=ExtResource("6_card")]
 layout_mode = 2
+
+[node name="Card2" parent="Runs/Cards" instance=ExtResource("6_card")]
+layout_mode = 2
+
+[node name="Card3" parent="Runs/Cards" instance=ExtResource("6_card")]
+layout_mode = 2
+
+[node name="Card4" parent="Runs/Cards" instance=ExtResource("6_card")]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="Runs"]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -128.0
+offset_right = 160.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 0
 focus_mode = 2
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
-text = "Slot 1"
-alignment = 0
-
-[node name="Slot2Button" type="Button" parent="MenuPanel/MarginContainer/Content/SlotPanel"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 86)
-layout_mode = 2
-focus_mode = 2
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
-text = "Slot 2"
-alignment = 0
-
-[node name="Slot3Button" type="Button" parent="MenuPanel/MarginContainer/Content/SlotPanel"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 86)
-layout_mode = 2
-focus_mode = 2
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
-text = "Slot 3"
-alignment = 0
-
-[node name="Slot4Button" type="Button" parent="MenuPanel/MarginContainer/Content/SlotPanel"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 86)
-layout_mode = 2
-focus_mode = 2
-theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
-text = "Slot 4"
-alignment = 0
-
-[node name="BackButton" type="Button" parent="MenuPanel/MarginContainer/Content/SlotPanel"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 54)
-layout_mode = 2
-focus_mode = 2
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
 text = "Back"
 
-[node name="CharacterPanel" parent="." instance=ExtResource("3_charpanel")]
-unique_name_in_owner = true
+[node name="Hero" parent="." instance=ExtResource("3_hero")]
 visible = false
+layout_mode = 1
 
 [node name="DeathScreen" parent="." instance=ExtResource("4_death")]
 visible = false
+layout_mode = 1
 DismissText = "Back"
 
-[node name="OverwriteDialog" type="ConfirmationDialog" parent="."]
-unique_name_in_owner = true
-process_mode = 3
-title = "Overwrite Save?"
-ok_button_text = "Overwrite"
-cancel_button_text = "Cancel"
+[node name="ReplaceDialog" parent="." instance=ExtResource("8_confirm")]
+visible = false
+layout_mode = 1

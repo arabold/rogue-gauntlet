@@ -7,7 +7,8 @@ using System.Linq;
 /// Equipment slots for equipable items.
 /// 
 /// We use a bitwise enum to allow items to be equipped in multiple slots.
-/// However, for most use cases we will only use a single slot.
+/// However, for most use cases we will only use a single slot. The values are stable: item resources store them as
+/// <see cref="ValidSlots"/> flags, so the gaps left by removed slots (gloves, legs, boots, arrows) stay unused.
 /// </summary>
 public enum EquipmentSlot
 {
@@ -18,7 +19,6 @@ public enum EquipmentSlot
 	RightRing = 1 << 7,
 	WeaponHand = 1 << 8,
 	ShieldHand = 1 << 9,
-	Arrows = 1 << 10,
 }
 
 [GlobalClass]
@@ -40,7 +40,6 @@ public partial class Inventory : Resource
 		{ EquipmentSlot.RightRing, null },
 		{ EquipmentSlot.WeaponHand, null },
 		{ EquipmentSlot.ShieldHand, null },
-		{ EquipmentSlot.Arrows, null },
 	};
 
 	/// <summary>The weapon in the weapon hand, or null.</summary>
@@ -214,9 +213,27 @@ public partial class Inventory : Resource
 		return Equip(itemSlot, candidates.FirstOrDefault(slot => EquippedItems[slot] == null, candidates[0]));
 	}
 
+	/// <summary>Wears everything wearable in the pack, in pack order, as a hero setting out does.</summary>
+	public void EquipAll()
+	{
+		foreach (InventoryItemSlot entry in Items.Where(entry => entry.Item is EquipableItem).ToArray())
+		{
+			Equip(entry);
+		}
+	}
+
+	/// <summary>
+	/// <see cref="CanEquip"/>'s rules as a plain answer, for an interface deciding what to offer: it logs nothing.
+	/// </summary>
+	public static bool Fits(EquipableItem item, EquipmentSlot equipSlot) =>
+		((int)item.ValidSlots & (int)equipSlot) != 0
+		&& !(item is PortableLightItem light && (light.HeldScene == null || light.GripFor(equipSlot) == null))
+		&& !(item is Weapon { IsTwoHanded: true } && equipSlot != EquipmentSlot.WeaponHand);
+
 	/// <summary>
 	/// Whether <paramref name="item"/> can be worn in <paramref name="equipSlot"/> at all: a slot it fits, a hand a light
 	/// has a grip for, and the weapon hand for a two-handed weapon. What the slot displaces is checked by the equip itself.
+	/// It says why not in the log; <see cref="Fits"/> asks the same without.
 	/// </summary>
 	public static ItemOperationResult CanEquip(EquipableItem item, EquipmentSlot equipSlot)
 	{

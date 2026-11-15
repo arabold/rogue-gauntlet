@@ -220,7 +220,7 @@ public class ItemCurseTest
 	{
 		var panel = TestFactories.AddToSceneTree(
 			TestFactories.Load<PackedScene>("res://scenes/ui/item_slot_panel.tscn").Instantiate<ItemSlotPanel>());
-		var preview = panel.GetNode<Preview>("%Preview");
+		Preview preview = panel.GetNode<ItemIcon>("%Icon").Preview;
 
 		EquipableItem sword = Cursed(Sword);
 		AssertBool(sword.CurseStatusKnown).IsFalse();

@@ -9,7 +9,7 @@ The equipment model supports one-handed weapons in either hand, dedicated off-ha
 - **One-handed weapons:** Swords, daggers, axes, maces, and wands can be equipped in either the main hand (`EquipmentSlot.WeaponHand`) or off hand (`EquipmentSlot.ShieldHand`).
 - **Two-handed weapons:** Greatswords, polearms, crossbows, and staves require the main hand and occupy both hands.
 - **Dedicated off-hand items:** Shields and portable lights (lanterns, torches, candelabra) are off-hand only.
-- **Context menu & Equipping:** The inventory context menu presents "Equip in main hand" and "Equip in off hand", disabling invalid slots. Double-clicking or auto-equipping an item defaults to the main hand, reserving the off hand for explicit context-menu selection.
+- **Equipping:** In the run menu, what either hand can hold offers **Main Hand** and **Off Hand**; everything else offers **Equip** and goes where it belongs. Auto-equipping defaults to the main hand, so the off hand is always an explicit choice.
 
 | Main hand | Off hand | J: primary | K: secondary | L: off-hand action |
 | --- | --- | --- | --- | --- |
