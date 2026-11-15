@@ -5,12 +5,15 @@ import copy
 import json
 import os
 import shutil
+from collections import namedtuple
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw
 
 from core import export, kit
+from prefabs.anatomy import adventurer_parts
 from prefabs.creatures import characters
 from core.paths import work_root
 from core import publication
@@ -33,18 +36,20 @@ def studies():
         spec = json.loads(path.read_text())
         if spec.get("status") in ("draft", "legacy") or path.parent.name == "gorget_study":
             continue
+        under = characters.load("heroes/hero_base")["underlayer"] if "item" in spec else []
         result["costume_" + path.parent.name] = dict(torso=spec["body"]["torso"], body=spec["body"], colors=spec["colors"],
-            outfit=spec["outfit"], source=str(path.relative_to(STUDIO)),
+            outfit=spec["outfit"], under=under, item=spec.get("item"), source=str(path.relative_to(STUDIO)),
             status=spec.get("status","needs_visual_review"),
             review=spec.get("review","Costume study: torso, articulated waist, belt and thigh plates. No limb armor."))
     return result
 
 
 def recipe(study):
-    """Use the production character assembler, layered hosts and coverage culling on a featureless dummy."""
+    """Use the production character assembler, layered hosts and coverage culling on a featureless dummy, wearing
+    the garments the costume goes over (`under`: a suit goes over the class heroes' tunic)."""
     return dict(template="knight", head={"form": {}}, body={"torso":study["torso"],
         "arms":{"hand":"mitten","scale":1.25}, "legs":{"foot":"bare"}, **copy.deepcopy(study.get("body",{}))},
-        outfit=copy.deepcopy(study["outfit"]), colors={**study["colors"], **NEUTRAL})
+        outfit=copy.deepcopy([*study.get("under", []), *study["outfit"]]), colors={**study["colors"], **NEUTRAL})
 
 
 def lineup_path(key):
@@ -113,9 +118,26 @@ def build(keys):
         publication.stage_stamp(lineup_path(key).parent, publication.fingerprint(STUDIO, source_path(key)))
         records.append(dict(key=key, source=spec["source"], torso=spec["torso"],
                             triangles=sum(len(p.faces) for p in pieces.values()),
-                            review=spec["review"], status=spec.get("status","needs_visual_review")))
+                            review=spec["review"], status=spec.get("status","needs_visual_review"),
+                            glb=path, label=f"{key} - {spec['torso']} dummy", output=lineup_path(key)))
         print(f"{key}: staged {records[-1]['triangles']} triangles")
     return records
+
+
+def render(records):
+    """Render each record's staged `glb` from every `SHOTS` view in Godot and compose its sheet at `output`, in
+    temporary storage."""
+    from items.workflow import run_godot
+    manifest = CACHE / "jobs.json"
+    manifest.write_text(json.dumps([[str(r["glb"]), str(CACHE / r["key"])] for r in records]))
+    result = run_godot(["--script", str(STUDIO / "godot/render_armor_fittings.gd"), "--", str(manifest)], headless=False)
+    if result.count("ARMOR_SHOT ") != len(records) * len(SHOTS):
+        raise ValueError("Godot did not render every fitting view:\n" + result)
+    compose(records)
+    for record in records:
+        shutil.rmtree(CACHE / record["key"])
+    manifest.unlink()
+    print(f"Temporary armor reviews: {CACHE / 'reviews'}")
 
 
 def compose(records):
@@ -131,8 +153,8 @@ def compose(records):
             with Image.open(CACHE / key / f"{shot}.png") as frame:
                 strip.paste(frame.convert("RGB").resize((360, 360)), (x, y + 28))
             draw.text((x + 10, y + 10), shot.replace("_", " "), fill="white")
-        draw.text((10, strip.height - 16), key + " — " + record["torso"] + " dummy", fill="white")
-        strip.save(lineup_path(key))
+        draw.text((10, strip.height - 16), record["label"], fill="white")
+        strip.save(record["output"])
 
 
 def catalog():
@@ -327,9 +349,102 @@ def character_review(key, empty_hands=False):
     print(f"Dressed character review (external temporary storage): {review_root}")
 
 
+Suit = namedtuple("Suit", "worn torso colors looks skin")
+
+
+@lru_cache(maxsize=None)
+def _hero_parts():
+    """The bare class hero's own piece names (body, limbs, head parts), built once."""
+    return frozenset(characters.build(characters.load("heroes/hero_base"))[0])
+
+
+def suit(spec):
+    """The costume `spec` as a body armor suit over the class hero body (`heroes/hero_base` and its tunic),
+    which every class shares, so a suit fitted here fits every class hero: a `Suit` of the pieces the hero wears
+    (`worn`: the torso and, by the costume's `limbs`, a KayKit class's own arms, legs and hips), the `torso` alone for
+    the display model, `colors`, `looks` and the hero pieces it is weighted from (`skin`).
+
+    The item's `colors` recolor the suit's own slots over the costume's palette (the Mithril Hauberk's silver mail).
+    Its `limb_colors` dress the class's limbs in the suit's slots, a KayKit swatch to a suit slot
+    (`{"knight_03": "armor"}`), on KayKit's shading (`adventurer_parts.tinted`); swatches not named keep KayKit's colors.
+    """
+    base = characters.load("heroes/hero_base")
+    item = spec["item"]
+    pieces, colors = characters.build({**base, "outfit": copy.deepcopy(spec["outfit"]),
+                                       "colors": {**base["colors"], **spec["colors"], **item.get("colors", {})}})
+    torso = {name: piece for name, piece in pieces.items() if name not in _hero_parts()}
+    worn, looks = dict(torso), {}
+    if spec.get("limbs"):
+        for limb in adventurer_parts.LIMBS:
+            worn.update(adventurer_parts.limbs(spec["limbs"], limb))
+            limb_colors, limb_looks = adventurer_parts.limb_colors(spec["limbs"], limb)
+            colors, looks = {**limb_colors, **colors}, {**looks, **limb_looks}
+    for swatch, slot in item.get("limb_colors", {}).items():
+        if swatch not in looks or slot not in colors:
+            raise ValueError(f"limb color {swatch} = {slot!r} needs one of the suit's limb swatches and a suit slot")
+        colors[swatch], looks[swatch] = tuple(colors[slot]), adventurer_parts.tinted(looks[swatch], colors[slot])
+    return Suit(worn, torso, colors, looks, {name: pieces[name] for name in _hero_parts()})
+
+
+def write_worn(path, title, suit):
+    """Write `suit` as the hero wears it: one skinned node on the hero rig, weighted from the hero body under it and
+    carrying the heroes' shoulder hinges, so the game can move it onto any class hero's skeleton. No props, no clips."""
+    export.export(str(path), title, suit.worn, suit.colors, template="knight", fixed_hinges=characters.shared_hinges(),
+                  groups={name: "Armor" for name in suit.worn}, skin=suit.skin, props=False, clips=False,
+                  materials=suit.looks)
+
+
+def suit_review(keys):
+    """Stage each costume's body armor suit on the bare class hero (`heroes/hero_base`) as the game dresses it, the
+    suit's torso and KayKit limbs in place of the hero's, for `render` to review before `equip` writes it into the
+    game."""
+    records = []
+    for key in keys:
+        built = suit(json.loads(source_path(key).read_text()))
+        path = CACHE / f"{key}_suit.glb"
+        export.export(str(path), key, {**built.skin, **built.worn}, built.colors, template="knight",
+                      fixed_hinges=characters.shared_hinges(), materials=built.looks)
+        records.append(dict(key=key, glb=path, label=f"{key} - suit on the class hero",
+                            output=lineup_path(key).with_name("suit.png")))
+    return records
+
+
+def equip(key):
+    """Write costume `key` as a body armor suit for the class heroes (`suit`), at its `item.glb` path under `assets/`:
+
+    - `assets/custom-heroes/armor/<id>.glb`: what the hero wears (`write_worn`). Its limbs replace the hero's
+      (`HiddenModelParts: Arms, Legs`).
+    - `item.glb`: its display model for floors and inventory icons, standing on the ground: the torso alone, without
+      the limbs, which would float beside it.
+    """
+    from core.export import export_static, import_settings
+    from items import model
+
+    spec = json.loads(source_path(key).read_text())
+    target = spec.get("item", {}).get("glb", "")
+    if not target.startswith("res://assets/custom-items/armor/body/") or not target.endswith(".glb"):
+        raise ValueError(f"{key}: set item.glb to res://assets/custom-items/armor/body/<id>.glb")
+    display = STUDIO.parent / target[len("res://"):]
+    worn = STUDIO.parent / "assets/custom-heroes/armor" / display.name
+    for folder in (display.parent, worn.parent):
+        folder.mkdir(parents=True, exist_ok=True)
+    built = suit(spec)
+    title = "".join(word.capitalize() for word in display.stem.split("_"))
+    write_worn(worn, title, built)
+    import_settings(str(worn), "knight")
+    raw = CACHE / f"{display.stem}_display.glb"
+    CACHE.mkdir(parents=True, exist_ok=True)
+    export_static(str(raw), title, kit.Piece.merge(*built.torso.values()), built.colors, materials=built.looks)
+    model.place(raw, display, {"pivot": "ground"})
+    print(f"{key}: {worn.relative_to(STUDIO.parent)}, {display.relative_to(STUDIO.parent)} "
+          f"({sum(len(p.faces) for p in built.worn.values())} triangles worn, "
+          f"{sum(len(p.faces) for p in built.torso.values())} shown)")
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("list", "catalog", "build", "lineup", "compare", "export", "character", "publish"))
+    parser.add_argument("command", choices=("list", "catalog", "build", "lineup", "compare", "export", "character", "publish",
+                                            "suit", "equip"))
     parser.add_argument("targets", nargs="*")
     parser.add_argument("--all", action="store_true")
     parser.add_argument("-o", "--out", help="export: output bundle directory (default: temporary review/export)")
@@ -342,9 +457,12 @@ def main(argv):
     if args.command == "list":
         print("\n".join(available))
         return
-    keys = list(available) if args.all else args.targets
+    suits = args.command in ("suit", "equip")
+    keys = [k for k in available if available[k]["item"] or not suits] if args.all else args.targets
     if not keys or set(keys) - available.keys():
         parser.error("choose known armor studies or --all; use armor list")
+    if suits and not all(available[k]["item"] for k in keys):
+        parser.error(f"{args.command} needs costumes with an item (body armor suits)")
     if args.command in ("compare","export") and len(keys)!=1:
         parser.error("compare/export requires one authored costume study")
     if args.command == "character":
@@ -355,19 +473,16 @@ def main(argv):
     if args.command == "publish":
         publish_costumes(keys)
         return
+    if args.command == "suit":
+        render(suit_review(keys))
+        return
+    if args.command == "equip":
+        for key in keys:
+            equip(key)
+        return
     records = build(keys)
     if args.command in ("lineup", "compare", "export"):
-        from items.workflow import run_godot
-        manifest = CACHE / "jobs.json"
-        manifest.write_text(json.dumps([[str(CACHE / f"{k}.glb"), str(CACHE / k)] for k in keys]))
-        result = run_godot(["--script", str(STUDIO / "godot/render_armor_fittings.gd"), "--", str(manifest)], headless=False)
-        if result.count("ARMOR_SHOT ") != len(keys) * len(SHOTS):
-            raise ValueError("Godot did not render every fitting view:\n" + result)
-        compose(records)
-        for key in keys:
-            shutil.rmtree(CACHE / key)
-        manifest.unlink()
-        print(f"Temporary armor reviews: {CACHE / 'reviews'}")
+        render(records)
     if args.command in ("compare","export"):
         compare(keys[0])
     if args.command == "export":

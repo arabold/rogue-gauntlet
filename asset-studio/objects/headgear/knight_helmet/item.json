@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "Knight Helmet",
+  "backend": "procedural",
+  "builder": "kaykit_headgear",
+  "design": {
+    "prefab": "knight_helmet"
+  },
+  "color_mode": "character",
+  "colors": {},
+  "materials": {},
+  "crease": 50,
+  "placement": {
+    "pivot": "authored"
+  },
+  "budget": {
+    "triangles": 1000,
+    "materials": 6
+  },
+  "export": {
+    "glb": "res://assets/custom-items/armor/helmet/knight_helmet.glb"
+  },
+  "topology": "authored_assembly",
+  "provenance": {
+    "kind": "kaykit_original",
+    "source": "KayKit (CC0): the knight's visored great helm, harvested by helmets.harvest()"
+  }
+}

@@ -45,5 +45,16 @@
       62,
       72
     ]
-  }
+  },
+  "item": {
+    "glb": "res://assets/custom-items/armor/body/gilded_full_plate.glb",
+    "limb_colors": {
+      "knight_03": "armor",
+      "knight_07": "trim",
+      "knight_04": "cloth",
+      "knight_06": "leather",
+      "knight_17": "cloth"
+    }
+  },
+  "limbs": "knight"
 }

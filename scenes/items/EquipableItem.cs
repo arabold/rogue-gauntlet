@@ -13,9 +13,6 @@ public enum ValidSlots
 {
 	Head = EquipmentSlot.Head,
 	Chest = EquipmentSlot.Chest,
-	Hands = EquipmentSlot.Hands,
-	Legs = EquipmentSlot.Legs,
-	Feet = EquipmentSlot.Feet,
 	Neck = EquipmentSlot.Neck,
 	LeftRing = EquipmentSlot.LeftRing,
 	RightRing = EquipmentSlot.RightRing,

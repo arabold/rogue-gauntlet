@@ -435,7 +435,7 @@ def harvest():
         source = decor.ASSETS / file
         g, _, _ = mesh.read_glb(str(source))
         mesh_name = g["meshes"][next(n["mesh"] for n in g["nodes"] if n.get("name") == node)]["name"]
-        piece, colors, _ = decor.material_piece(source, (mesh_name,))
+        piece, colors, looks = decor.material_piece(source, (mesh_name,))
         to_frame = hosts.hat_prop(source, node)
         verts = piece.verts @ to_frame[:3, :3].T + to_frame[:3, 3]
         normals = piece.normals @ np.linalg.inv(to_frame[:3, :3])
@@ -447,6 +447,7 @@ def harvest():
         meta = {"name": name, "category": "headgear", "domain": "outfits", "source": file, "node": node,
                 "license": "CC0 (KayKit)", "verts": len(verts), "tris": len(piece.faces),
                 "span": [round(float(x), 4) for x in np.ptp(verts, axis=0)], "colors": colors,
+                "materials": {slot: {"gradient": look["gradient"]} for slot, look in looks.items()},
                 "head": {"class": reference, "centre": [round(float(x), 5) for x in centre]}}
         np.savez_compressed(MESHES / f"{name}.npz", verts=verts.astype(np.float32), faces=piece.faces.astype(np.int32),
                             slots=np.asarray(piece.slots, str), normals=normals.astype(np.float32),
@@ -462,6 +463,16 @@ def _stored(name):
                 "swatches": data["slots"].astype(object), "normals": data["normals"].astype(float),
                 "uv_t": data["uv_t"].astype(float), "reach": data["reach"].astype(float),
                 "meta": json.loads(str(data["meta"]))}
+
+
+def original(prefab):
+    """KayKit's `prefab` exactly as authored, in the hat-prop frame the game mounts headgear in: its swatch slots,
+    with KayKit's colors (`piece.colors`) and exact gradients (`piece.looks`) attached for an item build."""
+    art = _stored(prefab)
+    piece = kit.Piece(art["verts"], art["faces"], art["swatches"], normals=art["normals"], uv_t=art["uv_t"])
+    piece.colors = {slot: tuple(rgb) for slot, rgb in art["meta"]["colors"].items()}
+    piece.looks = art["meta"]["materials"]
+    return piece
 
 
 def _face_turns(before, after):

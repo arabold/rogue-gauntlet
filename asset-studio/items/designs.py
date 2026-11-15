@@ -317,10 +317,17 @@ from items import axes, blades, blunt, polearms, staves, ranged
 from items.shieldcraft import shieldcraft
 from items.furnishings import furnishing
 from items.fountains import fountain
+from prefabs.outfits import helmets as _helmets
+
+
+def kaykit_headgear(design):
+    """KayKit's own hat `design["prefab"]` (`helmets.SOURCES`) exactly as authored, in the hat-prop frame the game
+    mounts headgear in, with KayKit's colors and gradients (a recipe's `colors` recolor a swatch)."""
+    return _helmets.original(design["prefab"])
 
 # KayKit-style weapon families: each module's builder shares the `items.forge` palette and construction.
 WEAPONS = {"axe": axes, "blade": blades, "blunt": blunt, "polearm": polearms, "staff": staves, "ranged": ranged}
 FAMILIES = {"shieldcraft": shieldcraft, **{name: getattr(module, name) for name, module in WEAPONS.items()},
             "furnishing": furnishing, "potion": potion, "weapon": weapon, "shield": shield, "scroll": scroll,
             "jewelry": jewelry, "key": key, "food": food, "lamp": lamp, "tool": tool,
-            "fountain": fountain}
+            "fountain": fountain, "kaykit_headgear": kaykit_headgear}

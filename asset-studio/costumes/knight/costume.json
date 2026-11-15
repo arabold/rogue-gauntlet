@@ -46,5 +46,8 @@
       47
     ]
   },
-  "character": "heroes/knight"
+  "item": {
+    "glb": "res://assets/custom-items/armor/body/knight_armor.glb"
+  },
+  "limbs": "knight"
 }

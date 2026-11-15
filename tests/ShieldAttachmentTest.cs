@@ -51,7 +51,7 @@ public class ShieldAttachmentTest
 		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
 		var tree = player.GetTree();
 		await player.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
-		var shield = ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/shield_common.tres"));
+		var shield = ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/shield/shield_common.tres"));
 		AssertBool(player.Inventory.TryAdd(shield).Success).IsTrue();
 		var entry = player.Inventory.Items.Single(slot => slot.Item == shield);
 		AssertBool(player.InventoryController.TryEquip(entry, EquipmentSlot.ShieldHand).Success).IsTrue();

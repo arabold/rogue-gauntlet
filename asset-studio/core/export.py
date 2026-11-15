@@ -328,7 +328,7 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=
 
 
 def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None, cape=None, weapons=None,
-           materials=None, crease=50.0):
+           materials=None, crease=50.0, fixed_hinges=None, groups=None, skin=None, props=True, clips=True):
     """
     Write the character `name` to `path` as a standard drop-in on the `template` GLB (a `TEMPLATES` key or a path).
     `pieces`: `{piece name: kit.Piece}` in the rest pose, skinned by their names (`Body`, `ArmLeft`...; anything else
@@ -339,25 +339,34 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
     character, unscaled. A piece may declare `bone` for an explicit rigid attachment (plate armor); otherwise
     weights are transferred from the mannequin. A rigid piece may also declare `hinge` (parent, follow,
     rotation share and mount pivot); its extra joint and baked clip channels are exported automatically.
-    Unknown attachment bones fail validation.
+    Unknown attachment bones fail validation. `fixed_hinges` (`{bone: hinge}`) installs hinge joints whether or not a
+    piece uses them, so separately exported armor always finds its bones (a piece's hinge must then match).
+    `groups` (`{piece name: node name}`) merges pieces into shared nodes after weighting, for fewer draw calls;
+    unlisted pieces keep their own nodes. Wearable equipment the game moves onto a character exported apart is
+    written with `skin` (the body pieces it is weighted from, so it bends with them), without the template's prop
+    nodes (`props=False`) and without clips (`clips=False`); its joints and bind matrices stay the template's.
     """
     w = _Writer(TEMPLATES.get(template, template))
     g = w.g
     nodes = g["nodes"]
     index = {nd.get("name"): i for i, nd in enumerate(nodes)}
-    skin = g["skins"][0]
-    joint_of = {nodes[n]["name"]: j for j, n in enumerate(skin["joints"])}
+    gltf_skin = g["skins"][0]
+    joint_of = {nodes[n]["name"]: j for j, n in enumerate(gltf_skin["joints"])}
     parent = {c: i for i, nd in enumerate(nodes) for c in nd.get("children", [])}
     rig = index["Rig"]
     worlds = _worlds(g)
     from core import hinges
     hinge_specs = hinges.specifications(pieces)
+    for bone, spec in (fixed_hinges or {}).items():
+        if bone in hinge_specs and not hinges.same(hinge_specs[bone], spec):
+            raise ValueError(f"{bone}: a piece's hinge {hinge_specs[bone]} differs from the fixed hinge {spec}")
+        hinge_specs[bone] = spec
     hinge_source = None
     if hinge_specs:
         from core.rig import Rig
         hinge_source = Rig(TEMPLATES.get(template,template))
         hinges.install(w,hinge_source,hinge_specs)
-        joint_of = {nodes[n]["name"]:j for j,n in enumerate(skin["joints"])}
+        joint_of = {nodes[n]["name"]:j for j,n in enumerate(gltf_skin["joints"])}
 
     # palette: every slot any piece, prop or weapon uses; a weapon's slots are its colors with their materials
     raw_colors, raw_looks = dict(colors), {**MATERIALS, **(materials or {})}
@@ -487,6 +496,8 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         if "skin" in nd:
             nodes[parent[i]]["children"].remove(i)
             nodes[i] = {"name": nd["name"] + "_unused"}
+        elif "mesh" in nd and not props:
+            del nd["mesh"]
         elif "mesh" in nd:
             if speck is None:
                 speck = mesh(np.zeros((1, 3, 3)) + [[0.0, 0.0, 0.0], [1e-4, 0.0, 0.0], [0.0, 1e-4, 0.0]], [used[0]])
@@ -516,7 +527,9 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
             if nd.get("name", "").startswith(prefix) and "mesh" in nd:
                 nd["name"] = name + "_" + nd["name"][len(prefix):]
 
-    own = body_skin(pieces)
+    own = body_skin(pieces if skin is None else skin)
+    slot_crease = {s: _crease_of(looks.get(str(s)), crease) for s in used}
+    merged = {}  # node name -> its weighted pieces' corners, merged after weighting
     for piece_name, piece in pieces.items():
         attachment = getattr(piece, "bone", None)
         if attachment is not None:
@@ -528,9 +541,16 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
         else:
             bones, weights = transfer_weights(piece.verts, piece_name, faces=piece.faces, skin=own)
         corner = piece.faces.ravel()
-        norms_body = piece.normals if getattr(piece, "normals", None) is not None else (piece.verts, piece.faces)
-        m = mesh(piece.verts[piece.faces], piece.slots, norms_body, bones[corner], weights[corner], uv_t=getattr(piece, "uv_t", None))
-        nodes.append({"name": f"{name}_{piece_name}", "mesh": m, "skin": 0})
+        normals = piece.normals if getattr(piece, "normals", None) is not None else corner_normals(
+            piece.verts, piece.faces, crease=crease, slots=piece.slots, slot_crease=slot_crease)
+        uv_t = getattr(piece, "uv_t", None)
+        merged.setdefault((groups or {}).get(piece_name, piece_name), []).append(
+            (piece.verts[piece.faces], np.asarray(piece.slots), np.asarray(normals, float).reshape(-1, 3, 3),
+             bones[corner], weights[corner], np.full((len(piece.faces), 3), np.nan) if uv_t is None else uv_t))
+    for node_name, parts in merged.items():
+        tri, slots, normals, bones, weights, uv_t = (np.concatenate(column) for column in zip(*parts))
+        m = mesh(tri, slots, normals, bones, weights, uv_t=uv_t)
+        nodes.append({"name": f"{name}_{node_name}", "mesh": m, "skin": 0})
         nodes[rig]["children"].insert(0, len(nodes) - 1)
 
     for bone, (tri, _, _) in (weapons or {}).items():
@@ -544,11 +564,13 @@ def export(path, name, pieces, colors, template="skeleton", scale=1.0, hat=None,
 
     # skin and clips keep their template data
     if not hinge_specs:
-        skin["inverseBindMatrices"] = w.copy(skin["inverseBindMatrices"])
+        gltf_skin["inverseBindMatrices"] = w.copy(gltf_skin["inverseBindMatrices"])
+    if not clips:
+        g.pop("animations", None)
     for anim in g.get("animations", []):
         for s in anim["samplers"]:
             s["input"], s["output"] = w.copy(s["input"]), w.copy(s["output"])
-    if hinge_specs:
+    if hinge_specs and clips:
         hinges.bake(w,hinge_source,hinge_specs)
 
     png = io.BytesIO()

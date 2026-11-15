@@ -22,7 +22,7 @@ public class ItemCurseTest
 	private const string Frailty = "res://scenes/items/jewelry/ring/ring_frailty_1.tres";
 	private const string Sword = "res://scenes/items/weapons/broadsword_common.tres";
 	private const string TwoHandedAxe = "res://scenes/items/weapons/battleaxe_common.tres";
-	private const string Shield = "res://scenes/items/armor/shield_common.tres";
+	private const string Shield = "res://scenes/items/armor/shield/shield_common.tres";
 
 	private static ItemCreationPolicy Policy => TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
 

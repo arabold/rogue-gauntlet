@@ -1,13 +1,13 @@
 [gd_resource type="Resource" script_class="CharacterClass" load_steps=11 format=3 uid="uid://cclassbarb00001"]
 
 [ext_resource type="Script" uid="uid://btgejekyq3ejc" path="res://scenes/player/classes/CharacterClass.cs" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://clvqxenvpgif1" path="res://assets/kaykit-adventurers/Barbarian.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/custom-heroes/barbarian.glb" id="2_model"]
 [ext_resource type="Resource" uid="uid://cprofbarbar0001" path="res://scenes/player/classes/stat_profile_barbarian.tres" id="3_profile"]
 [ext_resource type="Script" uid="uid://s73gxicbccb2" path="res://scenes/player/InventoryItemSlot.cs" id="4_slot"]
 [ext_resource type="Resource" uid="uid://bc4es25jpb62o" path="res://scenes/items/weapons/axe_common.tres" id="5_weapon"]
 
-[ext_resource type="Resource" path="res://scenes/items/armor/body/ring_mail.tres" id="kit_body"]
-[ext_resource type="Resource" path="res://scenes/items/armor/helmet/chain_coif.tres" id="kit_helmet"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/barbarian_harness.tres" id="kit_body"]
+[ext_resource type="Resource" path="res://scenes/items/armor/helmet/bear_hood.tres" id="kit_helmet"]
 [sub_resource type="Resource" id="Slot_body"]
 script = ExtResource("4_slot")
 Item = ExtResource("kit_body")
@@ -44,9 +44,7 @@ AttachmentNodeNames = {
 1: "2H_Axe",
 2: "1H_Axe_Offhand",
 3: "Barbarian_Round_Shield",
-4: "Mug",
-5: "Barbarian_Hat",
-6: "Barbarian_Cape"
+4: "Mug"
 }
 StartingWeaponScale = 0.7
 metadata/_custom_type_script = ExtResource("1_script")

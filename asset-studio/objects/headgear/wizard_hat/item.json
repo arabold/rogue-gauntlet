@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "Wizard Hat",
+  "backend": "procedural",
+  "builder": "kaykit_headgear",
+  "design": {
+    "prefab": "mage_hat"
+  },
+  "color_mode": "character",
+  "colors": {},
+  "materials": {},
+  "crease": 50,
+  "placement": {
+    "pivot": "authored"
+  },
+  "budget": {
+    "triangles": 1000,
+    "materials": 6
+  },
+  "export": {
+    "glb": "res://assets/custom-items/armor/helmet/wizard_hat.glb"
+  },
+  "topology": "authored_assembly",
+  "provenance": {
+    "kind": "kaykit_original",
+    "source": "KayKit (CC0): the mage's wide-brimmed pointed hat, harvested by helmets.harvest()"
+  }
+}

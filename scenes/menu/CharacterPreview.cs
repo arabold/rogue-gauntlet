@@ -55,6 +55,7 @@ public partial class CharacterPreview : SubViewport
 
 		_model?.QueueFree();
 		_model = CharacterModel.Instantiate(characterClass);
+		CharacterModel.Dress(_model, characterClass);
 		_turntable.AddChild(_model);
 
 		var animationPlayer = _model.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
