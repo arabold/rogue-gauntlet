@@ -162,9 +162,11 @@ public partial class MapGenerator : Node3D
 			foreach (var spawn in nodes.OfType<SpawnPoint>().Where(spawn => string.IsNullOrEmpty(spawn.PersistentId)))
 				spawn.PersistentId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(spawn)}";
 
+			// Moved into place before it enters the tree: Godot defers transform notifications, so a room moved after
+			// AddChild would keep its colliders at the origin for the rest of the frame, under every placement query.
 			// Rooms join the floor content, whose solids the reachability and navigation grids read.
-			FloorContent.AddChild(room);
 			room.Translate(offset);
+			FloorContent.AddChild(room);
 			RegisterRoomRegion(placement, nodes.OfType<Door>());
 		}
 	}
