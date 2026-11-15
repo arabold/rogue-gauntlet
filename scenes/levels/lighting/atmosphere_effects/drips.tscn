@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3]
+[ext_resource type="Script" path="res://scenes/levels/lighting/AtmosphereParticles.cs" id="script"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/drip_splash.gdshader" id="shader"]
+[sub_resource type="ShaderMaterial" id="Material"]
+shader = ExtResource("shader")
+[sub_resource type="QuadMesh" id="Mesh"]
+material = SubResource("Material")
+size = Vector2(1, 1)
+[sub_resource type="ParticleProcessMaterial" id="Motion"]
+emission_shape = 4
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.0
+initial_velocity_max = 0.0
+scale_min = 1.0
+scale_max = 1.0
+[node name="Drips" type="Node3D" node_paths=PackedStringArray("Particles")]
+script = ExtResource("script")
+Particles = NodePath("Particles")
+ActiveInDarkness = true
+ParticlesPerTile = 0.35
+MaxParticles = 384
+SeedKey = "ceiling-drips"
+MinHeight = 0.025
+MaxHeight = 0.025
+DryFloorOnly = true
+SamplesPerTile = 4
+TileInset = 0.25
+[node name="Particles" type="GPUParticles3D" parent="."]
+layers = 256
+cast_shadow = 0
+emitting = false
+amount = 1
+lifetime = 3.0
+preprocess = 3.0
+randomness = 1.0
+local_coords = false
+process_material = SubResource("Motion")
+draw_pass_1 = SubResource("Mesh")

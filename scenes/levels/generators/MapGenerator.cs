@@ -9,7 +9,7 @@ public partial class MapGenerator : Node3D
 {
 	// Every partial opens its own export group, so the Inspector groups stay right whatever order the partials compile in.
 	[ExportGroup("Generation")]
-	[Export] public uint DungeonDepth { get; set => SetWithinBounds<uint>(ref field, value, 1, 100); } = 1;
+	[Export(PropertyHint.Range, "1,100,1,or_greater")] public uint DungeonDepth { get; set => SetWithinBounds<uint>(ref field, value, 1, uint.MaxValue); } = 1;
 	[Export] public uint MapWidth { get; set => SetWithinBounds<uint>(ref field, value, 20, 100); } = 20;
 	[Export] public uint MapDepth { get; set => SetWithinBounds<uint>(ref field, value, 20, 100); } = 20;
 	[Export] public uint MaxRooms { get; set => SetWithinBounds<uint>(ref field, value, 1, 100); } = 10;

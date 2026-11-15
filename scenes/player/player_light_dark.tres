@@ -12,4 +12,5 @@ Flicker = ExtResource("2_flicker")
 HighlightEnergy = 0.08
 HighlightRange = 6.0
 HighlightAttenuation = 1.8
+HighlightLayers = 4294966508
 HighlightHeight = 3.0

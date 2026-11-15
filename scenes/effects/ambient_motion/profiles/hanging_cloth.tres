@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AmbientMotionProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://cxh1tqre2afqw" path="res://scenes/effects/ambient_motion/AmbientMotionProfile.cs" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+Anchor = Vector3(0.5, 1, 0.5)
+FreeDirection = Vector3(0, -1, 0)
+SupportNormal = Vector3(0, 0, 1)
+PinnedFraction = 0.18
+BendAmplitude = 0.27
+ResponseFrequency = 0.55
+Damping = 0.8
+FlutterAmplitude = 0.045
+FlutterFrequency = 1.15

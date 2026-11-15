@@ -79,17 +79,22 @@ public class PortableLightTest
 		var (level, player) = LevelWithPlayer();
 		var inventory = player.Inventory;
 		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
-		var (lit, dark) = (playerLight.Lit, playerLight.Dark);
+		var (normal, lit, dark) = (playerLight.Normal, playerLight.Lit, playerLight.Dark);
 		// The modes must differ for the checks below to tell which one burns.
 		AssertFloat(dark.Range).IsLess(lit.Range);
 		void AssertBurns(PlayerLightProfile profile, string context)
 		{
+			AssertBool(playerLight.Light.Visible).OverrideFailureMessage($"{context}: shadow light visibility").IsTrue();
 			AssertFloat(playerLight.Light.OmniRange).OverrideFailureMessage($"{context}: light range").IsEqual(profile.Range);
 			AssertFloat(playerLight.Light.Energy).OverrideFailureMessage($"{context}: light energy").IsEqual(profile.Energy);
+			AssertThat(playerLight.Light.LightCullMask).OverrideFailureMessage($"{context}: illuminated layers").IsEqual(profile.LightLayers);
+			AssertBool((playerLight.Light.LightCullMask & (1u << 8)) != 0)
+				.OverrideFailureMessage($"{context}: only the dark-floor physical light should illuminate air effects")
+				.IsEqual(level.Lighting.IsDark);
 			AssertObject(playerLight.Light.Profile).OverrideFailureMessage($"{context}: flicker").IsSame(profile.Flicker);
 			AssertFloat(playerLight.Highlight.OmniRange).OverrideFailureMessage($"{context}: highlight range").IsEqual(profile.HighlightRange);
 		}
-		AssertBurns(lit, "normal floor");
+		AssertBurns(normal, "normal floor");
 		level.Lighting.IsDark = true;
 		AssertBurns(dark, "dark floor");
 
@@ -108,7 +113,7 @@ public class PortableLightTest
 			AssertInt(offhand.FindChildren("*", "Light3D", true, false).Count).OverrideFailureMessage($"{name} carries its own light").IsEqual(0);
 			AssertBurns(lit, $"{name} on a dark floor");
 			level.Lighting.IsDark = false;
-			AssertBurns(lit, $"{name} on a normal floor");
+			AssertBurns(normal, $"{name} on a normal floor");
 			level.Lighting.IsDark = true;
 			AssertBool(player.InventoryController.TryUnequip(entry).Success).IsTrue();
 			AssertInt(offhand.GetChildCount()).IsEqual(0);

@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/ambient_motion/Airflow.cs" id="source"]
+[ext_resource type="Resource" path="res://scenes/effects/ambient_motion/profiles/indoor_draft.tres" id="profile"]
+
+[node name="Airflow" type="Node"]
+script = ExtResource("source")
+Profile = ExtResource("profile")

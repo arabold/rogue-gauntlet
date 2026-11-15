@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/wet_spots.tscn" id="base"]
+[node name="WetSpots" instance=ExtResource("base")]
+MarksPerTile = 0.2
+MaximumCount = 160
+ScaleRange = Vector2(0.7, 1.4)

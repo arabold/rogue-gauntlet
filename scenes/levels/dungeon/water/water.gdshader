@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_back, shadows_disabled;
 
-// Still dungeon water on a transparent surface over an opaque bed: a clear film right at the surface that turns
+// Animated dungeon water on a transparent surface over an opaque bed: a clear film right at the surface that turns
 // murky within a short depth, a pale band wherever it meets stone or something floating, and slow drifting light.
 // Depth comes from the depth buffer, so beds, quay walls and sunken props darken with how far below they lie.
 uniform vec3 clear_color : source_color = vec3(0.38, 0.70, 0.64);
@@ -13,8 +13,13 @@ uniform float murk_depth : hint_range(0.05, 4.0) = 1.1;
 uniform vec3 foam_color : source_color = vec3(0.66, 0.84, 0.76);
 uniform float foam_width : hint_range(0.0, 0.5) = 0.08;
 uniform float ripple_scale = 0.55;
-uniform float ripple_speed = 0.05;
-uniform float ripple_light : hint_range(0.0, 1.0) = 0.07;
+uniform float ripple_speed : hint_range(0.0, 1.0) = 0.16;
+uniform float ripple_light : hint_range(0.0, 1.0) = 0.1;
+uniform float wave_scale : hint_range(0.1, 6.0) = 2.2;
+uniform float wave_speed : hint_range(0.0, 2.0) = 0.65;
+uniform float wave_strength : hint_range(0.0, 0.3) = 0.085;
+uniform float caustic_strength : hint_range(0.0, 0.3) = 0.09;
+uniform float surface_roughness : hint_range(0.0, 1.0) = 0.16;
 uniform sampler2D depth_texture : hint_depth_texture, filter_nearest, repeat_disable;
 
 varying vec3 world;
@@ -28,6 +33,12 @@ float noise(vec2 p) {
 	vec2 f = fract(p);
 	vec2 u = f * f * (3.0 - 2.0 * f);
 	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0)), u.x), u.y);
+}
+
+// Non-periodic, differently oriented layers avoid synchronized diagonal interference bands.
+float wave_height(vec2 p, vec2 drift) {
+	vec2 turned = vec2(p.x * 0.8 - p.y * 0.6, p.x * 0.6 + p.y * 0.8);
+	return noise(p + drift) * 0.65 + noise(turned * 1.73 - drift * 0.67 + vec2(5.3, 8.1)) * 0.35;
 }
 
 void vertex() {
@@ -47,9 +58,22 @@ void fragment() {
 	float a = noise(p + vec2(t, -0.6 * t));
 	float b = noise(p * 0.7 - vec2(0.5 * t, 0.3 * t) + 3.7);
 	float patches = smoothstep(0.55, 0.85, a * 0.6 + b * 0.4);
-	vec3 color = mix(clear_color, murk_color, murk) + patches * ripple_light;
+	// Scale time with spatial frequency so speed remains readable when ripple size changes.
+	float w = TIME * wave_speed * wave_scale;
+	vec2 q = world.xz * wave_scale;
+	vec2 drift = vec2(w * 0.43, -w * 0.27);
+	float height = wave_height(q, drift);
+	float step_size = 0.08;
+	vec2 slope = vec2(wave_height(q + vec2(step_size, 0.0), drift) - height,
+		wave_height(q + vec2(0.0, step_size), drift) - height) / step_size;
+	vec3 wave_normal = normalize(vec3(-slope.x * wave_strength, 1.0, -slope.y * wave_strength));
+	NORMAL = normalize(mat3(VIEW_MATRIX) * wave_normal);
+	// Broken contours travel with the surface: irregular noise avoids the old diagonal interference pattern.
+	float caustic = 1.0 - smoothstep(0.018, 0.075, abs(height - 0.5));
+	caustic *= smoothstep(0.2, 0.65, noise(q * 0.43 + drift * 0.6 + vec2(2.1, 6.7)));
+	vec3 color = mix(clear_color, murk_color, murk) + patches * ripple_light + caustic * caustic_strength * murk;
 	ALBEDO = mix(color, foam_color, foam * 0.85);
 	ALPHA = clamp(mix(clarity, 1.0, murk) + foam * 0.5, 0.0, 1.0);
-	ROUGHNESS = 0.12;
+	ROUGHNESS = surface_roughness;
 	SPECULAR = 0.6;
 }

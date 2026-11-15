@@ -152,6 +152,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 			XrayColor = new Color(1f, 0.32f, 0.32f, 0.85f),
 			TargetRoot = "../Pivot",
 			Invisibility = Invisibility,
+			GroundAnchor = this,
 		};
 		AddChild(xray);
 	}

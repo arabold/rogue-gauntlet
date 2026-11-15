@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/drips.tscn" id="base"]
+
+[node name="Drips" instance=ExtResource("base")]
+ParticlesPerTile = 0.85
+MaxParticles = 768
+
+[node name="Particles" parent="." index="0"]
+lifetime = 2.8
+preprocess = 2.8

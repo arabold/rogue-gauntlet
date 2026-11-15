@@ -13,9 +13,10 @@ ambient_light_energy = 0.7
 [sub_resource type="Theme" id="Theme"]
 default_font_size = 16
 
-[node name="RoomGenerationHarness" type="Node3D" node_paths=PackedStringArray("Generator", "PreviewRoot", "PreviewCamera", "Controls", "Status")]
+[node name="RoomGenerationHarness" type="Node3D" node_paths=PackedStringArray("Generator", "PreviewRoot", "PreviewCamera", "Controls", "Status", "Airflow")]
 script = ExtResource("script")
 Generator = NodePath("Level/MapGenerator")
+Airflow = NodePath("Level/Airflow")
 PreviewRoot = NodePath("PreviewRoot")
 PreviewCamera = NodePath("Camera3D")
 Controls = NodePath("UI/Panel/Margin/Controls")

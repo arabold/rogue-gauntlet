@@ -14,6 +14,8 @@ public partial class Main : Node
 
 	/// <summary>Full-screen status overlays bound to the player when it spawns. Optional: unassigned means no screen effects.</summary>
 	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
+	/// <summary>Optional nearby-world reflection capture, explicitly bound to the spawned hero.</summary>
+	[Export] public LocalReflectionProbe Reflections { get; set; }
 
 	/// <summary>Reports the fallen run and leaves for the menu. Optional: unassigned, the scene carries on after a death.</summary>
 	[Export] public DeathScreen DeathScreen { get; set; }
@@ -57,6 +59,7 @@ public partial class Main : Node
 		// Spawning can report the same player more than once; rebind so each signal connects only once.
 		_player = player;
 		ScreenEffects?.Bind(player);
+		if (Reflections != null) Reflections.Focus = player;
 	}
 
 	private void OnPlayerDeath(Player player)

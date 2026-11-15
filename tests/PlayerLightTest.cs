@@ -9,11 +9,15 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class PlayerLightTest
 {
-	[TestCase]
-	public async Task TheLightStopsInFrontOfAWallThePlayerFacesAndReturnsInOpenSpace()
+	[TestCase(false), TestCase(true)]
+	public async Task TheLightStopsInFrontOfAWallThePlayerFacesAndReturnsInOpenSpace(bool isDark)
 	{
-		var player = TestFactories.AddToSceneTree(
-			TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
+		var level = TestFactories.Load<PackedScene>("res://scenes/levels/level.tscn").Instantiate<Level>();
+		level.AutoGenerateOnReady = false;
+		level.Lighting.IsDark = isDark;
+		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
+		level.AddChild(player);
+		TestFactories.AddToSceneTree(level);
 		player.MovementComponent.SetPhysicsProcess(false);
 		// A one-unit wall whose near face is 0.6 from the player's center: the light's spot two units ahead lies past it.
 		var wall = TestFactories.AddToSceneTree(new StaticBody3D { CollisionLayer = 2, CollisionMask = 0, Position = new Vector3(1.1f, 2, 0) });

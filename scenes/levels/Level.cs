@@ -10,6 +10,10 @@ public partial class Level : Node, IDebugWorld
 	[Export] public MapGenerator MapGenerator { get; set; }
 	/// <summary>The floor's illumination and darkness; unassigned, the floor's lights stay as authored.</summary>
 	[Export] public WorldLighting Lighting { get; set; }
+	/// <summary>Optional realm air, rebuilt after discovery is ready and cleared before regeneration.</summary>
+	[Export] public DungeonAtmosphere Atmosphere { get; set; }
+	/// <summary>Optional shared draft for opted-in props; bound after generated visuals reach their final transforms.</summary>
+	[Export] public Airflow Airflow { get; set; }
 	/// <summary>The floor could not be generated or its saved deltas could not be restored; the session decides what follows.</summary>
 	[Signal] public delegate void GenerationFailedEventHandler(string reason);
 
@@ -180,6 +184,7 @@ public partial class Level : Node, IDebugWorld
 		ClearWorldNodes();
 		Floor = null;
 		Navigation = null;
+		Atmosphere?.Clear();
 		Discovery?.Clear();
 		// The previous floor was just freed, and generation reloads many of its resources by path.
 		ResourceCacheGuard.Settle();
@@ -191,6 +196,7 @@ public partial class Level : Node, IDebugWorld
 			return;
 		}
 		Floor = MapGenerator.Floor;
+		Airflow?.Bind(MapGenerator);
 		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
@@ -219,6 +225,7 @@ public partial class Level : Node, IDebugWorld
 			Encounters.Initialize(this, Floor.Encounter);
 		}
 
+		Atmosphere?.Initialize(Floor, MapGenerator.CurrentRealm?.Atmosphere, Seed);
 		GD.Print("Level is ready");
 		SignalBus.EmitLevelLoaded(this);
 	}
