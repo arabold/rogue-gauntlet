@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://bvv6c4ocq0nd" path="res://scenes/levels/lighting/AtmosphereHaze.cs" id="1_effect"]
+[ext_resource type="Shader" path="res://scenes/levels/lighting/atmosphere_haze.gdshader" id="2_shader"]
+[ext_resource type="NoiseTexture3D" path="res://scenes/levels/lighting/atmosphere_effects/atmosphere_noise.tres" id="3_noise"]
+
+[sub_resource type="ShaderMaterial" id="Material"]
+shader = ExtResource("2_shader")
+shader_parameter/noise_texture = ExtResource("3_noise")
+shader_parameter/haze_color = Color(0.78, 0.82, 0.88, 1)
+shader_parameter/density = 0.24
+shader_parameter/ambient_scatter = 0.1
+shader_parameter/noise_scale = 0.1
+shader_parameter/drift = Vector3(0.12, 0, 0.055)
+shader_parameter/wobble_amplitude = 1.65
+shader_parameter/wobble_period = 16.0
+
+[node name="Haze" type="Node3D" node_paths=PackedStringArray("Volume")]
+script = ExtResource("1_effect")
+Volume = NodePath("Volume")
+Height = 3.6
+
+[node name="Volume" type="FogVolume" parent="."]
+size = Vector3(1, 1, 1)
+material = SubResource("Material")

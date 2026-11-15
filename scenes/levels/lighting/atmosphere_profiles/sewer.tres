@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AtmosphereProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://dljt3e3wp3eho" path="res://scenes/levels/lighting/AtmosphereProfile.cs" id="1_profile"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/haze_sewer.tscn" id="2_effect"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/dust_sewer.tscn" id="3_effect"]
+
+[resource]
+script = ExtResource("1_profile")
+Effects = [ExtResource("2_effect"), ExtResource("3_effect")]

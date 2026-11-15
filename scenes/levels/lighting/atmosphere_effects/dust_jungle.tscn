@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://5ixlkwfo240s" path="res://scenes/levels/lighting/AtmosphereParticles.cs" id="1_effect"]
+[ext_resource type="GradientTexture1D" path="res://scenes/levels/lighting/atmosphere_effects/atmosphere_fade.tres" id="2_fade"]
+[ext_resource type="QuadMesh" path="res://scenes/levels/lighting/atmosphere_effects/atmosphere_dust_mesh.tres" id="3_mesh"]
+
+[sub_resource type="ParticleProcessMaterial" id="Motion"]
+emission_shape = 4
+direction = Vector3(1, 0.2, 0.4)
+spread = 150.0
+angle_max = 360.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.07200000435113907
+initial_velocity_max = 0.24
+scale_min = 0.05
+scale_max = 0.11
+color = Color(0.84, 0.89, 0.76, 0.55)
+turbulence_enabled = true
+turbulence_noise_strength = 0.6
+turbulence_noise_scale = 1.7
+turbulence_noise_speed = Vector3(0.045, 0.02, -0.03)
+turbulence_influence_min = 0.5
+turbulence_influence_max = 0.8
+color_ramp = ExtResource("2_fade")
+
+[node name="Dust" type="Node3D" node_paths=PackedStringArray("Particles")]
+script = ExtResource("1_effect")
+Particles = NodePath("Particles")
+ParticlesPerTile = 2.2
+MaxParticles = 512
+MinHeight = 0.4
+MaxHeight = 3.8
+
+[node name="Particles" type="GPUParticles3D" parent="."]
+layers = 256
+cast_shadow = 0
+emitting = false
+amount = 1
+lifetime = 14.0
+preprocess = 14.0
+randomness = 1.0
+local_coords = false
+draw_order = 3
+process_material = SubResource("Motion")
+draw_pass_1 = ExtResource("3_mesh")

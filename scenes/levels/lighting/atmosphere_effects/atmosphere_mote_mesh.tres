@@ -1,0 +1,10 @@
+[gd_resource type="QuadMesh" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://scenes/effects/shaders/glow_mote.gdshader" id="1_shader"]
+
+[sub_resource type="ShaderMaterial" id="Material"]
+shader = ExtResource("1_shader")
+
+[resource]
+material = SubResource("Material")
+size = Vector2(1, 1)

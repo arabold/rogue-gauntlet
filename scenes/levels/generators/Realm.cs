@@ -15,6 +15,8 @@ public partial class Realm : Resource
 	[Export(PropertyHint.Range, "1,100")] public uint FirstDepth { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,100")] public uint LastDepth { get; set; } = 1;
 	[Export] public DungeonTileFactory Corridors { get; set; }
+	/// <summary>Optional scene-composed floor atmosphere; presentation only, independent of generation streams.</summary>
+	[Export] public AtmosphereProfile Atmosphere { get; set; }
 
 	public bool Covers(uint depth) => depth >= FirstDepth && depth <= LastDepth;
 
