@@ -12,6 +12,8 @@ public partial class Level : Node, IDebugWorld
 	[Export] public WorldLighting Lighting { get; set; }
 	/// <summary>Optional realm air, rebuilt after discovery is ready and cleared before regeneration.</summary>
 	[Export] public DungeonAtmosphere Atmosphere { get; set; }
+	/// <summary>Optional shared draft for opted-in props; bound after generated visuals reach their final transforms.</summary>
+	[Export] public Airflow Airflow { get; set; }
 	/// <summary>The floor could not be generated or its saved deltas could not be restored; the session decides what follows.</summary>
 	[Signal] public delegate void GenerationFailedEventHandler(string reason);
 
@@ -194,6 +196,7 @@ public partial class Level : Node, IDebugWorld
 			return;
 		}
 		Floor = MapGenerator.Floor;
+		Airflow?.Bind(MapGenerator);
 		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);

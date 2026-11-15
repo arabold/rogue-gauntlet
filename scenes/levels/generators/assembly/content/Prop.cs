@@ -26,6 +26,8 @@ public partial class Prop : Placeable
 	[Export] public string[] Items { get => _items; set { _items = value ?? []; _geometry = null; } }
 	/// <summary>Scene variants, used instead of Items for props that need nodes: lights, particles, interaction.</summary>
 	[Export] public PackedScene[] Scenes { get => _scenes; set { _scenes = value ?? []; _geometry = null; } }
+	/// <summary>Optional ambient-motion component scene. Placement supplies its visual target; the playing world supplies airflow.</summary>
+	[Export] public PackedScene Motion { get; set; }
 	/// <summary>Turns the model so its front faces local +Z.</summary>
 	[Export(PropertyHint.Range, "0,3")] public int QuarterTurns { get => _quarterTurns; set { _quarterTurns = value; _geometry = null; } }
 

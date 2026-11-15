@@ -466,6 +466,21 @@ public sealed class RoomBlueprint
 
 	internal static Node3D CreateNode(PlacedPiece piece)
 	{
+		var node = CreateVisual(piece);
+		if (piece.Prop.Motion == null) return node;
+		var effect = piece.Prop.Motion.Instantiate();
+		if (effect is not AmbientMotionComponent motion)
+		{
+			effect.Free(); node.Free();
+			throw new InvalidOperationException($"Prop {piece.Prop.Id}: Motion must instantiate an AmbientMotionComponent.");
+		}
+		motion.Target = node;
+		node.AddChild(motion);
+		return node;
+	}
+
+	private static Node3D CreateVisual(PlacedPiece piece)
+	{
 		var prop = piece.Prop;
 		var turn = new Transform3D(prop.Turn, Vector3.Zero);
 		if (prop.Scenes.Length > 0)

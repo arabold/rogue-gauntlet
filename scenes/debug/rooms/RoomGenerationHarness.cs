@@ -14,6 +14,7 @@ public partial class RoomGenerationHarness : Node3D
 {
 	/// <summary>The production generator: its room pool and realms are what the harness previews.</summary>
 	[Export] public MapGenerator Generator { get; set; }
+	[Export] public Airflow Airflow { get; set; }
 	[Export] public int SelectedRealm { get; set; }
 	[Export] public Node3D PreviewRoot { get; set; }
 	[Export] public Camera3D PreviewCamera { get; set; }
@@ -220,6 +221,7 @@ public partial class RoomGenerationHarness : Node3D
 				}
 				Status.Text = $"{Realm.Id.Capitalize()} floor · depth {Generator.DungeonDepth} · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms";
 			}
+			Airflow?.Bind(Mode == RoomPreviewMode.Room ? PreviewRoot : Generator);
 		}
 		catch (InvalidOperationException error)
 		{

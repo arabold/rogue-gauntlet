@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AirflowProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://ccvbuv6jg04hb" path="res://scenes/effects/ambient_motion/AirflowProfile.cs" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+Direction = Vector2(0.55, 1)
+Strength = 0.08
+GustStrength = 1.0
+GustPeriod = 7.5
+SpatialScale = 0.09
+DirectionVariationDegrees = 12.0
