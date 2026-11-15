@@ -47,6 +47,17 @@ The **Scroll reading** tab shows the approved ring and its assigned paper appear
 
 Auto-replay, object comparisons, seed editing, crowds, combined-effect buttons and item-knowledge/source/death controls are removed. Automated tests exercise lifecycle and combinations. The separate [screen-effect harness](../../docs/screen-effects.md) exercises fullscreen overlays in gameplay.
 
+## Rendering regression check
+
+Run `scripts/verify_helper_rendering.gd` windowed after changing actor helper passes or world fog:
+
+```bash
+.agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" --windowed --audio-driver Dummy --fixed-fps 30 \
+  --script res://scripts/verify_helper_rendering.gd -- /tmp/rogue-helper-rendering
+```
+
+It uses the combat harness's production skeleton and x-ray component, checks emerging and standing actors for unwanted helper color under fog, checks the teleport depth pass, and checks the silhouette behind a low wall at two camera clip ranges. It saves comparison PNGs and exits nonzero on failure. Headless rendering cannot run this pixel check. Add `--rendering-method mobile` to verify the Mobile renderer too.
+
 ## Spells
 
 Cast spells in the [combat harness](combat/combat_harness.tscn) rather than a preview: **Spells** casts any pooled spell at any level with the hero's weapon hit, and a wand or staff from **Items** casts its bound spell with mana. **Monsters → Count** places 1, 3 or 5 practice dummies or monsters in a ring around the hero, **Level → Walls** switches the arena's wall arrangement (Default, One wall, Open or Small room, from the shared `debug_stage.tscn`; the arena starts open) and **Level → Dark level** darkens it exactly as a dark dungeon floor: the ambient light goes out and the hero's light shrinks. Arrangements are authored as `DebugArrangement` resources on the stage, and the arena rebuilds monster navigation for each.

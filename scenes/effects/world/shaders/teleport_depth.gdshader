@@ -1,6 +1,7 @@
 shader_type spatial;
 // Invisible additive pass writes the nearest actor depth before any fade colors are drawn.
-render_mode unshaded, blend_add, depth_draw_always, cull_disabled, shadows_disabled;
+// It must stay colorless in both depth fog and volumetric fog.
+render_mode unshaded, blend_add, depth_draw_always, cull_disabled, shadows_disabled, fog_disabled;
 #include "res://scenes/effects/world/shaders/source_surface.gdshaderinc"
 uniform float amount = 0;
 void fragment() {

@@ -4,14 +4,18 @@ shader_type spatial;
 // the actor is hidden (stencil != 1). So an actor in plain view shows nothing, and — because the
 // gate is per-pixel — its own body parts never x-ray through each other. Alpha fades with distance
 // so far actors stay quiet.
-render_mode unshaded, cull_disabled, depth_draw_never, depth_test_disabled;
+// This is a visibility indicator with its own distance fade, independent of atmospheric fog.
+render_mode unshaded, cull_disabled, depth_draw_never, depth_test_disabled, fog_disabled;
 stencil_mode read, compare_not_equal, 1;
 
 uniform vec4 xray_color : source_color = vec4(1.0, 0.35, 0.35, 0.85);
 uniform float fade_near = 16.0;
 uniform float fade_far = 34.0;
+// Per-helper state; actor ground clipping never changes another actor's shared shader/material.
+instance uniform float xray_ground_height = -1e30;
 
 void fragment() {
+	if ((INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).y < xray_ground_height) discard;
 	float fade = 1.0 - smoothstep(fade_near, fade_far, length(VERTEX));
 	if (fade <= 0.0) {
 		discard;

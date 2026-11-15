@@ -111,3 +111,7 @@ The generator explicitly passes its exported `SpawnArrivalEffect` into generated
 In the actor/item preview, select **Teleport Departure** or **Teleport Arrival** to inspect a phase. **Preview full teleport** appears only for teleport effects on actors and exercises the same fade/relocate/fade-in sequence as gameplay.
 
 Preview actors and labels are isolated from world-only reflection capture. X-ray stencil helpers use the existing debug render layer, preventing red silhouette feedback in the probe even when an imported monster mesh uses the world layer.
+
+Invisible stencil/depth passes must disable atmospheric fog: additive black becomes visible when fog adds color, exposing overlapping actor parts. The x-ray mask and teleport depth pass use `fog_disabled`; the x-ray indicator also owns its distance fade independently of fog. Ordinary actor surfaces still receive world fog. The mask uses hardware depth testing with a small view-space depth offset: it preserves per-sample MSAA edges and stays independent of the camera's clip range. The [windowed rendering check](../scenes/debug/README.md#rendering-regression-check) verifies these passes by comparing real rendered pixels.
+
+An optional `GroundAnchor` clips x-ray geometry below its plane. Enemies wire their ground origin so the ground-emergence animation cannot reveal buried limbs through the floor. The height is an instance shader parameter on each helper mesh; props without an assigned anchor retain their existing silhouettes.

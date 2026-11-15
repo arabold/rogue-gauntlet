@@ -35,6 +35,14 @@ public partial class OcclusionXrayComponent : Node
 	/// <summary>Root whose <see cref="MeshInstance3D"/> descendants get silhouettes.</summary>
 	[Export] public NodePath TargetRoot { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }
+	/// <summary>Optional ground plane anchor. Buried actor parts stay hidden while emerging; unassigned disables this clip.</summary>
+	[Export]
+	public Node3D GroundAnchor
+	{
+		get;
+		set { field = value; if (IsNodeReady()) Evaluate(); }
+	}
+	private static readonly StringName GroundHeightParameter = "xray_ground_height";
 	/// <summary>Silhouette tint (alpha is honored; the shader fades it further with distance).</summary>
 	[Export] public Color XrayColor { get; set; } = new(1f, 0.35f, 0.35f, 0.85f);
 	/// <summary>Which debug toggle enables this component.</summary>
@@ -230,6 +238,9 @@ public partial class OcclusionXrayComponent : Node
 		foreach (MeshInstance3D silhouette in _silhouettes)
 		{
 			silhouette.Visible = visible;
+			if (silhouette.MaterialOverride is ShaderMaterial material && material.Shader == XrayShader)
+				silhouette.SetInstanceShaderParameter(GroundHeightParameter,
+					IsInstanceValid(GroundAnchor) ? GroundAnchor.GlobalPosition.Y : -1e30f);
 		}
 	}
 
