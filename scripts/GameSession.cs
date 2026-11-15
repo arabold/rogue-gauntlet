@@ -293,15 +293,27 @@ public partial class GameSession : Node
 
 	public bool ChangeDungeonDepth(LevelTravelDirection direction)
 	{
-		if (_isSceneTransitioning)
+		if (_isSceneTransitioning || !CanUseTransition(direction)) return false;
+		uint depth = direction switch
 		{
-			return false;
-		}
+			LevelTravelDirection.Down when ActiveDungeonDepth < uint.MaxValue => ActiveDungeonDepth + 1,
+			LevelTravelDirection.Up when ActiveDungeonDepth > 1 => ActiveDungeonDepth - 1,
+			_ => 0,
+		};
+		return depth != 0 && TravelToDepth(depth, direction);
+	}
 
-		if (!CanUseTransition(direction))
-		{
-			return false;
-		}
+	/// <summary>Debug travel to an exact floor, preserving the hero, run seed and visited-floor deltas while bypassing stair gates.</summary>
+	public bool ChangeDungeonDepthDebug(uint depth)
+	{
+		if (depth == 0 || depth == ActiveDungeonDepth || CurrentLevel() == null) return false;
+		return TravelToDepth(depth, depth > ActiveDungeonDepth ? LevelTravelDirection.Down : LevelTravelDirection.Up);
+	}
+
+	/// <summary>Captures the departure once for stair travel and debug jumps, then restores the hero at the destination's arrival.</summary>
+	private bool TravelToDepth(uint depth, LevelTravelDirection direction)
+	{
+		if (_isSceneTransitioning) return false;
 
 		Player player = FindPlayer();
 		if (IsRunOver || player == null || player.IsDead || !CanCapture(player))
@@ -324,17 +336,7 @@ public partial class GameSession : Node
 		// Every floor is saved as the hero arrives on it.
 		_saveAfterNextSpawn = true;
 
-		if (direction == LevelTravelDirection.Down)
-		{
-			ActiveDungeonDepth++;
-		}
-		else if (direction == LevelTravelDirection.Up)
-		{
-			if (ActiveDungeonDepth > 1)
-			{
-				ActiveDungeonDepth--;
-			}
-		}
+		ActiveDungeonDepth = depth;
 
 		PendingTravelDirection = direction;
 		_activeSave.DungeonDepth = ActiveDungeonDepth;

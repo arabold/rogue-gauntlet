@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://dhi51wv5tbpik"]
+[gd_scene load_steps=11 format=3 uid="uid://dhi51wv5tbpik"]
 
 [ext_resource type="Script" uid="uid://ndxolawfujyq" path="res://scenes/levels/generators/MapGenerator.cs" id="1_wxtnq"]
 [ext_resource type="MeshLibrary" uid="uid://cvb6xl8nh7vws" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="3_xm338"]
@@ -6,6 +6,11 @@
 [ext_resource type="MeshLibrary" uid="uid://cdkoxk8gs2jhr" path="res://scenes/levels/dungeon/DecorationMeshLibrary.tres" id="5_dogu5"]
 
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="spawn_arrival"]
+[ext_resource type="Script" path="res://scenes/levels/lighting/DungeonSurfaceFinish.cs" id="surface_finish"]
+[ext_resource type="Resource" path="res://scenes/levels/lighting/surface_finishes/cloth.tres" id="finish_cloth"]
+[ext_resource type="Resource" path="res://scenes/levels/lighting/surface_finishes/wet_stone.tres" id="finish_wet"]
+[ext_resource type="Resource" path="res://scenes/levels/lighting/surface_finishes/wood.tres" id="finish_wood"]
+[ext_resource type="Resource" path="res://scenes/levels/lighting/surface_finishes/stone.tres" id="finish_stone"]
 
 [node name="MapGenerator" type="Node3D" node_paths=PackedStringArray("FloorGridMap", "WallGridMap", "DecorationGridMap", "OcclusionGridMap", "FloorContent")]
 script = ExtResource("1_wxtnq")
@@ -17,6 +22,11 @@ OcclusionGridMap = NodePath("OcclusionGridMap")
 FloorContent = NodePath("FloorContent")
 
 [node name="FloorContent" type="Node3D" parent="."]
+
+[node name="DungeonSurfaceFinish" type="Node" parent="." node_paths=PackedStringArray("GridMaps")]
+script = ExtResource("surface_finish")
+GridMaps = [NodePath("../FloorGridMap"), NodePath("../WallGridMap"), NodePath("../DecorationGridMap")]
+Profiles = [ExtResource("finish_cloth"), ExtResource("finish_wet"), ExtResource("finish_wood"), ExtResource("finish_stone")]
 
 [node name="FloorGridMap" type="GridMap" parent="."]
 mesh_library = ExtResource("3_xm338")

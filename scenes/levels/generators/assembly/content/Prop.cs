@@ -26,6 +26,8 @@ public partial class Prop : Placeable
 	[Export] public string[] Items { get => _items; set { _items = value ?? []; _geometry = null; } }
 	/// <summary>Scene variants, used instead of Items for props that need nodes: lights, particles, interaction.</summary>
 	[Export] public PackedScene[] Scenes { get => _scenes; set { _scenes = value ?? []; _geometry = null; } }
+	/// <summary>Optional ambient-motion component scene. Placement supplies its visual target; the playing world supplies airflow.</summary>
+	[Export] public PackedScene Motion { get; set; }
 	/// <summary>Turns the model so its front faces local +Z.</summary>
 	[Export(PropertyHint.Range, "0,3")] public int QuarterTurns { get => _quarterTurns; set { _quarterTurns = value; _geometry = null; } }
 
@@ -50,6 +52,9 @@ public partial class Prop : Placeable
 	[Export] public bool Blocking { get => _blocking; set { _blocking = value; _geometry = null; } }
 	/// <summary>Keeps the space in front of the prop clear so it can be used.</summary>
 	[Export] public bool Interactive { get; set; }
+	/// <summary>Sinks into a pit cut from the floor tiles under it, and may reach under the perimeter walls there: the
+	/// down-stairs' stairwell, a pool's water. Circulation and prop overlap still apply.</summary>
+	[Export] public bool Sunken { get; set; }
 	/// <summary>Bars, fences, corners and posts: structural pieces may overlap each other where they join (a corner over
 	/// the ends of two runs), never furniture.</summary>
 	[Export] public bool Structural { get; set; }

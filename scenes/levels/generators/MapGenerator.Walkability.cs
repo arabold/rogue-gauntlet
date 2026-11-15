@@ -20,7 +20,7 @@ public partial class MapGenerator
 	private Vector2 ArrivalPoint()
 	{
 		// The arrival spawns on the stairs, which block walking; the landing in front is where play starts.
-		var at = (Floor.Arrival.Landing ?? Floor.Arrival).GlobalPosition;
+		var at = Floor.Arrival.LandingPosition;
 		return new(at.X, at.Z);
 	}
 
@@ -42,14 +42,12 @@ public partial class MapGenerator
 	/// </summary>
 	private IEnumerable<(Rect2 Area, bool Walkable)> TileAreas()
 	{
-		float half = Room.TileSize / 2f;
 		for (int x = 0; x < Map.Width; x++)
 		for (int z = 0; z < Map.Height; z++)
 		{
 			bool walkable = Map.IsWalkable(x, z);
 			if (!walkable && !BordersWalkable(x, z)) continue;
-			var center = Map.TileToWorld(x, z);
-			yield return (new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize), walkable);
+			yield return (RoomFootprint.TileArea(Map.TileToWorld(x, z)), walkable);
 		}
 	}
 
@@ -81,12 +79,7 @@ public partial class MapGenerator
 		var saved = grid.Save();
 		try
 		{
-			foreach (var tile in blocked)
-			{
-				var center = Map.TileToWorld(tile);
-				float half = Room.TileSize / 2f;
-				grid.AddObstacle(new Rect2(center.X - half, center.Z - half, Room.TileSize, Room.TileSize));
-			}
+			foreach (var tile in blocked) grid.AddObstacle(RoomFootprint.TileArea(Map.TileToWorld(tile)));
 			return grid.Reachable([ArrivalPoint()], Room.TileSize);
 		}
 		finally { grid.Restore(saved); }

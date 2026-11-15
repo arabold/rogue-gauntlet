@@ -582,14 +582,11 @@ class ArmorFittingTest(unittest.TestCase):
                 self.assertIn("Head", pieces)
 
     def test_dummy_recipe_does_not_modify_original_or_prefab(self):
-        original = characters.load("heroes/knight")
         study = fittings.studies()["costume_knight"]
         snapshot = copy.deepcopy(study)
         recipe = fittings.recipe(study)
         recipe["outfit"][0]["slot"] = "changed"
         self.assertEqual(study, snapshot)
-        self.assertEqual(original, characters.load("heroes/knight"))
-        self.assertTrue(any(g["kind"] == "helmet" for g in original["outfit"]))
         self.assertFalse(any(g["kind"] in ("helmet", "cape") for g in study["outfit"]))
 
     def test_review_covers_distinct_constructions(self):

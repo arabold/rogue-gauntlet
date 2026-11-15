@@ -1,11 +1,12 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/LShape.cs" id="4_lshape"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/UShape.cs" id="5_ushape"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="6_crossshape"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="7_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/mossy_walls.tres" id="mossy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/overgrown_walls.tres" id="overgrown_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/cave_floor.tres" id="8_cave_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/cave_pillar.tres" id="9_cave_pillar"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/columns/CenterColumns.cs" id="10_centercolumns"]
@@ -115,7 +116,7 @@ MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 3
 Circulation = 0
-Walls = [ExtResource("7_cave_walls")]
+Walls = [ExtResource("mossy_walls"), ExtResource("overgrown_walls")]
 Floors = [ExtResource("8_cave_floor")]
 Columns = [SubResource("CenterColumns_5"), SubResource("CornerColumns_6")]
 ColumnChance = 0.5

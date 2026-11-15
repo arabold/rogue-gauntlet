@@ -24,7 +24,7 @@ public class RoomAssemblyTest
 	public void EveryRoomAndRealmDefinitionValidates()
 	{
 		var pool = TestFactories.RoomPool();
-		var errors = pool.RoomTypes.Concat(pool.EntranceTypes).Concat(pool.ExitTypes).SelectMany(type => type.Validate()).ToList();
+		var errors = pool.AllTypes.SelectMany(type => type.Validate()).ToList();
 		foreach (string id in new[] { "garrison", "sewer", "jungle" })
 		{
 			var realm = TestFactories.Load<Realm>($"{Levels}realms/{id}.tres");
@@ -86,7 +86,7 @@ public class RoomAssemblyTest
 	[TestCase("jungle")]
 	public void EveryRoomTheRealmAssemblesKeepsItsContracts(string realm)
 	{
-		var factory = (AssembledRoomFactory)TestFactories.RoomPool().ForRealm(realm);
+		var factory = TestFactories.RoomPool().ForRealm(realm);
 		var slots = factory.RoomTypes.Select(type => (type, Stairs: StairKind.None))
 			.Concat(factory.EntranceTypes.Select(type => (type, Stairs: StairKind.Up)))
 			.Concat(factory.ExitTypes.Select(type => (type, Stairs: StairKind.Down)));

@@ -21,11 +21,19 @@ public partial class Armor : EquipableItem
 	/// <summary>The weight class the balance model sizes this body armor or helmet for; shields ignore it.</summary>
 	[Export] public ArmorWeight Weight { get; set => SetValue(ref field, value); } = ArmorWeight.Medium;
 	/// <summary>
-	/// Body armor's or a helmet's model on the hero, in its bone's rest frame (origin at the chest or head bone, +Z
-	/// forward). <see cref="Item.Scene"/> stays the pickup and inventory model. Unassigned, nothing shows on the body
-	/// and the class model's own hat or cape stays visible.
+	/// Body armor's or a helmet's model on the hero. Body armor is a whole suit, its own arms and legs included, exported
+	/// skinned on the hero rig: its meshes move onto the hero's own skeleton and bend with the body
+	/// (<see cref="WornEquipment"/>). A helmet may be skinned too, or rigid in the head bone's rest frame (+Z forward).
+	/// <see cref="Item.Scene"/> stays the pickup and inventory model (a suit's torso alone). Unassigned, nothing shows.
 	/// </summary>
 	[Export] public PackedScene WornScene { get; set => SetValue(ref field, value); }
+	/// <summary>
+	/// Parts of the hero's model this piece covers and hides while worn, named like the model's nodes end
+	/// (<c>Hair</c>, <c>Ears</c>, <c>Arms</c>, <c>Legs</c>): a helmet hides the hair it would otherwise
+	/// poke through, and a body armor suit hides the hero's arms and legs for its own. Hidden hair shows the head's scalp
+	/// in its place.
+	/// </summary>
+	[Export] public string[] HiddenModelParts { get; set => SetValue(ref field, value ?? []); } = [];
 	/// <summary>
 	/// Strength required to wear this armor effectively.
 	/// </summary>

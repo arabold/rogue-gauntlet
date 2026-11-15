@@ -27,7 +27,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export(PropertyHint.Range, "1,4")] public int RoomGap { get; set; } = 1;
 
-	/// <summary>How many different room scenes to try for a slot before skipping it.</summary>
+	/// <summary>How many different rooms to try for a slot before skipping it.</summary>
 	[Export] public int Retries { get; set; } = 3;
 
 	/// <summary>
@@ -43,7 +43,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export(PropertyHint.Range, "0,10")] public float ScoreTolerance { get; set; } = 1f;
 
-	public override List<RoomPlacement> GenerateRooms(MapData map, RoomFactory factory, uint maxRooms, RandomNumberGenerator rng)
+	public override List<RoomPlacement> GenerateRooms(MapData map, AssembledRoomFactory factory, uint maxRooms, RandomNumberGenerator rng)
 	{
 		List<RoomPlacement> rooms = new();
 
@@ -56,7 +56,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 			|| map.Intersects(entranceRoom.Map, entrancePlacement))
 		{
 			GD.PrintErr("PackedRoomLayout: map is too small for the entrance room.");
-			entranceRoom.QueueFree();
+			entranceRoom.Free();
 			return rooms;
 		}
 		AddPlacement(map, rooms, entranceRoom, entrancePlacement);
@@ -82,7 +82,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// the run.
 	/// </summary>
 	private void PlaceExit(
-		MapData map, List<RoomPlacement> rooms, RoomFactory factory, Vector2 entranceCenter,
+		MapData map, List<RoomPlacement> rooms, AssembledRoomFactory factory, Vector2 entranceCenter,
 		RandomNumberGenerator rng)
 	{
 		while (true)
@@ -106,7 +106,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 			// rebuild the map.
 			var removed = rooms[^1];
 			rooms.RemoveAt(rooms.Count - 1);
-			removed.Room.QueueFree();
+			removed.Room.Free();
 			GD.Print($"PackedRoomLayout: removed a room at {removed.Position} to make space for the exit.");
 			RestampAll(map, rooms);
 		}
@@ -127,7 +127,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 			// No valid position for this room shape at any rotation; a differently-sized
 			// room may still fit.
-			room.QueueFree();
+			room.Free();
 		}
 
 		return false;
@@ -353,12 +353,6 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		}
 
 		return connectors;
-	}
-
-	private static void AddPlacement(MapData map, List<RoomPlacement> rooms, Room room, Vector2I placement)
-	{
-		rooms.Add(new RoomPlacement(room, placement));
-		StampRoom(map, room.Map, placement);
 	}
 
 	/// <summary>

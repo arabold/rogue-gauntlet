@@ -1,15 +1,17 @@
-[gd_scene load_steps=11 format=3 uid="uid://df7j4kw8qm2xa"]
+[gd_scene load_steps=13 format=3 uid="uid://df7j4kw8qm2xa"]
 
 [ext_resource type="Shader" uid="uid://b7i3u0l0gwbmu" path="res://scenes/effects/shaders/stylized_fire.gdshader" id="1_shader"]
 [ext_resource type="Texture2D" uid="uid://cumebbjdrcd64" path="res://scenes/effects/assets/HoleNoise.png" id="2_noise"]
 [ext_resource type="Texture2D" uid="uid://c8nnpux2gtihn" path="res://scenes/effects/assets/FireMask.png" id="3_mask"]
+[ext_resource type="PackedScene" path="res://scenes/effects/torch_motes.tscn" id="4_motes"]
+[ext_resource type="PackedScene" path="res://scenes/effects/torch_smoke.tscn" id="5_smoke"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_torch"]
 render_priority = 0
 shader = ExtResource("1_shader")
 shader_parameter/noise_texture = ExtResource("2_noise")
 shader_parameter/texture_mask = ExtResource("3_mask")
-shader_parameter/emission_intensity = 2.0
+shader_parameter/emission_intensity = 1.45
 shader_parameter/time_scale = 3.0
 shader_parameter/texture_scale = Vector2(1, 1)
 shader_parameter/edge_softness = 0.1
@@ -47,6 +49,10 @@ color_ramp = SubResource("GradientTexture1D_torch")
 size = Vector2(0.5, 0.5)
 
 [node name="TorchFlame" type="Node3D"]
+
+[node name="TorchMotes" parent="." instance=ExtResource("4_motes")]
+
+[node name="TorchSmoke" parent="." instance=ExtResource("5_smoke")]
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 material_override = SubResource("ShaderMaterial_torch")

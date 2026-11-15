@@ -44,9 +44,9 @@ public abstract partial class FurnishingStep : Resource
 		return choice?.Compose(room, rng) ?? new PlacementPlan();
 	}
 
-	protected static bool TryPlace(RoomBlueprint room, Placeable choice, PlacementPlan plan, Transform3D at)
+	protected static bool TryPlace(RoomBlueprint room, Placeable choice, PlacementPlan plan, Transform3D at, Rect2? landing = null)
 	{
-		if (!room.TryPlace(plan, at)) return false;
+		if (!room.TryPlace(plan, at, landing)) return false;
 		room.RecordUse(choice);
 		return true;
 	}

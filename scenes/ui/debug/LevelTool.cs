@@ -4,7 +4,7 @@ using System.Globalization;
 
 /// <summary>
 /// Floor diagnostics and run controls: the navigation overlay, x-rays, darkness, an arena's walls, revealing the map,
-/// restarting the floor and replaying the run from a seed. Revealing, restarting and the run seed need a generated
+/// restarting or changing the floor and replaying the run from a seed. Floor travel and the run seed need a generated
 /// <see cref="Level"/>; darkness and navigation need a debug world.
 /// </summary>
 [GlobalClass]
@@ -13,8 +13,10 @@ public partial class LevelTool : DebugTool
 	private NavigationDebugOverlay _navigationOverlay;
 	private ConfirmationDialog _replayDialog;
 	private LineEdit _replaySeedInput;
+	private ConfirmationDialog _floorDialog;
+	private SpinBox _floorInput;
 	private DebugStage _stage;
-	private int _navigationId, _darkId, _revealMapId, _restartLevelId, _copyRunSeedId, _replayRunId;
+	private int _navigationId, _darkId, _revealMapId, _restartLevelId, _changeFloorId, _copyRunSeedId, _replayRunId;
 
 	/// <summary>
 	/// Shows the world's clearance grid for skeleton-sized bodies. Rebuilt on every enable, so it follows the current door
@@ -54,6 +56,8 @@ public partial class LevelTool : DebugTool
 		menu.AddSeparator();
 		_revealMapId = AddAction(menu, "Reveal map", RevealMap);
 		_restartLevelId = AddAction(menu, "Restart level", RestartLevel);
+		_changeFloorId = AddAction(menu, "Change floor...", OpenFloorDialog);
+		BuildFloorDialog();
 		menu.AddSeparator();
 		_copyRunSeedId = AddAction(menu, "Copy run seed", CopyRunSeed);
 		_replayRunId = AddAction(menu, "Replay run...", OpenReplayDialog);
@@ -67,7 +71,7 @@ public partial class LevelTool : DebugTool
 		SetDisabled(Popup, _navigationId, world == null);
 		SetDisabled(Popup, _darkId, world?.Lighting == null);
 		bool noLevel = Menu?.Level == null;
-		foreach (int id in new[] { _revealMapId, _restartLevelId, _copyRunSeedId, _replayRunId })
+		foreach (int id in new[] { _revealMapId, _restartLevelId, _changeFloorId, _copyRunSeedId, _replayRunId })
 		{
 			SetDisabled(Popup, id, noLevel);
 		}
@@ -103,6 +107,37 @@ public partial class LevelTool : DebugTool
 	{
 		GameSession.Instance?.ResetCurrentLevelDebugState();
 		GetTree().CallDeferred(SceneTree.MethodName.ReloadCurrentScene);
+	}
+
+	/// <summary>Jumps directly to a floor using the session's normal hero and floor-state capture, without stair requirements.</summary>
+	public bool ChangeFloor(uint depth) => Menu?.Level != null && GameSession.Instance?.ChangeDungeonDepthDebug(depth) == true;
+
+	private void OpenFloorDialog()
+	{
+		if (Menu?.Level is not { } level) return;
+		_floorInput.Value = level.Depth;
+		_floorDialog.GetOkButton().Disabled = true;
+		_floorDialog.PopupCentered();
+		_floorInput.GetLineEdit().GrabFocus();
+		_floorInput.GetLineEdit().SelectAll();
+	}
+
+	private void BuildFloorDialog()
+	{
+		_floorInput = new SpinBox { Name = "FloorNumber", MinValue = 1, MaxValue = uint.MaxValue, Step = 1, Rounded = true, UpdateOnTextChanged = true };
+		var content = new VBoxContainer();
+		content.AddChild(new Label { Text = "Floor number" });
+		content.AddChild(_floorInput);
+		content.AddChild(new Label { Text = "Keeps your hero, equipment and run seed." });
+		_floorDialog = new ConfirmationDialog { Name = "ChangeFloorDialog", Title = "Change floor", OkButtonText = "Go" };
+		_floorDialog.AddChild(content);
+		_floorDialog.RegisterTextEnter(_floorInput.GetLineEdit());
+		_floorInput.ValueChanged += value => _floorDialog.GetOkButton().Disabled = (uint)value == Menu?.Level?.Depth;
+		_floorDialog.Confirmed += () =>
+		{
+			if (!ChangeFloor((uint)_floorInput.Value)) GD.PushWarning("Cannot change floors while the hero is acting, the run has ended or a scene transition is in progress.");
+		};
+		Menu.AddChild(_floorDialog);
 	}
 
 	/// <summary>Starts over from depth 1 with <paramref name="seed"/>; an active game replaces the save in its slot.</summary>

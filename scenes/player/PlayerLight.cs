@@ -2,11 +2,9 @@ using System.Linq;
 using Godot;
 
 /// <summary>
-/// The light the player carries: a shadow-casting <see cref="Light"/> ahead of the head, which shadows the player and
-/// their gear like a held torch, and an object <see cref="Highlight"/> above. It burns at <see cref="Lit"/> on normal
-/// floors or while the player holds a portable light, and at <see cref="Dark"/> otherwise, so held lamps and torches
-/// need no light of their own. The light keeps to the player's side of walls: when its spot lies past a wall or door, it
-/// stops just in front of it, and the wall shadows the room beyond.
+/// A local point light makes nearby objects cast shadows away from the hero; a separate fill keeps the character readable.
+/// Normal floors use a broad, subdued falloff. In darkness, Lit carries a held light and Dark provides innate visibility.
+/// The point light stays on the player's side of walls and doors in every mode.
 /// </summary>
 [GlobalClass]
 public partial class PlayerLight : Node3D
@@ -17,6 +15,13 @@ public partial class PlayerLight : Node3D
 	/// streak them with highlights. Fixtures keep theirs for metal.</summary>
 	[Export] public FlickeringLight Light { get; set; }
 	[Export] public OmniLight3D Highlight { get; set; }
+
+	[Export]
+	public PlayerLightProfile Normal
+	{
+		get => _normal;
+		set { _normal = value; if (IsNodeReady()) Apply(); }
+	}
 
 	[Export]
 	public PlayerLightProfile Lit
@@ -38,12 +43,12 @@ public partial class PlayerLight : Node3D
 	/// streak; from about 0.4 the wall takes an even glow.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float WallGap { get; set; } = 0.4f;
 
-	private PlayerLightProfile _lit, _dark;
+	private PlayerLightProfile _normal, _lit, _dark;
 	private WorldLighting _lighting;
 	private Vector3 _spot;
 	private PhysicsRayQueryParameters3D _ray;
 
-	/// <summary>Whether the light burns at <see cref="Lit"/>: the world is lit, or the player holds a light.</summary>
+	/// <summary>Whether full illumination is available: the world is lit, or the player holds a light.</summary>
 	public bool IsLit => _lighting?.IsDark != true || HoldsLight;
 
 	private bool HoldsLight => Player?.Inventory?.EquippedItems.Values.Any(entry => entry?.Item is PortableLightItem) == true;
@@ -53,9 +58,9 @@ public partial class PlayerLight : Node3D
 
 	public override void _Ready()
 	{
-		if (Light == null || Highlight == null || Lit == null || Dark == null)
+		if (Light == null || Highlight == null || Normal == null || Lit == null || Dark == null)
 		{
-			GD.PushError($"{Name}: assign Light, Highlight, Lit and Dark.");
+			GD.PushError($"{Name}: assign Light, Highlight, Normal, Lit and Dark.");
 			SetPhysicsProcess(false);
 			return;
 		}
@@ -87,15 +92,19 @@ public partial class PlayerLight : Node3D
 
 	private void Apply()
 	{
-		var profile = IsLit ? Lit : Dark;
+		bool isDark = _lighting?.IsDark == true;
+		var profile = isDark ? (IsLit ? Lit : Dark) : Normal;
 		if (profile == null || Light == null || Highlight == null) return;
+		Light.Visible = profile.Energy > 0f;
 		Light.Energy = profile.Energy;
 		Light.Profile = profile.Flicker;
 		Light.OmniRange = profile.Range;
 		Light.OmniAttenuation = profile.Attenuation;
+		Light.LightCullMask = profile.LightLayers;
 		Highlight.LightEnergy = profile.HighlightEnergy;
 		Highlight.OmniRange = profile.HighlightRange;
 		Highlight.OmniAttenuation = profile.HighlightAttenuation;
+		Highlight.LightCullMask = profile.HighlightLayers;
 		Highlight.Position = Vector3.Up * profile.HighlightHeight;
 	}
 }

@@ -65,7 +65,7 @@ public class ItemQualityTest
 	{
 		ItemCreationPolicy policy = Policy;
 		QualityLadder ladder = policy.QualityLadder;
-		string[] paths = ["res://scenes/items/weapons/broadsword_common.tres", "res://scenes/items/armor/shield_common.tres",
+		string[] paths = ["res://scenes/items/weapons/broadsword_common.tres", "res://scenes/items/armor/shield/shield_common.tres",
 			"res://scenes/items/jewelry/ring/ring_strength_1.tres"];
 		Item[] definitions = paths.Select(path => TestFactories.Load<Item>(path)).ToArray();
 		var qualities = new HashSet<ItemQuality>();

@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/effects/surface_marks/SurfaceMark.cs" id="script"]
+[node name="SurfaceMark" type="Decal"]
+size = Vector3(1.4, 0.6, 1.8)
+cull_mask = 1
+normal_fade = 0.7
+distance_fade_enabled = true
+distance_fade_begin = 28.0
+distance_fade_length = 12.0
+script = ExtResource("script")

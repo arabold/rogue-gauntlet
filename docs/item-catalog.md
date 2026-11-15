@@ -158,7 +158,7 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Stone Maul](../scenes/items/weapons/warhammer/warhammer_stone.tres) | 4 |
 | [Gilded Warhammer](../scenes/items/weapons/warhammer_gold.tres) | 5 |
 
-### Armor (28)
+### Shields (28)
 
 | Definition | Tier |
 | --- | --- |
@@ -175,21 +175,42 @@ potency variants. Empty family IDs mean the item has no hidden type-wide identit
 | [Royal Lily Shield](../scenes/items/armor/shield/shield_royal_lily.tres) | 4 |
 | [Wooden Guard Scutum](../scenes/items/armor/shield/shield_scutum_wood.tres) | 2 |
 | [Simple Wooden Shield](../scenes/items/armor/shield/shield_wood_simple.tres) | 1 |
-| [Shield](../scenes/items/armor/shield_badge.tres) | 1 |
-| [Shield](../scenes/items/armor/shield_badge_color.tres) | 1 |
-| [Spiked Shield](../scenes/items/armor/shield_badge_spikes.tres) | 2 |
-| [Spiked Shield](../scenes/items/armor/shield_badge_spikes_red.tres) | 2 |
-| [Wooden Shield](../scenes/items/armor/shield_common.tres) | 1 |
-| [Skull Shield](../scenes/items/armor/shield_large_skull.tres) | 2 |
-| [Spiked Shield](../scenes/items/armor/shield_large_spikes.tres) | 2 |
-| [Royal Shield](../scenes/items/armor/shield_rare.tres) | 4 |
-| [Round Shield](../scenes/items/armor/shield_round_blue.tres) | 1 |
-| [Round Shield](../scenes/items/armor/shield_round_common.tres) | 1 |
-| [Round Shield](../scenes/items/armor/shield_round_old.tres) | 1 |
-| [Round Shield](../scenes/items/armor/shield_round_red.tres) | 1 |
-| [Square Shield](../scenes/items/armor/shield_square.tres) | 2 |
-| [Square Shield](../scenes/items/armor/shield_square_red.tres) | 2 |
-| [Reinforced Shield](../scenes/items/armor/shield_uncommon.tres) | 3 |
+| [Shield](../scenes/items/armor/shield/shield_badge.tres) | 1 |
+| [Shield](../scenes/items/armor/shield/shield_badge_color.tres) | 1 |
+| [Spiked Shield](../scenes/items/armor/shield/shield_badge_spikes.tres) | 2 |
+| [Spiked Shield](../scenes/items/armor/shield/shield_badge_spikes_red.tres) | 2 |
+| [Wooden Shield](../scenes/items/armor/shield/shield_common.tres) | 1 |
+| [Skull Shield](../scenes/items/armor/shield/shield_large_skull.tres) | 2 |
+| [Spiked Shield](../scenes/items/armor/shield/shield_large_spikes.tres) | 2 |
+| [Royal Shield](../scenes/items/armor/shield/shield_rare.tres) | 4 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_blue.tres) | 1 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_common.tres) | 1 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_old.tres) | 1 |
+| [Round Shield](../scenes/items/armor/shield/shield_round_red.tres) | 1 |
+| [Square Shield](../scenes/items/armor/shield/shield_square.tres) | 2 |
+| [Square Shield](../scenes/items/armor/shield/shield_square_red.tres) | 2 |
+| [Reinforced Shield](../scenes/items/armor/shield/shield_uncommon.tres) | 3 |
+
+### Body armor and helmets (14)
+
+Body armor and helmets show on the hero. Body armor is a whole suit: the torso plus a KayKit class's own arms and legs (gauntlets, sleeves, greaves, boots), worn on the hero's own skeleton in place of the hero's plain limbs; its floor and inventory model is the torso alone. Helmets are the classes' own KayKit hats, mounted on the head bone, and a helmet hides the head parts it covers. Each class starts in its own pair (see [character classes](character-classes.md#the-shipped-roster)). Each weight has suits at tiers 1, 3 and 5, its limbs from one KayKit class: light the rogue's (the mage coat the mage's), medium the barbarian's, heavy the knight's.
+
+| Definition | Slot | Weight | Tier |
+| --- | --- | --- | --- |
+| [Barbarian Harness](../scenes/items/armor/body/barbarian_harness.tres) | Body | Medium | 1 |
+| [Knight Armor](../scenes/items/armor/body/knight_armor.tres) | Body | Heavy | 1 |
+| [Mage Coat](../scenes/items/armor/body/mage_coat.tres) | Body | Light | 1 |
+| [Ranger Coat](../scenes/items/armor/body/ranger_coat.tres) | Body | Light | 1 |
+| [Scale Mail](../scenes/items/armor/body/scale_mail.tres) | Body | Medium | 3 |
+| [Steel Plate](../scenes/items/armor/body/steel_plate.tres) | Body | Heavy | 3 |
+| [Studded Leather](../scenes/items/armor/body/studded_leather.tres) | Body | Light | 3 |
+| [Gilded Full Plate](../scenes/items/armor/body/gilded_full_plate.tres) | Body | Heavy | 5 |
+| [Mithril Hauberk](../scenes/items/armor/body/mithril_hauberk.tres) | Body | Medium | 5 |
+| [Nightweave Armor](../scenes/items/armor/body/nightweave_armor.tres) | Body | Light | 5 |
+| [Bear Hood](../scenes/items/armor/helmet/bear_hood.tres) | Helmet | Medium | 1 |
+| [Knight Helmet](../scenes/items/armor/helmet/knight_helmet.tres) | Helmet | Heavy | 1 |
+| [Rogue Hood](../scenes/items/armor/helmet/rogue_hood.tres) | Helmet | Light | 1 |
+| [Wizard Hat](../scenes/items/armor/helmet/wizard_hat.tres) | Helmet | Light | 1 |
 
 ### Jewelry (16 types, 68 definitions)
 

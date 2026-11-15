@@ -1,0 +1,11 @@
+[gd_resource type="QuadMesh" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://scenes/effects/shaders/dust_particle.gdshader" id="1_shader"]
+
+[sub_resource type="ShaderMaterial" id="Material"]
+shader = ExtResource("1_shader")
+shader_parameter/light_gain = 3.0
+
+[resource]
+material = SubResource("Material")
+size = Vector2(1, 1)

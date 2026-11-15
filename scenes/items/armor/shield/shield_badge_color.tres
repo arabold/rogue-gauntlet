@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Armor" format=3 uid="uid://kgk80xoii6kd"]
+
+[ext_resource type="Script" uid="uid://b8oa1aglmosdk" path="res://scenes/items/affixes/RolledAffix.cs" id="1_eto8s"]
+[ext_resource type="PackedScene" uid="uid://dcf3vxfivy452" path="res://scenes/items/armor/shield/shield_badge_color.tscn" id="1_h050v"]
+[ext_resource type="Script" uid="uid://toi2pwgfoo72" path="res://scenes/items/Armor.cs" id="2_47uxn"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_shield"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tables/shield.tres" id="roll_table"]
+
+[resource]
+script = ExtResource("2_47uxn")
+RequiredStrength = 10
+ArmorPoints = 1
+Guard = ExtResource("guard_shield")
+ValidSlots = 512
+RollTable = ExtResource("roll_table")
+Name = "Shield"
+Scene = ExtResource("1_h050v")
+Value = 40
+metadata/_custom_type_script = ExtResource("2_47uxn")

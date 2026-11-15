@@ -252,7 +252,7 @@ public class DoorAccessTest
 				var center = generator.Map.TileToWorld(connector);
 				walk.AddObstacle(new Rect2(center.X - 2, center.Z - 2, 4, 4));
 			}
-			var start = (generator.Floor.Arrival.Landing ?? generator.Floor.Arrival).GlobalPosition;
+			var start = generator.Floor.Arrival.LandingPosition;
 			var physicallyReached = walk.Reachable([new Vector2(start.X, start.Z)], Room.TileSize);
 			walk.Restore(walkSnapshot);
 			foreach (var key in keys)

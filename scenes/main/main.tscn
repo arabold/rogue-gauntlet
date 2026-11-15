@@ -8,9 +8,10 @@
 [ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="11_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="12_death"]
 
-[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "DeathScreen")]
+[node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "DeathScreen", "Reflections")]
 script = ExtResource("1_dl2xl")
 ScreenEffects = NodePath("ScreenEffects")
+Reflections = NodePath("Level/LocalReflections")
 DeathScreen = NodePath("DeathScreen")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]

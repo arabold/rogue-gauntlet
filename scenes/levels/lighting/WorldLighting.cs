@@ -1,9 +1,8 @@
 using Godot;
 
 /// <summary>
-/// A world's illumination: the game's shared environment and whether the lights are out. Dark turns the ambient light
-/// off; the hero's light dims and fixtures go out by following <see cref="DarknessChanged"/>. The game, the harness arena
-/// and the workbenches all light through it, so a scene looks the same everywhere.
+/// A world's shared illumination. Darkness removes ambient light, reflections and haze; the hero's light dims and
+/// fixtures go out by following <see cref="DarknessChanged"/>. The game, arena and workbenches use the same environment.
 /// </summary>
 [GlobalClass]
 public partial class WorldLighting : WorldEnvironment
@@ -20,31 +19,38 @@ public partial class WorldLighting : WorldEnvironment
 			if (field == value) { return; }
 			field = value;
 			if (!IsNodeReady()) { return; }
-			ApplyAmbient();
+			ApplyLighting();
 			EmitSignal(SignalName.DarknessChanged, value);
 		}
 	}
 
 	private float _normalAmbient;
+	private Environment.ReflectionSource _normalReflections;
+	private bool _normalFog;
+	private bool _normalVolumetricFog;
 
 	public override void _Ready()
 	{
-		if (Environment == null)
+		if (Environment != null)
 		{
-			return;
+			// Own a runtime copy so darkness never mutates the shared environment resource.
+			Environment = (Environment)Environment.Duplicate();
+			_normalAmbient = Environment.AmbientLightEnergy;
+			_normalReflections = Environment.ReflectedLightSource;
+			_normalFog = Environment.FogEnabled;
+			_normalVolumetricFog = Environment.VolumetricFogEnabled;
 		}
-
-		// Own a runtime copy so darkness never mutates the shared environment resource.
-		Environment = (Environment)Environment.Duplicate();
-		_normalAmbient = Environment.AmbientLightEnergy;
-		ApplyAmbient();
+		ApplyLighting();
 	}
 
-	private void ApplyAmbient()
+	private void ApplyLighting()
 	{
 		if (Environment != null)
 		{
 			Environment.AmbientLightEnergy = IsDark ? 0f : _normalAmbient;
+			Environment.ReflectedLightSource = IsDark ? Environment.ReflectionSource.Disabled : _normalReflections;
+			Environment.FogEnabled = !IsDark && _normalFog;
+			Environment.VolumetricFogEnabled = !IsDark && _normalVolumetricFog;
 		}
 	}
 }

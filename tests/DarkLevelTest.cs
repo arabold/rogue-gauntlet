@@ -30,7 +30,8 @@ public class DarkLevelTest
 		var playerLights = player.FindChildren("*", "Light3D", true, false).OfType<Light3D>().ToArray();
 		AssertBool(playerLights.Length > 0).IsTrue();
 		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
-		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Lit.Range);
+		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Normal.Range);
+		AssertBool(playerLight.Light.Visible).IsTrue();
 		var popup = TestFactories.Tool<LevelTool>(scene).Popup;
 		int index = Enumerable.Range(0, popup.ItemCount).Single(i => popup.GetItemText(i) == "Dark level");
 		TestFactories.Press(popup, "Dark level");
@@ -39,6 +40,7 @@ public class DarkLevelTest
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(0f);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
 		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Dark.Range);
+		AssertBool(playerLight.Light.Visible).IsTrue();
 
 		// Fixtures added while dark must start extinguished too, including their flames.
 		var lit = TestFactories.Torch();
@@ -61,7 +63,8 @@ public class DarkLevelTest
 		AssertArray(fixtures.Select(f => f.Flame.Visible).ToArray()).IsEqual(flames);
 		TestFactories.AssertTorchEffects(lit, true);
 		TestFactories.AssertTorchEffects(unlit, false);
-		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Lit.Range);
+		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Normal.Range);
+		AssertBool(playerLight.Light.Visible).IsTrue();
 	}
 
 }

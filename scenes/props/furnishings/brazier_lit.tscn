@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/props/LightFixture.cs" id="1_fixture"]
 [ext_resource type="PackedScene" path="res://assets/custom-props/chapel/brazier.glb" id="1_model"]
@@ -7,6 +7,8 @@
 [ext_resource type="Resource" uid="uid://bithpkdcvodbw" path="res://scenes/effects/flicker_profiles/torch.tres" id="4_flicker"]
 [ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="5_gate"]
 [ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="6_lighting"]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/soot_mark.tscn" id="soot"]
 
 [node name="BrazierLit" type="Node3D" node_paths=PackedStringArray("Flame", "Light", "EnvironmentalLight")]
 script = ExtResource("1_fixture")
@@ -35,3 +37,8 @@ Target = NodePath("..")
 script = ExtResource("6_lighting")
 Light = NodePath("../FlickeringLight")
 Flame = NodePath("../Flame")
+
+[node name="Soot" parent="." instance=ExtResource("soot")]
+position = Vector3(0, 0.05, 0)
+rotation = Vector3(0, 0, 0)
+size = Vector3(1.8, 0.45, 1.8)

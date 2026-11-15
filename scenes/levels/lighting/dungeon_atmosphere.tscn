@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://cln0hoqfty6u3" path="res://scenes/levels/lighting/DungeonAtmosphere.cs" id="1_air"]
+
+[node name="DungeonAtmosphere" type="Node3D"]
+visible = false
+script = ExtResource("1_air")

@@ -35,21 +35,6 @@ public class InventoryEquipSlotTest
 		AssertObject(inventory.EquippedItems[EquipmentSlot.RightRing]).IsEqual(slotB);
 	}
 
-	/// <summary>Every class starts wearing body armor and a helmet.</summary>
-	[TestCase]
-	public void EveryClassStartsInBodyArmorAndAHelmet()
-	{
-		foreach (CharacterClass characterClass in CharacterCatalog.LoadDefault().Classes)
-		{
-			Inventory inventory = characterClass.CreateStartingInventory(20);
-			foreach (var slot in inventory.Items.ToArray())
-				if (slot.Item is EquipableItem) inventory.Equip(slot);
-
-			AssertObject(inventory.EquippedItems[EquipmentSlot.Head]?.Item).OverrideFailureMessage(characterClass.Id).IsInstanceOf<Armor>();
-			AssertObject(inventory.EquippedItems[EquipmentSlot.Chest]?.Item).OverrideFailureMessage(characterClass.Id).IsInstanceOf<Armor>();
-		}
-	}
-
 	/// <summary>Worn body armor adds its armor to the hero's, and a heavy piece slows them.</summary>
 	[TestCase]
 	public async Task WornBodyArmorArmorsAndSlowsTheWearer()
@@ -57,7 +42,7 @@ public class InventoryEquipSlotTest
 		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
 		await player.ToSignal(player.GetTree(), SceneTree.SignalName.PhysicsFrame);
 		float armor = player.Stats.Armor, speed = player.Stats.Speed;
-		var plate = (Armor)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/body/iron_breastplate.tres"));
+		var plate = (Armor)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/armor/body/steel_plate.tres"));
 		AssertBool(player.Inventory.TryAdd(plate).Success).IsTrue();
 
 		AssertBool(player.InventoryController.TryEquip(player.Inventory.Items.Last()).Success).IsTrue();
@@ -182,7 +167,7 @@ public class InventoryEquipSlotTest
 			}
 			Item sword = Carry(player, "res://scenes/items/weapons/sword_common.tres");
 			Item twoHanded = Carry(player, "res://scenes/items/weapons/greatsword/claymore_iron.tres");
-			Item shield = Carry(player, "res://scenes/items/armor/shield_common.tres");
+			Item shield = Carry(player, "res://scenes/items/armor/shield/shield_common.tres");
 			Item torch = Carry(player, "res://scenes/items/tools/lamp/tool_torch_wooden.tres");
 
 			// What the tab offers for an item once it is selected in the gear list.

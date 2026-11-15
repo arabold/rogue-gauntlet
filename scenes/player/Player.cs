@@ -79,6 +79,11 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	[Export] private Node3D Pivot { get; set; }
 	/// <summary>The current character model under <see cref="Pivot"/>; a class swaps it on spawn.</summary>
 	[Export] private Node3D CharacterModelNode { get; set; }
+	/// <summary>
+	/// The class whose model the player wears without a run's class (running <c>main.tscn</c> or a harness directly),
+	/// keeping the scene's authored stats and gear; unassigned, the authored model stays.
+	/// </summary>
+	[Export] public CharacterClass DefaultClass { get; set; }
 	[Export] private AnimationTree AnimationTree { get; set; }
 	[Export] private BoneAttachmentManager AttachmentManager { get; set; }
 	private AnimationNodeStateMachinePlayback _animationStateMachine;
@@ -99,17 +104,20 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 
 		// When a run has a character class, it replaces the authored appearance, stats,
 		// and starting gear. Without one (e.g. running main.tscn directly) the player
-		// keeps the scene's authored Barbarian setup.
+		// keeps the scene's authored stats and gear and wears the default class's model.
 		CharacterClass characterClass = GameSession.Instance?.ActiveCharacterClass;
 		if (characterClass != null)
 		{
 			characterClass.ApplyToStats(Stats);
 			Inventory = characterClass.CreateStartingInventory(Inventory.Capacity);
-			ApplyCharacterModel(characterClass);
 		}
 		else
 		{
 			Inventory = Inventory.CreateRuntimeCopy();
+		}
+		if ((characterClass ?? DefaultClass) is { } appearance)
+		{
+			ApplyCharacterModel(appearance);
 		}
 
 		// The controllers act on this runtime copy, never on the authored inventory, so it is injected rather than wired.

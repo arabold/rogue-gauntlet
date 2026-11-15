@@ -23,7 +23,7 @@ This is a shared quality and construction pattern, not a requirement to repeat t
 
 See the [current plate-family comparison](../catalogs/costumes/plate_family.png) and individual current animated fittings. Build these through the common costume constructor rather than separate copies of the approved recipe's geometry. New fittings use ray hits on the triangulated plate; the analytical surface alone can leave details floating near tapered facets. Tests union the original indexed islands individually to establish actual support contact, in addition to checking closed topology and rigged motion.
 
-This pass covers torso, waist, belt, hip protection and cloth shoulder connections. The five steel costumes now include gorget-supported articulated pauldrons. Boots and gloves remain separate equipment work. Legacy character assemblies still need migration and combined fitting review; generating a replacement study does not automatically update every character using older armor.
+This pass covers torso, waist, belt, hip protection and cloth shoulder connections. The five steel costumes now include gorget-supported articulated pauldrons. Gloves and boots come from KayKit's class limbs when a costume is worn as a [suit](#body-armor-suits-for-the-class-heroes). Legacy character assemblies still need migration and combined fitting review; generating a replacement study does not automatically update every character using older armor.
 
 ## Segmented, leather and padded armor
 
@@ -94,7 +94,31 @@ These helpers are discoverable through `studio.py schema`: `outfits.fitted_belt`
 
 Use a full body to author and fit clothing, but retain only visible skin in the assembled render. `characters.hide_covered` already removes body triangles conservatively under sufficiently enclosing clothing at build time. It samples face centers and near-corners against the covering garment. Partial straps and open capes do not count as skin-covering garments. This is bind-pose coverage processing, not a dynamic collision solver or runtime equipment mask.
 
-For future interchangeable player armor, export or author equipment-specific body-region/triangle masks and apply the combined coverage of equipped pieces when composing the character in Godot. Keep the intact body source and restore skin when a garment is removed. Preserve overlap margins at neck, wrists and hems; bare-chested and cutout outfits must leave their visible skin. Shared skeletons, suitable skin weights, rigid plate attachments and motion reviews are still required at visible boundaries and between overlapping equipment. Runtime masks and gameplay equipment composition belong to the later Godot integration step.
+## Body armor suits for the class heroes
+
+A costume with an `item` (`{"glb": "res://assets/custom-items/armor/body/<id>.glb"}`) is a body armor suit the game's class heroes can wear: its torso plus a KayKit class's own arms and legs. `armor equip <costume>` fits it over the shared hero body and its underclothes (`heroes/hero_base`) and writes two files:
+
+- **`assets/custom-heroes/armor/<id>.glb`:** what the hero wears. One skinned node on the hero rig, weighted from the hero body under it, carrying the heroes' shoulder hinges, with no props or clips. The game moves its mesh onto any class hero's skeleton.
+- **`<id>.glb`** at the item path: the static display model for floors and inventory icons, the torso alone (the limbs would float beside it).
+
+A costume's `limbs` names the KayKit class whose own arms, legs and hips (sleeves, bracers, gauntlets; pants, greaves, boots) the suit brings, in KayKit's colors and gradients. The item then hides the hero's plain limbs while worn (`HiddenModelParts: Arms, Legs`). The [item catalog](../../docs/item-catalog.md#body-armor-and-helmets-14) gives each suit's weight and tier, and which class's limbs each weight takes.
+
+The item recolors the suit without changing the costume: its `colors` give the suit's own slots an RGB (the Mithril Hauberk's silver mail), and its `limb_colors` dress a KayKit swatch of the limbs in a suit slot's color (`{"knight_03": "armor"}`), keeping KayKit's shading. A swatch has one slot whichever limb it colors. The class suits keep KayKit's own limb colors; the other suits dress their limbs in their own leather, cloth and plate.
+
+The suit's torso fits over the heroes' own tunic, so no skin needs masking at runtime; the tunic stays underneath. A suit's dummy study wears the heroes' `underlayer` too, so garments fitted to the tunic (the barbarian harness's belt) fit the same way there. `armor suit <costume>` renders the suit on the class hero, its torso and KayKit limbs in place of the hero's, in temporary storage; `armor equip <costume>` then writes it into the game.
+
+| Costume | Item | Limbs | Starting gear of |
+| --- | --- | --- | --- |
+| `ranger` | `ranger_coat` | rogue | Rogue |
+| `arcanist` | `mage_coat` | mage | Mage |
+| `brigandine` | `studded_leather` | rogue | |
+| `scout` | `nightweave_armor` | rogue | |
+| `barbarian_harness` | `barbarian_harness` | barbarian | Barbarian |
+| `scale` | `scale_mail` | barbarian | |
+| `chain_mail` | `mithril_hauberk` | barbarian | |
+| `knight` | `knight_armor` | knight | Knight |
+| `segmented` | `steel_plate` | knight | |
+| `knight_plate` | `gilded_full_plate` | knight | |
 
 ## Character costume references
 
@@ -102,7 +126,7 @@ Use `kind: costume_ref` and `name` to select an entire authored costume from a c
 assembly and palette with the fitting workflow while preserving the character body and explicit color overrides.
 The low-level `kind: costume` is a geometry builder used inside the authored outfit.
 
-The knight uses the practical steel costume. Necromancer, primitive barbarian and royal orc use their named
-costumes. Preserved [orc warrior](orc_warrior/README.md), [orc shaman](orc_shaman/README.md) and
+Necromancer, primitive barbarian and royal orc use their named
+costumes; the class heroes wear costumes as body armor suits. Preserved [orc warrior](orc_warrior/README.md), [orc shaman](orc_shaman/README.md) and
 [goblin](goblin/README.md) sets are marked legacy and excluded from current fittings until reworked. They retain
 their previous geometry; packaging alone does not bring them up to the approved construction standard.

@@ -144,8 +144,9 @@ bones expect the blade along local +Y; raw bow/crossbow assets aim along Z), whi
 model edge-on and invisible, and a scale inconsistent with sibling tiers. Verify new weapons and
 shields on the rig: `asset-studio/godot/render_held_items.gd` equips each item on a standalone
 player and screenshots it from several angles (windowed), and the combat arena equips any item
-from **Items** at the game's camera. Each class names its own attachment bones
-(`docs/character-classes.md`), so re-check after changing them.
+from **Items** at the game's camera. Weapons and shields mount through their `WeaponGrip`
+(`scenes/items/grips/`), so re-check after changing a grip. Body armor suits are reviewed in the
+Studio (`studio.py armor suit <costume>`).
 
 ```bash
 .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \

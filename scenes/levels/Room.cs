@@ -9,7 +9,6 @@ using Godot;
 /// is read back from geometry; <see cref="Rotate"/> turns the geometry and the map together.
 /// </summary>
 [Tool]
-[GlobalClass]
 public partial class Room : Node3D
 {
 	/// <summary>Floor, pit (chasm) and doorway (connector) tiles in room-local tile coordinates.</summary>
@@ -29,8 +28,8 @@ public partial class Room : Node3D
 
 	/// <summary>The room type that assembled this room, content included.</summary>
 	[Export] public RoomType Type { get; set; }
-	/// <summary>Circulation axis; zero means the room has no primary aisle.</summary>
-	[Export] public Vector2I LayoutAxis { get; set; }
+	/// <summary>The floor region this room was registered as once placed; -1 before.</summary>
+	internal int RegionId { get; set; } = -1;
 
 	[Export] public GridMap FloorGridMap { get; set; }
 	[Export] public GridMap WallGridMap { get; set; }
@@ -78,13 +77,12 @@ public partial class Room : Node3D
 			return;
 		}
 
-		var axis = RotatePosition(new Vector3(LayoutAxis.X, 0, LayoutAxis.Y), steps);
-		LayoutAxis = new((int)axis.X, (int)axis.Z);
-		RotateGridMapCells(FloorGridMap, steps);
-		RotateGridMapCells(WallGridMap, steps);
+		Basis turn = new(Vector3.Up, Mathf.DegToRad(steps * 90f));
+		RotateGridMapCells(FloorGridMap, steps, turn);
+		RotateGridMapCells(WallGridMap, steps, turn);
+		RotateGridMapCells(DecorationGridMap, steps, turn);
 		DividerCells = DividerCells.Select(cell => RotateCell(cell, steps)).ToHashSet();
 		FramedEdges = FramedEdges.Select(edge => (RotateCell(edge.Center, steps), steps % 2 == 0 ? edge.Horizontal : !edge.Horizontal)).ToHashSet();
-		RotateGridMapCells(DecorationGridMap, steps);
 
 		// Direct children only, not recursive: a node's LOCAL transform is relative to
 		// its own parent, not the room, so rotating a direct child's own transform
@@ -94,7 +92,7 @@ public partial class Room : Node3D
 		{
 			if (child is Node3D node3D && node3D != FloorGridMap && node3D != WallGridMap && node3D != DecorationGridMap)
 			{
-				RotateChildTransform(node3D, steps);
+				RotateChildTransform(node3D, steps, turn);
 			}
 		}
 
@@ -107,13 +105,8 @@ public partial class Room : Node3D
 		}
 	}
 
-	private static void RotateGridMapCells(GridMap gridMap, int steps)
+	private static void RotateGridMapCells(GridMap gridMap, int steps, Basis turn)
 	{
-		if (gridMap == null)
-		{
-			return;
-		}
-
 		// Snapshot before mutating: rewriting cells in place while iterating could have
 		// a rotated cell land on a not-yet-processed original cell's position.
 		var originalCells = new List<(Vector3I Cell, int Item, int Orientation)>();
@@ -123,27 +116,25 @@ public partial class Room : Node3D
 		}
 
 		gridMap.Clear();
-		Basis rotationStep = new(Vector3.Up, Mathf.DegToRad(steps * 90f));
 		foreach (var (cell, item, orientation) in originalCells)
 		{
 			// Compose via the engine's own basis math rather than a hardcoded lookup of
 			// the 4 upright orientations this project's wall/floor content happens to
 			// use: a decoration can legitimately sit at any of Godot's 24 orthogonal
 			// orientations (e.g. tipped over for variety), and this handles all of them.
-			Basis rotatedBasis = rotationStep * gridMap.GetBasisWithOrthogonalIndex(orientation);
+			Basis rotatedBasis = turn * gridMap.GetBasisWithOrthogonalIndex(orientation);
 			gridMap.SetCellItem(RotateCell(cell, steps), item, gridMap.GetOrthogonalIndexFromBasis(rotatedBasis));
 		}
 	}
 
-	private static void RotateChildTransform(Node3D node, int steps)
+	private static void RotateChildTransform(Node3D node, int steps, Basis turn)
 	{
 		// Compose via the basis, not by adding to RotationDegrees.Y: Euler-angle
 		// addition on just the Y component only reproduces "rotate by one more step"
 		// correctly when the child's existing rotation is itself pure-Y (no tilt). A
 		// prop with any X/Z tilt (e.g. a knocked-over barrel) needs the additional
 		// rotation applied on top of its existing orientation via matrix composition.
-		Basis rotationStep = new(Vector3.Up, Mathf.DegToRad(steps * 90f));
-		node.Transform = new Transform3D(rotationStep * node.Transform.Basis, RotatePosition(node.Position, steps));
+		node.Transform = new Transform3D(turn * node.Transform.Basis, RotatePosition(node.Position, steps));
 	}
 
 	/// <summary>
@@ -159,11 +150,6 @@ public partial class Room : Node3D
 		_ => position,
 	};
 
-	private static Vector3I RotateCell(Vector3I cell, int steps) => steps switch
-	{
-		1 => new Vector3I(cell.Z, cell.Y, -cell.X),
-		2 => new Vector3I(-cell.X, cell.Y, -cell.Z),
-		3 => new Vector3I(-cell.Z, cell.Y, cell.X),
-		_ => cell,
-	};
+	/// <summary>The same quarter turn on a grid cell; exact, since it only swaps and negates integer coordinates.</summary>
+	private static Vector3I RotateCell(Vector3I cell, int steps) => (Vector3I)RotatePosition(cell, steps);
 }

@@ -21,7 +21,7 @@ public class GarrisonRoomPoolTest
 		var drawn = new HashSet<RoomType>();
 		foreach (string realm in new[] { "garrison", "sewer", "jungle" })
 		{
-			var factory = (AssembledRoomFactory)pool.ForRealm(realm);
+			var factory = pool.ForRealm(realm);
 			AssertBool(factory.RoomTypes.Length > 0).OverrideFailureMessage($"{realm}: no room types").IsTrue();
 			foreach (var type in factory.RoomTypes)
 			{
@@ -130,6 +130,6 @@ public class GarrisonRoomPoolTest
 
 	private static string Fingerprint(MapGenerator generator) => string.Join("|", generator.Map.Tiles.Cast<MapTile>())
 		+ string.Join("|", generator.EnemySpawnPoints.Select(spawn => $"{spawn.PersistentId}:{spawn.Scenes[0].ResourcePath}:{spawn.GlobalTransform}"))
-		+ string.Join("|", generator.FloorContent.GetChildren().OfType<Room>().Where(room => room.Type != null)
+		+ string.Join("|", generator.FloorContent.GetChildren().OfType<Room>()
 			.SelectMany(room => room.GetNode("Props").GetChildren().OfType<Node3D>()).Select(prop => $"{prop.GetMeta("prop_id")}:{prop.GlobalTransform}"));
 }

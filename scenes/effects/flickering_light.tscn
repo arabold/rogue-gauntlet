@@ -6,11 +6,14 @@
 [node name="FlickeringLight" type="OmniLight3D"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 layers = 256
-light_color = Color(1, 0.818182, 0.678769, 1)
+light_color = Color(1, 0.71, 0.43, 1)
 light_bake_mode = 0
-light_cull_mask = 4293918975
+light_cull_mask = 4293919231
 shadow_enabled = true
-shadow_opacity = 0.75
+shadow_opacity = 0.82
+shadow_bias = 0.04
+shadow_normal_bias = 1.1
+shadow_blur = 1.2
 distance_fade_enabled = true
 omni_range = 8.0
 script = ExtResource("1_6oxul")
