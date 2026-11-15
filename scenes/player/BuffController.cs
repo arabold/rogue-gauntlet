@@ -43,7 +43,7 @@ public partial class BuffController : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (RemoveWhere(active => active.IsExpired))
+		if (RemoveWhere(active => active.IsExpired, "expired"))
 		{
 			EmitSignalBuffsChanged();
 		}
@@ -85,13 +85,14 @@ public partial class BuffController : Node
 			if (existing != null)
 			{
 				existing.Refresh(buff.Duration);
+				Trace("buff.refreshed", existing);
 				EmitSignalBuffsChanged();
 				return BuffApplication.Refreshed;
 			}
 		}
 
 		GameDebug.Combat($"{Actor?.Name ?? Name} applied buff {buff.Name}");
-		RemoveWhere(active => active.Buff.Condition != null && buff.CuredConditions.Contains(active.Buff.Condition));
+		RemoveWhere(active => active.Buff.Condition != null && buff.CuredConditions.Contains(active.Buff.Condition), "cured");
 		AddActivation(buff);
 		EmitSignalBuffsChanged();
 		return BuffApplication.Applied;
@@ -123,7 +124,7 @@ public partial class BuffController : Node
 		if (condition == null || source == null || (enabled && Health?.IsDead == true)) return false;
 		if (!enabled)
 		{
-			if (RemoveWhere(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition)) EmitSignalBuffsChanged();
+			if (RemoveWhere(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition, "removed")) EmitSignalBuffsChanged();
 			return true;
 		}
 		var existing = ActiveBuffs.FirstOrDefault(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition && !a.IsExpired);
@@ -151,7 +152,7 @@ public partial class BuffController : Node
 	/// <summary>Remove all conditions contributed by one source.</summary>
 	public void RemoveStatuses(object source)
 	{
-		if (source != null && RemoveWhere(active => ReferenceEquals(active.Source, source))) EmitSignalBuffsChanged();
+		if (source != null && RemoveWhere(active => ReferenceEquals(active.Source, source), "removed")) EmitSignalBuffsChanged();
 	}
 
 	public void RemoveBuff(Buff buff)
@@ -160,7 +161,7 @@ public partial class BuffController : Node
 		if (activeBuff != null)
 		{
 			GD.Print($"{Actor?.Name ?? Name} removed buff {buff.Name}");
-			RemoveWhere(active => active == activeBuff);
+			RemoveWhere(active => active == activeBuff, "removed");
 			EmitSignalBuffsChanged();
 		}
 	}
@@ -168,7 +169,7 @@ public partial class BuffController : Node
 	/// <summary>Removes every active buff, reversing each exactly once, e.g. before a saved player state is restored.</summary>
 	public void ClearBuffs()
 	{
-		if (RemoveWhere(_ => true))
+		if (RemoveWhere(_ => true, "cleared"))
 		{
 			EmitSignalBuffsChanged();
 		}
@@ -183,15 +184,24 @@ public partial class BuffController : Node
 		ActiveBuffs.Add(active);
 		AddChild(active);
 		UpdateProcessing();
+		Trace(remaining.HasValue ? "buff.restored" : "buff.applied", active);
+	}
+
+	/// <summary>Logs a buff's start, refresh or end for playtest reports: its name, condition and remaining time.</summary>
+	private void Trace(string eventId, ActiveBuff active, string cause = null)
+	{
+		if (!CombatTrace.Enabled) return;
+		CombatTrace.Write(this, eventId, ("buff", active.Buff.Name), ("condition", active.Buff.Condition?.ResourceName),
+			("remaining", active.IsPermanent ? 0 : active.RemainingDuration), ("cause", cause));
 	}
 
 	private void UpdateProcessing() => SetPhysicsProcess(ActiveBuffs.Any(active => !active.IsPermanent));
 
 	/// <summary>
-	/// Reverses and frees every active buff matching <paramref name="predicate"/>. Callers emit
-	/// <see cref="BuffsChanged"/> once afterwards, so observers see one change per operation.
+	/// Reverses and frees every active buff matching <paramref name="predicate"/>, logging the <paramref name="cause"/>.
+	/// Callers emit <see cref="BuffsChanged"/> once afterwards, so observers see one change per operation.
 	/// </summary>
-	private bool RemoveWhere(Func<ActiveBuff, bool> predicate)
+	private bool RemoveWhere(Func<ActiveBuff, bool> predicate, string cause)
 	{
 		bool removed = false;
 		for (int i = ActiveBuffs.Count - 1; i >= 0; i--)
@@ -203,6 +213,7 @@ public partial class BuffController : Node
 			}
 
 			activeBuff.Deactivate();
+			Trace("buff.ended", activeBuff, cause);
 			ActiveBuffs.RemoveAt(i);
 			RemoveChild(activeBuff);
 			activeBuff.QueueFree();

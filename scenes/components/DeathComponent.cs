@@ -45,6 +45,9 @@ public partial class DeathComponent : Node
 			}
 		}
 
+		var definition = (owner as EnemyBase)?.Definition;
+		CombatTrace.Write(owner, "actor.died", ("monster", definition?.DisplayName ?? owner.Name.ToString()),
+			("threat", definition?.ThreatLevel), ("xp", RewardsEnabled ? Xp : 0));
 		GD.Print($"{owner.Name} died!");
 		owner.CollisionLayer = 0;
 		owner.CollisionMask = 1; // only collide with the floor

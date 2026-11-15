@@ -170,6 +170,11 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 				healthComponent => healthComponent.Died += OnDie,
 				healthComponent => healthComponent.Died -= OnDie);
 		}
+
+		ApplyPhaseTurnRate(Actor.HealthPhases?.CurrentPhase ?? 0);
+		this.SubscribeUntilExit(Actor.HealthPhases,
+			phases => phases.PhaseChanged += OnPhaseChanged,
+			phases => phases.PhaseChanged -= OnPhaseChanged);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -178,7 +183,9 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_context.TickThrottles(delta);
 		SyncEngagedSlots();
 		var gate = Actor.ActionGate;
-		if (gate?.Disabled == true || (gate?.IsBusy == true && _running == null))
+		// A raised guard slows a monster but does not stop its pursuit: it keeps closing in behind it.
+		bool guarding = gate?.CurrentKind == ActorActionKind.Guard;
+		if (gate?.Disabled == true || (gate?.IsBusy == true && _running == null && !guarding))
 		{
 			MovementComponent.Stop();
 			_navigation.ResetStuckTracking();
@@ -223,8 +230,14 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		SetBehavior(EnemyBehaviorState.Chasing);
 	}
 
+	private void OnPhaseChanged(int previous, int current) => ApplyPhaseTurnRate(current);
+
+	/// <summary>Each health phase may turn the monster faster (<see cref="EnemyCombatProfile.TurnRateByPhase"/>).</summary>
+	private void ApplyPhaseTurnRate(int phase) => MovementComponent.TurnRateScale = _profile.Combat?.TurnRateScale(phase) ?? 1;
+
 	private void OnAttackFinished(AttackIdentity identity, bool interrupted)
 	{
+		if (interrupted && _attackController.FinishedBeforeContact) _context?.Actions.RefundAttack();
 		_context?.Tactics.AttackFinished(identity, interrupted);
 		_context?.TacticalSelector?.AttackFinished(identity);
 	}
@@ -257,8 +270,8 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	/// </summary>
 	public ActorActionRequestResult TryRequestAction(MonsterActionFilter filter = MonsterActionFilter.All)
 	{
-		if (_context?.CombatProfile == null || CurrentAction != EnemyAction.None || IsDead || MovementComponent.IsPushed)
-			return ActorActionRequestResult.Busy;
+		// Another action holding the gate (a raised guard) is no failed attempt: it arms no retry delay.
+		if (!IsFreeToAct || Actor.ActionGate?.IsBusy == true) return ActorActionRequestResult.Busy;
 		if (_context.Actions.Select(filter) is not { } choice) return ActorActionRequestResult.Unavailable;
 		var (action, target) = choice;
 		var result = action.TryStart(_context, target, out var run);
@@ -277,6 +290,14 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_running = run;
 		return ActorActionRequestResult.Success;
 	}
+
+	/// <summary>
+	/// Whether <see cref="TryRequestAction"/> would find an action for <paramref name="filter"/> now, without starting one
+	/// and whatever holds the action gate, which a caller such as a counter frees first.
+	/// </summary>
+	public bool CanRequestAction(MonsterActionFilter filter) => IsFreeToAct && _context.Actions.HasReady(filter);
+
+	private bool IsFreeToAct => _context?.CombatProfile != null && CurrentAction == EnemyAction.None && !IsDead && !MovementComponent.IsPushed;
 
 	/// <summary>Request one of the monster's weapon attacks now, through the same selection and executors as the AI.</summary>
 	public bool TryAttack() => TryRequestAction(MonsterActionFilter.Attacks) == ActorActionRequestResult.Success;

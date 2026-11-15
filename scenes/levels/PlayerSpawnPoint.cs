@@ -9,7 +9,8 @@ public partial class PlayerSpawnPoint : Node3D, IProgressionAnchor
 {
 	[Export] public GameSession.LevelTravelDirection SpawnAfterTravelDirection { get; set; } = GameSession.LevelTravelDirection.Down;
 	[Export] public Vector3 AutoWalkDirection { get; set; } = Vector3.Zero;
-	[Export] public double AutoWalkSeconds { get; set; } = 0.75;
+	/// <summary>How far an arrival walks off the stairs, in meters, before the player takes control.</summary>
+	[Export(PropertyHint.Range, "0,20,0.1,suffix:m")] public float AutoWalkDistance { get; set; } = 3.4f;
 	/// <summary>Where an arrival steps off the stairs onto the floor; floor reachability floods from here. Unset, from the spawn point.</summary>
 	[Export] public Node3D Landing { get; set; }
 
@@ -43,7 +44,7 @@ public partial class PlayerSpawnPoint : Node3D, IProgressionAnchor
 		GameSession.Instance?.RegisterStairArrival(player);
 		if (AutoWalkDirection != Vector3.Zero && hasPendingTravel)
 		{
-			StairAutoWalk.Start(player, GlobalTransform.Basis * AutoWalkDirection, AutoWalkSeconds);
+			StairAutoWalk.Start(player, GlobalTransform.Basis * AutoWalkDirection, AutoWalkDistance);
 		}
 
 		SignalBus.EmitPlayerSpawned(player);

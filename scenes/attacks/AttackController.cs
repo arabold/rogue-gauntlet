@@ -10,6 +10,8 @@ public partial class AttackController : Node, IParryInterruptible
 {
 	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>
 	public event System.Action<AttackIdentity, bool> AttackFinished;
+	/// <summary>Whether the attack that just finished ended before its contact window opened; read it in <see cref="AttackFinished"/>.</summary>
+	public bool FinishedBeforeContact { get; private set; }
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 	[Export] public AttackIndicatorComponent Indicator { get; set; }
 	[Export] public CombatVisualMotionComponent VisualMotion { get; set; }
@@ -125,6 +127,7 @@ public partial class AttackController : Node, IParryInterruptible
 			copy.HitWindowStart = (float)duration * playback.ContactStart;
 			copy.HitWindowEnd = (float)duration * playback.ContactEnd;
 		}
+		if (copy.Commit > 0) Commit(copy, (float)duration, copy.Commit * copy.HitWindowStart / (float)duration);
 		if (!copy.HasValidImpact(copy.HitWindowStart) || !copy.HasValidFlight(copy.HitWindowStart, duration)) return false;
 		if (!PreparedHitStatus.TryCapture(copy.OnHitStatuses, out var onHitStatuses)) return false;
 		if (!float.IsFinite(copy.ProjectileAimLockDuration) || copy.ProjectileAimLockDuration < 0) return false;
@@ -132,6 +135,30 @@ public partial class AttackController : Node, IParryInterruptible
 		var feedback = copy.FeedbackProfile?.Capture();
 		attack = new PreparedAttack(copy, playback, duration, Feedback: feedback, OnHitStatuses: onHitStatuses);
 		return true;
+	}
+
+	/// <summary>
+	/// Arms the snapshot from <paramref name="start"/> (a share of <paramref name="duration"/>: the commit point,
+	/// <see cref="AttackDefinition.Commit"/> of the wind-up, or 0 for a counter) until its contact ends, joined with any
+	/// authored hyper-armor window.
+	/// </summary>
+	private static void Commit(AttackDefinition attack, float duration, float start)
+	{
+		float end = Mathf.Min(1, Mathf.Max(attack.HitWindowStart, attack.HitWindowEnd) / duration);
+		bool authored = attack.HyperArmorEnd > attack.HyperArmorStart;
+		attack.HyperArmorStart = authored ? Mathf.Min(attack.HyperArmorStart, start) : start;
+		attack.HyperArmorEnd = authored ? Mathf.Max(attack.HyperArmorEnd, end) : end;
+	}
+
+	/// <summary>
+	/// Arms the running attack from now until its contact ends, as a counter: hits no longer stop it before contact, only
+	/// a poise break does. The snapshot belongs to this execution, so the authored definition is untouched.
+	/// </summary>
+	public void CommitCurrentAttack()
+	{
+		if (!IsAttacking || _currentAttack == null) return;
+		Commit(_currentAttack, (float)_preparedAttack.Duration, 0);
+		ReportProgress();
 	}
 
 	/// <summary>Commit an already validated execution snapshot to this actor.</summary>
@@ -186,6 +213,7 @@ public partial class AttackController : Node, IParryInterruptible
 
 		ReportProgress();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.started", ("execution", _executionSequence), ("execution_source", GetInstanceId()), ("style", CurrentStyle.ToString()),
+			("delivery", TraceDelivery(attack)), ("homing", attack.Spell == null && def.IsRanged && def.HomingTurnRate > 0),
 			("contact_start", def.HitWindowStart), ("contact_end", def.HitWindowEnd), ("duration", attack.Duration),
 			("traits", def.DefenseTraits.ToString()), ("min_damage", hit.MinDamage), ("max_damage", hit.MaxDamage),
 			("poise_damage", def.PoiseDamage), ("facing_lock_lead", def.FacingLockLead), ("hyper_armor", $"{def.HyperArmorStart}-{def.HyperArmorEnd}"));
@@ -195,15 +223,24 @@ public partial class AttackController : Node, IParryInterruptible
 		return true;
 	}
 
+	/// <summary>How an execution's contacts arrive: melee, projectiles, or its spell's delivery, "None" for a spell without damage.</summary>
+	private static string TraceDelivery(PreparedAttack attack) => attack.Spell != null
+		? attack.Spell.Spell?.Delivery?.ToString() ?? "None"
+		: (attack.Definition.IsRanged ? DamageDeliveryKind.Projectile : DamageDeliveryKind.DirectMelee).ToString();
+
 	/// <summary>
 	/// Cancels any active attack and cleans up active hitboxes.
 	/// </summary>
 	public void CancelAttack() => FinishAttack(true);
 
+	/// <summary>
+	/// End the parried execution and stagger its attacker. An uninterruptible window refuses: the parry still stopped the
+	/// hit, but only death ends the attack.
+	/// </summary>
 	public bool TryInterruptForParry(AttackIdentity execution, float staggerDuration)
 	{
 		if (!_execution.IsRunning || _preparedAttack == null) return false;
-		if (CurrentExecutionId != execution) return false;
+		if (CurrentExecutionId != execution || ActionGate?.IsUnstoppable == true) return false;
 
 		_actor ??= GetParent<Node3D>();
 		CancelAttack();
@@ -228,6 +265,7 @@ public partial class AttackController : Node, IParryInterruptible
 		if (interrupted) ReportFeedback("Interrupted");
 		else if (!_currentAttack.IsRanged && ContactCount == 0) ReportFeedback(_blockedContact ? "Obstructed" : "No contact");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.ended", ("execution", _executionSequence), ("interrupted", interrupted), ("contacts", ContactCount), ("result", LastResult));
+		FinishedBeforeContact = _elapsedTime < _currentAttack.HitWindowStart;
 		_execution.Finish();
 		Indicator?.End(identity, interrupted);
 		_projectileAimTarget = null;
@@ -244,8 +282,10 @@ public partial class AttackController : Node, IParryInterruptible
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!_execution.IsRunning || _currentAttack == null) { SetPhysicsProcess(false); return; }
-		if ((_actor is Player player && (player.IsDead || player.IsHit))
-			|| (_actor is EnemyBase enemy && (enemy.IsDead || enemy.MovementComponent.IsPushed)))
+		// Death ends any attack; a hit or a push only one outside an uninterruptible window.
+		bool knocked = ActionGate?.IsUnstoppable != true
+			&& (_actor is Player { IsHit: true } || _actor is EnemyBase { MovementComponent.IsPushed: true });
+		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true } || knocked)
 		{
 			CancelAttack();
 			return;
@@ -257,7 +297,13 @@ public partial class AttackController : Node, IParryInterruptible
 			return;
 		}
 		float previous = step.PreviousTime;
-		ReportProgress();
+		// A finished execution reports nothing more, so an uninterruptible window that lasts to the end finishes the attack
+		// instead of handing it to a waiting status lock; one that closes earlier ends the attack there.
+		if (!step.Completed)
+		{
+			ReportProgress();
+			if (!_execution.IsRunning) return;
+		}
 		if (_preparedAttack.Playback != null)
 			AnimationComponent.Sample(_preparedAttack.Playback, _elapsedTime / _preparedAttack.Duration);
 
@@ -436,7 +482,8 @@ public partial class AttackController : Node, IParryInterruptible
 	private void ReportProgress()
 	{
 		ActionGate?.ReportPhase(_actionLease, Phase);
-		ActionGate?.ReportHyperArmor(_actionLease, _currentAttack.IsHyperArmoredAt(_elapsedTime / (float)_preparedAttack.Duration));
+		bool armored = _currentAttack.IsHyperArmoredAt(_elapsedTime / (float)_preparedAttack.Duration);
+		ActionGate?.ReportHyperArmor(_actionLease, armored, !_currentAttack.Interruptible);
 	}
 
 	private void ApplyMeleeContact(Node3D target)
@@ -559,12 +606,13 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
 		var random = new RandomNumberGenerator { Seed = _random.Randi() };
-		var context = release.Context;
+		var context = release.Context with { Parent = CurrentExecutionId };
 		bool cast = release.Spell is GodotObject spell && GodotObject.IsInstanceValid(spell)
 			&& release.Revalidate?.Invoke(context) != false && release.Spell.Cast(in context, random);
 		ReportFeedback(cast ? "Cast" : "Fizzled");
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.spell_released", ("execution", _executionSequence),
-			("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level), ("cast", cast));
+			("execution_source", GetInstanceId()), ("spell", release.Spell?.DisplayName ?? ""), ("level", release.Context.Power.Level),
+			("cast", cast));
 	}
 
 	/// <summary>

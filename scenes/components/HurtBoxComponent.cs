@@ -30,8 +30,19 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public BuffController Buffs { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
-	/// <summary>Optional hit-reaction meter. Unassigned keeps the poise-free rule: every damaging hit interrupts unless hyper-armored.</summary>
+	/// <summary>
+	/// Optional hit-reaction meter. Unassigned keeps the poise-free rule (Diablo II's hit recovery): a hit interrupts the
+	/// actor only if it deals at least <see cref="InterruptThreshold"/> of its max health, and not again within
+	/// <see cref="InterruptImmunity"/>; smaller hits only make it flinch.
+	/// </summary>
 	[Export] public PoiseComponent Poise { get; set; }
+	/// <summary>Without poise, the share of max health one hit must deal to interrupt this actor; 0 lets every hit interrupt.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float InterruptThreshold { get; set; } = 0.1f;
+	/// <summary>Without poise, seconds after an interruption during which further hits only make the actor flinch, so it gets its next action off.</summary>
+	[Export(PropertyHint.Range, "0,5,0.05")] public float InterruptImmunity { get; set; } = 1f;
+	/// <summary>Without poise, seconds an interrupted actor reels in place (a short stagger), like Diablo II's hit recovery.</summary>
+	[Export(PropertyHint.Range, "0,2,0.05")] public float HitRecovery { get; set; } = 0.3f;
+	private ulong _interruptibleFromFrame;
 	/// <summary>Optional directional and sneak-attack vulnerability. Unassigned means every contact counts as frontal.</summary>
 	[Export] public HitVulnerabilityProfile Vulnerability { get; set; }
 	/// <summary>Runtime awareness of the owning actor, registered by its root like a defense evaluator. Null means never unaware.</summary>
@@ -47,6 +58,8 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	}
 
 	[Export] public float Armor { get; set; } = 0;
+	/// <summary>The least a physical hit deals through armor; a smaller hit deals itself (<see cref="ArmorRules"/>).</summary>
+	[Export(PropertyHint.Range, "0,5,0.5")] public float MinimumDamage { get; set; } = 1f;
 	[Export] public bool Invulnerable { get; set; } = false;
 
 	public override void _Ready() => RefreshDebugDraw();
@@ -112,8 +125,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			DefenseTraits = AttackDefenseTraits.None,
 			DeliveryKind = DamageDeliveryKind.DirectMelee,
 			// Unauthored sources (traps, scripted hits) carry poise in proportion to their damage.
-			PoiseDamage = amount,
-			Knockback = AttackDefinition.DefaultKnockback
+			PoiseDamage = amount
 		};
 		return ResolveDamageInternal(context, random);
 	}
@@ -121,7 +133,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	private DamageResolution ResolveDamageInternal(in DamageContext contact, RandomNumberGenerator random)
 	{
 		var snapshot = contact;
-		float armorRoll = 0;
+		float armorReduction = 0;
 		HitReaction? reaction = null;
 		var zone = HitZone.Front;
 		bool unaware = false;
@@ -131,10 +143,11 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		{
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "damage.resolved", ("source", CombatTrace.Identity(snapshot.SourceNode)),
 				("owner", CombatTrace.Identity(snapshot.OwnerNode)), ("execution", snapshot.ExecutionId.Sequence),
-				("execution_source", snapshot.ExecutionId.SourceInstanceId), ("delivery", snapshot.DeliveryKind.ToString()),
+				("execution_source", snapshot.ExecutionId.SourceInstanceId), ("parent_execution", snapshot.Parent.Sequence),
+				("parent_source", snapshot.Parent.SourceInstanceId), ("delivery", snapshot.DeliveryKind.ToString()),
 				("traits", snapshot.DefenseTraits.ToString()), ("incoming", CombatTrace.Vector(snapshot.IncomingDirection)),
 				("raw_damage", snapshot.Amount), ("armor", Armor),
-				("armor_roll", armorRoll), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
+				("armor_reduction", armorReduction), ("poise_damage", snapshot.PoiseDamage), ("reaction", reaction?.ToString() ?? "None"),
 				("poise", Poise?.Current), ("zone", zone.ToString()), ("unaware", unaware), ("critical", snapshot.Critical),
 				("outcome", outcome.ToString()), ("damage", amount), ("health", HealthComponent?.CurrentHealth));
 			var emphasis = outcome != DamageOutcome.Damaged ? DamageEmphasis.None
@@ -175,9 +188,6 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			}
 		}
 
-		static float Roll(RandomNumberGenerator rng, float maximum) =>
-			rng?.RandfRange(0, Mathf.Max(0, maximum)) ?? (float)GD.RandRange(0f, Mathf.Max(0, maximum));
-
 		// Blocked and guard-broken contacts both carry the guard's reduced amount; the guard owns their reaction.
 		bool isDefended = defenseEval.Outcome is DamageOutcome.Blocked or DamageOutcome.GuardBroken;
 		if (Invulnerable) return isDefended ? Resolved(defenseEval.Outcome, 0f) : Resolved(DamageOutcome.Invulnerable, 0f);
@@ -198,8 +208,10 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		// A staggered defender (poise break or parry) is the punish window: its hits land harder before armor.
 		if (Poise?.IsAvailable == true && Poise.ActionGate.IsStaggered)
 			incomingAmount *= Poise.Definition.StaggeredDamageMultiplier;
-		armorRoll = contact.BypassArmor ? 0 : Roll(random, Armor);
-		float finalDamage = Mathf.Max(0, incomingAmount - armorRoll);
+		// Armor blocks a roll of physical blows only (ArmorRules): elemental damage (missiles, spells, burning) passes it.
+		float armor = contact.BypassArmor || contact.Element != DamageElement.None ? 0 : Armor;
+		float finalDamage = ArmorRules.Mitigate(incomingAmount, armor, MinimumDamage, random);
+		armorReduction = Mathf.Max(0, incomingAmount) - finalDamage;
 		if (unaware) Awareness.NoticeAttacker(contact.OwnerNode);
 		// Capture the guard before absorption: the final hit can deplete it but still reflects.
 		var shield = _shield;
@@ -225,7 +237,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 
 		reactionSuppressed = defenseEval.SuppressHitStun || statusLocked || contact.SuppressHitReaction;
 		if (!reactionSuppressed)
-			reaction = ReactToHit(contact, poiseDamage);
+			reaction = ReactToHit(contact, poiseDamage, finalDamage);
 		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && HealthComponent?.IsDead != true)
 			MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
 		if (!isDefended && HealthComponent?.IsDead != true
@@ -260,33 +272,41 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 	/// <summary>The actor's facing: its movement's look direction, or the hurtbox's own forward without one.</summary>
 	private Vector3 Facing => MovementComponent?.LookAtDirection ?? -GlobalTransform.Basis.Z;
 
+	/// <summary>Without poise: a hit big enough for <see cref="InterruptThreshold"/>, once the last interruption's immunity has passed.</summary>
+	private bool Interrupts(float damage) => Engine.GetPhysicsFrames() >= _interruptibleFromFrame
+		&& damage >= InterruptThreshold * (HealthComponent?.MaxHealth ?? 0);
+
 	/// <summary>
-	/// Poise decides whether an unprotected hit flinches or staggers. Without poise, a hit interrupts the
-	/// current action unless the gate reports hyper-armor. Interruptions and staggers push; a forced pushback
-	/// also pushes and interrupts a flinch, unless the defender is hyper-armored or resists it. A running
-	/// stagger is pushed but never cut short.
+	/// Poise decides whether an unprotected hit flinches or staggers. Without poise, a big enough hit interrupts the
+	/// current action unless the gate reports hyper-armor, and the actor reels in place for <see cref="HitRecovery"/>.
+	/// Only an attack's own knockback pushes: on an interruption or stagger, and with a forced pushback also on a flinch,
+	/// which it then interrupts, unless the defender is hyper-armored or resists knockback (gatekeepers), which only
+	/// flinches. A running stagger is pushed but never cut short.
 	/// </summary>
-	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage)
+
+	private HitReaction ReactToHit(in DamageContext contact, float poiseDamage, float damage)
 	{
 		var gate = MovementComponent?.ActionGate;
+		bool resists = MovementComponent?.ResistsKnockback == true;
 		HitReaction reaction;
 		if (Poise?.IsAvailable == true)
 			reaction = Poise.Apply(poiseDamage) ? HitReaction.Staggered : HitReaction.Flinch;
-		else if (gate?.IsHyperArmored == true)
+		else if (gate?.IsHyperArmored == true || !Interrupts(damage))
 			reaction = HitReaction.Flinch;
 		else
 		{
-			gate?.CancelCurrent(ActionInterruptReason.HitStun);
+			if (gate != null && (HitRecovery <= 0 || !gate.TryStagger(HitRecovery))) gate.CancelCurrent(ActionInterruptReason.HitStun);
+			_interruptibleFromFrame = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(InterruptImmunity * Engine.PhysicsTicksPerSecond);
 			reaction = HitReaction.Interrupted;
 		}
-		bool forced = reaction == HitReaction.Flinch && contact.ForcePushback && gate?.IsHyperArmored != true
-			&& Poise?.Definition?.ResistsForcedPushback != true;
+		bool forced = reaction == HitReaction.Flinch && contact.ForcePushback && gate?.IsHyperArmored != true && !resists;
 		if (forced && gate?.IsStaggered != true)
 		{
 			gate?.CancelCurrent(ActionInterruptReason.HitStun);
 			reaction = HitReaction.Interrupted;
 		}
-		if (reaction != HitReaction.Flinch || forced) MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
+		if ((reaction != HitReaction.Flinch || forced) && contact.Knockback > 0)
+			MovementComponent?.Push(contact.IncomingDirection, contact.Knockback);
 		EmitSignalHitReacted((int)reaction);
 		return reaction;
 	}

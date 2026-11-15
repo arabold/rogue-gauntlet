@@ -38,6 +38,8 @@ public partial class MovementComponent : Node
 	/// Explicit <see cref="SetLookAtDirection"/> snaps are not capped.
 	/// </summary>
 	[Export(PropertyHint.Range, "0,1440,1")] public float MaxTurnRate { get; set; }
+	/// <summary>Runtime factor on all turning, smoothing and caps alike; a monster's health phase sets it.</summary>
+	public float TurnRateScale { get; set; } = 1;
 	/// <summary>
 	/// The StairsTrigger node that will be used to detect stairs.
 	/// </summary>
@@ -199,6 +201,12 @@ public partial class MovementComponent : Node
 		LookAtDirection = -Actor.GlobalTransform.Basis.Z;
 	}
 
+	/// <summary>
+	/// Never pushed: every push (knockback, forced pushback) leaves this actor in place. Intended for gatekeepers, as
+	/// Diablo II's act bosses resist knockback.
+	/// </summary>
+	[Export] public bool ResistsKnockback { get; set; }
+
 	public void Push(Vector3 direction, float strength)
 	{
 		SetPush(direction, strength, false);
@@ -212,6 +220,11 @@ public partial class MovementComponent : Node
 
 	private void SetPush(Vector3 direction, float strength, bool bypassStatusLock)
 	{
+		if (ResistsKnockback && strength > 0)
+		{
+			CombatTrace.Write(this, "effect.knockback_resisted", ("strength", strength));
+			return;
+		}
 		CancelLunge();
 		_pushDirection = direction.Normalized();
 		_pushStrength = strength;
@@ -507,10 +520,10 @@ public partial class MovementComponent : Node
 		current.Y = 0;
 		current = current.LengthSquared() > .0001f ? current.Normalized() : lookAt;
 		float yaw = Mathf.Atan2(current.Cross(lookAt).Y, current.Dot(lookAt));
-		float fraction = Mathf.Clamp(RotationSpeed * (float)delta, 0, 1);
+		float fraction = Mathf.Clamp(RotationSpeed * TurnRateScale * (float)delta, 0, 1);
 		float step = yaw * fraction;
 		// A capped request (an AI wind-up tracking its target) turns no faster than its authored rate.
-		float turnCap = Mathf.DegToRad(turnRate) * (float)delta;
+		float turnCap = Mathf.DegToRad(turnRate * TurnRateScale) * (float)delta;
 		if (turnCap > 0) step = Mathf.Clamp(step, -turnCap, turnCap);
 		LookAtDirection = current.Rotated(Vector3.Up, step).Normalized();
 	}

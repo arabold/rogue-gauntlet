@@ -9,9 +9,12 @@ public partial class PlayerStatsController : Node
 	[Export] public PlayerStats Stats { get; set; }
 	[Export] public Inventory Inventory { get; set; }
 	[Export] public MovementComponent MovementComponent { get; set; }
+	[Export] public DodgeComponent DodgeComponent { get; set; }
 	[Export] public HurtBoxComponent HurtBoxComponent { get; set; }
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public ManaComponent ManaComponent { get; set; }
+	/// <summary>Played on the hero when they gain a level; unassigned, a level-up shows no effect.</summary>
+	[Export] public WorldEffectDefinition LevelUpEffect { get; set; }
 
 	public override void _Ready()
 	{
@@ -19,6 +22,7 @@ public partial class PlayerStatsController : Node
 		Stats ??= Player.Stats;
 		Inventory ??= Player.Inventory;
 		MovementComponent ??= Player.MovementComponent;
+		DodgeComponent ??= Player.DodgeComponent;
 		HurtBoxComponent ??= Player.HurtBoxComponent;
 		HealthComponent ??= Player.HealthComponent;
 		ManaComponent ??= Player.ManaComponent;
@@ -38,6 +42,10 @@ public partial class PlayerStatsController : Node
 			stats => stats.Changed += SyncStats,
 			stats => stats.Changed -= SyncStats);
 		this.SubscribeUntilExit(
+			Stats,
+			stats => stats.LeveledUp += OnLeveledUp,
+			stats => stats.LeveledUp -= OnLeveledUp);
+		this.SubscribeUntilExit(
 			SignalBus.Instance,
 			signalBus => signalBus.XpRewarded += OnXpRewarded,
 			signalBus => signalBus.XpRewarded -= OnXpRewarded);
@@ -49,6 +57,7 @@ public partial class PlayerStatsController : Node
 	public void SyncStats()
 	{
 		MovementComponent.Speed = Stats.Speed;
+		if (DodgeComponent != null) DodgeComponent.DistanceScale = Stats.DodgeDistanceScale;
 		HurtBoxComponent.Armor = Stats.Armor;
 		HealthComponent.SetHealth(Stats.Health, Stats.MaxHealth);
 		// The component owns current mana; stats only set its limits (see RestoreMana).
@@ -84,5 +93,11 @@ public partial class PlayerStatsController : Node
 	private void OnXpRewarded(int xp)
 	{
 		Stats.AddXp(xp);
+	}
+
+	private void OnLeveledUp(int level)
+	{
+		if (LevelUpEffect != null) Player.WorldEffects?.PlayBurst(LevelUpEffect, (uint)level);
+		SignalBus.EmitPlayerLeveledUp(level);
 	}
 }

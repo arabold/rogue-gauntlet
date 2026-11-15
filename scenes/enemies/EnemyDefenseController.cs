@@ -12,7 +12,8 @@ public enum EnemyDefenseMode
 /// <summary>
 /// Observes visible threats (opponent attack wind-up and incoming projectiles)
 /// and triggers active defense via composed DodgeComponent and/or GuardComponent.
-/// Supports continuous combo blocking and riposte counter-attacks on guard release.
+/// A blocked or parried hit may be answered at once: the guard drops and a riposte-eligible attack starts, armored from
+/// its first frame, so attacking into a raised guard is punished instead of holding the monster behind it.
 /// </summary>
 [GlobalClass]
 public partial class EnemyDefenseController : Node
@@ -44,7 +45,7 @@ public partial class EnemyDefenseController : Node
 			_mode = value;
 			_pendingMeleeAttacker = null;
 			_pendingMeleeController = null;
-			_ripostePending = false;
+			_counterPending = false;
 			if (value == EnemyDefenseMode.None) GuardComponent?.EndGuard();
 		}
 	}
@@ -53,7 +54,7 @@ public partial class EnemyDefenseController : Node
 	public bool RiposteEnabled
 	{
 		get => _riposteEnabled;
-		set { _riposteEnabled = value; if (!value) _ripostePending = false; }
+		set { _riposteEnabled = value; if (!value) _counterPending = false; }
 	}
 
 	public bool HasGuardCapability => GuardComponent != null;
@@ -78,6 +79,7 @@ public partial class EnemyDefenseController : Node
 
 	private EnemyDefenseStrategy Strategy => Enemy?.EnemyBehaviorComponent?.Profile?.Combat?.DefenseStrategy;
 	private float PressureWindow => Strategy?.GuardPressureWindow ?? GuardHoldDuration;
+	private float RiposteChance => Mode == EnemyDefenseMode.GuardParry ? 1.0f : (Strategy?.RiposteChance ?? 0.65f);
 
 	private AttackIdentity _lastObservedMeleeExecution;
 	private float _meleeReactionTimer;
@@ -87,8 +89,7 @@ public partial class EnemyDefenseController : Node
 
 	private float _pressureRemaining;
 	private float _totalGuardTime;
-	private int _consecutiveBlockedHits;
-	private bool _ripostePending;
+	private bool _counterPending;
 	private readonly RandomNumberGenerator _rng = new();
 
 	private readonly HashSet<AttackIdentity> _observedProjectiles = new();
@@ -133,11 +134,14 @@ public partial class EnemyDefenseController : Node
 
 	private void OnBlockSuccessful(float chipDamage) => RegisterDefendedContact();
 
-	/// <summary>Every defended contact sustains guard; parries never bypass the hold or release sequence.</summary>
+	/// <summary>
+	/// Every defended contact sustains guard and rolls the strategy's riposte chance; a counter it wins runs on the next
+	/// physics step, once the defended hit has resolved.
+	/// </summary>
 	private void RegisterDefendedContact()
 	{
 		_pressureRemaining = PressureWindow;
-		_consecutiveBlockedHits++;
+		if (RiposteEnabled && _rng.Randf() <= RiposteChance) _counterPending = true;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -146,22 +150,23 @@ public partial class EnemyDefenseController : Node
 		{
 			if (GuardComponent?.IsGuarding == true) GuardComponent.EndGuard();
 			_meleeReactionTimer = 0;
-			_pressureRemaining = 0;
-			_totalGuardTime = 0;
-			_consecutiveBlockedHits = 0;
-			_ripostePending = false;
+			ResetGuardHold();
+			_counterPending = false;
 			return;
 		}
 
 		if (!HasGuardCapability && !HasDodgeCapability) return;
 
 		float dt = (float)delta;
-		UpdateGuardHold(dt);
-		if (_ripostePending && GuardComponent?.IsGuarding != true && GuardComponent?.IsGuardRecovering != true)
+		// A committed (hyper-armored) attack is not abandoned for a guard or dodge, and the gate refuses any defense during
+		// an uninterruptible one, so the monster weighs no threats then and a reaction it had scheduled lapses.
+		if (Enemy.ActionGate?.IsHyperArmored == true) { _meleeReactionTimer = 0; return; }
+		if (_counterPending)
 		{
-			_ripostePending = false;
-			TryExecuteRiposte();
+			_counterPending = false;
+			Counter();
 		}
+		UpdateGuardHold(dt);
 		UpdateMeleeThreatObservation(dt);
 		UpdateProjectileThreatObservation(dt);
 	}
@@ -180,44 +185,74 @@ public partial class EnemyDefenseController : Node
 
 		if (_pressureRemaining <= 0 || _totalGuardTime >= maxDuration)
 		{
-			bool wasDefending = _consecutiveBlockedHits > 0;
-			_pressureRemaining = 0;
-			_totalGuardTime = 0;
-			_consecutiveBlockedHits = 0;
-
+			ResetGuardHold();
 			GuardComponent.EndGuard();
-
-			if (wasDefending)
-			{
-				float riposteChance = Mode == EnemyDefenseMode.GuardParry ? 1.0f : (Strategy?.RiposteChance ?? 0.65f);
-				if (_rng.Randf() <= riposteChance)
-				{
-					_ripostePending = true;
-				}
-			}
 		}
 	}
 
-	/// <summary>Attempt one counterattack after defense completion, revalidating current sight, reach and commitment.</summary>
+	private void ResetGuardHold()
+	{
+		_pressureRemaining = 0;
+		_totalGuardTime = 0;
+	}
+
+	/// <summary>
+	/// Answer a defended hit: drop the guard without its release recovery and start a riposte that hits cannot stop
+	/// before its contact, only a poise break. Out of sight or reach, or with no riposte ready to start (no attack slot
+	/// free, say), the guard stays up.
+	/// </summary>
+	private void Counter()
+	{
+		if (GuardComponent?.IsGuarding != true || !FindRiposteTarget(out Node3D target, out Vector3 toTarget, out float distance, out float reach))
+			return;
+		Enemy.EnemyBehaviorComponent?.SetTarget(target);
+		if (Enemy.EnemyBehaviorComponent?.CanRequestAction(MonsterActionFilter.Riposte) != true)
+		{
+			RecordRiposte(false, "attack_unavailable", target, distance, reach);
+			return;
+		}
+		GuardComponent.EndGuard(immediate: true);
+		ResetGuardHold();
+		if (StartRiposte(target, toTarget, distance, reach)) Enemy.AttackController?.CommitCurrentAttack();
+	}
+
+	/// <summary>
+	/// The observed target, and whether it stands within the riposte-eligible attacks' reach; a miss is recorded as the
+	/// riposte's rejection.
+	/// </summary>
+	private bool FindRiposteTarget(out Node3D target, out Vector3 toTarget, out float distance, out float reach)
+	{
+		toTarget = Vector3.Zero;
+		distance = reach = 0;
+		target = ResolveTarget();
+		if (target == null || !CanObserve(target))
+		{
+			target = null;
+			return RecordRiposte(false, "unobservable");
+		}
+		toTarget = GetPosition(target) - GetPosition(Enemy);
+		toTarget.Y = 0;
+		distance = toTarget.Length();
+		// The same reach the action selector uses: authored range capped by the attack's own contact reach.
+		foreach (var action in Enemy.EnemyBehaviorComponent?.Profile?.Combat?.Actions ?? [])
+			if (action?.CanRiposte == true) reach = Mathf.Max(reach, action.EffectiveMaximumRange);
+		return distance <= reach || RecordRiposte(false, "out_of_reach", target, distance, reach);
+	}
+
+	/// <summary>Attempt one riposte-eligible attack now, revalidating current sight, reach and the action gate.</summary>
 	public bool TryExecuteRiposte()
 	{
 		if (!RiposteEnabled) return RecordRiposte(false, "disabled");
 		if (Enemy == null || Enemy.IsDead) return RecordRiposte(false, "unavailable");
 		if (Enemy.MovementComponent?.IsPushed == true || Enemy.ActionGate?.IsBusy == true)
 			return RecordRiposte(false, "busy");
+		return FindRiposteTarget(out Node3D target, out Vector3 toTarget, out float distance, out float reach)
+			&& StartRiposte(target, toTarget, distance, reach);
+	}
 
-		Node3D target = ResolveTarget();
-		if (target == null || !CanObserve(target)) return RecordRiposte(false, "unobservable", target);
-		Vector3 toTarget = GetPosition(target) - GetPosition(Enemy);
-		toTarget.Y = 0;
-		float distance = toTarget.Length();
-		// The same reach the action selector uses: authored range capped by the attack's own contact reach.
-		float reach = 0;
-		foreach (var action in Enemy.EnemyBehaviorComponent?.Profile?.Combat?.Actions ?? [])
-			if (action?.CanRiposte == true) reach = Mathf.Max(reach, action.EffectiveMaximumRange);
-		if (distance > reach) return RecordRiposte(false, "out_of_reach", target, distance, reach);
-
-		// Turn toward the target at the actor's normal turn rate; an attack that cannot start yet is rejected.
+	/// <summary>Turn toward the target at the actor's normal turn rate and request a riposte-eligible attack.</summary>
+	private bool StartRiposte(Node3D target, Vector3 toTarget, float distance, float reach)
+	{
 		if (toTarget.LengthSquared() > 0.001f) Enemy.MovementComponent?.FaceDirection(toTarget.Normalized());
 
 		Enemy.EnemyBehaviorComponent?.SetTarget(target);
@@ -379,7 +414,6 @@ public partial class EnemyDefenseController : Node
 				{
 					_pressureRemaining = PressureWindow;
 					_totalGuardTime = 0f;
-					_consecutiveBlockedHits = 0;
 					return true;
 				}
 			}
@@ -471,7 +505,6 @@ public partial class EnemyDefenseController : Node
 						if (GuardComponent.TryBeginGuard(-projDir.Normalized()) != DefenseRequestResult.Success) continue;
 						_pressureRemaining = PressureWindow;
 						_totalGuardTime = 0f;
-						_consecutiveBlockedHits = 0;
 						break;
 					}
 				}

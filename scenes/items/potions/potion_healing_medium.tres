@@ -2,14 +2,15 @@
 
 [ext_resource type="Script" uid="uid://irr1yr02p4rg" path="res://scenes/buffs/HealingBuff.cs" id="buff"]
 [ext_resource type="Resource" uid="uid://cstatusblinded" path="res://scenes/buffs/conditions/blinded.tres" id="blinded"]
+[ext_resource type="Resource" uid="uid://cstatuspoisoned" path="res://scenes/buffs/conditions/poisoned.tres" id="poisoned"]
 [ext_resource type="Script" uid="uid://c15rgkjymw2e6" path="res://scenes/items/ConsumableItem.cs" id="item"]
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
-HealthPointsPerTick = 16
-CuredConditions = [ExtResource("blinded")]
+CuredConditions = [ExtResource("blinded"), ExtResource("poisoned")]
 Name = "Medium Potion of Healing"
 Duration = 3.0
+HealthPointsPerTick = 28.3333
 metadata/_custom_type_script = ExtResource("buff")
 
 [resource]

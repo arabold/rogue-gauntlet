@@ -11,6 +11,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 	[Export] public Node3D VisualRoot { get; set; }
 	public string DisplayName => Definition?.SpellName ?? "";
 	public int LevelCount => Definition?.LevelCount ?? 0;
+	public DamageDeliveryKind? Delivery => Definition?.IsAreaTargeting == true ? DamageDeliveryKind.AreaImpact : DamageDeliveryKind.Projectile;
 	public IEnumerable<string> DescribeLevel(in SpellPower power) => Definition?.DescribeLevel(power) ?? [];
 	public bool CanCast(in SpellCastContext context) => GodotObject.IsInstanceValid(context.Caster)
 		&& Definition?.IsValidLevel(context.Power.Level) == true && VisualScene != null && VisualRoot != null;
@@ -19,7 +20,8 @@ public partial class TargetedSpell : Node, ICombatSpell
 	private double _clock;
 	private ulong _sequence;
 	private sealed record PendingHit(Node3D Caster, Node3D Target, Vector3 Origin, Vector3 Position,
-		World3D World, float Radius, AttackStats Damage, RandomNumberGenerator Random, AttackIdentity Identity, double Due, bool IsAreaImpact = false);
+		World3D World, float Radius, AttackStats Damage, RandomNumberGenerator Random, AttackIdentity Identity, AttackIdentity Parent,
+		double Due, bool IsAreaImpact = false);
 
 	public override void _Ready() => SetPhysicsProcess(false);
 	public override void _PhysicsProcess(double delta)
@@ -33,11 +35,13 @@ public partial class TargetedSpell : Node, ICombatSpell
 			var baseContact = new DamageContext
 			{
 				ExecutionId = hit.Identity,
+				Parent = hit.Parent,
 				SourceNode = this,
 				OwnerNode = hit.Caster,
 				Faction = HurtBoxComponent.GetDamageSource(hit.Caster),
 				Random = hit.Random,
-				DefenseTraits = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
+				// A focused strike can be dodged; an area strike only escaped.
+				DefenseTraits = hit.IsAreaImpact ? AttackDefenseTraits.Guardable : AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable,
 				DeliveryKind = hit.IsAreaImpact ? DamageDeliveryKind.AreaImpact : DamageDeliveryKind.Projectile,
 				Element = Definition.Element
 			};
@@ -70,7 +74,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 		Node3D caster = context.Caster;
 		SpellPower power = context.Power;
 		int level = power.Level;
-		if (!CanCast(in context) || !AreaCastLifecycle.TryCapture(this, caster, VisualRoot, random, Definition.Radius, out var cast)) return false;
+		if (!CanCast(in context) || !AreaCastLifecycle.TryCapture(this, in context, VisualRoot, random, Definition.Radius, out var cast)) return false;
 		Node template = VisualScene.Instantiate();
 		bool valid = Definition.Delivery switch
 		{
@@ -143,11 +147,11 @@ public partial class TargetedSpell : Node, ICombatSpell
 				}
 			}
 
-			double delay = Spawn(group, VisualScene, level, start, end, i, visibility, target, caster, hit, random);
+			double delay = Spawn(group, VisualScene, level, start, end, i, visibility, target, caster, hit, random, parent: cast.Parent);
 			previous = end; previousTarget = target;
 			if (Definition.IsAreaTargeting || (target != null && Definition.Delivery != TargetDeliveryKind.Fireball))
 				_pending.Add(new PendingHit(caster, target, cast.Origin, position, cast.World, Definition.HitRadius,
-					hit, random, new AttackIdentity(caster.GetInstanceId(), ++_sequence), _clock + delay, IsAreaImpact: Definition.IsAreaTargeting));
+					hit, random, new AttackIdentity(caster.GetInstanceId(), ++_sequence), cast.Parent, _clock + delay, IsAreaImpact: Definition.IsAreaTargeting));
 		}
 		if (shower && DebrisScene != null)
 			for (int i = 0; i < level * 2 + 2; i++)
@@ -159,7 +163,8 @@ public partial class TargetedSpell : Node, ICombatSpell
 	}
 
 	private double Spawn(SpellEffectGroup group, PackedScene scene, int level, Vector3 start, Vector3 end, int index,
-		AreaVisibility visibility, Node3D target, Node3D caster, AttackStats hit, RandomNumberGenerator random, bool debris = false)
+		AreaVisibility visibility, Node3D target, Node3D caster, AttackStats hit, RandomNumberGenerator random, bool debris = false,
+		AttackIdentity parent = default)
 	{
 		Node node = scene.Instantiate();
 		switch (node)
@@ -169,7 +174,7 @@ public partial class TargetedSpell : Node, ICombatSpell
 				projectile.RestrictToTarget(target, 1.1f + .35f * (level - 1));
 				Vector3 displacement = end - start;
 				projectile.Initialize(start, displacement.Normalized(), 13, displacement.Length() + .5f, hit,
-					caster, randomSeed: target != null ? random.Randi() : GetInstanceId() ^ (ulong)(index + 1) * 7919UL);
+					caster, randomSeed: target != null ? random.Randi() : GetInstanceId() ^ (ulong)(index + 1) * 7919UL, parentExecution: parent);
 				FireballSpell.ConfigureProjectileVisual(projectile, level);
 				return 0;
 			case TravelingEffectVisual flight:

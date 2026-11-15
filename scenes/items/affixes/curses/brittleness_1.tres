@@ -13,4 +13,5 @@ metadata/_custom_type_script = ExtResource("2_range")
 [resource]
 script = ExtResource("1_affix")
 Modifiers = [SubResource("Range_0")]
+MaxDepth = 8
 metadata/_custom_type_script = ExtResource("1_affix")

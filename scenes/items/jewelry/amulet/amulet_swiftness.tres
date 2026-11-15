@@ -22,4 +22,5 @@ ValidSlots = 32
 RollTable = ExtResource("roll_table")
 Name = "Amulet of Swiftness"
 Value = 200
+Tier = 0
 metadata/_custom_type_script = ExtResource("1_item")

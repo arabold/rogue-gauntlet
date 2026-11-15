@@ -8,8 +8,12 @@ using Godot;
 /// </summary>
 public readonly record struct SpellPower(int Level, AttackStats Hit);
 
-/// <summary>One accepted spell's actor, intent, explicit target and already captured power.</summary>
-public readonly record struct SpellCastContext(Node3D Caster, Node3D Target, SpellTargetIntent Intent, SpellPower Power);
+/// <summary>
+/// One accepted spell's actor, intent, explicit target and already captured power, and the attack execution that
+/// releases it, if any; the spell's contacts name that execution as their <see cref="DamageContext.Parent"/>.
+/// </summary>
+public readonly record struct SpellCastContext(Node3D Caster, Node3D Target, SpellTargetIntent Intent, SpellPower Power,
+	AttackIdentity Parent = default);
 
 /// <summary>Target relationship requested by the cast source; each effect still validates its own legal recipients.</summary>
 public enum SpellTargetIntent { Hostile, Self, Ally }

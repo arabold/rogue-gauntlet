@@ -34,9 +34,9 @@ public partial class DiscoveryAndAccessBalanceTest
 		AssertBool(trap.IsTriggered).IsFalse();
 		var victim = TestFactories.AddToSceneTree(new Victim());
 		trap.GetNode<TriggerComponent>("TriggerComponent").EmitSignal(TriggerComponent.SignalName.Triggered, victim);
-		AssertBool(trap.IsTriggered).IsTrue(); AssertFloat(victim.DamageTaken).IsEqual(trap.Damage);
+		AssertBool(trap.IsTriggered).IsTrue(); AssertFloat(victim.DamageTaken).IsEqual(trap.CurrentDamage);
 		trap.GetNode<TriggerComponent>("TriggerComponent").EmitSignal(TriggerComponent.SignalName.Triggered, victim);
-		AssertFloat(victim.DamageTaken).IsEqual(trap.Damage);
+		AssertFloat(victim.DamageTaken).IsEqual(trap.CurrentDamage);
 		var restored = TestFactories.AddToSceneTree(scene.Instantiate<FloorTrap>());
 		restored.RestoreDiscovered(true);
 		AssertBool(restored.Visible).IsTrue(); AssertBool(restored.DiscoveryEffect.IsPlaying).IsFalse();

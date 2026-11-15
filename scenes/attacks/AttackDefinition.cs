@@ -15,8 +15,6 @@ public partial class AttackDefinition : Resource
 {
 	/// <summary>Poise damage of an attack that does not author its own, matching the property default.</summary>
 	public const float DefaultPoiseDamage = 10f;
-	/// <summary>Push strength of an interrupting or staggering contact; the historical fixed hit push.</summary>
-	public const float DefaultKnockback = 3f;
 
 	/// <summary>Optional style override; an empty value uses the weapon's authored style.</summary>
 	[Export] public StringName AttackStyle { get; set; } = "";
@@ -34,7 +32,10 @@ public partial class AttackDefinition : Resource
 	/// <summary>Defensive traits (dodgeable, guardable, parryable) for this attack.</summary>
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable | AttackDefenseTraits.Parryable;
 
-	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable;
+	/// <summary>
+	/// Defensive traits of the splash around a projectile's impact. An area is never Dodgeable: only leaving it avoids it.
+	/// </summary>
+	[Export] public AttackDefenseTraits AreaDefenseTraits { get; set; } = AttackDefenseTraits.None;
 
 	/// <summary>
 	/// Threat label derived from <see cref="DefenseTraits"/>. Monster Heavy (BreaksGuard) and Unblockable (neither
@@ -140,8 +141,12 @@ public partial class AttackDefinition : Resource
 	[ExportGroup("Impact")]
 	[Export] public float PoiseDamage { get; set; } = DefaultPoiseDamage;
 
-	/// <summary>Push strength when a contact interrupts or staggers its defender; flinches push only with <see cref="ForcePushback"/>.</summary>
-	[Export] public float Knockback { get; set; } = DefaultKnockback;
+	/// <summary>
+	/// Push strength when a contact interrupts or staggers its defender; flinches push only with <see cref="ForcePushback"/>.
+	/// Zero holds the defender in place, as Diablo II's hit recovery does: knockback belongs to heavy weapons, special
+	/// attacks and signature monster attacks, never to every hit.
+	/// </summary>
+	[Export] public float Knockback { get; set; }
 
 	/// <summary>
 	/// Knocks back a defender that would only flinch, interrupting its current action without a stagger.
@@ -157,6 +162,20 @@ public partial class AttackDefinition : Resource
 
 	/// <summary>Normalized execution time at which hyper-armor ends.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float HyperArmorEnd { get; set; }
+
+	/// <summary>
+	/// Share of the wind-up after which the attack commits: it is hyper-armored from there until its contact ends, on top
+	/// of any authored window, so ordinary hits no longer stop it and only a poise break does. Zero never commits. Monster
+	/// attacks take the balance model's share through <c>simulate.py derive</c>; the hero's attacks never commit.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float Commit { get; set; }
+
+	/// <summary>
+	/// False makes the hyper-armor window unstoppable, for a boss's or elite's committed attack: hits there drain no poise,
+	/// so nothing staggers the attacker out of it, and a monster never drops it to guard or dodge. True keeps ordinary
+	/// hyper-armor, where poise still drains at the actor's armored scale and a break interrupts.
+	/// </summary>
+	[Export] public bool Interruptible { get; set; } = true;
 
 	/// <summary>Seconds the attacker's execution clock pauses after its first damaging or blocked contact.</summary>
 	[Export(PropertyHint.Range, "0,0.25,0.005")] public float HitStopDuration { get; set; }
@@ -174,9 +193,10 @@ public partial class AttackDefinition : Resource
 	/// <summary>Whether the normalized execution progress lies inside the authored hyper-armor interval.</summary>
 	public bool IsHyperArmoredAt(float progress) => HyperArmorEnd > HyperArmorStart && progress >= HyperArmorStart && progress < HyperArmorEnd;
 
-	/// <summary>Poise damage, knockback, hit-stop and wind-up turn rate are nonnegative and finite.</summary>
+	/// <summary>Poise damage, knockback, hit-stop and wind-up turn rate are nonnegative and finite; the commit share lies in [0, 1].</summary>
 	public bool HasValidImpactValues =>
 		float.IsFinite(PoiseDamage) && PoiseDamage >= 0
+		&& float.IsFinite(Commit) && Commit >= 0 && Commit <= 1
 		&& float.IsFinite(Knockback) && Knockback >= 0
 		&& float.IsFinite(HitStopDuration) && HitStopDuration >= 0
 		&& float.IsFinite(WindUpTurnRate) && WindUpTurnRate >= 0;

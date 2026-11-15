@@ -11,6 +11,11 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 	[Export] public MovementComponent MovementComponent { get; set; }
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
 	[Export] public DodgeDefinition DodgeDef { get; set; }
+	/// <summary>
+	/// Share of the definition's distance a dodge covers, in the same travel time and immunity window. The hero's body armor
+	/// sets it (<see cref="PlayerStats.DodgeDistanceScale"/>): heavy armor halves the escape, not the protection.
+	/// </summary>
+	[Export(PropertyHint.Range, "0.1,2,0.05")] public float DistanceScale { get; set; } = 1f;
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
 
 	private DodgeDefinition _activeDefinition;
@@ -127,7 +132,8 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		IsDodging = true;
 		_dodgeElapsed = 0f;
 		_dodgeFacing = facing;
-		_dodgeSpeed = EffectiveDefinition.Distance / Mathf.Max(0.01f, EffectiveDefinition.TravelDuration);
+		float distance = EffectiveDefinition.Distance * DistanceScale;
+		_dodgeSpeed = distance / Mathf.Max(0.01f, EffectiveDefinition.TravelDuration);
 		_steeringWindow = Mathf.Min(steeringWindow, EffectiveDefinition.TravelDuration);
 
 		MovementComponent?.SetInputDirection(Vector3.Zero);
@@ -145,7 +151,7 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		SetPhysicsProcess(true);
 		PlayDodgeAnimation();
 		if (CombatTrace.Enabled) CombatTrace.Write(this, "defense.started", ("kind", "dodge"), ("travel", EffectiveDefinition.TravelDuration),
-			("recovery", EffectiveDefinition.RecoveryDuration), ("distance", EffectiveDefinition.Distance),
+			("recovery", EffectiveDefinition.RecoveryDuration), ("distance", distance),
 			("immunity_start", EffectiveDefinition.ImmunityStart), ("immunity_end", EffectiveDefinition.ImmunityEnd),
 			("interval", IntervalRemaining), ("charges", ChargesRemaining));
 		EmitSignalDodgeStarted(_dodgeDirection);
@@ -206,19 +212,21 @@ public partial class DodgeComponent : Node, IDefenseEvaluator
 		if (!IsTimerRunning) SetPhysicsProcess(false);
 	}
 
+	/// <summary>
+	/// Immunity avoids contacts that declare <see cref="AttackDefenseTraits.Dodgeable"/>: strikes and projectiles. Area
+	/// contacts (a slam's wave, an explosion, a field), hazards and the environment never declare it, so only leaving
+	/// them avoids them.
+	/// </summary>
 	public bool TryEvaluate(in DamageContext contact, out DefenseEvaluation evaluation)
 	{
-		if (contact.DeliveryKind is not (DamageDeliveryKind.Hazard or DamageDeliveryKind.Environmental)
+		if ((contact.DefenseTraits & AttackDefenseTraits.Dodgeable) != 0
 			&& IsDodging && DodgeDef != null
 			&& _dodgeElapsed >= EffectiveDefinition.ImmunityStart
 			&& _dodgeElapsed < EffectiveDefinition.ImmunityEnd)
 		{
-			if ((contact.DefenseTraits & AttackDefenseTraits.Dodgeable) != 0)
-			{
-				RefundPerfectDodge();
-				evaluation = new DefenseEvaluation(DamageOutcome.Dodged, 0f, ConsumesParry: false, SuppressHitStun: true);
-				return true;
-			}
+			RefundPerfectDodge();
+			evaluation = new DefenseEvaluation(DamageOutcome.Dodged, 0f, ConsumesParry: false, SuppressHitStun: true);
+			return true;
 		}
 
 		evaluation = default;

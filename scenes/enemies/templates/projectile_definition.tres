@@ -10,6 +10,5 @@ Id = "example_projectile"
 DisplayName = "Projectile Example"
 MaxHealth = 8.0
 MoveSpeed = 3.0
-XpReward = 4
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")

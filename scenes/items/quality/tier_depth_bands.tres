@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("bands")
-Bands = Array[Vector2i]([Vector2i(1, 6), Vector2i(4, 12), Vector2i(10, 18), Vector2i(16, 21), Vector2i(19, 0)])
+Bands = Array[Vector2i]([Vector2i(1, 8), Vector2i(6, 13), Vector2i(11, 18), Vector2i(16, 23), Vector2i(21, 0)])
 metadata/_custom_type_script = ExtResource("bands")

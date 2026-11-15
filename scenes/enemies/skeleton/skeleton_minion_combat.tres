@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_ring.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/surround.tres" id="flank"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/monster_skeleton_minion.tres" id="contact"]
 
 [sub_resource type="Resource" id="strike_attack"]
@@ -16,21 +17,23 @@ PoiseDamage = 10.0
 HitStopDuration = 0.03
 FacingLockLead = 0.15
 WindUpTurnRate = 360.0
+Commit = 0.5
 
 [sub_resource type="Resource" id="strike"]
 resource_name = "strike"
 script = ExtResource("attack_action")
-Cooldown = 1.2
+Cooldown = 2.0
 MaximumRange = 2.4
 RiposteEligible = true
 Attack = SubResource("strike_attack")
 Style = &"melee"
-Duration = 1.0
+Duration = 0.67
 MinDamage = 1.0
-MaxDamage = 5.0
+MaxDamage = 2.5
 
 [resource]
 script = ExtResource("profile")
 TacticalStrategy = ExtResource("tactics")
 MovementStrategy = ExtResource("movement")
+Flank = ExtResource("flank")
 Actions = [SubResource("strike")]

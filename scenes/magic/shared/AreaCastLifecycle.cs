@@ -6,8 +6,9 @@ using System.Linq;
 /// <summary>Shared capture, contact identity and visual lifetime for one area-spell node.</summary>
 public sealed class AreaCastLifecycle
 {
+	/// <summary>One captured cast; <paramref name="Parent"/> is the attack execution that released it.</summary>
 	public readonly record struct Cast(Node Owner, Node3D Caster, Vector3 Origin, Vector3 Facing,
-		World3D World, float Radius, Node3D[] Targets, RandomNumberGenerator Random);
+		World3D World, float Radius, Node3D[] Targets, RandomNumberGenerator Random, AttackIdentity Parent);
 	private readonly List<Node3D> _visuals = [];
 	private readonly List<PendingContact> _pending = [];
 	/// <summary>One cast's contact, sweeping outward with its front; every actor it reaches counts once.</summary>
@@ -20,10 +21,11 @@ public sealed class AreaCastLifecycle
 	private ulong _sequence, _generation;
 
 	/// <summary>Capture eligible targets without mutating the world.</summary>
-	public static bool TryCapture(Node owner, Node3D caster, Node3D visualRoot, RandomNumberGenerator random,
+	public static bool TryCapture(Node owner, in SpellCastContext context, Node3D visualRoot, RandomNumberGenerator random,
 		float radius, out Cast cast)
 	{
 		cast = default;
+		Node3D caster = context.Caster;
 		if (!owner.IsInsideTree() || !GodotObject.IsInstanceValid(caster) || !caster.IsInsideTree()
 			|| !GodotObject.IsInstanceValid(visualRoot) || !visualRoot.IsInsideTree()
 			|| visualRoot.GetWorld3D() != caster.GetWorld3D() || random == null) return false;
@@ -34,7 +36,7 @@ public sealed class AreaCastLifecycle
 		World3D world = caster.GetWorld3D();
 		var targets = AreaSpellTargets.Capture(owner, caster, origin, radius, world);
 		if (targets == null) return false;
-		cast = new Cast(owner, caster, origin, facing, world, radius, targets, random);
+		cast = new Cast(owner, caster, origin, facing, world, radius, targets, random, context.Parent);
 		return true;
 	}
 
@@ -101,7 +103,7 @@ public sealed class AreaCastLifecycle
 	{
 		var cast = pending.Cast;
 		ulong generation = _generation;
-		var contact = new DamageContext { ExecutionId = pending.Identity, SourceNode = cast.Owner, OwnerNode = cast.Caster,
+		var contact = new DamageContext { ExecutionId = pending.Identity, Parent = cast.Parent, SourceNode = cast.Owner, OwnerNode = cast.Caster,
 			Faction = HurtBoxComponent.GetDamageSource(cast.Caster), Random = cast.Random,
 			DefenseTraits = pending.Traits, DeliveryKind = DamageDeliveryKind.AreaImpact, ForcedPush = pending.Push, Element = pending.Element };
 		AreaSpellTargets.Resolve(targets, cast.World, cast.Origin, cast.Facing, contact, pending.Hit,

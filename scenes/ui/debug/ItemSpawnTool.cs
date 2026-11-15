@@ -290,7 +290,7 @@ public partial class ItemSpawnTool : DebugTool
 	/// </summary>
 	private static string[] DescribeEntries(List<(Item Item, string Path)> entries)
 	{
-		static string Describe(Item item) => item is EquipableItem equipable ? $"{item.Name} · T{equipable.Tier}" : item.Name;
+		static string Describe(Item item) => item is EquipableItem { Tier: > 0 } equipable ? $"{item.Name} · T{equipable.Tier}" : item.Name;
 		var collisions = entries.GroupBy(e => Describe(e.Item)).Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet();
 		return entries.Select(e => collisions.Contains(Describe(e.Item))
 			? $"{Describe(e.Item)} · {e.Path.GetFile().GetBaseName()}"

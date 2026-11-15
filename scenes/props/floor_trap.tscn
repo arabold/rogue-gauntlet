@@ -86,6 +86,7 @@ Spikes = NodePath("floor_tile_big_spikes/spikes")
 DiscoveryEffect = NodePath("DiscoveryEffect")
 FloorSurface = NodePath("floor_tile_big_spikes")
 Discovery = NodePath("ProximityDiscovery")
+DamagePerDepth = 0.87
 
 [node name="floor_tile_big_spikes" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_2pbfq")

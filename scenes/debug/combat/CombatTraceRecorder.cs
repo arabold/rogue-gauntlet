@@ -10,6 +10,8 @@ public partial class CombatTraceRecorder : Node
 	[Export] public bool CaptureFrames { get; set; } = true;
 	[Export] public bool EchoToConsole { get; set; }
 	[Export] public bool EchoEffectsToConsole { get; set; } = true;
+	/// <summary>Events whose id starts with one of these are not recorded, so long captures skip cosmetic noise.</summary>
+	[Export] public string[] IgnoredEventPrefixes { get; set; } = [];
 	public string OutputPath { get; private set; } = "";
 	private Node _scope;
 	private StreamWriter _writer;
@@ -49,6 +51,7 @@ public partial class CombatTraceRecorder : Node
 	private void Record(Node source, string eventId, IReadOnlyDictionary<string, object> fields)
 	{
 		if (_scope == null || source == null || (!ReferenceEquals(source, _scope) && !_scope.IsAncestorOf(source))) return;
+		foreach (string prefix in IgnoredEventPrefixes) if (eventId.StartsWith(prefix)) return;
 		var entry = new Dictionary<string, object>
 		{
 			["schema"] = 1, ["run"] = _run, ["sequence"] = ++_sequence, ["frame"] = Engine.GetPhysicsFrames() - _firstFrame,

@@ -7,7 +7,7 @@ public partial class MonsterAttackAction : MonsterTimedAction
 {
 	[ExportGroup("Attack")]
 	[Export] public AttackDefinition Attack { get; set; }
-	/// <summary>A defense may answer a blocked attack with this one, after its guard recovery.</summary>
+	/// <summary>A defense may answer a blocked or parried hit with this one at once, whatever its cooldown.</summary>
 	[Export] public bool RiposteEligible { get; set; }
 
 	protected override AttackDefinition Definition => Attack;

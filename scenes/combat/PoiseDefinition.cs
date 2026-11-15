@@ -28,8 +28,15 @@ public partial class PoiseDefinition : Resource
 	/// <summary>Show the meter under the floating health bar; intended for elites and bosses.</summary>
 	[Export] public bool ShowBar { get; set; }
 
-	/// <summary>Forced pushback only flinches this actor; a poise break still pushes it. Intended for bosses.</summary>
-	[Export] public bool ResistsForcedPushback { get; set; }
+	/// <summary>
+	/// Each break makes the next meter this share of <see cref="MaxPoise"/> larger, until <see cref="BreakMemory"/> passes
+	/// without a break, so staggers cannot be chained. Monsters take the balance model's share through
+	/// <c>simulate.py derive</c>.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,2,0.05")] public float BreakGrowth { get; set; }
+
+	/// <summary>Seconds without a break after which the meter returns to <see cref="MaxPoise"/>.</summary>
+	[Export(PropertyHint.Range, "0,60,0.5")] public float BreakMemory { get; set; } = 10f;
 
 	public bool IsValid =>
 		float.IsFinite(MaxPoise) && MaxPoise > 0
@@ -37,5 +44,6 @@ public partial class PoiseDefinition : Resource
 		&& float.IsFinite(RegenPerSecond) && RegenPerSecond >= 0
 		&& float.IsFinite(BreakStaggerDuration) && BreakStaggerDuration > 0
 		&& float.IsFinite(StaggeredDamageMultiplier) && StaggeredDamageMultiplier >= 0
-		&& ArmoredPoiseDamageScale >= 0 && ArmoredPoiseDamageScale <= 1;
+		&& ArmoredPoiseDamageScale >= 0 && ArmoredPoiseDamageScale <= 1
+		&& float.IsFinite(BreakGrowth) && BreakGrowth >= 0 && float.IsFinite(BreakMemory) && BreakMemory >= 0;
 }

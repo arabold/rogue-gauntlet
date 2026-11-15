@@ -57,9 +57,9 @@ public class AttackSlotsTest
 		var slots = new AttackSlotsComponent { Target = target };
 		target.AddChild(slots);
 		var attackers = new[] { Stranger(), Stranger(), Stranger() };
-		foreach (var attacker in attackers) slots.GetRingPoint(attacker, AttackSlotKind.Melee, 3, preferRear: true);
-		Vector3 first = slots.GetRingPoint(attackers[0], AttackSlotKind.Melee, 3, preferRear: true);
-		Vector3 second = slots.GetRingPoint(attackers[1], AttackSlotKind.Melee, 3, preferRear: true);
+		foreach (var attacker in attackers) slots.GetRingPoint(attacker, AttackSlotKind.Melee, 3);
+		Vector3 first = slots.GetRingPoint(attackers[0], AttackSlotKind.Melee, 3);
+		Vector3 second = slots.GetRingPoint(attackers[1], AttackSlotKind.Melee, 3);
 		// The first waiting attacker stands directly behind the target (facing -Z); three share the ring at thirds.
 		AssertBool(first.IsEqualApprox(new Vector3(0, 0, 3))).IsTrue();
 		AssertFloat(second.Length()).IsEqualApprox(3, .001);

@@ -2,14 +2,16 @@
 
 [ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="script"]
 [ext_resource type="Resource" path="res://scenes/enemies/rat/rat_behavior.tres" id="behavior"]
-[ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common.tres" id="loot"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/beast.tres" id="loot"]
 
 [resource]
 script = ExtResource("script")
 Id = "rat"
 DisplayName = "Plague Rat"
+Archetype = 2
+BalanceDepth = 2.0
 MaxHealth = 6.0
-MoveSpeed = 5.0
-XpReward = 3
+MoveSpeed = 6.5
 Loot = ExtResource("loot")
 Behavior = ExtResource("behavior")
+ThreatLevel = -5.53

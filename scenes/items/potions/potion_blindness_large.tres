@@ -6,7 +6,7 @@
 
 [sub_resource type="Resource" id="Buff"]
 script = ExtResource("buff")
-Duration = 16.0
+Duration = 60.0
 Condition = ExtResource("condition")
 Name = "Large Potion of Blindness"
 metadata/_custom_type_script = ExtResource("buff")

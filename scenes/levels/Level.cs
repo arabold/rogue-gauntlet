@@ -19,6 +19,11 @@ public partial class Level : Node, IDebugWorld
 	[Export] public FloorDiscovery Discovery { get; set; }
 	/// <summary>Tuning for monster navigation. Unassigned, monsters cannot navigate and hold still.</summary>
 	[Export] public NavigationProfile NavigationProfile { get; set; }
+	/// <summary>
+	/// How monsters' threat levels become the experience they pay and what they cost the floor's encounter budget; the
+	/// level is its only owner. Unassigned, monsters pay no experience and a realm floor cannot be generated.
+	/// </summary>
+	[Export] public ThreatProfile ThreatProfile { get; set; }
 	/// <summary>Monster navigation on the generated floor; null until generation succeeds or without a profile.</summary>
 	public FloorNavigation Navigation { get; private set; }
 	private Node _runtimeWorldRoot;
