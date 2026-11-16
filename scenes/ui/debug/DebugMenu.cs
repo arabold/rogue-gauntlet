@@ -22,6 +22,9 @@ public partial class DebugMenu : HBoxContainer
 	/// <summary>The current player; null while there is none.</summary>
 	public Player Player => IsInsideTree() ? GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault() : null;
 
+	/// <summary>Optional gameplay focus effect for visual diagnostics.</summary>
+	[Export] public ScreenEffect FocusBlur { get; set; }
+
 	private Label _fpsLabel;
 	private double _fpsUpdateSeconds;
 

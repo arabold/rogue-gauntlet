@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scenes/menu/stage/MenuStage.cs" id="1_stage"]
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="2_lighting"]
@@ -6,6 +6,8 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/entrance.tres" id="4_room"]
 [ext_resource type="PackedScene" path="res://scenes/player/showcase/hero_showcase.tscn" id="5_hero"]
 [ext_resource type="Script" path="res://scenes/player/showcase/ShowcasePose.cs" id="6_pose"]
+
+[ext_resource type="CameraAttributesPractical" path="res://scenes/menu/stage/menu_camera_attributes.tres" id="7_camera_attributes"]
 
 [sub_resource type="Resource" id="Pose_cheer"]
 script = ExtResource("6_pose")
@@ -90,6 +92,7 @@ Poses = [SubResource("Pose_cheer"), SubResource("Pose_inspect"), SubResource("Po
 
 [node name="Camera3D" type="Camera3D" parent="."]
 projection = 1
+attributes = ExtResource("7_camera_attributes")
 current = true
 size = 9.0
 

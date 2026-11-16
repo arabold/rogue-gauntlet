@@ -16,8 +16,9 @@ DeathScreen = NodePath("DeathScreen")
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 
-[node name="DebugMenu" parent="HUD" index="2" node_paths=PackedStringArray("World")]
+[node name="DebugMenu" parent="HUD" index="2" node_paths=PackedStringArray("World", "FocusBlur")]
 World = NodePath("../../Level")
+FocusBlur = NodePath("../../ScreenEffects/FocusBlur")
 
 [node name="ScreenEffects" parent="." instance=ExtResource("10_effects")]
 

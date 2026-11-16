@@ -1,5 +1,12 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://5x78mrbud85e"]
+
 [ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/surface_mark.tscn" id="base"]
 [ext_resource type="Resource" path="res://scenes/effects/surface_marks/wet.tres" id="profile"]
-[node name="SurfaceMark" instance=ExtResource("base")]
+[ext_resource type="Script" uid="uid://nohg22ag2fto" path="res://scenes/effects/surface_marks/CameraSheen.cs" id="sheen"]
+
+[node name="SurfaceMark" unique_id=1193743934 instance=ExtResource("base")]
 Profile = ExtResource("profile")
+
+[node name="CameraSheen" type="Node" parent="." index="0" unique_id=1980508140 node_paths=PackedStringArray("Mark")]
+script = ExtResource("sheen")
+Mark = NodePath("..")

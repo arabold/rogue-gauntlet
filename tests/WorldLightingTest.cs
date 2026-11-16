@@ -46,5 +46,14 @@ public class WorldLightingTest
 		AssertThat(dark.Environment.ReflectedLightSource).IsEqual(Godot.Environment.ReflectionSource.Sky);
 		AssertBool(lit.Environment.FogEnabled).IsFalse();
 		AssertBool(lit.Environment.VolumetricFogEnabled).IsFalse();
+
+		dark.FogEnabled = false;
+		dark.IsDark = true;
+		dark.IsDark = false;
+		AssertBool(dark.Environment.FogEnabled).IsFalse();
+		AssertBool(dark.Environment.VolumetricFogEnabled).IsFalse();
+		dark.FogEnabled = true;
+		AssertBool(dark.Environment.FogEnabled).IsTrue();
+		AssertBool(dark.Environment.VolumetricFogEnabled).IsTrue();
 	}
 }
