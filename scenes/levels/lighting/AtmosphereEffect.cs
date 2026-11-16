@@ -4,6 +4,9 @@ using Godot;
 [GlobalClass]
 public abstract partial class AtmosphereEffect : Node3D
 {
+	/// <summary>Optional diagnostic category; new scenes opt into a switch without controller changes.</summary>
+	[Export] public EnvironmentalEffect Category { get; set; }
+
 	[Export]
 	public bool Enabled
 	{

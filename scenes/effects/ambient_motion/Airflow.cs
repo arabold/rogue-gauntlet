@@ -30,13 +30,23 @@ public partial class Airflow : Node
 	} = true;
 	[Export(PropertyHint.Range, "0,2,0.05")] public float PlaybackSpeed { get; set; } = 1;
 	public float Elapsed { get; private set; }
-	public bool IsActive => Enabled && Profile != null;
+	public bool IsActive => Enabled && Profile != null && _lighting?.IsEffectEnabled(EnvironmentalEffect.Wind) != false;
 	private Action _unwatchProfile;
+	private WorldLighting _lighting;
+
+	public override void _EnterTree()
+	{
+		if (!Engine.IsEditorHint()) _lighting = this.GetAncestorOrNull<ILitWorld>()?.Lighting;
+	}
 
 	public override void _Ready()
 	{
 		ProcessPriority = -10;
-		if (!Engine.IsEditorHint()) WatchProfile();
+		if (!Engine.IsEditorHint())
+		{
+			WatchProfile();
+			this.SubscribeUntilExit(_lighting, world => world.EffectsChanged += RefreshActive, world => world.EffectsChanged -= RefreshActive);
+		}
 		SetProcess(!Engine.IsEditorHint() && IsActive);
 	}
 

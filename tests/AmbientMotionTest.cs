@@ -9,6 +9,41 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class AmbientMotionTest
 {
+	[TestCase]
+	public void WorldWindOverrideRestoresStaticSurfacesAndStopsBothClocks()
+	{
+		var scene = TestFactories.Load<PackedScene>("res://scenes/levels/level.tscn");
+		var template = TestFactories.Load<ShaderMaterial>("res://scenes/effects/ambient_motion/ambient_motion.tres");
+		var level = scene.Instantiate<Level>();
+		level.AutoGenerateOnReady = false;
+		level.Lighting.DisabledEffects = EnvironmentalEffect.Wind;
+		var original = new StandardMaterial3D();
+		var target = new MeshInstance3D { Mesh = new BoxMesh { Material = original } };
+		var motion = new AmbientMotionComponent
+		{
+			Target = target, Airflow = level.Airflow, Material = template, Profile = new AmbientMotionProfile()
+		};
+		target.AddChild(motion);
+		level.AddChild(target);
+		TestFactories.AddToSceneTree(level);
+		AssertObject(target.GetActiveMaterial(0)).IsSame(original);
+		AssertBool(motion.IsProcessing() || level.Airflow.IsProcessing()).IsFalse();
+		level.Lighting.DisabledEffects = EnvironmentalEffect.None;
+		var animated = target.GetActiveMaterial(0);
+		AssertObject(animated).IsInstanceOf<ShaderMaterial>();
+		AssertBool(motion.IsProcessing() && level.Airflow.IsProcessing()).IsTrue();
+		level.Lighting.DisabledEffects = EnvironmentalEffect.Reflections;
+		AssertObject(target.GetActiveMaterial(0)).IsSame(animated);
+		level.Lighting.DisabledEffects |= EnvironmentalEffect.Wind;
+		AssertObject(target.GetActiveMaterial(0)).IsSame(original);
+		AssertFloat(target.ExtraCullMargin).IsZero();
+		AssertBool(motion.IsProcessing() || level.Airflow.IsProcessing()).IsFalse();
+		AssertBool(motion.Enabled && level.Airflow.Enabled).IsTrue();
+		level.Lighting.DisabledEffects = EnvironmentalEffect.None;
+		AssertObject(target.GetActiveMaterial(0)).IsInstanceOf<ShaderMaterial>();
+		AssertBool(motion.IsProcessing() && level.Airflow.IsProcessing()).IsTrue();
+	}
+
 	[TestCase("res://scenes/levels/rooms/props/wall/banner_red.tres")]
 	[TestCase("res://scenes/levels/rooms/props/plants/fern.tres")]
 	public void PlacedPropsWaitForTheirWorldAndAnimateInWorldDirection(string path)
