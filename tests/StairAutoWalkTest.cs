@@ -94,6 +94,93 @@ public class StairAutoWalkTest
 		AssertBool(StairAutoWalk.IsActive(entered)).IsTrue();
 	}
 
+	[TestCase]
+	public async Task DodgingIntoDescentTriggerChangesFloorWithoutReentering()
+	{
+		using var saves = new ScratchSaves();
+		GameSession.Instance.BeginRun(1, "barbarian", 4242);
+
+		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
+		var main = (Main)runner.Scene();
+		var level = main.GetNode<Level>("Level");
+		await runner.SimulateFrames(2, 20);
+
+		Player player = level.GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		AssertObject(player).IsNotNull();
+		StairAutoWalk.Cancel(player);
+		await WaitUntilTransitionUnlocked();
+
+		LevelTransitionTrigger descent = level.Floor.Descent;
+		AssertObject(descent).IsNotNull();
+		Marker3D landing = descent.GetParent().GetNode<Marker3D>("Landing");
+		Vector3 dir = (descent.GlobalPosition - landing.GlobalPosition) with { Y = 0f };
+		dir = dir.Normalized();
+
+		// Stand on the stair landing just outside the descent trigger, then dodge straight into it.
+		player.GlobalPosition = landing.GlobalPosition + dir * 3.8f;
+		player.ResetPhysicsInterpolation();
+		await runner.SimulateFrames(3, 20);
+		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(1);
+
+		DefenseRequestResult dodgeResult = player.DodgeComponent.TryDodge(dir);
+		AssertInt((int)dodgeResult).IsEqual((int)DefenseRequestResult.Success);
+		AssertBool(player.DodgeComponent.IsDodging).IsTrue();
+
+		for (int i = 0; i < 30 && GameSession.Instance.ActiveDungeonDepth == 1; i++)
+		{
+			await runner.SimulateFrames(1, 20);
+		}
+
+		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(2);
+	}
+
+	[TestCase]
+	public async Task EnteringDescentTriggerDuringItemUseRetriesOnceActionFinishes()
+	{
+		using var saves = new ScratchSaves();
+		GameSession.Instance.BeginRun(1, "barbarian", 4242);
+
+		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
+		var main = (Main)runner.Scene();
+		var level = main.GetNode<Level>("Level");
+		await runner.SimulateFrames(2, 20);
+
+		Player player = level.GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
+		AssertObject(player).IsNotNull();
+		StairAutoWalk.Cancel(player);
+		await WaitUntilTransitionUnlocked();
+
+		ActorActionRequestResult acquired = player.ActionGate.TryAcquire(
+			ActorActionKind.ItemUse,
+			ActorActionPhase.Active,
+			_ => { },
+			out ActorActionLease lease);
+		AssertInt((int)acquired).IsEqual((int)ActorActionRequestResult.Success);
+
+		// Move directly into the descent trigger while ItemUse is active: entry refuses without leaving the trigger.
+		player.GlobalPosition = level.Floor.Descent.GlobalPosition;
+		player.ResetPhysicsInterpolation();
+		await runner.SimulateFrames(3, 20);
+		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(1);
+
+		// Completing the item action inside the trigger activates transition without walking out and back in.
+		player.ActionGate.Release(lease);
+		for (int i = 0; i < 10 && GameSession.Instance.ActiveDungeonDepth == 1; i++)
+		{
+			await runner.SimulateFrames(1, 20);
+		}
+
+		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(2);
+	}
+
+	private static async Task WaitUntilTransitionUnlocked()
+	{
+		for (int i = 0; i < 30 && !GameSession.Instance.CanUseTransition(GameSession.LevelTravelDirection.Down); i++)
+		{
+			await Task.Delay(50);
+		}
+	}
+
 	private sealed class ScratchSaves : IDisposable
 	{
 		private readonly string _previous = SaveService.SaveDirectory;
@@ -104,6 +191,7 @@ public class StairAutoWalkTest
 		public void Dispose()
 		{
 			GameSession.Instance?.ClearSession();
+			LoadingScreen.Instance?.Dismiss();
 			GameLog.ResetToDefaults();
 			((SceneTree)Engine.GetMainLoop()).Paused = false;
 			SaveService.SaveDirectory = _previous;

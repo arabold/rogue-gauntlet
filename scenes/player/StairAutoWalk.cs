@@ -61,6 +61,7 @@ public partial class StairAutoWalk : Node
 		}
 
 		Cancel(player);
+		player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
 
 		var autoWalk = new StairAutoWalk
 		{

@@ -16,6 +16,7 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 	private static readonly Vector3 SpawnOverlapMargin = new(0.8f, 1.0f, 0.8f);
 
 	private readonly HashSet<Node3D> _blockedBodies = [];
+	private readonly List<Player> _pendingPlayers = [];
 	private bool _isTransitioning;
 	private ulong _ignoreEntriesUntilPhysicsFrame;
 
@@ -26,6 +27,7 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 			return;
 		}
 
+		SetPhysicsProcess(false);
 		_ignoreEntriesUntilPhysicsFrame = Engine.GetPhysicsFrames() + SpawnOverlapGraceFrames;
 		BodyEntered += OnBodyEntered;
 		BodyExited += OnBodyExited;
@@ -95,6 +97,34 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 		}
 	}
 
+	public override void _PhysicsProcess(double delta)
+	{
+		for (int i = _pendingPlayers.Count - 1; i >= 0; i--)
+		{
+			Player player = _pendingPlayers[i];
+			if (!GodotObject.IsInstanceValid(player) || !player.IsInsideTree() || player.IsDead || _blockedBodies.Contains(player))
+			{
+				_pendingPlayers.RemoveAt(i);
+				continue;
+			}
+
+			if (TryActivate(player) || _blockedBodies.Contains(player))
+			{
+				_pendingPlayers.RemoveAt(i);
+				if (_isTransitioning)
+				{
+					break;
+				}
+			}
+		}
+
+		if (_pendingPlayers.Count == 0 || _isTransitioning)
+		{
+			_pendingPlayers.Clear();
+			SetPhysicsProcess(false);
+		}
+	}
+
 	private void OnBodyEntered(Node3D body)
 	{
 		if (_isTransitioning || body is not Player player || _blockedBodies.Contains(body))
@@ -102,11 +132,28 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 			return;
 		}
 
+		if (!TryActivate(player) && !_blockedBodies.Contains(player) && !player.IsDead && RejectedWalkDirection == Vector3.Zero)
+		{
+			if (!_pendingPlayers.Contains(player))
+			{
+				_pendingPlayers.Add(player);
+				SetPhysicsProcess(true);
+			}
+		}
+	}
+
+	private bool TryActivate(Player player)
+	{
+		if (_isTransitioning || !GodotObject.IsInstanceValid(player) || player.IsDead)
+		{
+			return false;
+		}
+
 		if (RequireExitBeforeActivation
 			&& (Engine.GetPhysicsFrames() <= _ignoreEntriesUntilPhysicsFrame || StairAutoWalk.IsActive(player)))
 		{
 			_blockedBodies.Add(player);
-			return;
+			return false;
 		}
 
 		bool allowed = Direction != GameSession.LevelTravelDirection.Down || this.GetAncestorOrNull<Level>()?.CanDescend != false;
@@ -114,11 +161,18 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 		if (!_isTransitioning && RejectedWalkDirection != Vector3.Zero)
 		{
 			StairAutoWalk.Start(player, GlobalTransform.Basis * RejectedWalkDirection, RejectedWalkDistance);
+			return false;
 		}
+
+		return _isTransitioning;
 	}
 
 	private void OnBodyExited(Node3D body)
 	{
 		_blockedBodies.Remove(body);
+		if (body is Player player && _pendingPlayers.Remove(player) && _pendingPlayers.Count == 0)
+		{
+			SetPhysicsProcess(false);
+		}
 	}
 }

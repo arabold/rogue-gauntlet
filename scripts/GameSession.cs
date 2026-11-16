@@ -320,7 +320,19 @@ public partial class GameSession : Node
 		if (_isSceneTransitioning) return false;
 
 		Player player = FindPlayer();
-		if (IsRunOver || player == null || player.IsDead || !CanCapture(player))
+		if (IsRunOver || player == null || player.IsDead)
+		{
+			return false;
+		}
+
+		// Cancel movement/combat actions (such as dodging onto stairs) before capturing, while letting item channels finish cleanly.
+		if (!player.InventoryController.IsCommittingItemOperation && CurrentLevel()?.IsCommittingFloorChanges != true
+			&& player.ActionGate?.CurrentKind != ActorActionKind.ItemUse)
+		{
+			player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
+		}
+
+		if (!CanCapture(player))
 		{
 			return false;
 		}
@@ -698,9 +710,9 @@ public partial class GameSession : Node
 	{
 		GetTree().Paused = false;
 		await CoverScreen();
-		if (IsRunOver)
+		if (IsRunOver || !_isSceneTransitioning)
 		{
-			// The hero died on the way out: stay on this floor so the death screen can report it.
+			// The hero died on the way out, or the session was cleared cleanly before transition completed.
 			await RevealScreen();
 			_isSceneTransitioning = false;
 			return;
