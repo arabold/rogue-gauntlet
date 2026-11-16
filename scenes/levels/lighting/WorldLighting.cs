@@ -24,6 +24,14 @@ public partial class WorldLighting : WorldEnvironment
 		}
 	}
 
+	/// <summary>Enables the authored atmospheric fog while respecting the darkness setting.</summary>
+	[Export]
+	public bool FogEnabled
+	{
+		get;
+		set { field = value; if (IsNodeReady()) ApplyLighting(); }
+	} = true;
+
 	private float _normalAmbient;
 	private Environment.ReflectionSource _normalReflections;
 	private bool _normalFog;
@@ -49,8 +57,8 @@ public partial class WorldLighting : WorldEnvironment
 		{
 			Environment.AmbientLightEnergy = IsDark ? 0f : _normalAmbient;
 			Environment.ReflectedLightSource = IsDark ? Environment.ReflectionSource.Disabled : _normalReflections;
-			Environment.FogEnabled = !IsDark && _normalFog;
-			Environment.VolumetricFogEnabled = !IsDark && _normalVolumetricFog;
+			Environment.FogEnabled = !IsDark && FogEnabled && _normalFog;
+			Environment.VolumetricFogEnabled = !IsDark && FogEnabled && _normalVolumetricFog;
 		}
 	}
 }

@@ -1,9 +1,8 @@
 using Godot;
-using System;
 using System.Globalization;
 
 /// <summary>
-/// Floor diagnostics and run controls: the navigation overlay, x-rays, darkness, an arena's walls, revealing the map,
+/// Floor diagnostics and run controls: the navigation overlay, darkness, an arena's walls, revealing the map,
 /// restarting or changing the floor and replaying the run from a seed. Floor travel and the run seed need a generated
 /// <see cref="Level"/>; darkness and navigation need a debug world.
 /// </summary>
@@ -39,9 +38,6 @@ public partial class LevelTool : DebugTool
 	protected override void BuildMenu(PopupMenu menu)
 	{
 		_navigationId = AddToggle(menu, "Navigation", () => NavigationEnabled, value => NavigationEnabled = value);
-		AddToggle(menu, "Door x-ray", () => GameDebug.DoorXrayEnabled, value => SetXray(() => GameDebug.DoorXrayEnabled = value));
-		AddToggle(menu, "Monster x-ray", () => GameDebug.MonsterXrayEnabled, value => SetXray(() => GameDebug.MonsterXrayEnabled = value));
-		AddToggle(menu, "Loot x-ray", () => GameDebug.LootXrayEnabled, value => SetXray(() => GameDebug.LootXrayEnabled = value));
 		_darkId = AddToggle(menu, "Dark level", () => Menu?.DebugWorld?.Lighting?.IsDark == true, SetDark);
 		_stage = (Menu?.World as DebugArena)?.Stage;
 		if (_stage != null)
@@ -142,13 +138,6 @@ public partial class LevelTool : DebugTool
 
 	/// <summary>Starts over from depth 1 with <paramref name="seed"/>; an active game replaces the save in its slot.</summary>
 	public void ReplayRun(ulong seed) => GameSession.Instance?.ReplayRun(seed);
-
-	/// <summary>Changes an x-ray switch and lets the silhouettes refresh.</summary>
-	private static void SetXray(Action change)
-	{
-		change();
-		SignalBus.EmitXraySettingsChanged();
-	}
 
 	private void CopyRunSeed()
 	{

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/blindness_effect.tscn" id="1_blind"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/poison_effect.tscn" id="2_poison"]
@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/curse_effect.tscn" id="11_curse"]
 [ext_resource type="Script" path="res://scenes/effects/screen/CurseScreenEffectDriver.cs" id="12_curse_driver"]
 
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/focus_blur_effect.tscn" id="13_focus_blur"]
+
 [node name="ScreenEffects" type="CanvasLayer" node_paths=PackedStringArray("Blindness", "HealthDrivers", "StatusDrivers", "CurseDrivers")]
 layer = -1
 script = ExtResource("5_layer")
@@ -20,6 +22,8 @@ Blindness = NodePath("Blindness")
 HealthDrivers = [NodePath("NearDeathDriver")]
 StatusDrivers = [NodePath("BlindnessDriver"), NodePath("PoisonDriver")]
 CurseDrivers = [NodePath("CurseDriver")]
+
+[node name="FocusBlur" parent="." instance=ExtResource("13_focus_blur")]
 
 [node name="Blindness" parent="." instance=ExtResource("1_blind")]
 
