@@ -13,13 +13,7 @@ public sealed class PatrollingState : IEnemyState
 	private bool _hasRoamTarget;
 	private Vector3 _roamTargetPosition;
 	private Cooldown _roamPauseCooldown;
-
-	public PatrollingState(EnemyBehaviorProfile profile)
-	{
-		// Stagger the first roam so freshly spawned enemies don't all step off at once
-		// (matches the original _Ready initialization).
-		_roamPauseCooldown.Start(EnemyContext.RandomRange(0, profile.RoamPauseMax));
-	}
+	private bool _needsInitialPause = true;
 
 	public void Enter(EnemyContext ctx)
 	{
@@ -37,6 +31,13 @@ public sealed class PatrollingState : IEnemyState
 
 	public EnemyBehaviorState? Update(EnemyContext ctx, double delta)
 	{
+		if (_needsInitialPause)
+		{
+			_needsInitialPause = false;
+			// Stagger the first roam so freshly spawned enemies don't all step off at once.
+			_roamPauseCooldown.Start(ctx.RandomRange(0, ctx.Profile.RoamPauseMax));
+		}
+
 		if (ctx.ShouldScanForTarget() && ctx.LookForNewTarget())
 		{
 			return EnemyBehaviorState.Chasing;
@@ -79,8 +80,8 @@ public sealed class PatrollingState : IEnemyState
 	{
 		for (int i = 0; i < ctx.Profile.RoamTargetAttempts; i++)
 		{
-			float angle = EnemyContext.RandomRange(0, Mathf.Pi * 2.0f);
-			float distance = EnemyContext.RandomRange(ctx.Profile.RoamRadius * 0.25f, ctx.Profile.RoamRadius);
+			float angle = ctx.RandomRange(0, Mathf.Pi * 2.0f);
+			float distance = ctx.RandomRange(ctx.Profile.RoamRadius * 0.25f, ctx.Profile.RoamRadius);
 			Vector3 offset = new(Mathf.Cos(angle) * distance, 0, Mathf.Sin(angle) * distance);
 			if (!ctx.Navigation.TryFindTraversable(ctx.HomePosition + offset, ctx.Profile.RoamRadius, out Vector3 targetPosition)
 				|| targetPosition.DistanceTo(ctx.HomePosition) > ctx.Profile.RoamRadius
@@ -99,6 +100,6 @@ public sealed class PatrollingState : IEnemyState
 
 	private void StartRoamPause(EnemyContext ctx)
 	{
-		_roamPauseCooldown.Start(EnemyContext.RandomRange(ctx.Profile.RoamPauseMin, ctx.Profile.RoamPauseMax));
+		_roamPauseCooldown.Start(ctx.RandomRange(ctx.Profile.RoamPauseMin, ctx.Profile.RoamPauseMax));
 	}
 }

@@ -163,7 +163,9 @@ public partial class LootableItem : Node3D
 			var aura = AuraPresentation.Instantiate<ItemAuraPresenter>();
 			aura.Initialize(equipment, model); model.AddChild(aura);
 		}
-		Pivot.RotateY((float)(GD.Randf() * 2 * Math.PI));
+		string yawSource = HasMeta("persistent_id") ? GetMeta("persistent_id").AsString() : Item?.InstanceId ?? Name;
+		using var yawRng = GenerationRandom.Create(_level?.Seed ?? RunState.DefaultSeed, GenerationRandom.Cosmetic, $"pickup-yaw:{yawSource}");
+		Pivot.RotateY(yawRng.RandfRange(0f, Mathf.Tau));
 
 		_exploration = new ExplorationVisibility(this);
 		Visible = false; // No spawn-frame flash before the caller assigns the final world position.

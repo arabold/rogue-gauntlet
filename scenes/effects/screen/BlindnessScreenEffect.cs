@@ -18,10 +18,19 @@ public partial class BlindnessScreenEffect : ScreenEffect
 	[Export] public Node3D Focus { get; set; }
 
 	/// <summary>Radius of the remaining sight in world units.</summary>
-	[Export(PropertyHint.Range, "0.5,20,0.1,suffix:m")] public float SightRadius { get; set; } = 3f;
+	[Export(PropertyHint.Range, "0.5,20,0.1,suffix:m")] public float SightRadius { get; set; } = 1.5f;
 
 	/// <summary>Height above the focus origin to center on, e.g. the actor's chest instead of its feet.</summary>
 	[Export(PropertyHint.Range, "0,3,0.05,suffix:m")] public float FocusHeight { get; set; } = 0.8f;
+
+	public override void _Ready()
+	{
+		base._Ready();
+		UpdateProcessing();
+		VisibilityChanged += UpdateProcessing;
+	}
+
+	private void UpdateProcessing() => SetProcess(Visible);
 
 	public override void _Process(double delta)
 	{

@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/menu/NotesTab.cs" id="1_script"]
+
+[node name="Notes" type="Control" node_paths=PackedStringArray("Scroll", "Entries", "EmptyHint")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+Scroll = NodePath("Content/Scroll")
+Entries = NodePath("Content/Scroll/Entries")
+EmptyHint = NodePath("Content/EmptyHint")
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 240.0
+offset_top = 184.0
+offset_right = -240.0
+offset_bottom = -136.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Heading" type="Label" parent="Content"]
+layout_mode = 2
+theme_type_variation = &"SmallCapsLabel"
+text = "Notes"
+uppercase = true
+
+[node name="Rule" type="HSeparator" parent="Content"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Content"]
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="Entries" type="VBoxContainer" parent="Content/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="EmptyHint" type="Label" parent="Content"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "No notes yet."

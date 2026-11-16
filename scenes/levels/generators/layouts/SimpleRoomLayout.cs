@@ -40,16 +40,18 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 		}
 		AddPlacement(map, rooms, exitRoom, exitPlacement.Value);
 
+		var uses = new Dictionary<RoomType, int>();
 		for (int i = 0; i < maxRooms; i++)
 		{
 			var retries = Retries;
 			do
 			{
-				var room = factory.CreateStandardRoom(rng);
+				var room = CreateBalancedRoom(factory, rng, uses);
 				var placement = TryPlaceRoom(map, room.Map, retries, rng);
 				if (placement != null)
 				{
 					AddPlacement(map, rooms, room, placement.Value);
+					RecordRoomUse(uses, room);
 					break; // Room placed successfully
 				}
 				else

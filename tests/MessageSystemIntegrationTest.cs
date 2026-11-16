@@ -27,4 +27,25 @@ public partial class MessageSystemIntegrationTest
 
 		hud.QueueFree();
 	}
+
+	[TestCase]
+	public void HudKeepsMessageFeedVisibleWhileMenuPausesGame()
+	{
+		var hud = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/ui/hud.tscn").Instantiate<Hud>());
+		var feed = hud.GetNode<HudMessageFeed>("HudMessageFeed");
+		var vitals = hud.GetNode<Control>("Vitals");
+
+		SignalBus.EmitGamePaused(true);
+
+		AssertBool(vitals.Visible).IsFalse();
+		AssertBool(feed.IsVisibleInTree()).IsTrue();
+
+		SignalBus.EmitItemPickedUp(null, new TestFactories.TestItem("Gold"), 5);
+		AssertBool(feed.GetActiveMessages()[^1].Contains("Gold")).IsTrue();
+
+		SignalBus.EmitGamePaused(false);
+		AssertBool(vitals.Visible).IsTrue();
+
+		hud.QueueFree();
+	}
 }

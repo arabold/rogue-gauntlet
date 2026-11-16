@@ -59,6 +59,17 @@ public class DebugToolkitTest
 		var scene = runner.Scene();
 		var level = scene.GetNode<Level>("Level");
 		var player = scene.GetTree().GetNodesInGroup("player").OfType<Player>().Single();
+		if (level.Floor?.Arrival != null)
+		{
+			player.GlobalPosition = level.Floor.Arrival.LandingPosition;
+			player.ResetPhysicsInterpolation();
+			Vector3 roomForward = level.Floor.Arrival.LandingPosition - level.Floor.Arrival.GlobalPosition;
+			roomForward.Y = 0;
+			if (roomForward.LengthSquared() > 0.001f)
+			{
+				player.MovementComponent.FaceDirection(roomForward);
+			}
+		}
 		player.HurtBoxComponent.Invulnerable = true;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		// The floor's own monsters would join the chase.

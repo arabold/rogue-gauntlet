@@ -69,5 +69,11 @@ public partial class SecretDoorComponent : Node, IProximityDiscoverable
 			* _walls.MeshLibrary.GetItemMesh(_item).GetAabb();
 		return bounds.Grow(0.05f).HasPoint(point) && (collider == _walls || collider is Node node && Door.IsAncestorOf(node));
 	}
-	public void Discover() => Reveal();
+	public void Discover()
+	{
+		if (Reveal() && !Engine.IsEditorHint())
+		{
+			SignalBus.EmitPlayerStatusMessage("You spotted a secret doorway!", LogSeverity.Discovery);
+		}
+	}
 }

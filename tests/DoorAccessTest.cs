@@ -262,7 +262,8 @@ public class DoorAccessTest
 			}
 			var freelyAccessible = generator.Floor.FreelyAccessibleTiles();
 			foreach (var secret in secrets) AssertBool(freelyAccessible.Contains(secret.Connector)).IsFalse();
-			if (generator.Floor.TryPickRandomFreePosition(out var landing)) AssertBool(freelyAccessible.Contains(generator.Map.WorldToTile(landing))).IsTrue();
+			using var teleportRng = GenerationRandom.Create(generator.Seed, GenerationRandom.GameplayLoot, "test-teleport");
+			if (generator.Floor.TryPickRandomFreePosition(teleportRng, out var landing)) AssertBool(freelyAccessible.Contains(generator.Map.WorldToTile(landing))).IsTrue();
 			foreach (var color in locked.GroupBy(d => d.Lock.Definition.RequiredKey.DefinitionPath))
 				AssertInt(keys.Where(p => p.Item.DefinitionPath == color.Key).Sum(p => p.Quantity)).IsEqual(color.Count());
 			foreach (var secret in secrets)

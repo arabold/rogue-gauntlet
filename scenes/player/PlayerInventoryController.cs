@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,6 +8,8 @@ using System.Linq;
 /// </summary>
 public partial class PlayerInventoryController : Node
 {
+	[Signal] public delegate void CursedItemEquippedEventHandler(EquipableItem item);
+
 	[Export] public Player Player { get; set; }
 	/// <summary>The player's runtime inventory, injected by <see cref="Player"/> when it creates the copy.</summary>
 	public Inventory Inventory { get; set; }
@@ -18,6 +21,7 @@ public partial class PlayerInventoryController : Node
 
 	private readonly HashSet<InventoryItemSlot> _reservedSlots = new();
 	private ulong _itemUseGeneration = 0;
+	private int _suppressBroadcastDepth;
 
 	public bool IsItemUseChannelActive => _reservedSlots.Count > 0;
 
@@ -49,8 +53,21 @@ public partial class PlayerInventoryController : Node
 	/// <summary>Records the item's hidden type with the run. A player outside a level (previews, harnesses) learns nothing.</summary>
 	private void IdentifyItemType(Item item, IdentificationSource source) => Level?.Run?.IdentifyItemType(item, source);
 
+	/// <summary>Suppresses equipment log broadcasts and equip feedback while applying initial or restored gear.</summary>
+	public IDisposable SuppressEquipmentBroadcasts()
+	{
+		_suppressBroadcastDepth++;
+		return new BroadcastSuppressionScope(this);
+	}
+
+	private sealed class BroadcastSuppressionScope(PlayerInventoryController controller) : IDisposable
+	{
+		public void Dispose() => controller._suppressBroadcastDepth--;
+	}
+
 	public void AutoEquipItems()
 	{
+		using var _ = SuppressEquipmentBroadcasts();
 		Inventory.EquipAll();
 		RefreshEffectiveGuard();
 	}
@@ -249,13 +266,13 @@ public partial class PlayerInventoryController : Node
 		try
 		{
 			using var update = Inventory.DeferChanges();
-			if (scroll?.RequiresTarget == true) { scroll.Effect.ApplyToTarget(Player, target); }
-			else { consumable.PerformAction(Player); }
 			Inventory.RemoveItem(source, 1);
 			// Using an item reveals its type before anyone observes the consumption.
 			IdentifyItemType(consumable, IdentificationSource.Use);
 			Inventory.NotifyConsumed(consumable);
 			SignalBus.EmitItemConsumed(Player, consumable);
+			if (scroll?.RequiresTarget == true) { scroll.Effect.ApplyToTarget(Player, target); }
+			else { consumable.PerformAction(Player); }
 			return Report(ItemFailure.None);
 		}
 		finally { IsCommittingItemOperation = false; }
@@ -324,7 +341,14 @@ public partial class PlayerInventoryController : Node
 		StatsController.SyncStats();
 		// Wearing an item reveals its type, auto-equipped starting gear included.
 		IdentifyItemType(item, IdentificationSource.Wear);
-		SignalBus.EmitItemEquipped(Player, item);
+		if (_suppressBroadcastDepth == 0)
+		{
+			SignalBus.EmitItemEquipped(Player, item);
+			if (item.IsCursed)
+			{
+				EmitSignalCursedItemEquipped(item);
+			}
+		}
 
 		if (item is Weapon weapon && slot == EquipmentSlot.WeaponHand)
 		{
@@ -347,7 +371,10 @@ public partial class PlayerInventoryController : Node
 			Player.GuardComponent?.Cancel(ActionInterruptReason.EquipChanged);
 		item.OnUnequipped(Player);
 		StatsController.SyncStats();
-		SignalBus.EmitItemUnequipped(Player, item);
+		if (_suppressBroadcastDepth == 0)
+		{
+			SignalBus.EmitItemUnequipped(Player, item);
+		}
 
 		if (item is Weapon && slot == EquipmentSlot.WeaponHand)
 		{

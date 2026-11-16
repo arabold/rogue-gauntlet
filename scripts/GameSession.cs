@@ -36,10 +36,10 @@ public partial class GameSession : Node
 
 	/// <summary>
 	/// The active run, handed to each level. Starting or loading a game creates it; anything that plays without one
-	/// (a scene run directly, or back at the menu) gets the default run on first use. UI-wide item display reads
-	/// identification from here; gameplay reads it from its level.
+	/// (a scene run directly, or back at the menu) gets a fresh randomly seeded run on first use. UI-wide item display
+	/// reads identification from here; gameplay reads it from its level.
 	/// </summary>
-	public RunState Run => _run ??= new RunState(RunState.DefaultSeed);
+	public RunState Run => _run ??= new RunState(RunState.CreateSeed());
 
 	/// <summary>Debug harnesses: replaces the active run with an unsaved one, so gameplay and UI share its state.</summary>
 	public void StartUnsavedRun(ulong runSeed)
@@ -75,6 +75,9 @@ public partial class GameSession : Node
 	private double _sessionStartedAtMsec;
 	private bool _isSceneTransitioning;
 	private bool _saveAfterNextSpawn;
+
+	/// <summary>True while reloading a saved in-floor position rather than entering a floor via stairs.</summary>
+	internal bool IsRestoringSavedFloor => _pendingLoadedSave?.Player?.ApplyTransform == true;
 
 	/// <summary>Autoloads are built before the engine loads the startup scene, which no load boundary precedes.</summary>
 	public GameSession() => ResourceCacheGuard.BeginStartup();
@@ -250,6 +253,7 @@ public partial class GameSession : Node
 		_pendingLoadedSave = saveGame;
 		_saveAfterNextSpawn = false;
 		_sessionStartedAtMsec = Time.GetTicksMsec();
+		RestoreNotes(saveGame.Notes);
 		ResolveCharacterClass(saveGame.CharacterClassId);
 		EnterGameplay();
 	}
@@ -316,7 +320,19 @@ public partial class GameSession : Node
 		if (_isSceneTransitioning) return false;
 
 		Player player = FindPlayer();
-		if (IsRunOver || player == null || player.IsDead || !CanCapture(player))
+		if (IsRunOver || player == null || player.IsDead)
+		{
+			return false;
+		}
+
+		// Cancel movement/combat actions (such as dodging onto stairs) before capturing, while letting item channels finish cleanly.
+		if (!player.InventoryController.IsCommittingItemOperation && CurrentLevel()?.IsCommittingFloorChanges != true
+			&& player.ActionGate?.CurrentKind != ActorActionKind.ItemUse)
+		{
+			player.ActionGate?.CancelCurrent(ActionInterruptReason.Invalidated);
+		}
+
+		if (!CanCapture(player))
 		{
 			return false;
 		}
@@ -441,6 +457,7 @@ public partial class GameSession : Node
 			saveGame.LootRollsConsumed = Run.LootRollsConsumed;
 			saveGame.World.ClearedEntityIds = Run.CaptureClearedIds();
 			saveGame.Identification = CaptureIdentification();
+			saveGame.Notes = CaptureNotes();
 			if (player != null)
 			{
 				StoreFloorDeltas();
@@ -574,6 +591,7 @@ public partial class GameSession : Node
 	/// <summary>Forgets the active run, leaving no game active. Internal so tests can end a run without changing scenes.</summary>
 	internal void ClearSession()
 	{
+		GameLog.ClearPlayerHistory();
 		ActiveSlotId = 0;
 		FallenRun = null;
 		_run = null;
@@ -592,6 +610,44 @@ public partial class GameSession : Node
 	private double GetSessionElapsedSeconds()
 	{
 		return Math.Max(0, (Time.GetTicksMsec() - _sessionStartedAtMsec) / 1000.0);
+	}
+
+	private static List<NoteEntrySaveData> CaptureNotes()
+	{
+		IReadOnlyList<LogEntry> history = GameLog.GetPlayerHistory();
+		var notes = new List<NoteEntrySaveData>(history.Count);
+		foreach (LogEntry entry in history)
+		{
+			notes.Add(new NoteEntrySaveData
+			{
+				Message = entry.Message,
+				Severity = (int)entry.Severity,
+			});
+		}
+		return notes;
+	}
+
+	private static void RestoreNotes(IEnumerable<NoteEntrySaveData> notes)
+	{
+		if (notes == null)
+		{
+			GameLog.ClearPlayerHistory();
+			return;
+		}
+
+		var restored = new List<LogEntry>();
+		foreach (NoteEntrySaveData note in notes)
+		{
+			if (note == null || string.IsNullOrEmpty(note.Message))
+			{
+				continue;
+			}
+			LogSeverity severity = Enum.IsDefined(typeof(LogSeverity), note.Severity)
+				? (LogSeverity)note.Severity
+				: LogSeverity.Info;
+			restored.Add(new LogEntry(LogChannel.Player, note.Message, severity, LogCategory.General));
+		}
+		GameLog.RestorePlayerHistory(restored);
 	}
 
 	private IdentificationSaveData CaptureIdentification()
@@ -654,9 +710,9 @@ public partial class GameSession : Node
 	{
 		GetTree().Paused = false;
 		await CoverScreen();
-		if (IsRunOver)
+		if (IsRunOver || !_isSceneTransitioning)
 		{
-			// The hero died on the way out: stay on this floor so the death screen can report it.
+			// The hero died on the way out, or the session was cleared cleanly before transition completed.
 			await RevealScreen();
 			_isSceneTransitioning = false;
 			return;

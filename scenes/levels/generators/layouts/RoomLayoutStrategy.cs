@@ -17,6 +17,19 @@ public abstract partial class RoomLayoutStrategy : Resource
 		StampRoom(map, room.Map, placement);
 	}
 
+	/// <summary>Creates a standard room biased against repeating types already recorded in <paramref name="uses"/>.</summary>
+	protected static Room CreateBalancedRoom(AssembledRoomFactory factory, RandomNumberGenerator rng, Dictionary<RoomType, int> uses) =>
+		factory.CreateStandardRoom(rng, type => uses.GetValueOrDefault(type));
+
+	/// <summary>Records a placed room's type in <paramref name="uses"/> for balanced room selection.</summary>
+	protected static void RecordRoomUse(Dictionary<RoomType, int> uses, Room room)
+	{
+		if (room?.Type != null)
+		{
+			uses[room.Type] = uses.GetValueOrDefault(room.Type) + 1;
+		}
+	}
+
 	/// <summary>
 	/// Stamps a room's local tile map into the master map at the given placement. Local
 	/// Empty cells (e.g. an L-shaped/notched footprint's cut corner) are skipped rather

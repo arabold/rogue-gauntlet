@@ -46,7 +46,7 @@ public static class Weighted
 	/// <summary>
 	/// Weighted choice balanced over uses: each option scores (uses + a random fraction) / weight and the lowest wins.
 	/// </summary>
-	public static T PickBalanced<T>(IReadOnlyList<T> options, Func<T, int> getUses, RandomNumberGenerator rng) where T : Placeable
+	public static T PickBalanced<T>(IReadOnlyList<T> options, Func<T, float> weight, Func<T, int> getUses, RandomNumberGenerator rng) where T : class
 	{
 		if (options == null) return null;
 		T best = null;
@@ -54,14 +54,21 @@ public static class Weighted
 		foreach (var option in options)
 		{
 			double fraction = rng.Randf();
-			if (option == null || option.Weight <= 0) continue;
-			double score = (getUses(option) + fraction) / option.Weight;
+			float optionWeight = option == null ? 0f : weight(option);
+			if (optionWeight <= 0f) continue;
+			double score = (getUses(option) + fraction) / optionWeight;
 			if (score >= bestScore) continue;
 			bestScore = score;
 			best = option;
 		}
 		return best;
 	}
+
+	/// <summary>
+	/// Weighted choice balanced over uses: each option scores (uses + a random fraction) / weight and the lowest wins.
+	/// </summary>
+	public static T PickBalanced<T>(IReadOnlyList<T> options, Func<T, int> getUses, RandomNumberGenerator rng) where T : Placeable =>
+		PickBalanced(options, option => option.Weight, getUses, rng);
 
 	/// <summary>Prefers variants not yet heavily placed; ties break by the seeded draw.</summary>
 	public static int PickVariant(Prop prop, Func<int, int> getUses, RandomNumberGenerator rng)

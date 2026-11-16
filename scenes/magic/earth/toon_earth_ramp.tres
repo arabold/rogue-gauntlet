@@ -1,4 +1,4 @@
-[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+[gd_resource type="GradientTexture1D" format=3 uid="uid://cwgfat1587jl8"]
 
 [sub_resource type="Gradient" id="earth_bands"]
 interpolation_mode = 1

@@ -1,6 +1,7 @@
 namespace RogueGauntlet.Tests;
 
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -149,5 +150,71 @@ public partial class GameNarratorTest
 
 		narrator.QueueFree();
 		GameLog.ResetToDefaults();
+	}
+
+	[TestCase]
+	public void LevelLoadedCursedEquipTaintedFoodAndPoisonProgressionEmitDescriptiveMessages()
+	{
+		GameLog.ResetToDefaults();
+		GameLog.IsConsoleSinkEnabled = false;
+		var sink = new NarratorTestSink();
+		GameLog.AddSink(sink);
+
+		var narrator = TestFactories.AddToSceneTree(new GameNarrator());
+		var level = new Level { MapGenerator = new MapGenerator { DungeonDepth = 3 } };
+		var player = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>());
+		try
+		{
+			SignalBus.EmitLevelLoaded(level);
+			AssertString(sink.Entries[^1].Message).IsEqual("You reached [b]floor level 3[/b]");
+
+			var sword = (EquipableItem)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/weapons/broadsword_common.tres"));
+			sword.CursePenalty = [new StatModifier { Stat = StatType.Strength, Value = -3 }];
+			sword.CurseStatusKnown = false;
+			SignalBus.EmitItemEquipped(player, sword);
+			AssertString(sink.Entries[^1].Message).IsEqual("A dark curse saps your strength — you suddenly feel weak and exhausted.");
+			AssertInt((int)sink.Entries[^1].Severity).IsEqual((int)LogSeverity.Warning);
+
+			int beforeFood = sink.Entries.Count;
+			var apple = (FoodItem)ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/food/food/food_apple_red.tres"));
+			apple.RestorePoison(true);
+			AssertBool(player.Inventory.TryAdd(apple).Success).IsTrue();
+			apple.PerformAction(player);
+			SignalBus.EmitItemConsumed(player, apple);
+			// Ensure tainted food warning + poison start are logged even via direct signal/BuffController calls
+			AssertBool(sink.Entries.Skip(beforeFood).Any(e => e.Message == "Ulch - that [b]Crisp Red Apple[/b] was tainted!")).IsTrue();
+			AssertBool(sink.Entries.Skip(beforeFood).Any(e => e.Message == "You feel very sick and nauseous.")).IsTrue();
+
+			var venom = TestFactories.Load<PoisonBuff>("res://scenes/buffs/rat_venom.tres");
+			player.ApplyBuff(venom);
+			AssertString(sink.Entries[^1].Message).IsEqual("You feel worse.");
+
+			player.ApplyBuff(venom);
+			AssertString(sink.Entries[^1].Message).IsEqual("You feel much worse.");
+
+			var healing = TestFactories.Load<Buff>("res://scenes/buffs/healing_potion_small.tres");
+			player.ApplyBuff(healing);
+			AssertBool(sink.Entries.Any(e => e.Message == "You are no longer ill.")).IsTrue();
+
+			var trap = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/floor_trap.tscn").Instantiate<FloorTrap>());
+			trap.Discover();
+			AssertString(sink.Entries[^1].Message).IsEqual("You spotted a trap!");
+			AssertInt((int)sink.Entries[^1].Severity).IsEqual((int)LogSeverity.Warning);
+
+			var door = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>());
+			var walls = TestFactories.AddToSceneTree(new GridMap { MeshLibrary = new MeshLibrary() });
+			walls.MeshLibrary.CreateItem(0);
+			walls.SetCellItem(Vector3I.Zero, 0);
+			door.Secret.Initialize(walls, Vector3I.Zero, Vector3.Forward, null, 42);
+			door.Secret.Discover();
+			AssertString(sink.Entries[^1].Message).IsEqual("You spotted a secret doorway!");
+			AssertInt((int)sink.Entries[^1].Severity).IsEqual((int)LogSeverity.Discovery);
+		}
+		finally
+		{
+			level.Free();
+			narrator.QueueFree();
+			GameLog.ResetToDefaults();
+		}
 	}
 }

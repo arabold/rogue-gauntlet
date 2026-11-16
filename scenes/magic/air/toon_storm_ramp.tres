@@ -1,4 +1,4 @@
-[gd_resource type="GradientTexture1D" load_steps=2 format=3]
+[gd_resource type="GradientTexture1D" format=3 uid="uid://bta047necdxdl"]
 
 [sub_resource type="Gradient" id="storm_bands"]
 interpolation_mode = 1

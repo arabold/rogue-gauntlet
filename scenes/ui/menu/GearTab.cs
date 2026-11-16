@@ -224,11 +224,15 @@ public partial class GearTab : RunMenuTab
 	private void Describe()
 	{
 		Item item = Selected?.Slot?.Item;
-		ShowName(NameLabel, item);
 		if (item == null && Selected != null && _worn.TryGetValue(Selected, out EquipmentSlot slot))
 		{
 			NameLabel.Text = SlotNames[slot];
 			NameLabel.SelfModulate = EmptyTint;
+			NameLabel.GetAncestorOrNull<AutoScrollViewport>()?.ResetScroll();
+		}
+		else
+		{
+			ShowName(NameLabel, item);
 		}
 		Details.SetItem(item, Player);
 	}

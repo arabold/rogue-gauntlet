@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=46 format=3 uid="uid://dct1orgrtmguy"]
+[gd_resource type="Resource" script_class="AttackAnimationProfile" format=3 uid="uid://dct1orgrtmguy"]
 
 [ext_resource type="Script" uid="uid://dbpmhvkb54j6i" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
 [ext_resource type="Script" uid="uid://bvtqukotxhie4" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
@@ -298,7 +298,6 @@ Style = &"spear.2h.combo3"
 Clip = &"2H_Melee_Attack_Stab"
 ContactStart = 0.2
 ContactEnd = 0.34
-
 
 [sub_resource type="Resource" id="binding_40"]
 script = ExtResource("binding")

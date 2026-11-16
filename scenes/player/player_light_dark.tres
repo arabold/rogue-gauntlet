@@ -5,12 +5,12 @@
 
 [resource]
 script = ExtResource("1_profile")
-Energy = 0.7
-Range = 6.0
-Attenuation = 1.0
+Energy = 0.22
+Range = 3.0
+Attenuation = 1.8
 Flicker = ExtResource("2_flicker")
-HighlightEnergy = 0.08
-HighlightRange = 6.0
-HighlightAttenuation = 1.8
+HighlightEnergy = 0.04
+HighlightRange = 2.5
+HighlightAttenuation = 2.0
 HighlightLayers = 4294966508
-HighlightHeight = 3.0
+HighlightHeight = 2.2

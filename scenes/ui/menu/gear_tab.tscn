@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/player/showcase/hero_showcase.tscn" id="4_hero"]
 [ext_resource type="Resource" uid="uid://cclassbarb00001" path="res://scenes/player/classes/class_barbarian.tres" id="5_class"]
 [ext_resource type="Script" path="res://scenes/ui/ItemDetailsView.cs" id="6_details"]
+[ext_resource type="Script" path="res://scenes/ui/menu/AutoScrollViewport.cs" id="7_autoscroll"]
 [ext_resource type="Texture2D" path="res://assets/ui-kit/icon_helmet.png" id="10_helmet"]
 [ext_resource type="Texture2D" path="res://assets/ui-kit/icon_armor.png" id="11_armor"]
 [ext_resource type="Texture2D" path="res://assets/ui-kit/icon_weapon.png" id="12_weapon"]
@@ -32,8 +33,8 @@ AmuletSlot = NodePath("Columns/Worn/Slots/AmuletSlot")
 RightRingSlot = NodePath("Columns/Worn/Slots/RightRingSlot")
 Hero = NodePath("Columns/Center/HeroView/Viewport/SubViewport/Hero")
 FallbackClass = ExtResource("5_class")
-NameLabel = NodePath("Columns/Center/Info/NameLabel")
-Details = NodePath("Columns/Center/Info/Details")
+NameLabel = NodePath("Columns/Center/Info/NameClip/NameLabel")
+Details = NodePath("Columns/Center/Info/DetailsClip/Details")
 Strength = NodePath("Columns/Worn/Attributes/Strength")
 Dexterity = NodePath("Columns/Worn/Attributes/Dexterity")
 Vitality = NodePath("Columns/Worn/Attributes/Vitality")
@@ -248,20 +249,38 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="NameLabel" type="Label" parent="Columns/Center/Info"]
+[node name="NameClip" type="Control" parent="Columns/Center/Info"]
+clip_contents = true
+custom_minimum_size = Vector2(0, 88)
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("7_autoscroll")
+ScrollHorizontal = true
+ScrollSpeed = 72.0
+
+[node name="NameLabel" type="Label" parent="Columns/Center/Info/NameClip"]
+layout_mode = 0
 theme_type_variation = &"TitleLabel"
 horizontal_alignment = 1
-text_overrun_behavior = 3
+vertical_alignment = 1
 
 [node name="Rule" type="HSeparator" parent="Columns/Center/Info"]
 custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Details" type="VBoxContainer" parent="Columns/Center/Info"]
+[node name="DetailsClip" type="Control" parent="Columns/Center/Info"]
+clip_contents = true
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+script = ExtResource("7_autoscroll")
+ScrollHorizontal = true
+ScrollVertical = true
+ScrollSpeed = 36.0
+
+[node name="Details" type="VBoxContainer" parent="Columns/Center/Info/DetailsClip"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
 script = ExtResource("6_details")

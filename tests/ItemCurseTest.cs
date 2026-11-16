@@ -80,7 +80,7 @@ public class ItemCurseTest
 	}
 
 	[TestCase]
-	public async Task ThePenaltyLowersWornStatsButStaysOffTheTooltipUntilRevealed()
+	public async Task ThePenaltyLowersWornStatsAndEquipRevealsTheCurse()
 	{
 		EquipableItem shield = Create(Shield);
 		shield.CursePenalty = [new StatModifier { Stat = StatType.Dexterity, Value = -3 }];
@@ -94,10 +94,8 @@ public class ItemCurseTest
 		InventoryItemSlot entry = Add(player.Inventory, shield);
 		AssertBool(player.Inventory.Equip(entry, EquipmentSlot.ShieldHand).Success).IsTrue();
 		AssertFloat(player.Stats.Dexterity).IsEqualApprox(dexterity - 3, 0.001f);
-		// Wearing reveals the attributes, not the curse.
-		AssertBool(ShowsPenalty(TooltipLines(shield))).IsFalse();
-
-		shield.RevealCurseStatus();
+		// Equipping reveals both the attributes and whether the item is cursed.
+		AssertBool(shield.CurseStatusKnown).IsTrue();
 		List<string> revealed = TooltipLines(shield);
 		AssertBool(revealed.Contains("Cursed")).IsTrue();
 		AssertBool(ShowsPenalty(revealed)).IsTrue();

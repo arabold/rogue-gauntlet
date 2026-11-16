@@ -29,6 +29,12 @@ public partial class ItemDetailsView : VBoxContainer
 			child.QueueFree();
 		}
 
+		PopulateDetails(item, viewer);
+		this.GetAncestorOrNull<AutoScrollViewport>()?.ResetScroll();
+	}
+
+	private void PopulateDetails(Item item, Player viewer)
+	{
 		if (item == null)
 		{
 			return;

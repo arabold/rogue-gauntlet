@@ -109,7 +109,7 @@ public partial class HudMessageFeedTest
 	}
 
 	[TestCase]
-	public void GamePausedFreezesDecay()
+	public void MessagesRemainActiveAndFadeWhilePaused()
 	{
 		var feed = TestFactories.AddToSceneTree(new HudMessageFeed
 		{
@@ -120,19 +120,20 @@ public partial class HudMessageFeedTest
 		feed.AddMessage("Paused message");
 		var label = feed.GetChild<RichTextLabel>(0);
 
-		// Signal paused
 		SignalBus.EmitGamePaused(true);
 
-		// Advance time while paused: should not decay
-		feed._Process(1.5);
-		AssertFloat(label.Modulate.A).IsEqual(1.0f);
-		AssertInt(feed.ActiveMessageCount).IsEqual(1);
+		AssertBool(feed.IsVisibleInTree()).IsTrue();
+		AssertInt((int)feed.ProcessMode).IsEqual((int)Node.ProcessModeEnum.Always);
 
-		// Unpause
-		SignalBus.EmitGamePaused(false);
+		// Messages added or active while the pause/inventory menu is open continue timing and fading cleanly.
 		feed._Process(1.5);
 		AssertFloat(label.Modulate.A).IsLess(0.9f);
+		AssertInt(feed.ActiveMessageCount).IsEqual(1);
 
+		feed._Process(0.6);
+		AssertInt(feed.ActiveMessageCount).IsEqual(0);
+
+		SignalBus.EmitGamePaused(false);
 		feed.QueueFree();
 	}
 }

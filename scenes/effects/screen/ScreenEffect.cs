@@ -83,9 +83,47 @@ public partial class ScreenEffect : Control
 		_fade.TweenProperty(this, PropertyName.Intensity.ToString(), Mathf.Clamp(target, 0f, 1f), Mathf.Max(duration, 0f));
 	}
 
+	/// <summary>
+	/// Plays a one-shot flash: ramps <see cref="Intensity"/> to <paramref name="peak"/> over <paramref name="fadeIn"/>,
+	/// holds for <paramref name="hold"/>, then fades back to zero over <paramref name="fadeOut"/>. Runs even while the
+	/// scene tree is paused so inventory actions still show their feedback.
+	/// </summary>
+	public void Pulse(float fadeIn, float hold, float fadeOut, float peak = 1f)
+	{
+		_fade?.Kill();
+		peak = Mathf.Clamp(peak, 0f, 1f);
+		if (fadeIn <= 0f && hold <= 0f && fadeOut <= 0f)
+		{
+			Intensity = 0f;
+			return;
+		}
+
+		_fade = CreateTween().SetPauseMode(Tween.TweenPauseMode.Process);
+		if (fadeIn > 0f)
+		{
+			_fade.TweenProperty(this, PropertyName.Intensity.ToString(), peak, fadeIn);
+		}
+		else
+		{
+			Intensity = peak;
+		}
+
+		if (hold > 0f)
+		{
+			_fade.TweenInterval(hold);
+		}
+
+		_fade.TweenProperty(this, PropertyName.Intensity.ToString(), 0f, Mathf.Max(fadeOut, 0f));
+	}
+
 	private void ApplyIntensity()
 	{
-		Visible = _intensity > 0f;
+		bool visible = _intensity > 0f;
+		Visible = visible;
+		if (Surface != null)
+		{
+			Surface.Visible = visible;
+		}
 		EffectMaterial?.SetShaderParameter(IntensityParameter, _intensity);
 	}
 }

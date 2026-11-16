@@ -116,8 +116,12 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 	// Slots of the target currently engaged; the running action holds its own.
 	private AttackSlotsComponent _engagedSlots;
 
-	/// <summary>Seed action choices independently from attack and defense execution.</summary>
-	public void ConfigureActionRandom(ulong seed) => _context?.Actions.ConfigureRandom(seed);
+	/// <summary>Seed action and patrol choices independently from attack and defense execution.</summary>
+	public void ConfigureActionRandom(ulong seed)
+	{
+		_context?.Actions.ConfigureRandom(seed);
+		_context?.ConfigurePatrolRandom(GenerationRandom.DeriveSeed(seed, "patrol"));
+	}
 
 	public override void _Ready()
 	{
@@ -150,7 +154,7 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 		_machine = new EnemyStateMachine(_context, new IEnemyState[]
 		{
 			new IdleState(),
-			new PatrollingState(_profile),
+			new PatrollingState(),
 			new SearchingState(),
 			new ChasingState(),
 			new FleeingState(),
