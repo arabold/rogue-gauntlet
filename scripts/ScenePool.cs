@@ -14,6 +14,7 @@ public partial class ScenePool : Node
 	private readonly Dictionary<string, PoolBucket> _pools = [];
 	private readonly Dictionary<Node, string> _nodeKeys = [];
 	private readonly HashSet<Node> _inactiveNodes = [];
+	private readonly HashSet<Node> _poolMoves = [];
 
 	public override void _EnterTree()
 	{
@@ -71,19 +72,23 @@ public partial class ScenePool : Node
 		string key = GetSceneKey(scene);
 		PoolBucket bucket = GetBucket(key, scene);
 		bool reused = bucket.Inactive.Count > 0;
-		Node node = reused ? bucket.Inactive.Pop() : scene.Instantiate<T>();
-		bucket.ActiveCount++;
-		_nodeKeys[node] = key;
-		_inactiveNodes.Remove(node);
-
-		if (node.GetParent() != null)
+		Node node;
+		if (reused)
 		{
-			node.GetParent().RemoveChild(node);
+			node = bucket.Inactive[^1];
+			bucket.Inactive.RemoveAt(bucket.Inactive.Count - 1);
 		}
+		else
+		{
+			node = scene.Instantiate<T>();
+			Track(node, key, bucket);
+		}
+		bucket.ActiveCount++;
+		_inactiveNodes.Remove(node);
 
 		node.ProcessMode = ProcessModeEnum.Inherit;
 		SetVisible(node, true);
-		parent.AddChild(node);
+		Move(node, parent);
 		if (reused)
 		{
 			NotifySpawned(node);
@@ -116,14 +121,36 @@ public partial class ScenePool : Node
 
 		node.ProcessMode = ProcessModeEnum.Disabled;
 		SetVisible(node, false);
-		if (node.GetParent() != null)
-		{
-			node.GetParent().RemoveChild(node);
-		}
-
-		AddChild(node);
+		Move(node, this);
 		_inactiveNodes.Add(node);
-		bucket.Inactive.Push(node);
+		bucket.Inactive.Add(node);
+	}
+
+	/// <summary>External scene teardown must release membership and its managed references immediately.</summary>
+	private void Track(Node node, string key, PoolBucket bucket)
+	{
+		_nodeKeys.Add(node, key);
+		node.TreeExiting += OnTreeExiting;
+		void OnTreeExiting()
+		{
+			if (_poolMoves.Contains(node)) return;
+			node.TreeExiting -= OnTreeExiting;
+			if (!_nodeKeys.Remove(node)) return;
+			if (_inactiveNodes.Remove(node)) bucket.Inactive.Remove(node);
+			else bucket.ActiveCount--;
+		}
+	}
+
+	/// <summary>Pool-owned reparenting keeps membership while ordinary tree exits relinquish it.</summary>
+	private void Move(Node node, Node parent)
+	{
+		_poolMoves.Add(node);
+		try
+		{
+			node.GetParent()?.RemoveChild(node);
+			parent.AddChild(node);
+		}
+		finally { _poolMoves.Remove(node); }
 	}
 
 	private PoolBucket GetBucket(string key, PackedScene scene)
@@ -218,7 +245,7 @@ public partial class ScenePool : Node
 	{
 		public PackedScene Scene = scene;
 		public int ActiveCount;
-		public Stack<Node> Inactive { get; } = [];
+		public List<Node> Inactive { get; } = [];
 	}
 }
 

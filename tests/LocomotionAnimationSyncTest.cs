@@ -107,13 +107,46 @@ public class LocomotionAnimationSyncTest
 		}
 	}
 
-	/// <summary>Monster run clips loop on the monster's own copy of its animation library.</summary>
+	/// <summary>Already-looping imported clips remain shared across monsters.</summary>
 	[TestCase]
 	public void MonsterLocomotionAnimationsLoop()
 	{
-		var skeleton = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>(TestFactories.MinionScene).Instantiate<CharacterBody3D>());
+		var scene = TestFactories.Load<PackedScene>(TestFactories.MinionScene);
+		var skeleton = TestFactories.AddToSceneTree(scene.Instantiate<CharacterBody3D>());
+		var second = TestFactories.AddToSceneTree(scene.Instantiate<CharacterBody3D>());
 		var animTree = skeleton.GetNode<AnimationTree>("EnemyBehaviorComponent/AnimationTree");
 		var animPlayer = animTree.GetNode<AnimationPlayer>(animTree.AnimPlayer);
+		var secondTree = second.GetNode<AnimationTree>("EnemyBehaviorComponent/AnimationTree");
+		var secondPlayer = secondTree.GetNode<AnimationPlayer>(secondTree.AnimPlayer);
 		AssertObject(animPlayer.GetAnimation("Running_A").LoopMode).IsEqual(Animation.LoopModeEnum.Linear);
+		AssertObject(animPlayer.GetAnimation("Running_A")).IsSame(secondPlayer.GetAnimation("Running_A"));
+	}
+
+	[TestCase]
+	public void LoopNormalizationCopiesOnlyClipsThatNeedCorrection()
+	{
+		var originalRun = new Animation();
+		var walk = new Animation { LoopMode = Animation.LoopModeEnum.Linear };
+		var attack = new Animation();
+		var library = new AnimationLibrary();
+		library.AddAnimation("Running", originalRun);
+		library.AddAnimation("Walking", walk);
+		library.AddAnimation("Attack", attack);
+		var first = AutoFree(new AnimationPlayer());
+		var second = AutoFree(new AnimationPlayer());
+		first.AddAnimationLibrary("", library);
+		second.AddAnimationLibrary("", library);
+		CharacterModel.ConfigureAnimationLoops(first);
+		var corrected = first.GetAnimation("Running");
+		AssertThat(corrected.LoopMode).IsEqual(Animation.LoopModeEnum.Linear);
+		AssertObject(corrected).IsNotSame(originalRun);
+		AssertThat(originalRun.LoopMode).IsEqual(Animation.LoopModeEnum.None);
+		AssertObject(first.GetAnimation("Walking")).IsSame(walk);
+		AssertObject(first.GetAnimation("Attack")).IsSame(attack);
+		AssertObject(second.GetAnimationLibrary("")).IsSame(library);
+		var local = first.GetAnimationLibrary("");
+		CharacterModel.ConfigureAnimationLoops(first);
+		AssertObject(first.GetAnimationLibrary("")).IsSame(local);
+		AssertObject(first.GetAnimation("Running")).IsSame(corrected);
 	}
 }

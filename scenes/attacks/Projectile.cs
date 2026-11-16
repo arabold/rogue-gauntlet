@@ -128,6 +128,8 @@ public partial class Projectile : Node3D, IPooledNode
 		SetPhysicsProcess(false);
 		_attacker = null;
 		_homingTarget = null;
+		_assignedTarget = null;
+		_restrictedTarget = false;
 		EffectRoot = null;
 		Element = DamageElement.None;
 		_onHitStatuses = [];

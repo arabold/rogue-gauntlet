@@ -269,7 +269,7 @@ public partial class Preview : SubViewport
 			_swayTime = 0;
 		}
 		SetProcess(true);
-		RenderTargetUpdateMode = UpdateMode.Always;
+		UpdateRenderMode();
 	}
 
 	private void ApplySway()
@@ -283,9 +283,16 @@ public partial class Preview : SubViewport
 		_pivot.Transform = new Transform3D(new Basis(_swayAxis, angle), Vector3.Zero) * _rest;
 	}
 
+	/// <summary>Restores the requested render cadence after a container becomes visible again.</summary>
+	public void RefreshRendering() => UpdateRenderMode();
+
 	private void UpdateRenderMode()
 	{
-		if (IsProcessing() || _aura?.ActiveEffect != null)
+		if (GetParent() is CanvasItem container && !container.IsVisibleInTree())
+		{
+			RenderTargetUpdateMode = UpdateMode.Disabled;
+		}
+		else if (IsProcessing() || _aura?.ActiveEffect != null)
 		{
 			RenderTargetUpdateMode = UpdateMode.Always;
 		}

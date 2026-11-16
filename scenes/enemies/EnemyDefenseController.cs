@@ -297,7 +297,7 @@ public partial class EnemyDefenseController : Node
 		}
 
 		Node3D target = ResolveTarget();
-		if (target == null || !CanObserve(target)) return;
+		if (target == null) return;
 
 		var attackCtrl = _cachedTargetAttackCtrl;
 		if (!ReferenceEquals(_cachedTarget, target) || attackCtrl == null || !GodotObject.IsInstanceValid(attackCtrl))
@@ -318,6 +318,8 @@ public partial class EnemyDefenseController : Node
 		Vector3 targetPos = GetPosition(target);
 		float dist = enemyPos.DistanceTo(targetPos);
 		if (dist > MeleeThreatDistance) return;
+		// Sight is meaningful only for a new, nearby melee wind-up, not for every idle opponent tick.
+		if (!CanObserve(target)) return;
 
 		// If already guarding, incoming attack refreshes pressure
 		if (GuardComponent != null && GuardComponent.IsGuarding)
@@ -426,7 +428,9 @@ public partial class EnemyDefenseController : Node
 		_projectilesBuffer.Clear();
 		if (IsInsideTree() && GetTree() != null)
 		{
-			var nodes = GetTree().GetNodesInGroup(ProjectileGroup);
+			var tree = GetTree();
+			if (tree.GetNodeCountInGroup(ProjectileGroup) == 0) return;
+			var nodes = tree.GetNodesInGroup(ProjectileGroup);
 			foreach (Node node in nodes)
 			{
 				if (node is Projectile p) _projectilesBuffer.Add(p);

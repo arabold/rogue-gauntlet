@@ -26,8 +26,7 @@ public partial class ItemIcon : Control
 
 	/// <summary>
 	/// Whether there is an item to show. An empty icon is drawn plain: the halo is worked out for every pixel of the
-	/// view, and most slots on screen are empty. The view stays visible throughout, because a view coming back into
-	/// sight is set to render every frame, which a still icon must not.
+	/// view, and most slots on screen are empty.
 	/// </summary>
 	public bool Filled
 	{
@@ -45,7 +44,15 @@ public partial class ItemIcon : Control
 	public override void _Ready()
 	{
 		Resized += Fit;
+		View.VisibilityChanged += OnViewVisibilityChanged;
 		Fit();
+	}
+
+	private void OnViewVisibilityChanged()
+	{
+		// The native container sets visible viewports to Always after its visibility notification.
+		// Reapply the preview's idle/animation policy once that notification has finished.
+		if (View.IsVisibleInTree()) Preview.CallDeferred(global::Preview.MethodName.RefreshRendering);
 	}
 
 	private void Fit()

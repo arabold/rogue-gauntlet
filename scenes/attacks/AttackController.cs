@@ -21,6 +21,7 @@ public partial class AttackController : Node, IParryInterruptible
 	public AttackDefinition CurrentAttack => _currentAttack;
 	public bool IsRanged => _currentAttack?.IsRanged ?? false;
 	private PreparedAttack _preparedAttack;
+	private Vector2[] _indicatorFootprint = [];
 	/// <summary>The actor's action gate. Unassigned runs attacks without action ownership, phases or hyper-armor.</summary>
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
 	private ActorActionLease _actionLease;
@@ -190,6 +191,7 @@ public partial class AttackController : Node, IParryInterruptible
 		_executionSequence++;
 		_preparedAttack = attack;
 		_currentAttack = def;
+		_indicatorFootprint = def.IsRanged || attack.Spell != null ? [] : def.MeleeContact.FootprintOutline();
 		_currentHit = hit;
 		_targetMask = targetMask;
 
@@ -371,7 +373,7 @@ public partial class AttackController : Node, IParryInterruptible
 					followsWeapon = swooshTriggered && _swoosh.FollowsWeapon;
 			}
 				else swooshReason = EffectsEnabled ? "not_configured" : "effects_disabled";
-				CombatTrace.Write(this, "effect.melee_swoosh", ("execution", _executionSequence),
+				if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.melee_swoosh", ("execution", _executionSequence),
 					("scene", profile.SwooshScene?.ResourcePath ?? ""), ("reach", profile.Reach),
 						("follows_weapon", followsWeapon),
 						("samples", swooshTriggered ? _swoosh.TrailSampleCount : 0),
@@ -426,7 +428,7 @@ public partial class AttackController : Node, IParryInterruptible
 		Vector3 direction = HasCommittedFacing ? CommittedFacing : GetActorForward();
 		float length = _currentAttack.Range;
 		Vector3[] directions = null;
-		Vector2[] footprint = _currentAttack.IsRanged ? [] : _currentAttack.MeleeContact.FootprintOutline();
+		Vector2[] footprint = _indicatorFootprint;
 		if (_currentAttack.IsRanged)
 		{
 			Node3D warningTarget;
@@ -544,7 +546,7 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		float requestedDuration = _currentAttack.HitStopDuration * scale;
 		bool started = _execution.IsRunning && requestedDuration > 0 && _execution.TryStartHitStop(requestedDuration);
-		CombatTrace.Write(this, "effect.hit_stop", ("execution", _executionSequence),
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.hit_stop", ("execution", _executionSequence),
 			("requested_duration", requestedDuration), ("duration", started ? requestedDuration : 0),
 			("triggered", started));
 		if (started) EmitSignalHitStopStarted(requestedDuration);

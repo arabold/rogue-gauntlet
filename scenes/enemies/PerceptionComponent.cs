@@ -17,6 +17,7 @@ public partial class PerceptionComponent : Node
 	private CharacterBody3D _actor;
 	private EnemyBehaviorProfile _profile;
 	private RayCast3D _sightRay;
+	private PhysicsRayQueryParameters3D _query;
 
 	/// <summary>
 	/// Wires the component to the actor that perceives and the <see cref="RayCast3D"/> whose
@@ -28,6 +29,8 @@ public partial class PerceptionComponent : Node
 		_actor = actor;
 		_profile = profile;
 		_sightRay = sightRay;
+		_query ??= new PhysicsRayQueryParameters3D();
+		_query.Exclude = [actor.GetRid()];
 	}
 
 	/// <summary>
@@ -87,10 +90,7 @@ public partial class PerceptionComponent : Node
 		if (distance >= _profile.DetectionRange * _profile.CloseDetectionRangeMultiplier && !IsWithinVisionCone(node)) return false;
 		Vector3 eye = _sightRay.GlobalPosition;
 		Vector3 to = new(node.GlobalPosition.X, eye.Y, node.GlobalPosition.Z);
-		var query = PhysicsRayQueryParameters3D.Create(eye, to, 1 | 2 | 16);
-		query.Exclude = new Godot.Collections.Array<Rid> { _actor.GetRid() };
-		var result = _sightRay.GetWorld3D().DirectSpaceState.IntersectRay(query);
-		return result.Count == 0 || result["collider"].Obj == node;
+		return HasLineOfSight(eye, to, 1 | 2 | 16, node);
 	}
 
 	private bool IsWithinVisionCone(Node3D node)
@@ -125,10 +125,15 @@ public partial class PerceptionComponent : Node
 		Vector3 from = new Vector3(_actor.GlobalPosition.X, eyeHeight, _actor.GlobalPosition.Z);
 		Vector3 to = new Vector3(node.GlobalPosition.X, eyeHeight, node.GlobalPosition.Z);
 
-		var space = _sightRay.GetWorld3D().DirectSpaceState;
-		var query = PhysicsRayQueryParameters3D.Create(from, to, _sightRay.CollisionMask);
-		query.Exclude = new Godot.Collections.Array<Rid> { _actor.GetRid() };
-		var result = space.IntersectRay(query);
+		return HasLineOfSight(from, to, _sightRay.CollisionMask, node);
+	}
+
+	private bool HasLineOfSight(Vector3 from, Vector3 to, uint mask, Node3D node)
+	{
+		_query.From = from;
+		_query.To = to;
+		_query.CollisionMask = mask;
+		using var result = _sightRay.GetWorld3D().DirectSpaceState.IntersectRay(_query);
 		// A tall or short actor can cast above/below the target body. An empty ray is still clear.
 		return result.Count == 0 || result["collider"].Obj == node;
 	}
