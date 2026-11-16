@@ -18,15 +18,50 @@ public partial class HudMessageFeed : VBoxContainer, ILogSink
 	[Export(PropertyHint.Range, "1,15,0.5")] public float MessageDurationSeconds { get; set; } = 5.0f;
 	[Export(PropertyHint.Range, "0.1,3,0.05")] public float FadeDurationSeconds { get; set; } = 0.75f;
 
-	[Export] public Color InfoColor { get; set; } = new(0.89f, 0.91f, 0.94f); // #E2E8F0 Soft Silver
-	[Export] public Color DiscoveryColor { get; set; } = new(0.22f, 0.74f, 0.97f); // #38BDF8 Electric Cyan
-	[Export] public Color ExperienceColor { get; set; } = new(0.75f, 0.52f, 0.99f); // #C084FC Arcane Lilac
-	[Export] public Color GoldColor { get; set; } = new(0.98f, 0.8f, 0.08f); // #FACC15 Warm Gold
-	[Export] public Color ItemPickupColor { get; set; } = new(0.43f, 0.91f, 0.72f); // #6EE7B7 Mint Jade
-	[Export] public Color EquipmentColor { get; set; } = new(0.58f, 0.77f, 0.99f); // #93C5FD Steel Blue
-	[Export] public Color WarningColor { get; set; } = new(0.98f, 0.57f, 0.24f); // #FB923C Amber Orange
-	[Export] public Color ErrorColor { get; set; } = new(0.97f, 0.44f, 0.44f); // #F87171 Soft Red
-	[Export] public Color KeywordColor { get; set; } = new(1f, 1f, 1f); // Bright White
+	public static readonly Color DefaultInfoColor = new(0.89f, 0.91f, 0.94f); // #E2E8F0 Soft Silver
+	public static readonly Color DefaultDiscoveryColor = new(0.22f, 0.74f, 0.97f); // #38BDF8 Electric Cyan
+	public static readonly Color DefaultExperienceColor = new(0.75f, 0.52f, 0.99f); // #C084FC Arcane Lilac
+	public static readonly Color DefaultGoldColor = new(0.98f, 0.8f, 0.08f); // #FACC15 Warm Gold
+	public static readonly Color DefaultItemPickupColor = new(0.43f, 0.91f, 0.72f); // #6EE7B7 Mint Jade
+	public static readonly Color DefaultEquipmentColor = new(0.58f, 0.77f, 0.99f); // #93C5FD Steel Blue
+	public static readonly Color DefaultWarningColor = new(0.98f, 0.57f, 0.24f); // #FB923C Amber Orange
+	public static readonly Color DefaultErrorColor = new(0.97f, 0.44f, 0.44f); // #F87171 Soft Red
+	public static readonly Color DefaultKeywordColor = new(1f, 1f, 1f); // Bright White
+
+	[Export] public Color InfoColor { get; set; } = DefaultInfoColor;
+	[Export] public Color DiscoveryColor { get; set; } = DefaultDiscoveryColor;
+	[Export] public Color ExperienceColor { get; set; } = DefaultExperienceColor;
+	[Export] public Color GoldColor { get; set; } = DefaultGoldColor;
+	[Export] public Color ItemPickupColor { get; set; } = DefaultItemPickupColor;
+	[Export] public Color EquipmentColor { get; set; } = DefaultEquipmentColor;
+	[Export] public Color WarningColor { get; set; } = DefaultWarningColor;
+	[Export] public Color ErrorColor { get; set; } = DefaultErrorColor;
+	[Export] public Color KeywordColor { get; set; } = DefaultKeywordColor;
+
+	public static Color DefaultColorFor(LogSeverity severity) => severity switch
+	{
+		LogSeverity.Discovery => DefaultDiscoveryColor,
+		LogSeverity.Experience => DefaultExperienceColor,
+		LogSeverity.Gold => DefaultGoldColor,
+		LogSeverity.ItemPickup => DefaultItemPickupColor,
+		LogSeverity.Equipment => DefaultEquipmentColor,
+		LogSeverity.Warning => DefaultWarningColor,
+		LogSeverity.Error => DefaultErrorColor,
+		_ => DefaultInfoColor,
+	};
+
+	public static string FormatMessageBbcode(string text, Color keywordColor)
+	{
+		if (string.IsNullOrEmpty(text) || !text.Contains("[b]", StringComparison.Ordinal))
+		{
+			return text ?? "";
+		}
+
+		string hex = keywordColor.ToHtml(false);
+		return text
+			.Replace("[b]", $"[b][color=#{hex}]", StringComparison.Ordinal)
+			.Replace("[/b]", "[/color][/b]", StringComparison.Ordinal);
+	}
 
 	private sealed class FeedItem
 	{
@@ -40,7 +75,6 @@ public partial class HudMessageFeed : VBoxContainer, ILogSink
 	}
 
 	private readonly List<FeedItem> _items = new();
-	private bool _isPaused;
 
 	public int ActiveMessageCount => _items.Count;
 
@@ -57,25 +91,17 @@ public partial class HudMessageFeed : VBoxContainer, ILogSink
 	public override void _EnterTree()
 	{
 		base._EnterTree();
+		ProcessMode = ProcessModeEnum.Always;
+		ZIndex = 20;
 		SetProcess(false);
 		MouseFilter = MouseFilterEnum.Ignore;
 		GameLog.AddSink(this);
-
-		this.SubscribeUntilExit(
-			SignalBus.Instance,
-			bus => bus.GamePaused += OnGamePaused,
-			bus => bus.GamePaused -= OnGamePaused);
 	}
 
 	public override void _ExitTree()
 	{
 		GameLog.RemoveSink(this);
 		base._ExitTree();
-	}
-
-	private void OnGamePaused(bool isPaused)
-	{
-		_isPaused = isPaused;
 	}
 
 	public void Log(in LogEntry entry)
@@ -99,7 +125,13 @@ public partial class HudMessageFeed : VBoxContainer, ILogSink
 		}
 		else
 		{
-			Callable.From(() => AddMessage(message, severity)).CallDeferred();
+			Callable.From(() =>
+			{
+				if (GodotObject.IsInstanceValid(this) && IsInsideTree())
+				{
+					AddMessage(message, severity);
+				}
+			}).CallDeferred();
 		}
 	}
 
@@ -180,22 +212,11 @@ public partial class HudMessageFeed : VBoxContainer, ILogSink
 		}
 	}
 
-	private string FormatBbcode(string text)
-	{
-		if (string.IsNullOrEmpty(text) || !text.Contains("[b]", StringComparison.Ordinal))
-		{
-			return text ?? "";
-		}
-
-		string hex = KeywordColor.ToHtml(false);
-		return text
-			.Replace("[b]", $"[b][color=#{hex}]", StringComparison.Ordinal)
-			.Replace("[/b]", "[/color][/b]", StringComparison.Ordinal);
-	}
+	private string FormatBbcode(string text) => FormatMessageBbcode(text, KeywordColor);
 
 	public override void _Process(double delta)
 	{
-		if (_isPaused || _items.Count == 0)
+		if (_items.Count == 0)
 		{
 			return;
 		}

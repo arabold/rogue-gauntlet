@@ -15,7 +15,7 @@ public enum RunOutcome
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 96;
+	public const int CurrentVersion = 98;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -36,6 +36,15 @@ public sealed class SaveGame
 	public PlayerSaveData Player { get; set; } = new();
 	public WorldSaveData World { get; set; } = new();
 	public IdentificationSaveData Identification { get; set; } = new();
+	/// <summary>Chronological player log entries displayed in the Notes tab.</summary>
+	public List<NoteEntrySaveData> Notes { get; set; } = [];
+}
+
+/// <summary>One persisted entry from the hero's run log (<see cref="NotesTab"/>).</summary>
+public sealed class NoteEntrySaveData
+{
+	public string Message { get; set; } = string.Empty;
+	public int Severity { get; set; }
 }
 
 /// <summary>

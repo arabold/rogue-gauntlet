@@ -1,4 +1,4 @@
-[gd_resource type="Environment" load_steps=3 format=3]
+[gd_resource type="Environment" format=3 uid="uid://cf5si4pid8r3s"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ReflectionSky"]
 sky_top_color = Color(0.24, 0.32, 0.46, 1)
@@ -20,32 +20,30 @@ ambient_light_energy = 0.34
 reflected_light_source = 2
 tonemap_mode = 3
 tonemap_exposure = 1.1
-glow_enabled = true
-glow_intensity = 0.24
-glow_bloom = 0.025
-glow_hdr_threshold = 1.2
 ssao_enabled = true
 ssao_radius = 0.7
 ssao_intensity = 1.25
 ssao_power = 1.35
 ssao_detail = 0.25
-ssao_horizon = 0.06
 ssao_sharpness = 0.8
 ssao_light_affect = 0.15
-ssil_enabled = false
+glow_enabled = true
+glow_intensity = 0.24
+glow_bloom = 0.025
+glow_hdr_threshold = 1.2
 fog_enabled = true
 fog_light_color = Color(0.16, 0.23, 0.3, 1)
 fog_light_energy = 0.45
 fog_density = 0.006
+fog_sky_affect = 0.0
 fog_height = -0.4
 fog_height_density = 0.18
-fog_sky_affect = 0.0
 volumetric_fog_enabled = true
 volumetric_fog_density = 0.0
 volumetric_fog_albedo = Color(0.8, 0.84, 0.9, 1)
+volumetric_fog_gi_inject = 0.0
 volumetric_fog_length = 45.0
 volumetric_fog_detail_spread = 1.0
-volumetric_fog_gi_inject = 0.0
 volumetric_fog_ambient_inject = 0.35
 volumetric_fog_sky_affect = 0.0
 volumetric_fog_temporal_reprojection_enabled = false

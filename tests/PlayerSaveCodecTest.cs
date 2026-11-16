@@ -136,4 +136,46 @@ public class PlayerSaveCodecTest
 		AssertBool(copy != stats).IsTrue();
 		AssertString(JsonSerializer.Serialize(copy.CreateSaveData())).IsEqual(JsonSerializer.Serialize(stats.CreateSaveData()));
 	}
+
+	private sealed class EquipmentLogSink : ILogSink
+	{
+		public int EquipmentMessages { get; private set; }
+		public void Log(in LogEntry entry)
+		{
+			if (entry.Severity == LogSeverity.Equipment) EquipmentMessages++;
+		}
+	}
+
+	[TestCase]
+	public void InitialAutoEquipAndSaveRestoreStayQuietWhileManualEquipSpeaks()
+	{
+		GameLog.ResetToDefaults();
+		GameLog.IsConsoleSinkEnabled = false;
+		var sink = new EquipmentLogSink();
+		GameLog.AddSink(sink);
+		var narrator = TestFactories.AddToSceneTree(new GameNarrator());
+		try
+		{
+			PackedScene playerScene = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn");
+			Player player = TestFactories.AddToSceneTree(playerScene.Instantiate<Player>());
+			AssertBool(player.Inventory.EquippedItems.Values.Any(slot => slot != null)).IsTrue();
+			var saved = JsonSerializer.Deserialize<PlayerSaveData>(JsonSerializer.Serialize(PlayerSaveCodec.Capture(player, false)));
+
+			Player restored = TestFactories.AddToSceneTree(playerScene.Instantiate<Player>());
+			PlayerSaveCodec.Apply(restored, saved);
+			AssertInt(sink.EquipmentMessages).IsEqual(0);
+
+			var ring = ItemFactory.Create(TestFactories.Load<Item>("res://scenes/items/jewelry/ring/ring_strength_1.tres"));
+			AssertBool(restored.Inventory.TryAdd(ring).Success).IsTrue();
+			InventoryItemSlot ringSlot = restored.Inventory.Items.Last();
+			AssertBool(restored.InventoryController.TryEquip(ringSlot, EquipmentSlot.LeftRing).Success).IsTrue();
+			AssertBool(restored.InventoryController.TryUnequip(ringSlot).Success).IsTrue();
+			AssertInt(sink.EquipmentMessages).IsEqual(2);
+		}
+		finally
+		{
+			if (GodotObject.IsInstanceValid(narrator)) narrator.QueueFree();
+			GameLog.ResetToDefaults();
+		}
+	}
 }

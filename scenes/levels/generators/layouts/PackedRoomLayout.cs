@@ -49,6 +49,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 		// The entrance anchors the cluster at the map center so it can grow in every direction.
 		var entranceRoom = factory.CreateEntrance(rng);
+		entranceRoom.Rotate(rng.RandiRange(0, 3));
 		var entrancePlacement = new Vector2I(
 			(map.Width - entranceRoom.Map.Width) / 2,
 			(map.Height - entranceRoom.Map.Height) / 2);
@@ -61,13 +62,17 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		}
 		AddPlacement(map, rooms, entranceRoom, entrancePlacement);
 
+		var uses = new Dictionary<RoomType, int>();
 		var entranceCenter = PlacementCenter(rooms[0]);
 		for (int i = 0; i < maxRooms; i++)
 		{
 			var clusterCenter = ComputeClusterCenter(rooms);
-			TryAddPackedRoom(map, rooms,
-				() => factory.CreateStandardRoom(rng),
-				(placement, roomMap, connectors) => ScoreCompactPlacement(map, clusterCenter, placement, roomMap, connectors), rng);
+			if (TryAddPackedRoom(map, rooms,
+				() => CreateBalancedRoom(factory, rng, uses),
+				(placement, roomMap, connectors) => ScoreCompactPlacement(map, clusterCenter, placement, roomMap, connectors), rng))
+			{
+				RecordRoomUse(uses, rooms[^1].Room);
+			}
 		}
 
 		PlaceExit(map, rooms, factory, entranceCenter, rng);
@@ -136,31 +141,19 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// <summary>
 	/// Tries all 4 quarter-turn orientations of the same room instance -- not 4
 	/// independently created rooms, which for a procedurally built room would each be a
-	/// different random shape rather than the one being evaluated -- and keeps whichever
-	/// (position, rotation) pair scores best. Rotating never hurts: "unrotated" is one
-	/// of the 4 options considered, so this can only ever match or beat placing the
-	/// room without rotation.
+	/// different random shape rather than the one being evaluated -- and chooses randomly
+	/// among the candidates across all orientations within <see cref="ScoreTolerance"/> of
+	/// the overall best score.
 	/// </summary>
 	private bool TryFindBestPlacementAcrossRotations(
 		MapData map, List<RoomPlacement> rooms, Room room,
 		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, RandomNumberGenerator rng,
 		out Vector2I bestPlacement)
 	{
-		bestPlacement = default;
-		int bestRotationSteps = 0;
-		float bestScore = float.NegativeInfinity;
-		bool found = false;
-
+		var scored = new List<(int Steps, Vector2I Position, float Score)>();
 		for (int steps = 0; steps < 4; steps++)
 		{
-			if (TryFindBestPlacement(map, rooms, room.Map, score, rng, out var placement, out float placementScore)
-				&& placementScore > bestScore)
-			{
-				bestScore = placementScore;
-				bestPlacement = placement;
-				bestRotationSteps = steps;
-				found = true;
-			}
+			CollectScoredPlacements(map, rooms, room.Map, score, steps, scored);
 
 			// Always rotate, even on the last iteration: 4 quarter turns bring the room
 			// back to its original orientation, so it ends up exactly where the winning
@@ -168,21 +161,40 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 			room.Rotate(1);
 		}
 
-		if (found)
+		if (scored.Count == 0)
 		{
-			room.Rotate(bestRotationSteps);
+			bestPlacement = default;
+			return false;
 		}
 
-		return found;
+		// Pick randomly among the near-best (position, rotation) candidates. The list is
+		// insertion-ordered (not hash-ordered), so the same seed yields the same layout.
+		float best = float.NegativeInfinity;
+		foreach (var candidate in scored)
+		{
+			if (candidate.Score > best) best = candidate.Score;
+		}
+		float cutoff = best - Mathf.Max(ScoreTolerance, 0f);
+		int topCount = 0;
+		for (int i = 0; i < scored.Count; i++)
+		{
+			if (scored[i].Score >= cutoff)
+			{
+				scored[topCount++] = scored[i];
+			}
+		}
+		var chosen = scored[rng.RandiRange(0, topCount - 1)];
+		room.Rotate(chosen.Steps);
+		bestPlacement = chosen.Position;
+		return true;
 	}
 
-	private bool TryFindBestPlacement(
+	private void CollectScoredPlacements(
 		MapData map, List<RoomPlacement> rooms, MapData roomMap,
-		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, RandomNumberGenerator rng,
-		out Vector2I placement, out float placementScore)
+		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, int steps,
+		List<(int Steps, Vector2I Position, float Score)> scored)
 	{
 		var connectors = GetRoomConnectors(roomMap);
-		var scored = new List<(Vector2I Position, float Score)>();
 		foreach (var candidate in CollectCandidates(map, rooms, roomMap))
 		{
 			if (map.Intersects(roomMap, candidate))
@@ -190,28 +202,8 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 				continue;
 			}
 
-			scored.Add((candidate, score(candidate, roomMap, connectors)));
+			scored.Add((steps, candidate, score(candidate, roomMap, connectors)));
 		}
-
-		if (scored.Count == 0)
-		{
-			placement = default;
-			placementScore = float.NegativeInfinity;
-			return false;
-		}
-
-		// Pick randomly among the near-best candidates for variety. The candidate list is
-		// insertion-ordered (not hash-ordered), so the same seed yields the same layout.
-		float best = scored.Max(c => c.Score);
-		var top = scored.Where(c => c.Score >= best - Mathf.Max(ScoreTolerance, 0f)).ToList();
-		var chosen = top[rng.RandiRange(0, top.Count - 1)];
-		placement = chosen.Position;
-		// Report the CHOSEN candidate's score, not the max -- the caller compares this
-		// across rotations to pick the winning orientation, so it must reflect the
-		// placement actually returned, otherwise a rotation could win on a high-scoring
-		// candidate it didn't pick.
-		placementScore = chosen.Score;
-		return true;
 	}
 
 	/// <summary>

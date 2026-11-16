@@ -342,11 +342,10 @@ public sealed class GeneratedFloor
 	}
 
 	/// <summary>
-	/// Picks a uniformly random free floor/corridor tile anywhere on the map, for effects like a teleport scroll that
-	/// relocate the player rather than spawn near a point. Uses its own RNG rather than the run's seeded loot RNG, since
-	/// a teleport's outcome should not consume or depend on the loot-roll sequence.
+	/// Picks a uniformly random free floor/corridor tile anywhere on the map using <paramref name="rng"/>, for effects
+	/// like a teleport scroll that relocate the player rather than spawn near a point.
 	/// </summary>
-	public bool TryPickRandomFreePosition(out Vector3 position)
+	public bool TryPickRandomFreePosition(RandomNumberGenerator rng, out Vector3 position)
 	{
 		var accessible = FreelyAccessibleTiles();
 		List<Vector3> candidates = OpenTileCandidates()
@@ -357,13 +356,7 @@ public sealed class GeneratedFloor
 			return false;
 		}
 
-		var rng = new RandomNumberGenerator();
-		rng.Randomize();
-		for (int i = candidates.Count - 1; i > 0; i--)
-		{
-			int j = rng.RandiRange(0, i);
-			(candidates[i], candidates[j]) = (candidates[j], candidates[i]);
-		}
+		GenerationRandom.Shuffle(candidates, rng);
 
 		foreach (Vector3 candidate in candidates)
 		{

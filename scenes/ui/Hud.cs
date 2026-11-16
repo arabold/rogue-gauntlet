@@ -27,6 +27,7 @@ public partial class Hud : Control
 	private System.Action _unsubscribeInteraction = () => { };
 	private System.Action _unsubscribeMana = () => { };
 	private Tween _manaFlash;
+	private bool _interactionWasVisible;
 
 	public override void _Ready()
 	{
@@ -90,8 +91,30 @@ public partial class Hud : Control
 			m => m.ManaShortfall -= OnManaShortfall);
 	}
 
-	/// <summary>The run menu covers the paused game and shows these readouts itself, so the HUD steps aside for it.</summary>
-	private void OnGamePaused(bool isPaused) => Visible = !isPaused;
+	/// <summary>The run menu covers the paused game and shows its readouts itself, while keeping the message feed visible for actions taken in the menu.</summary>
+	private void OnGamePaused(bool isPaused)
+	{
+		if (isPaused)
+		{
+			_interactionWasVisible = InteractionContainer.Visible;
+			InteractionContainer.Visible = false;
+		}
+
+		foreach (Node child in GetChildren())
+		{
+			if (child is not Control control || control is HudMessageFeed || control == InteractionContainer)
+			{
+				continue;
+			}
+
+			control.Visible = !isPaused;
+		}
+
+		if (!isPaused)
+		{
+			InteractionContainer.Visible = _interactionWasVisible;
+		}
+	}
 
 	/// <summary>
 	/// Flashes the mana bar when a cast is refused. A buffered press retries for a few frames, so a flash already

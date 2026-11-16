@@ -9,7 +9,7 @@ uniform sampler2D screen_texture : hint_screen_texture, filter_linear;
 uniform float intensity : hint_range(0.0, 1.0) = 0.0;
 // Driven by BlindnessScreenEffect: focus position in screen UV and radius as a fraction of screen height.
 uniform vec2 focus_uv = vec2(0.5);
-uniform float sight_radius : hint_range(0.0, 2.0) = 0.15;
+uniform float sight_radius : hint_range(0.0, 2.0) = 0.075;
 // Fraction of the radius used for the soft falloff into darkness.
 uniform float edge_softness : hint_range(0.0, 1.0) = 0.6;
 uniform vec3 tint : source_color = vec3(0.62, 0.64, 0.7);

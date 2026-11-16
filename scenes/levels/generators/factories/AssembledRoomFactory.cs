@@ -34,14 +34,16 @@ public partial class AssembledRoomFactory : Resource
 
 	public Room CreateEntrance(RandomNumberGenerator rng) => Assemble(EntranceTypes, "entrance", rng);
 	public Room CreateExit(RandomNumberGenerator rng) => Assemble(ExitTypes, "exit", rng);
-	public Room CreateStandardRoom(RandomNumberGenerator rng) => Assemble(RoomTypes, "room", rng);
+	public Room CreateStandardRoom(RandomNumberGenerator rng, Func<RoomType, int> getUses = null) => Assemble(RoomTypes, "room", rng, getUses);
 
 	/// <summary>A selected type must succeed: substituting another room would hide broken authoring.</summary>
-	private Room Assemble(RoomType[] types, string slot, RandomNumberGenerator rng)
+	private Room Assemble(RoomType[] types, string slot, RandomNumberGenerator rng, Func<RoomType, int> getUses = null)
 	{
 		if (types.Length == 0 || types.Any(type => type == null))
 			throw new InvalidOperationException($"Room factory: assign every {slot} type entry{(RealmId == null ? "" : $" for realm '{RealmId}'")}.");
-		var type = Weighted.Pick(types, entry => entry.Weight, rng);
+		var type = getUses == null
+			? Weighted.Pick(types, entry => entry.Weight, rng)
+			: Weighted.PickBalanced(types, entry => entry.Weight, getUses, rng);
 		return RoomAssembler.Assemble(type, ((ulong)rng.Randi() << 32) | rng.Randi(), RealmId);
 	}
 }

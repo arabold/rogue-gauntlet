@@ -161,6 +161,7 @@ public class FountainTest
 		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
 		player.Position = position;
 		TestFactories.AddToSceneTree(player);
+		player.MovementComponent.SetPhysicsProcess(false);
 		return (level, player);
 	}
 

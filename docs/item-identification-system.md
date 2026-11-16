@@ -219,7 +219,7 @@ both are saved with the item:
 | Learned by | Type (run-wide) | This item's attributes | Curse status |
 | --- | --- | --- | --- |
 | Consuming a potion or scroll | ✓ | – | – |
-| Wearing equipment | ✓ | ✓ | – |
+| Wearing equipment | ✓ | ✓ | ✓ |
 | Trying to remove a worn cursed item | – | – | ✓ (cursed) |
 | Scroll of Identify | ✓ | ✓ | ✓ |
 | Scroll of Enchantment | – | ✓ | ✓ (lifted) |
@@ -233,8 +233,8 @@ Run-wide and per-item knowledge have separate owners:
   `SignalBus.ItemIdentified(typeId)`, and every open item slot relabels.
 - **One item:** each `EquipableItem` owns what is known about it.
   - `RevealAttributes()` runs from `OnEquipped`, from the scroll of identify and from enchanting.
-  - `RevealCurseStatus()` runs from the scroll of identify, and from `PlayerInventoryController` when the
-    player's own unequip, equip or drop is blocked by a curse.
+  - `RevealCurseStatus()` runs from `OnEquipped`, from the scroll of identify, and from
+    `PlayerInventoryController` when the player's own unequip, equip or drop is blocked by a curse.
   - `LiftCurse()` runs from Enchant and Remove Curse.
 
   Each emits the item's own `Changed`, which `ItemSlotPanel` follows to relabel just that slot.

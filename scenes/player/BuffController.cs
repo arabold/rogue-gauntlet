@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
@@ -21,6 +22,8 @@ public partial class BuffController : Node
 	/// <summary>The actor buffs act on; a controller without an <see cref="IBuffTarget"/> actor still serves its own health.</summary>
 	public IBuffTarget Target => Actor as IBuffTarget ?? (_standalone ??= new StandaloneTarget(this));
 	private StandaloneTarget _standalone;
+
+	private bool ShouldNarratePlayer(bool narrate = true) => Actor is Player && narrate && Health?.IsDead != true;
 
 	/// <summary>Health and buffs only, for controllers wired without a full actor (tests, props).</summary>
 	private sealed class StandaloneTarget(BuffController controller) : IBuffTarget
@@ -78,6 +81,7 @@ public partial class BuffController : Node
 	public BuffApplication ApplyBuff(Buff buff)
 	{
 		if (buff?.IsValid != true || Target == null || !buff.CanApplyTo(Target)) return BuffApplication.Rejected;
+		bool hadCondition = buff.Condition != null && HasCondition(buff.Condition);
 		string key = buff.RefreshKey;
 		if (key.Length > 0)
 		{
@@ -86,6 +90,10 @@ public partial class BuffController : Node
 			{
 				existing.Refresh(buff.Duration);
 				Trace("buff.refreshed", existing);
+				if (ShouldNarratePlayer())
+				{
+					SignalBus.EmitPlayerBuffRefreshed(buff);
+				}
 				EmitSignalBuffsChanged();
 				return BuffApplication.Refreshed;
 			}
@@ -94,6 +102,10 @@ public partial class BuffController : Node
 		GameDebug.Combat($"{Actor?.Name ?? Name} applied buff {buff.Name}");
 		RemoveWhere(active => active.Buff.Condition != null && buff.CuredConditions.Contains(active.Buff.Condition), "cured");
 		AddActivation(buff);
+		if (ShouldNarratePlayer())
+		{
+			SignalBus.EmitPlayerBuffApplied(buff, hadCondition);
+		}
 		EmitSignalBuffsChanged();
 		return BuffApplication.Applied;
 	}
@@ -110,21 +122,33 @@ public partial class BuffController : Node
 	public bool ApplyStatus(StatusCondition condition, object source, float duration)
 	{
 		if (condition == null || source == null || !float.IsFinite(duration) || duration <= 0 || Health?.IsDead == true) return false;
+		bool hadCondition = HasCondition(condition);
 		var existing = ActiveBuffs.FirstOrDefault(a => !a.IsExpired && ReferenceEquals(a.Source, source) && a.Buff.Condition == condition);
-		if (existing != null) { existing.Refresh(duration); UpdateProcessing(); }
+		if (existing != null)
+		{
+			existing.Refresh(duration);
+			UpdateProcessing();
+		}
 		else
-			AddActivation(new Buff { Name = condition.ResourceName, Condition = condition, Duration = duration }, source);
+		{
+			var statusBuff = new Buff { Name = condition.ResourceName, Condition = condition, Duration = duration };
+			AddActivation(statusBuff, source);
+			if (ShouldNarratePlayer())
+			{
+				SignalBus.EmitPlayerBuffApplied(statusBuff, hadCondition);
+			}
+		}
 		EmitSignalBuffsChanged();
 		return true;
 	}
 
 	/// <summary>Enable or disable one persistent condition source without disturbing other sources.</summary>
-	public bool SetPersistentStatus(StatusCondition condition, object source, bool enabled)
+	public bool SetPersistentStatus(StatusCondition condition, object source, bool enabled, bool narrate = true)
 	{
 		if (condition == null || source == null || (enabled && Health?.IsDead == true)) return false;
 		if (!enabled)
 		{
-			if (RemoveWhere(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition, "removed")) EmitSignalBuffsChanged();
+			if (RemoveWhere(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition, "removed", narrate)) EmitSignalBuffsChanged();
 			return true;
 		}
 		var existing = ActiveBuffs.FirstOrDefault(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition && !a.IsExpired);
@@ -133,7 +157,13 @@ public partial class BuffController : Node
 			if (!existing.IsPermanent) { existing.Refresh(0); UpdateProcessing(); EmitSignalBuffsChanged(); }
 			return true;
 		}
-		AddActivation(new Buff { Name = condition.ResourceName, Condition = condition, Duration = 0 }, source);
+		bool hadCondition = HasCondition(condition);
+		var statusBuff = new Buff { Name = condition.ResourceName, Condition = condition, Duration = 0 };
+		AddActivation(statusBuff, source);
+		if (ShouldNarratePlayer(narrate))
+		{
+			SignalBus.EmitPlayerBuffApplied(statusBuff, hadCondition);
+		}
 		EmitSignalBuffsChanged();
 		return true;
 	}
@@ -145,7 +175,7 @@ public partial class BuffController : Node
 		foreach (var condition in conditions)
 		{
 			if (condition == null) { GD.PushWarning($"{Name}: initial conditions contain an empty entry."); continue; }
-			SetPersistentStatus(condition, source, true);
+			SetPersistentStatus(condition, source, true, narrate: false);
 		}
 	}
 
@@ -169,7 +199,7 @@ public partial class BuffController : Node
 	/// <summary>Removes every active buff, reversing each exactly once, e.g. before a saved player state is restored.</summary>
 	public void ClearBuffs()
 	{
-		if (RemoveWhere(_ => true, "cleared"))
+		if (RemoveWhere(_ => true, "cleared", narrate: false))
 		{
 			EmitSignalBuffsChanged();
 		}
@@ -201,8 +231,10 @@ public partial class BuffController : Node
 	/// Reverses and frees every active buff matching <paramref name="predicate"/>, logging the <paramref name="cause"/>.
 	/// Callers emit <see cref="BuffsChanged"/> once afterwards, so observers see one change per operation.
 	/// </summary>
-	private bool RemoveWhere(Func<ActiveBuff, bool> predicate, string cause)
+	private bool RemoveWhere(Func<ActiveBuff, bool> predicate, string cause, bool narrate = true)
 	{
+		bool shouldNarrate = ShouldNarratePlayer(narrate);
+		List<Buff> removedBuffs = null;
 		bool removed = false;
 		for (int i = ActiveBuffs.Count - 1; i >= 0; i--)
 		{
@@ -212,6 +244,10 @@ public partial class BuffController : Node
 				continue;
 			}
 
+			if (shouldNarrate)
+			{
+				(removedBuffs ??= []).Add(activeBuff.Buff);
+			}
 			activeBuff.Deactivate();
 			Trace("buff.ended", activeBuff, cause);
 			ActiveBuffs.RemoveAt(i);
@@ -221,6 +257,39 @@ public partial class BuffController : Node
 		}
 
 		if (removed) UpdateProcessing();
+		if (removedBuffs != null)
+		{
+			EmitEndedBuffs(removedBuffs);
+		}
 		return removed;
+	}
+
+	private void EmitEndedBuffs(List<Buff> removedBuffs)
+	{
+		HashSet<StatusCondition> endedConditions = null;
+		foreach (Buff buff in removedBuffs)
+		{
+			if (buff == null)
+			{
+				continue;
+			}
+
+			if (buff.Condition is { } condition)
+			{
+				if (HasCondition(condition) || !(endedConditions ??= []).Add(condition))
+				{
+					continue;
+				}
+				SignalBus.EmitPlayerBuffEnded(buff);
+				continue;
+			}
+
+			if (buff is TimeScaleBuff { TimeScale: < 1f } && ActiveBuffs.Any(a => a.Buff is TimeScaleBuff { TimeScale: < 1f }))
+			{
+				continue;
+			}
+
+			SignalBus.EmitPlayerBuffEnded(buff);
+		}
 	}
 }

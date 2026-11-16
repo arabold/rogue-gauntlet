@@ -404,9 +404,11 @@ public sealed class EnemyContext
 		return false;
 	}
 
+	private readonly RandomNumberGenerator _patrolRandom = new() { Seed = RunState.DefaultSeed };
+
+	/// <summary>Seeds patrol roaming independently from global random state.</summary>
+	public void ConfigurePatrolRandom(ulong seed) => _patrolRandom.Seed = seed;
+
 	/// <summary>Uniform random float in [min, max).</summary>
-	public static float RandomRange(float min, float max)
-	{
-		return min + ((float)GD.Randf() * (max - min));
-	}
+	public float RandomRange(float min, float max) => _patrolRandom.RandfRange(min, max);
 }

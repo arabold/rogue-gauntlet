@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/blindness_effect.tscn" id="1_blind"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/poison_effect.tscn" id="2_poison"]
@@ -10,19 +10,24 @@
 [ext_resource type="Resource" uid="uid://cstatusconfused" path="res://scenes/buffs/conditions/confused.tres" id="8_confused"]
 [ext_resource type="Resource" uid="uid://cstatusblinded" path="res://scenes/buffs/conditions/blinded.tres" id="9_blinded"]
 [ext_resource type="Script" uid="uid://b06jcqqcjmgqh" path="res://scenes/buffs/StatusCondition.cs" id="10_condition_script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/curse_effect.tscn" id="11_curse"]
+[ext_resource type="Script" path="res://scenes/effects/screen/CurseScreenEffectDriver.cs" id="12_curse_driver"]
 
-[node name="ScreenEffects" type="CanvasLayer" node_paths=PackedStringArray("Blindness", "HealthDrivers", "StatusDrivers")]
+[node name="ScreenEffects" type="CanvasLayer" node_paths=PackedStringArray("Blindness", "HealthDrivers", "StatusDrivers", "CurseDrivers")]
 layer = -1
 script = ExtResource("5_layer")
 Blindness = NodePath("Blindness")
 HealthDrivers = [NodePath("NearDeathDriver")]
 StatusDrivers = [NodePath("BlindnessDriver"), NodePath("PoisonDriver")]
+CurseDrivers = [NodePath("CurseDriver")]
 
 [node name="Blindness" parent="." instance=ExtResource("1_blind")]
 
 [node name="Poison" parent="." instance=ExtResource("2_poison")]
 
 [node name="NearDeath" parent="." instance=ExtResource("3_near_death")]
+
+[node name="Curse" parent="." instance=ExtResource("11_curse")]
 
 [node name="NearDeathDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
 script = ExtResource("4_driver")
@@ -38,3 +43,7 @@ FadeInTime = 1.0
 script = ExtResource("6_status_driver")
 Effect = NodePath("../Poison")
 Conditions = Dictionary[ExtResource("10_condition_script"), float]({ExtResource("7_poisoned"): 1.0, ExtResource("8_confused"): 0.35})
+
+[node name="CurseDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
+script = ExtResource("12_curse_driver")
+Effect = NodePath("../Curse")

@@ -11,6 +11,7 @@ using Godot;
 public partial class ConfusionComponent : Node
 {
 	private readonly RandomNumberGenerator _random = new();
+	private bool _seeded;
 	private float _angle;
 	private float _targetAngle;
 	private double _untilRetarget;
@@ -33,11 +34,20 @@ public partial class ConfusionComponent : Node
 	/// <summary>How quickly the deflection turns toward its target, in degrees per second.</summary>
 	[Export(PropertyHint.Range, "10,720,5,suffix:°/s")] public float TurnRateDegrees { get; set; } = 240f;
 
-	public void ConfigureRandom(ulong seed) => _random.Seed = seed;
+	public void ConfigureRandom(ulong seed)
+	{
+		_random.Seed = seed;
+		_seeded = true;
+	}
 
 	public override void _Ready()
 	{
 		ProcessPhysicsPriority = CombatPhysics.InputModifier;
+		if (!_seeded)
+		{
+			ulong levelSeed = this.GetAncestorOrNull<Level>()?.Seed ?? RunState.DefaultSeed;
+			ConfigureRandom(GenerationRandom.DeriveSeed(levelSeed, "combat.confusion", GetPath().ToString()));
+		}
 		if (Input == null || Buffs == null || Condition == null)
 		{
 			GD.PushError($"{Name}: {nameof(ConfusionComponent)} requires {nameof(Input)}, {nameof(Buffs)} and {nameof(Condition)}.");

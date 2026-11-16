@@ -20,6 +20,9 @@ public partial class ScreenEffectsLayer : CanvasLayer
 	/// <summary>Drivers that observe the bound player's <see cref="BuffController"/>, e.g. poison.</summary>
 	[Export] public Array<StatusScreenEffectDriver> StatusDrivers { get; set; } = [];
 
+	/// <summary>Drivers that observe the bound player's <see cref="PlayerInventoryController"/>, e.g. equipping cursed gear.</summary>
+	[Export] public Array<CurseScreenEffectDriver> CurseDrivers { get; set; } = [];
+
 	/// <summary>
 	/// Fades out the motion of every effect on the layer over <paramref name="duration"/>, keeping its look: under the
 	/// death screen the near-death red stays but its heartbeat stops. Effects whose shader has no motion are unaffected.
@@ -56,6 +59,14 @@ public partial class ScreenEffectsLayer : CanvasLayer
 			if (driver != null)
 			{
 				driver.Buffs = player?.BuffController;
+			}
+		}
+
+		foreach (CurseScreenEffectDriver driver in CurseDrivers)
+		{
+			if (driver != null)
+			{
+				driver.InventoryController = player?.InventoryController;
 			}
 		}
 	}

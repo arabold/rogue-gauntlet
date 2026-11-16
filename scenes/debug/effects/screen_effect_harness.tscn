@@ -10,7 +10,7 @@
 
 [node name="ScreenEffectHarness" type="Node" node_paths=PackedStringArray("Effects", "Controls")]
 script = ExtResource("1_script")
-Effects = [NodePath("Main/ScreenEffects/Blindness"), NodePath("Main/ScreenEffects/Poison"), NodePath("Main/ScreenEffects/NearDeath")]
+Effects = [NodePath("Main/ScreenEffects/Blindness"), NodePath("Main/ScreenEffects/Poison"), NodePath("Main/ScreenEffects/NearDeath"), NodePath("Main/ScreenEffects/Curse")]
 Potions = [ExtResource("3_poison"), ExtResource("4_blindness"), ExtResource("5_confusion"), ExtResource("6_slowness"), ExtResource("7_healing")]
 Controls = NodePath("DebugUI/Panel/Margin/Rows")
 
@@ -43,4 +43,4 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="DebugUI/Panel/Margin/Rows"]
 layout_mode = 2
-text = "Screen effects · keys 1-3 fade in/out"
+text = "Screen effects · keys 1-4 fade in/out"

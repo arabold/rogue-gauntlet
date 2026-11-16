@@ -85,12 +85,14 @@ public class MonsterChaseTest
 		{
 			var across = door.GlobalBasis.Z.Normalized() * 3;
 			if (!level.Navigation.TryFindTraversable(door.GlobalPosition - across, minion.BodyRadius, 1.5f, out var a)
-				|| !level.Navigation.TryFindTraversable(door.GlobalPosition + across, minion.BodyRadius, 1.5f, out var b)) continue;
+				|| !level.Navigation.TryFindTraversable(door.GlobalPosition + across, minion.BodyRadius, 1.5f, out var b)
+				|| a.HorizontalDistanceTo(b) <= 4f
+				|| !level.Navigation.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>())) continue;
 			foreach (var gate in level.Floor.NavigationGates) gate.IsOpen = false;
-			await runner.SimulateFrames(1, FrameMilliseconds);
+			await PhysicsTick(runner);
 			bool separated = !level.Navigation.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>());
 			foreach (var gate in level.Floor.NavigationGates) gate.IsOpen = true;
-			await runner.SimulateFrames(1, FrameMilliseconds);
+			await PhysicsTick(runner);
 			if (!separated) continue;
 			start = a;
 			goal = b;
@@ -99,6 +101,7 @@ public class MonsterChaseTest
 		AssertBool(start.HasValue).OverrideFailureMessage("No door separates two reachable points on this floor.").IsTrue();
 		minion.Position = start.Value + Vector3.Up * .1f;
 		level.AddWorldNode(minion);
+		foreach (var p in level.GetTree().GetNodesInGroup("player").OfType<Player>()) p.RemoveFromGroup("player");
 		var target = AddMarker(level, goal.Value);
 		// No patrolling through the open door before the chase starts.
 		minion.EnemyBehaviorComponent.AIEnabled = false;

@@ -7,14 +7,10 @@ using System;
 /// Used for the near-death overlay; works for any health-linked screen effect.
 /// </summary>
 [GlobalClass]
-public partial class HealthScreenEffectDriver : Node
+public partial class HealthScreenEffectDriver : ScreenEffectDriver
 {
 	private HealthComponent _health;
-	private Action _unsubscribe = () => { };
 	private float _target;
-
-	/// <summary>Effect to drive. Required.</summary>
-	[Export] public ScreenEffect Effect { get; set; }
 
 	/// <summary>
 	/// Observed health. Assign in the Inspector when health and effect share a scene, or at runtime once the
@@ -24,19 +20,7 @@ public partial class HealthScreenEffectDriver : Node
 	public HealthComponent Health
 	{
 		get => _health;
-		set
-		{
-			if (_health == value)
-			{
-				return;
-			}
-
-			_health = value;
-			if (IsInsideTree())
-			{
-				Bind();
-			}
-		}
+		set => SetSource(ref _health, value);
 	}
 
 	/// <summary>Health fraction at and below which the effect starts.</summary>
@@ -45,21 +29,10 @@ public partial class HealthScreenEffectDriver : Node
 	/// <summary>Seconds used to fade toward each new intensity so damage spikes read smoothly.</summary>
 	[Export(PropertyHint.Range, "0,2,0.05,suffix:s")] public float ResponseTime { get; set; } = 0.35f;
 
-	public override void _Ready()
-	{
-		if (Effect == null)
-		{
-			GD.PushError($"{Name}: {nameof(HealthScreenEffectDriver)} requires an {nameof(Effect)}.");
-		}
-	}
-
-	public override void _EnterTree() => Bind();
-
 	/// <summary>Replaces the observed health's subscription (released automatically when leaving the tree) and syncs.</summary>
-	private void Bind()
+	protected override void Bind()
 	{
-		_unsubscribe();
-		_unsubscribe = this.SubscribeUntilExit(_health, health => health.HealthChanged += OnHealthChanged, health => health.HealthChanged -= OnHealthChanged);
+		Rebind(_health, health => health.HealthChanged += OnHealthChanged, health => health.HealthChanged -= OnHealthChanged);
 		if (IsInstanceValid(_health))
 		{
 			OnHealthChanged(_health.CurrentHealth, _health.MaxHealth);

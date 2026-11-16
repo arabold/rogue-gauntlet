@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="AttackCombo" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="AttackCombo" format=3 uid="uid://c25b0a3tunr1e"]
 
-[ext_resource type="Script" path="res://scenes/attacks/AttackCombo.cs" id="combo"]
-[ext_resource type="Script" path="res://scenes/attacks/AttackComboStep.cs" id="step"]
+[ext_resource type="Script" uid="uid://br3jp4ti42cci" path="res://scenes/attacks/AttackCombo.cs" id="combo"]
+[ext_resource type="Script" uid="uid://d5ock8d2maby" path="res://scenes/attacks/AttackComboStep.cs" id="step"]
 
 [sub_resource type="Resource" id="opener"]
 script = ExtResource("step")
@@ -20,5 +20,4 @@ HitStopScale = 1.6
 
 [resource]
 script = ExtResource("combo")
-Steps = [SubResource("opener"), SubResource("follow_up"), SubResource("finisher")]
-ChainWindow = 0.35
+Steps = Array[ExtResource("step")]([SubResource("opener"), SubResource("follow_up"), SubResource("finisher")])

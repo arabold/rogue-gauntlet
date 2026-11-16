@@ -87,6 +87,8 @@ public static class PlayerSaveCodec
 			player.Rotation = ToVector3(data.Rotation);
 			player.ResetPhysicsInterpolation();
 		}
+		StairAutoWalk.Cancel(player);
+		player.MovementComponent?.Stop();
 	}
 
 	/// <summary>A saved ward needs a finite capacity and an equipped spell weapon to rise on again.</summary>
@@ -211,6 +213,7 @@ public static class PlayerSaveCodec
 
 	private static void ApplyInventory(Player player, Inventory restored, InventorySaveData saveData)
 	{
+		using var _ = player.InventoryController?.SuppressEquipmentBroadcasts();
 		Inventory inventory = player.Inventory;
 		player.ActionManager.ClearActions();
 		inventory.ReleaseAll();

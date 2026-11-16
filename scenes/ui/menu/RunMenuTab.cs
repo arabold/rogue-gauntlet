@@ -131,6 +131,7 @@ public abstract partial class RunMenuTab : Control
 	{
 		label.Text = item != null ? ItemIdentity.ResolveDisplayName(item) : "";
 		label.SelfModulate = ItemQualityPalette.Color(item);
+		label.GetAncestorOrNull<AutoScrollViewport>()?.ResetScroll();
 	}
 
 	/// <summary>Whether either hand can hold <paramref name="item"/>, so the player has to say which.</summary>

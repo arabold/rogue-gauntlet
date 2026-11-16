@@ -30,16 +30,21 @@ public class ScreenEffectWiringTest
 		HealthScreenEffectDriver nearDeathDriver = layer.HealthDrivers.Single();
 		StatusScreenEffectDriver poisonDriver = layer.StatusDrivers.Single(driver => driver.Effect.Name == "Poison");
 		StatusScreenEffectDriver blindnessDriver = layer.StatusDrivers.Single(driver => driver.Effect.Name == "Blindness");
+		CurseScreenEffectDriver curseDriver = layer.CurseDrivers.Single();
 		nearDeathDriver.ResponseTime = 0f;
 		foreach (StatusScreenEffectDriver driver in layer.StatusDrivers)
 		{
 			driver.FadeInTime = 0f;
 			driver.FadeOutTime = 0f;
 		}
+		curseDriver.FadeInTime = 0f;
+		curseDriver.HoldTime = 0.04f;
+		curseDriver.FadeOutTime = 0.04f;
 
 		ScreenEffect nearDeath = nearDeathDriver.Effect;
 		ScreenEffect poison = poisonDriver.Effect;
 		ScreenEffect blindness = blindnessDriver.Effect;
+		ScreenEffect curse = curseDriver.Effect;
 		HealthComponent health = player.HealthComponent;
 		try
 		{
@@ -79,6 +84,29 @@ public class ScreenEffectWiringTest
 			layer.Bind(player);
 			await runner.SimulateFrames(2, 20);
 			AssertFloat(poison.Intensity).IsEqualApprox(0.35f, 0.001f);
+
+			// Equipping an uncursed item leaves the curse flash off; equipping a cursed item pulses and fades out.
+			var policy = TestFactories.Load<ItemCreationPolicy>("res://scenes/items/dungeon_item_policy.tres");
+			var ringTemplate = TestFactories.Load<Item>("res://scenes/items/jewelry/ring/ring_strength_1.tres");
+			var cleanRing = (EquipableItem)ItemFactory.Create(ringTemplate);
+			AssertBool(cleanRing.IsCursed).IsFalse();
+			AssertBool(player.Inventory.TryAdd(cleanRing).Success).IsTrue();
+			InventoryItemSlot cleanSlot = player.Inventory.Items.Last();
+			AssertBool(player.InventoryController.TryEquip(cleanSlot, EquipmentSlot.LeftRing).Success).IsTrue();
+			await runner.SimulateFrames(2, 20);
+			AssertFloat(curse.Intensity).IsEqual(0f);
+
+			var cursedRing = (EquipableItem)ItemFactory.Create(ringTemplate);
+			LootRoller.ApplyRoll(cursedRing, 12, new RandomNumberGenerator { Seed = 1 }, policy, ItemQuality.Normal, cursed: true);
+			AssertBool(cursedRing.IsCursed).IsTrue();
+			AssertBool(player.Inventory.TryAdd(cursedRing).Success).IsTrue();
+			InventoryItemSlot cursedSlot = player.Inventory.Items.Last();
+			AssertBool(player.InventoryController.TryEquip(cursedSlot, EquipmentSlot.RightRing).Success).IsTrue();
+			AssertFloat(curse.Intensity).IsEqual(1f);
+			AssertBool(curse.Surface.Visible).IsTrue();
+			await runner.SimulateFrames(8, 20);
+			AssertFloat(curse.Intensity).IsEqual(0f);
+			AssertBool(curse.Surface.Visible).IsFalse();
 
 			// Slowness slows the whole game until it ends. Checked without simulating frames: the scene runner resets
 			// the time scale whenever it simulates.

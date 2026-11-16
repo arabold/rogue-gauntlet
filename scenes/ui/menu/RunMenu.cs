@@ -6,11 +6,12 @@ public enum RunMenuPage
 {
 	Gear,
 	Pack,
+	Notes,
 	System,
 }
 
 /// <summary>
-/// The one menu of a run: Gear, Pack and System as tabs under the header band, over the paused and darkened game. The
+/// The one menu of a run: Gear, Pack, Notes and System as tabs under the header band, over the paused and darkened game. The
 /// inventory key opens Gear and the pause key System; a dead hero cannot open it, the death screen takes over. The
 /// open tab says what it offers for the selection. The menu draws that as the key row, whose keys act at once, and
 /// as a popup on a chosen slot, which the accept key and a click both open: choosing an item always shows what can
@@ -21,9 +22,11 @@ public partial class RunMenu : Control
 	[ExportGroup("Tabs")]
 	[Export] public RunMenuTab GearTab { get; set; }
 	[Export] public RunMenuTab PackTab { get; set; }
+	[Export] public RunMenuTab NotesTab { get; set; }
 	[Export] public RunMenuTab SystemTab { get; set; }
 	[Export] public Button GearButton { get; set; }
 	[Export] public Button PackButton { get; set; }
+	[Export] public Button NotesButton { get; set; }
 	[Export] public Button SystemButton { get; set; }
 
 	[ExportGroup("Readouts")]
@@ -56,8 +59,8 @@ public partial class RunMenu : Control
 	{
 		ProcessMode = ProcessModeEnum.Always;
 		Visible = false;
-		_tabs = [GearTab, PackTab, SystemTab];
-		_buttons = [GearButton, PackButton, SystemButton];
+		_tabs = [GearTab, PackTab, NotesTab, SystemTab];
+		_buttons = [GearButton, PackButton, NotesButton, SystemButton];
 		for (int i = 0; i < _tabs.Length; i++)
 		{
 			int index = i;

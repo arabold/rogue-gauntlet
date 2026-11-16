@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 /// <summary>
 /// Temporarily walks a spawned player away from a staircase transition volume. The walk covers a set distance rather
@@ -14,6 +15,43 @@ public partial class StairAutoWalk : Node
 	private Vector3 _start;
 	private float _distance;
 	private Cooldown _giveUp;
+	private bool _finished;
+
+	/// <summary>True while <paramref name="player"/> has an active stair auto-walk in progress.</summary>
+	public static bool IsActive(Player player)
+	{
+		if (player == null)
+		{
+			return false;
+		}
+
+		for (int i = player.GetChildCount() - 1; i >= 0; i--)
+		{
+			if (player.GetChild(i) is StairAutoWalk walk && !walk._finished)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>Cancels any active stair auto-walk on <paramref name="player"/> and restores normal input.</summary>
+	public static void Cancel(Player player)
+	{
+		if (player == null)
+		{
+			return;
+		}
+
+		for (int i = player.GetChildCount() - 1; i >= 0; i--)
+		{
+			if (player.GetChild(i) is StairAutoWalk existing)
+			{
+				existing.Finish();
+			}
+		}
+	}
 
 	public static void Start(Player player, Vector3 direction, float distance)
 	{
@@ -21,6 +59,8 @@ public partial class StairAutoWalk : Node
 		{
 			return;
 		}
+
+		Cancel(player);
 
 		var autoWalk = new StairAutoWalk
 		{
@@ -36,12 +76,18 @@ public partial class StairAutoWalk : Node
 
 	public override void _Ready()
 	{
+		ProcessPhysicsPriority = CombatPhysics.Intent;
 		_player.InputController.SetPhysicsProcess(false);
 		_player.InputComponent.SetPhysicsProcess(false);
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (_finished)
+		{
+			return;
+		}
+
 		if (!GodotObject.IsInstanceValid(_player) || _giveUp.Tick(delta)
 			|| _player.GlobalPosition.HorizontalDistanceTo(_start) >= _distance)
 		{
@@ -55,6 +101,12 @@ public partial class StairAutoWalk : Node
 
 	private void Finish()
 	{
+		if (_finished)
+		{
+			return;
+		}
+
+		_finished = true;
 		if (GodotObject.IsInstanceValid(_player))
 		{
 			_player.MovementComponent.Stop();
@@ -62,6 +114,10 @@ public partial class StairAutoWalk : Node
 			_player.InputComponent.SetPhysicsProcess(true);
 		}
 
+		if (IsInsideTree() && GetParent() != null)
+		{
+			GetParent().RemoveChild(this);
+		}
 		QueueFree();
 	}
 }

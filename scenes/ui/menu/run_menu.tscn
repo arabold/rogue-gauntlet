@@ -3,13 +3,14 @@
 [ext_resource type="Script" path="res://scenes/ui/menu/RunMenu.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/ui/menu/gear_tab.tscn" id="2_gear"]
 [ext_resource type="PackedScene" path="res://scenes/ui/menu/pack_tab.tscn" id="3_pack"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/notes_tab.tscn" id="9_notes"]
 [ext_resource type="PackedScene" path="res://scenes/ui/menu/system_tab.tscn" id="4_system"]
 [ext_resource type="PackedScene" path="res://scenes/ui/menu/menu_prompt.tscn" id="5_prompt"]
 [ext_resource type="Texture2D" path="res://assets/ui-kit/header_band.png" id="6_band"]
 [ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="7_key"]
 [ext_resource type="Texture2D" path="res://assets/ui-kit/coin.png" id="8_coin"]
 
-[node name="RunMenu" type="Control" node_paths=PackedStringArray("GearTab", "PackTab", "SystemTab", "GearButton", "PackButton", "SystemButton", "GoldLabel", "Banner", "PromptRow", "ActionMenu")]
+[node name="RunMenu" type="Control" node_paths=PackedStringArray("GearTab", "PackTab", "NotesTab", "SystemTab", "GearButton", "PackButton", "NotesButton", "SystemButton", "GoldLabel", "Banner", "PromptRow", "ActionMenu")]
 process_mode = 3
 visible = false
 layout_mode = 3
@@ -21,9 +22,11 @@ grow_vertical = 2
 script = ExtResource("1_script")
 GearTab = NodePath("Pages/Gear")
 PackTab = NodePath("Pages/Pack")
+NotesTab = NodePath("Pages/Notes")
 SystemTab = NodePath("Pages/System")
 GearButton = NodePath("Header/Tabs/GearButton")
 PackButton = NodePath("Header/Tabs/PackButton")
+NotesButton = NodePath("Header/Tabs/NotesButton")
 SystemButton = NodePath("Header/Tabs/SystemButton")
 GoldLabel = NodePath("Header/Gold/GoldLabel")
 Banner = NodePath("Banner")
@@ -54,6 +57,10 @@ visible = false
 layout_mode = 1
 
 [node name="Pack" parent="Pages" instance=ExtResource("3_pack")]
+visible = false
+layout_mode = 1
+
+[node name="Notes" parent="Pages" instance=ExtResource("9_notes")]
 visible = false
 layout_mode = 1
 
@@ -113,6 +120,13 @@ focus_mode = 0
 theme_type_variation = &"TabButton"
 toggle_mode = true
 text = "Pack"
+
+[node name="NotesButton" type="Button" parent="Header/Tabs"]
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "Notes"
 
 [node name="SystemButton" type="Button" parent="Header/Tabs"]
 layout_mode = 2

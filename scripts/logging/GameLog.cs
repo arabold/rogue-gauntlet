@@ -116,8 +116,11 @@ public static class GameLog
 {
 	private static readonly object Lock = new();
 	private static readonly List<ILogSink> Sinks = new();
+	private static readonly List<LogEntry> PlayerHistory = new();
+	private static int _playerHistoryEpoch;
 	private static ILogSink[] _sinksSnapshot = [];
 	private static readonly ConsoleLogSink DefaultConsoleSink = new();
+	private const int MaxPlayerHistory = 500;
 
 	public static bool IsPlayerEnabled { get; set; } = true;
 	public static bool IsInternalEnabled { get; set; } = false;
@@ -147,10 +150,91 @@ public static class GameLog
 			Sinks.Clear();
 			Sinks.Add(DefaultConsoleSink);
 			_sinksSnapshot = Sinks.ToArray();
+			PlayerHistory.Clear();
+			_playerHistoryEpoch++;
 			IsPlayerEnabled = true;
 			IsInternalEnabled = false;
 			IsDebugEnabled = false;
 			IsConsoleSinkEnabled = true;
+		}
+	}
+
+	/// <summary>Returns a snapshot of player-facing log entries recorded during the current run.</summary>
+	public static IReadOnlyList<LogEntry> GetPlayerHistory()
+	{
+		lock (Lock)
+		{
+			return PlayerHistory.ToArray();
+		}
+	}
+
+	/// <summary>
+	/// Copies only entries added since (<paramref name="epoch"/>, <paramref name="count"/>), or sets
+	/// <paramref name="reset"/> to true with the full snapshot if history was cleared, restored, or trimmed.
+	/// </summary>
+	public static bool TrySyncPlayerHistory(ref int epoch, ref int count, out LogEntry[] entries, out bool reset)
+	{
+		lock (Lock)
+		{
+			if (epoch == _playerHistoryEpoch && count == PlayerHistory.Count)
+			{
+				entries = [];
+				reset = false;
+				return false;
+			}
+
+			if (epoch == _playerHistoryEpoch && count >= 0 && count < PlayerHistory.Count)
+			{
+				int delta = PlayerHistory.Count - count;
+				entries = new LogEntry[delta];
+				PlayerHistory.CopyTo(count, entries, 0, delta);
+				count = PlayerHistory.Count;
+				reset = false;
+				return true;
+			}
+
+			epoch = _playerHistoryEpoch;
+			count = PlayerHistory.Count;
+			entries = PlayerHistory.ToArray();
+			reset = true;
+			return true;
+		}
+	}
+
+	/// <summary>Clears recorded player-facing log entries (when starting or loading a run).</summary>
+	public static void ClearPlayerHistory()
+	{
+		lock (Lock)
+		{
+			PlayerHistory.Clear();
+			_playerHistoryEpoch++;
+		}
+	}
+
+	/// <summary>Replaces player-facing log history from a loaded save without re-dispatching live HUD feed toasts.</summary>
+	public static void RestorePlayerHistory(IEnumerable<LogEntry> entries)
+	{
+		lock (Lock)
+		{
+			PlayerHistory.Clear();
+			_playerHistoryEpoch++;
+			if (entries == null)
+			{
+				return;
+			}
+
+			foreach (LogEntry entry in entries)
+			{
+				if (string.IsNullOrEmpty(entry.Message))
+				{
+					continue;
+				}
+				PlayerHistory.Add(entry);
+				if (PlayerHistory.Count > MaxPlayerHistory)
+				{
+					PlayerHistory.RemoveAt(0);
+				}
+			}
 		}
 	}
 
@@ -203,7 +287,18 @@ public static class GameLog
 			return;
 		}
 
-		Dispatch(new LogEntry(LogChannel.Player, message, severity, LogCategory.General));
+		var entry = new LogEntry(LogChannel.Player, message, severity, LogCategory.General);
+		lock (Lock)
+		{
+			PlayerHistory.Add(entry);
+			if (PlayerHistory.Count > MaxPlayerHistory)
+			{
+				PlayerHistory.RemoveAt(0);
+				_playerHistoryEpoch++;
+			}
+		}
+
+		Dispatch(in entry);
 	}
 
 	public static void Internal(string message, LogCategory category = LogCategory.General, LogSeverity severity = LogSeverity.Info)

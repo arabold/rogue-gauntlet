@@ -2,7 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>A finite, damageable summon source. Bound minions collapse when the nest is destroyed.</summary>
+/// <summary>A finite, damageable summon source. Destroying the nest stops further summons while released minions fight on.</summary>
 public partial class DestructibleNest : StaticBody3D, IDamageable
 {
 	private static readonly StringName PlayerGroup = "player";
@@ -92,8 +92,6 @@ public partial class DestructibleNest : StaticBody3D, IDamageable
 	private void OnDestroyed()
 	{
 		_level?.Run.MarkCleared(SourceId);
-		foreach (var minion in _minions)
-			if (GodotObject.IsInstanceValid(minion) && !minion.IsDead) minion.QueueFree();
 		QueueFree();
 	}
 }

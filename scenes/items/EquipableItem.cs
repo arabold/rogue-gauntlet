@@ -67,7 +67,7 @@ public partial class EquipableItem : BuffedItem
 	public bool IsCursed => CursePenalty is { Length: > 0 };
 
 	/// <summary>
-	/// Whether the player knows if this item is cursed. Rolled items start unknown; Identify, a blocked removal,
+	/// Whether the player knows if this item is cursed. Rolled items start unknown; wearing, Identify,
 	/// Enchant and Remove Curse reveal it.
 	/// </summary>
 	[Export] public bool CurseStatusKnown { get; set => SetValue(ref field, value); } = true;
@@ -106,10 +106,11 @@ public partial class EquipableItem : BuffedItem
 	/// <summary>Everything this item grants while equipped: its attributes and any curse penalty.</summary>
 	public IEnumerable<StatModifier> StatModifiers => AttributeModifiers.Concat(CurseModifiers);
 
-	/// <summary>Wearing an item reveals its attributes; its curse shows only when the player tries to remove it.</summary>
+	/// <summary>Wearing an item reveals its attributes and whether it is cursed.</summary>
 	public virtual void OnEquipped(Player player)
 	{
 		RevealAttributes();
+		RevealCurseStatus();
 		ApplyBuff(player);
 		RegisterStats(player.Stats);
 	}

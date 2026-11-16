@@ -73,12 +73,14 @@ public class RealmEncounterTest
 		foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()
 			.Where(e => e.GetMeta("persistent_id", "").AsString().StartsWith(nestId + ":summon:") && !e.IsDead))
 			enemy.HealthComponent.TakeDamage(1000);
-		AssertObject(nest.ReleaseMinion()).IsNotNull();
+		var survivor = nest.ReleaseMinion();
+		AssertObject(survivor).IsNotNull();
 		AssertInt(nest.SummonsReleased).IsEqual(4);
 		AssertObject(nest.ReleaseMinion()).IsNull();
 		nest.TakeDamage(1000, Vector3.Forward, faction: DamageSourceFlags.Player);
 		AssertBool(level.Run.IsCleared(nestId)).IsTrue();
 		await runner.SimulateFrames(1, 20);
+		AssertBool(GodotObject.IsInstanceValid(survivor) && !survivor.IsQueuedForDeletion() && !survivor.IsDead).IsTrue();
 		level.Generate();
 		AssertBool(level.FindChildren("*", "", true, false).OfType<DestructibleNest>()
 			.Any(n => n.GetMeta("persistent_id").AsString() == nestId)).IsFalse();

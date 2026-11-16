@@ -82,7 +82,13 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 	public bool IsDiscoverable => !IsDiscovered && _exploration?.IsRevealed(GlobalPosition) == true;
 	public Vector3 DiscoveryAnchor => GlobalPosition;
 	public Vector3 SightTarget => GlobalPosition + Vector3.Up;
-	public void Discover() => Reveal();
+	public void Discover()
+	{
+		if (Reveal())
+		{
+			SignalBus.EmitPlayerStatusMessage("You spotted a trap!", LogSeverity.Warning);
+		}
+	}
 	private void OnTriggered(Node3D node)
 	{
 		if (IsTriggered || node is not IDamageable damageable) return;

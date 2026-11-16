@@ -12,8 +12,12 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 	/// <summary>How far a refused traveller is walked back off the trigger, in meters.</summary>
 	[Export(PropertyHint.Range, "0,20,0.1,suffix:m")] public float RejectedWalkDistance { get; set; } = 5.6f;
 
+	private const ulong SpawnOverlapGraceFrames = 10;
+	private static readonly Vector3 SpawnOverlapMargin = new(0.8f, 1.0f, 0.8f);
+
 	private readonly HashSet<Node3D> _blockedBodies = [];
 	private bool _isTransitioning;
+	private ulong _ignoreEntriesUntilPhysicsFrame;
 
 	public override void _Ready()
 	{
@@ -22,9 +26,57 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 			return;
 		}
 
+		_ignoreEntriesUntilPhysicsFrame = Engine.GetPhysicsFrames() + SpawnOverlapGraceFrames;
 		BodyEntered += OnBodyEntered;
 		BodyExited += OnBodyExited;
+		this.SubscribeUntilExit(
+			SignalBus.Instance,
+			bus => bus.PlayerSpawned += OnPlayerSpawned,
+			bus => bus.PlayerSpawned -= OnPlayerSpawned);
 		CallDeferred(MethodName.CaptureInitialOverlaps);
+	}
+
+	private void OnPlayerSpawned(Player player)
+	{
+		_ignoreEntriesUntilPhysicsFrame = Engine.GetPhysicsFrames() + SpawnOverlapGraceFrames;
+		BlockIfSpawnedInside(player);
+		CallDeferred(MethodName.BlockIfSpawnedInside, player);
+	}
+
+	private void BlockIfSpawnedInside(Player player)
+	{
+		if (!RequireExitBeforeActivation || !GodotObject.IsInstanceValid(player) || !IsInsideTree() || !player.IsInsideTree())
+		{
+			return;
+		}
+
+		if (IsNearTrigger(player))
+		{
+			_blockedBodies.Add(player);
+		}
+	}
+
+	private bool IsNearTrigger(Player player)
+	{
+		Vector3 probeWorld = player.GlobalPosition + new Vector3(0f, 0.9f, 0f);
+		foreach (Node child in GetChildren())
+		{
+			if (child is not CollisionShape3D { Disabled: false, Shape: BoxShape3D box } shapeNode)
+			{
+				continue;
+			}
+
+			Vector3 local = shapeNode.GlobalTransform.AffineInverse() * probeWorld;
+			Vector3 halfExtents = box.Size * 0.5f + SpawnOverlapMargin;
+			if (Mathf.Abs(local.X) <= halfExtents.X
+				&& Mathf.Abs(local.Y) <= halfExtents.Y
+				&& Mathf.Abs(local.Z) <= halfExtents.Z)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void CaptureInitialOverlaps()
@@ -47,6 +99,13 @@ public partial class LevelTransitionTrigger : Area3D, IProgressionAnchor
 	{
 		if (_isTransitioning || body is not Player player || _blockedBodies.Contains(body))
 		{
+			return;
+		}
+
+		if (RequireExitBeforeActivation
+			&& (Engine.GetPhysicsFrames() <= _ignoreEntriesUntilPhysicsFrame || StairAutoWalk.IsActive(player)))
+		{
+			_blockedBodies.Add(player);
 			return;
 		}
 

@@ -95,6 +95,26 @@ public partial class SignalBus : Node
     [Signal] public delegate void XraySettingsChangedEventHandler();
     public static void EmitXraySettingsChanged() => Instance?.EmitSignalXraySettingsChanged();
 
+    /// <summary>Fired when a gameplay status condition, buff, or curse effect describes itself to the hero.</summary>
+    [Signal] public delegate void PlayerStatusMessageEventHandler(string message, int severity);
+    public static void EmitPlayerStatusMessage(string message, LogSeverity severity = LogSeverity.Info) =>
+        Instance?.EmitSignalPlayerStatusMessage(message, (int)severity);
+
+    /// <summary>Fired when a new buff or status activation is applied to the player.</summary>
+    [Signal] public delegate void PlayerBuffAppliedEventHandler(Buff buff, bool hadCondition);
+    public static void EmitPlayerBuffApplied(Buff buff, bool hadCondition) =>
+        Instance?.EmitSignalPlayerBuffApplied(buff, hadCondition);
+
+    /// <summary>Fired when an existing stack/refresh buff on the player resets its duration.</summary>
+    [Signal] public delegate void PlayerBuffRefreshedEventHandler(Buff buff);
+    public static void EmitPlayerBuffRefreshed(Buff buff) =>
+        Instance?.EmitSignalPlayerBuffRefreshed(buff);
+
+    /// <summary>Fired when a buff or status condition completely finishes on the player.</summary>
+    [Signal] public delegate void PlayerBuffEndedEventHandler(Buff buff);
+    public static void EmitPlayerBuffEnded(Buff buff) =>
+        Instance?.EmitSignalPlayerBuffEnded(buff);
+
     public override void _Ready()
     {
         // Ensure this is the only instance

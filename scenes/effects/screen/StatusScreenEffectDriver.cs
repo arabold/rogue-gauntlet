@@ -10,14 +10,10 @@ using System;
 /// own driver in <c>screen_effects.tscn</c>.
 /// </summary>
 [GlobalClass]
-public partial class StatusScreenEffectDriver : Node
+public partial class StatusScreenEffectDriver : ScreenEffectDriver
 {
 	private BuffController _buffs;
-	private Action _unsubscribe = () => { };
 	private float _target;
-
-	/// <summary>Effect to drive. Required.</summary>
-	[Export] public ScreenEffect Effect { get; set; }
 
 	/// <summary>
 	/// Condition → effect intensity while that condition is active. Required; reference the shared
@@ -33,19 +29,7 @@ public partial class StatusScreenEffectDriver : Node
 	public BuffController Buffs
 	{
 		get => _buffs;
-		set
-		{
-			if (_buffs == value)
-			{
-				return;
-			}
-
-			_buffs = value;
-			if (IsInsideTree())
-			{
-				Bind();
-			}
-		}
+		set => SetSource(ref _buffs, value);
 	}
 
 	/// <summary>Seconds to fade in when a condition starts or a stronger one takes over.</summary>
@@ -56,24 +40,17 @@ public partial class StatusScreenEffectDriver : Node
 
 	public override void _Ready()
 	{
-		if (Effect == null)
-		{
-			GD.PushError($"{Name}: {nameof(StatusScreenEffectDriver)} requires an {nameof(Effect)}.");
-		}
-
+		base._Ready();
 		if (Conditions.Count == 0)
 		{
 			GD.PushError($"{Name}: {nameof(StatusScreenEffectDriver)} requires at least one entry in {nameof(Conditions)}.");
 		}
 	}
 
-	public override void _EnterTree() => Bind();
-
 	/// <summary>Replaces the observed controller's subscription (released automatically when leaving the tree) and syncs.</summary>
-	private void Bind()
+	protected override void Bind()
 	{
-		_unsubscribe();
-		_unsubscribe = this.SubscribeUntilExit(_buffs, buffs => buffs.BuffsChanged += Sync, buffs => buffs.BuffsChanged -= Sync);
+		Rebind(_buffs, buffs => buffs.BuffsChanged += Sync, buffs => buffs.BuffsChanged -= Sync);
 		Sync();
 	}
 

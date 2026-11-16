@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://c6oltejkpt4a0" path="res://scenes/ui/action_container.tscn" id="3_quick"]
 [ext_resource type="PackedScene" uid="uid://cmguxod8mb5o6" path="res://scenes/ui/preview.tscn" id="4_preview"]
 [ext_resource type="Script" path="res://scenes/ui/ItemDetailsView.cs" id="6_details"]
+[ext_resource type="Script" path="res://scenes/ui/menu/AutoScrollViewport.cs" id="7_autoscroll"]
 [ext_resource type="Texture2D" path="res://scenes/ui/menu/oval_shade.tres" id="20_oval"]
 
 [node name="Pack" type="Control" node_paths=PackedStringArray("Grid", "CountLabel", "QuickRow", "ItemPreview", "NameLabel", "QuantityLabel", "Details")]
@@ -21,9 +22,9 @@ SlotScene = ExtResource("2_slot")
 CountLabel = NodePath("Columns/Items/Heading/CountLabel")
 QuickRow = NodePath("Columns/Items/QuickRow")
 ItemPreview = NodePath("Columns/Selected/ItemView/Viewport/Preview")
-NameLabel = NodePath("Columns/Selected/Info/Name/NameLabel")
-QuantityLabel = NodePath("Columns/Selected/Info/Name/QuantityLabel")
-Details = NodePath("Columns/Selected/Info/Details")
+NameLabel = NodePath("Columns/Selected/Info/NameClip/Name/NameLabel")
+QuantityLabel = NodePath("Columns/Selected/Info/NameClip/Name/QuantityLabel")
+Details = NodePath("Columns/Selected/Info/DetailsClip/Details")
 
 [node name="Columns" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -160,19 +161,27 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 0
 
-[node name="Name" type="HBoxContainer" parent="Columns/Selected/Info"]
+[node name="NameClip" type="Control" parent="Columns/Selected/Info"]
+clip_contents = true
 custom_minimum_size = Vector2(0, 88)
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("7_autoscroll")
+ScrollHorizontal = true
+ScrollSpeed = 72.0
+
+[node name="Name" type="HBoxContainer" parent="Columns/Selected/Info/NameClip"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="Columns/Selected/Info/Name"]
+[node name="NameLabel" type="Label" parent="Columns/Selected/Info/NameClip/Name"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 horizontal_alignment = 1
 
-[node name="QuantityLabel" type="Label" parent="Columns/Selected/Info/Name"]
+[node name="QuantityLabel" type="Label" parent="Columns/Selected/Info/NameClip/Name"]
 layout_mode = 2
 size_flags_vertical = 8
 theme_type_variation = &"AccentLabel"
@@ -182,9 +191,18 @@ custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Details" type="VBoxContainer" parent="Columns/Selected/Info"]
+[node name="DetailsClip" type="Control" parent="Columns/Selected/Info"]
+clip_contents = true
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+script = ExtResource("7_autoscroll")
+ScrollHorizontal = true
+ScrollVertical = true
+ScrollSpeed = 36.0
+
+[node name="Details" type="VBoxContainer" parent="Columns/Selected/Info/DetailsClip"]
+layout_mode = 0
 mouse_filter = 2
 theme_override_constants/separation = 0
 script = ExtResource("6_details")
