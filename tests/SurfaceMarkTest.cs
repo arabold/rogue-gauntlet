@@ -10,6 +10,28 @@ using static GdUnit4.Assertions;
 public class SurfaceMarkTest
 {
 	[TestCase]
+	public void WorldOverrideSuspendsFixtureMarksAndKeepsAuthoredHiddenMarksHidden()
+	{
+		var levelScene = TestFactories.Load<PackedScene>("res://scenes/levels/level.tscn");
+		var markScene = TestFactories.Load<PackedScene>("res://scenes/effects/surface_marks/wet_mark.tscn");
+		var level = levelScene.Instantiate<Level>();
+		level.AutoGenerateOnReady = false;
+		level.Lighting.DisabledEffects = EnvironmentalEffect.SurfaceMarks;
+		var mark = markScene.Instantiate<SurfaceMark>();
+		var hidden = markScene.Instantiate<SurfaceMark>();
+		hidden.Visible = false;
+		level.AddChild(mark);
+		level.AddChild(hidden);
+		TestFactories.AddToSceneTree(level);
+		AssertBool(mark.IsVisibleInTree() || mark.CanProcess()).IsFalse();
+		AssertBool(mark.GetNode<CameraSheen>("CameraSheen").CanProcess()).IsFalse();
+		level.Lighting.DisabledEffects = EnvironmentalEffect.None;
+		AssertBool(mark.IsVisibleInTree() && mark.CanProcess()).IsTrue();
+		AssertBool(hidden.IsVisibleInTree()).IsFalse();
+		AssertBool(mark.GetNode<CameraSheen>("CameraSheen").CanProcess()).IsTrue();
+	}
+
+	[TestCase]
 	public void TintAndBlendEditsKeepSharedTexturesWhileUpdatingTheMark()
 	{
 		var scene = TestFactories.Load<PackedScene>("res://scenes/effects/surface_marks/wet_mark.tscn");

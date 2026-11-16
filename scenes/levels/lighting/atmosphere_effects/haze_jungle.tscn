@@ -17,6 +17,7 @@ shader_parameter/wobble_period = 15.0
 
 [node name="Haze" type="Node3D" node_paths=PackedStringArray("Volume")]
 script = ExtResource("1_effect")
+Category = 1
 Volume = NodePath("Volume")
 Height = 3.8
 

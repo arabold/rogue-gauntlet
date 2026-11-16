@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/wet_mark.tscn" id="mark"]
 [node name="WetSpots" type="Node3D"]
 script = ExtResource("script")
+Category = 2
 MarkScene = ExtResource("mark")
 ActiveInDarkness = true
 MarksPerTile = 0.08

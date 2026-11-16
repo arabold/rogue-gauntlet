@@ -94,7 +94,7 @@ public partial class AmbientMotionComponent : Node
 		SetProcess(false);
 		Restore();
 		_response = _velocity = Vector2.Zero;
-		if (!Enabled || Target == null || Profile == null || Material?.Shader == null || !IsInstanceValid(Airflow)) return;
+		if (!Enabled || Target == null || Profile == null || Material?.Shader == null || !IsInstanceValid(Airflow) || !Airflow.IsActive) return;
 		if (!SurfaceMaterialFactory.CanCapture(Target)) return;
 		Capture(Target);
 		ApplyProfile();
@@ -178,12 +178,12 @@ public partial class AmbientMotionComponent : Node
 			material.SetShaderParameter(Wind, localWind);
 			material.SetShaderParameter(Time, Airflow.Elapsed);
 		}
-		if (!Airflow.IsActive && _response.LengthSquared() + _velocity.LengthSquared() < .000001f) SetProcess(false);
 	}
 
 	private void OnAirflowChanged(bool active)
 	{
-		if (!Enabled || _surfaces.Count == 0) return;
+		if (!active || _surfaces.Count == 0) { ApplyEnabled(); return; }
+		if (!Enabled) return;
 		ApplyProfile();
 		SetProcess(true);
 	}

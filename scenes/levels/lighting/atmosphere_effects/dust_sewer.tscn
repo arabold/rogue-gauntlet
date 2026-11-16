@@ -25,6 +25,7 @@ color_ramp = ExtResource("2_fade")
 
 [node name="Dust" type="Node3D" node_paths=PackedStringArray("Particles")]
 script = ExtResource("1_effect")
+Category = 4
 Particles = NodePath("Particles")
 ParticlesPerTile = 1.15
 MaxParticles = 512

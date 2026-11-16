@@ -14,7 +14,7 @@ public partial class LocalReflectionProbe : ReflectionProbe
 			_captured = false;
 			if (!IsNodeReady()) return;
 			Visible = false;
-			SetProcess(IsInstanceValid(Focus) && Lighting?.IsDark == false);
+			SetProcess(IsInstanceValid(Focus) && ReflectionsActive);
 		}
 	}
 	[Export] public WorldLighting Lighting { get; set; }
@@ -23,19 +23,22 @@ public partial class LocalReflectionProbe : ReflectionProbe
 	[Export] public Vector3 CaptureOffset { get; set; } = new(0, 1.5f, 0);
 	private bool _captured;
 	private float _cooldown;
+	private bool ReflectionsActive => Lighting is { IsDark: false } && Lighting.IsEffectEnabled(EnvironmentalEffect.Reflections);
 	public override void _Ready()
 	{
 		Visible = false;
 		if (Lighting == null) { GD.PushError($"{Name}: assign Lighting."); SetProcess(false); return; }
 		this.SubscribeUntilExit(Lighting, world => world.DarknessChanged += OnDarknessChanged,
 			world => world.DarknessChanged -= OnDarknessChanged);
-		OnDarknessChanged(Lighting.IsDark);
+		this.SubscribeUntilExit(Lighting, world => world.EffectsChanged += ApplyEnabled, world => world.EffectsChanged -= ApplyEnabled);
+		ApplyEnabled();
 	}
-	private void OnDarknessChanged(bool dark)
+	private void OnDarknessChanged(bool dark) => ApplyEnabled();
+	private void ApplyEnabled()
 	{
-		Visible = !dark && _captured;
-		if (!dark) _captured = false;
-		SetProcess(!dark && IsInstanceValid(Focus));
+		if (!ReflectionsActive) _captured = false;
+		Visible = ReflectionsActive && _captured;
+		SetProcess(ReflectionsActive && IsInstanceValid(Focus));
 	}
 	public override void _Process(double delta)
 	{

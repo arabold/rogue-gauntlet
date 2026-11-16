@@ -17,7 +17,29 @@ public partial class SurfaceMark : Decal
 		}
 	}
 	private Action _unwatch;
-	public override void _Ready() { Watch(); Apply(); }
+	private WorldLighting _lighting;
+	private bool _authoredVisible;
+	private ProcessModeEnum _authoredProcessMode;
+	public override void _EnterTree()
+	{
+		if (!Engine.IsEditorHint()) _lighting = this.GetAncestorOrNull<ILitWorld>()?.Lighting;
+	}
+	public override void _Ready()
+	{
+		Watch();
+		Apply();
+		if (Engine.IsEditorHint()) return;
+		_authoredVisible = Visible;
+		_authoredProcessMode = ProcessMode;
+		this.SubscribeUntilExit(_lighting, world => world.EffectsChanged += ApplyEnabled, world => world.EffectsChanged -= ApplyEnabled);
+		ApplyEnabled();
+	}
+	private void ApplyEnabled()
+	{
+		bool enabled = _lighting?.IsEffectEnabled(EnvironmentalEffect.SurfaceMarks) != false;
+		Visible = enabled && _authoredVisible;
+		ProcessMode = enabled ? _authoredProcessMode : ProcessModeEnum.Disabled;
+	}
 	private void Watch()
 	{
 		if (Profile != null) _unwatch = this.SubscribeUntilExit(Profile,

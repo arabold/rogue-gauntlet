@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 /// <summary>Optional actor capability that renders attack footprints and projectile aim cues.</summary>
 [Tool, GlobalClass]
@@ -12,6 +13,9 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 	private bool _shown;
 	private bool _enabled = true;
 	private bool _editorPreview;
+	private ArrayMesh _geometryMesh;
+	private AttackIndicatorFrame _geometry;
+	private (float Width, float StartLength, float Growth) _geometryProfile;
 	public bool IsCommitted => _lastStage is AttackIndicatorStage.Committed or AttackIndicatorStage.Attacking or AttackIndicatorStage.Released;
 
 	[Export]
@@ -48,6 +52,7 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		EnsureMaterial();
 		Visible = false;
 		ApplyProfile();
+		SetProcess(Engine.IsEditorHint());
 	}
 
 	public override void _Process(double delta)
@@ -81,7 +86,21 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		if (direction.LengthSquared() < 0.0001f) direction = Vector3.Forward;
 		Basis basis = Basis.LookingAt(direction.Normalized(), Vector3.Up);
 		GlobalTransform = new Transform3D(basis, frame.Origin + Vector3.Up * _profile.GroundOffset);
-		Mesh = BuildMesh(frame);
+		if (!HasSameGeometry(frame))
+		{
+			_geometryMesh ??= new ArrayMesh();
+			_geometryMesh.ClearSurfaces();
+			BuildMesh(_geometryMesh, frame);
+			_geometry = frame with
+			{
+				Execution = default,
+				Footprint = frame.Footprint is { Length: > 0 } ? (Vector2[])frame.Footprint.Clone() : [],
+				Directions = frame.Directions is { Length: > 0 } ? (Vector3[])frame.Directions.Clone() : []
+			};
+			_geometryProfile = (_profile.ProjectileWidth, _profile.AimConeStartLengthScale, _profile.AimConeGrowthExponent);
+		}
+		Mesh = _geometryMesh;
+		SetProcess(Engine.IsEditorHint());
 		EnsureMaterial();
 		_material.AlbedoColor = Tint(frame.ThreatTier);
 		float easedAimProgress = Mathf.Pow(Mathf.Clamp(frame.AimProgress, 0, 1), Mathf.Max(0.01f, _profile.AimConeGrowthExponent));
@@ -101,6 +120,7 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		if (!interrupted && _lastStage == AttackIndicatorStage.Released && _profile != null && _profile.ReleaseFadeDuration > 0)
 		{
 			_releaseRemaining = _profile.ReleaseFadeDuration;
+			SetProcess(true);
 			return;
 		}
 		Clear();
@@ -114,6 +134,15 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		_shown = false;
 		Visible = false;
 		Mesh = null;
+		SetProcess(Engine.IsEditorHint());
+	}
+
+	public override void _ExitTree()
+	{
+		Mesh = null;
+		_geometryMesh?.Dispose();
+		_geometryMesh = null;
+		_geometry = default;
 	}
 
 	public override string[] _GetConfigurationWarnings()
@@ -148,9 +177,22 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		var color = _material.AlbedoColor; color.A = Mathf.Clamp(opacity, 0, 1); _material.AlbedoColor = color;
 	}
 
-	private ArrayMesh BuildMesh(in AttackIndicatorFrame frame)
+	/// <summary>Only geometry inputs invalidate the single cached mesh; moving and tinting a warning do not.</summary>
+	private bool HasSameGeometry(in AttackIndicatorFrame frame)
 	{
-		var mesh = new ArrayMesh();
+		if (_geometryMesh == null || frame.IsProjectile != _geometry.IsProjectile) return false;
+		if (!frame.IsProjectile) return frame.Footprint.AsSpan().SequenceEqual(_geometry.Footprint);
+		if (frame.Length != _geometry.Length || _profile.ProjectileWidth != _geometryProfile.Width) return false;
+		bool cone = frame.Stage == AttackIndicatorStage.Aiming && frame.AimHalfAngleDegrees > 0;
+		bool previousCone = _geometry.Stage == AttackIndicatorStage.Aiming && _geometry.AimHalfAngleDegrees > 0;
+		if (cone != previousCone) return false;
+		if (cone) return frame.AimProgress == _geometry.AimProgress && frame.AimHalfAngleDegrees == _geometry.AimHalfAngleDegrees
+			&& _profile.AimConeStartLengthScale == _geometryProfile.StartLength && _profile.AimConeGrowthExponent == _geometryProfile.Growth;
+		return frame.Direction == _geometry.Direction && frame.Directions.AsSpan().SequenceEqual(_geometry.Directions);
+	}
+
+	private void BuildMesh(ArrayMesh mesh, in AttackIndicatorFrame frame)
+	{
 		if (frame.IsProjectile)
 		{
 			if (frame.Stage == AttackIndicatorStage.Aiming && frame.AimHalfAngleDegrees > 0)
@@ -173,7 +215,6 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 			}
 		}
 		else AddSurface(mesh, frame.Footprint);
-		return mesh;
 	}
 
 	private static void AddSurface(ArrayMesh mesh, Vector2[] points)
@@ -186,7 +227,7 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		{
 			int at = (i - 1) * 3; indices[at] = 0; indices[at + 1] = i; indices[at + 2] = i + 1;
 		}
-		var arrays = new Godot.Collections.Array(); arrays.Resize((int)Mesh.ArrayType.Max);
+		using var arrays = new Godot.Collections.Array(); arrays.Resize((int)Mesh.ArrayType.Max);
 		arrays[(int)Mesh.ArrayType.Vertex] = vertices; arrays[(int)Mesh.ArrayType.Index] = indices;
 		mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
 	}

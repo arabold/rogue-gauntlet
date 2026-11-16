@@ -46,22 +46,12 @@ public partial class LocomotionAnimationComponent : Node
 		AnimationTree.Set(TimeScaleParameter, speed > 0.05f ? speed / naturalSpeed : 0f);
 	}
 
-	/// <summary>Loops authored walk/run clips on a private animation library for this actor instance.</summary>
+	/// <summary>Normalizes missing loop settings without copying already-correct imported animation data.</summary>
 	private void ConfigureLocomotionLoops()
 	{
 		if (AnimationTree == null) return;
 		var animationPlayer = AnimationTree.GetNodeOrNull<AnimationPlayer>(AnimationTree.AnimPlayer);
 		if (animationPlayer == null) return;
-
-		foreach (StringName libraryName in animationPlayer.GetAnimationLibraryList())
-		{
-			AnimationLibrary shared = animationPlayer.GetAnimationLibrary(libraryName);
-			if (shared == null) continue;
-			var instanceLibrary = shared.Duplicate(true) as AnimationLibrary;
-			if (instanceLibrary == null) continue;
-			animationPlayer.RemoveAnimationLibrary(libraryName);
-			animationPlayer.AddAnimationLibrary(libraryName, instanceLibrary);
-		}
 
 		CharacterModel.ConfigureAnimationLoops(animationPlayer);
 	}

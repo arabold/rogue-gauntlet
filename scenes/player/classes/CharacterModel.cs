@@ -32,8 +32,7 @@ public static class CharacterModel
 	}
 
 	/// <summary>
-	/// Ensures locomotion animations (such as Running_A, Walking_*, etc.) have their loop mode
-	/// set to Linear so they loop seamlessly when played.
+	/// Corrects non-looping locomotion clips on private copies. Unchanged libraries and clips remain shared.
 	/// </summary>
 	public static void ConfigureAnimationLoops(Node modelRoot)
 	{
@@ -43,17 +42,25 @@ public static class CharacterModel
 			return;
 		}
 
-		foreach (StringName animName in animPlayer.GetAnimationList())
+		foreach (StringName libraryName in animPlayer.GetAnimationLibraryList())
 		{
-			string nameStr = animName.ToString();
-			if (nameStr.StartsWith("Running") || nameStr.StartsWith("Walking") || nameStr.StartsWith("Run") || nameStr.StartsWith("Walk"))
+			var shared = animPlayer.GetAnimationLibrary(libraryName);
+			AnimationLibrary local = null;
+			foreach (StringName animName in shared.GetAnimationList())
 			{
-				Animation anim = animPlayer.GetAnimation(animName);
-				if (anim != null && anim.LoopMode == Animation.LoopModeEnum.None)
-				{
-					anim.LoopMode = Animation.LoopModeEnum.Linear;
-				}
+				string name = animName.ToString();
+				if (!name.StartsWith("Run") && !name.StartsWith("Walk")) continue;
+				Animation animation = shared.GetAnimation(animName);
+				if (animation.LoopMode != Animation.LoopModeEnum.None) continue;
+				local ??= (AnimationLibrary)shared.Duplicate();
+				var loop = (Animation)animation.Duplicate();
+				loop.LoopMode = Animation.LoopModeEnum.Linear;
+				local.RemoveAnimation(animName);
+				local.AddAnimation(animName, loop);
 			}
+			if (local == null) continue;
+			animPlayer.RemoveAnimationLibrary(libraryName);
+			animPlayer.AddAnimationLibrary(libraryName, local);
 		}
 	}
 

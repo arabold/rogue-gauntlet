@@ -48,7 +48,7 @@ public partial class CombatFeedbackController : Node
 		float distance = feedback.Settings.LungeDistance * scale;
 		bool triggered = Movement?.TryLunge(feedback.Context.ExecutionId, feedback.IncomingDirection,
 			distance, feedback.Settings.MotionDuration) == true;
-		CombatTrace.Write(this, "effect.lunge", ("execution", feedback.Context.ExecutionId.Sequence),
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.lunge", ("execution", feedback.Context.ExecutionId.Sequence),
 			("distance", distance), ("duration", feedback.Settings.MotionDuration),
 			("speed", feedback.Settings.MotionDuration > 0 ? distance / feedback.Settings.MotionDuration : 0),
 			("triggered", triggered));
@@ -65,7 +65,7 @@ public partial class CombatFeedbackController : Node
 		{
 			float flashAmount = settings.FlashAmount * scale;
 			bool flashTriggered = SurfaceAppearance?.PulseHit(settings.FlashColor, flashAmount, settings.FlashDuration) == true;
-			CombatTrace.Write(this, "effect.hit_flash", ("outcome", feedback.Outcome.ToString()),
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.hit_flash", ("outcome", feedback.Outcome.ToString()),
 				("amount", flashAmount), ("duration", settings.FlashDuration),
 				("triggered", flashTriggered));
 			PlayParticles(SurfaceProfile?.DamageParticles ?? HurtBox.HitEffect, feedback.Position,
@@ -74,7 +74,7 @@ public partial class CombatFeedbackController : Node
 			{
 				float distance = settings.RecoilDistance * scale;
 				bool recoilTriggered = VisualMotion?.Recoil(feedback.IncomingDirection, distance, settings.MotionDuration) == true;
-				CombatTrace.Write(this, "effect.visual_recoil", ("distance", distance),
+				if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.visual_recoil", ("distance", distance),
 					("duration", settings.MotionDuration), ("triggered", recoilTriggered));
 			}
 			return;
@@ -95,7 +95,7 @@ public partial class CombatFeedbackController : Node
 	{
 		if (scene == null || !IsInsideTree())
 		{
-			CombatTrace.Write(this, "effect.particles", ("cue", cue), ("outcome", outcome.ToString()),
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.particles", ("cue", cue), ("outcome", outcome.ToString()),
 				("scene", scene?.ResourcePath ?? ""), ("amount", 0), ("triggered", false),
 				("reason", scene == null ? "not_configured" : "outside_tree"));
 			return;
@@ -107,7 +107,7 @@ public partial class CombatFeedbackController : Node
 		particles.OneShot = true;
 		particles.Restart();
 		particles.Emitting = true;
-		CombatTrace.Write(this, "effect.particles", ("cue", cue), ("outcome", outcome.ToString()),
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.particles", ("cue", cue), ("outcome", outcome.ToString()),
 			("scene", scene.ResourcePath), ("amount", particles.Amount), ("triggered", true));
 	}
 }

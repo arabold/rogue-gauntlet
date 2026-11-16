@@ -37,6 +37,8 @@ float fog_alpha(vec2 world_xz) {
 	if (fog_map_extent.x <= 0.0) return 0.0;
 	vec2 uv = (world_xz - fog_map_origin) / fog_map_extent;
 	float center = fog_coverage(uv);
+	// Feathering only contracts discovered space; hidden centers cannot gain coverage from their neighbors.
+	if (center == 0.0) return 1.0;
 	vec2 step_uv = vec2(fog_feather_width) / fog_map_extent;
 	float soft = 0.0;
 	for (int y = -1; y <= 1; y++) {

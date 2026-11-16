@@ -19,6 +19,7 @@ public partial class DungeonAtmosphere : Node3D
 			return;
 		}
 		this.SubscribeUntilExit(Lighting, source => source.DarknessChanged += ApplyDarkness, source => source.DarknessChanged -= ApplyDarkness);
+		this.SubscribeUntilExit(Lighting, source => source.EffectsChanged += ApplyEffects, source => source.EffectsChanged -= ApplyEffects);
 	}
 
 	/// <summary>Releases effects before their shared floor textures, including when generation fails or the world exits.</summary>
@@ -56,13 +57,16 @@ public partial class DungeonAtmosphere : Node3D
 			effect.Initialize(_context);
 			_effects.Add(effect);
 		}
-		ApplyDarkness(Lighting.IsDark);
+		ApplyEffects();
 	}
 
-	private void ApplyDarkness(bool isDark)
+	private void ApplyDarkness(bool isDark) => ApplyEffects();
+
+	private void ApplyEffects()
 	{
 		Visible = _effects.Count > 0;
-		foreach (var effect in _effects) effect.SetActive(Visible, isDark);
+		foreach (var effect in _effects)
+			effect.SetActive(Visible && Lighting.IsEffectEnabled(effect.Category), Lighting.IsDark);
 	}
 
 	public override void _ExitTree() => Clear();

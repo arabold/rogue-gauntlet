@@ -20,6 +20,8 @@ The component preserves native source material properties through `SurfaceMateri
 
 The vertex entry point includes a zero-weight `TIME` reference so Godot recognizes an animated shadow caster and refreshes cached point-light shadows. Actual deformation uses the shared `Airflow` clock, including pause and playback speed. Matching shadows therefore require shadow-map redraws for nearby shadow-casting lights; this cost should be measured before broad rollout.
 
+**Debug → Visual effects → Wind (banners and plants)** suppresses the world's airflow without changing authored `Enabled` settings. Stopping a source restores its props' static materials and cull margins and stops their response updates, so the comparison includes animated shadow redraws rather than just freezing a deformed mesh. Re-enabling it reapplies each prop's private motion materials. Standalone sources without a lit world remain independently controllable through `Airflow.Enabled`.
+
 ## Inspector controls
 
 - **Airflow → Profile:** direction, steady strength, gust strength/period, spatial scale and direction variation. Enabled and playback speed control the source and its paused clock.

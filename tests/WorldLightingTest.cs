@@ -13,7 +13,7 @@ public class WorldLightingTest
 	{
 		var authored = new Godot.Environment
 		{
-			AmbientLightEnergy = .4f, FogEnabled = true, VolumetricFogEnabled = true,
+			AmbientLightEnergy = .4f, FogEnabled = true, VolumetricFogEnabled = true, SsrEnabled = true,
 			ReflectedLightSource = Godot.Environment.ReflectionSource.Sky
 		};
 		var dark = new WorldLighting { Environment = authored, IsDark = true };
@@ -47,13 +47,19 @@ public class WorldLightingTest
 		AssertBool(lit.Environment.FogEnabled).IsFalse();
 		AssertBool(lit.Environment.VolumetricFogEnabled).IsFalse();
 
-		dark.FogEnabled = false;
+		dark.DisabledEffects = EnvironmentalEffect.Fog | EnvironmentalEffect.Reflections;
 		dark.IsDark = true;
 		dark.IsDark = false;
 		AssertBool(dark.Environment.FogEnabled).IsFalse();
 		AssertBool(dark.Environment.VolumetricFogEnabled).IsFalse();
-		dark.FogEnabled = true;
+		AssertBool(dark.Environment.SsrEnabled).IsFalse();
+		AssertThat(dark.Environment.ReflectedLightSource).IsEqual(Godot.Environment.ReflectionSource.Disabled);
+		AssertBool(lit.Environment.SsrEnabled).IsFalse();
+		AssertBool(authored.SsrEnabled).IsTrue();
+		dark.DisabledEffects = EnvironmentalEffect.None;
 		AssertBool(dark.Environment.FogEnabled).IsTrue();
 		AssertBool(dark.Environment.VolumetricFogEnabled).IsTrue();
+		AssertBool(dark.Environment.SsrEnabled).IsTrue();
+		AssertThat(dark.Environment.ReflectedLightSource).IsEqual(Godot.Environment.ReflectionSource.Sky);
 	}
 }

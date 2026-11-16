@@ -1,5 +1,18 @@
 using Godot;
 
+/// <summary>Editor-authored effect categories used for independent visual diagnostics.</summary>
+[System.Flags]
+public enum EnvironmentalEffect
+{
+	None = 0,
+	Fog = 1,
+	SurfaceMarks = 2,
+	Dust = 4,
+	Drips = 8,
+	Reflections = 16,
+	Wind = 32
+}
+
 /// <summary>
 /// A world's shared illumination. Darkness removes ambient light, reflections and haze; the hero's light dims and
 /// fixtures go out by following <see cref="DarknessChanged"/>. The game, arena and workbenches use the same environment.
@@ -8,6 +21,7 @@ using Godot;
 public partial class WorldLighting : WorldEnvironment
 {
 	[Signal] public delegate void DarknessChangedEventHandler(bool isDark);
+	[Signal] public delegate void EffectsChangedEventHandler();
 
 	/// <summary>Whether the world's lights are out; debug changes last for this scene only.</summary>
 	[Export]
@@ -24,18 +38,28 @@ public partial class WorldLighting : WorldEnvironment
 		}
 	}
 
-	/// <summary>Enables the authored atmospheric fog while respecting the darkness setting.</summary>
+	/// <summary>Temporary world-local overrides; authored effects retain their individual settings.</summary>
 	[Export]
-	public bool FogEnabled
+	public EnvironmentalEffect DisabledEffects
 	{
 		get;
-		set { field = value; if (IsNodeReady()) ApplyLighting(); }
-	} = true;
+		set
+		{
+			if (field == value) return;
+			field = value;
+			if (!IsNodeReady()) return;
+			ApplyLighting();
+			EmitSignal(SignalName.EffectsChanged);
+		}
+	}
+
+	public bool IsEffectEnabled(EnvironmentalEffect effect) => (DisabledEffects & effect) == 0;
 
 	private float _normalAmbient;
 	private Environment.ReflectionSource _normalReflections;
 	private bool _normalFog;
 	private bool _normalVolumetricFog;
+	private bool _normalSsr;
 
 	public override void _Ready()
 	{
@@ -47,6 +71,7 @@ public partial class WorldLighting : WorldEnvironment
 			_normalReflections = Environment.ReflectedLightSource;
 			_normalFog = Environment.FogEnabled;
 			_normalVolumetricFog = Environment.VolumetricFogEnabled;
+			_normalSsr = Environment.SsrEnabled;
 		}
 		ApplyLighting();
 	}
@@ -56,9 +81,12 @@ public partial class WorldLighting : WorldEnvironment
 		if (Environment != null)
 		{
 			Environment.AmbientLightEnergy = IsDark ? 0f : _normalAmbient;
-			Environment.ReflectedLightSource = IsDark ? Environment.ReflectionSource.Disabled : _normalReflections;
-			Environment.FogEnabled = !IsDark && FogEnabled && _normalFog;
-			Environment.VolumetricFogEnabled = !IsDark && FogEnabled && _normalVolumetricFog;
+			bool reflections = !IsDark && IsEffectEnabled(EnvironmentalEffect.Reflections);
+			bool fog = !IsDark && IsEffectEnabled(EnvironmentalEffect.Fog);
+			Environment.ReflectedLightSource = reflections ? _normalReflections : Environment.ReflectionSource.Disabled;
+			Environment.SsrEnabled = reflections && _normalSsr;
+			Environment.FogEnabled = fog && _normalFog;
+			Environment.VolumetricFogEnabled = fog && _normalVolumetricFog;
 		}
 	}
 }
