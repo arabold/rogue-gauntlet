@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="ItemCreationPolicy" format=3]
+
+[ext_resource type="Script" path="res://scenes/items/ItemCreationPolicy.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/items/quality/QualityLadder.cs" id="ladder"]
+[ext_resource type="Script" path="res://scenes/items/quality/QualityLevel.cs" id="level"]
+
+[sub_resource type="Resource" id="poor"]
+script = ExtResource("level")
+Quality = 0
+StartWeight = 10.0
+MinScale = 0.7
+MaxScale = 0.9
+
+[sub_resource type="Resource" id="normal"]
+script = ExtResource("level")
+Quality = 1
+StartWeight = 65.0
+MinScale = 1.0
+MaxScale = 1.0
+
+[sub_resource type="Resource" id="superior"]
+script = ExtResource("level")
+Quality = 2
+StartWeight = 25.0
+MinScale = 1.1
+MaxScale = 1.25
+
+[sub_resource type="Resource" id="magic"]
+script = ExtResource("level")
+Quality = 3
+StartWeight = 0.0
+MinScale = 1.0
+MaxScale = 1.0
+
+[sub_resource type="Resource" id="rare"]
+script = ExtResource("level")
+Quality = 4
+StartWeight = 0.0
+MinScale = 1.0
+MaxScale = 1.0
+
+[sub_resource type="Resource" id="qualities"]
+script = ExtResource("ladder")
+Levels = [SubResource("poor"), SubResource("normal"), SubResource("superior"), SubResource("magic"), SubResource("rare")]
+
+[resource]
+script = ExtResource("script")
+RollEquipment = true
+QualityLadder = SubResource("qualities")
+CurseChance = 0.0
+RollFoodContamination = false

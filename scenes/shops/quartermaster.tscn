@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/shops/Shopkeeper.cs" id="keeper"]
+[ext_resource type="Script" path="res://scenes/shops/ShopComponent.cs" id="shop"]
+[ext_resource type="Resource" path="res://scenes/shops/quartermaster_profile.tres" id="profile"]
+[ext_resource type="PackedScene" path="res://assets/custom-heroes/rogue.glb" id="rogue"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/ranger_coat.tres" id="coat"]
+[ext_resource type="Script" path="res://scenes/interactions/InteractionDefinition.cs" id="action"]
+[ext_resource type="PackedScene" path="res://scenes/components/interactive_component.tscn" id="interactive"]
+[ext_resource type="PackedScene" path="res://scenes/components/interaction_marker.tscn" id="marker"]
+
+[sub_resource type="Resource" id="Trade"]
+script = ExtResource("action")
+OperationId = "trade"
+VerbLabel = "Trade"
+Duration = 0.5
+InteractionRange = 2.5
+
+[node name="Quartermaster" type="Node3D" node_paths=PackedStringArray("Shop", "Appearance")]
+script = ExtResource("keeper")
+Shop = NodePath("Shop")
+Appearance = NodePath("Appearance")
+CharacterScene = ExtResource("rogue")
+Outfit = [ExtResource("coat")]
+
+[node name="Appearance" type="Node3D" parent="."]
+
+[node name="Shop" type="Node" parent="." node_paths=PackedStringArray("Interaction")]
+script = ExtResource("shop")
+Profile = ExtResource("profile")
+Interaction = NodePath("../Interaction")
+
+[node name="Interaction" parent="." node_paths=PackedStringArray("IdleMarker") instance=ExtResource("interactive")]
+position = Vector3(0, 0.9, 0)
+Text = "Trade"
+Definition = SubResource("Trade")
+IdleMarker = NodePath("Marker")
+
+[node name="Marker" parent="Interaction" instance=ExtResource("marker")]
+position = Vector3(0, 2.4, 0)
+
+[node name="FloatingLabel" parent="Interaction" index="1"]
+position = Vector3(0, 1.75, 0)
+Text = "Trade"
+
+[editable path="Interaction"]

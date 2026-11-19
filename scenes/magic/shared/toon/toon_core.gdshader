@@ -1,5 +1,6 @@
 shader_type spatial;
 render_mode unshaded, cull_back, shadows_disabled;
+#include "res://scenes/effects/shaders/upright_billboard.gdshaderinc"
 #include "res://scenes/magic/area_visibility.gdshaderinc"
 #include "res://scenes/magic/shared/toon/toon.gdshaderinc"
 
@@ -14,9 +15,14 @@ uniform float pulse = 0.035;
 uniform float heat_bias = 0.0;
 // Fades by dissolving facets away, so the core stays opaque.
 uniform float effect_fade = 1.0;
+uniform bool upright_billboard = false;
 varying vec3 object_position;
 
 void vertex() {
+	if (upright_billboard) {
+		MODELVIEW_MATRIX = VIEW_MATRIX * upright_billboard_transform(MODEL_MATRIX, INV_VIEW_MATRIX);
+		MODELVIEW_NORMAL_MATRIX = transpose(inverse(mat3(MODELVIEW_MATRIX)));
+	}
 	object_position = VERTEX;
 	VERTEX += NORMAL * sin(TIME * 9.0 + VERTEX.y * 7.0) * pulse;
 }

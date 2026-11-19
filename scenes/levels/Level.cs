@@ -19,6 +19,7 @@ public partial class Level : Node, IDebugWorld
 
 	/// <summary>Required to generate a playable floor: it records and replays this floor's item deltas.</summary>
 	[Export] public LevelItemPersistence ItemPersistence { get; set; }
+	[Export] public LevelShops Shops { get; set; }
 	/// <summary>The floor's exploration and fog. Unassigned, fog is disabled and everything shows.</summary>
 	[Export] public FloorDiscovery Discovery { get; set; }
 	/// <summary>Tuning for monster navigation. Unassigned, monsters cannot navigate and hold still.</summary>
@@ -114,11 +115,15 @@ public partial class Level : Node, IDebugWorld
 	public RandomNumberGenerator CreateSourceLootRng(string sourceId) => MapGenerator.CreateSourceLootRng(sourceId);
 
 	/// <summary>True while an item operation is mid-commit; capturing then would record a half-applied floor.</summary>
-	public bool IsCommittingFloorChanges => ItemPersistence?.IsCommitting == true;
+	public bool IsCommittingFloorChanges => ItemPersistence?.IsCommitting == true || Shops?.IsCommitting == true;
 
 	/// <summary>This floor's deviations from its seeded baseline; the inverse of <see cref="RestoreFloorDeltas"/>.</summary>
-	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas() =>
-		(ItemPersistence.Capture(), CaptureExploration());
+	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas()
+	{
+		var items = ItemPersistence.Capture();
+		if (Shops != null) items.ShopPurchases = Shops.CapturePurchases();
+		return (items, CaptureExploration());
+	}
 
 	/// <summary>This floor's door, trap and exploration deviations from its seeded baseline; the inverse of <see cref="RestoreExploration"/>.</summary>
 	public RevealedLevelSaveData CaptureExploration()
@@ -166,6 +171,7 @@ public partial class Level : Node, IDebugWorld
 	private void RestoreFloorDeltas()
 	{
 		ItemPersistence.RecordInitialBaseline();
+		Shops?.Initialize(this, _savedItems?.ShopPurchases ?? new());
 		ItemPersistence.Apply(_savedItems);
 		RestoreExploration(_savedExploration);
 	}
@@ -206,7 +212,7 @@ public partial class Level : Node, IDebugWorld
 		}
 		catch (System.Exception error)
 		{
-			GD.PushError($"Cannot restore floor items: {error.Message}");
+			GD.PushError($"Cannot restore floor state: {error.Message}");
 			EmitSignal(SignalName.GenerationFailed, error.Message);
 			return;
 		}

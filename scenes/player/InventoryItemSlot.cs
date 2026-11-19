@@ -32,6 +32,9 @@ public partial class InventoryItemSlot : Resource
     public bool IsEmpty => Item == null;
     public bool IsStackable => Item.IsStackable;
 
+	/// <summary>Lets an inventory transaction publish the quantity change with the rest of its commit.</summary>
+	internal void SetQuantityWithoutNotification(int quantity) => _quantity = quantity;
+
 	public InventoryItemSlot CreateRuntimeCopy()
 	{
 		return new InventoryItemSlot

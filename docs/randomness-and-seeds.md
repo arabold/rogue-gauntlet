@@ -39,6 +39,7 @@ Untouched floor content regenerates from its seed. Saves retain deviations rathe
 - Cleared enemies, destroyed nests, killed finite summon slots, gatekeeper defeat and drained fountains.
 - Exact explored tiles, discovered trap identities and discovered/locked/current-open door deviations per depth; closing an explored door does not reopen it on restore.
 - Removed or changed baseline items, added/player-dropped items and activated reward sources.
+- Purchased offers keyed by floor, merchant and offer ID. Each merchant rebuilds the rest of its shelf from its own seed. See [shops](shops.md).
 - Carried item identities, quantities, rolls, food state and equipment references.
 
 Activated-source records retain enough authored inputs and activation location to reconstruct rewards after their owner is gone. Restoration rebuilds the baseline and rewards, applies validated changes, and restores claimed/open state without firing new pickup, reward or identification effects.

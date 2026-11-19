@@ -186,6 +186,8 @@ Generate stock once for the shop and persist remaining quantities, item state, a
 
 Buying and selling must transfer items atomically: insufficient funds or inventory space cannot lose currency or items. Set buy/sell spreads to prevent immediate resale profit. Decide how merchants handle unidentified or contaminated goods before implementing prices that could reveal hidden properties.
 
+The [Quartermaster](shops.md) trades near the Depth 3 arrival. The [shop expansion design](specs/shop-design.md) covers dedicated rooms and later merchants.
+
 ## Player experience and presentation
 
 The world model, inventory preview, equipped appearance, and item details should describe the same object. Equipment presentation must work with supported character rigs; gameplay stats alone do not complete wearable armor integration.

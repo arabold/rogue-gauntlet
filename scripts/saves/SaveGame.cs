@@ -15,7 +15,7 @@ public enum RunOutcome
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 98;
+	public const int CurrentVersion = 99;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -256,6 +256,7 @@ public sealed class LevelItemDeltaSaveData
 	public List<WorldItemSaveData> Overrides { get; set; } = [];
 	public List<WorldItemSaveData> AddedItems { get; set; } = [];
 	public List<RewardSourceSaveData> ActivatedSources { get; set; } = [];
+	public Dictionary<string, List<string>> ShopPurchases { get; set; } = new();
 }
 
 public sealed class WorldItemSaveData

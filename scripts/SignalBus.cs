@@ -35,6 +35,9 @@ public partial class SignalBus : Node
     // Singleton instance for global access
     public static SignalBus Instance { get; private set; }
 
+    [Signal] public delegate void TradeRequestedEventHandler(ShopComponent shop, Player player);
+    public static void EmitTradeRequested(ShopComponent shop, Player player) => Instance?.EmitSignalTradeRequested(shop, player);
+
     [Signal] public delegate void GamePausedEventHandler(bool isPaused);
     public static void EmitGamePaused(bool isPaused) => Instance?.EmitSignalGamePaused(isPaused);
 

@@ -59,6 +59,7 @@ public partial class Inventory : Resource
 
 	private int _updateDepth;
 	private bool _changed;
+	private System.Collections.Generic.HashSet<InventoryItemSlot> _changedQuantities;
 
 	/// <summary>Holds UI notifications until a coordinated transfer has committed both owners.</summary>
 	public IDisposable DeferChanges()
@@ -71,17 +72,32 @@ public partial class Inventory : Resource
 	{
 		public void Dispose()
 		{
-			if (--inventory._updateDepth == 0 && inventory._changed)
-			{
-				inventory._changed = false;
-				inventory.EmitChanged();
-			}
+			if (--inventory._updateDepth != 0) return;
+			var quantities = inventory._changedQuantities;
+			bool changed = inventory._changed;
+			inventory._changedQuantities = null;
+			inventory._changed = false;
+			if (quantities != null)
+				foreach (var entry in quantities) entry.EmitChanged();
+			if (changed) inventory.EmitChanged();
 		}
 	}
 
 	private void NotifyChanged()
 	{
 		if (_updateDepth > 0) { _changed = true; } else { EmitChanged(); }
+	}
+
+	private void ChangeQuantity(InventoryItemSlot entry, int quantity)
+	{
+		if (entry.Quantity == quantity) return;
+		if (_updateDepth == 0)
+		{
+			entry.Quantity = quantity;
+			return;
+		}
+		entry.SetQuantityWithoutNotification(quantity);
+		(_changedQuantities ??= []).Add(entry);
 	}
 
 	public Inventory CreateRuntimeCopy()
@@ -128,7 +144,7 @@ public partial class Inventory : Resource
 			foreach (var entry in Items.Where(e => CanMerge(e.Item, item)))
 			{
 				int count = Math.Min(remaining, Math.Max(0, item.MaxStackSize - entry.Quantity));
-				entry.Quantity += count;
+				ChangeQuantity(entry, entry.Quantity + count);
 				remaining -= count;
 				if (remaining == 0) { break; }
 			}
@@ -159,7 +175,7 @@ public partial class Inventory : Resource
 	{
 		if (!CanRemove(entry, quantity).Success) { return; }
 		if (quantity == entry.Quantity) { ReleaseEntry(entry); Items.Remove(entry); }
-		else { entry.Quantity -= quantity; }
+		else { ChangeQuantity(entry, entry.Quantity - quantity); }
 		NotifyChanged();
 	}
 

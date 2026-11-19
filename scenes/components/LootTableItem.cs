@@ -24,6 +24,11 @@ public partial class LootTableItem : Resource
 	/// bands uses its equipment's tier instead, through <see cref="LootPool.IsEligibleAt"/>.</summary>
 	public bool IsEligibleAt(uint depth) => IsWithin(depth, MinDepth, MaxDepth);
 
+	/// <summary>Whether this entry can enter a weighted draw at this depth, including a pool's tier bands.</summary>
+	internal static bool CanRollAt(LootTableItem entry, uint depth, LootPool pool = null) =>
+		entry?.Item != null && float.IsFinite(entry.Weight) && entry.Weight > 0
+		&& (pool?.IsEligibleAt(entry, depth) ?? entry.IsEligibleAt(depth));
+
 	/// <summary>True if <paramref name="depth"/> lies between <paramref name="min"/> and <paramref name="max"/>,
 	/// where 0 leaves that side open.</summary>
 	public static bool IsWithin(uint depth, uint min, uint max) => (min == 0 || depth >= min) && (max == 0 || depth <= max);

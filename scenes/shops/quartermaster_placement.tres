@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ShopPlacementProfile" format=3]
+
+[ext_resource type="Script" path="res://scenes/shops/ShopPlacementProfile.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/shops/quartermaster.tscn" id="keeper"]
+
+[resource]
+script = ExtResource("script")
+Id = "quartermaster"
+Depth = 3
+KeeperScene = ExtResource("keeper")
+DistanceFromArrival = 7.0
+MinimumDistanceFromArrival = 3.0

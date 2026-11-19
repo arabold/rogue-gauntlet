@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using System.Linq;
 
 /// <summary>
 /// Shared helpers for instancing a character class's visual model outside its authored
@@ -22,9 +23,12 @@ public static class CharacterModel
 	/// prop meshes the KayKit template ships on its BoneAttachment3D nodes stripped (held items
 	/// and worn armor are equipment).
 	/// </summary>
-	public static Node3D Instantiate(CharacterClass characterClass, uint renderLayers = PlayerRenderLayers)
+	public static Node3D Instantiate(CharacterClass characterClass, uint renderLayers = PlayerRenderLayers) =>
+		Instantiate(characterClass.CharacterScene, renderLayers);
+
+	public static Node3D Instantiate(PackedScene scene, uint renderLayers)
 	{
-		var model = characterClass.CharacterScene.Instantiate<Node3D>();
+		var model = scene.Instantiate<Node3D>();
 		ApplyRenderLayers(model, renderLayers);
 		StripBuiltInProps(model);
 		ConfigureAnimationLoops(model);
@@ -89,7 +93,10 @@ public static class CharacterModel
 	/// armor among the class's starting items. Skinned armor goes onto the model's skeleton, a rigid helmet on its head
 	/// bone, and the model parts they cover are hidden.
 	/// </summary>
-	public static void Dress(Node3D model, CharacterClass characterClass)
+	public static void Dress(Node3D model, CharacterClass characterClass) =>
+		Dress(model, characterClass.StartingItems.Select(slot => slot?.Item).OfType<Armor>(), PlayerRenderLayers);
+
+	public static void Dress(Node3D model, System.Collections.Generic.IEnumerable<Armor> outfit, uint renderLayers)
 	{
 		Skeleton3D skeleton = FindSkeleton(model);
 		if (skeleton == null)
@@ -97,16 +104,16 @@ public static class CharacterModel
 			return;
 		}
 		var worn = new System.Collections.Generic.List<Item>();
-		foreach (InventoryItemSlot slot in characterClass.StartingItems)
+		foreach (Armor armor in outfit)
 		{
-			if (slot?.Item is not Armor { WornScene: { } scene } armor) continue;
+			if (armor?.WornScene is not { } scene) continue;
 			if (!armor.ValidSlots.HasFlag(ValidSlots.Head) && !armor.ValidSlots.HasFlag(ValidSlots.Chest)) continue;
 			worn.Add(armor);
-			if (WornEquipment.Wear(skeleton, scene, PlayerRenderLayers).Count > 0 || !armor.ValidSlots.HasFlag(ValidSlots.Head)) continue;
+			if (WornEquipment.Wear(skeleton, scene, renderLayers).Count > 0 || !armor.ValidSlots.HasFlag(ValidSlots.Head)) continue;
 			var mount = new BoneAttachment3D { Name = $"Worn_{HelmetBone}", BoneName = HelmetBone };
 			skeleton.AddChild(mount);
 			var piece = scene.Instantiate<Node>();
-			ApplyRenderLayers(piece, PlayerRenderLayers);
+			ApplyRenderLayers(piece, renderLayers);
 			mount.AddChild(piece);
 		}
 		WornEquipment.ShowModelParts(skeleton, WornEquipment.CoveredParts(worn));

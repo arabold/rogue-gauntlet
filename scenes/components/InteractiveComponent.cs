@@ -41,6 +41,8 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 	[Export] public InteractionDefinition Definition { get; set; }
 	/// <summary>Optional prompt shown while focused; leave it unassigned for interactives without one.</summary>
 	[Export] public FloatingLabel Prompt { get; set; }
+	/// <summary>Optional world marker that gives way to the focused prompt.</summary>
+	[Export] public Node3D IdleMarker { get; set; }
 
 	/// <summary>
 	/// Signal emitted when an actor commits interaction with the object.
@@ -72,11 +74,8 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 		// Tool only so tool scripts such as Door can reference it; the prompt is runtime-only.
 		if (Engine.IsEditorHint()) return;
 		_floatingLabel = Prompt;
-		if (_floatingLabel != null)
-		{
-			_floatingLabel.Visible = false;
-			_floatingLabel.Text = Text;
-		}
+		if (_floatingLabel != null) _floatingLabel.Text = Text;
+		Update();
 	}
 
 	public InteractionOffer GetOffer(in ActorInteractionContext actor)
@@ -202,5 +201,6 @@ public partial class InteractiveComponent : Area3D, IInteractionTarget, IInterac
 		{
 			_floatingLabel.Visible = _isFocused && IsInteractive;
 		}
+		if (IdleMarker != null) IdleMarker.Visible = IsInteractive && !_isFocused;
 	}
 }
