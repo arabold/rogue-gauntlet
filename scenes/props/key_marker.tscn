@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/props/DoorKeyMarker.cs" id="marker"]
+[ext_resource type="ArrayMesh" path="res://scenes/props/key_marker_diamond.tres" id="diamond"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/pixel_perfect_outline3D.gdshader" id="outline"]
+
+[sub_resource type="ShaderMaterial" id="Ink"]
+shader = ExtResource("outline")
+shader_parameter/outline_color = Color(0.012, 0.008, 0.006, 1)
+shader_parameter/outline_width = 2.5
+
+[sub_resource type="StandardMaterial3D" id="Finish"]
+next_pass = SubResource("Ink")
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.9, 0.65, 0.12, 1)
+metallic = 0.2
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.9, 0.65, 0.12, 1)
+emission_energy_multiplier = 0.42
+
+[node name="KeyMarker" type="MeshInstance3D"]
+physics_interpolation_mode = 2
+mesh = ExtResource("diamond")
+material_override = SubResource("Finish")
+cast_shadow = 0
+script = ExtResource("marker")

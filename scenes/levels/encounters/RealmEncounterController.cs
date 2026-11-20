@@ -20,8 +20,8 @@ public partial class RealmEncounterController : Node
 		if (exit != null)
 		{
 			exit.RejectedWalkDirection = Vector3.Forward;
-			_objective = new Label3D { Text = DescentUnlocked ? $"{name} defeated — descent open" : $"Defeat {name} to descend", Position = Vector3.Up * 4,
-				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, FontSize = 48, PixelSize = .008f,
+			_objective = new WorldLabel3D { Text = DescentUnlocked ? $"{name} defeated — descent open" : $"Defeat {name} to descend", Position = Vector3.Up * 4,
+				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
 				NoDepthTest = true, RenderPriority = FloatingLabel.LabelRenderPriority,
 				Modulate = new Color(1, .72f, .25f) };
 			_objective.AddChild(new ConstantScreenSize3D { Target = _objective });

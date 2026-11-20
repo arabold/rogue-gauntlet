@@ -2,6 +2,7 @@ namespace RogueGauntlet.Tests;
 
 using Godot;
 using GdUnit4;
+using System.Linq;
 using System.Threading.Tasks;
 using static GdUnit4.Assertions;
 
@@ -160,6 +161,36 @@ public class NameplateTest
 		await runner.SimulateFrames(12, 20);
 		AssertBool(bar.Visible).IsTrue();
 		AssertFloat(bar.Modulate.A).IsEqualApprox(1f, 0.01f);
+	}
+
+	[TestCase]
+	public async Task BossHealthDrainsThroughPhaseBoundariesAndTracksPoiseSeparately()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var boss = TestFactories.SpawnHarnessMonster(harness, "res://scenes/enemies/forsaken_warden/forsaken_warden.tscn");
+		var bar = boss.Nameplate.GetNode<FloatingHealthBar>("FloatingHealthBar");
+		var segments = bar.HealthTrack.GetChildren().OfType<ProgressBar>().ToArray();
+		AssertInt(segments.Length).IsEqual(3);
+
+		boss.HealthComponent.SetHealth(65, 100);
+		AssertInt(boss.HealthPhases.CurrentPhase).IsEqual(1);
+		AssertFloat((float)segments[0].Ratio).IsEqualApprox(1, .001f);
+		AssertFloat((float)segments[1].Ratio).IsEqualApprox(1, .001f);
+		AssertFloat((float)segments[2].Ratio).IsEqualApprox(0, .001f);
+
+		boss.HealthComponent.SetHealth(47.5f, 100);
+		AssertFloat((float)segments[1].Ratio).IsEqualApprox(.5f, .001f);
+
+		boss.HealthComponent.SetHealth(30, 100);
+		AssertInt(boss.HealthPhases.CurrentPhase).IsEqual(2);
+		AssertFloat((float)segments[0].Ratio).IsEqualApprox(1, .001f);
+		AssertFloat((float)segments[1].Ratio).IsEqualApprox(0, .001f);
+
+		boss.HealthComponent.SetHealth(15, 100);
+		bar.Poise.Apply(bar.Poise.Maximum * .5f);
+		AssertFloat((float)bar.PoiseBar.Ratio).IsEqualApprox(.5f, .001f);
+		AssertFloat((float)segments[0].Ratio).IsEqualApprox(.5f, .001f);
 	}
 
 	[TestCase]

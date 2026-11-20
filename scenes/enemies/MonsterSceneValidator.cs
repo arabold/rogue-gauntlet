@@ -84,8 +84,7 @@ public static class MonsterSceneValidator
 		{
 			var fractions = phases.Get("EnterHealthFractions").AsFloat32Array();
 			Check(Local(phases) && Object<Node>(phases, "Health") == health, "HealthPhaseComponent: bind this actor's health.");
-			Check(fractions.Length > 0 && fractions.Select((value, index) => float.IsFinite(value) && value is > 0 and < 1
-				&& (index == 0 || value < fractions[index - 1])).All(valid => valid),
+			Check(HealthPhaseComponent.HasValidThresholds(fractions),
 				"HealthPhaseComponent.EnterHealthFractions: list strictly descending fractions in (0, 1).");
 		}
 		var poise = hurtbox != null ? Object<Node>(hurtbox, "Poise") : null;
@@ -102,6 +101,8 @@ public static class MonsterSceneValidator
 		var healthBar = actor.GetNodeOrNull<Node>("Nameplate/FloatingHealthBar");
 		var barPoise = healthBar != null ? Object<Node>(healthBar, "Poise") : null;
 		Check(barPoise == null || barPoise == poise, "FloatingHealthBar.Poise: show this actor's hurtbox poise or leave it empty.");
+		var barPhases = healthBar != null ? Object<Node>(healthBar, "HealthPhases") : null;
+		Check(barPhases == null || barPhases == phases, "FloatingHealthBar.HealthPhases: bind this actor's phase component or leave it empty.");
 		if (behavior != null)
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health

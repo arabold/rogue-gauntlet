@@ -17,6 +17,19 @@ public partial class HealthPhaseComponent : Node
 
 	public int CurrentPhase { get; private set; }
 
+	/// <summary>Phase thresholds must descend strictly from full health toward zero.</summary>
+	internal static bool HasValidThresholds(float[] fractions)
+	{
+		if (fractions == null || fractions.Length == 0) return false;
+		float previous = 1;
+		foreach (float fraction in fractions)
+		{
+			if (!(fraction > 0 && fraction < previous)) return false;
+			previous = fraction;
+		}
+		return true;
+	}
+
 	public override void _Ready()
 	{
 		if (Health == null) return;

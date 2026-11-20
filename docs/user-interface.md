@@ -60,8 +60,13 @@ The pieces are rendered at 1× for a 1080p canvas, so they soften slightly when 
 | `TabButton` | Button | a run-menu tab on the header band; the open one sits on the pennant, which its stylebox draws past the band's scallops |
 | `ValueLabel`, `BonusLabel` | Label | a stat's value in the serif; the gold bonus gear adds to it |
 | `CountLabel` | Label | numbers on the game: bar values, stack counts, costs |
+| `WorldLabel` | Label | floating text at a shared 32 px base size in Alegreya Sans ExtraBold |
 | `HealthBar`, `ManaBar` | ProgressBar | colored bar fills |
 | `ThinBar`, `CooldownBar` | ProgressBar | a hairline gold bar (XP, small cooldowns); a dark veil that drains off a slot |
+
+Enemy nameplates use the HUD's red health fill and a separate thin gold poise meter when the enemy has visible poise. For enemies with health phases, gaps divide the red track at the authored health thresholds. The segments drain from right to left as health falls.
+
+Enemy and loot names, prompts, objectives, pickup notices and combat text share the `WorldLabel` font and base size. Native `WorldLabel3D` nodes use the same theme variation as the text beside the existing keycap images.
 
 **Item icons** are the items' own models, shown by one scene in every slot (`scenes/ui/item_icon.tscn`, `ItemIcon`: run menu, HUD hand and quick slots). The icon is a little larger than its niche by its `Overhang`, so the model reaches over the edge, and its `Preview` viewport renders at twice the shown size so it stays sharp when the window scales up. `item_icon.gdshader` draws it with a soft dark halo around the silhouette, which stands it off the niche, a worn slot's gold or the game behind the HUD.
 

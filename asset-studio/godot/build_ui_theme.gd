@@ -110,6 +110,9 @@ func _labels(theme: Theme) -> void:
 	_label_variation(theme, "BonusLabel", body_strong, 22, GOLD, 4)
 	# Numbers on the game: bar values, stack counts and costs.
 	_label_variation(theme, "CountLabel", body_strong, 22, CREAM, 5)
+	# One readable scale for 2D viewport prompts and native 3D world text.
+	_label_variation(theme, "WorldLabel", body_strong, 32, Color.WHITE, 8)
+	theme.set_color("font_outline_color", "WorldLabel", INK)
 
 	# A gold ribbon tag ("Tip") whose swallowtail ends stay fixed while its middle stretches.
 	theme.set_type_variation("TagLabel", "Label")

@@ -13,7 +13,7 @@ public partial class Door : Node3D
 	[Export] public InteriorDoorComponent Interior { get; set; }
 	[Export] public SecretDoorComponent Secret { get; set; }
 	[Export] public InteractiveComponent Interactive { get; set; }
-	[Export] public MeshInstance3D KeyMarker { get; set; }
+	[Export] public DoorKeyMarker KeyMarker { get; set; }
 	[Export] public Node3D DoorVisual { get; set; }
 	/// <summary>The hinged leaf that swings open and carries the x-ray indicator.</summary>
 	[Export] public MeshInstance3D Leaf { get; set; }
@@ -41,7 +41,6 @@ public partial class Door : Node3D
 	private bool _indicatorAllowed;
 	private bool _isAnimating;
 	private Tween _activeTween;
-	private StandardMaterial3D _keyMarkerMaterial;
 	// The leaf collider's pose in door space with the leaf shut.
 	private Transform3D? _closedLeafPose;
 
@@ -113,13 +112,7 @@ public partial class Door : Node3D
 		{
 			var key = Lock?.Definition?.RequiredKey;
 			KeyMarker.Visible = IsDiscovered && _indicatorAllowed && Lock?.IsLocked == true && key != null;
-			// Tinting duplicates the shared material; never bake that per-instance override into an edited scene.
-			if (key != null && !Engine.IsEditorHint())
-			{
-				_keyMarkerMaterial ??= (StandardMaterial3D)KeyMarker.MaterialOverride.Duplicate();
-				_keyMarkerMaterial.AlbedoColor = key.MarkerColor;
-				KeyMarker.MaterialOverride = _keyMarkerMaterial;
-			}
+			if (key != null && !Engine.IsEditorHint()) KeyMarker.SetTint(key.MarkerColor);
 		}
 		RefreshIndicator();
 	}
