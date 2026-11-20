@@ -248,6 +248,61 @@ texture_margin_right = 112.0
 texture_margin_bottom = 112.0
 modulate_color = Color(1.25, 0.62, 0.55, 1)
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_EnemyHealthFill"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_EnemyHealthFillCenter"]
+bg_color = Color(0.78431374, 0.19607843, 0.16862746, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8598039, 0.47745097, 0.45960784, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_EnemyHealthFillLeft"]
+bg_color = Color(0.78431374, 0.19607843, 0.16862746, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8598039, 0.47745097, 0.45960784, 1)
+corner_radius_top_left = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_EnemyHealthFillRight"]
+bg_color = Color(0.78431374, 0.19607843, 0.16862746, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8598039, 0.47745097, 0.45960784, 1)
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_EnemyHealthFrame"]
+content_margin_left = 3.0
+content_margin_top = 3.0
+content_margin_right = 3.0
+content_margin_bottom = 3.0
+bg_color = Color(0.09411765, 0.06666667, 0.043137256, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.41960785, 0.2901961, 0.13333334, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_EnemyPoiseFrame"]
+content_margin_left = 3.0
+content_margin_right = 3.0
+bg_color = Color(0.09411765, 0.06666667, 0.043137256, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4ikw1"]
 content_margin_left = 8.0
 content_margin_top = 8.0
@@ -697,6 +752,20 @@ DisplayLabel/colors/font_color = Color(0.96862745, 0.9254902, 0.8235294, 1)
 DisplayLabel/constants/outline_size = 10
 DisplayLabel/font_sizes/font_size = 120
 DisplayLabel/fonts/font = SubResource("FontVariation_3lpac")
+EnemyHealthFill/base_type = &"HealthBar"
+EnemyHealthFill/styles/background = SubResource("StyleBoxEmpty_EnemyHealthFill")
+EnemyHealthFillCenter/base_type = &"EnemyHealthFill"
+EnemyHealthFillCenter/styles/fill = SubResource("StyleBoxFlat_EnemyHealthFillCenter")
+EnemyHealthFillLeft/base_type = &"EnemyHealthFill"
+EnemyHealthFillLeft/styles/fill = SubResource("StyleBoxFlat_EnemyHealthFillLeft")
+EnemyHealthFillRight/base_type = &"EnemyHealthFill"
+EnemyHealthFillRight/styles/fill = SubResource("StyleBoxFlat_EnemyHealthFillRight")
+EnemyHealthFrame/base_type = &"PanelContainer"
+EnemyHealthFrame/styles/panel = SubResource("StyleBoxFlat_EnemyHealthFrame")
+EnemyPoiseFill/base_type = &"ThinBar"
+EnemyPoiseFill/styles/background = SubResource("StyleBoxEmpty_EnemyHealthFill")
+EnemyPoiseFrame/base_type = &"PanelContainer"
+EnemyPoiseFrame/styles/panel = SubResource("StyleBoxFlat_EnemyPoiseFrame")
 FilledSlotPanel/base_type = &"PanelContainer"
 FilledSlotPanel/styles/panel = SubResource("StyleBoxTexture_4ikw1")
 FramePanel/base_type = &"PanelContainer"

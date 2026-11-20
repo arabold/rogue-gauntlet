@@ -64,7 +64,7 @@ The pieces are rendered at 1× for a 1080p canvas, so they soften slightly when 
 | `HealthBar`, `ManaBar` | ProgressBar | colored bar fills |
 | `ThinBar`, `CooldownBar` | ProgressBar | a hairline gold bar (XP, small cooldowns); a dark veil that drains off a slot |
 
-Enemy nameplates use the HUD's red health fill and a separate thin gold poise meter when the enemy has visible poise. For enemies with health phases, gaps divide the red track at the authored health thresholds. The segments drain from right to left as health falls.
+Enemy nameplates use one continuous frame around the HUD's red health fill. For enemies with health phases, straight vertical gaps divide the fill at the authored health thresholds. The segments drain from right to left as health falls. Enemies with visible poise have a thin gold meter aligned under the health bar.
 
 Enemy and loot names, prompts, objectives, pickup notices and combat text share the `WorldLabel` font and base size. Native `WorldLabel3D` nodes use the same theme variation as the text beside the existing keycap images.
 

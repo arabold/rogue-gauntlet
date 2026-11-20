@@ -6,7 +6,7 @@
 [sub_resource type="ViewportTexture" id="Texture"]
 viewport_path = NodePath("SubViewport")
 
-[node name="FloatingHealthBar" type="Sprite3D" node_paths=PackedStringArray("BarViewport", "HealthTrack", "HealthBar", "PoiseBar")]
+[node name="FloatingHealthBar" type="Sprite3D" node_paths=PackedStringArray("BarViewport", "HealthTrack", "HealthBar", "PoiseFrame", "PoiseBar")]
 layers = 256
 billboard = 1
 no_depth_test = true
@@ -14,14 +14,15 @@ render_priority = 15
 texture = SubResource("Texture")
 script = ExtResource("bar")
 BarViewport = NodePath("SubViewport")
-HealthTrack = NodePath("SubViewport/Meters/HealthTrack")
-HealthBar = NodePath("SubViewport/Meters/HealthTrack/HealthBar")
-PoiseBar = NodePath("SubViewport/Meters/PoiseBar")
+HealthTrack = NodePath("SubViewport/Meters/HealthFrame/HealthTrack")
+HealthBar = NodePath("SubViewport/Meters/HealthFrame/HealthTrack/HealthBar")
+PoiseFrame = NodePath("SubViewport/Meters/PoiseFrame")
+PoiseBar = NodePath("SubViewport/Meters/PoiseFrame/PoiseBar")
 
 [node name="SubViewport" type="SubViewport" parent="."]
 transparent_bg = true
 gui_disable_input = true
-size = Vector2i(256, 31)
+size = Vector2i(256, 37)
 render_target_update_mode = 1
 
 [node name="Meters" type="VBoxContainer" parent="SubViewport"]
@@ -34,28 +35,38 @@ mouse_filter = 2
 theme = ExtResource("theme")
 theme_override_constants/separation = 4
 
-[node name="HealthTrack" type="HBoxContainer" parent="SubViewport/Meters"]
+[node name="HealthFrame" type="PanelContainer" parent="SubViewport/Meters"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_type_variation = &"EnemyHealthFrame"
 
-[node name="HealthBar" type="ProgressBar" parent="SubViewport/Meters/HealthTrack"]
+[node name="HealthTrack" type="HBoxContainer" parent="SubViewport/Meters/HealthFrame"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="HealthBar" type="ProgressBar" parent="SubViewport/Meters/HealthFrame/HealthTrack"]
 custom_minimum_size = Vector2(0, 21)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
 mouse_filter = 2
-theme_type_variation = &"HealthBar"
+theme_type_variation = &"EnemyHealthFill"
 max_value = 1.0
 step = 0.0
 value = 0.75
 show_percentage = false
 
-[node name="PoiseBar" type="ProgressBar" parent="SubViewport/Meters"]
+[node name="PoiseFrame" type="PanelContainer" parent="SubViewport/Meters"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"EnemyPoiseFrame"
+
+[node name="PoiseBar" type="ProgressBar" parent="SubViewport/Meters/PoiseFrame"]
 custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 mouse_filter = 2
-theme_type_variation = &"ThinBar"
+theme_type_variation = &"EnemyPoiseFill"
 max_value = 1.0
 step = 0.0
 value = 1.0

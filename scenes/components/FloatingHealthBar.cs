@@ -21,6 +21,7 @@ public partial class FloatingHealthBar : Sprite3D
 	[Export] public SubViewport BarViewport { get; set; }
 	[Export] public HBoxContainer HealthTrack { get; set; }
 	[Export] public ProgressBar HealthBar { get; set; }
+	[Export] public PanelContainer PoiseFrame { get; set; }
 	[Export] public ProgressBar PoiseBar { get; set; }
 
 	/// <summary>Whether to hide the health bar when health is full.</summary>
@@ -31,6 +32,11 @@ public partial class FloatingHealthBar : Sprite3D
 
 	/// <summary>Seconds a full fade in or out takes, matching the name it shows with.</summary>
 	[Export(PropertyHint.Range, "0,2,0.01")] public float FadeDuration { get; set; } = 0.15f;
+
+	private static readonly StringName RoundedFill = "EnemyHealthFill";
+	private static readonly StringName LeftFill = "EnemyHealthFillLeft";
+	private static readonly StringName CenterFill = "EnemyHealthFillCenter";
+	private static readonly StringName RightFill = "EnemyHealthFillRight";
 
 	private readonly record struct HealthSegment(ProgressBar Bar, float Start, float End);
 	private HealthSegment[] _segments = [];
@@ -53,13 +59,13 @@ public partial class FloatingHealthBar : Sprite3D
 
 	public override void _Ready()
 	{
-		if (BarViewport == null || HealthTrack == null || HealthBar == null || PoiseBar == null)
+		if (BarViewport == null || HealthTrack == null || HealthBar == null || PoiseFrame == null || PoiseBar == null)
 		{
-			GD.PushError($"{Name}: assign the health track and both bars in their viewport.");
+			GD.PushError($"{Name}: assign the health track, poise frame and both bars in their viewport.");
 			return;
 		}
 		BuildHealthSegments();
-		PoiseBar.Visible = ShowsPoise;
+		PoiseFrame.Visible = ShowsPoise;
 		// Without health to track, the bar keeps its authored visibility.
 		if (HealthComponent != null) _fade = new AlphaFade(this, alpha => Modulate = Modulate with { A = alpha });
 		if (Invisibility != null) this.SubscribeUntilExit(Invisibility, c => c.Changed += RefreshVisibility, c => c.Changed -= RefreshVisibility);
@@ -112,7 +118,19 @@ public partial class FloatingHealthBar : Sprite3D
 	{
 		float fraction = maxHealth > 0 ? health / maxHealth : 1;
 		foreach (var segment in _segments)
-			segment.Bar.Value = Mathf.Clamp((fraction - segment.Start) / (segment.End - segment.Start), 0, 1);
+		{
+			float fill = Mathf.Clamp((fraction - segment.Start) / (segment.End - segment.Start), 0, 1);
+			// Square off completed phase joins and keep the exposed end of a draining segment rounded.
+			var style = (segment.Start == 0, segment.End == 1 || fill < 1) switch
+			{
+				(true, true) => RoundedFill,
+				(true, false) => LeftFill,
+				(false, false) => CenterFill,
+				_ => RightFill,
+			};
+			if (segment.Bar.ThemeTypeVariation != style) segment.Bar.ThemeTypeVariation = style;
+			segment.Bar.Value = fill;
+		}
 		Redraw();
 		RefreshVisibility();
 	}

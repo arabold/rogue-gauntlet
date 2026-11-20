@@ -284,6 +284,35 @@ func _bars(theme: Theme) -> void:
 		theme.set_type_variation(pair[0], "ProgressBar")
 		theme.set_stylebox("fill", pair[0], _bar_fill(pair[1]))
 
+	# Floating meters share left and right insets. Only the health fill is split into phases.
+	var health_frame := track.duplicate() as StyleBoxFlat
+	health_frame.set_content_margin_all(3)
+	theme.set_type_variation("EnemyHealthFrame", "PanelContainer")
+	theme.set_stylebox("panel", "EnemyHealthFrame", health_frame)
+	var poise_frame := thin_track.duplicate() as StyleBoxFlat
+	poise_frame.content_margin_left = 3
+	poise_frame.content_margin_right = 3
+	theme.set_type_variation("EnemyPoiseFrame", "PanelContainer")
+	theme.set_stylebox("panel", "EnemyPoiseFrame", poise_frame)
+
+	var empty := StyleBoxEmpty.new()
+	theme.set_type_variation("EnemyPoiseFill", "ThinBar")
+	theme.set_stylebox("background", "EnemyPoiseFill", empty)
+	theme.set_type_variation("EnemyHealthFill", "HealthBar")
+	theme.set_stylebox("background", "EnemyHealthFill", empty)
+	var health_fill := theme.get_stylebox("fill", "HealthBar") as StyleBoxFlat
+	for ends in [["EnemyHealthFillLeft", false, true], ["EnemyHealthFillCenter", true, true],
+			["EnemyHealthFillRight", true, false]]:
+		var fill := health_fill.duplicate() as StyleBoxFlat
+		if ends[1]:
+			fill.corner_radius_top_left = 0
+			fill.corner_radius_bottom_left = 0
+		if ends[2]:
+			fill.corner_radius_top_right = 0
+			fill.corner_radius_bottom_right = 0
+		theme.set_type_variation(ends[0], "EnemyHealthFill")
+		theme.set_stylebox("fill", ends[0], fill)
+
 
 func _bar_fill(color: Color) -> StyleBoxFlat:
 	var fill := StyleBoxFlat.new()
