@@ -841,4 +841,4 @@ WorldLabel/colors/font_color = Color(1, 1, 1, 1)
 WorldLabel/colors/font_outline_color = Color(0.07058824, 0.043137256, 0.023529412, 1)
 WorldLabel/constants/outline_size = 8
 WorldLabel/font_sizes/font_size = 32
-WorldLabel/fonts/font = SubResource("FontVariation_7leeu")
+WorldLabel/fonts/font = SubResource("FontVariation_4wxr8")

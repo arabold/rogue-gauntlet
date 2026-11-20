@@ -60,7 +60,7 @@ The pieces are rendered at 1× for a 1080p canvas, so they soften slightly when 
 | `TabButton` | Button | a run-menu tab on the header band; the open one sits on the pennant, which its stylebox draws past the band's scallops |
 | `ValueLabel`, `BonusLabel` | Label | a stat's value in the serif; the gold bonus gear adds to it |
 | `CountLabel` | Label | numbers on the game: bar values, stack counts, costs |
-| `WorldLabel` | Label | floating text at a shared 32 px base size in Alegreya Sans ExtraBold |
+| `WorldLabel` | Label | floating text at a shared 32 px base size in the same Alegreya serif as the menu buttons |
 | `HealthBar`, `ManaBar` | ProgressBar | colored bar fills |
 | `ThinBar`, `CooldownBar` | ProgressBar | a hairline gold bar (XP, small cooldowns); a dark veil that drains off a slot |
 
