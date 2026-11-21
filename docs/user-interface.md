@@ -35,7 +35,7 @@ The pieces are rendered at 1× for a 1080p canvas, so they soften slightly when 
 
 ## Theme
 
-`scenes/ui/theme.tres` is the project theme (`gui/theme/custom`), so every control inherits it. `asset-studio/godot/build_ui_theme.gd` writes it whole from the kit and the fonts: change a look there and rebuild (the script's header has the command), rather than editing the `.tres`. Screens pick a look with **Theme Type Variation** in the Inspector, never with per-node style, font or color overrides; a one-off size override is fine. Plain types keep their defaults:
+`scenes/ui/theme.tres` is the project theme (`gui/theme/custom`), so every control inherits it. `asset-studio/godot/build_ui_theme.gd` writes it whole from the kit and the fonts: change a look there and rebuild (the script's header has the command), rather than editing the `.tres`. Screens pick a look with **Theme Type Variation** in the Inspector, never with per-node style, font, size or color overrides: each role has one look and one size everywhere (every plaque button is 320 × 64, every framed title a `TitleLabel`, every stat value a `ValueLabel`). Plain types keep their defaults:
 
 - **Label:** cream body text with a thin ink outline and a soft drop shadow.
 - **Button:** the wooden plaque; hover brightens it and its gold rim, pressing sinks it, and keyboard focus draws the white selection glow.
@@ -47,7 +47,7 @@ The pieces are rendered at 1× for a 1080p canvas, so they soften slightly when 
 | `DisplayLabel`, `TitleLabel`, `HeaderLabel` | Label | serif display text at 120, 64 and 44 px |
 | `AccentLabel` | Label | gold serif text for values and names |
 | `CaptionLabel`, `SmallCapsLabel`, `WarningLabel` | Label | muted body captions; small caps over values; error and status lines |
-| `DangerTitleLabel` | Label | red serif title (death screen) |
+| `DangerTitleLabel` | Label | red serif title at the `TitleLabel` size (death screen) |
 | `TagLabel` | Label | gold ribbon tag |
 | `PrimaryButton` | Button | the screen's main action, a gold plaque |
 | `ArrowButton` | Button | the kit's arrow as the button's icon, no plaque |
@@ -60,13 +60,13 @@ The pieces are rendered at 1× for a 1080p canvas, so they soften slightly when 
 | `TabButton` | Button | a run-menu tab on the header band; the open one sits on the pennant, which its stylebox draws past the band's scallops |
 | `ValueLabel`, `BonusLabel` | Label | a stat's value in the serif; the gold bonus gear adds to it |
 | `CountLabel` | Label | numbers on the game: bar values, stack counts, costs |
-| `WorldLabel`, `CombatWorldLabel`, `PromptWorldLabel` | Label | floating text in the menu buttons' Alegreya serif: names, notices and objectives (32 px); combat numbers (64 px); the interaction prompt beside its keycap (28 px) |
+| `WorldLabel`, `CombatWorldLabel` | Label | floating text in the menu buttons' Alegreya serif: one size for item and enemy names, prompts, notices and objectives (32 px); combat numbers, larger because they vanish quickly (64 px) |
 | `HealthBar`, `ManaBar` | ProgressBar | colored bar fills |
 | `ThinBar`, `CooldownBar` | ProgressBar | a hairline gold bar (XP, small cooldowns); a dark veil that drains off a slot |
 
 Enemy nameplates use one continuous frame around the HUD's red health fill. For enemies with health phases, straight vertical gaps divide the fill at the authored health thresholds. The segments drain from right to left as health falls. Enemies with visible poise have a thin gold meter aligned under the health bar.
 
-Native 3D text is a `WorldLabel3D` (`scenes/components/`): a `Label3D` takes no Control theme, so it reads its font, size and outline from the world-label variation its `ThemeTypeVariation` names, in the editor too, and keeps them read-only. Its pixel size sets how large the text stands in the world (font size × pixel size), so a label picks a variation for its role and a pixel size for its size.
+Native 3D text is a `WorldLabel3D` (`scenes/components/`): a `Label3D` takes no Control theme, so it reads its font, size and outline from the world-label variation its `ThemeTypeVariation` names, in the editor too, and keeps them read-only. Every world label draws at one pixel size (0.01 m), as the prompt's viewport sprite does, so text of one variation stands the same size everywhere: a 32 px `WorldLabel` is 0.32 m tall.
 
 **Item icons** are the items' own models, shown by one scene in every slot (`scenes/ui/item_icon.tscn`, `ItemIcon`: run menu, HUD hand and quick slots). The icon is a little larger than its niche by its `Overhang`, so the model reaches over the edge, and its `Preview` viewport renders at twice the shown size so it stays sharp when the window scales up. `item_icon.gdshader` draws it with a soft dark halo around the silhouette, which stands it off the niche, a worn slot's gold or the game behind the HUD.
 

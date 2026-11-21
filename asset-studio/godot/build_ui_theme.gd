@@ -103,18 +103,17 @@ func _labels(theme: Theme) -> void:
 	_label_variation(theme, "AccentLabel", display, 32, GOLD, 5)
 	_label_variation(theme, "CaptionLabel", body, 24, MUTED, 4)
 	_label_variation(theme, "SmallCapsLabel", body_strong, 20, MUTED, 4)
-	_label_variation(theme, "DangerTitleLabel", display, 80, DANGER, 8)
+	_label_variation(theme, "DangerTitleLabel", display, 64, DANGER, 8)
 	_label_variation(theme, "WarningLabel", body_strong, 24, DANGER, 4)
 	# A stat's value in the run menu, and the gold bonus gear adds to it.
 	_label_variation(theme, "ValueLabel", display, 30, CREAM, 5)
 	_label_variation(theme, "BonusLabel", body_strong, 22, GOLD, 4)
 	# Numbers on the game: bar values, stack counts and costs.
 	_label_variation(theme, "CountLabel", body_strong, 22, CREAM, 5)
-	# Floating world text in the menu buttons' serif: names, notices and objectives; the larger combat numbers; the
-	# interaction prompt beside its keycap. A WorldLabel3D sets its own pixel size for its size in the world.
+	# Floating world text in the menu buttons' serif. All of it, item and enemy names, prompts, notices and objectives,
+	# shares one size; combat numbers are larger because they vanish within a second.
 	_world_label_variation(theme, "WorldLabel", 32, 8)
 	_world_label_variation(theme, "CombatWorldLabel", 64, 16)
-	_world_label_variation(theme, "PromptWorldLabel", 28, 8)
 
 	# A gold ribbon tag ("Tip") whose swallowtail ends stay fixed while its middle stretches.
 	theme.set_type_variation("TagLabel", "Label")

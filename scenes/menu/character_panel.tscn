@@ -79,7 +79,6 @@ icon_alignment = 1
 [node name="Tagline" type="Label" parent="Column"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
-theme_override_font_sizes/font_size = 28
 text = "Heavy hitter. Shrugs off blows."
 horizontal_alignment = 1
 
@@ -102,7 +101,7 @@ horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="Column/Stats/Strength"]
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
+theme_type_variation = &"ValueLabel"
 text = "10"
 horizontal_alignment = 1
 
@@ -119,7 +118,7 @@ horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="Column/Stats/Dexterity"]
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
+theme_type_variation = &"ValueLabel"
 text = "10"
 horizontal_alignment = 1
 
@@ -136,7 +135,7 @@ horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="Column/Stats/Vitality"]
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
+theme_type_variation = &"ValueLabel"
 text = "10"
 horizontal_alignment = 1
 
@@ -153,7 +152,7 @@ horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="Column/Stats/Intelligence"]
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
+theme_type_variation = &"ValueLabel"
 text = "10"
 horizontal_alignment = 1
 
@@ -170,7 +169,7 @@ horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="Column/Stats/Health"]
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
+theme_type_variation = &"ValueLabel"
 text = "10"
 horizontal_alignment = 1
 
@@ -187,7 +186,7 @@ horizontal_alignment = 1
 
 [node name="Value" type="Label" parent="Column/Stats/Mana"]
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
+theme_type_variation = &"ValueLabel"
 text = "10"
 horizontal_alignment = 1
 

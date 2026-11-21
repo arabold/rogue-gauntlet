@@ -57,7 +57,6 @@ mesh = SubResource("base")
 [node name="Label" type="Label3D" parent="Pivot"]
 script = ExtResource("world_label")
 position = Vector3(0, 2.3, 0)
-pixel_size = 0.00625
 billboard = 1
 no_depth_test = true
 render_priority = 20

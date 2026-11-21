@@ -17,7 +17,6 @@ Target = NodePath("..")
 [node name="Label" type="Label3D" parent="ScreenScale"]
 script = ExtResource("world_label")
 ThemeTypeVariation = &"CombatWorldLabel"
-pixel_size = 0.01
 billboard = 1
 no_depth_test = true
 render_priority = 22
