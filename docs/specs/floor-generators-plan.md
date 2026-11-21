@@ -15,7 +15,7 @@ Add new floor generator archetypes and an Inversion-of-Control (`FloorProfile`) 
 
 **Shared baseline change:** Loose items, access keys, and wall-backed chests become eligible in both rooms and corridors across all profiles; scheduled fountains stay room-only.
 
-**Delivery boundary:** `level.tscn` builds ordinary floors from `floor_profiles/cluster.tres` and gatekeeper floors from `floor_profiles/boss.tres` (`MapGenerator.BossProfile`, chosen once the encounter plan holds a gatekeeper). `cluster_large.tres`, `hallway.tres`, `prison.tres`, `cathedral.tres`, `cloister.tres`, `mines.tres` and `labyrinth.tres` stay unwired from live `Realm` progression and are previewed in [RoomGenerationHarness](../../scenes/debug/rooms/RoomGenerationHarness.cs) and verified via GdUnit4 sweeps. Every profile sets its own map size and room count, and draws its locks from a shared preset in `access/floor_access_profiles/` (`rare_lock.tres`, or `lock_chains.tres` for the labyrinth) built from the shared lock definitions in `access/locks/`. The scatter-placement `SimpleRoomLayout` and `simple.tres` are retired.
+**Delivery boundary:** Realms pick each floor's plan: five realms of five floors each list weighted `FloorPlans` and a `BossProfile` (`boss.tres`) for gatekeeper floors, and `level.tscn`'s `MapGenerator.UniqueFloorPlans` schedules `labyrinth.tres` once per run between depths 7 and 19. A generator `Profile` pins every floor for tests and previews. Every profile sets its own map size and room count, and draws its locks from a shared preset in `access/floor_access_profiles/` (`rare_lock.tres`, or `lock_chains.tres` for the labyrinth) built from the shared lock definitions in `access/locks/`. The scatter-placement `SimpleRoomLayout` and `simple.tres` are retired.
 
 ---
 
@@ -378,7 +378,7 @@ tests/
 
 ## Open decisions and deferred work
 
-1. **Wiring profiles into live runs:** Gatekeeper floors already use `boss.tres`. Selecting `cluster_large.tres`, `hallway.tres` or `labyrinth.tres` per `Realm` or depth stays deferred until the realm definitions are revisited.
+1. **Bosses beyond the Garrison:** Realms 2–5 name `boss.tres` for their last floor, but only the Garrison's encounters plan a gatekeeper, so their last floors build from ordinary plans until their gatekeepers exist.
 2. **Boss-kill door unlock:** `boss_exit.tres` marks the Exit `RoomRegion` with `ReserveAccess = true` and `SlotId = "exit"` so `Floor.Doors` exposes the boss exit door cleanly when boss-kill unlocking is added later.
 3. **Mid-corridor labyrinth doors (optional later):** Initial Labyrinth locks live on room-owned doors (`Entrance`, `Dedicated` rooms, `Exit`); standalone corridor doors on sealed edges can be added later without changing `FloorProfile`.
 4. **Global `Gatekeeper*` rename (optional later):** Existing `Gatekeeper*` symbols in `scenes/levels/encounters/` and `scripts/balance/` stay untouched until a dedicated naming cleanup.

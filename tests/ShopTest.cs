@@ -14,8 +14,8 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class ShopTest
 {
-	/// <summary>The Garrison's gatekeeper floor: depth 3 of the authored realms.</summary>
-	private const uint GarrisonGatekeeperDepth = 3;
+	/// <summary>The Garrison's gatekeeper floor: depth 5 of the authored realms.</summary>
+	private const uint GarrisonGatekeeperDepth = 5;
 
 	/// <summary>
 	/// Generation stands the Quartermaster as a solid prop the hero can walk up to: monsters cannot path through the
@@ -34,8 +34,8 @@ public class ShopTest
 			Vector3 front = position + ((floor.Arrival.LandingPosition - position) with { Y = 0 }).Normalized() * 1.2f;
 			AssertBool(floor.IsReachable(front)).IsTrue();
 			AssertBool(floor.IsReachable(position)).IsFalse();
-			// Even a rat-sized body finds no room in the keeper's cell.
-			AssertBool(floor.Clearance.IsTraversable(floor.Clearance.CellAt(position), .3f, null)).IsFalse();
+			// Even a rat-sized body finds no room where the keeper stands.
+			AssertFloat(floor.Clearance.ClearanceAt(position.Xz())).IsLess(.3f);
 			AssertBool(floor.IsColumnObstructed(position)).IsTrue();
 			AssertFloat(floor.FindFreePositionNear(position).DistanceTo(position)).IsGreater(.4f);
 			AssertBool(floor.IsInSpawnClearance(position)).IsTrue();
@@ -81,9 +81,10 @@ public class ShopTest
 		AssertArray(garrison.ShopsAt(GarrisonGatekeeperDepth - 1).ToArray()).IsEmpty();
 		AssertArray(garrison.ShopsAt(GarrisonGatekeeperDepth + 1).ToArray()).IsEmpty();
 		using var deeper = (Realm)garrison.Duplicate();
-		deeper.FirstDepth = 4;
-		deeper.LastDepth = 6;
-		AssertInt(deeper.ShopsAt(6).Count()).IsEqual(1);
+		deeper.FirstDepth = 6;
+		deeper.LastDepth = 10;
+		AssertInt(deeper.ShopsAt(10).Count()).IsEqual(1);
+		AssertArray(deeper.ShopsAt(6).ToArray()).IsEmpty();
 		AssertArray(deeper.ShopsAt(GarrisonGatekeeperDepth).ToArray()).IsEmpty();
 	}
 

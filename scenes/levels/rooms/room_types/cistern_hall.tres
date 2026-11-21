@@ -95,6 +95,8 @@ metadata/_custom_type_script = ExtResource("p_AlongWallsStep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "cistern_hall"
+FloorChance = 0.5
+MaxPerFloor = 1
 Realms = PackedStringArray("sewer")
 Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 25

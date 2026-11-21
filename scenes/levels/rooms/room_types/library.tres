@@ -95,6 +95,8 @@ metadata/_custom_type_script = ExtResource("2_RectangleSha")
 [resource]
 script = ExtResource("1_RoomType")
 Id = "library"
+FloorChance = 0.6
+MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
 MinimumFloorTiles = 9

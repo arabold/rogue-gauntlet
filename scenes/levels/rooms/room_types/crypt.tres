@@ -144,6 +144,8 @@ metadata/_custom_type_script = ExtResource("29_walldecorstep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "crypt"
+FloorChance = 0.5
+MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Weight = 0.5
 Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("RectangleShape_Compact")]

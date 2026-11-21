@@ -77,7 +77,7 @@ public partial class SparseRoomLayout : RoomLayoutStrategy
 					fitCandidates.Clear();
 					foreach (var def in context.Pool.Rooms)
 					{
-						if (def != null && def.SupportsRealm(context.Pool.RealmId) && !failedFitDefs.Contains(def))
+						if (context.Pool.Offers(def) && (def.MaxPerFloor <= 0 || uses.GetValueOrDefault(def) < def.MaxPerFloor) && !failedFitDefs.Contains(def))
 						{
 							fitCandidates.Add(def);
 						}

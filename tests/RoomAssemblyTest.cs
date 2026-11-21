@@ -46,7 +46,7 @@ public class RoomAssemblyTest
 		var planRooms = PlanRooms(pool).ToArray();
 		AssertArray(planRooms).OverrideFailureMessage("no floor plan names rooms outside the pool").IsNotEmpty();
 		var errors = pool.AllDefinitions.Concat(planRooms).SelectMany(type => type.Validate()).ToList();
-		foreach (string id in new[] { "garrison", "sewer", "jungle" })
+		foreach (string id in new[] { "garrison", "prison", "sewer", "mines", "cathedral" })
 		{
 			var realm = TestFactories.Load<Realm>($"{Levels}realms/{id}.tres");
 			errors.AddRange(realm.Validate());

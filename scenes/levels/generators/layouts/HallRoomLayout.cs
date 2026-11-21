@@ -69,17 +69,20 @@ public abstract partial class HallRoomLayout : RoomLayoutStrategy
 		var uses = new Dictionary<RoomDefinition, int>();
 		var options = CreateRoomOptions(context, maxDoorways: MaxSideDoorways);
 		var candidates = (SideRooms.Length > 0 ? SideRooms : context.Pool.Rooms)
-			.Where(def => def != null && def.SupportsRealm(context.Pool.RealmId) && (def is not RoomType type || type.MinDoorways <= MaxSideDoorways))
+			.Where(def => def is not RoomType type || type.MinDoorways <= MaxSideDoorways)
 			.ToList();
 		// An authoring error must surface, not read as a room that did not fit.
 		if (SideRooms.SelectMany(def => def?.Validate() ?? []).ToArray() is { Length: > 0 } errors)
 			throw new InvalidOperationException(string.Join("\n", errors));
-		for (int placed = 0, failures = 0; candidates.Count > 0 && placed < context.MaxRooms && failures < Retries;)
+		for (int placed = 0, failures = 0; placed < context.MaxRooms && failures < Retries;)
 		{
+			// The floor's rarities and per-floor limits decide which rooms are still on offer.
+			var available = context.Pool.Available(candidates, def => uses.GetValueOrDefault(def));
+			if (available.Count == 0) break;
 			RoomCluster room;
 			try
 			{
-				room = context.Pool.CreateFrom(Weighted.PickBalanced(candidates, def => def.Weight, def => uses.GetValueOrDefault(def), rng), rng, options);
+				room = context.Pool.CreateFrom(Weighted.PickBalanced(available, def => def.Weight, def => uses.GetValueOrDefault(def), rng), rng, options);
 			}
 			catch (InvalidOperationException)
 			{

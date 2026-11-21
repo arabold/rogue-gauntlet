@@ -7,4 +7,5 @@ script = ExtResource("script")
 CostGrowth = 1.1513
 FirstFloorBudget = 7.3
 LastFloorBudget = 11.4
+LastDepth = 25
 GatekeeperFloorShare = 0.45

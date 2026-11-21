@@ -10,8 +10,8 @@ public partial class ShopPlacementProfile : Resource
 	/// <summary>Stable save key, unique among the realm's shops.</summary>
 	[Export] public string Id { get; set; } = "";
 	/// <summary>
-	/// The realm floor the keeper stands on, from 0 for the realm's first depth. The gatekeeper's floor is
-	/// <see cref="RealmEncounterFactory.GatekeeperFloorIndex"/>.
+	/// The realm floor the keeper stands on, from 0 for the realm's first depth. The gatekeeper's floor is the realm's
+	/// last (<see cref="RealmEncounterFactory.GatekeeperFloorIndex"/>).
 	/// </summary>
 	[Export(PropertyHint.Range, "0,10,1,or_greater")] public int FloorIndex { get; set; }
 	[Export] public PackedScene KeeperScene { get; set; }

@@ -196,12 +196,12 @@ public partial class RoomGenerationHarness : Node3D
 	{
 		SelectedRealm = index;
 		Generator.DungeonDepth = Realm.FirstDepth;
-		Pool = Generator.Rooms.ForRealm(Realm.Id);
+		Pool = Generator.Rooms.ForRealm(Realm.ThemeId);
 		_recipes.Clear();
 		_recipes.AddRange(Pool.AllDefinitions);
 		foreach (var (group, _) in DebugCatalog.Resources<RoomGroup>(RoomGroupsDir))
 		{
-			if (group != null && group.SupportsRealm(Realm.Id) && !_recipes.Contains(group))
+			if (group != null && group.SupportsRealm(Realm.ThemeId) && !_recipes.Contains(group))
 			{
 				_recipes.Add(group);
 			}
@@ -307,8 +307,8 @@ public partial class RoomGenerationHarness : Node3D
 		_recipePicker.Select(SelectedRecipe);
 		_recipePicker.Disabled = !room;
 		Fill(_shapeRow, _shapePicker, type?.Shapes.Select(ShapeName), ShapeOverride + 1, "Seeded");
-		Fill(_wallsRow, _wallsPicker, type?.WallsIn(Realm.Id).Select(style => Local(style.Id)), WallsOverride + 1, "Seeded");
-		Fill(_floorRow, _floorPicker, type?.FloorsIn(Realm.Id).Select(style => Local(style.Id)), FloorOverride + 1, "Seeded");
+		Fill(_wallsRow, _wallsPicker, type?.WallsIn(Realm.ThemeId).Select(style => Local(style.Id)), WallsOverride + 1, "Seeded");
+		Fill(_floorRow, _floorPicker, type?.FloorsIn(Realm.ThemeId).Select(style => Local(style.Id)), FloorOverride + 1, "Seeded");
 		Fill(_columnRow, _columnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
 			ColumnsOverride == RoomAssemblyOptions.Seeded ? 0 : ColumnsOverride == RoomAssemblyOptions.Off ? 1 : ColumnsOverride + 2,
 			$"Type chance ({type?.ColumnChance:P0})", "Off");
@@ -364,7 +364,7 @@ public partial class RoomGenerationHarness : Node3D
 
 	private void GenerateCluster(RoomGroup group)
 	{
-		var options = new RoomAssemblyOptions { Furnish = Furnishings, Realm = Realm.Id };
+		var options = new RoomAssemblyOptions { Furnish = Furnishings, Realm = Realm.ThemeId };
 		var cluster = RoomAssembler.AssembleCluster(group, Seed, options, Pool);
 		Node3D container = null;
 		try
@@ -473,7 +473,7 @@ public partial class RoomGenerationHarness : Node3D
 		}
 		var options = new RoomAssemblyOptions
 		{
-			Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings, Realm = Realm.Id,
+			Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings, Realm = Realm.ThemeId,
 		};
 		var blueprint = RoomAssembler.Build(type, Seed, options);
 		var (reachable, pockets) = AddWalkabilityOverlay(blueprint);

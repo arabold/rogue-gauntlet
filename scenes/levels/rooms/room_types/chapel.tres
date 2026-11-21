@@ -135,6 +135,8 @@ metadata/_custom_type_script = ExtResource("sc_ScatterStep")
 [resource]
 script = ExtResource("1_RoomType")
 Id = "chapel"
+FloorChance = 0.5
+MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Weight = 0.6
 Shapes = [SubResource("RectangleShape_1")]

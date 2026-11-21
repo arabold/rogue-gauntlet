@@ -11,8 +11,8 @@ relative to the reference hero or the standard monster at the same depth. Times 
 import json
 from pathlib import Path
 
-DEPTHS = 24
-REALM_SIZE = 3
+DEPTHS = 25
+REALM_SIZE = 5
 LEVEL_CAP = 25
 
 # --- Difficulty dial: the standard monster against the reference hero ---------------------------

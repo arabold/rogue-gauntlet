@@ -54,7 +54,7 @@ The fit splits the miss, and fast heroes (light armor) gain the most from skill,
   area attacks therefore ignore the hero's armor too, so the caster's damage is set low.
 - **Attributes scale; levels and gear grow.** Each attribute changes a shared curve by a
   percentage, so a class's advantage keeps its size at every depth. Flat per-point bonuses fade as levels add health
-  and gear adds damage, so a class balanced at depth 1 drifts out of balance by depth 24.
+  and gear adds damage, so a class balanced at depth 1 drifts out of balance by depth 25.
 - **Footwork needs a slower monster.** Stepping out of reach is most of melee avoidance, so skill avoids a melee
   monster in full only when it moves at most 40% of the hero's speed, and less the closer it comes to the hero's
   speed, nothing at all once it is as fast (`model.footwork`, ENGAGEMENT `footwork`). Fitted to playtests: rats were
@@ -214,7 +214,7 @@ archetype marks the gatekeeper bonus. `simulate.py monster` evaluates proposed s
 
 ## Floors and gatekeepers
 
-A floor spends a budget of 7.3 standard fights at depth 1, rising to 11.4 at depth 24. It spends it on **packs**, not
+A floor spends a budget of 7.3 standard fights at depth 1, rising to 11.4 at depth 25. It spends it on **packs**, not
 single monsters, so roles appear together. Rats lead: rat packs of three from depth 1 and hordes of five from depth 2,
 with fodder pairs, lone standards, patrols (standard and fodder), sentries (a shooter) and, from depth 3, warbands (two
 standards and a caster who heals them); guard posts (brute and shooter) and vanguards (brute, standard and shooter)
@@ -238,12 +238,12 @@ traps and gatekeeper). Packs cost in proportion to the budget they spend; traps 
 for the budget line and the gatekeeper floor's share from the class-mean costs at every depth, then reports the
 arrival odds. The targets keep the difficulty the 2026-11-14 playtests liked: fodder and swarmers hit softly, so a
 floor holds many of them, about 9 monsters on depth 1 and 10–12 on deeper ordinary floors, and a gatekeeper floor 6–8
-plus its gatekeeper, which alone costs about 50% at depth 3 and 40% at depth 24. Healing is not sized to refill the
+plus its gatekeeper, which alone costs about 48% at depth 5 and 39% at depth 25. Healing is not sized to refill the
 attrition: potions stay scarce, so the hero runs down over a realm and the fountains and gatekeepers set the rhythm.
 
 **Traps** (`params.TRAPS`) count toward attrition. A floor places 0–3 hidden traps (`MapGenerator.MinTraps..MaxTraps`,
 audited); playtests sprang about 0.58 per trap per floor. A spring is a physical hit of 9% of the expected hero's
-health, rolled against armor like a blow: 5 on depth 1 and 25 on depth 24, which `derive` writes as the trap's
+health, rolled against armor like a blow: 5 on depth 1 and 26 on depth 25, which `derive` writes as the trap's
 `Damage` and `DamagePerDepth`. Together they cost about 6% of max health per floor. The trap count stays authored rather
 than spent from the budget: at 6% a floor, the budget fit simply leaves room for them.
 
@@ -252,12 +252,13 @@ than spent from the budget: at 6% a floor, the budget fit simply leaves room for
 Shops are bounded by their stock instead of simulated. A merchant sells one finite shelf once per run: the
 Garrison's Quartermaster holds two small potions of different types (healing favored), two loaves, a scroll, a lockpick
 and three pieces of local-tier gear. At most that adds one healing potion to the realm, about two floors' worth of found
-healing and less than a fountain's full heal, on the floor before the gatekeeper. The model therefore leaves gold out
+healing and less than a fountain's full heal, on the gatekeeper floor. The model therefore leaves gold out
 of the run. `supply` reports the gold a
-floor holds, so prices can be checked against it by hand: about 125 on depth 1, 130 on depth 2 and 180 on depth 3,
-with every source looted. A hero who clears the first two floors reaches the Quartermaster with up to about 250 gold,
-and selling spare loot (a fifth of its retail value) adds about a hundred more. The shelf costs about 1,000, so that
-buys about a third of it: a weapon and a potion, or potions, a loaf and a lockpick, but never the whole shelf. Re-measure after changing gold drops, and
+floor holds, so prices can be checked against it by hand: about 85 on depth 1, 80 on depth 2, 115 on depth 3, 80 on
+depth 4 and 50 on depth 5, with every source looted. A hero who clears the first four floors reaches the Quartermaster
+with up to about 360 gold, plus what selling spare loot (a fifth of its retail value) brings. The shelf costs about
+1,000, so that buys less than half of it: a weapon and a potion, or potions, a loaf and a lockpick, but never the whole
+shelf. Re-measure after changing gold drops, and
 model shops only if merchants ever restock or sell more than a shelf.
 
 ## Experience
@@ -271,7 +272,7 @@ ordinary floor, the intended bump after each realm.
 
 A class passes when each of these holds at regular skill:
 
-- **Realm cost:** the health lost over a realm, three floors plus its gatekeeper, is within ±10% of the class mean.
+- **Realm cost:** the health lost over a realm, five floors plus its gatekeeper, is within ±10% of the class mean.
 - **Matchups:** floors alone or gatekeepers alone stay within ±25%. Classes are allowed favorable and unfavorable
   fights.
 - **Survival:** odds by depth track the other classes at every skill. Deaths come from variance, so a frailer class

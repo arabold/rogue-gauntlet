@@ -15,10 +15,10 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class GatekeeperRewardTest
 {
-	private const uint WardenDepth = 3;
+	private const uint WardenDepth = 5;
 
 	[TestCase]
-	public void TheWardenDropsAMagicTierOneWeaponThatIsNeverCursed()
+	public void TheWardenDropsATierOneWeaponOfMagicOrBetterThatIsNeverCursed()
 	{
 		var definition = TestFactories.Load<MonsterDefinition>("res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres");
 		ItemCreationPolicy policy = definition.Loot?.CreationPolicy;
@@ -30,7 +30,7 @@ public class GatekeeperRewardTest
 			var weapon = ItemFactory.Create(definition.Loot.Table.PickEntry(WardenDepth, rng).Item, policy, WardenDepth, rng) as Weapon;
 			AssertObject(weapon).IsNotNull();
 			AssertInt(weapon.Tier).IsEqual(1);
-			AssertBool(weapon.Quality == ItemQuality.Magic).IsTrue();
+			AssertBool(weapon.Quality >= ItemQuality.Magic).IsTrue();
 			AssertBool(weapon.IsCursed).IsFalse();
 		}
 	}

@@ -18,7 +18,7 @@
 | `rooms/room_types/` | One `RoomType` per room kind, tagged with the realms it appears in |
 | `rooms/props/<category>/`, `rooms/prop_groups/` | Props (one object, cosmetic variants) and prop groups (anchor plus members, seated tables) |
 | `rooms/styles/floors/`, `rooms/styles/walls/` | Floor materials and styles, inlays and transitions; wall styles, each tagged with its realms |
-| `realms/` | One `Realm` per band of depths and its corridor tiles |
+| `realms/` | One `Realm` per act of five depths: its theme (the content tag its rooms and styles name), corridor tiles, weighted floor plans, boss floor and shops; corridor tiles are shared per theme |
 | `stairs/` | The level's up- and down-stairs scenes (staircase, arrival spawn, level transition) placed by `StairsStep` |
 | `../props/furnishings/` | Prop scenes that need nodes (torches, banners, bookcases) and the furnishing mesh library |
 

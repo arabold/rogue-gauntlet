@@ -116,6 +116,8 @@ metadata/_custom_type_script = ExtResource("24_scatterstep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "temple_hall"
+FloorChance = 0.4
+MaxPerFloor = 1
 Realms = PackedStringArray("jungle")
 Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 25
