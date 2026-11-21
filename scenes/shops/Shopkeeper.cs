@@ -9,13 +9,15 @@ public partial class Shopkeeper : Node3D
 	[Export] public PackedScene CharacterScene { get; set; }
 	[Export] public Armor[] Outfit { get; set; } = [];
 	[Export] public StringName IdleAnimation { get; set; } = "Idle";
+	/// <summary>The layers the keeper renders on: the world's, not the player's own.</summary>
+	[Export(PropertyHint.Layers3DRender)] public uint RenderLayers { get; set; } = 1;
 
 	public override void _Ready()
 	{
 		if (CharacterScene == null) return;
-		var model = CharacterModel.Instantiate(CharacterScene, 1);
+		var model = CharacterModel.Instantiate(CharacterScene, RenderLayers);
 		Appearance.AddChild(model);
-		CharacterModel.Dress(model, Outfit, 1);
+		CharacterModel.Dress(model, Outfit, RenderLayers);
 		var animation = CharacterModel.FindAnimationPlayer(model);
 		if (animation?.HasAnimation(IdleAnimation) == true) animation.Play(IdleAnimation);
 	}

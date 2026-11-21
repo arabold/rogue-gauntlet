@@ -1,5 +1,7 @@
 using Godot;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// The varieties one loot category can yield, with their depth windows and quantities. Authored once and shared
@@ -22,6 +24,28 @@ public partial class LootPool : Resource
 		if (TierBands == null || entry.Item is not EquipableItem equipment) { return entry.IsEligibleAt(depth); }
 		Vector2I band = TierBands.For(equipment.Tier);
 		return LootTableItem.IsWithin(depth, (uint)band.X, (uint)band.Y);
+	}
+
+	/// <summary>The entries that can enter a weighted draw at <paramref name="depth"/>, in authored order.</summary>
+	public IEnumerable<LootTableItem> Candidates(uint depth) => (Items ?? []).Where(entry => LootTableItem.CanRollAt(entry, depth, this));
+
+	/// <summary>
+	/// Draws up to <paramref name="count"/> items by weight from the <see cref="Candidates"/> that pass
+	/// <paramref name="filter"/>, then shuffles them so a heavier entry is as likely to take any place. With
+	/// <paramref name="distinct"/>, an item is drawn at most once.
+	/// </summary>
+	public List<Item> Draw(uint depth, int count, bool distinct, RandomNumberGenerator rng, Func<Item, bool> filter = null)
+	{
+		var candidates = Candidates(depth).Where(entry => filter?.Invoke(entry.Item) != false).ToList();
+		var drawn = new List<Item>();
+		for (int i = 0; i < count && candidates.Count > 0; i++)
+		{
+			var entry = candidates[(int)rng.RandWeighted(candidates.Select(candidate => candidate.Weight).ToArray())];
+			drawn.Add(entry.Item);
+			if (distinct) candidates.RemoveAll(candidate => candidate.Item == entry.Item);
+		}
+		GenerationRandom.Shuffle(drawn, rng);
+		return drawn;
 	}
 
 	/// <summary>Authoring problems: empty or invalid entries, equipment tiers without a band, and equipment windows

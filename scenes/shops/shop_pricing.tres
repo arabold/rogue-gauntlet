@@ -4,8 +4,7 @@
 
 [resource]
 script = ExtResource("script")
-UnknownScrollPrice = 15
-UnknownPotionPrices = Dictionary[String, int]({"small": 18, "medium": 30, "large": 55})
+UnknownPrices = Dictionary[String, int]({"potion:small": 18, "potion:medium": 30, "potion:large": 55, "scroll": 15})
 QualityMultipliers = Dictionary[int, float]({0: 0.75, 1: 1.0, 2: 1.15, 3: 1.25, 4: 1.5})
 AffixUnitPrices = Dictionary[int, float]({0: 2.0, 1: 2.0, 2: 2.0, 3: 2.0, 7: 3.0, 8: 3.0, 9: 2.0, 10: 3.0})
 ResalePercent = 20

@@ -38,12 +38,11 @@ public partial class MapGenerator
 	/// -- are children of <see cref="FloorContent"/> in time to count as navigation solids,
 	/// the same way rooms already do). Every content type shares one
 	/// running list of placed points so chests/traps/items all keep clear of each other, not
-	/// just their own kind. Access pickups, placed earlier, seed that list, and the run's scheduled fountains claim
-	/// their spots first.
+	/// just their own kind. Access pickups and keepers, placed earlier, seed that list, and the run's scheduled
+	/// fountains claim their spots first.
 	/// </summary>
-	private void PlaceLoot()
+	private void PlaceLoot(List<Vector3> placedLootPoints)
 	{
-		var placedLootPoints = new List<Vector3>(_accessPickupPoints);
 		PlaceFountains(placedLootPoints);
 		PlaceChests(placedLootPoints);
 		PlaceTraps(placedLootPoints);
@@ -389,9 +388,10 @@ public partial class MapGenerator
 		return false;
 	}
 
-	private bool IsBlockedLootPoint(Vector3 point, List<Vector3> placedLootPoints, float spacing)
+	private bool IsBlockedLootPoint(Vector3 point, List<Vector3> placedLootPoints, float spacing,
+		float arrivalClearance = LootSpawnPlayerClearance)
 	{
-		if (Floor.Arrival != null && point.HorizontalDistanceTo(Floor.Arrival.GlobalPosition) < LootSpawnPlayerClearance)
+		if (Floor.Arrival != null && point.HorizontalDistanceTo(Floor.Arrival.GlobalPosition) < arrivalClearance)
 		{
 			return true;
 		}

@@ -173,7 +173,7 @@ public partial class RunMenu : Control
 	/// <summary>A keeper offered its shelf: trade, or tell the hero why the menu cannot open now.</summary>
 	private void OnTradeOffered(ShopComponent shop, Player player)
 	{
-		if (!IsOpen && CanOpenFor(player) && shop.CanTrade(player))
+		if (!IsOpen && CanOpenFor(player))
 		{
 			OpenTrade(shop, player);
 			return;

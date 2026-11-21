@@ -72,30 +72,31 @@ public partial class Inventory : Resource
 	{
 		public void Dispose()
 		{
-			if (--inventory._updateDepth != 0) return;
-			var quantities = inventory._changedQuantities;
-			bool changed = inventory._changed;
-			inventory._changedQuantities = null;
-			inventory._changed = false;
-			if (quantities != null)
-				foreach (var entry in quantities) entry.EmitChanged();
-			if (changed) inventory.EmitChanged();
+			if (--inventory._updateDepth == 0 && inventory._changed) inventory.PublishChanges();
 		}
 	}
 
 	private void NotifyChanged()
 	{
-		if (_updateDepth > 0) { _changed = true; } else { EmitChanged(); }
+		_changed = true;
+		if (_updateDepth == 0) PublishChanges();
 	}
 
+	/// <summary>Tells observers what changed: every stack whose quantity moved, then the inventory, all at once.</summary>
+	private void PublishChanges()
+	{
+		var quantities = _changedQuantities;
+		_changedQuantities = null;
+		_changed = false;
+		if (quantities != null)
+			foreach (var entry in quantities) entry.EmitChanged();
+		EmitChanged();
+	}
+
+	/// <summary>Changes a stack's quantity; the change is published with the inventory's, so a transfer commits whole.</summary>
 	private void ChangeQuantity(InventoryItemSlot entry, int quantity)
 	{
 		if (entry.Quantity == quantity) return;
-		if (_updateDepth == 0)
-		{
-			entry.Quantity = quantity;
-			return;
-		}
 		entry.SetQuantityWithoutNotification(quantity);
 		(_changedQuantities ??= []).Add(entry);
 	}

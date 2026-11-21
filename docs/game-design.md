@@ -118,7 +118,7 @@ Every item has an authored definition, a particular instance when state is neede
 | Rings and amulets | Passive specialization and discovery | Equip for benefits or drawbacks; use the identification system |
 | Lamps and torches | Portable illumination | Hold lit in either hand to extend player light; competes with shields and two-handed weapons; activate or extinguish, consume fuel while active |
 | Keys | Access to matching locks | Matching key identity/color; stack to 20 and consume one per successful unlock |
-| Tools | Alternative ways to interact with the dungeon | Rare consumable lockpicks bypass pickable locks; Rogue starts with two, regular floors do not supply them, shops are a later source |
+| Tools | Alternative ways to interact with the dungeon | Rare consumable lockpicks bypass pickable locks; Rogue starts with two, regular floors do not supply them, shops sell them |
 | Currency | Purchasing decisions | Collect, spend, and receive through trade |
 
 ### Instance state and persistence
@@ -208,7 +208,6 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | --- | --- | --- |
 | Run objective, length, and victory | 24 depths across 8 realms (Sunken Epochs); World-Anchor victory at Depth 24 | Current direction; later realm order provisional (see [Realms and Monster Design](realms-and-monster-design.md)) |
 | Death and between-run progression | Death ends the run; permanent power undecided | First complete run milestone |
-| Inventory and shop pause behavior | Open | Balancing item-use timing and shop encounters |
 | Food contamination and detection | Per-instance creation exists; probability and detection need tuning | Three-floor balance |
 | Backpack capacity and upgrades | Implemented 20-entry backpack; food/equipment individual; larger packs later | Upgrade integration |
 | Capacity accounting and stack limits | Equipped entries count; currency stays in stats; potion/scroll caps are 20; upgrade size remains open | Backpack upgrade design |

@@ -109,8 +109,7 @@ public partial class EquipableItem : BuffedItem
 	/// <summary>Wearing an item reveals its attributes and whether it is cursed.</summary>
 	public virtual void OnEquipped(Player player)
 	{
-		RevealAttributes();
-		RevealCurseStatus();
+		RevealAll();
 		ApplyBuff(player);
 		RegisterStats(player.Stats);
 	}
@@ -136,6 +135,13 @@ public partial class EquipableItem : BuffedItem
 
 	/// <summary>Reveals whether this item is cursed; emits <c>Changed</c> only if that was unknown.</summary>
 	public void RevealCurseStatus() => CurseStatusKnown = true;
+
+	/// <summary>Reveals everything the item hides: its attributes and whether it is cursed.</summary>
+	public void RevealAll()
+	{
+		RevealAttributes();
+		RevealCurseStatus();
+	}
 
 	/// <summary>
 	/// Lifts any curse and leaves the status known as uncursed. The result is the same whether or not the item was

@@ -113,9 +113,8 @@ public partial class Level : Node, IDebugWorld
 	/// <summary>Recreates a reward stream without advancing generation or gameplay RNGs.</summary>
 	public RandomNumberGenerator CreateSourceLootRng(string sourceId) => MapGenerator.CreateSourceLootRng(sourceId);
 
-	/// <summary>True while an item operation or a trade is mid-commit; capturing then would record a half-applied floor.</summary>
-	public bool IsCommittingFloorChanges =>
-		ItemPersistence?.IsCommitting == true || Floor?.Shops.Any(shop => IsInstanceValid(shop) && shop.IsCommitting) == true;
+	/// <summary>True while an item operation is mid-commit; capturing then would record a half-applied floor.</summary>
+	public bool IsCommittingFloorChanges => ItemPersistence?.IsCommitting == true;
 
 	/// <summary>This floor's deviations from its seeded baseline; the inverse of <see cref="RestoreFloorDeltas"/>.</summary>
 	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas() =>
@@ -201,15 +200,15 @@ public partial class Level : Node, IDebugWorld
 		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
+		// Shelves are seeded content, like untouched loot; the run's cleared entities say which offers are sold.
+		foreach (ShopComponent shop in Floor.Shops) shop.Stock();
 		try
 		{
-			// Shelves are seeded content, like untouched loot: rebuilt from the level seed before the deltas replay onto them.
-			foreach (ShopComponent shop in Floor.Shops) shop.Stock();
 			RestoreFloorDeltas();
 		}
 		catch (System.Exception error)
 		{
-			GD.PushError($"Cannot restore floor state: {error.Message}");
+			GD.PushError($"Cannot restore floor items: {error.Message}");
 			EmitSignal(SignalName.GenerationFailed, error.Message);
 			return;
 		}

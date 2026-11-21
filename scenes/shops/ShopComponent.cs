@@ -3,21 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public sealed record ShopOffer(Item Item)
-{
-	public string Id => Item.InstanceId;
-}
-
 /// <summary>A single unit or stack quoted to the hero. An empty reason means the trade can proceed.</summary>
 public readonly record struct ShopQuote(Item Item, int Quantity, int Gold, string Reason)
 {
 	public bool IsAvailable => Item != null && string.IsNullOrEmpty(Reason);
+
+	/// <summary>The quote as the hero reads it: its price, and why it cannot go through when it cannot.</summary>
+	public string Describe() => string.Join(" · ", new[] { Gold > 0 ? $"{Gold} gold" : "", Reason ?? "" }.Where(part => part.Length > 0));
 }
 
 /// <summary>
-/// Owns one keeper's shelf and commits transfers between the shelf, the hero's pack and their gold. Generation stands
-/// the keeper and names the shop; the level then stocks the shelf from its seed, and item persistence replays what the
-/// hero bought.
+/// Owns one keeper's shelf and quotes and commits trades between the shelf, the hero's pack and their gold. Generation
+/// stands the keeper and names the shop; the level then stocks the shelf from its seed. A sold offer is one of the
+/// run's cleared entities, so revisits and saves keep the shelf depleted.
 /// </summary>
 [GlobalClass]
 public partial class ShopComponent : Node
@@ -25,14 +23,15 @@ public partial class ShopComponent : Node
 	[Export] public ShopProfile Profile { get; set; }
 	[Export] public InteractiveComponent Interaction { get; set; }
 
-	private readonly List<ShopOffer> _offers = [];
-	private readonly HashSet<string> _purchased = new(StringComparer.Ordinal);
+	private const string PriceChanged = "Price changed. Confirm the new price.";
+
+	private readonly List<Item> _offers = [];
 	private Level _level;
 
-	/// <summary>The floor-unique save key generation gives the shop; it also seeds the shelf.</summary>
+	/// <summary>The floor-unique ID generation gives the shop; it names the shelf's reward streams and offers.</summary>
 	public string Id { get; internal set; } = "";
-	public IReadOnlyList<ShopOffer> Offers => _offers;
-	public bool IsCommitting { get; private set; }
+	/// <summary>The shelf: one item per offer, sold or not.</summary>
+	public IReadOnlyList<Item> Offers => _offers;
 
 	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
 
@@ -43,84 +42,46 @@ public partial class ShopComponent : Node
 		if (CanTrade(player)) SignalBus.EmitTradeOffered(this, player);
 	}
 
-	/// <summary>Rolls the shelf from the level seed, one stream per stock category, so adding gear never pushes out supplies.</summary>
+	/// <summary>
+	/// Rolls the shelf, one reward stream per stock category, so adding gear never pushes out supplies. Generation
+	/// validated the profile (<see cref="ShopProfile.Validate"/>) when it stood the keeper.
+	/// </summary>
 	internal void Stock()
 	{
-		if (_level == null || Interaction?.Definition == null || Profile?.Pricing == null)
-			throw new InvalidOperationException($"Shop {Id} needs a level, an interaction definition and a pricing profile.");
 		_offers.Clear();
-		_purchased.Clear();
-		ulong seed = GenerationRandom.DeriveSeed(_level.Seed, "shop.stock", Id);
-		var ids = new HashSet<string>(StringComparer.Ordinal);
+		uint depth = _level.Depth;
 		foreach (ShopStockProfile stock in Profile.Stock)
 		{
-			if (stock?.Pool == null || string.IsNullOrWhiteSpace(stock.Id) || stock.Id.Contains(':')
-				|| !ids.Add(stock.Id) || stock.Quantity < 1)
-				throw new InvalidOperationException($"Shop {Id} needs unique stock IDs, pools and positive quantities.");
-			RollStock(_level.Depth, seed, stock);
-		}
-	}
-
-	/// <summary>Marks the saved offers sold; every one must be on the shelf, once.</summary>
-	internal void RestorePurchases(IReadOnlyList<string> purchased)
-	{
-		foreach (string id in purchased)
-		{
-			if (!_offers.Any(offer => offer.Id == id) || !_purchased.Add(id))
-				throw new InvalidOperationException($"Unknown or duplicate offer {id} in shop {Id}.");
-		}
-	}
-
-	private void RollStock(uint depth, ulong seed, ShopStockProfile stock)
-	{
-		var candidates = stock.Pool.Items.Where(entry => LootTableItem.CanRollAt(entry, depth, stock.Pool)
-			&& !entry.Item.IsQuestItem && (Profile.SellsKnownCursedGear
-				|| entry.Item is not EquipableItem { AlwaysCursed: true } and not EquipableItem { IsCursed: true }))
-			.ToList();
-		if (candidates.Count == 0) return;
-
-		using var rng = GenerationRandom.Create(seed, "category", stock.Id);
-		var selected = new List<Item>();
-		for (int i = 0; i < stock.Quantity && candidates.Count > 0; i++)
-		{
-			var entry = candidates[(int)rng.RandWeighted(candidates.Select(candidate => candidate.Weight).ToArray())];
-			selected.Add(entry.Item);
-			if (stock.DistinctItems) candidates.RemoveAll(candidate => candidate.Item == entry.Item);
-		}
-		// A more heavily weighted potion type has the same chance to appear in either bottle slot.
-		GenerationRandom.Shuffle(selected, rng);
-		for (int i = 0; i < selected.Count; i++)
-		{
-			string id = $"shop:{depth}:{Id}:{stock.Id}:{i}";
-			var item = ItemFactory.Create(selected[i], Profile.CreationPolicy, depth, rng, id);
-			if (item is EquipableItem gear)
+			string source = $"depth:{depth}:shop:{Id}:{stock.Id}";
+			using var rng = _level.CreateSourceLootRng(source);
+			var drawn = stock.Pool.Draw(depth, stock.Quantity, stock.DistinctItems, rng, Profile.CanStock);
+			for (int i = 0; i < drawn.Count; i++)
 			{
-				if (gear.IsCursed && !Profile.SellsKnownCursedGear)
-					throw new InvalidOperationException($"Shop {Id} rolled cursed stock. Disable curses in its creation policy.");
-				gear.RevealAttributes();
-				gear.RevealCurseStatus();
+				var item = ItemFactory.Create(drawn[i], Profile.CreationPolicy, depth, rng, $"{source}:{i}");
+				(item as EquipableItem)?.RevealAll();
+				_offers.Add(item);
 			}
-			_offers.Add(new ShopOffer(item));
 		}
 	}
 
-	public bool IsSold(ShopOffer offer) => _purchased.Contains(offer.Id);
-	internal List<string> CapturePurchases() => _purchased.Order(StringComparer.Ordinal).ToList();
+	public bool IsSold(Item offer) => _level.Run.IsCleared(offer.InstanceId);
 
+	/// <summary>
+	/// Whether <paramref name="player"/> may trade here. Reach is the interaction's business: the trade opens only once
+	/// it commits, and the menu then pauses the game until the trade ends.
+	/// </summary>
 	public bool CanTrade(Player player) =>
 		_level != null && IsInsideTree() && IsInstanceValid(player) && player.IsInsideTree() && !player.IsDead
-		&& player.GetAncestorOrNull<Level>() == _level && Interaction.IsInteractive
-		&& player.GlobalPosition.HorizontalDistanceTo(Interaction.GlobalPosition) <= Interaction.Definition.InteractionRange
-		&& Math.Abs(player.GlobalPosition.Y - Interaction.GlobalPosition.Y) <= 2.5f;
+		&& player.GetAncestorOrNull<Level>() == _level && Interaction.IsInteractive;
 
-	public ShopQuote QuotePurchase(Player player, ShopOffer offer)
+	public ShopQuote QuotePurchase(Player player, Item offer)
 	{
 		if (!CanTrade(player) || !_offers.Contains(offer)) return new(null, 0, 0, "Trade unavailable");
 		if (IsSold(offer)) return new(null, 0, 0, "Sold out");
-		int price = Profile.Pricing.RetailPrice(offer.Item, _level.Run.Identification);
+		int price = Profile.Pricing.RetailPrice(offer, _level.Run.Identification);
 		string reason = price > player.Stats.Gold ? "Not enough gold"
-			: !player.Inventory.CanAdd(offer.Item).Success ? "Pack is full" : "";
-		return new(offer.Item, 1, price, reason);
+			: !player.Inventory.CanAdd(offer).Success ? "Pack is full" : "";
+		return new(offer, 1, price, reason);
 	}
 
 	public ShopQuote QuoteSale(Player player, InventoryItemSlot entry, int quantity)
@@ -137,40 +98,28 @@ public partial class ShopComponent : Node
 		return new(item, quantity, (int)price, "");
 	}
 
-	public string Buy(Player player, ShopOffer offer, ShopQuote displayed)
+	/// <summary>Buys <paramref name="offer"/> at the <paramref name="displayed"/> quote; empty on success, else why not.</summary>
+	public string Buy(Player player, Item offer, ShopQuote displayed)
 	{
-		if (IsCommitting) return "A trade is in progress";
 		var quote = QuotePurchase(player, offer);
 		if (!quote.IsAvailable) return quote.Reason;
-		if (quote != displayed) return "Price changed. Confirm the new price.";
-
-		IsCommitting = true;
-		try
+		if (quote != displayed) return PriceChanged;
+		return Report(player, player.InventoryController.TryAcquire(offer, 1, () =>
 		{
-			using var update = player.Inventory.DeferChanges();
-			if (!player.Inventory.TryAdd(quote.Item).Success) return "Pack is full";
-			_purchased.Add(offer.Id);
+			_level.Run.MarkCleared(offer.InstanceId);
 			player.Stats.PayGold(quote.Gold);
-			return "";
-		}
-		finally { IsCommitting = false; }
+		}));
 	}
 
+	/// <summary>Sells the <paramref name="displayed"/> quantity of <paramref name="entry"/> at that quote; empty on success, else why not.</summary>
 	public string Sell(Player player, InventoryItemSlot entry, ShopQuote displayed)
 	{
-		if (IsCommitting) return "A trade is in progress";
 		var quote = QuoteSale(player, entry, displayed.Quantity);
 		if (!quote.IsAvailable) return quote.Reason;
-		if (quote != displayed) return "Price changed. Confirm the new price.";
-
-		IsCommitting = true;
-		try
-		{
-			using var update = player.Inventory.DeferChanges();
-			player.Inventory.RemoveItem(entry, quote.Quantity);
-			player.Stats.AddGold(quote.Gold);
-			return "";
-		}
-		finally { IsCommitting = false; }
+		if (quote != displayed) return PriceChanged;
+		return Report(player, player.InventoryController.TryHandOver(entry, quote.Quantity, () => player.Stats.AddGold(quote.Gold)));
 	}
+
+	private static string Report(Player player, ItemOperationResult result) =>
+		result.Success ? "" : player.InventoryController.LastOperationMessage;
 }

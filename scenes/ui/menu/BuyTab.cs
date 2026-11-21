@@ -9,22 +9,25 @@ public partial class BuyTab : TradeTab
 	protected override string Verb => "Buy";
 	protected override string Receipt => "Bought";
 	protected override string Title => Shop.Profile.DisplayName;
-	protected override string Count => $"{Shop.Offers.Count(offer => !Shop.IsSold(offer))} / {Shop.Offers.Count}";
-	protected override int Niches => Shop.Offers.Count;
 
-	protected override void Fill(ItemSlotPanel panel, int index)
+	protected override void Fill()
 	{
-		ShopOffer offer = Shop.Offers[index];
-		if (panel.Slot?.Item != offer.Item)
+		SyncSlots(Grid, Shop.Offers.Count);
+		for (int i = 0; i < Shop.Offers.Count; i++)
 		{
-			panel.SetItem(new InventoryItemSlot { Item = offer.Item }, false);
+			Item offer = Shop.Offers[i];
+			var panel = Grid.GetChild<ItemSlotPanel>(i);
+			if (panel.Slot?.Item != offer)
+			{
+				panel.SetItem(new InventoryItemSlot { Item = offer }, false);
+			}
+			panel.Selectable = true;
+			panel.Dimmed = Shop.IsSold(offer);
 		}
-		panel.Selectable = true;
-		panel.Dimmed = Shop.IsSold(offer);
+		CountLabel.Text = $"{Shop.Offers.Count(offer => !Shop.IsSold(offer))} / {Shop.Offers.Count}";
 	}
 
-	protected override (ShopQuote One, ShopQuote Stack) Quote(int index) =>
-		index < Shop.Offers.Count ? (Shop.QuotePurchase(Player, Shop.Offers[index]), default) : default;
+	protected override (ShopQuote One, ShopQuote Stack) Quote(int index) => (Shop.QuotePurchase(Player, Shop.Offers[index]), default);
 
 	protected override string Commit(int index, ShopQuote displayed) => Shop.Buy(Player, Shop.Offers[index], displayed);
 

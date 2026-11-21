@@ -44,7 +44,7 @@ The generator's `Fountains` profile ([fountain_profile.tres](../scenes/props/fou
 
 ## Shops
 
-A realm's `Shops` stand keepers on the realm floors their placements name, counted from the realm's first depth; the Garrison's Quartermaster stands on its gatekeeper floor. Generation places them after locks and keys, before fountains and loot. A keeper takes a free room tile reachable without keys, preferring the arrival's room and the spot its placement names ahead of the arrival, and keeps clear of stair landings, keys and the gatekeeper's arena. Like a chest, it is a solid prop under the floor content: it must keep door swings clear and leave no inaccessible pocket, so it blocks walkability and the navigation grid. Its spot becomes a spawn anchor and its props-layer body keeps drops, teleports and summons out. A layout with no spot for a keeper is retried. The level then stocks each shelf from its seed and replays saved purchases; see [shops](shops.md).
+A realm's `Shops` stand keepers on the realm floors their placements name, as solid props placed after locks and keys and before loot. A layout with no spot for a keeper is retried. [Shops](shops.md#placement) owns the placement rules.
 
 ## Room geometry and stairs
 

@@ -44,7 +44,6 @@ Interaction = NodePath("../Interaction")
 
 [node name="Interaction" parent="." node_paths=PackedStringArray("IdleMarker") instance=ExtResource("interactive")]
 position = Vector3(0, 0.9, 0)
-Text = "Trade"
 Definition = SubResource("Trade")
 IdleMarker = NodePath("Marker")
 
@@ -53,6 +52,5 @@ position = Vector3(0, 2.4, 0)
 
 [node name="FloatingLabel" parent="Interaction" index="1"]
 position = Vector3(0, 1.75, 0)
-Text = "Trade"
 
 [editable path="Interaction"]

@@ -608,8 +608,9 @@ public partial class MapGenerator : Node3D
 		// BuildNavigation so keepers, fountains and chests are included as navigation solids, and before
 		// GenerateEnemySpawnPoints so enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
 		PlaceAccess();
-		if (!PlaceShops()) return false;
-		PlaceLoot();
+		var placedPoints = new List<Vector3>(_accessPickupPoints);
+		if (!PlaceShops(placedPoints)) return false;
+		PlaceLoot(placedPoints);
 
 		// Step 4: The clearance grid monsters navigate on
 		BuildNavigation();

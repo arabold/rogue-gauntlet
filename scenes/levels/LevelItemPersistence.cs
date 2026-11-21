@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text.Json;
 
 /// <summary>
-/// Level-local baseline comparison. Only removals, overrides, added objects, activated reward-source descriptors and
-/// the offers each shop sold reach disk. Untouched items and shelves are reconstructed from source seeds.
+/// Level-local baseline comparison. Only removals, overrides, added objects, and activated
+/// reward-source descriptors reach disk. Untouched items are reconstructed from source seeds.
 /// </summary>
 [Tool] // Referenced by the tool Level script; it has no editor-time behavior.
 [GlobalClass]
@@ -66,10 +66,7 @@ public partial class LevelItemPersistence : Node
 	{
 		if (IsCommitting) { throw new InvalidOperationException("Item transfer is still committing."); }
 		var current = Pickups().ToDictionary(p => p.Item.InstanceId, CapturePickup);
-		var data = new LevelItemDeltaSaveData
-		{
-			Depth = _level.Depth, ActivatedSources = _rewards.Values.ToList(), ShopPurchases = CaptureShopPurchases(),
-		};
+		var data = new LevelItemDeltaSaveData { Depth = _level.Depth, ActivatedSources = _rewards.Values.ToList() };
 		foreach (var pair in _baseline)
 		{
 			if (!current.TryGetValue(pair.Key, out var record)) { data.RemovedItemIds.Add(pair.Key); }
@@ -84,7 +81,6 @@ public partial class LevelItemPersistence : Node
 	{
 		if (changes == null) { return; }
 		if (changes.Depth != _level.Depth) { throw new InvalidOperationException("Wrong floor item delta."); }
-		RestoreShopPurchases(changes.ShopPurchases);
 		foreach (var source in changes.ActivatedSources)
 		{
 			ValidatePosition(source.Position);
@@ -136,22 +132,6 @@ public partial class LevelItemPersistence : Node
 			if (!_rewards.ContainsKey(source.ResolvedSourceId)) { continue; }
 			source.RestoreClaimed(true);
 			if (source.GetOwner() is Chest chest) { chest.RestoreOpenState(); }
-		}
-	}
-
-	/// <summary>Sold offers by shop; shops that sold nothing are left out.</summary>
-	private Dictionary<string, List<string>> CaptureShopPurchases() => _level.Floor.Shops.Where(IsInstanceValid)
-		.Select(shop => (shop.Id, Sold: shop.CapturePurchases())).Where(shop => shop.Sold.Count > 0)
-		.ToDictionary(shop => shop.Id, shop => shop.Sold, StringComparer.Ordinal);
-
-	private void RestoreShopPurchases(Dictionary<string, List<string>> purchases)
-	{
-		var shops = _level.Floor.Shops.ToDictionary(shop => shop.Id, StringComparer.Ordinal);
-		foreach (var (id, sold) in purchases ?? new())
-		{
-			if (sold == null || !shops.TryGetValue(id, out ShopComponent shop))
-				throw new InvalidOperationException($"Saved purchases refer to an unknown shop {id}.");
-			shop.RestorePurchases(sold);
 		}
 	}
 }

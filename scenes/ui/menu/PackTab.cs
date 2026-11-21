@@ -9,18 +9,10 @@ using System.Linq;
 /// needs a target (identify, enchant) turns the grid into a choice: what it cannot act on dims, the banner says what
 /// it asks for, and choosing an item is the answer.
 /// </summary>
-public partial class PackTab : RunMenuTab
+public partial class PackTab : ItemGridTab
 {
-	[Export] public GridContainer Grid { get; set; }
-	[Export] public Label CountLabel { get; set; }
 	/// <summary>Holds the quick slots in order; clicking one gives it the selected item.</summary>
 	[Export] public Container QuickRow { get; set; }
-
-	[ExportGroup("Selected item")]
-	[Export] public Preview ItemPreview { get; set; }
-	[Export] public Label NameLabel { get; set; }
-	[Export] public Label QuantityLabel { get; set; }
-	[Export] public ItemDetailsView Details { get; set; }
 
 	private static readonly StringName[] QuickActions = ["quick_item_1", "quick_item_2", "quick_item_3", "quick_item_4"];
 
@@ -57,18 +49,7 @@ public partial class PackTab : RunMenuTab
 	public override void Close()
 	{
 		Cancel();
-		// The large preview renders live while it shows something; nobody is looking now.
-		ItemPreview.Animated = false;
-		ItemPreview.ShowItem(null);
 		base.Close();
-	}
-
-	public override void FocusDefault()
-	{
-		if (Player?.Inventory.Items.Count > 0)
-		{
-			Grid.GetChild<ItemSlotPanel>(0).FocusSlot();
-		}
 	}
 
 	public override IEnumerable<MenuPrompt> Prompts
@@ -235,41 +216,10 @@ public partial class PackTab : RunMenuTab
 			return;
 		}
 
-		// One niche per place in the pack; an emptied one cannot be selected.
-		Inventory inventory = Player.Inventory;
-		int niches = Mathf.Max(inventory.Capacity, inventory.Items.Count);
-		SyncSlots(Grid, niches);
-		for (int i = 0; i < niches; i++)
-		{
-			InventoryItemSlot entry = i < inventory.Items.Count ? inventory.Items[i] : null;
-			var panel = Grid.GetChild<ItemSlotPanel>(i);
-			panel.SetItem(entry, entry != null && inventory.IsEquipped(entry));
-			panel.Selectable = entry != null;
-		}
-		CountLabel.Text = $"{inventory.Items.Count} / {inventory.Capacity}";
+		ShowPack();
 		ApplyTargeting();
-
-		// The selected niche emptied (its item was the last in the pack's order): fall back to the new last item.
-		if (Selected is { Slot: null })
-		{
-			Selected = null;
-			if (inventory.Items.Count > 0)
-			{
-				Grid.GetChild<ItemSlotPanel>(inventory.Items.Count - 1).FocusSlot();
-			}
-		}
+		KeepSelection();
 		Describe();
 		EmitSignalPromptsChanged();
-	}
-
-	private void Describe()
-	{
-		InventoryItemSlot entry = Selected?.Slot;
-		Item item = entry?.Item;
-		ItemPreview.ShowItem(item);
-		ItemPreview.Animated = item != null;
-		ShowName(NameLabel, item);
-		QuantityLabel.Text = item is { CanStack: true } ? entry.Quantity.ToString() : "";
-		Details.SetItem(item, Player);
 	}
 }

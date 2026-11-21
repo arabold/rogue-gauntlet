@@ -256,8 +256,6 @@ public sealed class LevelItemDeltaSaveData
 	public List<WorldItemSaveData> Overrides { get; set; } = [];
 	public List<WorldItemSaveData> AddedItems { get; set; } = [];
 	public List<RewardSourceSaveData> ActivatedSources { get; set; } = [];
-	/// <summary>The offers each of the floor's shops sold, by shop ID; the shelves themselves are rebuilt from the seed.</summary>
-	public Dictionary<string, List<string>> ShopPurchases { get; set; } = new();
 }
 
 public sealed class WorldItemSaveData

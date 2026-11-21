@@ -19,19 +19,20 @@ public class ShopTest
 
 	/// <summary>
 	/// Generation stands the Quartermaster as a solid prop the hero can walk up to: monsters cannot path through the
-	/// counter, nothing spawns or drops into it, and only the realm's gatekeeper floor has one.
+	/// counter and nothing spawns or drops into it. Its shelf holds only sound, fully revealed goods, and what the hero
+	/// bought stays sold when the floor regenerates for the same run; another run rolls the same shelf unsold.
 	/// </summary>
 	[TestCase]
-	public async Task GenerationStandsASolidKeeperOnlyOnTheGatekeeperFloor()
+	public async Task KeeperStandsSolidAndItsShelfOutlivesTheFloor()
 	{
 		var (runner, level) = await TestFactories.GenerateLevel(42, GarrisonGatekeeperDepth);
 		using (runner)
 		{
 			GeneratedFloor floor = level.Floor;
-			var keeper = (Node3D)floor.Shops.Single().Owner;
-			Vector3 position = keeper.GlobalPosition;
-			Vector3 towardArrival = ((floor.Arrival.LandingPosition - position) with { Y = 0 }).Normalized();
-			AssertBool(floor.IsReachable(position + towardArrival * 1.2f)).IsTrue();
+			ShopComponent shop = floor.Shops.Single();
+			Vector3 position = ((Node3D)shop.Owner).GlobalPosition;
+			Vector3 front = position + ((floor.Arrival.LandingPosition - position) with { Y = 0 }).Normalized() * 1.2f;
+			AssertBool(floor.IsReachable(front)).IsTrue();
 			AssertBool(floor.IsReachable(position)).IsFalse();
 			// Even a rat-sized body finds no room in the keeper's cell.
 			AssertBool(floor.Clearance.IsTraversable(floor.Clearance.CellAt(position), .3f, null)).IsFalse();
@@ -42,29 +43,65 @@ public class ShopTest
 				AssertFloat(spawn.GlobalPosition.HorizontalDistanceTo(position)).IsGreater(2f);
 			foreach (var pickup in level.FindChildren("*", "", true, false).OfType<LootableItem>())
 				AssertFloat(pickup.GlobalPosition.HorizontalDistanceTo(position)).IsGreater(2f);
-
-			foreach (uint depth in new uint[] { 2, 4 })
+			foreach (Item offer in shop.Offers)
 			{
-				level.ConfigureGeneration(new RunState(42), depth, null, null);
-				level.Generate();
-				AssertArray(level.Floor.Shops.ToArray()).OverrideFailureMessage($"depth {depth}").IsEmpty();
+				AssertBool(offer is not FoodItem { IsPoisoned: true }).IsTrue();
+				AssertBool(offer is not EquipableItem { IsCursed: true } and not EquipableItem { AttributesKnown: false }
+					and not EquipableItem { CurseStatusKnown: false }).IsTrue();
 			}
+
+			Player player = FindPlayer(level);
+			player.Stats.AddGold(500);
+			Item gear = shop.Offers.First(offer => offer is EquipableItem);
+			AssertString(shop.Buy(player, gear, shop.QuotePurchase(player, gear))).IsEmpty();
+			AssertBool(player.Inventory.Items.Any(entry => entry.Item == gear)).IsTrue();
+			string[] shelf = [.. shop.Offers.Select(offer => offer.InstanceId)];
+
+			level.ConfigureGeneration(level.Run, GarrisonGatekeeperDepth, null, null);
+			level.Generate();
+			ShopComponent revisited = level.Floor.Shops.Single();
+			AssertVector(((Node3D)revisited.Owner).GlobalPosition).IsEqual(position);
+			AssertArray(revisited.Offers.Where(revisited.IsSold).Select(offer => offer.InstanceId).ToArray()).ContainsExactly(gear.InstanceId);
+
+			level.ConfigureGeneration(new RunState(42), GarrisonGatekeeperDepth, null, null);
+			level.Generate();
+			ShopComponent otherRun = level.Floor.Shops.Single();
+			AssertArray(otherRun.Offers.Select(offer => offer.InstanceId).ToArray()).ContainsExactly(shelf);
+			AssertBool(otherRun.Offers.Any(otherRun.IsSold)).IsFalse();
 		}
+	}
+
+	/// <summary>A realm stands its keepers on the floor their placements name, counted from the realm's first depth.</summary>
+	[TestCase]
+	public void OnlyTheNamedRealmFloorHasTheKeeper()
+	{
+		var garrison = TestFactories.Load<Realm>("res://scenes/levels/realms/garrison.tres");
+		AssertArray(garrison.Validate()).IsEmpty();
+		AssertString(garrison.ShopsAt(GarrisonGatekeeperDepth).Single().Id).IsEqual("quartermaster");
+		AssertArray(garrison.ShopsAt(GarrisonGatekeeperDepth - 1).ToArray()).IsEmpty();
+		AssertArray(garrison.ShopsAt(GarrisonGatekeeperDepth + 1).ToArray()).IsEmpty();
+		using var deeper = (Realm)garrison.Duplicate();
+		deeper.FirstDepth = 4;
+		deeper.LastDepth = 6;
+		AssertInt(deeper.ShopsAt(6).Count()).IsEqual(1);
+		AssertArray(deeper.ShopsAt(GarrisonGatekeeperDepth).ToArray()).IsEmpty();
 	}
 
 	/// <summary>A layout with no spot for the keeper is re-rolled like one without stairs, never delivered without its shop.</summary>
 	[TestCase]
 	public async Task ALayoutWithoutAKeeperSpotIsRetried()
 	{
-		var (runner, level) = await TestFactories.GenerateLevel(42, GarrisonGatekeeperDepth);
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		using (runner)
 		{
-			MapGenerator generator = level.MapGenerator;
-			var realm = (Realm)generator.CurrentRealm.Duplicate();
+			TestFactories.UseAuthoredRealms(generator);
+			generator.Seed = 42;
+			generator.DungeonDepth = GarrisonGatekeeperDepth;
+			var realm = (Realm)generator.Realms[0].Duplicate();
 			var placement = (ShopPlacementProfile)realm.Shops.Single().Duplicate();
 			placement.MinimumDistanceFromArrival = 1000;
 			realm.Shops = [placement];
-			generator.Realms = [realm, .. generator.Realms.Where(other => other.Id != realm.Id)];
+			generator.Realms = [realm, .. generator.Realms.Skip(1)];
 			bool failed = false;
 			try { generator.GenerateMap(); }
 			catch (System.InvalidOperationException) { failed = true; }
@@ -113,7 +150,7 @@ public class ShopTest
 				AssertBool(menu.GearButton.Visible || menu.SystemButton.Visible).IsFalse();
 
 				var buy = (BuyTab)menu.BuyTab;
-				int potionIndex = shop.Offers.ToList().FindIndex(offer => offer.Item is ConsumableItem { HasIdentity: true });
+				int potionIndex = shop.Offers.ToList().FindIndex(offer => offer is ConsumableItem { HasIdentity: true });
 				var potion = shop.Offers[potionIndex];
 				player.Stats.PayGold(player.Stats.Gold);
 				Panel(buy, potionIndex).FocusSlot();
@@ -132,15 +169,15 @@ public class ShopTest
 				AssertBool(shop.IsSold(potion)).IsTrue();
 				AssertInt(player.Stats.Gold).IsEqual(gold - price);
 				// A potion the hero already carries takes the bought one into its stack.
-				InventoryItemSlot bought = player.Inventory.Items.First(entry => entry.Item.DefinitionPath == potion.Item.DefinitionPath);
-				AssertBool(ItemIdentity.IsTypeKnown(potion.Item, level.Run.Identification)).IsFalse();
+				InventoryItemSlot bought = player.Inventory.Items.First(entry => entry.Item.DefinitionPath == potion.DefinitionPath);
+				AssertBool(ItemIdentity.IsTypeKnown(potion, level.Run.Identification)).IsFalse();
 				AssertBool(Panel(buy, potionIndex).Dimmed).IsTrue();
 
 				// Learning a type between the quote and the confirmation changes the price: the shown one is refused.
-				int otherIndex = shop.Offers.ToList().FindIndex(offer => offer != potion && offer.Item is ConsumableItem { HasIdentity: true });
+				int otherIndex = shop.Offers.ToList().FindIndex(offer => offer != potion && offer is ConsumableItem { HasIdentity: true });
 				var other = shop.Offers[otherIndex];
 				Panel(buy, otherIndex).FocusSlot();
-				level.Run.Identification.Identify(((IIdentifiable)other.Item).TypeId);
+				level.Run.Identification.Identify(((IIdentifiable)other).TypeId);
 				gold = player.Stats.Gold;
 				buy.Invoke("ui_accept");
 				AssertBool(shop.IsSold(other)).IsFalse();
@@ -173,56 +210,6 @@ public class ShopTest
 	}
 
 	/// <summary>
-	/// The shelf is rebuilt from the seed where generation stood its keeper, with what the hero bought still sold. A save
-	/// naming a shop the floor does not have is refused.
-	/// </summary>
-	[TestCase]
-	public async Task SavedPurchasesReplayOntoTheRegeneratedShelf()
-	{
-		var (runner, level) = await TestFactories.GenerateLevel(42, GarrisonGatekeeperDepth);
-		using (runner)
-		{
-			ShopComponent shop = level.Floor.Shops.Single();
-			Vector3 position = ((Node3D)shop.Owner).GlobalPosition;
-			Player player = FindPlayer(level);
-			player.Stats.AddGold(500);
-			player.GlobalPosition = position + ((level.Floor.Arrival.LandingPosition - position) with { Y = 0 }).Normalized() * 1.2f;
-			player.ResetPhysicsInterpolation();
-			foreach (var offer in shop.Offers)
-			{
-				AssertBool(offer.Item is not FoodItem { IsPoisoned: true }).IsTrue();
-				AssertBool(offer.Item is not EquipableItem { IsCursed: true } and not EquipableItem { AttributesKnown: false }
-					and not EquipableItem { CurseStatusKnown: false }).IsTrue();
-			}
-			var gear = shop.Offers.First(offer => offer.Item is EquipableItem);
-			AssertString(shop.Buy(player, gear, shop.QuotePurchase(player, gear))).IsEmpty();
-
-			var save = new SaveGame { Player = PlayerSaveCodec.Capture(player, includeTransform: false) };
-			var floorState = level.CaptureFloorDeltas();
-			save.World.ItemChanges.Add(floorState.Items);
-			save.World.RevealedLevels.Add(floorState.Exploration);
-			var restored = SaveService.DeserializeCurrentVersion(JsonSerializer.Serialize(save));
-			level.ConfigureGeneration(level.Run, GarrisonGatekeeperDepth, restored.World.ItemChanges.Single(), restored.World.RevealedLevels.Single());
-			level.Generate();
-
-			ShopComponent reloaded = level.Floor.Shops.Single();
-			AssertVector(((Node3D)reloaded.Owner).GlobalPosition).IsEqual(position);
-			AssertArray(reloaded.Offers.Where(reloaded.IsSold).Select(offer => offer.Id).ToArray()).ContainsExactly(gear.Id);
-			PlayerSaveCodec.Apply(FindPlayer(level), restored.Player);
-			var restoredGear = (EquipableItem)FindPlayer(level).Inventory.Items.Single(entry => entry.Item.InstanceId == gear.Id).Item;
-			AssertBool(restoredGear.AttributesKnown && restoredGear.CurseStatusKnown && !restoredGear.IsCursed).IsTrue();
-
-			var unknownShop = restored.World.ItemChanges.Single();
-			unknownShop.ShopPurchases["elsewhere"] = [gear.Id];
-			string failure = null;
-			level.GenerationFailed += reason => failure = reason;
-			level.ConfigureGeneration(level.Run, GarrisonGatekeeperDepth, unknownShop, null);
-			level.Generate();
-			AssertString(failure).Contains("unknown shop");
-		}
-	}
-
-	/// <summary>
 	/// An unknown type's price depends only on what the hero sees, the same for every potion of one bottle size; a known
 	/// type is worth its item's value. Gear's hidden attributes and curse count only once revealed.
 	/// </summary>
@@ -231,6 +218,7 @@ public class ShopTest
 	{
 		var run = new RunState(42);
 		var pricing = TestFactories.Load<ShopPricingProfile>("res://scenes/shops/shop_pricing.tres");
+		AssertArray(TestFactories.Load<ShopProfile>("res://scenes/shops/quartermaster_profile.tres").Validate()).IsEmpty();
 		var healing = TestFactories.Load<Item>("res://scenes/items/potions/potion_healing_small.tres");
 		var poison = TestFactories.Load<Item>("res://scenes/items/potions/potion_poison_small.tres");
 		var identify = TestFactories.Load<Item>("res://scenes/items/scrolls/scroll_identify.tres");
@@ -258,7 +246,7 @@ public class ShopTest
 		AssertInt(pricing.RetailPrice(sword, run.Identification)).IsLess(unknownGear);
 	}
 
-	private static Player FindPlayer(Level level) => level.FindChildren("*", "", true, false).OfType<Player>().Single();
+	private static Player FindPlayer(Level level) => (Player)level.GetTree().GetFirstNodeInGroup("player");
 
 	private static ItemSlotPanel Panel(TradeTab tab, int index) => tab.Grid.GetChild<ItemSlotPanel>(index);
 

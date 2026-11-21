@@ -23,10 +23,6 @@ public partial class IdentifyScrollEffect : ScrollEffect
 		}
 
 		player?.GetAncestorOrNull<Level>()?.Run.IdentifyItemType(slot.Item, IdentificationSource.Scroll);
-		if (slot.Item is EquipableItem equipment)
-		{
-			equipment.RevealAttributes();
-			equipment.RevealCurseStatus();
-		}
+		(slot.Item as EquipableItem)?.RevealAll();
 	}
 }
