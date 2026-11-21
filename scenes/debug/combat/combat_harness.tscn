@@ -102,6 +102,8 @@ Delivery = 2
 AIEnabled = false
 RiposteEnabled = false
 RewardsEnabled = false
+ScatterSeparation = 6.0
+ScatterRadius = 10.0
 
 [node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "Arena", "Items", "Monsters", "Hero", "Recorder")]
 layer = 2

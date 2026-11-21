@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Spawns monsters, or the practice dummy, in a ring around the player, and tunes what it spawned: AI, counterattacks,
+/// Spawns monsters, or the practice dummy, in a ring around the player or scattered across an arena, and tunes what it
+/// spawned: AI, counterattacks,
 /// forced defense, invulnerability and kill rewards. By default a spawn plays like a regular monster: it targets the
 /// player at once, attacks, defends and drops its rewards; the combat arena authors the passive settings it needs.
 /// Spawns are the production actor scenes on the world's navigation. They carry no persistent id, so a floor never
@@ -95,8 +96,18 @@ public partial class MonsterTool : DebugTool
 		}
 	} = true;
 
-	/// <summary>How many copies one spawn places, evenly around the player starting straight ahead.</summary>
+	/// <summary>How many copies one spawn places: evenly around the player starting straight ahead, or scattered (<see cref="ScatterSeparation"/>).</summary>
 	[Export(PropertyHint.Range, "1,8")] public int Count { get; set => field = Mathf.Max(1, value); } = 1;
+
+	/// <summary>
+	/// On an arena, the spawn menu places each copy at a random free spot of the arena floor at least this far from the
+	/// player and every other target, so a fight starts with room to move. 0, or a generated level, keeps the ring around
+	/// the player. Scripted spawns (<see cref="Spawn"/>) always use the ring.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,20,0.5,or_greater,suffix:m")] public float ScatterSeparation { get; set; }
+
+	/// <summary>How far from the player scattered copies may stand, so they spawn in view; 0 allows the whole arena.</summary>
+	[Export(PropertyHint.Range, "0,40,0.5,or_greater,suffix:m")] public float ScatterRadius { get; set; }
 
 	/// <summary>The live targets this tool spawned, in spawn order.</summary>
 	public IReadOnlyList<Node3D> Spawned
@@ -111,6 +122,9 @@ public partial class MonsterTool : DebugTool
 	private IEnumerable<EnemyBase> SpawnedMonsters => Spawned.OfType<EnemyBase>().Where(monster => !monster.IsDead);
 
 	private readonly List<Node3D> _spawned = [];
+	/// <summary>Random spots tried per scattered copy before taking the roomiest one found.</summary>
+	private const int ScatterAttempts = 48;
+	private RandomNumberGenerator _scatterRandom;
 	private PopupMenu _spawnMenu;
 	private int _clearId;
 
@@ -149,16 +163,38 @@ public partial class MonsterTool : DebugTool
 	/// </summary>
 	public Node3D Spawn(PackedScene scene, float? distance = null)
 	{
-		Player player = Menu?.Player;
-		IDebugWorld world = Menu?.DebugWorld;
-		if (scene == null || player == null || world == null)
-		{
-			GD.PrintErr("Cannot spawn a monster without a scene, an active player and a world.");
-			return null;
-		}
-
-		Node3D first = null;
+		if (!CanSpawn(scene, out Player player, out IDebugWorld world)) return null;
 		if (!(-player.GlobalBasis.Z).TryNormalizeHorizontal(out Vector3 ahead)) { ahead = Vector3.Forward; }
+		return Place(scene, player, world, (target, index) => world.FindFreePositionNear(
+			player.GlobalPosition + ahead.Rotated(Vector3.Up, Mathf.Tau * index / Count) * (distance ?? PreferredDistance(target))));
+	}
+
+	/// <summary>
+	/// The spawn menu's placement: on an arena with a <see cref="ScatterSeparation"/>, <see cref="Count"/> copies at random
+	/// free spots of its floor, each at least that far from the player and every other target; otherwise <see cref="Spawn"/>.
+	/// Spots come from a stream of the world's run seed, so a harness session replays them. Returns the first copy.
+	/// </summary>
+	public Node3D Scatter(PackedScene scene)
+	{
+		if (ScatterSeparation <= 0 || Menu?.DebugWorld is not DebugArena arena) return Spawn(scene);
+		if (!CanSpawn(scene, out Player player, out IDebugWorld world)) return null;
+		_scatterRandom ??= GenerationRandom.Create(arena.RunSeed, "debug.monster.scatter");
+		return Place(scene, player, world, (_, _) => FindScatteredPosition(arena, player));
+	}
+
+	private bool CanSpawn(PackedScene scene, out Player player, out IDebugWorld world)
+	{
+		player = Menu?.Player;
+		world = Menu?.DebugWorld;
+		if (scene != null && player != null && world != null) return true;
+		GD.PrintErr("Cannot spawn a monster without a scene, an active player and a world.");
+		return false;
+	}
+
+	/// <summary>Adds <see cref="Count"/> configured copies of <paramref name="scene"/>, each where <paramref name="positionFor"/> puts it.</summary>
+	private Node3D Place(PackedScene scene, Player player, IDebugWorld world, System.Func<Node3D, int, Vector3> positionFor)
+	{
+		Node3D first = null;
 		for (int index = 0; index < Count; index++)
 		{
 			Node3D target = Instantiate(scene);
@@ -167,15 +203,41 @@ public partial class MonsterTool : DebugTool
 				break;
 			}
 
-			Vector3 direction = ahead.Rotated(Vector3.Up, Mathf.Tau * index / Count);
-			Vector3 position = world.FindFreePositionNear(player.GlobalPosition + direction * (distance ?? PreferredDistance(target)));
-			world.AddWorldNode(target, position);
+			world.AddWorldNode(target, positionFor(target, index));
 			Prepare(target, player, world, index);
 			_spawned.Add(target);
 			first ??= target;
 			EmitSignalTargetSpawned(target);
 		}
 		return first;
+	}
+
+	/// <summary>
+	/// A random free spot of the arena floor, within <see cref="ScatterRadius"/> of the player, at least
+	/// <see cref="ScatterSeparation"/> from the player, every enemy and every target this tool placed, copies of the same
+	/// spawn included; the roomiest spot tried when none is that far.
+	/// </summary>
+	private Vector3 FindScatteredPosition(DebugArena arena, Player player)
+	{
+		Vector3[] occupied = GetTree().GetNodesInGroup("enemy").OfType<Node3D>().Concat(Spawned)
+			.Select(node => node.GlobalPosition).Append(player.GlobalPosition).ToArray();
+		Rect2 field = arena.Bounds;
+		Vector3 best = player.GlobalPosition;
+		float bestRoom = -1;
+		for (int attempt = 0; attempt < ScatterAttempts; attempt++)
+		{
+			Vector2 point = ScatterRadius > 0
+				? new Vector2(player.GlobalPosition.X, player.GlobalPosition.Z)
+					+ Vector2.FromAngle(_scatterRandom.RandfRange(0, Mathf.Tau)) * ScatterRadius * Mathf.Sqrt(_scatterRandom.Randf())
+				: new Vector2(_scatterRandom.RandfRange(field.Position.X, field.End.X), _scatterRandom.RandfRange(field.Position.Y, field.End.Y));
+			// The arena's navigation covers only its floor; a spot past its edge has nowhere to stand.
+			if (!field.HasPoint(point)) continue;
+			Vector3 spot = arena.FindFreePositionNear(new Vector3(point.X, player.GlobalPosition.Y, point.Y));
+			float room = occupied.Min(other => other.HorizontalDistanceTo(spot));
+			if (room >= ScatterSeparation) return spot;
+			if (room > bestRoom) (best, bestRoom) = (spot, room);
+		}
+		return best;
 	}
 
 	/// <summary>Removes every target this tool spawned, without killing them, so nothing drops or dies on screen.</summary>
@@ -316,12 +378,12 @@ public partial class MonsterTool : DebugTool
 
 		if (PracticeTargetScene != null)
 		{
-			AddAction(_spawnMenu, "Practice dummy", () => Spawn(PracticeTargetScene));
+			AddAction(_spawnMenu, "Practice dummy", () => Scatter(PracticeTargetScene));
 			_spawnMenu.AddSeparator();
 		}
 		foreach (var (scene, name) in DebugCatalog.Monsters(MonsterDirectory))
 		{
-			AddAction(_spawnMenu, name, () => Spawn(scene));
+			AddAction(_spawnMenu, name, () => Scatter(scene));
 			_spawnMenu.SetItemTooltip(_spawnMenu.ItemCount - 1, scene.ResourcePath);
 		}
 	}
