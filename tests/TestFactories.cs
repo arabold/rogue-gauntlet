@@ -231,83 +231,76 @@ public static partial class TestFactories
 	}
 
 	/// <summary>The production room pool: every realm's room types, entrances and exits; a realm narrows it down.</summary>
-	public static AssembledRoomFactory RoomPool() => Load<AssembledRoomFactory>(RoomPoolPath);
+	public static RoomPool RoomPool() => Load<RoomPool>(RoomPoolPath);
 
-	/// <summary>
-	/// Like <see cref="RoomPool"/>, but most generated doorways get their wall style's door -- the hardest stress on
-	/// doorway/door placement. Room types are copied, so the shared definitions keep their own door chances.
-	/// </summary>
-	public static AssembledRoomFactory RoomPoolWithDoors()
+	/// <summary>Builds a temporary <see cref="FloorProfile"/> without duplicating shared room definitions.</summary>
+	public static FloorProfile CreateFloorProfile(
+		RoomLayoutStrategy layout = null,
+		CorridorConnectorStrategy connector = null,
+		FloorAccessProfile access = null) => new()
 	{
-		var garrison = RoomPool();
-		RoomType[] WithDoors(RoomType[] types) => types.Select(type =>
-		{
-			var copy = (RoomType)type.Duplicate();
-			copy.DoorChance = .75f;
-			return copy;
-		}).ToArray();
-		return new AssembledRoomFactory
-		{
-			EntranceTypes = WithDoors(garrison.EntranceTypes),
-			ExitTypes = WithDoors(garrison.ExitTypes),
-			RoomTypes = WithDoors(garrison.RoomTypes),
-		};
+		Layout = layout ?? new PackedRoomLayout(),
+		Connector = connector ?? new AStarCorridorConnector(),
+		Access = access,
+	};
+
+	/// <summary>Floor profile overriding every room doorway to place doors at <paramref name="doorChance"/>.</summary>
+	public static FloorProfile ProfileWithDoors(float doorChance = .75f)
+	{
+		var profile = CreateFloorProfile();
+		profile.DoorChanceOverride = doorChance;
+		return profile;
 	}
 
-	/// <summary>Ordinary room types can conceal entrances; progression rooms keep their authored configuration.</summary>
-	public static AssembledRoomFactory RoomPoolWithSecrets(float chance = .15f)
+	/// <summary>Floor profile enabling secret doors on non-progression rooms.</summary>
+	public static FloorProfile ProfileWithSecrets(float chance = .15f)
 	{
-		var pool = RoomPool();
-		var detection = Load<SecretDetectionProfile>("res://scenes/levels/access/proximity_detection.tres");
-		return new AssembledRoomFactory
-		{
-			EntranceTypes = pool.EntranceTypes, ExitTypes = pool.ExitTypes,
-			RoomTypes = pool.RoomTypes.Select(type =>
-			{
-				var copy = (RoomType)type.Duplicate();
-				copy.SecretDoorChance = chance;
-				copy.SecretDetection = detection;
-				return copy;
-			}).ToArray(),
-		};
+		var profile = CreateFloorProfile();
+		profile.SecretDoorChanceOverride = chance;
+		profile.SecretDetectionOverride = Load<SecretDetectionProfile>("res://scenes/levels/access/proximity_detection.tres");
+		return profile;
 	}
 
 	/// <summary>
-	/// Loads the map generator scene wired with the given layout/factory (defaulting to <see cref="RoomPool"/>), ready to
-	/// call GenerateMap on. The pool loads before the scene: loaded once the generator is up, it lands in the race
-	/// <see cref="ResourceCacheGuard"/> works around, and the aborted engine hangs the run.
+	/// Loads the map generator scene wired with the given profile/pool (defaulting to <see cref="RoomPool"/>), ready to
+	/// call GenerateMap on. The pool loads before the scene to avoid the resource cache finalizer race.
 	/// </summary>
 	public static async Task<(ISceneRunner Runner, MapGenerator Generator)> LoadGenerator(
-		RoomLayoutStrategy layout, AssembledRoomFactory factory = null)
+		FloorProfile profile, RoomPool pool = null)
 	{
-		factory ??= RoomPool();
+		pool ??= RoomPool();
 		ISceneRunner runner = LoadScene("res://scenes/levels/generators/map_generator.tscn");
 		await runner.SimulateFrames(2); // let MapGenerator._Ready cache the child GridMaps
 
 		var mapGenerator = (MapGenerator)runner.Scene();
-		Configure(mapGenerator, layout, factory);
+		Configure(mapGenerator, profile, pool);
 		return (runner, mapGenerator);
 	}
 
+	public static Task<(ISceneRunner Runner, MapGenerator Generator)> LoadGenerator(
+		RoomLayoutStrategy layout, RoomPool pool = null) =>
+		LoadGenerator(CreateFloorProfile(layout), pool);
+
 	/// <summary>
 	/// The authored level scene with its generator configured like <see cref="LoadGenerator"/>, for tests that need the
-	/// floor's runtime services: discovery and exploration saves. Regenerate with <see cref="Level.Generate"/>. Like there,
-	/// the pool loads before the scene.
+	/// floor's runtime services: discovery and exploration saves. Regenerate with <see cref="Level.Generate"/>.
 	/// </summary>
-	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(RoomLayoutStrategy layout, AssembledRoomFactory factory = null)
+	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(FloorProfile profile, RoomPool pool = null)
 	{
-		factory ??= RoomPool();
+		pool ??= RoomPool();
 		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
 		var map = level.MapGenerator;
-		Configure(map, layout, factory);
-		map.AccessProfile = null;
+		Configure(map, profile, pool);
 		map.ChestScene = map.TrapScene = map.LooseItemScene = null;
 		map.LooseItems = null;
 		GameSession.Instance.ResetLevelDebugState(level.Depth);
 		return (runner, level);
 	}
+
+	public static Task<(ISceneRunner Runner, Level Level)> LoadLevel(RoomLayoutStrategy layout, RoomPool pool = null) =>
+		LoadLevel(CreateFloorProfile(layout), pool);
 
 	/// <summary>
 	/// The authored level generated like a real floor for <paramref name="seed"/> and <paramref name="depth"/>, without
@@ -326,12 +319,13 @@ public static partial class TestFactories
 		return (runner, level);
 	}
 
-	private static void Configure(MapGenerator mapGenerator, RoomLayoutStrategy layout, AssembledRoomFactory factory)
+	private static void Configure(MapGenerator mapGenerator, FloorProfile profile, RoomPool pool)
 	{
-		mapGenerator.RoomLayout = layout;
-		mapGenerator.CorridorConnector = new AStarCorridorConnector();
+		// Tests pin their profile at every depth, gatekeeper floors included.
+		mapGenerator.Profile = profile;
+		mapGenerator.BossProfile = null;
 		// Tests pin their rooms: the Garrison's, at every depth.
-		mapGenerator.Rooms = factory;
+		mapGenerator.Rooms = pool;
 		mapGenerator.Realms =
 			[new Realm { Id = "garrison", FirstDepth = 1, LastDepth = 100, Corridors = Load<DungeonTileFactory>("res://scenes/levels/realms/garrison_corridors.tres") }];
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");

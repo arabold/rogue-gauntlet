@@ -38,7 +38,7 @@ public class GeneratedFloorSweepTest
 	[TestCase]
 	public async Task DoorAndSecretHeavyFloorsAreSealedAndConnected()
 	{
-		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), TestFactories.RoomPoolWithDoorsAndSecrets());
+		var (runner, generator) = await TestFactories.LoadGenerator(TestFactories.ProfileWithDoorsAndSecrets());
 		using (runner)
 		{
 			TestFactories.UseAuthoredRealms(generator);
@@ -51,19 +51,394 @@ public class GeneratedFloorSweepTest
 		}
 	}
 
-	/// <summary>The alternative layout strategy and larger maps than the shipped 20x20 keep the same contracts.</summary>
+	/// <summary>Larger maps than the shipped 20x20 keep the same contracts.</summary>
 	[TestCase]
-	public async Task SimpleLayoutAndLargerFloorsAreSealedAndConnected()
+	public async Task LargerFloorsAreSealedAndConnected()
 	{
-		var (runner, generator) = await TestFactories.LoadGenerator(new SimpleRoomLayout { Retries = 3 });
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		using (runner)
 		{
 			var contracts = new FloorContracts();
-			await Sweep(generator, contracts, 10, _ => 1, "simple");
-			generator.RoomLayout = new PackedRoomLayout();
 			generator.MapWidth = generator.MapDepth = 40;
 			generator.MaxRooms = 25;
 			await Sweep(generator, contracts, 3, _ => 1, "40x40");
+			contracts.AssertHeld();
+		}
+	}
+
+	[TestCase]
+	public async Task LabyrinthProfileAcrossRealmsIsSealedSolvableAndHasCorridorLoot()
+	{
+		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/labyrinth.tres");
+		var (runner, generator) = await TestFactories.LoadGenerator(profile);
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			generator.MinChests = 1;
+			generator.MaxChests = 3;
+			generator.MinLooseItems = 2;
+			generator.MaxLooseItems = 4;
+
+			var contracts = new FloorContracts();
+			int totalCorridorLoot = 0;
+			int totalLockedDoors = 0;
+			uint[] realmDepths = [1u, 4u, 7u];
+
+			for (ulong seed = 1; seed <= 9; seed++)
+			{
+				generator.Seed = seed;
+				generator.DungeonDepth = realmDepths[(seed - 1) % 3];
+				string label = $"labyrinth seed {seed} depth {generator.DungeonDepth}";
+				string failure = null;
+				try { generator.GenerateMap(includeGameplay: true); }
+				catch (System.InvalidOperationException error) { failure = error.Message; }
+				if (failure != null)
+				{
+					contracts.Fail("generation", $"{label}: {failure}");
+					continue;
+				}
+
+				string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
+				contracts.Check(generator, fullLabel);
+
+				int secrets = generator.Floor.Doors.Count(d => d.Door.Secret?.IsSecret == true);
+				if (secrets > 0) contracts.Fail("generation", $"{fullLabel}: unexpected {secrets} secret door(s)");
+
+				var map = generator.Map;
+				int deadEnds = 0;
+				for (int x = 1; x < map.Width - 1; x++)
+				for (int z = 1; z < map.Height - 1; z++)
+					if (map.IsCorridor(x, z) && map.OpenNeighborCount(x, z) == 1) deadEnds++;
+				if (deadEnds == 0) contracts.Fail("connectivity", $"{fullLabel}: labyrinth produced 0 dead ends");
+
+				foreach (var node in generator.FloorContent.GetChildren().OfType<Node3D>())
+				{
+					if (node.IsQueuedForDeletion()) continue;
+					if (node is not (LootableItem or FloorTrap or Chest)) continue;
+					var tile = map.WorldToTile(node.GlobalPosition);
+					if (map.IsCorridor(tile.X, tile.Y)) totalCorridorLoot++;
+
+					if (!TestFactories.IsLootReachable(generator.Floor, node))
+						contracts.Fail("connectivity", $"{fullLabel}: {node.Name} at {tile} is unreachable");
+				}
+
+				var lockedDoors = generator.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true).ToList();
+				totalLockedDoors += lockedDoors.Count;
+				string lockError = TestFactories.CheckKeyLockSolvability(generator, lockedDoors);
+				if (lockError != null) contracts.Fail("connectivity", $"{fullLabel}: {lockError}");
+
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+
+			contracts.AssertHeld();
+			AssertInt(totalCorridorLoot).IsGreater(0);
+			AssertInt(totalLockedDoors).IsGreater(0);
+		}
+
+		// Depth-3 garrison gatekeeper check on labyrinth profile (uses LoadLevel so Level.ThreatProfile is wired).
+		var (gateRunner, gateLevel) = await TestFactories.LoadLevel(profile);
+		using (gateRunner)
+		{
+			var gateGen = gateLevel.MapGenerator;
+			TestFactories.UseAuthoredRealms(gateGen);
+			TestFactories.WireLootScenes(gateGen);
+			gateGen.MobFactory = TestFactories.Load<MobFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+			gateGen.Seed = 1;
+			gateGen.DungeonDepth = 3;
+			gateLevel.Generate();
+			var gateContracts = new FloorContracts();
+			gateContracts.Check(gateGen, "labyrinth seed 1 depth 3 (garrison)");
+			var depth3Locked = gateGen.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true).ToList();
+			string depth3LockError = TestFactories.CheckKeyLockSolvability(gateGen, depth3Locked);
+			if (depth3LockError != null) gateContracts.Fail("connectivity", $"labyrinth seed 1 depth 3: {depth3LockError}");
+			gateContracts.AssertHeld();
+			AssertObject(gateGen.Floor.GatekeeperSpawn).IsNotNull();
+			AssertBool(gateGen.Floor.IsReachable(gateGen.Floor.GatekeeperSpawn.GlobalPosition)).IsTrue();
+			await gateGen.ToSignal(gateGen.GetTree(), SceneTree.SignalName.ProcessFrame);
+		}
+	}
+
+	[TestCase]
+	public async Task LargeClusterProfileAcrossRealmsHoldsContracts()
+	{
+		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/cluster_large.tres");
+		var (runner, generator) = await TestFactories.LoadGenerator(profile);
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			var contracts = new FloorContracts();
+			uint[] realmDepths = [1u, 4u, 7u];
+
+			for (ulong seed = 1; seed <= 6; seed++)
+			{
+				generator.Seed = seed;
+				generator.DungeonDepth = realmDepths[(seed - 1) % 3];
+				string label = $"cluster_large seed {seed} depth {generator.DungeonDepth}";
+				string failure = null;
+				try { generator.GenerateMap(includeGameplay: seed <= 3); }
+				catch (System.InvalidOperationException error) { failure = error.Message; }
+				if (failure != null)
+				{
+					contracts.Fail("generation", $"{label}: {failure}");
+					continue;
+				}
+
+				string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
+				contracts.Check(generator, fullLabel);
+
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+
+			contracts.AssertHeld();
+		}
+	}
+
+	/// <summary>
+	/// The prison, cathedral, cloister and mine plans keep every contract in every realm, each with its defining shape:
+	/// cathedral and cloister floors are built around a room at their center, and mine tunnels make the walk from the
+	/// arrival to the descent at least as long as the floor is wide.
+	/// </summary>
+	[TestCase]
+	public async Task NewFloorPlansAcrossRealmsHoldContractsAndTheirShape()
+	{
+		var (runner, generator) = await TestFactories.LoadGenerator(TestFactories.CreateFloorProfile());
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			var contracts = new FloorContracts();
+			uint[] realmDepths = [1u, 4u, 7u];
+			foreach (string plan in new[] { "prison", "cathedral", "cloister", "mines" })
+			{
+				generator.Profile = TestFactories.Load<FloorProfile>($"res://scenes/levels/generators/floor_profiles/{plan}.tres");
+				for (ulong seed = 1; seed <= 3; seed++)
+				{
+					generator.Seed = seed;
+					generator.DungeonDepth = realmDepths[seed - 1];
+					string label = $"{plan} seed {seed} depth {generator.DungeonDepth}";
+					string failure = null;
+					try { generator.GenerateMap(includeGameplay: seed == 1); }
+					catch (System.InvalidOperationException error) { failure = error.Message; }
+					if (failure != null)
+					{
+						contracts.Fail("generation", $"{label}: {failure}");
+						continue;
+					}
+
+					string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
+					contracts.Check(generator, fullLabel);
+					var map = generator.Map;
+					var center = new Vector2I(map.Width / 2, map.Height / 2);
+					if (plan is "cathedral" or "cloister" && !generator.Floor.Rooms.Any(room => room.Tiles.Contains(center)))
+						contracts.Fail("generation", $"{fullLabel}: no room at the center of the floor");
+					if (plan == "mines")
+					{
+						var descentRoom = generator.Floor.Rooms[generator.RoomRegionFor(generator.Floor.Descent)].Tiles.ToHashSet();
+						int walk = WalkLength(map, map.WorldToTile(generator.Floor.Arrival.LandingPosition), descentRoom);
+						if (walk < map.Width) contracts.Fail("connectivity", $"{fullLabel}: the walk to the descent's room is only {walk} tiles");
+					}
+					await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+				}
+			}
+			contracts.AssertHeld();
+		}
+	}
+
+	/// <summary>Steps on the shortest walk from a tile into any of <paramref name="targets"/> that crosses no wall; -1 when none exists.</summary>
+	private static int WalkLength(MapData map, Vector2I from, IReadOnlySet<Vector2I> targets)
+	{
+		var distance = new Dictionary<Vector2I, int> { [from] = 0 };
+		var queue = new Queue<Vector2I>();
+		queue.Enqueue(from);
+		while (queue.Count > 0)
+		{
+			var tile = queue.Dequeue();
+			if (targets.Contains(tile)) return distance[tile];
+			foreach (var offset in MapData.CardinalOffsets)
+			{
+				var next = tile + offset;
+				if (distance.ContainsKey(next) || !map.IsWithinBounds(next.X, next.Y) || !map.IsWalkable(next.X, next.Y)
+					|| map.RequiresInteriorWall(tile.X, tile.Y, offset)) continue;
+				distance[next] = distance[tile] + 1;
+				queue.Enqueue(next);
+			}
+		}
+		return -1;
+	}
+
+	/// <summary>
+	/// Hallway floors keep every contract across the realms, and their entrance and exit sit at opposite ends of the
+	/// main hallway, so the walk between them spans the floor.
+	/// </summary>
+	[TestCase]
+	public async Task HallwayProfileAcrossRealmsHoldsContractsAndSpansTheFloor()
+	{
+		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/hallway.tres");
+		var (runner, generator) = await TestFactories.LoadGenerator(profile);
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			var contracts = new FloorContracts();
+			uint[] realmDepths = [1u, 4u, 7u];
+
+			for (ulong seed = 1; seed <= 6; seed++)
+			{
+				generator.Seed = seed;
+				generator.DungeonDepth = realmDepths[(seed - 1) % 3];
+				string label = $"hallway seed {seed} depth {generator.DungeonDepth}";
+				string failure = null;
+				try { generator.GenerateMap(includeGameplay: seed <= 3); }
+				catch (System.InvalidOperationException error) { failure = error.Message; }
+				if (failure != null)
+				{
+					contracts.Fail("generation", $"{label}: {failure}");
+					continue;
+				}
+
+				string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
+				contracts.Check(generator, fullLabel);
+				var map = generator.Map;
+				var arrival = map.WorldToTile(generator.Floor.Arrival.GlobalPosition);
+				var descent = map.WorldToTile(generator.Floor.Descent.GlobalPosition);
+				int span = System.Math.Max(System.Math.Abs(arrival.X - descent.X), System.Math.Abs(arrival.Y - descent.Y));
+				if (span < System.Math.Max(map.Width, map.Height) / 2)
+					contracts.Fail("generation", $"{fullLabel}: entrance and exit only {span} tiles apart");
+
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+
+			contracts.AssertHeld();
+		}
+	}
+
+	[TestCase]
+	public async Task BossProfileAcrossRealmsEnforcesBossCutVertexAndFit()
+	{
+		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/boss.tres");
+		var (runner, level) = await TestFactories.LoadLevel(profile);
+		using (runner)
+		{
+			var generator = level.MapGenerator;
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			generator.MobFactory = TestFactories.Load<MobFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+			var contracts = new FloorContracts();
+			uint[] realmDepths = [3u, 4u, 7u];
+			int gatekeepersChecked = 0;
+
+			for (ulong seed = 1; seed <= 9; seed++)
+			{
+				generator.Seed = seed;
+				generator.DungeonDepth = realmDepths[(seed - 1) % 3];
+				string label = $"boss seed {seed} depth {generator.DungeonDepth}";
+				string failure = null;
+				try { level.Generate(); }
+				catch (System.InvalidOperationException error) { failure = error.Message; }
+				if (failure != null)
+				{
+					contracts.Fail("generation", $"{label}: {failure}");
+					continue;
+				}
+
+				string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
+				contracts.Check(generator, fullLabel);
+
+				int secrets = generator.Floor.Doors.Count(d => d.Door.Secret?.IsSecret == true);
+				if (secrets > 0) contracts.Fail("generation", $"{fullLabel}: unexpected {secrets} secret door(s)");
+
+				var bossRoom = generator.Floor.Rooms.FirstOrDefault(r => r.SlotId == "boss");
+				var exitRoom = generator.Floor.Rooms.FirstOrDefault(r => r.SlotId == "exit");
+				if (bossRoom == null || !bossRoom.MustTraverse)
+					contracts.Fail("generation", $"{fullLabel}: missing MustTraverse boss room");
+				if (exitRoom == null || !exitRoom.ReserveAccess)
+					contracts.Fail("generation", $"{fullLabel}: missing ReserveAccess exit room");
+
+				if (exitRoom != null)
+				{
+					var exitConnectors = exitRoom.ConnectorTiles.ToHashSet();
+					var exitDoors = generator.Floor.Doors.Where(d => exitConnectors.Contains(d.Connector)).ToList();
+					if (exitDoors.Count == 0 || exitDoors.Any(d => d.Door.Lock?.IsLocked == true))
+						contracts.Fail("generation", $"{fullLabel}: exit door missing or unexpectedly locked by access generator");
+				}
+
+				if (bossRoom != null && exitRoom != null && generator.Floor.Arrival != null)
+				{
+					int arrivalId = generator.RoomRegionFor(generator.Floor.Arrival);
+					var arrivalTile = generator.Map.WorldToTile(generator.Floor.Arrival.GlobalPosition);
+					foreach (var must in generator.Floor.Rooms.Where(r =>
+						r.MustTraverse && r.Id != arrivalId && r.Id != exitRoom.Id))
+					{
+						var blocked = new HashSet<Vector2I>(must.Tiles.Count + must.ConnectorTiles.Count);
+						foreach (var t in must.Tiles) blocked.Add(t);
+						foreach (var c in must.ConnectorTiles) blocked.Add(c);
+						var reached = AccessSolutionValidator.Reachable(generator.Map, arrivalTile, blocked);
+						if (exitRoom.Tiles.Any(t => generator.Map.IsWalkable(t.X, t.Y) && reached.Contains(t)))
+							contracts.Fail("connectivity", $"{fullLabel}: MustTraverse room {must.Id} ({must.SlotId}) bypassed");
+					}
+				}
+
+				if (bossRoom != null && generator.Floor.GatekeeperSite is Transform3D site)
+				{
+					gatekeepersChecked++;
+					int siteRoom = generator.Floor.RoomIdAt(site.Origin);
+					if (siteRoom != bossRoom.Id && siteRoom != exitRoom?.Id)
+						contracts.Fail("generation", $"{fullLabel}: gatekeeper placed outside the boss and exit rooms");
+				}
+
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+
+			contracts.AssertHeld();
+			AssertInt(gatekeepersChecked).IsGreater(0);
+		}
+	}
+
+	/// <summary>
+	/// The shipped level builds its gatekeeper floor from its boss profile: the gatekeeper finds room in the boss room or
+	/// the descent's room behind it, and the descent cannot be reached without passing through the boss room.
+	/// </summary>
+	[TestCase]
+	public async Task ShippedGatekeeperFloorsLeadThroughTheBossRoom()
+	{
+		const uint gatekeeperDepth = 3; // The Garrison's gatekeeper floor.
+		var (runner, level) = await TestFactories.GenerateLevel(1, gatekeeperDepth);
+		using (runner)
+		{
+			var generator = level.MapGenerator;
+			var contracts = new FloorContracts();
+			for (ulong seed = 1; seed <= 3; seed++)
+			{
+				if (seed > 1)
+				{
+					level.ConfigureGeneration(new RunState(seed), gatekeeperDepth, null, null);
+					level.Generate();
+				}
+				string label = $"gatekeeper floor seed {seed} ({generator.CurrentRealm.Id})";
+				contracts.Check(generator, label);
+
+				var floor = generator.Floor;
+				var bossRoom = floor.Rooms.FirstOrDefault(r => r.SlotId == "boss");
+				int descentRoom = generator.RoomRegionFor(floor.Descent);
+				if (bossRoom == null || descentRoom < 0)
+				{
+					contracts.Fail("generation", $"{label}: no boss room or descent room");
+					continue;
+				}
+				if (floor.GatekeeperSite is not Transform3D site)
+					contracts.Fail("generation", $"{label}: no gatekeeper site");
+				else if (floor.RoomIdAt(site.Origin) is int siteRoom && siteRoom != bossRoom.Id && siteRoom != descentRoom)
+					contracts.Fail("generation", $"{label}: gatekeeper stands in room {siteRoom}, outside the boss and descent rooms");
+
+				var blocked = bossRoom.Tiles.Concat(bossRoom.ConnectorTiles).ToHashSet();
+				var reached = AccessSolutionValidator.Reachable(generator.Map, generator.Map.WorldToTile(floor.Arrival.GlobalPosition), blocked);
+				if (floor.Rooms[descentRoom].Tiles.Any(reached.Contains))
+					contracts.Fail("connectivity", $"{label}: the descent is reachable around the boss room");
+
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
 			contracts.AssertHeld();
 		}
 	}
@@ -112,12 +487,30 @@ public class GeneratedFloorSweepTest
 			foreach (string gap in WallGaps(generator, frames, frameItem)) _failures["wall gaps"].Add($"{label}: {gap}");
 			string overlap = WallFootprints.FindOverlap(grid);
 			if (overlap != "") _failures["overlapping wall pieces"].Add($"{label}: {overlap}");
+			var itemCache = new Dictionary<int, (Aabb Bounds, string Name)>();
+			var cells = new List<(Vector3I Cell, int Item, int Orientation)>();
+			var cellBuckets = new Dictionary<Vector2I, List<int>>();
+			foreach (Vector3I cell in grid.GetUsedCells())
+			{
+				int item = grid.GetCellItem(cell), orientation = grid.GetCellItemOrientation(cell);
+				var (local, _) = WallFootprints.GetItemInfo(grid.MeshLibrary, item, itemCache);
+				int idx = cells.Count;
+				cells.Add((cell, item, orientation));
+				WallFootprints.AddToBuckets(cellBuckets, WallFootprints.FootprintWorld(local, orientation, cell), idx);
+			}
+			var frameInfo = WallFootprints.GetItemInfo(grid.MeshLibrary, frameItem, itemCache);
+			var seen = new HashSet<int>();
 			foreach (var (center, horizontal) in frames)
 			{
 				int facing = horizontal ? GridTurns.Turn0 : GridTurns.Turn90;
-				foreach (Vector3I cell in grid.GetUsedCells())
-					if (WallFootprints.PiecesOverlap(grid.MeshLibrary, frameItem, facing, center, grid.GetCellItem(cell), grid.GetCellItemOrientation(cell), cell))
-						_failures["doorway frames overlapping walls"].Add($"{label}: doorway {center} overlaps wall {cell}");
+				var frameBounds = WallFootprints.FootprintWorld(frameInfo.Bounds, facing, center);
+				foreach (int idx in WallFootprints.QueryBuckets(cellBuckets, frameBounds, seen))
+				{
+					var w = cells[idx];
+					var wallInfo = itemCache[w.Item];
+					if (WallFootprints.PiecesOverlap(frameInfo.Bounds, frameInfo.Name, facing, center, wallInfo.Bounds, wallInfo.Name, w.Orientation, w.Cell))
+						_failures["doorway frames overlapping walls"].Add($"{label}: doorway {center} overlaps wall {w.Cell}");
+				}
 			}
 			foreach (string failure in TestFactories.ConnectivityFailures(generator)) _failures["connectivity"].Add($"{label}: {failure}");
 			foreach (string failure in MisplacedDoors(generator)) _failures["doors outside their doorways"].Add($"{label}: {failure}");
@@ -167,8 +560,15 @@ public class GeneratedFloorSweepTest
 			MapData map = generator.Map;
 			var library = generator.WallGridMap.MeshLibrary;
 			List<Aabb> wallBoxes = WallFootprints.Collect(generator.WallGridMap);
+			Aabb frameBounds = WallFootprints.MeshBounds(library, frameItem);
 			foreach (var (center, horizontal) in frames)
-				wallBoxes.Add(WallFootprints.FootprintWorld(WallFootprints.MeshBounds(library, frameItem), horizontal ? GridTurns.Turn0 : GridTurns.Turn90, center));
+				wallBoxes.Add(WallFootprints.FootprintWorld(frameBounds, horizontal ? GridTurns.Turn0 : GridTurns.Turn90, center));
+
+			var boxBuckets = new Dictionary<Vector2I, List<int>>();
+			for (int i = 0; i < wallBoxes.Count; i++)
+				WallFootprints.AddToBuckets(boxBuckets, wallBoxes[i], i);
+			var seen = new HashSet<int>();
+			var localBoxes = new List<Aabb>();
 
 			var directions = new (int Dx, int Dz, string Name)[] { (0, -1, "N"), (0, 1, "S"), (-1, 0, "W"), (1, 0, "E") };
 			for (int x = 0; x < map.Width; x++)
@@ -179,13 +579,17 @@ public class GeneratedFloorSweepTest
 				float cz = (z - map.Height / 2) * TileSize;
 				foreach (var (dx, dz, name) in directions)
 				{
-					int nx = x + dx, nz = z + dz;
-					bool facesVoid = !map.IsWithinBounds(nx, nz) || map.IsWallOrEmpty(nx, nz);
-					if (!facesVoid && !map.RequiresInteriorWall(x, z, new Vector2I(dx, dz))) continue;
+					if (!map.HasWallToward(x, z, new Vector2I(dx, dz))) continue;
 					bool horizontal = dz != 0;
 					float line = horizontal ? cz + dz * (TileSize / 2f) : cx + dx * (TileSize / 2f);
 					float from = (horizontal ? cx : cz) - TileSize / 2f;
-					if (!WallFootprints.EdgeFullyCovered(wallBoxes, horizontal, line, from, from + TileSize))
+					var query = horizontal
+						? new Aabb(new Vector3(from, -10f, line - WallFootprints.Eps), new Vector3(TileSize, 20f, WallFootprints.Eps * 2f))
+						: new Aabb(new Vector3(line - WallFootprints.Eps, -10f, from), new Vector3(WallFootprints.Eps * 2f, 20f, TileSize));
+					localBoxes.Clear();
+					foreach (int i in WallFootprints.QueryBuckets(boxBuckets, query, seen))
+						localBoxes.Add(wallBoxes[i]);
+					if (!WallFootprints.EdgeFullyCovered(localBoxes, horizontal, line, from, from + TileSize))
 						gaps.Add($"tile=({x},{z}) edge={name} span=[{from:0.#},{from + TileSize:0.#}]");
 				}
 			}

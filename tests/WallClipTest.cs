@@ -34,7 +34,7 @@ public class WallClipTest
 	[TestCase]
 	public async Task GeneratedWallsAndClosedDoorsBlockWhileRoomsAndOpenPassagesStayClear()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithDoors());
+		var (runner, level) = await TestFactories.LoadLevel(TestFactories.ProfileWithDoors());
 		using var scope = runner;
 		level.Generate();
 		await runner.SimulateFrames(2, 20); // Doors join the mask on the frame after generation.

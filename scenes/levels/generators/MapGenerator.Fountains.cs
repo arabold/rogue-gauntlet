@@ -17,32 +17,48 @@ public partial class MapGenerator
 	/// tiles with no wall beside them. Fountains are solid props like chests and claim their spots before any loot.
 	/// Each kind has its own stream, so a fountain floor leaves the shared item stream's draws unchanged.
 	/// </summary>
-	private void PlaceFountains(List<Vector3> placedPoints)
+	private void PlaceFountains(List<Vector3> placedPoints, IReadOnlyList<Aabb> doorClearances)
 	{
 		if (Fountains == null || FloorContent == null) return;
+		var tiles = GetSolidPropTiles(includeCorridors: false);
+		var freeTiles = tiles.Where(tile => tile.WallMask == 0).Select(tile => tile.Point).ToList();
+		var allTiles = freeTiles.Count > 0 ? freeTiles : tiles.Select(tile => tile.Point).ToList();
+
 		foreach (var kind in Fountains.KindsAt(RunSeed, DungeonDepth))
 		{
 			if (kind.Variants.Count == 0) continue;
 			using var rng = GenerationRandom.Create(Seed, GenerationRandom.Fountains, kind.Id);
 			var scene = kind.Variants[rng.RandiRange(0, kind.Variants.Count - 1)];
-			var tiles = GetSolidPropTiles();
-			var remaining = tiles.Where(tile => tile.Walls.Count == 0).Select(tile => tile.Point).ToList();
-			if (remaining.Count == 0) remaining = tiles.Select(tile => tile.Point).ToList();
-			if (remaining.Count == 0)
+			if (allTiles.Count == 0)
 			{
 				GD.PrintErr($"Cannot place the {kind.Id} fountain: no free room tiles found.");
 				continue;
 			}
 
+			var remaining = new List<Vector3>(allTiles);
 			bool placed = false;
-			while (!placed && remaining.Count > 0)
+			Node3D probe = null;
+			try
 			{
-				int index = rng.RandiRange(0, remaining.Count - 1);
-				var point = remaining[index];
-				remaining.RemoveAt(index);
-				placed = !IsBlockedLootPoint(point, placedPoints, LootSpawnSpacing)
-					&& TryPlaceSolidProp(scene, point, 90 * rng.RandiRange(0, 3), $"depth:{DungeonDepth}:fountain:{kind.Id}");
-				if (placed) placedPoints.Add(point);
+				while (!placed && remaining.Count > 0)
+				{
+					int index = rng.RandiRange(0, remaining.Count - 1);
+					var point = remaining[index];
+					remaining.RemoveAt(index);
+					if (IsBlockedLootPoint(point, placedPoints, LootSpawnSpacing)) continue;
+					probe ??= scene.Instantiate<Node3D>();
+					if (!TryPlaceSolidProp(probe, point, 90 * rng.RandiRange(0, 3), $"depth:{DungeonDepth}:fountain:{kind.Id}", doorClearances))
+					{
+						continue;
+					}
+					probe = null;
+					placedPoints.Add(point);
+					placed = true;
+				}
+			}
+			finally
+			{
+				if (GodotObject.IsInstanceValid(probe)) probe.Free();
 			}
 
 			// A cramped floor is a normal outcome; the run simply holds one fewer fountain.

@@ -44,12 +44,16 @@ public sealed class CorridorBlueprint
 
 	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, bool Decoratable)> _walls = [];
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _blockedEdges = [];
-	private readonly List<Vector3> _doorPositions = [];
+	private readonly List<(Vector3 Position, Vector2I Tile)> _doors = [];
 	private readonly List<PlacedPiece> _pieces = [];
-	private readonly List<Vector3> _lightPositions = [];
-	private readonly List<Vector3> _passagewayPositions = [];
+	private readonly Dictionary<Vector2I, List<(int Index, Vector2I Tile)>> _piecesByTile = [];
+	private readonly HashSet<int> _seenPieceIndices = [];
+	private readonly List<(Vector3 Position, Vector2I Tile)> _lights = [];
+	private readonly List<(Vector3 Position, Vector2I Tile)> _passageways = [];
 	private readonly Dictionary<object, int> _uses = [];
+	private float _maxPieceGap;
 	private WallRun[] _wallRuns;
+	private Dictionary<(Vector2I Tile, Vector2I Outward), WallRun> _wallRunIndex;
 	private CorridorThreshold[] _thresholds;
 	private CorridorJunction[] _junctions;
 	private CorridorSpan[] _spans;
@@ -63,17 +67,11 @@ public sealed class CorridorBlueprint
 		Seed = seed;
 
 		var originWorld = (Vector3)Map.TileToWorld(0, 0);
-		foreach (var (door, _) in generator.Floor.Doors)
-		{
-			if (GodotObject.IsInstanceValid(door))
-			{
-				_doorPositions.Add(door.GlobalPosition - originWorld);
-			}
-		}
-
 		var secretConnectors = new HashSet<Vector2I>();
 		foreach (var (door, connector) in generator.Floor.Doors)
 		{
+			if (!GodotObject.IsInstanceValid(door)) continue;
+			_doors.Add((door.GlobalPosition - originWorld, connector));
 			if (door.Secret?.IsSecret != true) continue;
 			secretConnectors.Add(connector);
 			foreach (var direction in Map.GetConnectorDirections(connector.X, connector.Y))
@@ -107,10 +105,8 @@ public sealed class CorridorBlueprint
 	public ulong Seed { get; }
 	public IReadOnlyList<Vector2I> CorridorTiles { get; }
 	public IReadOnlyList<PlacedPiece> Pieces => _pieces;
-	public IReadOnlyList<Vector3> LightPositions => _lightPositions;
-	public IReadOnlyList<Vector3> PassagewayPositions => _passagewayPositions;
 
-	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= WallRun.Find(CorridorTiles, HasWall).ToArray();
+	public IReadOnlyList<WallRun> WallRuns => _wallRuns ??= WallRun.Find(CorridorTiles, HasWall, CanStepAlong).ToArray();
 	public IReadOnlyList<CorridorThreshold> Thresholds => _thresholds;
 	public IReadOnlyList<CorridorJunction> Junctions => _junctions ??= ComputeJunctions().ToArray();
 	public IReadOnlyList<CorridorSpan> Spans => _spans ??= ComputeSpans().ToArray();
@@ -143,26 +139,38 @@ public sealed class CorridorBlueprint
 
 	public static bool IsLightProp(Prop prop) => prop != null && prop.EmitsLight;
 
-	private static bool HasNearby(IReadOnlyList<Vector3> points, Vector3 target, float minDistance)
+	private Vector2I LocalToTile(Vector3 localPosition) => new(
+		Mathf.RoundToInt(localPosition.X / Room.TileSize),
+		Mathf.RoundToInt(localPosition.Z / Room.TileSize));
+
+	private bool CanStepAlong(Vector2I tile, Vector2I step) => !Map.HasWallToward(tile.X, tile.Y, step);
+
+	private bool HasNearbyWithSight(List<(Vector3 Position, Vector2I Tile)> items, Vector3 target, Vector2I targetTile, float minDistance)
 	{
 		if (minDistance <= 0f) return false;
 		float minSq = minDistance * minDistance;
 		var p = RoomBlueprint.XZ(target);
-		for (int i = 0; i < points.Count; i++)
+		for (int i = 0; i < items.Count; i++)
 		{
-			if (RoomBlueprint.XZ(points[i]).DistanceSquaredTo(p) < minSq) return true;
+			if (RoomBlueprint.XZ(items[i].Position).DistanceSquaredTo(p) < minSq && Map.HasTileSight(targetTile, items[i].Tile))
+			{
+				return true;
+			}
 		}
 		return false;
 	}
 
 	public bool HasNearbyLight(Vector3 localPosition, float minDistance) =>
-		HasNearby(_lightPositions, localPosition, minDistance);
+		HasNearbyWithSight(_lights, localPosition, LocalToTile(localPosition), minDistance);
 
 	public bool HasNearbyPassageway(Vector3 localPosition, float minDistance) =>
-		HasNearby(_passagewayPositions, localPosition, minDistance);
+		HasNearbyWithSight(_passageways, localPosition, LocalToTile(localPosition), minDistance);
 
 	public bool HasNearbyDoor(Vector3 localPosition, float minDistance) =>
-		HasNearby(_doorPositions, localPosition, minDistance);
+		HasNearbyWithSight(_doors, localPosition, LocalToTile(localPosition), minDistance);
+
+	private bool HasNearbyDoor(Vector2I targetTile, Vector3 localPosition, float minDistance) =>
+		HasNearbyWithSight(_doors, localPosition, targetTile, minDistance);
 
 	/// <summary>
 	/// Attempts to hang a wall-mounted <paramref name="prop"/> centered on <paramref name="tile"/>'s
@@ -209,14 +217,15 @@ public sealed class CorridorBlueprint
 		if (prop.Mount == PropMount.Wall) origin.Y = prop.MountHeight;
 		var transform = new Transform3D(run.Facing, origin);
 
-		if (HasNearbyDoor(transform.Origin, 1.6f)) return false;
-		if (minLightSpacing > 0f && IsLightProp(prop) && HasNearbyLight(transform.Origin, minLightSpacing)) return false;
+		var pieceTile = run.TileAt(Math.Clamp(Mathf.FloorToInt(centerAlong / Room.TileSize), 0, run.Length - 1));
+		if (HasNearbyDoor(pieceTile, transform.Origin, 1.6f)) return false;
+		if (minLightSpacing > 0f && IsLightProp(prop) && HasNearbyWithSight(_lights, transform.Origin, pieceTile, minLightSpacing)) return false;
 
 		var envelope = transform * geometry.Envelope;
 		if (!RoomBlueprint.HasWallSupport(envelope, run, IsDecoratable)) return false;
-		if (!CanAcceptPiece(prop, envelope)) return false;
+		if (!CanAcceptPiece(prop, envelope, pieceTile)) return false;
 
-		AcceptPiece(prop, variant, transform, envelope);
+		AcceptPiece(prop, variant, transform, envelope, pieceTile);
 		return true;
 	}
 
@@ -236,17 +245,17 @@ public sealed class CorridorBlueprint
 		if (!HasWall(tile, perp) || !HasWall(tile, -perp)) return false;
 
 		var center = RoomFootprint.TileCenter(tile);
-		if (HasNearbyDoor(center, Room.TileSize * 0.85f)) return false;
-		if (minSpacing > 0f && HasNearbyPassageway(center, minSpacing)) return false;
+		if (HasNearbyDoor(tile, center, Room.TileSize * 0.85f)) return false;
+		if (minSpacing > 0f && HasNearbyWithSight(_passageways, center, tile, minSpacing)) return false;
 
 		int variant = PickVariant(prop, rng);
 		var facing = new Basis(Vector3.Up, Mathf.Atan2(along.X, along.Y));
 		var transform = new Transform3D(facing, center);
 		var envelope = transform * prop.Geometry(variant).Envelope;
-		if (!CanAcceptPiece(prop, envelope)) return false;
+		if (!CanAcceptPiece(prop, envelope, tile)) return false;
 
-		AcceptPiece(prop, variant, transform, envelope);
-		_passagewayPositions.Add(center);
+		AcceptPiece(prop, variant, transform, envelope, tile);
+		_passageways.Add((center, tile));
 		return true;
 	}
 
@@ -277,49 +286,86 @@ public sealed class CorridorBlueprint
 
 	private WallRun FindWallRun(Vector2I tile, Vector2I outward)
 	{
-		var runs = WallRuns;
-		for (int r = 0; r < runs.Count; r++)
+		if (_wallRunIndex == null)
 		{
-			var run = runs[r];
-			if (run.Outward != outward) continue;
-			for (int index = 0; index < run.Length; index++)
+			var index = new Dictionary<(Vector2I Tile, Vector2I Outward), WallRun>();
+			foreach (var run in WallRuns)
 			{
-				if (run.TileAt(index) == tile) return run;
+				for (int i = 0; i < run.Length; i++)
+				{
+					index[(run.TileAt(i), run.Outward)] = run;
+				}
 			}
+			_wallRunIndex = index;
 		}
-		return default;
+		return _wallRunIndex.GetValueOrDefault((tile, outward));
 	}
 
-	private bool CanAcceptPiece(Prop prop, Aabb envelope)
+	private bool CanAcceptPiece(Prop prop, Aabb envelope, Vector2I tile)
 	{
 		var area = RoomBlueprint.XZ(envelope);
-		for (int i = 0; i < _pieces.Count; i++)
+		float queryRadius = Mathf.Max(prop.Gap, _maxPieceGap) - Tolerance;
+		var expanded = queryRadius > 0f ? area.Grow(queryRadius) : area;
+		int minX = Mathf.FloorToInt(expanded.Position.X / Room.TileSize + 0.5f);
+		int maxX = Mathf.FloorToInt(expanded.End.X / Room.TileSize + 0.5f);
+		int minZ = Mathf.FloorToInt(expanded.Position.Y / Room.TileSize + 0.5f);
+		int maxZ = Mathf.FloorToInt(expanded.End.Y / Room.TileSize + 0.5f);
+
+		_seenPieceIndices.Clear();
+		for (int tx = minX; tx <= maxX; tx++)
 		{
-			var other = _pieces[i];
-			float gap = Mathf.Max(prop.Gap, other.Prop.Gap);
-			bool vertical = envelope.Position.Y < other.Envelope.End.Y - .01f && envelope.End.Y > other.Envelope.Position.Y + .01f;
-			if (vertical && RoomBlueprint.XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area))
+			for (int tz = minZ; tz <= maxZ; tz++)
 			{
-				return false;
+				if (!_piecesByTile.TryGetValue(new Vector2I(tx, tz), out var bucket)) continue;
+				foreach (var (pieceIndex, otherTile) in bucket)
+				{
+					if (!_seenPieceIndices.Add(pieceIndex)) continue;
+					var other = _pieces[pieceIndex];
+					float gap = Mathf.Max(prop.Gap, other.Prop.Gap);
+					bool vertical = envelope.Position.Y < other.Envelope.End.Y - .01f && envelope.End.Y > other.Envelope.Position.Y + .01f;
+					if (vertical && RoomBlueprint.XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area) && Map.HasTileSight(tile, otherTile))
+					{
+						return false;
+					}
+				}
 			}
 		}
 		return true;
 	}
 
-	private void AcceptPiece(Prop prop, int variant, Transform3D transform, Aabb envelope)
+	private void AcceptPiece(Prop prop, int variant, Transform3D transform, Aabb envelope, Vector2I tile)
 	{
+		int index = _pieces.Count;
 		_pieces.Add(new(prop, variant, transform, envelope));
+		if (prop.Gap > _maxPieceGap) _maxPieceGap = prop.Gap;
+
+		var area = RoomBlueprint.XZ(envelope);
+		int minX = Mathf.FloorToInt(area.Position.X / Room.TileSize + 0.5f);
+		int maxX = Mathf.FloorToInt(area.End.X / Room.TileSize + 0.5f);
+		int minZ = Mathf.FloorToInt(area.Position.Y / Room.TileSize + 0.5f);
+		int maxZ = Mathf.FloorToInt(area.End.Y / Room.TileSize + 0.5f);
+		for (int tx = minX; tx <= maxX; tx++)
+		{
+			for (int tz = minZ; tz <= maxZ; tz++)
+			{
+				var key = new Vector2I(tx, tz);
+				if (!_piecesByTile.TryGetValue(key, out var bucket)) _piecesByTile[key] = bucket = [];
+				bucket.Add((index, tile));
+			}
+		}
+
 		_uses[prop] = _uses.GetValueOrDefault(prop) + 1;
 		_uses[(prop, variant)] = _uses.GetValueOrDefault((prop, variant)) + 1;
 		if (IsLightProp(prop))
 		{
-			_lightPositions.Add(transform.Origin);
+			_lights.Add((transform.Origin, tile));
 		}
 	}
 
 	private void MeasureWalls()
 	{
 		if (WallGridMap?.MeshLibrary == null) return;
+		var itemCache = new Dictionary<int, (Aabb Bounds, string Name)>();
 		int half = Room.TileSize / 2;
 		foreach (var tile in CorridorTiles)
 		{
@@ -327,15 +373,13 @@ public sealed class CorridorBlueprint
 			var worldCenter = Map.TileToWorld(tile);
 			foreach (var outward in Cardinals)
 			{
-				var neighbor = tile + outward;
-				if (Map.IsWithinBounds(neighbor.X, neighbor.Y) && !Map.IsWallOrEmpty(neighbor.X, neighbor.Y)) continue;
+				if (!Map.HasWallToward(tile.X, tile.Y, outward)) continue;
 
 				var localEdge = localCenter + new Vector3(outward.X * half, 0, outward.Y * half);
-				if (HasNearbyDoor(localEdge, 2.2f)) continue;
-
-				var edge = WallFootprints.MeasureEdge(WallGridMap, worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half), -outward, Room.TileSize);
+				var edge = WallFootprints.MeasureEdge(WallGridMap, worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half), -outward, Room.TileSize, itemCache);
 				if (!edge.Covered) continue;
-				_walls[(tile, outward)] = (edge.Depth, Walls?.IsPlain(edge.Item) == true);
+				bool nearDoor = HasNearbyDoor(tile, localEdge, 2.2f);
+				_walls[(tile, outward)] = (edge.Depth, !nearDoor && Walls?.IsPlain(edge.Item) == true);
 			}
 		}
 	}
@@ -363,26 +407,27 @@ public sealed class CorridorBlueprint
 
 	private IEnumerable<CorridorJunction> ComputeJunctions()
 	{
+		var open = new Vector2I[4];
 		foreach (var tile in CorridorTiles)
 		{
-			var openList = new List<Vector2I>(4);
+			int count = 0;
 			for (int i = 0; i < Cardinals.Length; i++)
 			{
 				var dir = Cardinals[i];
-				if (!_blockedEdges.Contains((tile, dir)) && !HasWall(tile, dir)
-					&& Map.IsWithinBounds(tile.X + dir.X, tile.Y + dir.Y)
+				if (!_blockedEdges.Contains((tile, dir))
+					&& !Map.HasWallToward(tile.X, tile.Y, dir)
 					&& Map.IsWalkable(tile.X + dir.X, tile.Y + dir.Y))
 				{
-					openList.Add(dir);
+					open[count++] = dir;
 				}
 			}
-			if (openList.Count == 3)
+			if (count == 3)
 			{
-				yield return new(tile, openList.ToArray(), IsTJunction: true);
+				yield return new(tile, [open[0], open[1], open[2]], IsTJunction: true);
 			}
-			else if (openList.Count == 2 && openList[0] + openList[1] != Vector2I.Zero)
+			else if (count == 2 && open[0] + open[1] != Vector2I.Zero)
 			{
-				yield return new(tile, openList.ToArray(), IsTJunction: false);
+				yield return new(tile, [open[0], open[1]], IsTJunction: false);
 			}
 		}
 	}
@@ -397,10 +442,14 @@ public sealed class CorridorBlueprint
 				.ToHashSet();
 			foreach (var first in candidates.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray())
 			{
-				if (!candidates.Contains(first) || candidates.Contains(first - along)) continue;
-				int length = 0;
-				while (candidates.Remove(first + along * length))
+				if (!candidates.Contains(first)) continue;
+				if (candidates.Contains(first - along) && !Map.HasWallToward(first.X - along.X, first.Y - along.Y, along)) continue;
+				candidates.Remove(first);
+				var cur = first;
+				int length = 1;
+				while (!Map.HasWallToward(cur.X, cur.Y, along) && candidates.Remove(cur + along))
 				{
+					cur += along;
 					length++;
 				}
 				yield return new(first, along, length);

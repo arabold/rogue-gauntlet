@@ -21,12 +21,54 @@ public static class WallFootprints
 	/// <summary>Bounds in the GridMap item's local coordinates, including the library's mesh transform.</summary>
 	public static Aabb MeshBounds(MeshLibrary library, int item) => library.GetItemMeshTransform(item) * library.GetItemMesh(item).GetAabb();
 
+	/// <summary>Cached item mesh bounds and name within one validation or build pass.</summary>
+	internal static (Aabb Bounds, string Name) GetItemInfo(MeshLibrary library, int item, Dictionary<int, (Aabb Bounds, string Name)> cache)
+	{
+		if (!cache.TryGetValue(item, out var info))
+			cache[item] = info = (MeshBounds(library, item), library.GetItemName(item));
+		return info;
+	}
+
+	internal static void AddToBuckets<T>(Dictionary<Vector2I, List<T>> buckets, Aabb bounds, T entry)
+	{
+		int minX = Mathf.FloorToInt((bounds.Position.X - FitTolerance) / Room.TileSize);
+		int maxX = Mathf.FloorToInt((bounds.End.X + FitTolerance) / Room.TileSize);
+		int minZ = Mathf.FloorToInt((bounds.Position.Z - FitTolerance) / Room.TileSize);
+		int maxZ = Mathf.FloorToInt((bounds.End.Z + FitTolerance) / Room.TileSize);
+		for (int bx = minX; bx <= maxX; bx++)
+		for (int bz = minZ; bz <= maxZ; bz++)
+		{
+			var key = new Vector2I(bx, bz);
+			if (!buckets.TryGetValue(key, out var list)) buckets[key] = list = [];
+			list.Add(entry);
+		}
+	}
+
+	internal static IEnumerable<T> QueryBuckets<T>(Dictionary<Vector2I, List<T>> buckets, Aabb bounds, HashSet<T> seen)
+	{
+		seen.Clear();
+		int minX = Mathf.FloorToInt((bounds.Position.X - FitTolerance) / Room.TileSize);
+		int maxX = Mathf.FloorToInt((bounds.End.X + FitTolerance) / Room.TileSize);
+		int minZ = Mathf.FloorToInt((bounds.Position.Z - FitTolerance) / Room.TileSize);
+		int maxZ = Mathf.FloorToInt((bounds.End.Z + FitTolerance) / Room.TileSize);
+		for (int bx = minX; bx <= maxX; bx++)
+		for (int bz = minZ; bz <= maxZ; bz++)
+		{
+			if (!buckets.TryGetValue(new Vector2I(bx, bz), out var list)) continue;
+			foreach (var item in list)
+				if (seen.Add(item)) yield return item;
+		}
+	}
+
 	/// <summary>GridMap orientation that turns local +Z toward <paramref name="inward"/>.</summary>
 	public static int FacingInto(Vector2I inward) =>
 		inward == Vector2I.Down ? GridTurns.Turn0
 		: inward == Vector2I.Up ? GridTurns.Turn180
 		: inward == Vector2I.Right ? GridTurns.Turn90
 		: GridTurns.Turn270;
+
+	/// <summary>One or two stack-allocated XZ boxes for a wall piece without heap allocation on hot paths.</summary>
+	internal readonly record struct FootprintPair(Aabb First, Aabb Second, bool HasSecond);
 
 	/// <summary>One tile edge as its wall pieces cover it. <see cref="Item"/> is the edge's own piece at
 	/// <see cref="Cell"/> (a straight, or a half beside a corner), -1 where corner arms alone cover it.</summary>
@@ -37,7 +79,15 @@ public static class WallFootprints
 	/// it, how far they reach from the wall line toward <paramref name="inward"/> (a corner by its arm, not its whole L),
 	/// and the edge's own piece. Walls crossing the edge's ends share only their thickness with it and do not count.
 	/// </summary>
-	public static WallEdge MeasureEdge(GridMap wallGridMap, Vector3I edgeCell, Vector2I inward, int tileSize)
+	public static WallEdge MeasureEdge(GridMap wallGridMap, Vector3I edgeCell, Vector2I inward, int tileSize) =>
+		MeasureEdge(wallGridMap, edgeCell, inward, tileSize, null);
+
+	internal static WallEdge MeasureEdge(
+		GridMap wallGridMap,
+		Vector3I edgeCell,
+		Vector2I inward,
+		int tileSize,
+		Dictionary<int, (Aabb Bounds, string Name)> itemCache)
 	{
 		bool horizontal = inward.X == 0;
 		var (line, min, max) = EdgeSpan(edgeCell, horizontal, tileSize);
@@ -45,23 +95,45 @@ public static class WallFootprints
 		var covering = new List<Aabb>();
 		float depth = 0;
 		var own = (Item: -1, Cell: Vector3I.Zero);
+		var library = wallGridMap.MeshLibrary;
 		// Pieces on the edge sit on its line within a tile of its center; the center goes first.
 		for (int index = 0; index <= 2 * tileSize; index++)
 		{
 			var cell = edgeCell + step * ((index + 1) / 2 * (index % 2 == 0 ? -1 : 1));
 			int item = wallGridMap.GetCellItem(cell);
-			Mesh mesh = item >= 0 ? wallGridMap.MeshLibrary.GetItemMesh(item) : null;
-			if (mesh == null)
+			if (item < 0) continue;
+			Aabb meshBounds;
+			string name;
+			if (itemCache != null)
 			{
-				continue;
+				if (!itemCache.TryGetValue(item, out var info))
+				{
+					Mesh mesh = library.GetItemMesh(item);
+					itemCache[item] = info = mesh != null
+						? (library.GetItemMeshTransform(item) * mesh.GetAabb(), library.GetItemName(item))
+						: (default, null);
+				}
+				if (info.Name == null) continue;
+				(meshBounds, name) = info;
+			}
+			else
+			{
+				Mesh mesh = library.GetItemMesh(item);
+				if (mesh == null) continue;
+				meshBounds = library.GetItemMeshTransform(item) * mesh.GetAabb();
+				name = library.GetItemName(item);
 			}
 
-			foreach (var box in PieceFootprints(MeshBounds(wallGridMap.MeshLibrary, item), wallGridMap.GetCellItemOrientation(cell), cell, wallGridMap.MeshLibrary.GetItemName(item)))
+			var pair = PieceFootprintPair(meshBounds, wallGridMap.GetCellItemOrientation(cell), cell, name);
+			CheckBox(pair.First);
+			if (pair.HasSecond) CheckBox(pair.Second);
+
+			void CheckBox(Aabb box)
 			{
 				var (a, b) = Along(box, horizontal);
 				if (Mathf.Min(b, max) - Mathf.Max(a, min) <= tileSize / 4f)
 				{
-					continue;
+					return;
 				}
 
 				covering.Add(box);
@@ -92,13 +164,12 @@ public static class WallFootprints
 	/// tile deep along both axes) its two arms, each as thick as its wall, so the inside of the L stays open.
 	/// Junction assets must conform to these structural regions; their meshes are responsible for clean internal geometry.
 	/// </summary>
-	public static IEnumerable<Aabb> PieceFootprints(Aabb local, int orientation, Vector3I cell, string itemName)
+	internal static FootprintPair PieceFootprintPair(Aabb local, int orientation, Vector3I cell, string itemName)
 	{
 		var footprint = FootprintWorld(local, orientation, cell);
 		if (footprint.Size.X < Room.TileSize / 2f || footprint.Size.Z < Room.TileSize / 2f)
 		{
-			yield return footprint;
-			yield break;
+			return new FootprintPair(footprint, default, false);
 		}
 
 		float halfDepthZ = Mathf.Min(cell.Z - footprint.Position.Z, footprint.End.Z - cell.Z);
@@ -110,52 +181,78 @@ public static class WallFootprints
 			halfDepthX = thickness;
 			halfDepthZ = thickness;
 		}
-		yield return new Aabb(new Vector3(footprint.Position.X, footprint.Position.Y, cell.Z - halfDepthZ), new Vector3(footprint.Size.X, footprint.Size.Y, 2 * halfDepthZ));
-		yield return new Aabb(new Vector3(cell.X - halfDepthX, footprint.Position.Y, footprint.Position.Z), new Vector3(2 * halfDepthX, footprint.Size.Y, footprint.Size.Z));
+		var h = new Aabb(new Vector3(footprint.Position.X, footprint.Position.Y, cell.Z - halfDepthZ), new Vector3(footprint.Size.X, footprint.Size.Y, 2 * halfDepthZ));
+		var v = new Aabb(new Vector3(cell.X - halfDepthX, footprint.Position.Y, footprint.Position.Z), new Vector3(2 * halfDepthX, footprint.Size.Y, footprint.Size.Z));
+		return new FootprintPair(h, v, true);
+	}
+
+	public static IEnumerable<Aabb> PieceFootprints(Aabb local, int orientation, Vector3I cell, string itemName)
+	{
+		var pair = PieceFootprintPair(local, orientation, cell, itemName);
+		yield return pair.First;
+		if (pair.HasSecond) yield return pair.Second;
 	}
 
 	/// <summary>Whether two pieces penetrate in XZ. Regions of one compound piece may overlap each other;
 	/// only intersections between different pieces are relevant. Export rounding within FitTolerance is accepted.</summary>
 	public static bool PiecesOverlap(MeshLibrary library, int firstItem, int firstOrientation, Vector3I firstCell,
-		int secondItem, int secondOrientation, Vector3I secondCell)
+		int secondItem, int secondOrientation, Vector3I secondCell) =>
+		PiecesOverlap(MeshBounds(library, firstItem), library.GetItemName(firstItem), firstOrientation, firstCell,
+			MeshBounds(library, secondItem), library.GetItemName(secondItem), secondOrientation, secondCell);
+
+	internal static bool PiecesOverlap(Aabb firstMesh, string firstName, int firstOrientation, Vector3I firstCell,
+		Aabb secondMesh, string secondName, int secondOrientation, Vector3I secondCell)
 	{
-		var firstMesh = MeshBounds(library, firstItem);
-		var secondMesh = MeshBounds(library, secondItem);
 		if (!Overlaps(FootprintWorld(firstMesh, firstOrientation, firstCell), FootprintWorld(secondMesh, secondOrientation, secondCell)))
 			return false;
-		var first = PieceFootprints(firstMesh, firstOrientation, firstCell, library.GetItemName(firstItem));
-		var second = PieceFootprints(secondMesh, secondOrientation, secondCell, library.GetItemName(secondItem));
-		foreach (var a in first)
-			foreach (var b in second)
-				if (Overlaps(a, b)) return true;
+		return FootprintPairsOverlap(
+			PieceFootprintPair(firstMesh, firstOrientation, firstCell, firstName),
+			PieceFootprintPair(secondMesh, secondOrientation, secondCell, secondName));
+	}
+
+	private static bool FootprintPairsOverlap(in FootprintPair a, in FootprintPair b)
+	{
+		if (Overlaps(a.First, b.First)) return true;
+		if (b.HasSecond && Overlaps(a.First, b.Second)) return true;
+		if (a.HasSecond)
+		{
+			if (Overlaps(a.Second, b.First)) return true;
+			if (b.HasSecond && Overlaps(a.Second, b.Second)) return true;
+		}
 		return false;
 	}
 
-	private static bool Overlaps(Aabb a, Aabb b) =>
+	internal static bool Overlaps(Aabb a, Aabb b) =>
 		Mathf.Min(a.End.X, b.End.X) - Mathf.Max(a.Position.X, b.Position.X) > FitTolerance
 		&& Mathf.Min(a.End.Z, b.End.Z) - Mathf.Max(a.Position.Z, b.Position.Z) > FitTolerance;
 
 	/// <summary>Checks distinct pieces of a candidate grid before the room is accepted.</summary>
 	public static string FindOverlap(GridMap grid)
 	{
-		var pieces = new List<(Vector3I Cell, int Item, Aabb Bounds, List<Aabb> Regions)>();
+		var pieces = new List<(Vector3I Cell, int Item, Aabb Bounds, FootprintPair Regions)>();
+		var buckets = new Dictionary<Vector2I, List<int>>();
+		var itemCache = new Dictionary<int, (Aabb Bounds, string Name)>();
+		var seen = new HashSet<int>();
 		var library = grid.MeshLibrary;
 		foreach (Vector3I cell in grid.GetUsedCells())
 		{
 			int item = grid.GetCellItem(cell), orientation = grid.GetCellItemOrientation(cell);
-			var local = MeshBounds(library, item);
-			pieces.Add((cell, item, FootprintWorld(local, orientation, cell),
-				new List<Aabb>(PieceFootprints(local, orientation, cell, library.GetItemName(item)))));
+			var (local, name) = GetItemInfo(library, item, itemCache);
+			var bounds = FootprintWorld(local, orientation, cell);
+			int index = pieces.Count;
+			pieces.Add((cell, item, bounds, PieceFootprintPair(local, orientation, cell, name)));
+			AddToBuckets(buckets, bounds, index);
 		}
 		for (int i = 0; i < pieces.Count; i++)
-		for (int j = i + 1; j < pieces.Count; j++)
 		{
-			var a = pieces[i]; var b = pieces[j];
-			if (!Overlaps(a.Bounds, b.Bounds)) continue;
-			foreach (var first in a.Regions)
-			foreach (var second in b.Regions)
-				if (Overlaps(first, second))
-					return $"{library.GetItemName(a.Item)} at {a.Cell} overlaps {library.GetItemName(b.Item)} at {b.Cell}";
+			var a = pieces[i];
+			foreach (int j in QueryBuckets(buckets, a.Bounds, seen))
+			{
+				if (j <= i) continue;
+				var b = pieces[j];
+				if (Overlaps(a.Bounds, b.Bounds) && FootprintPairsOverlap(a.Regions, b.Regions))
+					return $"{itemCache[a.Item].Name} at {a.Cell} overlaps {itemCache[b.Item].Name} at {b.Cell}";
+			}
 		}
 		return "";
 	}
@@ -168,11 +265,11 @@ public static class WallFootprints
 	}
 
 	/// <summary>A box's extent along a horizontal (X) or vertical (Z) wall line.</summary>
-	private static (float Min, float Max) Along(Aabb box, bool horizontal) =>
+	internal static (float Min, float Max) Along(Aabb box, bool horizontal) =>
 		horizontal ? (box.Position.X, box.End.X) : (box.Position.Z, box.End.Z);
 
 	/// <summary>A box's extent across a wall line.</summary>
-	private static (float Min, float Max) Across(Aabb box, bool horizontal) => Along(box, !horizontal);
+	internal static (float Min, float Max) Across(Aabb box, bool horizontal) => Along(box, !horizontal);
 
 	/// <summary>
 	/// World XZ footprint of a wall cell. Wall pieces use only the upright Y-rotation
@@ -209,6 +306,7 @@ public static class WallFootprints
 			return boxes;
 		}
 
+		var cache = new Dictionary<int, (bool Valid, Aabb Bounds, string Name)>();
 		foreach (Vector3I cell in wallGridMap.GetUsedCells())
 		{
 			int tileIndex = wallGridMap.GetCellItem(cell);
@@ -217,13 +315,20 @@ public static class WallFootprints
 				continue;
 			}
 
-			Mesh mesh = library.GetItemMesh(tileIndex);
-			if (mesh == null || (solidOnly && library.GetItemShapes(tileIndex).Count == 0))
+			if (!cache.TryGetValue(tileIndex, out var info))
 			{
-				continue;
+				Mesh mesh = library.GetItemMesh(tileIndex);
+				bool valid = mesh != null && (!solidOnly || library.GetItemShapes(tileIndex).Count > 0);
+				info = valid
+					? (true, library.GetItemMeshTransform(tileIndex) * mesh.GetAabb(), library.GetItemName(tileIndex))
+					: default;
+				cache[tileIndex] = info;
 			}
+			if (!info.Valid) continue;
 
-			boxes.AddRange(PieceFootprints(MeshBounds(library, tileIndex), wallGridMap.GetCellItemOrientation(cell), cell, library.GetItemName(tileIndex)));
+			var pair = PieceFootprintPair(info.Bounds, wallGridMap.GetCellItemOrientation(cell), cell, info.Name);
+			boxes.Add(pair.First);
+			if (pair.HasSecond) boxes.Add(pair.Second);
 		}
 
 		return boxes;

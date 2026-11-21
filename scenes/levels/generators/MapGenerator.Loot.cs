@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -43,44 +44,38 @@ public partial class MapGenerator
 	/// </summary>
 	private void PlaceLoot(List<Vector3> placedLootPoints)
 	{
-		PlaceFountains(placedLootPoints);
-		PlaceChests(placedLootPoints);
+		var doorClearances = DoorClearances();
+		PlaceFountains(placedLootPoints, doorClearances);
+		PlaceChests(placedLootPoints, doorClearances);
 		PlaceTraps(placedLootPoints);
 		PlaceLooseItems(placedLootPoints);
 	}
 
+	/// <summary>Every interior door's swing area in generator space: solid props keep clear of them.</summary>
+	private IReadOnlyList<Aabb> DoorClearances() =>
+		InteriorDoorComponent.CollectClearances(FloorContent, GlobalTransform.AffineInverse() * FloorContent.GlobalTransform);
+
 	/// <summary>A solid prop (chest, fountain) must sit on reachable space, keep door swings clear and create no
 	/// inaccessible pocket. On success its collision joins the floor's walkability.</summary>
-	private bool PreservesRoomPassage(Node3D prop, Vector3 point, float rotation)
+	private bool PreservesRoomPassage(Node3D prop, Vector3 point, float rotation, IReadOnlyList<Aabb> doorClearances)
 	{
 		if (!Floor.IsReachable(point)) return false;
 		var proposed = GlobalTransform.AffineInverse() * new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(rotation)),
 			point + Vector3.Up * GetFloorSurfaceHeight(point));
 		var solids = CollisionOutlines.FromStaticBodies(prop, proposed).ToList();
-		var doorClearances = InteriorDoorComponent.CollectClearances(FloorContent,
-			GlobalTransform.AffineInverse() * FloorContent.GlobalTransform);
 		return !solids.Any(solid => doorClearances.Any(clearance => clearance.Intersects(solid.Bounds))) && TryBlockReachably(solids);
 	}
 
 	/// <summary>
-	/// Places a solid prop (chest, fountain) at a candidate point when it keeps its room's free space connected. A solid
-	/// prop is parented under <see cref="FloorContent"/>, like rooms, so it becomes a navigation solid. Do NOT route it
-	/// through SpawnPoint: that parents under Level instead (missing the navigation grid) and unconditionally applies an
-	/// extra 180-degree yaw, which
-	/// would silently point the prop the wrong way.
+	/// Attempts to place an already-instantiated solid prop <paramref name="prop"/> at <paramref name="point"/> when it
+	/// preserves floor passage. Caller keeps ownership of <paramref name="prop"/> on false so probe loops can reuse it.
 	/// </summary>
-	private bool TryPlaceSolidProp(PackedScene scene, Vector3 point, float rotation, string persistentId)
+	private bool TryPlaceSolidProp(Node3D prop, Vector3 point, float rotation, string persistentId, IReadOnlyList<Aabb> doorClearances)
 	{
-		var prop = scene.Instantiate<Node3D>();
-		if (TryPlaceSolidProp(prop, point, rotation, persistentId)) return true;
-		prop.Free();
-		return false;
-	}
-
-	/// <summary><see cref="TryPlaceSolidProp(PackedScene, Vector3, float, string)"/> for a prop already instantiated; the caller frees it on false.</summary>
-	private bool TryPlaceSolidProp(Node3D prop, Vector3 point, float rotation, string persistentId)
-	{
-		if (!PreservesRoomPassage(prop, point, rotation)) return false;
+		if (!PreservesRoomPassage(prop, point, rotation, doorClearances))
+		{
+			return false;
+		}
 
 		prop.SetMeta("persistent_id", persistentId);
 		FloorContent.AddChild(prop);
@@ -91,7 +86,7 @@ public partial class MapGenerator
 		return true;
 	}
 
-	private void PlaceChests(List<Vector3> placedLootPoints)
+	private void PlaceChests(List<Vector3> placedLootPoints, IReadOnlyList<Aabb> doorClearances)
 	{
 		if (ChestScene == null || MaxChests <= 0)
 		{
@@ -101,30 +96,52 @@ public partial class MapGenerator
 		var candidates = GetChestCandidates();
 		if (candidates.Count == 0)
 		{
-			GD.PrintErr("Cannot place chests: no valid wall-adjacent room tiles found.");
+			GD.PrintErr("Cannot place chests: no valid wall-adjacent room or corridor tiles found.");
 			return;
 		}
 
+		float deadEndWeight = CurrentProfile?.DeadEndLootWeight ?? 1f;
 		int count = _random.Items.RandiRange(MinChests, MaxChests);
-		var remaining = new List<(Vector3 Point, float RotationDegrees)>(candidates);
-		int placed = 0;
-		while (placed < count && remaining.Count > 0)
+		var remaining = new List<(Vector3 Point, float RotationDegrees, float Weight)>(candidates.Count);
+		foreach (var (tile, point, rot) in candidates)
 		{
-			int index = _random.Items.RandiRange(0, remaining.Count - 1);
-			var candidate = remaining[index];
-			remaining.RemoveAt(index);
-			if (IsBlockedLootPoint(candidate.Point, placedLootPoints, LootSpawnSpacing))
-			{
-				continue;
-			}
+			float weight = Map.OpenNeighborCount(tile.X, tile.Y) == 1 ? deadEndWeight : 1f;
+			remaining.Add((point, rot, weight));
+		}
 
-			if (!TryPlaceSolidProp(ChestScene, candidate.Point, candidate.RotationDegrees, $"depth:{DungeonDepth}:chest:{placed}"))
+		int placed = 0;
+		Node3D probe = null;
+		try
+		{
+			while (placed < count && remaining.Count > 0)
 			{
-				continue;
-			}
+				int index = PickWeightedCandidateIndex(remaining, r => r.Weight, _random.Items);
+				var candidate = remaining[index];
+				remaining.RemoveAt(index);
+				if (IsBlockedLootPoint(candidate.Point, placedLootPoints, LootSpawnSpacing))
+				{
+					continue;
+				}
+				Vector3 frontPoint = candidate.Point + new Basis(Vector3.Up, Mathf.DegToRad(candidate.RotationDegrees)).Z * 1.5f;
+				if (!Floor.IsReachable(frontPoint) || Floor.IsColumnObstructed(frontPoint))
+				{
+					continue;
+				}
 
-			placedLootPoints.Add(candidate.Point);
-			placed++;
+				probe ??= ChestScene.Instantiate<Node3D>();
+				if (!TryPlaceSolidProp(probe, candidate.Point, candidate.RotationDegrees, $"depth:{DungeonDepth}:chest:{placed}", doorClearances))
+				{
+					continue;
+				}
+
+				probe = null;
+				placedLootPoints.Add(candidate.Point);
+				placed++;
+			}
+		}
+		finally
+		{
+			if (GodotObject.IsInstanceValid(probe)) probe.Free();
 		}
 
 		if (placed < MinChests)
@@ -135,7 +152,10 @@ public partial class MapGenerator
 
 	private void PlaceTraps(List<Vector3> placedLootPoints)
 	{
-		if (TrapScene == null || MaxTraps <= 0)
+		float scale = CurrentProfile?.TrapDensityScale ?? 1f;
+		int minTraps = Mathf.RoundToInt(MinTraps * scale);
+		int maxTraps = Math.Max(minTraps, Mathf.RoundToInt(MaxTraps * scale));
+		if (TrapScene == null || maxTraps <= 0)
 		{
 			return;
 		}
@@ -147,7 +167,7 @@ public partial class MapGenerator
 			return;
 		}
 
-		int count = _random.Items.RandiRange(MinTraps, MaxTraps);
+		int count = _random.Items.RandiRange(minTraps, maxTraps);
 		var remaining = new List<Vector3>(candidates);
 		int placed = 0;
 		while (placed < count && remaining.Count > 0)
@@ -179,9 +199,9 @@ public partial class MapGenerator
 			placed++;
 		}
 
-		if (placed < MinTraps)
+		if (placed < minTraps)
 		{
-			GD.PrintErr($"Placed only {placed}/{MinTraps} minimum traps: ran out of valid spots.");
+			GD.PrintErr($"Placed only {placed}/{minTraps} minimum traps: ran out of valid spots.");
 		}
 	}
 
@@ -192,21 +212,29 @@ public partial class MapGenerator
 			return;
 		}
 
-		var candidates = GetLooseItemCandidates();
+		var candidates = Floor.OpenTileCandidates();
 		if (candidates.Count == 0)
 		{
-			GD.PrintErr("Cannot place loose items: no valid room tiles found.");
+			GD.PrintErr("Cannot place loose items: no valid floor tiles found.");
 			return;
 		}
 
+		float deadEndWeight = CurrentProfile?.DeadEndLootWeight ?? 1f;
 		uint depth = DungeonDepth;
 		int count = _random.Items.RandiRange(MinLooseItems, MaxLooseItems);
-		var remaining = new List<Vector3>(candidates);
+		var remaining = new List<(Vector3 Point, float Weight)>(candidates.Count);
+		foreach (var point in candidates)
+		{
+			var tile = Map.WorldToTile(point);
+			float weight = Map.OpenNeighborCount(tile.X, tile.Y) == 1 ? deadEndWeight : 1f;
+			remaining.Add((point, weight));
+		}
+
 		int placed = 0;
 		while (placed < count && remaining.Count > 0)
 		{
-			int index = _random.Items.RandiRange(0, remaining.Count - 1);
-			var point = remaining[index];
+			int index = PickWeightedCandidateIndex(remaining, r => r.Weight, _random.Items);
+			var point = remaining[index].Point;
 			remaining.RemoveAt(index);
 			if (IsBlockedLootPoint(point, placedLootPoints, LootSpawnSpacing))
 			{
@@ -236,44 +264,69 @@ public partial class MapGenerator
 		}
 	}
 
-	/// <summary>
-	/// Every unoccupied room tile a solid prop may stand on, away from connector tiles for margin from doorway
-	/// traffic, with the cardinal directions in which a wall backs it.
-	/// </summary>
-	private List<(Vector3 Point, List<Vector2I> Walls)> GetSolidPropTiles()
+	private static int PickWeightedCandidateIndex<T>(IReadOnlyList<T> items, Func<T, float> getWeight, RandomNumberGenerator rng)
 	{
-		var tiles = new List<(Vector3, List<Vector2I>)>();
+		float total = 0f;
+		bool anyNonUnit = false;
+		for (int i = 0; i < items.Count; i++)
+		{
+			float w = getWeight(items[i]);
+			if (!Mathf.IsEqualApprox(w, 1f)) anyNonUnit = true;
+			if (w > 0f) total += w;
+		}
+		if (!anyNonUnit || total <= 0f) return rng.RandiRange(0, items.Count - 1);
+
+		float roll = rng.Randf() * total;
+		float cumulative = 0f;
+		int lastPositive = items.Count - 1;
+		for (int i = 0; i < items.Count; i++)
+		{
+			float w = getWeight(items[i]);
+			if (w <= 0f) continue;
+			lastPositive = i;
+			cumulative += w;
+			if (roll < cumulative) return i;
+		}
+		return lastPositive;
+	}
+
+	/// <summary>
+	/// Every unoccupied tile a solid prop may stand on (rooms, and optionally corridors), away from connector tiles
+	/// for margin from doorway traffic, paired with a 4-bit mask (indexed by <see cref="MapData.CardinalOffsets"/>)
+	/// of cardinal directions in which a wall backs it.
+	/// </summary>
+	private List<(Vector2I Tile, Vector3 Point, byte WallMask)> GetSolidPropTiles(bool includeCorridors = false)
+	{
+		Floor.RefreshPropTiles();
+		var tiles = new List<(Vector2I, Vector3, byte)>();
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
 			{
-				if (!Map.IsRoom(x, z) || Floor.IsOccupied(x, z) || IsAdjacentToConnector(x, z))
+				bool eligible = Map.IsRoom(x, z) || (includeCorridors && Map.IsCorridor(x, z));
+				if (!eligible || Floor.IsOccupiedNow(x, z) || IsAdjacentToConnector(x, z))
 				{
 					continue;
 				}
 
-				var walls = new List<Vector2I>();
-				foreach (var offset in MapData.CardinalOffsets)
+				byte wallMask = 0;
+				for (int i = 0; i < MapData.CardinalOffsets.Count; i++)
 				{
+					var offset = MapData.CardinalOffsets[i];
 					int nx = x + offset.X, nz = z + offset.Y;
-					// Wall placement has already sealed every void-facing and unsanctioned
-					// interior edge by this point in GenerateMap, so a non-walkable
-					// neighbor -- including the map border -- is solid wall geometry to back
-					// a prop against. Chasm is the one exception: it's deliberately left
-					// unwalled (pits are open), so a chasm-adjacent tile has nothing behind
-					// it and must not count as a wall direction.
+					// Chasms are deliberately left unwalled, so a chasm-adjacent tile has nothing solid behind it.
 					if (Map.IsWithinBounds(nx, nz) && Map.IsChasm(nx, nz))
 					{
 						continue;
 					}
 
-					if (!Map.IsWithinBounds(nx, nz) || !Map.IsWalkable(nx, nz))
+					if (Map.HasWallToward(x, z, offset))
 					{
-						walls.Add(offset);
+						wallMask |= (byte)(1 << i);
 					}
 				}
 
-				tiles.Add((Map.TileToWorld(x, z), walls));
+				tiles.Add((new Vector2I(x, z), Map.TileToWorld(x, z), wallMask));
 			}
 		}
 
@@ -281,50 +334,68 @@ public partial class MapGenerator
 	}
 
 	/// <summary>
-	/// Every wall-backed solid prop tile, paired with the Y-rotation that faces a chest away
-	/// from that wall into the room. A tile with exactly one wall-adjacent side (a flat wall
-	/// run) is preferred over a corner (two sides) for the cleanest single-direction facing;
-	/// corners are only used as a fallback when no flat spot exists anywhere on the map.
+	/// Every wall-backed solid prop tile (including corridor dead ends and corners/junctions, skipping straight 1-tile
+	/// corridor bottlenecks), paired with the Y-rotation facing away from the backing wall.
 	/// </summary>
-	private List<(Vector3 Point, float RotationDegrees)> GetChestCandidates()
+	private List<(Vector2I Tile, Vector3 Point, float RotationDegrees)> GetChestCandidates()
 	{
-		var flatCandidates = new List<(Vector3, float)>();
-		var cornerCandidates = new List<(Vector3, float)>();
-		foreach (var (point, walls) in GetSolidPropTiles())
+		var primary = new List<(Vector2I, Vector3, float)>();
+		var corners = new List<(Vector2I, Vector3, float)>();
+		foreach (var (tile, point, wallMask) in GetSolidPropTiles(includeCorridors: true))
 		{
-			if (walls.Count == 0)
+			if (wallMask == 0)
 			{
 				continue;
 			}
 
-			// FacingYaw assumes its prop is authored facing North (0deg) -- true for
-			// doors, but chest.tscn's lid/opening faces the opposite way at rotation 0.
-			// Rotating toward the wall direction itself (not away from it) compensates
-			// for that -- equivalent to "away + 180" but without a sum that can exceed
-			// 360 (RotationDegrees.Y doesn't normalize on a direct assignment, so a raw
-			// 450 would stay 450, not wrap to 90).
-			float rotation = MapData.FacingYaw(walls[0]);
-			(walls.Count == 1 ? flatCandidates : cornerCandidates).Add((point, rotation));
-		}
+			int wallCount = System.Numerics.BitOperations.PopCount(wallMask);
+			bool isCorridor = Map.IsCorridor(tile.X, tile.Y);
+			int openNeighbors = Map.OpenNeighborCount(tile.X, tile.Y);
 
-		return flatCandidates.Count > 0 ? flatCandidates : cornerCandidates;
-	}
-
-	private List<Vector3> GetLooseItemCandidates()
-	{
-		var candidates = new List<Vector3>();
-		for (int x = 0; x < Map.Width; x++)
-		{
-			for (int z = 0; z < Map.Height; z++)
+			Vector2I firstWall = default;
+			Vector2I wallDir = default;
+			bool twoOpposite = false;
+			int seenWalls = 0;
+			for (int i = 0; i < MapData.CardinalOffsets.Count; i++)
 			{
-				if (Map.IsRoom(x, z) && !Floor.IsOccupied(x, z))
+				if ((wallMask & (1 << i)) == 0) continue;
+				var dir = MapData.CardinalOffsets[i];
+				if (seenWalls == 0)
 				{
-					candidates.Add(Map.TileToWorld(x, z));
+					firstWall = dir;
+					wallDir = dir;
+				}
+				else if (seenWalls == 1 && dir == -firstWall && wallCount == 2)
+				{
+					twoOpposite = true;
+				}
+				seenWalls++;
+			}
+			if (isCorridor && openNeighbors == 2 && twoOpposite)
+			{
+				// Straight 1-tile corridor chokepoint: keep clear for passage.
+				continue;
+			}
+
+			bool isDeadEnd = openNeighbors == 1;
+			for (int i = 0; i < MapData.CardinalOffsets.Count; i++)
+			{
+				if ((wallMask & (1 << i)) == 0) continue;
+				var w = MapData.CardinalOffsets[i];
+				var front = tile - w;
+				if (!Map.HasWallToward(tile.X, tile.Y, -w) && Map.IsWalkable(front.X, front.Y))
+				{
+					wallDir = w;
+					break;
 				}
 			}
+
+			// Rotating toward the wall direction faces chest.tscn out into the open tile.
+			float rotation = MapData.FacingYaw(wallDir);
+			(wallCount == 1 || (isCorridor && isDeadEnd) ? primary : corners).Add((tile, point, rotation));
 		}
 
-		return candidates;
+		return primary.Count > 0 ? primary : corners;
 	}
 
 	/// <summary>
@@ -396,9 +467,12 @@ public partial class MapGenerator
 			return true;
 		}
 
-		if (Floor.StairLandings.Any(landing => point.HorizontalDistanceTo(landing) < StairLandingClearance))
+		for (int i = 0; i < Floor.StairLandings.Count; i++)
 		{
-			return true;
+			if (point.HorizontalDistanceTo(Floor.StairLandings[i]) < StairLandingClearance)
+			{
+				return true;
+			}
 		}
 
 		// Every loot kind is a prop, and props occupy the tiles around them: none may claim a gatekeeper footprint tile.

@@ -17,13 +17,18 @@ public partial class MapGenerator : Node3D
 	/// <summary>Editor: rebuilds the floor preview on demand instead of after every property change.</summary>
 	[ExportToolButton("Regenerate preview")] public Callable RegeneratePreviewButton => Callable.From(GenerateEditorPreview);
 
-	[Export] public RoomLayoutStrategy RoomLayout { get; set; }
-	[Export] public CorridorConnectorStrategy CorridorConnector { get; set; }
+	/// <summary>The floor recipe for ordinary floors.</summary>
+	[Export] public FloorProfile Profile { get; set; }
+	/// <summary>
+	/// The floor recipe for floors whose encounter plan holds a gatekeeper: a layout that sizes a boss room for the
+	/// gatekeeper's fit and makes it the only way to the descent. Unassigned, gatekeeper floors use <see cref="Profile"/>.
+	/// </summary>
+	[Export] public FloorProfile BossProfile { get; set; }
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
 	/// <summary>The shared room pool; each floor takes the rooms of its realm.</summary>
-	[Export] public AssembledRoomFactory Rooms { get; set; }
+	[Export] public RoomPool Rooms { get; set; }
 	/// <summary>
 	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> picks the floor's rooms from <see cref="Rooms"/>
 	/// and supplies its corridor tiles; the deepest realm carries on below the last band.
@@ -32,7 +37,13 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
 	public Realm CurrentRealm { get; private set; }
-	private AssembledRoomFactory _realmRooms;
+	/// <summary>The floor recipe the current attempt builds with, resolved when the generator resets.</summary>
+	public FloorProfile CurrentProfile { get; private set; }
+	/// <summary>The current attempt's map size in tiles: its profile's <see cref="FloorProfile.MapSize"/>, or the generator's.</summary>
+	public Vector2I FloorSize => CurrentProfile?.MapSize is { X: > 0, Y: > 0 } size ? size : new((int)MapWidth, (int)MapDepth);
+	/// <summary>The current attempt's room budget: its profile's <see cref="FloorProfile.RoomCount"/>, or <see cref="MaxRooms"/>.</summary>
+	private uint RoomBudget => CurrentProfile?.RoomCount > 0 ? (uint)CurrentProfile.RoomCount : MaxRooms;
+	private RoomPool _realmRooms;
 	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
 	private readonly HashSet<Vector3I> _dividerCells = [];
 	private readonly HashSet<(Vector3I Center, bool Horizontal)> _framedEdges = [];
@@ -136,38 +147,54 @@ public partial class MapGenerator : Node3D
 		return GenerationRandom.Create(Seed, GenerationRandom.Loot, sourceId);
 	}
 
-	private void GenerateRooms()
+	private FloorPlan GenerateRooms()
 	{
 		GD.Print("Generating rooms...");
 
-		var roomPlacements = RoomLayout.GenerateRooms(
-			Map, _realmRooms, MaxRooms, _random.Layout);
-		PlaceRooms(roomPlacements);
+		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, RoomBudget, _random.Layout);
+		var plan = CurrentProfile.Layout.GenerateLayout(Map, context);
+		PlaceClusters(plan.Placements);
+		return plan;
 	}
 
-	private void PlaceRooms(List<RoomPlacement> roomPlacements)
+	private void PlaceClusters(List<(RoomCluster Cluster, Vector2I Position)> placements)
 	{
 		GD.Print("Placing rooms...");
-		for (int roomIndex = 0; roomIndex < roomPlacements.Count; roomIndex++)
+		int index = 0;
+		int roomIndex = 0;
+		try
 		{
-			var placement = roomPlacements[roomIndex];
-			var room = placement.Room;
-			var offset = Map.TileToWorld(placement.Position) - room.Origin;
-			MergeRoomGridMaps(room, offset);
-			var nodes = room.FindChildren("*", "", true, false).ToList();
-			// Loot props (the treasury chest) roll their rewards from a stream keyed to their place on the floor, and the
-			// stairs' player spawners take an ID from it too.
-			foreach (var loot in nodes.OfType<LootTableComponent>())
-				loot.SourceId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(loot)}";
-			foreach (var spawn in nodes.OfType<SpawnPoint>().Where(spawn => string.IsNullOrEmpty(spawn.PersistentId)))
-				spawn.PersistentId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(spawn)}";
+			for (; index < placements.Count; index++)
+			{
+				var (cluster, clusterPosition) = placements[index];
+				foreach (var member in cluster.Members)
+				{
+					var room = member.Room;
+					var tilePosition = clusterPosition + member.Offset;
+					var offset = Map.TileToWorld(tilePosition) - room.Origin;
+					MergeRoomGridMaps(room, offset);
+					var nodes = room.FindChildren("*", "", true, false).ToList();
+					// Loot props (the treasury chest) roll their rewards from a stream keyed to their place on the floor, and the
+					// stairs' player spawners take an ID from it too.
+					foreach (var loot in nodes.OfType<LootTableComponent>())
+						loot.SourceId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(loot)}";
+					foreach (var spawn in nodes.OfType<SpawnPoint>().Where(spawn => string.IsNullOrEmpty(spawn.PersistentId)))
+						spawn.PersistentId = $"depth:{DungeonDepth}:room:{roomIndex}:{room.GetPathTo(spawn)}";
 
-			// Moved into place before it enters the tree: Godot defers transform notifications, so a room moved after
-			// AddChild would keep its colliders at the origin for the rest of the frame, under every placement query.
-			// Rooms join the floor content, whose solids the reachability and navigation grids read.
-			room.Translate(offset);
-			FloorContent.AddChild(room);
-			RegisterRoomRegion(placement, nodes.OfType<Door>());
+					// Moved into place before it enters the tree: Godot defers transform notifications, so a room moved after
+					// AddChild would keep its colliders at the origin for the rest of the frame, under every placement query.
+					// Rooms join the floor content, whose solids the reachability and navigation grids read.
+					room.Translate(offset);
+					FloorContent.AddChild(room);
+					RegisterRoomRegion(room, tilePosition, member, index, nodes.OfType<Door>());
+					roomIndex++;
+				}
+				cluster.DetachRooms();
+			}
+		}
+		finally
+		{
+			for (; index < placements.Count; index++) placements[index].Cluster.Free();
 		}
 	}
 
@@ -175,11 +202,17 @@ public partial class MapGenerator : Node3D
 	/// Records which master tiles belong to a placed room so the room can later be
 	/// looked up by tile and revealed by its exact (possibly non-rectangular) shape.
 	/// </summary>
-	private void RegisterRoomRegion(RoomPlacement placement, IEnumerable<Door> doors)
+	private void RegisterRoomRegion(Room room, Vector2I position, ClusterMember member, int clusterId, IEnumerable<Door> doors)
 	{
-		var roomMap = placement.Room.Map;
-		var region = new RoomRegion(Floor.Rooms.Count);
-		placement.Room.RegionId = region.Id;
+		var roomMap = room.Map;
+		var region = new RoomRegion(Floor.Rooms.Count)
+		{
+			SlotId = member.SlotId,
+			MustTraverse = member.MustTraverse,
+			ReserveAccess = member.ReserveAccess,
+			ClusterId = clusterId,
+		};
+		room.RegionId = region.Id;
 		for (int lx = 0; lx < roomMap.Width; lx++)
 		{
 			for (int lz = 0; lz < roomMap.Height; lz++)
@@ -190,7 +223,7 @@ public partial class MapGenerator : Node3D
 					continue;
 				}
 
-				var tile = new Vector2I(placement.Position.X + lx, placement.Position.Y + lz);
+				var tile = new Vector2I(position.X + lx, position.Y + lz);
 				region.Tiles.Add(tile);
 
 				// Only interior floor tiles count as "the player is in this room".
@@ -209,7 +242,7 @@ public partial class MapGenerator : Node3D
 			}
 		}
 
-		RegisterDoors(placement, region, doors);
+		RegisterDoors(room, position, region, doors);
 		Floor.AddRoom(region);
 	}
 
@@ -217,11 +250,11 @@ public partial class MapGenerator : Node3D
 	/// Takes over the doors the room set into its doorways, each guarding its doorway's connector (closed, it stops fog
 	/// reveal there), and gives interior doors (cell gates) their room-scoped connection IDs.
 	/// </summary>
-	private void RegisterDoors(RoomPlacement placement, RoomRegion region, IEnumerable<Door> doors)
+	private void RegisterDoors(Room room, Vector2I position, RoomRegion region, IEnumerable<Door> doors)
 	{
-		foreach (var (tile, door) in placement.Room.Doors)
+		foreach (var (tile, door) in room.Doors)
 		{
-			Floor.AddDoor(door, placement.Position + tile);
+			Floor.AddDoor(door, position + tile);
 		}
 
 		var interiorIds = new HashSet<string>();
@@ -252,21 +285,84 @@ public partial class MapGenerator : Node3D
 		return false;
 	}
 
-	private bool ConnectRooms()
+	private bool ConnectRooms(FloorPlan plan)
 	{
 		GD.Print("Connecting rooms...");
 
-		CorridorConnector.ConnectRooms(Map, Floor.Rooms);
+		using var connectorRng = GenerationRandom.Create(Seed, GenerationRandom.Layout, $"corridors:{GenerationAttempt}");
+		CurrentProfile.Connector.ConnectRooms(Map, plan, Floor.Rooms, connectorRng);
 
 		// Doorways are structural commitments, including both ends of a hall's aisle, and their doors and frames are
 		// already set. Never turn an unrouteable doorway into a wall and deliver a different room.
 		foreach (var room in Floor.Rooms)
 		foreach (var tile in room.ConnectorTiles)
 			if (!IsConnectorConnected(tile))
-				throw new InvalidOperationException($"Required doorway at {tile} could not be connected; the floor cannot be generated.");
+			{
+				GD.Print($"Required doorway at {tile} could not be connected; retrying layout.");
+				return false;
+			}
+
+		if (!AreAllWalkableTilesConnected())
+		{
+			GD.Print("Floor layout has disconnected regions; retrying layout.");
+			return false;
+		}
+
+		if (!ValidateMustTraverseCutVertices())
+		{
+			GD.Print("MustTraverse room could be bypassed; retrying layout.");
+			return false;
+		}
 
 		PlaceCorridors();
 		return PlaceWalls();
+	}
+
+	private bool AreAllWalkableTilesConnected()
+	{
+		int walkableCount = 0;
+		Vector2I start = default;
+		for (int x = 0; x < Map.Width; x++)
+		{
+			for (int z = 0; z < Map.Height; z++)
+			{
+				if (!Map.IsWalkable(x, z)) continue;
+				if (walkableCount == 0) start = new Vector2I(x, z);
+				walkableCount++;
+			}
+		}
+		return walkableCount == 0 || AccessSolutionValidator.Reachable(Map, start, new HashSet<Vector2I>()).Count == walkableCount;
+	}
+
+	private bool ValidateMustTraverseCutVertices()
+	{
+		if (Floor.Rooms.Count < 2 || !Floor.Rooms.Any(r => r.MustTraverse)) return true;
+
+		int arrivalRoomId = RoomRegionFor(Floor.Arrival);
+		int exitRoomId = RoomRegionFor(Floor.Descent);
+		if (arrivalRoomId < 0 || exitRoomId < 0 || arrivalRoomId == exitRoomId) return true;
+
+		var arrivalTile = Floor.Rooms[arrivalRoomId].Tiles.FirstOrDefault(t => Map.IsWalkable(t.X, t.Y));
+		if (!Map.IsWalkable(arrivalTile.X, arrivalTile.Y)) return true;
+
+		foreach (var region in Floor.Rooms)
+		{
+			if (!region.MustTraverse
+				|| region.Id == arrivalRoomId
+				|| region.Id == exitRoomId)
+			{
+				continue;
+			}
+
+			var blocked = new HashSet<Vector2I>(region.Tiles);
+			var reached = AccessSolutionValidator.Reachable(Map, arrivalTile, blocked);
+			if (Floor.Rooms[exitRoomId].Tiles.Any(t => Map.IsWalkable(t.X, t.Y) && reached.Contains(t)))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private void PlaceCorridors()
@@ -294,20 +390,20 @@ public partial class MapGenerator : Node3D
 			if (Map.IsExplorable(x, z)) tiles.Add((new Vector2I(x, z), Map.TileToWorld(x, z)));
 
 		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Decoration, $"corridor-walls:{GenerationAttempt}");
-		return BoundaryWallBuilder.Build(WallGridMap, tiles, (tile, dx, dz) => NeedsWallToward(tile.X, tile.Y, dx, dz),
-			_ => WallGridMap.MeshLibrary.FindItemByName(Corridors.Walls.DrawEdge(rng)),
+		var library = WallGridMap.MeshLibrary;
+		var itemIds = new System.Collections.Generic.Dictionary<string, int>();
+		return BoundaryWallBuilder.Build(WallGridMap, tiles, (tile, dx, dz) => Map.HasWallToward(tile.X, tile.Y, new Vector2I(dx, dz)),
+			(_, isPartition) =>
+			{
+				string name = Corridors.Walls.DrawEdge(rng, isPartition);
+				if (!itemIds.TryGetValue(name, out int id))
+				{
+					id = library.FindItemByName(name);
+					itemIds[name] = id;
+				}
+				return id;
+			},
 			dividerCells: _dividerCells, framedEdges: _framedEdges);
-	}
-
-	private bool NeedsGeneratedWallAgainst(int x, int z)
-	{
-		return !Map.IsWithinBounds(x, z) || Map.IsWallOrEmpty(x, z);
-	}
-
-	private bool NeedsWallToward(int x, int z, int dx, int dz)
-	{
-		return NeedsGeneratedWallAgainst(x + dx, z + dz)
-			|| Map.RequiresInteriorWall(x, z, new Vector2I(dx, dz));
 	}
 
 	/// <summary>
@@ -391,7 +487,7 @@ public partial class MapGenerator : Node3D
 	/// The region of the room holding <paramref name="node"/>, even when a staircase trigger extends beyond its floor
 	/// tiles; -1 outside every room.
 	/// </summary>
-	internal int RoomRegionFor(Node node) => node.GetAncestorOrNull<Room>()?.RegionId ?? -1;
+	internal int RoomRegionFor(Node node) => node?.GetAncestorOrNull<Room>()?.RegionId ?? -1;
 
 	private void FindProgressionAnchors()
 	{
@@ -418,7 +514,7 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private bool ResolveEncounters()
 	{
-		var plan = Floor.Encounter = MobFactory.PlanEncounters(DungeonDepth);
+		var plan = Floor.Encounter;
 		if (plan?.Gatekeeper == null) return true;
 		var marker = GatekeeperSpawnMarker.Find(_level);
 		if (marker != null)
@@ -563,28 +659,26 @@ public partial class MapGenerator : Node3D
 		Reset();
 
 		GD.Print("Generating map...");
-		if (RoomLayout == null || CorridorConnector == null
-			|| _realmRooms == null || MobFactory == null || Corridors == null
+		if (Profile == null || _realmRooms == null || MobFactory == null || Corridors == null
 			|| FloorGridMap == null || WallGridMap == null || DecorationGridMap == null)
 		{
 			// This is especially important to check in the editor
 			return true;
 		}
+		CurrentProfile.ValidateOrThrow();
 
 		// Step 1: Generate random rooms
-		GenerateRooms();
+		var plan = GenerateRooms();
+		if (plan.Placements.Count == 0) return false;
 
 		// Gameplay needs both stairs. A crowded layout without an exit must be retried, never delivered as a dead end.
-		if (includeGameplay)
-		{
-			FindProgressionAnchors();
-			if (Floor.Arrival == null || Floor.Descent == null) return false;
-		}
+		FindProgressionAnchors();
+		if (includeGameplay && (Floor.Arrival == null || Floor.Descent == null)) return false;
 
 		// Step 2: Connect the rooms
-		if (!ConnectRooms()) return false;
-		AccessProfile?.Validate();
+		if (!ConnectRooms(plan)) return false;
 		DecorateCorridors();
+		Floor.FreezeDecorations();
 
 		// Step 2c: Cap permanent void. Exploration is the level's FloorDiscovery, started once the floor is handed off.
 		PlaceOcclusion();
@@ -629,15 +723,21 @@ public partial class MapGenerator : Node3D
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 		CurrentRealm = Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true) ?? Realms.Where(realm => realm != null).MaxBy(realm => realm.LastDepth);
 		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Id);
+		// Special encounters are planned before anything else: a gatekeeper floor builds from the boss profile, whose layout
+		// sizes the boss room for the gatekeeper's fit and makes it a required pass toward the descent, and the profile
+		// sizes the map.
+		var encounter = MobFactory?.PlanEncounters(DungeonDepth);
+		CurrentProfile = encounter?.GatekeeperId != null && BossProfile != null ? BossProfile : Profile;
 
 		ResetAccess();
+		_cachedStaticOutlines = null;
 		_dividerCells.Clear();
 		_framedEdges.Clear();
 
 		// Initialize the map with empty tiles and a walled border
-		Map = new MapData((int)MapWidth, (int)MapDepth);
+		Map = new MapData(FloorSize.X, FloorSize.Y);
 		Map.ResetToBorderedEmpty();
-		Floor = new GeneratedFloor(Map, this, DecorationGridMap);
+		Floor = new GeneratedFloor(Map, this, DecorationGridMap) { Encounter = encounter };
 
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();

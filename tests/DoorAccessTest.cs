@@ -201,7 +201,7 @@ public class DoorAccessTest
 	[TestCase]
 	public async Task RequiredRoutesMayPassThroughSecretDoors()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets(1));
+		var (runner, level) = await TestFactories.LoadLevel(TestFactories.ProfileWithSecrets(1));
 		using var scope = runner;
 		var generator = level.MapGenerator;
 		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
@@ -226,16 +226,16 @@ public class DoorAccessTest
 	[TestCase]
 	public async Task GeneratedPairsAreReachableAndSecretsRestoreAsClosedDoors()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets());
+		var (runner, level) = await TestFactories.LoadLevel(TestFactories.ProfileWithSecrets());
 		using var scope = runner;
 		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
-		generator.AccessProfile = (LevelAccessProfile)TestFactories.Load<LevelAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		generator.Profile.Access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/floor_access_profiles/rare_lock.tres").Duplicate(true);
 		// Solvability coverage deliberately requests dense content; player-facing scarcity is tested separately. More
 		// locked rooms than locked doors are allowed, so rooms with several entrances press against the door cap.
-		generator.AccessProfile.LockedRoomChance = 1;
-		generator.AccessProfile.MaximumLockedRooms = 3;
-		generator.AccessProfile.MaximumLockedDoors = 2;
+		generator.Profile.Access.LockedRoomChance = 1;
+		generator.Profile.Access.MaximumLockedRooms = 3;
+		generator.Profile.Access.MaximumLockedDoors = 2;
 		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
 		int lockedCount = 0, secretCount = 0;
 		for (ulong seed = 1; seed <= 8; seed++)
@@ -244,7 +244,7 @@ public class DoorAccessTest
 			AssertObject(level.Floor).IsNotNull();
 			var doors = generator.FloorContent.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion()).ToArray();
 			var locked = doors.Where(d => d.Lock?.IsLocked == true).ToArray(); lockedCount += locked.Length;
-			AssertInt(locked.Length).OverrideFailureMessage($"seed {seed}: locked doors").IsLessEqual(generator.AccessProfile.MaximumLockedDoors);
+			AssertInt(locked.Length).OverrideFailureMessage($"seed {seed}: locked doors").IsLessEqual(generator.Profile.Access.MaximumLockedDoors);
 			var secrets = generator.Floor.Doors.Where(d => d.Door.Secret?.IsSecret == true).ToArray();
 			var blocked = generator.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true || !d.Door.IsDiscovered)
 				.Select(d => d.Connector).ToHashSet();
@@ -320,5 +320,81 @@ public class DoorAccessTest
 		GD.Print($"ACCESS_COUNTS locked={lockedCount} secret={secretCount}");
 		AssertInt(lockedCount).IsGreater(0);
 		AssertInt(secretCount).IsGreater(0);
+	}
+
+	[TestCase]
+	public async Task ExitCanBeLockedWhenAllowedAndKeyStaysReachableWithoutOpeningExit()
+	{
+		var profile = TestFactories.ProfileWithDoors(1f);
+		profile.AllowSecretDoors = false;
+		var access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/floor_access_profiles/rare_lock.tres").Duplicate(true);
+		access.LockedRoomChance = 1f;
+		access.MaximumLockedRooms = 3;
+		access.MaximumLockedDoors = 6;
+		access.AllowLockingExit = true;
+		profile.Access = access;
+
+		var (runner, level) = await TestFactories.LoadLevel(profile);
+		using var scope = runner;
+		var generator = level.MapGenerator;
+		TestFactories.WireLootScenes(generator);
+		generator.MapWidth = generator.MapDepth = 26;
+		generator.MaxRooms = 5;
+
+		int lockedExits = 0;
+		for (ulong seed = 1; seed <= 12; seed++)
+		{
+			generator.Seed = seed;
+			level.Generate();
+			int exitRoom = generator.RoomRegionFor(generator.Floor.Descent);
+			var exitConnectors = generator.Floor.Rooms[exitRoom].ConnectorTiles.ToHashSet();
+			var lockedExitDoors = generator.Floor.Doors.Where(d => exitConnectors.Contains(d.Connector) && d.Door.Lock?.IsLocked == true).ToArray();
+			if (lockedExitDoors.Length == 0) continue;
+
+			lockedExits++;
+			var entry = generator.Map.WorldToTile(generator.Floor.Arrival.GlobalPosition);
+			var blocked = generator.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true || !d.Door.IsDiscovered).Select(d => d.Connector).ToHashSet();
+			var openBeforeKeys = AccessSolutionValidator.Reachable(generator.Map, entry, blocked);
+			foreach (var item in generator.FloorContent.GetChildren().OfType<LootableItem>().Where(p => p.Item is KeyItem))
+			{
+				AssertBool(openBeforeKeys.Contains(generator.Map.WorldToTile(item.GlobalPosition))).IsTrue();
+			}
+		}
+
+		AssertInt(lockedExits).IsGreater(0);
+	}
+
+	[TestCase]
+	public async Task LockChainsAllowSequentialKeysAndRemainSolvableBySimulation()
+	{
+		var profile = TestFactories.ProfileWithDoors(1f);
+		profile.AllowSecretDoors = false;
+		var access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/floor_access_profiles/rare_lock.tres").Duplicate(true);
+		access.LockedRoomChance = 1f;
+		access.MaximumLockedRooms = 3;
+		access.MaximumLockedDoors = 6;
+		access.AllowLockingExit = true;
+		access.AllowLockChains = true;
+		profile.Access = access;
+
+		var (runner, level) = await TestFactories.LoadLevel(profile);
+		using var scope = runner;
+		var generator = level.MapGenerator;
+		TestFactories.WireLootScenes(generator);
+		generator.MapWidth = generator.MapDepth = 26;
+		generator.MaxRooms = 6;
+
+		int totalLockedDoors = 0;
+		for (ulong seed = 1; seed <= 12; seed++)
+		{
+			generator.Seed = seed;
+			level.Generate();
+			var lockedDoors = generator.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true).ToList();
+			totalLockedDoors += lockedDoors.Count;
+			string error = TestFactories.CheckKeyLockSolvability(generator, lockedDoors);
+			AssertString(error ?? "").OverrideFailureMessage($"seed {seed}: {error}").IsEmpty();
+			await runner.SimulateFrames(1, 20);
+		}
+		AssertInt(totalLockedDoors).IsGreater(0);
 	}
 }

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/SparseRoomLayout.cs" id="layout"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/MazeCorridorConnector.cs" id="connector"]
+[ext_resource type="Resource" path="res://scenes/levels/access/floor_access_profiles/lock_chains.tres" id="access"]
+
+[sub_resource type="Resource" id="SparseRoomLayout"]
+script = ExtResource("layout")
+
+[sub_resource type="Resource" id="MazeCorridorConnector"]
+script = ExtResource("connector")
+
+[resource]
+script = ExtResource("profile")
+Layout = SubResource("SparseRoomLayout")
+Connector = SubResource("MazeCorridorConnector")
+Access = ExtResource("access")
+RoomCount = 10
+MapSize = Vector2i(32, 32)
+AllowSecretDoors = false
+DoorChanceOverride = 1.0
+DeadEndLootWeight = 4.0
+TrapDensityScale = 1.8

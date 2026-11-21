@@ -58,13 +58,36 @@ public static class CollisionOutlines
 	public static IEnumerable<SolidOutline> FromGridMap(GridMap grid, Transform3D toParent)
 	{
 		if (grid?.MeshLibrary == null || (grid.CollisionLayer & BlockingLayers) == 0) yield break;
+		var cache = new Dictionary<(int Item, int Orientation), List<SolidOutline>>();
+		var gridTransform = toParent * grid.Transform;
 		foreach (Vector3I cell in grid.GetUsedCells())
 		{
 			int item = grid.GetCellItem(cell);
-			var transform = toParent * grid.Transform * grid.GetCellTransform(cell);
-			var shapes = grid.MeshLibrary.GetItemShapes(item);
-			for (int index = 0; index + 1 < shapes.Count; index += 2)
-				if (shapes[index].AsGodotObject() is Shape3D shape) yield return FromShape(shape, transform * shapes[index + 1].AsTransform3D());
+			int orientation = grid.GetCellItemOrientation(cell);
+			var cellTransform = grid.GetCellTransform(cell);
+			if (!cache.TryGetValue((item, orientation), out var localOutlines))
+			{
+				localOutlines = [];
+				var orientedBasis = new Transform3D(gridTransform.Basis * cellTransform.Basis, Vector3.Zero);
+				var shapes = grid.MeshLibrary.GetItemShapes(item);
+				for (int index = 0; index + 1 < shapes.Count; index += 2)
+				{
+					if (shapes[index].AsGodotObject() is Shape3D shape)
+					{
+						localOutlines.Add(FromShape(shape, orientedBasis * shapes[index + 1].AsTransform3D()));
+					}
+				}
+				cache[(item, orientation)] = localOutlines;
+			}
+
+			var shift = gridTransform * cellTransform.Origin;
+			var shiftXZ = new Vector2(shift.X, shift.Z);
+			foreach (var local in localOutlines)
+			{
+				var hull = new Vector2[local.Polygon.Length];
+				for (int i = 0; i < hull.Length; i++) hull[i] = local.Polygon[i] + shiftXZ;
+				yield return new SolidOutline(hull, local.Bottom + shift.Y, local.Top + shift.Y);
+			}
 		}
 	}
 

@@ -104,15 +104,51 @@ public class LootPlacementTest
 		await runner.SimulateFrames(1, 20);
 	}
 
+	[TestCase]
+	public async Task CorridorLootRespectsWallBackingAndDeadEndWeights()
+	{
+		var profile = TestFactories.CreateFloorProfile();
+		profile.DeadEndLootWeight = 6f;
+		var (runner, mapGenerator) = await TestFactories.LoadGenerator(profile);
+		using (runner)
+		{
+			TestFactories.WireLootScenes(mapGenerator);
+			mapGenerator.MapWidth = 26;
+			mapGenerator.MapDepth = 26;
+			mapGenerator.MaxRooms = 8;
+			mapGenerator.MinChests = mapGenerator.MaxChests = 3;
+			mapGenerator.MinTraps = mapGenerator.MaxTraps = 2;
+			mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = 4;
+
+			for (ulong seed = 1; seed <= 6; seed++)
+			{
+				mapGenerator.Seed = seed;
+				mapGenerator.GenerateMap(includeGameplay: true);
+				var loot = mapGenerator.FloorContent.GetChildren().Where(node => node is Chest or FloorTrap or LootableItem).Cast<Node3D>().ToArray();
+				foreach (var item in loot)
+				{
+					var tile = mapGenerator.Map.WorldToTile(item.GlobalPosition);
+					AssertBool(mapGenerator.Map.IsRoom(tile.X, tile.Y) || mapGenerator.Map.IsCorridor(tile.X, tile.Y)).IsTrue();
+					AssertBool(TestFactories.IsLootReachable(mapGenerator.Floor, item)).OverrideFailureMessage($"seed {seed}: {item.Name} at {item.GlobalPosition} is unreachable").IsTrue();
+				}
+				foreach (Chest chest in loot.OfType<Chest>())
+				{
+					AssertArray(FindChestPlacementFailures(mapGenerator, chest, seed)).IsEmpty();
+				}
+				await runner.SimulateFrames(1, 20);
+			}
+		}
+	}
+
 	private static List<string> FindChestPlacementFailures(MapGenerator mapGenerator, Chest chest, ulong seed)
 	{
 		var failures = new List<string>();
 		Vector2I tile = mapGenerator.Map.WorldToTile(chest.GlobalPosition);
 		MapData map = mapGenerator.Map;
 
-		if (!map.IsRoom(tile.X, tile.Y))
+		if (!map.IsRoom(tile.X, tile.Y) && !map.IsCorridor(tile.X, tile.Y))
 		{
-			failures.Add($"seed {seed}: chest at tile {tile} is not on a room tile");
+			failures.Add($"seed {seed}: chest at tile {tile} is not on a room or corridor tile");
 			return failures;
 		}
 
@@ -131,8 +167,7 @@ public class LootPlacementTest
 		// assumes, so rotating toward the wall makes the chest physically face away from
 		// it. That means this table maps each rotation to the opposite of FacingYaw's own
 		// inverse -- e.g. rotation 0 came from FacingYaw(North), so the chest actually
-		// faces South. Then assert the tile directly behind it -- the direction the
-		// chest's back is turned to -- is actually a wall.
+		// faces South. Then assert the tile directly behind it has a wall via HasWallToward.
 		Vector2I facing = Mathf.RoundToInt(chest.RotationDegrees.Y) switch
 		{
 			270 => Vector2I.Left,
@@ -140,11 +175,9 @@ public class LootPlacementTest
 			90 => Vector2I.Right,
 			_ => Vector2I.Down,
 		};
-		Vector2I behind = tile - facing;
-		bool behindIsWall = !map.IsWithinBounds(behind.X, behind.Y) || !map.IsWalkable(behind.X, behind.Y);
-		if (!behindIsWall)
+		if (!map.HasWallToward(tile.X, tile.Y, -facing))
 		{
-			failures.Add($"seed {seed}: chest at tile {tile} faces {facing} but tile {behind} behind it isn't a wall");
+			failures.Add($"seed {seed}: chest at tile {tile} faces {facing} but edge {-facing} behind it isn't a wall");
 		}
 
 		return failures;

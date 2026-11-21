@@ -158,7 +158,7 @@ public class WallIntegrityTest
 			{
 				int variant = library.FindItemByName(name);
 				var source = new[] { (Vector2I.Zero, Vector3I.Zero) };
-				BoundaryWallBuilder.Build(grid, source, (_, dx, dz) => dx == 0 && dz == -1, _ => variant);
+				BoundaryWallBuilder.Build(grid, source, (_, dx, dz) => dx == 0 && dz == -1, (_, _) => variant);
 				AssertString(library.GetItemName(grid.GetCellItem(Vector3I.Forward * 2))).IsEqual(name);
 				AssertString(WallFootprints.FindOverlap(grid)).OverrideFailureMessage(name).IsEmpty();
 			}
@@ -175,7 +175,7 @@ public class WallIntegrityTest
 		{
 			int variant = library.FindItemByName("wall_mossy_A");
 			var source = new[] { (Vector2I.Zero, Vector3I.Zero), (Vector2I.Down, Vector3I.Back) };
-			BoundaryWallBuilder.Build(grid, source, (_, dx, dz) => dx == 0 && dz == -1, _ => variant);
+			BoundaryWallBuilder.Build(grid, source, (_, dx, dz) => dx == 0 && dz == -1, (_, _) => variant);
 			AssertString(library.GetItemName(grid.GetCellItem(Vector3I.Forward * 2))).IsEqual("wall");
 			AssertString(WallFootprints.FindOverlap(grid)).IsEmpty();
 		}
@@ -223,6 +223,76 @@ public class WallIntegrityTest
 			AssertBool(Overlaps(wall, perpendicular, new Vector3I(0, 0, 4))).IsFalse();
 			AssertBool(Overlaps(wall, perpendicular, new Vector3I(0, 0, 3))).IsTrue();
 			AssertBool(Overlaps(end, facing, new Vector3I(1, 0, 1))).IsFalse();
+		}
+	}
+
+	[TestCase]
+	public void SealedCorridorPartitionsUseOpaqueStraightPiecesAndCoverBothSides()
+	{
+		var walls = TestFactories.Load<WallStyle>("res://scenes/levels/rooms/styles/walls/jungle_corridor_walls.tres");
+		int brokenItem = walls.Library.FindItemByName("wall_broken");
+		AssertInt(brokenItem).IsGreaterEqual(0);
+
+		var map = new MapData(4, 5);
+		map.ResetToBorderedEmpty();
+		var tileList = new List<(Vector2I Tile, Vector3I Center)>();
+		for (int z = 1; z <= 3; z++)
+		{
+			map.SetTile(1, z, MapTile.Corridor);
+			map.SetTile(2, z, MapTile.Corridor);
+			map.SealCorridorEdge(new Vector2I(1, z), Vector2I.Right);
+			tileList.Add((new Vector2I(1, z), map.TileToWorld(1, z)));
+			tileList.Add((new Vector2I(2, z), map.TileToWorld(2, z)));
+		}
+
+		var tiles = tileList.ToArray();
+		var partitionCell = map.TileToWorld(1, 2) + Vector3I.Right * (Room.TileSize / 2);
+
+		var grid = new GridMap
+		{
+			MeshLibrary = walls.Library,
+			CellSize = Vector3.One,
+			CellCenterX = false,
+			CellCenterY = false,
+			CellCenterZ = false,
+		};
+		try
+		{
+			for (int seed = 0; seed < 20; seed++)
+			{
+				grid.Clear();
+				using var rng = new RandomNumberGenerator { Seed = (ulong)seed + 1 };
+				var calls = new List<(Vector3I Cell, bool IsPartition, int Item)>();
+				bool built = BoundaryWallBuilder.Build(
+					grid,
+					tiles,
+					(tile, dx, dz) => map.HasWallToward(tile.X, tile.Y, new Vector2I(dx, dz)),
+					(cell, isPartition) =>
+					{
+						int item = walls.Library.FindItemByName(walls.DrawEdge(rng, isPartition));
+						calls.Add((cell, isPartition, item));
+						return item;
+					});
+				AssertBool(built).IsTrue();
+				AssertString(WallFootprints.FindOverlap(grid)).IsEmpty();
+
+				var partitionCalls = calls.Where(c => c.Cell == partitionCell).ToArray();
+				AssertInt(partitionCalls.Length).IsGreaterEqual(1);
+				foreach (var call in partitionCalls)
+				{
+					AssertBool(call.IsPartition).IsTrue();
+					AssertInt(call.Item).IsNotEqual(brokenItem);
+					AssertBool(walls.IsPlain(call.Item)).IsTrue();
+				}
+				AssertBool(calls.Where(c => c.Cell != partitionCell).All(c => !c.IsPartition)).IsTrue();
+
+				AssertBool(WallFootprints.MeasureEdge(grid, partitionCell, Vector2I.Left, Room.TileSize).Covered).IsTrue();
+				AssertBool(WallFootprints.MeasureEdge(grid, partitionCell, Vector2I.Right, Room.TileSize).Covered).IsTrue();
+			}
+		}
+		finally
+		{
+			grid.Free();
 		}
 	}
 }

@@ -17,43 +17,43 @@ public class GarrisonRoomPoolTest
 	[TestCase]
 	public void EveryPooledRoomTypeIsDrawnByTheRealmsItBelongsTo()
 	{
-		var pool = TestFactories.Load<AssembledRoomFactory>(Preset);
-		var drawn = new HashSet<RoomType>();
+		var pool = TestFactories.Load<RoomPool>(Preset);
+		var drawn = new HashSet<RoomDefinition>();
 		foreach (string realm in new[] { "garrison", "sewer", "jungle" })
 		{
-			var factory = pool.ForRealm(realm);
-			AssertBool(factory.RoomTypes.Length > 0).OverrideFailureMessage($"{realm}: no room types").IsTrue();
-			foreach (var type in factory.RoomTypes)
+			var realmPool = pool.ForRealm(realm);
+			AssertBool(realmPool.Rooms.Length > 0).OverrideFailureMessage($"{realm}: no room types").IsTrue();
+			foreach (var type in realmPool.Rooms)
 			{
 				AssertBool(type.Realms.Contains(realm)).OverrideFailureMessage($"{realm} draws {type.Id}, which is not tagged for it").IsTrue();
 				AssertFloat(type.Weight).OverrideFailureMessage($"{realm}: {type.Id} can never be drawn").IsGreater(0);
 				drawn.Add(type);
 			}
 		}
-		AssertArray(pool.RoomTypes.Where(type => !drawn.Contains(type)).Select(type => type.Id).ToArray()).IsEmpty();
+		AssertArray(pool.Rooms.Where(type => !drawn.Contains(type)).Select(type => type.Id).ToArray()).IsEmpty();
 	}
 
 	[TestCase]
 	public void EverySlotIsAssembledAndSeedReproducesItsGeometry()
 	{
-		var factory = TestFactories.Load<AssembledRoomFactory>(Preset);
+		var pool = TestFactories.Load<RoomPool>(Preset);
 		using var rng = new RandomNumberGenerator { Seed = 42 };
 		string first = "";
 		for (int index = 0; index < 8; index++)
 		{
-			var room = (index % 3) switch
+			var cluster = (index % 3) switch
 			{
-				0 => factory.CreateStandardRoom(rng),
-				1 => factory.CreateEntrance(rng),
-				_ => factory.CreateExit(rng),
+				0 => pool.CreateStandardRoom(rng),
+				1 => pool.CreateEntrance(rng),
+				_ => pool.CreateExit(rng),
 			};
-			AssertObject(room.Type).IsNotNull();
-			if (index == 0) first = Signature(room);
-			room.Free();
+			AssertObject(cluster.PrimaryRoom.Type).IsNotNull();
+			if (index == 0) first = Signature(cluster.PrimaryRoom);
+			cluster.Free();
 		}
 		rng.Seed = 42;
-		var reset = factory.CreateStandardRoom(rng);
-		AssertString(Signature(reset)).IsEqual(first);
+		var reset = pool.CreateStandardRoom(rng);
+		AssertString(Signature(reset.PrimaryRoom)).IsEqual(first);
 		reset.Free();
 	}
 
@@ -112,14 +112,11 @@ public class GarrisonRoomPoolTest
 	/// <summary>Pickups and traps lie on reachable floor; a chest blocks its own cells, so it needs reachable floor beside it.</summary>
 	private static string UnreachableLoot(MapGenerator generator)
 	{
-		var floor = generator.Floor;
-		bool Beside(Vector3 point) => Enumerable.Range(0, 8).Any(step =>
-			floor.IsReachable(point + new Vector3(Mathf.Cos(step * Mathf.Tau / 8), 0, Mathf.Sin(step * Mathf.Tau / 8)) * 1.75f));
 		foreach (var node in generator.FloorContent.FindChildren("*", "", true, false).OfType<Node3D>())
 		{
 			bool chest = node.HasMeta("persistent_id") && node.GetMeta("persistent_id").AsString().Contains(":chest:");
-			if (chest && !Beside(node.GlobalPosition)) return $"chest at {node.GlobalPosition}";
-			if (node is LootableItem or FloorTrap && !floor.IsReachable(node.GlobalPosition)) return $"{node.Name} at {node.GlobalPosition}";
+			if ((chest || node is LootableItem or FloorTrap) && !TestFactories.IsLootReachable(generator.Floor, node))
+				return $"{node.Name} at {node.GlobalPosition}";
 		}
 		return "";
 	}

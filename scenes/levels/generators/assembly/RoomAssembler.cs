@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-/// <summary>Preview overrides for one assembly; production uses the defaults (everything seeded).</summary>
-public sealed class RoomAssemblyOptions
+/// <summary>Overrides for single-room or cluster assembly; production defaults stay seeded and defer to each <see cref="RoomType"/>.</summary>
+public sealed record RoomAssemblyOptions
 {
 	public const int Seeded = -1;
 	public const int Off = -2;
@@ -17,6 +17,15 @@ public sealed class RoomAssemblyOptions
 	public bool Furnish { get; init; } = true;
 	/// <summary>The realm whose wall styles, floor styles and steps apply; null takes them all. Style indices count within it.</summary>
 	public string Realm { get; init; }
+	/// <summary>When false, suppresses secret doors even on room types with non-zero <see cref="RoomType.SecretDoorChance"/>.</summary>
+	public bool? AllowSecretDoors { get; init; }
+	public float? DoorChance { get; init; }
+	public float? SecretDoorChance { get; init; }
+	public SecretDetectionProfile SecretDetection { get; init; }
+	public int? MinDoorways { get; init; }
+	public int? MaxDoorways { get; init; }
+	/// <summary>Optional oversized-actor staging fit checked once structure and furnishing are placed.</summary>
+	public LargeActorFitProfile RequiredFit { get; init; }
 }
 
 /// <summary>
@@ -25,7 +34,7 @@ public sealed class RoomAssemblyOptions
 /// stream, so changing one axis (a floor style, columns on/off) never rerolls the others. Required steps that do not
 /// fit retry with a new shape; a type that never fits throws instead of delivering a different room.
 /// </summary>
-public static class RoomAssembler
+public static partial class RoomAssembler
 {
 	/// <summary>
 	/// Body radius every reachability check guarantees: the largest ordinary walking body (skeletons). The player and
@@ -58,8 +67,11 @@ public static class RoomAssembler
 		using var shapeRng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"{type.Id}:shape:{attempt}");
 		var shape = options.Shape >= 0 ? type.Shapes[options.Shape] : Weighted.Pick(type.Shapes, entry => entry.Weight, shapeRng);
 		var footprint = shape.Build(shapeRng);
-		var doorways = ChooseDoorways(type, footprint, shapeRng);
-		if (footprint.Count < type.MinimumFloorTiles || doorways.Count < type.MinDoorways)
+		int effectiveMaxDoorways = options.MaxDoorways ?? type.MaxDoorways;
+		int effectiveMinDoorways = options.MinDoorways ?? Math.Min(type.MinDoorways, effectiveMaxDoorways);
+		effectiveMaxDoorways = Math.Max(effectiveMinDoorways, effectiveMaxDoorways);
+		var doorways = ChooseDoorways(type, footprint, effectiveMinDoorways, effectiveMaxDoorways, shapeRng);
+		if (footprint.Count < type.MinimumFloorTiles || doorways.Count < effectiveMinDoorways || doorways.Count > effectiveMaxDoorways)
 		{
 			failure = "footprint too small or cannot fit the required doorways";
 			return null;
@@ -76,8 +88,9 @@ public static class RoomAssembler
 		var room = CreateRoom(type, floor.Library, walls.Library);
 		try
 		{
-			var blueprint = new RoomBlueprint(room, type, footprint, doorways, seed, ActorRadius) { Shape = shape, Walls = walls, Floor = floor };
-			var doors = AddDoorways(blueprint, doorRng, secretRng);
+			float maxClearance = options.RequiredFit != null ? Math.Max(ActorRadius, options.RequiredFit.MinimumClearance) : 0f;
+			var blueprint = new RoomBlueprint(room, type, footprint, doorways, seed, ActorRadius, maxClearance) { Shape = shape, Walls = walls, Floor = floor };
+			var doors = AddDoorways(blueprint, options, doorRng, secretRng);
 			if (!walls.Build(blueprint, wallRng))
 			{
 				failure = $"wall style {walls.Id} cannot fit this shape";
@@ -110,6 +123,12 @@ public static class RoomAssembler
 					return null;
 				}
 			}
+			if (options.RequiredFit != null && !blueprint.HasClearance(options.RequiredFit.MinimumClearance))
+			{
+				failure = $"no reachable space with clearance {options.RequiredFit.MinimumClearance:0.##}";
+				room.Free();
+				return null;
+			}
 			floor.Paint(blueprint, floorRng);
 			blueprint.EmitProps();
 			room.SetLayout(footprint, blueprint.Pits, blueprint.Doorways.Zip(doors).ToArray());
@@ -141,7 +160,7 @@ public static class RoomAssembler
 	}
 
 	/// <summary>Entrances only on the bounding rectangle's outer edges, where corridors can reach them.</summary>
-	private static List<RoomDoorway> ChooseDoorways(RoomType type, RoomFootprint footprint, RandomNumberGenerator rng)
+	private static List<RoomDoorway> ChooseDoorways(RoomType type, RoomFootprint footprint, int minDoorways, int maxDoorways, RandomNumberGenerator rng)
 	{
 		var candidates = new List<RoomDoorway>();
 		foreach (var tile in footprint.Tiles)
@@ -150,14 +169,19 @@ public static class RoomAssembler
 			var outside = tile + direction;
 			if (outside.X < 0 || outside.Y < 0 || outside.X >= footprint.Width || outside.Y >= footprint.Length) candidates.Add(new(tile, direction));
 		}
-		int count = rng.RandiRange(type.MinDoorways, type.MaxDoorways);
+		int count = rng.RandiRange(minDoorways, maxDoorways);
 		var chosen = new List<RoomDoorway>();
-		switch (type.DoorwayPlacement)
+		var placement = type.DoorwayPlacement;
+		if (maxDoorways == 1 && placement == DoorwayPlacement.LongAxisEnds)
+		{
+			placement = DoorwayPlacement.SingleEnd;
+		}
+		switch (placement)
 		{
 			case DoorwayPlacement.LongAxisEnds:
 			case DoorwayPlacement.SingleEnd:
 				// A single end leaves the far wall for a focal point (an altar, a desk).
-				var ends = type.DoorwayPlacement == DoorwayPlacement.SingleEnd ? new[] { rng.Randf() < .5f ? Vector2I.Up : Vector2I.Down } : new[] { Vector2I.Up, Vector2I.Down };
+				var ends = placement == DoorwayPlacement.SingleEnd ? new[] { rng.Randf() < .5f ? Vector2I.Up : Vector2I.Down } : new[] { Vector2I.Up, Vector2I.Down };
 				foreach (var direction in ends)
 				{
 					var end = candidates.Where(candidate => candidate.Direction == direction && IsApart(candidate, chosen))
@@ -214,16 +238,21 @@ public static class RoomAssembler
 	/// otherwise nothing, an open walkway. Every other edge of the room is walled. Returns each doorway's door, null for
 	/// a frame or walkway.
 	/// </summary>
-	private static Door[] AddDoorways(RoomBlueprint blueprint, RandomNumberGenerator rng, RandomNumberGenerator secretRng)
+	private static Door[] AddDoorways(RoomBlueprint blueprint, RoomAssemblyOptions options, RandomNumberGenerator rng, RandomNumberGenerator secretRng)
 	{
 		var doors = new Door[blueprint.Doorways.Count];
+		float secretChance = options.SecretDoorChance ?? blueprint.Type.SecretDoorChance;
+		float doorChance = options.DoorChance ?? blueprint.Type.DoorChance;
+		float frameChance = blueprint.Type.FrameChance;
+		bool allowSecrets = options.AllowSecretDoors ?? true;
+		var detection = options.SecretDetection ?? blueprint.Type.SecretDetection;
 		for (int index = 0; index < doors.Length; index++)
 		{
 			var doorway = blueprint.Doorways[index];
 			float yaw = MapData.FacingYaw(doorway.Direction);
-			bool secret = secretRng.Randf() < blueprint.Type.SecretDoorChance;
-			bool door = rng.Randf() < blueprint.Type.DoorChance || secret;
-			bool frame = rng.Randf() < blueprint.Type.FrameChance;
+			bool secret = secretRng.Randf() < secretChance && allowSecrets;
+			bool door = rng.Randf() < doorChance || secret;
+			bool frame = rng.Randf() < frameChance;
 			if (!door)
 			{
 				if (frame) AddOpening(blueprint, doorway, yaw, index);
@@ -239,7 +268,7 @@ public static class RoomAssembler
 			{
 				if (node.Secret == null) throw new InvalidOperationException($"Room type {blueprint.Type.Id}: secret door scene needs a SecretDoorComponent.");
 				int item = blueprint.Walls.Library.FindItemByName("wall");
-				node.Secret.InitializeRoomDoor(blueprint.Walls.Library, item, blueprint.Type.SecretDetection,
+				node.Secret.InitializeRoomDoor(blueprint.Walls.Library, item, detection,
 					GenerationRandom.DeriveSeed(blueprint.Seed, "secret-discovery", $"{blueprint.Type.Id}:{index}"));
 			}
 		}
