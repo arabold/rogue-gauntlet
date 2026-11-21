@@ -7,7 +7,7 @@
 | `generators/assembly/shapes/`, `surfaces/`, `columns/`, `steps/`, `content/` | One strategy family per axis: footprints, floor/wall styles, column patterns, furnishing steps, props and groups |
 | `generators/corridors/` | Corridor decoration: `CorridorBlueprint` and `CorridorStep` strategies (passageways, doorway thresholds, corners/T-junctions, hallway walls) |
 | `generators/layouts/`, `generators/connectors/` | Floor packing and corridor-routing strategies |
-| `generators/floor_profiles/` | One `FloorProfile` per floor plan (cluster, large cluster, hallway, labyrinth, boss): its layout, corridors, access preset, map size and room count |
+| `generators/floor_profiles/` | One `FloorProfile` per floor plan (cluster, large cluster, hallway, prison, cathedral, cloister, mines, labyrinth, boss): its layout, corridors, access preset, map size and room count. Rooms only a plan uses (`nave`, `courtyard`, `cell`) live in `rooms/room_types/` but stay out of the room pool |
 | `access/` | Door access policies and the interior-door capability |
 | `access/floor_access_profiles/`, `access/locks/` | Lock presets the floor profiles draw from, and the lock definitions they share |
 | `encounters/` | Realm encounter factories (`MobFactory`, `RealmEncounterFactory`), their per-floor plan and the descent objective |

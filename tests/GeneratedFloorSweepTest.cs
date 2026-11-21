@@ -196,6 +196,79 @@ public class GeneratedFloorSweepTest
 	}
 
 	/// <summary>
+	/// The prison, cathedral, cloister and mine plans keep every contract in every realm, each with its defining shape:
+	/// cathedral and cloister floors are built around a room at their center, and mine tunnels make the walk from the
+	/// arrival to the descent at least as long as the floor is wide.
+	/// </summary>
+	[TestCase]
+	public async Task NewFloorPlansAcrossRealmsHoldContractsAndTheirShape()
+	{
+		var (runner, generator) = await TestFactories.LoadGenerator(TestFactories.CreateFloorProfile());
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			var contracts = new FloorContracts();
+			uint[] realmDepths = [1u, 4u, 7u];
+			foreach (string plan in new[] { "prison", "cathedral", "cloister", "mines" })
+			{
+				generator.Profile = TestFactories.Load<FloorProfile>($"res://scenes/levels/generators/floor_profiles/{plan}.tres");
+				for (ulong seed = 1; seed <= 3; seed++)
+				{
+					generator.Seed = seed;
+					generator.DungeonDepth = realmDepths[seed - 1];
+					string label = $"{plan} seed {seed} depth {generator.DungeonDepth}";
+					string failure = null;
+					try { generator.GenerateMap(includeGameplay: seed == 1); }
+					catch (System.InvalidOperationException error) { failure = error.Message; }
+					if (failure != null)
+					{
+						contracts.Fail("generation", $"{label}: {failure}");
+						continue;
+					}
+
+					string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
+					contracts.Check(generator, fullLabel);
+					var map = generator.Map;
+					var center = new Vector2I(map.Width / 2, map.Height / 2);
+					if (plan is "cathedral" or "cloister" && !generator.Floor.Rooms.Any(room => room.Tiles.Contains(center)))
+						contracts.Fail("generation", $"{fullLabel}: no room at the center of the floor");
+					if (plan == "mines")
+					{
+						var descentRoom = generator.Floor.Rooms[generator.RoomRegionFor(generator.Floor.Descent)].Tiles.ToHashSet();
+						int walk = WalkLength(map, map.WorldToTile(generator.Floor.Arrival.LandingPosition), descentRoom);
+						if (walk < map.Width) contracts.Fail("connectivity", $"{fullLabel}: the walk to the descent's room is only {walk} tiles");
+					}
+					await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+				}
+			}
+			contracts.AssertHeld();
+		}
+	}
+
+	/// <summary>Steps on the shortest walk from a tile into any of <paramref name="targets"/> that crosses no wall; -1 when none exists.</summary>
+	private static int WalkLength(MapData map, Vector2I from, IReadOnlySet<Vector2I> targets)
+	{
+		var distance = new Dictionary<Vector2I, int> { [from] = 0 };
+		var queue = new Queue<Vector2I>();
+		queue.Enqueue(from);
+		while (queue.Count > 0)
+		{
+			var tile = queue.Dequeue();
+			if (targets.Contains(tile)) return distance[tile];
+			foreach (var offset in MapData.CardinalOffsets)
+			{
+				var next = tile + offset;
+				if (distance.ContainsKey(next) || !map.IsWithinBounds(next.X, next.Y) || !map.IsWalkable(next.X, next.Y)
+					|| map.RequiresInteriorWall(tile.X, tile.Y, offset)) continue;
+				distance[next] = distance[tile] + 1;
+				queue.Enqueue(next);
+			}
+		}
+		return -1;
+	}
+
+	/// <summary>
 	/// Hallway floors keep every contract across the realms, and their entrance and exit sit at opposite ends of the
 	/// main hallway, so the walk between them spans the floor.
 	/// </summary>

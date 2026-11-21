@@ -18,6 +18,6 @@ Layout = SubResource("LinearRoomLayout")
 Connector = SubResource("AStarCorridorConnector")
 Access = ExtResource("access")
 RoomCount = 10
-MapSize = Vector2i(20, 20)
+MapSize = Vector2i(32, 32)
 AllowSecretDoors = false
 GoalOverride = ExtResource("boss_exit")

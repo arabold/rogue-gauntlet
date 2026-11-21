@@ -16,5 +16,5 @@ script = ExtResource("profile")
 Layout = SubResource("HallwayRoomLayout")
 Connector = SubResource("AStarCorridorConnector")
 Access = ExtResource("access")
-RoomCount = 20
-MapSize = Vector2i(36, 24)
+RoomCount = 24
+MapSize = Vector2i(40, 26)

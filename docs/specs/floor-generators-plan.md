@@ -6,14 +6,16 @@ Status: proposed. [Level design](../level-design.md) describes the implemented g
 
 Add new floor generator archetypes and an Inversion-of-Control (`FloorProfile`) + composite room-group (`RoomGroup`) architecture. A profile may set its own map size and room count (`FloorProfile.MapSize`, `RoomCount`); otherwise the generator's `MapWidth × MapDepth` (default `20×20`) and `MaxRooms` (default 10) apply, with no dynamic bounds cropping:
 
-1. **Labyrinth (`labyrinth.tres`):** Entrance, distant Exit, and 1–3 dedicated rooms; the remaining playable space is carved into 1-tile-wide hallways with dead ends, traps, and optional loops. No secret doors. Physical doors on every room and the exit; lockable dedicated rooms and exit (with ordered key chains); keys, chests, and loose items eligible anywhere (weighted toward dead ends and corridors).
-2. **Large cluster (`cluster_large.tres`):** The packed layout and corridors on a 30×30 floor with up to 22 rooms: the same tight packing as `cluster.tres` (20×20, 10 rooms), with about twice the rooms. Density comes from the room count, not a separate algorithm.
-3. **Hallway (`hallway.tres`):** `HallwayRoomLayout` lays one hallway the length of a 36×24 floor with the entrance at one end and the exit at the other, side halls branching off it toward the map edge, and up to 20 rooms lining both sides of every hall, each opening onto it. Halls are laid as corridor tiles and trimmed back to their farthest doorway; doorways that do not open onto a hall get short back corridors from `AStarCorridorConnector`.
-4. **Boss (`boss.tres`):** Linear spine (`Entrance → [Approach...] → [Boss → Exit Group]`) with optional dead-end sidearms, strict no-bypass routing (`MustTraverse`), and an atomic `boss_exit.tres` `RoomGroup` placing the Exit behind one physical door reserved from random mechanical key locks. Boss-kill unlock logic on that door is deferred; this plan exposes the clean seam (`RoomRegion.ReserveAccess`, `RoomRegion.SlotId`, `Floor.Doors`).
+1. **Labyrinth (`labyrinth.tres`):** Entrance, distant Exit, and 1–3 dedicated rooms on a 32×32 floor; the remaining playable space is carved into 1-tile-wide hallways with dead ends, traps, and optional loops. No secret doors. Physical doors on every room and the exit; lockable dedicated rooms and exit (with ordered key chains); keys, chests, and loose items eligible anywhere (weighted toward dead ends and corridors).
+2. **Cluster (`cluster.tres`) and large cluster (`cluster_large.tres`):** The packed layout and corridors, 16 rooms on 32×32 and 28 rooms on 40×40. Density comes from the room count, not a separate algorithm. 32×32 is the baseline floor size; the original 20×20 finished too quickly.
+3. **Hallway (`hallway.tres`) and prison (`prison.tres`):** `HallwayRoomLayout` lays one hallway the length of the floor (40×26 and 40×24) with the entrance at one end and the exit at the other, side halls branching off it, and rooms lining every hall, each opening onto it. The prison lines its halls with `SideRooms`: one-door `cell` rooms (weighted 3), cell blocks, guardrooms and storage.
+4. **Cathedral (`cathedral.tres`) and cloister (`cloister.tres`):** `CourtyardRoomLayout` stands a `Center` room in the middle of the floor ringed by a one-tile walkway: an aisled `nave` with pews (36×30) or an open `courtyard` with a pool and plantings (32×32). The entrance and exit open onto the walkway at opposite ends of the center room's long axis, side halls leave the middle of each side (transepts first), and rooms line the walkway and side halls. Rooms cannot touch, so the walkway is what lets chapels open onto the nave.
+5. **Mines (`mines.tres`):** `SparseRoomLayout` spreads 4–6 rooms far apart on a 40×40 floor and `MineCorridorConnector` joins them with tunnels that wander over a seeded rock field and sprout dead-end shafts: few rooms, long winding walks. Winding tunnels also stand in for caves, which the square wall grid renders too rectangular.
+6. **Boss (`boss.tres`):** Linear spine (`Entrance → [Approach...] → [Boss → Exit Group]`) with optional dead-end sidearms, strict no-bypass routing (`MustTraverse`), and an atomic `boss_exit.tres` `RoomGroup` placing the Exit behind one physical door reserved from random mechanical key locks. Boss-kill unlock logic on that door is deferred; this plan exposes the clean seam (`RoomRegion.ReserveAccess`, `RoomRegion.SlotId`, `Floor.Doors`).
 
 **Shared baseline change:** Loose items, access keys, and wall-backed chests become eligible in both rooms and corridors across all profiles; scheduled fountains stay room-only.
 
-**Delivery boundary:** `level.tscn` builds ordinary floors from `floor_profiles/cluster.tres` and gatekeeper floors from `floor_profiles/boss.tres` (`MapGenerator.BossProfile`, chosen once the encounter plan holds a gatekeeper). `cluster_large.tres`, `hallway.tres` and `labyrinth.tres` stay unwired from live `Realm` progression and are previewed in [RoomGenerationHarness](../../scenes/debug/rooms/RoomGenerationHarness.cs) and verified via GdUnit4 sweeps. Every profile sets its own map size and room count, and draws its locks from a shared preset in `access/floor_access_profiles/` (`rare_lock.tres`, or `lock_chains.tres` for the labyrinth) built from the shared lock definitions in `access/locks/`. The scatter-placement `SimpleRoomLayout` and `simple.tres` are retired.
+**Delivery boundary:** `level.tscn` builds ordinary floors from `floor_profiles/cluster.tres` and gatekeeper floors from `floor_profiles/boss.tres` (`MapGenerator.BossProfile`, chosen once the encounter plan holds a gatekeeper). `cluster_large.tres`, `hallway.tres`, `prison.tres`, `cathedral.tres`, `cloister.tres`, `mines.tres` and `labyrinth.tres` stay unwired from live `Realm` progression and are previewed in [RoomGenerationHarness](../../scenes/debug/rooms/RoomGenerationHarness.cs) and verified via GdUnit4 sweeps. Every profile sets its own map size and room count, and draws its locks from a shared preset in `access/floor_access_profiles/` (`rare_lock.tres`, or `lock_chains.tres` for the labyrinth) built from the shared lock definitions in `access/locks/`. The scatter-placement `SimpleRoomLayout` and `simple.tres` are retired.
 
 ---
 
@@ -178,13 +180,14 @@ public partial class RoomGroup : RoomDefinition
   - **4 subclasses:**
     1. `PackedRoomLayout` — serves both `cluster.tres` and `cluster_large.tres` (which differ only in map size and room count); updated to `RoomCluster` / `FloorPlan` and pure `MapData[4]` search (existing `RoomGap = 1`).
     2. `SparseRoomLayout` — places Entrance, geometrically distant Exit (never evicted), and `MinDedicatedRooms..MaxDedicatedRooms` spaced rooms with configurable `MinRoomGap` (for `labyrinth.tres`).
-    3. `HallwayRoomLayout` — places the entrance at one end of a main hallway and the goal at the other, adds `Branches` side halls, then fills both sides of every hall with rooms (`MaxSideDoorways`, stopping after `Retries` misfits in a row), preferring spots nearest the entrance and doorways that open onto a hall.
+    3. `HallRoomLayout` (abstract) — plans built around laid halls: a subclass places its core rooms and lays their halls (`LayCore`), then the base grows `Branches` side halls, lines every hall with rooms (`SideRooms` or the realm's rooms, `MaxSideDoorways`, stopping after `Retries` misfits in a row, preferring spots nearest the entrance and doorways that open onto a hall), trims side halls to their last doorway and lays the halls as corridor tiles. `HallwayRoomLayout` lays one straight main hallway between the entrance and goal; `CourtyardRoomLayout` rings its `Center` room with a walkway.
     4. `LinearRoomLayout` — places spine `Entrance → [MinApproach..MaxApproach] → Goal` (`GoalOverride` or Exit) plus `[MinSidearms..MaxSidearms]` 1-doorway dead-end sidearms with a bounded backtrack cap (default 24), emitting `ApprovedEdges` and marking spine rooms `MustTraverse`. Passes `RequiredFit = encounter.GatekeeperFit` when assembling the `"boss"` slot (either via `GoalOverride`'s `boss_exit.tres` member or directly).
 - **`CorridorConnectorStrategy` (`scenes/levels/generators/connectors/CorridorConnectorStrategy.cs`):**
   - `public abstract void ConnectRooms(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms, RandomNumberGenerator rng);`
-  - **2 subclasses:**
+  - **3 subclasses:**
     1. `AStarCorridorConnector`: marks `plan.ProtectedCorridors` solid; builds initial components grouped by `RoomRegion.ClusterId` (so pre-linked `RoomGroup` rooms don't split into separate components); routes only external connectors. When `plan.ApprovedEdges` is non-empty, routes strictly edge-by-edge in order between each edge's paired exits (never another pairing, which could end a corridor on the next edge's doorway and skip the room between) and seals corridor-to-corridor edges (`SealCorridorEdge`) between unrelated routed corridors so separate branches never fuse into a bypass; otherwise runs the existing spanning tree + remaining doorways.
     2. `MazeCorridorConnector` (for `labyrinth.tres`): exports `WindingChance`, `LoopChance`, `DeadEndPruneChance`, `MinDeadEnds`; carves a 1-tile-wide maze across all doorway-reachable empty playable tiles via randomized growing-tree (`WindingChance`), sealing non-carved shared corridor edges (`SealCorridorEdge`); opens controlled loops (`LoopChance`) while never breaching `ProtectedCorridors`; runs O(W×H) queue-based dead-end pruning (`DeadEndPruneChance`) preserving connected doorways and a configurable minimum dead-end count.
+    3. `MineCorridorConnector` (for `mines.tres`): exports `Wander`, `BendSpacing`, `Shafts`, `ShaftLength`; routes the A* corridors over a seeded value-noise cost field so tunnels bend in broad curves, then digs straight dead-end shafts into untouched rock.
 
 ---
 
@@ -260,6 +263,7 @@ scenes/levels/
 ├── rooms/
 │   ├── room_pool.tres                                 (~ script/path updated to RoomPool, Entrances/Exits/Rooms arrays)
 │   ├── groups/ -> prop_groups/                        (~ rename folder; update 4 files inside + 18 room_types/*.tres + README refs)
+│   ├── room_types/nave.tres, courtyard.tres, cell.tres (+ floor-plan rooms outside the pool: cathedral center, cloister center, prison cells)
 │   └── room_groups/
 │       └── boss_exit.tres                             (+ Boss -> 1-tile sealed bridge -> locked 1-doorway Exit RoomGroup)
 └── generators/
@@ -278,9 +282,13 @@ scenes/levels/
     ├── BoundaryWallBuilder.cs                         (~ isPartition callback, MeshLibrary bounds cache, 4x4 spatial bucketing)
     ├── WallFootprints.cs                              (~ spatial bucketing in FindOverlap; item bounds/name cache)
     ├── floor_profiles/
-    │   ├── cluster.tres                               (+ PackedRoomLayout + AStarCorridorConnector, 20×20, 10 rooms; default profile wired in level.tscn)
-    │   ├── cluster_large.tres                         (+ PackedRoomLayout + AStarCorridorConnector, 30×30, 22 rooms)
-    │   ├── hallway.tres                               (+ HallwayRoomLayout + AStarCorridorConnector, 36×24, 20 rooms)
+    │   ├── cluster.tres                               (+ PackedRoomLayout + AStarCorridorConnector, 32×32, 16 rooms; default profile wired in level.tscn)
+    │   ├── cluster_large.tres                         (+ PackedRoomLayout + AStarCorridorConnector, 40×40, 28 rooms)
+    │   ├── hallway.tres                               (+ HallwayRoomLayout + AStarCorridorConnector, 40×26, 24 rooms)
+    │   ├── prison.tres                                (+ HallwayRoomLayout with cell SideRooms, 40×24, 30 rooms)
+    │   ├── cathedral.tres                             (+ CourtyardRoomLayout around nave.tres, 36×30, 20 rooms)
+    │   ├── cloister.tres                              (+ CourtyardRoomLayout around courtyard.tres, 32×32, 16 rooms)
+    │   ├── mines.tres                                 (+ SparseRoomLayout + MineCorridorConnector, 40×40, 4–6 rooms)
     │   ├── labyrinth.tres                             (+ SparseRoomLayout + MazeCorridorConnector + lock_chains.tres)
     │   └── boss.tres                                  (+ LinearRoomLayout + AStarCorridorConnector(ApprovedEdges) + boss_exit.tres; BossProfile in level.tscn)
     ├── factories/                                     (- removed directory after moving AssembledRoomFactory & MobFactory)
@@ -302,13 +310,16 @@ scenes/levels/
     │   ├── SimpleRoomLayout.cs                        (- retired with simple.tres)
     │   ├── PackedRoomLayout.cs                        (~ updated to FloorPlan/RoomCluster + pure MapData[4] search)
     │   ├── SparseRoomLayout.cs                        (+ entrance, distant exit, MinDedicatedRooms..MaxDedicatedRooms, MinRoomGap)
-    │   ├── HallwayRoomLayout.cs                       (+ main hallway, side halls, rooms along both sides)
+    │   ├── HallRoomLayout.cs                          (+ abstract: side halls, rooms along every hall, trimming)
+    │   ├── HallwayRoomLayout.cs                       (+ one main hallway between entrance and goal)
+    │   ├── CourtyardRoomLayout.cs                     (+ center room ringed by a walkway)
     │   └── LinearRoomLayout.cs                        (+ spine Entrance->Approach->Goal + dead-end Sidearms + ApprovedEdges + backtrack cap)
     └── connectors/
         ├── CorridorConnectorStrategy.cs               (~ FloorPlan + RNG signature)
         ├── AStarCorridorConnector.cs                  (~ ClusterId components, ProtectedCorridors, ApprovedEdges isolated routing)
         ├── MazeCarver.cs                              (+ pure-C# maze carving, edge sealing, loop opening)
-        └── MazeCorridorConnector.cs                   (+ AllPlayable labyrinth carving & dead-end pruning)
+        ├── MazeCorridorConnector.cs                   (+ AllPlayable labyrinth carving & dead-end pruning)
+        └── MineCorridorConnector.cs                   (+ winding tunnels over a rock cost field, dead-end shafts)
 
 scenes/levels/navigation/
 └── ClearanceGrid.cs                                   (~ localized SaveRegion/RestoreRegion for transactional prop/access probes)

@@ -27,9 +27,13 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     public override void ConnectRooms(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms, RandomNumberGenerator rng) =>
         Connect(map, plan, rooms);
 
-    internal static void Connect(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms)
+    /// <summary>
+    /// Routes corridors for every doorway. <paramref name="emptyStepCost"/> prices a step onto an empty tile (5 when
+    /// null; existing corridors are free), so a caller can bend routes around costly ground.
+    /// </summary>
+    internal static void Connect(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms, Func<Vector2I, float> emptyStepCost = null)
     {
-        using var astar = CreatePathGrid(map, plan);
+        using var astar = CreatePathGrid(map, plan, emptyStepCost);
         if (plan != null && plan.ApprovedEdges.Count > 0)
         {
             ConnectApprovedEdges(map, plan, rooms, astar);
@@ -243,7 +247,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         }
     }
 
-    private static AStarGrid2D CreatePathGrid(MapData map, FloorPlan plan)
+    private static AStarGrid2D CreatePathGrid(MapData map, FloorPlan plan, Func<Vector2I, float> emptyStepCost)
     {
         var astar = new AStarGrid2D();
         astar.DiagonalMode = AStarGrid2D.DiagonalModeEnum.Never;
@@ -263,6 +267,10 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
                 if (map.IsCorridor(x, z) && !protectedBridge)
                 {
                     astar.SetPointWeightScale(node, 0);
+                }
+                else if (emptyStepCost != null && map.IsEmpty(x, z))
+                {
+                    astar.SetPointWeightScale(node, emptyStepCost(node));
                 }
 
                 // Corridors are routed outside rooms and protected cluster bridges. Room connectors
