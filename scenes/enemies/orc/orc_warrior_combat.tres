@@ -38,13 +38,13 @@ Commit = 0.5
 [sub_resource type="Resource" id="chop"]
 resource_name = "Overhead chop"
 script = ExtResource("action")
-Cooldown = 2.4
+Cooldown = 2.2
 MaximumRange = 2.7
 Attack = SubResource("chop_attack")
 Style = &"axe.1h.chop"
-Duration = 0.85
-MinDamage = 4.5
-MaxDamage = 8.0
+Duration = 0.7
+MinDamage = 3.5
+MaxDamage = 7.0
 
 [sub_resource type="Resource" id="diagonal"]
 resource_name = "Diagonal cut"
@@ -54,8 +54,8 @@ MaximumRange = 2.7
 Attack = SubResource("diagonal_attack")
 Style = &"axe.1h.combo2"
 Duration = 0.95
-MinDamage = 4.0
-MaxDamage = 7.0
+MinDamage = 3.5
+MaxDamage = 6.0
 
 [sub_resource type="Resource" id="sweep"]
 resource_name = "Horizontal sweep"
@@ -65,8 +65,8 @@ MaximumRange = 2.7
 Attack = SubResource("sweep_attack")
 Style = &"axe.1h.special"
 Duration = 1.35
-MinDamage = 5.0
-MaxDamage = 9.0
+MinDamage = 4.0
+MaxDamage = 7.5
 
 [resource]
 script = ExtResource("profile")
