@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DoorLockDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/access/DoorLockDefinition.cs" id="lock"]
+[ext_resource type="Resource" path="res://scenes/items/keys/key/key_arcane_crystal.tres" id="key"]
+[ext_resource type="Resource" path="res://scenes/levels/access/unlock_key.tres" id="unlock_key"]
+[ext_resource type="Resource" path="res://scenes/levels/access/unlock_lockpick.tres" id="unlock_pick"]
+
+[resource]
+script = ExtResource("lock")
+RequiredKey = ExtResource("key")
+Methods = [ExtResource("unlock_key"), ExtResource("unlock_pick")]

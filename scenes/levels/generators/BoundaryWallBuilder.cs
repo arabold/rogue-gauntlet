@@ -12,16 +12,22 @@ public static class BoundaryWallBuilder
 	/// complete candidate has been built, so a conflicting divider returns false without changing the grid.
 	/// </summary>
 	public static bool Build(GridMap grid, IEnumerable<(Vector2I Tile, Vector3I Center)> tiles,
-		Func<Vector2I, int, int, bool> needsWall, Func<Vector3I, int> pickStraight = null,
+		Func<Vector2I, int, int, bool> needsWall, Func<Vector3I, bool, int> pickStraight = null,
 		IReadOnlySet<Vector3I> dividerCells = null, IReadOnlySet<(Vector3I Center, bool Horizontal)> framedEdges = null)
 	{
 		const int west = 1, east = 2, north = 4, south = 8;
 		var edges = new Dictionary<(Vector3I Cell, bool Horizontal), Vector2I>();
+		var partitions = new HashSet<(Vector3I Cell, bool Horizontal)>();
 		var vertices = new Dictionary<Vector2I, int>();
 		void AddVertex(Vector2I vertex, int direction) => vertices[vertex] = vertices.GetValueOrDefault(vertex) | direction;
 		void AddEdge(Vector3I center, bool horizontal, Vector2I inward)
 		{
-			if (!edges.TryAdd((center, horizontal), inward)) return;
+			var key = (center, horizontal);
+			if (!edges.TryAdd(key, inward))
+			{
+				partitions.Add(key);
+				return;
+			}
 			int half = Room.TileSize / 2;
 			var start = new Vector2I(center.X - (horizontal ? half : 0), center.Z - (horizontal ? 0 : half));
 			var end = new Vector2I(center.X + (horizontal ? half : 0), center.Z + (horizontal ? 0 : half));
@@ -52,6 +58,7 @@ public static class BoundaryWallBuilder
 			if (axes == 3) throw new InvalidOperationException($"Perpendicular doorway frames overlap at {vertex}.");
 
 		var library = grid.MeshLibrary;
+		var itemCache = new Dictionary<int, (Aabb Bounds, string Name)>();
 		int straight = library.FindItemByName("wall"), halfWall = library.FindItemByName("wall_half");
 		int shortWall = library.FindItemByName("wall_junction_short");
 		int corner = library.FindItemByName("wall_corner"), tee = library.FindItemByName("wall_Tsplit");
@@ -96,10 +103,10 @@ public static class BoundaryWallBuilder
 			if (!hasStart && !hasEnd && !trimStart && !trimEnd)
 			{
 				int item = grid.GetCellItem(cell), orientation = item >= 0 ? grid.GetCellItemOrientation(cell) : FacingInto(inward);
-				if (item < 0 && pickStraight != null) item = pickStraight(cell);
+				if (item < 0 && pickStraight != null) item = pickStraight(cell, partitions.Contains((cell, horizontal)));
 				if (item >= 0 && library.GetItemMesh(item) is { })
 				{
-					var bounds = FootprintWorld(MeshBounds(library, item), orientation, cell);
+					var bounds = FootprintWorld(GetItemInfo(library, item, itemCache).Bounds, orientation, cell);
 					var (min, max) = Along(bounds, horizontal);
 					var (near, far) = Across(bounds, horizontal);
 					float target = horizontal ? start.X : start.Y;
@@ -126,9 +133,10 @@ public static class BoundaryWallBuilder
 			void PlaceHalf(float targetMin, bool trimmed)
 			{
 				int wall = trimmed ? shortWall : halfWall;
+				var wallBounds = GetItemInfo(library, wall, itemCache).Bounds;
 				foreach (int facing in (ReadOnlySpan<int>)[FacingInto(inward), FacingInto(-inward)])
 				{
-					var bounds = FootprintWorld(MeshBounds(library, wall), facing, Vector3I.Zero);
+					var bounds = FootprintWorld(wallBounds, facing, Vector3I.Zero);
 					float origin = targetMin - Along(bounds, horizontal).Min;
 					int along = Mathf.RoundToInt(origin);
 					if (Mathf.Abs(along - origin) > FitTolerance) continue;
@@ -140,50 +148,79 @@ public static class BoundaryWallBuilder
 			if (!hasStart) PlaceHalf(edgeStart + (trimStart ? .5f : 0), trimStart);
 			if (!hasEnd) PlaceHalf(edgeStart + distance, trimEnd);
 		}
-		// Preserve room-owned dividers as explicit structural placements, not mesh-name conventions.
-		if (dividerCells != null)
-		foreach (var cell in dividerCells)
+		if ((dividerCells != null && dividerCells.Count > 0) || variants.Count > 0)
 		{
-			int item = grid.GetCellItem(cell), orientation = grid.GetCellItemOrientation(cell);
-			if (item < 0) throw new InvalidOperationException($"Missing room divider at {cell}.");
-			foreach (var (otherCell, other) in pieces)
-				if (otherCell != cell && PiecesOverlap(library, item, orientation, cell, other.Item, other.Orientation, otherCell))
-					return false;
-			pieces[cell] = (item, orientation);
-		}
-		if (variants.Count > 0)
-		{
-			// Test each selected style against the resolved boundary, dividers and full doorway footprints. Cache the
-			// bounding boxes so only nearby pieces need the more expensive compound-footprint comparison.
 			var boundsByCell = new Dictionary<Vector3I, Aabb>(pieces.Count);
+			var buckets = new Dictionary<Vector2I, List<Vector3I>>();
+			var seen = new HashSet<Vector3I>();
 			foreach (var (cell, piece) in pieces)
-				boundsByCell[cell] = FootprintWorld(MeshBounds(library, piece.Item), piece.Orientation, cell);
-			var frameBounds = new List<(Vector3I Center, int Orientation, Aabb Bounds)>();
-			if (framedEdges != null)
-			foreach (var (center, horizontal) in framedEdges)
 			{
-				int facing = horizontal ? GridTurns.Turn0 : GridTurns.Turn90;
-				frameBounds.Add((center, facing, FootprintWorld(MeshBounds(library, straight), facing, center)));
+				var bounds = FootprintWorld(GetItemInfo(library, piece.Item, itemCache).Bounds, piece.Orientation, cell);
+				boundsByCell[cell] = bounds;
+				AddToBuckets(buckets, bounds, cell);
 			}
-			static bool Intersects(Aabb a, Aabb b) =>
-				Mathf.Min(a.End.X, b.End.X) - Mathf.Max(a.Position.X, b.Position.X) > FitTolerance
-				&& Mathf.Min(a.End.Z, b.End.Z) - Mathf.Max(a.Position.Z, b.Position.Z) > FitTolerance;
-			foreach (var (cell, item, orientation) in variants)
+			// Preserve room-owned dividers as explicit structural placements, not mesh-name conventions.
+			if (dividerCells != null)
+			foreach (var cell in dividerCells)
 			{
-				var bounds = FootprintWorld(MeshBounds(library, item), orientation, cell);
-				bool fits = true;
-				foreach (var (otherCell, other) in pieces)
-					if (otherCell != cell && Intersects(bounds, boundsByCell[otherCell])
-						&& PiecesOverlap(library, item, orientation, cell, other.Item, other.Orientation, otherCell))
-					{ fits = false; break; }
-				if (fits)
-					foreach (var (center, facing, frame) in frameBounds)
-						if (Intersects(bounds, frame) && PiecesOverlap(library, item, orientation, cell, straight, facing, center))
-						{ fits = false; break; }
-				if (fits)
+				int item = grid.GetCellItem(cell), orientation = grid.GetCellItemOrientation(cell);
+				if (item < 0) throw new InvalidOperationException($"Missing room divider at {cell}.");
+				var (divLocal, divName) = GetItemInfo(library, item, itemCache);
+				var divBounds = FootprintWorld(divLocal, orientation, cell);
+				foreach (var otherCell in QueryBuckets(buckets, divBounds, seen))
 				{
-					pieces[cell] = (item, orientation);
-					boundsByCell[cell] = bounds;
+					if (otherCell == cell) continue;
+					var other = pieces[otherCell];
+					var (otherLocal, otherName) = GetItemInfo(library, other.Item, itemCache);
+					if (PiecesOverlap(divLocal, divName, orientation, cell, otherLocal, otherName, other.Orientation, otherCell))
+						return false;
+				}
+				pieces[cell] = (item, orientation);
+				boundsByCell[cell] = divBounds;
+				AddToBuckets(buckets, divBounds, cell);
+			}
+			if (variants.Count > 0)
+			{
+				// Test each selected style against the resolved boundary, dividers and full doorway footprints.
+				var frameBounds = new List<(Vector3I Center, int Orientation, Aabb Bounds)>();
+				var frameBuckets = new Dictionary<Vector2I, List<int>>();
+				var seenFrames = new HashSet<int>();
+				var (straightLocal, straightName) = GetItemInfo(library, straight, itemCache);
+				if (framedEdges != null)
+				foreach (var (center, horizontal) in framedEdges)
+				{
+					int facing = horizontal ? GridTurns.Turn0 : GridTurns.Turn90;
+					var bounds = FootprintWorld(straightLocal, facing, center);
+					AddToBuckets(frameBuckets, bounds, frameBounds.Count);
+					frameBounds.Add((center, facing, bounds));
+				}
+				foreach (var (cell, item, orientation) in variants)
+				{
+					var (local, name) = GetItemInfo(library, item, itemCache);
+					var bounds = FootprintWorld(local, orientation, cell);
+					bool fits = true;
+					foreach (var otherCell in QueryBuckets(buckets, bounds, seen))
+					{
+						if (otherCell == cell) continue;
+						var other = pieces[otherCell];
+						var (otherLocal, otherName) = GetItemInfo(library, other.Item, itemCache);
+						if (Overlaps(bounds, boundsByCell[otherCell])
+							&& PiecesOverlap(local, name, orientation, cell, otherLocal, otherName, other.Orientation, otherCell))
+						{ fits = false; break; }
+					}
+					if (fits && frameBounds.Count > 0)
+						foreach (int f in QueryBuckets(frameBuckets, bounds, seenFrames))
+						{
+							var (center, facing, frame) = frameBounds[f];
+							if (Overlaps(bounds, frame) && PiecesOverlap(local, name, orientation, cell, straightLocal, straightName, facing, center))
+							{ fits = false; break; }
+						}
+					if (fits)
+					{
+						pieces[cell] = (item, orientation);
+						boundsByCell[cell] = bounds;
+						AddToBuckets(buckets, bounds, cell);
+					}
 				}
 			}
 		}
@@ -191,9 +228,4 @@ public static class BoundaryWallBuilder
 		foreach (var (cell, piece) in pieces) grid.SetCellItem(cell, piece.Item, piece.Orientation);
 		return true;
 	}
-
-	private static (float Min, float Max) Along(Aabb box, bool horizontal) =>
-		horizontal ? (box.Position.X, box.End.X) : (box.Position.Z, box.End.Z);
-
-	private static (float Min, float Max) Across(Aabb box, bool horizontal) => Along(box, !horizontal);
 }

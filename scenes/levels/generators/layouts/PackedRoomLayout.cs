@@ -43,12 +43,16 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export(PropertyHint.Range, "0,10")] public float ScoreTolerance { get; set; } = 1f;
 
-	public override List<RoomPlacement> GenerateRooms(MapData map, AssembledRoomFactory factory, uint maxRooms, RandomNumberGenerator rng)
+	public override FloorPlan GenerateLayout(MapData map, FloorBuildContext context)
 	{
-		List<RoomPlacement> rooms = new();
+		var plan = new FloorPlan();
+		var rng = context.Rng;
+		var pool = context.Pool;
+		var progressionOptions = context.Profile?.CreateRoomOptions(pool.RealmId, isProgressionRoom: true);
+		var roomOptions = context.Profile?.CreateRoomOptions(pool.RealmId);
 
 		// The entrance anchors the cluster at the map center so it can grow in every direction.
-		var entranceRoom = factory.CreateEntrance(rng);
+		var entranceRoom = pool.CreateEntrance(rng, progressionOptions);
 		entranceRoom.Rotate(rng.RandiRange(0, 3));
 		var entrancePlacement = new Vector2I(
 			(map.Width - entranceRoom.Map.Width) / 2,
@@ -58,25 +62,25 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		{
 			GD.PrintErr("PackedRoomLayout: map is too small for the entrance room.");
 			entranceRoom.Free();
-			return rooms;
+			return plan;
 		}
-		AddPlacement(map, rooms, entranceRoom, entrancePlacement);
+		AddPlacement(map, plan, entranceRoom, entrancePlacement);
 
-		var uses = new Dictionary<RoomType, int>();
-		var entranceCenter = PlacementCenter(rooms[0]);
-		for (int i = 0; i < maxRooms; i++)
+		var uses = new Dictionary<RoomDefinition, int>();
+		var entranceCenter = PlacementCenter(plan.Placements[0]);
+		for (int i = 0; i < context.MaxRooms; i++)
 		{
-			var clusterCenter = ComputeClusterCenter(rooms);
-			if (TryAddPackedRoom(map, rooms,
-				() => CreateBalancedRoom(factory, rng, uses),
+			var clusterCenter = ComputeClusterCenter(plan.Placements);
+			if (TryAddPackedRoom(map, plan,
+				() => CreateBalancedRoom(context, uses, roomOptions),
 				(placement, roomMap, connectors) => ScoreCompactPlacement(map, clusterCenter, placement, roomMap, connectors), rng))
 			{
-				RecordRoomUse(uses, rooms[^1].Room);
+				RecordRoomUse(uses, plan.Placements[^1].Cluster);
 			}
 		}
 
-		PlaceExit(map, rooms, factory, entranceCenter, rng);
-		return rooms;
+		PlaceExit(map, plan, context, entranceCenter, progressionOptions);
+		return plan;
 	}
 
 	/// <summary>
@@ -87,21 +91,21 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// the run.
 	/// </summary>
 	private void PlaceExit(
-		MapData map, List<RoomPlacement> rooms, AssembledRoomFactory factory, Vector2 entranceCenter,
-		RandomNumberGenerator rng)
+		MapData map, FloorPlan plan, FloorBuildContext context, Vector2 entranceCenter,
+		RoomAssemblyOptions progressionOptions)
 	{
 		while (true)
 		{
-			bool placed = TryAddPackedRoom(map, rooms, () => factory.CreateExit(rng),
+			bool placed = TryAddPackedRoom(map, plan, () => CreateGoal(context, progressionOptions),
 				(placement, roomMap, connectors) =>
 					(RectCenter(placement, roomMap) - entranceCenter).Length()
-					+ CountAlignedConnectors(map, placement, connectors) * DoorwayAlignmentBonus, rng);
+					+ CountAlignedConnectors(map, placement, connectors, RoomGap) * DoorwayAlignmentBonus, context.Rng);
 			if (placed)
 			{
 				return;
 			}
 
-			if (rooms.Count == 1)
+			if (plan.Placements.Count == 1)
 			{
 				GD.PrintErr("PackedRoomLayout: could not place an exit room.");
 				return;
@@ -109,101 +113,41 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 
 			// Free up space: drop the most recently placed standard (filler) room and
 			// rebuild the map.
-			var removed = rooms[^1];
-			rooms.RemoveAt(rooms.Count - 1);
-			removed.Room.Free();
+			var removed = plan.Placements[^1];
+			plan.Placements.RemoveAt(plan.Placements.Count - 1);
+			removed.Cluster.Free();
 			GD.Print($"PackedRoomLayout: removed a room at {removed.Position} to make space for the exit.");
-			RestampAll(map, rooms);
+			RestampAll(map, plan);
 		}
 	}
 
 	private bool TryAddPackedRoom(
-		MapData map, List<RoomPlacement> rooms, Func<Room> createRoom,
+		MapData map, FloorPlan plan, Func<RoomCluster> createRoom,
 		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, RandomNumberGenerator rng)
 	{
 		for (int attempt = 0; attempt < Retries; attempt++)
 		{
-			var room = createRoom();
-			if (TryFindBestPlacementAcrossRotations(map, rooms, room, score, rng, out var placement))
+			var cluster = createRoom();
+			if (TryFindBestPlacementAcrossRotations(
+				map,
+				cluster,
+				roomMap => CollectCandidates(map, plan.Placements, roomMap),
+				score,
+				ScoreTolerance,
+				RoomGap,
+				rng,
+				out var placement))
 			{
-				AddPlacement(map, rooms, room, placement);
+				AddPlacement(map, plan, cluster, placement);
 				return true;
 			}
 
-			// No valid position for this room shape at any rotation; a differently-sized
+			// No valid position for this cluster shape at any rotation; a differently-sized
 			// room may still fit.
-			room.Free();
+			cluster.Free();
 		}
 
 		return false;
-	}
-
-	/// <summary>
-	/// Tries all 4 quarter-turn orientations of the same room instance -- not 4
-	/// independently created rooms, which for a procedurally built room would each be a
-	/// different random shape rather than the one being evaluated -- and chooses randomly
-	/// among the candidates across all orientations within <see cref="ScoreTolerance"/> of
-	/// the overall best score.
-	/// </summary>
-	private bool TryFindBestPlacementAcrossRotations(
-		MapData map, List<RoomPlacement> rooms, Room room,
-		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, RandomNumberGenerator rng,
-		out Vector2I bestPlacement)
-	{
-		var scored = new List<(int Steps, Vector2I Position, float Score)>();
-		for (int steps = 0; steps < 4; steps++)
-		{
-			CollectScoredPlacements(map, rooms, room.Map, score, steps, scored);
-
-			// Always rotate, even on the last iteration: 4 quarter turns bring the room
-			// back to its original orientation, so it ends up exactly where the winning
-			// rotation below expects to rotate it from.
-			room.Rotate(1);
-		}
-
-		if (scored.Count == 0)
-		{
-			bestPlacement = default;
-			return false;
-		}
-
-		// Pick randomly among the near-best (position, rotation) candidates. The list is
-		// insertion-ordered (not hash-ordered), so the same seed yields the same layout.
-		float best = float.NegativeInfinity;
-		foreach (var candidate in scored)
-		{
-			if (candidate.Score > best) best = candidate.Score;
-		}
-		float cutoff = best - Mathf.Max(ScoreTolerance, 0f);
-		int topCount = 0;
-		for (int i = 0; i < scored.Count; i++)
-		{
-			if (scored[i].Score >= cutoff)
-			{
-				scored[topCount++] = scored[i];
-			}
-		}
-		var chosen = scored[rng.RandiRange(0, topCount - 1)];
-		room.Rotate(chosen.Steps);
-		bestPlacement = chosen.Position;
-		return true;
-	}
-
-	private void CollectScoredPlacements(
-		MapData map, List<RoomPlacement> rooms, MapData roomMap,
-		Func<Vector2I, MapData, List<(Vector2I Tile, Vector2I Direction)>, float> score, int steps,
-		List<(int Steps, Vector2I Position, float Score)> scored)
-	{
-		var connectors = GetRoomConnectors(roomMap);
-		foreach (var candidate in CollectCandidates(map, rooms, roomMap))
-		{
-			if (map.Intersects(roomMap, candidate))
-			{
-				continue;
-			}
-
-			scored.Add((steps, candidate, score(candidate, roomMap, connectors)));
-		}
 	}
 
 	/// <summary>
@@ -211,7 +155,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 	/// <see cref="RoomGap"/> tiles away from an already-placed room, sliding along all
 	/// four sides. Deduplicated but insertion-ordered, to keep generation deterministic.
 	/// </summary>
-	private List<Vector2I> CollectCandidates(MapData map, List<RoomPlacement> rooms, MapData roomMap)
+	private List<Vector2I> CollectCandidates(MapData map, List<(RoomCluster Cluster, Vector2I Position)> rooms, MapData roomMap)
 	{
 		var seen = new HashSet<Vector2I>();
 		var candidates = new List<Vector2I>();
@@ -232,7 +176,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		foreach (var placed in rooms)
 		{
 			var anchor = placed.Position;
-			var size = new Vector2I(placed.Room.Map.Width, placed.Room.Map.Height);
+			var size = new Vector2I(placed.Cluster.Map.Width, placed.Cluster.Map.Height);
 
 			int east = anchor.X + size.X + RoomGap;
 			int west = anchor.X - roomMap.Width - RoomGap;
@@ -255,20 +199,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		return candidates;
 	}
 
-	/// <summary>
-	/// True when the room's footprint stays strictly inside the border wall ring.
-	/// Intersects would reject border contact anyway, but out-of-bounds stamping must
-	/// never be attempted, and Intersects alone cannot catch that on an empty map (there
-	/// is nothing yet to collide with).
-	/// </summary>
-	private static bool FitsWithinPlayableBounds(MapData map, MapData roomMap, Vector2I placement)
-	{
-		return placement.X >= 1 && placement.Y >= 1
-			&& placement.X + roomMap.Width <= map.Width - 1
-			&& placement.Y + roomMap.Height <= map.Height - 1;
-	}
-
-	private static Vector2 ComputeClusterCenter(List<RoomPlacement> rooms)
+	private static Vector2 ComputeClusterCenter(List<(RoomCluster Cluster, Vector2I Position)> rooms)
 	{
 		var center = Vector2.Zero;
 		foreach (var placed in rooms)
@@ -287,86 +218,7 @@ public partial class PackedRoomLayout : RoomLayoutStrategy
 		MapData map, Vector2 clusterCenter, Vector2I placement, MapData roomMap,
 		List<(Vector2I Tile, Vector2I Direction)> connectors)
 	{
-		return CountAlignedConnectors(map, placement, connectors) * DoorwayAlignmentBonus
+		return CountAlignedConnectors(map, placement, connectors, RoomGap) * DoorwayAlignmentBonus
 			- (RectCenter(placement, roomMap) - clusterCenter).Length();
-	}
-
-	/// <summary>
-	/// Counts the new room's connectors that would directly face a placed room's
-	/// connector across empty gap tiles — those become doorway-to-doorway corridors of
-	/// minimal length, the hallmark of a tightly packed layout.
-	/// </summary>
-	private int CountAlignedConnectors(
-		MapData map, Vector2I placement, List<(Vector2I Tile, Vector2I Direction)> connectors)
-	{
-		int aligned = 0;
-		foreach (var (tile, direction) in connectors)
-		{
-			var probe = placement + tile;
-			for (int step = 0; step <= RoomGap; step++)
-			{
-				probe += direction;
-				if (!map.IsWithinBounds(probe.X, probe.Y))
-				{
-					break;
-				}
-				if (map.IsEmpty(probe.X, probe.Y))
-				{
-					continue;
-				}
-				if (map.IsConnector(probe.X, probe.Y)
-					&& map.GetConnectorDirections(probe.X, probe.Y).Contains(-direction))
-				{
-					aligned++;
-				}
-				break;
-			}
-		}
-
-		return aligned;
-	}
-
-	private static List<(Vector2I Tile, Vector2I Direction)> GetRoomConnectors(MapData roomMap)
-	{
-		var connectors = new List<(Vector2I, Vector2I)>();
-		for (int x = 0; x < roomMap.Width; x++)
-		{
-			for (int z = 0; z < roomMap.Height; z++)
-			{
-				if (!roomMap.IsConnector(x, z))
-				{
-					continue;
-				}
-				foreach (var direction in roomMap.GetConnectorDirections(x, z))
-				{
-					connectors.Add((new Vector2I(x, z), direction));
-				}
-			}
-		}
-
-		return connectors;
-	}
-
-	/// <summary>
-	/// Resets the map to its initial state (empty interior, wall border) and re-stamps
-	/// the remaining rooms. Used when a placed room is rolled back for the exit.
-	/// </summary>
-	private static void RestampAll(MapData map, List<RoomPlacement> rooms)
-	{
-		map.ResetToBorderedEmpty();
-		foreach (var placed in rooms)
-		{
-			StampRoom(map, placed.Room.Map, placed.Position);
-		}
-	}
-
-	private static Vector2 PlacementCenter(RoomPlacement placement)
-	{
-		return RectCenter(placement.Position, placement.Room.Map);
-	}
-
-	private static Vector2 RectCenter(Vector2I placement, MapData roomMap)
-	{
-		return new Vector2(placement.X + roomMap.Width / 2f, placement.Y + roomMap.Height / 2f);
 	}
 }

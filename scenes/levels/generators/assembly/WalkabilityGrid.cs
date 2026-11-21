@@ -14,11 +14,11 @@ public sealed class WalkabilityGrid
 {
 	private readonly ClearanceGrid _clearance;
 
-	public WalkabilityGrid(Rect2 bounds, float actorRadius)
+	public WalkabilityGrid(Rect2 bounds, float actorRadius, float maxClearance = 0f)
 	{
 		ActorRadius = actorRadius;
-		// Room past the actor radius never matters here, so samples only measure solids that close.
-		_clearance = new ClearanceGrid(bounds, actorRadius);
+		// Room past the actor radius only needs measuring when a large encounter requires extra clearance.
+		_clearance = new ClearanceGrid(bounds, Mathf.Max(actorRadius, maxClearance));
 	}
 
 	public float CellSize => _clearance.CellSize;
@@ -84,4 +84,18 @@ public sealed class WalkabilityGrid
 	/// <summary>Snapshot for transactional placement; floor never changes after setup.</summary>
 	public float[] Save() => _clearance.Save();
 	public void Restore(float[] state) => _clearance.Restore(state);
+	public ClearanceGrid.RegionSnapshot SaveRegion(Rect2 worldArea) => _clearance.SaveRegion(worldArea);
+	public void RestoreRegion(ClearanceGrid.RegionSnapshot snapshot) => _clearance.RestoreRegion(snapshot);
+
+	public float ClearanceAt(Vector2I cell) => _clearance.ClearanceAt(cell);
+
+	public bool HasClearance(float minClearance, IEnumerable<Vector2> starts)
+	{
+		var reached = Reachable(starts);
+		for (int i = 0; i < reached.Length; i++)
+		{
+			if (reached[i] && _clearance.ClearanceAt(_clearance.CellOf(i)) >= minClearance) return true;
+		}
+		return false;
+	}
 }

@@ -14,8 +14,11 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	public float TileCenterAlong(int index) => (index + 0.5f) * Room.TileSize;
 	/// <summary>The run's start on the wall line (the tile edge), at its first tile's outer corner.</summary>
 	public Vector3 LineStart => RoomFootprint.TileCenter(Start) - Inward * (Room.TileSize / 2f) - Tangent * (Room.TileSize / 2f);
-	/// <summary>Extracts ordered contiguous runs from room or corridor wall edges.</summary>
-	public static IEnumerable<WallRun> Find(IEnumerable<Vector2I> tiles, Func<Vector2I, Vector2I, bool> hasWall)
+	/// <summary>Extracts ordered contiguous runs from room or corridor wall edges, optionally breaking at sealed perpendicular edges.</summary>
+	public static IEnumerable<WallRun> Find(
+		IEnumerable<Vector2I> tiles,
+		Func<Vector2I, Vector2I, bool> hasWall,
+		Func<Vector2I, Vector2I, bool> canStep = null)
 	{
 		foreach (var outward in new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left })
 		{
@@ -23,9 +26,16 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 			var edges = tiles.Where(tile => hasWall(tile, outward)).ToHashSet();
 			foreach (var first in edges.OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray())
 			{
-				if (!edges.Contains(first) || edges.Contains(first - along)) continue;
-				int length = 0;
-				while (edges.Remove(first + along * length)) length++;
+				if (!edges.Contains(first)) continue;
+				if (edges.Contains(first - along) && (canStep == null || canStep(first - along, along))) continue;
+				edges.Remove(first);
+				var current = first;
+				int length = 1;
+				while ((canStep == null || canStep(current, along)) && edges.Remove(current + along))
+				{
+					current += along;
+					length++;
+				}
 				yield return new(first, along, outward, length);
 			}
 		}
@@ -62,7 +72,7 @@ public sealed class RoomBlueprint
 	private readonly Dictionary<object, object> _memo = [];
 	private WallRun[] _wallRuns;
 
-	public RoomBlueprint(Room room, RoomType type, RoomFootprint footprint, IReadOnlyList<RoomDoorway> doorways, ulong seed, float actorRadius)
+	public RoomBlueprint(Room room, RoomType type, RoomFootprint footprint, IReadOnlyList<RoomDoorway> doorways, ulong seed, float actorRadius, float maxClearance = 0f)
 	{
 		Room = room;
 		Type = type;
@@ -73,7 +83,7 @@ public sealed class RoomBlueprint
 		float half = Room.TileSize / 2f;
 		Interior = new Rect2(-half, -half, footprint.Width * Room.TileSize, footprint.Length * Room.TileSize);
 		// One spare tile around the room keeps doorway thresholds and outer walls inside the grid.
-		Grid = new WalkabilityGrid(Interior.Grow(Room.TileSize), actorRadius);
+		Grid = new WalkabilityGrid(Interior.Grow(Room.TileSize), actorRadius, maxClearance);
 	}
 
 	public Room Room { get; }
@@ -175,6 +185,10 @@ public sealed class RoomBlueprint
 
 	/// <summary>Every doorway can reach every other one.</summary>
 	public bool IsConnected => Grid.AreConnected(Doorways.Select(doorway => XZ(doorway.Approach)).ToArray());
+
+	/// <summary>True when at least one reachable cell offers <paramref name="minClearance"/> distance from every solid obstacle.</summary>
+	public bool HasClearance(float minClearance) =>
+		Grid.HasClearance(minClearance, Doorways.Select(doorway => XZ(doorway.Approach)).Take(1));
 
 	/// <summary>
 	/// Doorways stay connected, stair landings stay reachable from them, and inaccessible pockets stay within the room

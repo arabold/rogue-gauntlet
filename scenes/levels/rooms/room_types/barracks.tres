@@ -15,7 +15,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/pillar.tres" id="13_pillar"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/pillar_ornate.tres" id="14_pillar_ornat"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="15_AlongWallsSt"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/bed_cluster.tres" id="16_bed_cluster"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/bed_cluster.tres" id="16_bed_cluster"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bedroll.tres" id="17_bedroll"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="18_CornersStep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/trunk.tres" id="19_trunk"]
@@ -43,7 +43,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="41_CenterStep"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/guard_table.tres" id="42_guard_table"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/guard_table.tres" id="42_guard_table"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")

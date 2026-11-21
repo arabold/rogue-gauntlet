@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -33,6 +34,8 @@ public partial class WallStyle : Resource
 	/// <summary>Occasional feature pieces by weight; decorations never hang on them.</summary>
 	[Export] public Godot.Collections.Dictionary<string, float> Accents { get; set; } = [];
 	[Export(PropertyHint.Range, "0,1,0.01")] public float AccentChance { get; set; }
+	/// <summary>Straight pieces (such as breached walls) replaced with <c>"wall"</c> on two-sided corridor partitions.</summary>
+	[Export] public string[] ExteriorOnly { get; set; } = [];
 
 	public virtual string[] Validate()
 	{
@@ -40,7 +43,8 @@ public partial class WallStyle : Resource
 		if (string.IsNullOrWhiteSpace(Id) || Library == null || Straight.Count == 0)
 			return [$"Wall style {Id}: assign an ID, the wall library and straight pieces."];
 		var names = Straight.Keys.Concat(Accents.Keys)
-			.Concat(["wall", "wall_half", "wall_junction_short", "wall_corner", "wall_Tsplit", "wall_crossing"]);
+			.Concat(["wall", "wall_half", "wall_junction_short", "wall_corner", "wall_Tsplit", "wall_crossing"])
+			.Concat(ExteriorOnly ?? []);
 		if (PillarEvery > 0) names = names.Append(Pillar);
 		if (!string.IsNullOrEmpty(Opening)) names = names.Append(Opening);
 		errors.AddRange(names.Where(name => Library.FindItemByName(name) < 0).Select(name => $"Wall style {Id}: '{name}' is not in the wall library."));
@@ -68,15 +72,19 @@ public partial class WallStyle : Resource
 		}
 		var footprint = room.Footprint;
 		var grid = room.Room.WallGridMap;
+		var itemIds = new Dictionary<string, int>();
+		int FindItem(string name) => itemIds.TryGetValue(name, out int id) ? id : itemIds[name] = Library.FindItemByName(name);
+		string fallback = Straight.Keys.First();
 		if (!BoundaryWallBuilder.Build(
 			grid,
 			footprint.Tiles.Select(tile => (tile, (Vector3I)RoomFootprint.TileCenter(tile))),
 			(tile, dx, dz) => !footprint.IsFloor(tile + new Vector2I(dx, dz)) && !room.IsDoorway(tile, new Vector2I(dx, dz)),
-			position => Library.FindItemByName(pieces.TryGetValue(position, out var piece) ? piece.Item : Straight.Keys.First()),
+			(position, _) => FindItem(pieces.TryGetValue(position, out var piece) ? piece.Item : fallback),
 			framedEdges: room.Room.FramedEdges)) return false;
+		var measureCache = new Dictionary<int, (Aabb Bounds, string Name)>();
 		foreach (var (cell, piece) in pieces)
 		{
-			var edge = WallFootprints.MeasureEdge(grid, cell, -piece.Outward, Room.TileSize);
+			var edge = WallFootprints.MeasureEdge(grid, cell, -piece.Outward, Room.TileSize, measureCache);
 			room.SetWall(piece.Tile, piece.Outward, edge.Depth, IsPlain(edge.Item));
 		}
 		return true;
@@ -92,14 +100,16 @@ public partial class WallStyle : Resource
 
 	/// <summary>
 	/// One wall edge: an accent at <see cref="AccentChance"/>, else a straight piece. Both are drawn for every edge so a
-	/// style change never reshuffles the rest of a run.
+	/// style change never reshuffles the rest of a run. When <paramref name="partitionOnly"/> is true (a two-sided wall
+	/// separating walkable corridors), accents and breached straight pieces are suppressed for an opaque symmetric wall.
 	/// </summary>
-	public string DrawEdge(RandomNumberGenerator rng)
+	public string DrawEdge(RandomNumberGenerator rng, bool partitionOnly = false)
 	{
 		bool accent = rng.Randf() < AccentChance && Accents.Count > 0;
 		string straight = Weighted.Pick(Straight, rng);
 		string accentItem = Accents.Count > 0 ? Weighted.Pick(Accents, rng) : null;
-		return accent ? accentItem : straight;
+		if (!partitionOnly) return accent ? accentItem : straight;
+		return ExteriorOnly != null && Array.IndexOf(ExteriorOnly, straight) >= 0 ? "wall" : straight;
 	}
 
 	protected static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>

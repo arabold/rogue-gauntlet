@@ -37,7 +37,7 @@ public class RoomGenerationHarnessTest
 			harness.SelectRealm(realm);
 			await runner.SimulateFrames(1, 20);
 			AssertString(harness.LastError).OverrideFailureMessage($"{harness.Realm.Id}: {harness.LastError}").IsEmpty();
-			AssertObject(harness.PreviewRoom.Type).IsSame(harness.Factory.RoomTypes[0]);
+			AssertObject(harness.PreviewRoom.Type).IsSame(harness.Pool.Rooms[0]);
 		}
 	}
 
@@ -102,7 +102,35 @@ public class RoomGenerationHarnessTest
 		AssertString(harness.LastError).IsEmpty();
 		AssertBool(harness.PreviewRoot.Visible).IsTrue();
 		AssertBool(harness.Generator.Visible).IsFalse();
+
+		// Switch through every floor profile and verify each floor preview generates and connects cleanly.
+		AssertInt(harness.Profiles.Count).IsGreaterEqual(4);
+		harness.Mode = RoomPreviewMode.Floor;
+		for (int p = 0; p < harness.Profiles.Count; p++)
+		{
+			harness.SelectProfile(p);
+			harness.Regenerate();
+			await runner.SimulateFrames(1, 20);
+			AssertString(harness.LastError).OverrideFailureMessage($"profile {harness.Profiles[p].Path}: {harness.LastError}").IsEmpty();
+			AssertArray(TestFactories.ConnectivityFailures(harness.Generator).ToArray()).IsEmpty();
+		}
+
+		harness.Mode = RoomPreviewMode.Room;
+		int groupIdx = -1;
+		for (int i = 0; i < harness.Recipes.Count; i++)
+		{
+			if (harness.Recipes[i] is RoomGroup)
+			{
+				groupIdx = i;
+				break;
+			}
+		}
+		AssertInt(groupIdx).IsGreaterEqual(0);
+		harness.SelectRecipe(groupIdx);
+		harness.Regenerate();
 		await runner.SimulateFrames(1, 20);
+		AssertString(harness.LastError).IsEmpty();
+		AssertObject(harness.PreviewRoom).IsNotNull();
 	}
 
 	private static string Props(Room room) => string.Join("|", room.GetNode("Props").GetChildren().OfType<Node3D>()

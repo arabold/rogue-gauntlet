@@ -45,9 +45,10 @@ public partial class MapGenerator
 		keeper.Shop.Id = placement.Id;
 		Vector3 landing = Floor.Arrival.LandingPosition;
 		string persistentId = $"depth:{DungeonDepth}:shop:{placement.Id}";
+		var doorClearances = DoorClearances();
 		foreach (Vector3 point in KeeperSpots(placement, placedPoints))
 		{
-			if (!TryPlaceSolidProp(keeper, point, FacingYaw(point, landing), persistentId)) continue;
+			if (!TryPlaceSolidProp(keeper, point, FacingYaw(point, landing), persistentId, doorClearances)) continue;
 			Floor.AddShop(keeper.Shop, point);
 			return point;
 		}

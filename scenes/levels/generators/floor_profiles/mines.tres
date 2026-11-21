@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/SparseRoomLayout.cs" id="layout"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/MineCorridorConnector.cs" id="connector"]
+[ext_resource type="Resource" path="res://scenes/levels/access/floor_access_profiles/rare_lock.tres" id="access"]
+
+[sub_resource type="Resource" id="SparseRoomLayout"]
+script = ExtResource("layout")
+MinDedicatedRooms = 4
+MaxDedicatedRooms = 6
+MinRoomGap = 4
+MinExitDistance = 20
+
+[sub_resource type="Resource" id="MineCorridorConnector"]
+script = ExtResource("connector")
+
+[resource]
+script = ExtResource("profile")
+Layout = SubResource("SparseRoomLayout")
+Connector = SubResource("MineCorridorConnector")
+Access = ExtResource("access")
+RoomCount = 8
+MapSize = Vector2i(40, 40)
+DeadEndLootWeight = 3.0

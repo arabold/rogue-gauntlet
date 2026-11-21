@@ -17,6 +17,18 @@ public class RoomRegion
 	/// <summary>Connector tiles where corridors leave the room.</summary>
 	public List<Vector2I> ConnectorTiles { get; } = new();
 
+	/// <summary>Logical floor role copied from a <see cref="RoomGroupMember"/> or layout slot (e.g., "entrance", "boss", "exit").</summary>
+	public string SlotId { get; set; } = "";
+
+	/// <summary>When true, layout and lock passes treat this room as a required progression choke point.</summary>
+	public bool MustTraverse { get; set; } = false;
+
+	/// <summary>When true, excludes this region's doors from random floor lock/secret assignment.</summary>
+	public bool ReserveAccess { get; set; } = false;
+
+	/// <summary>Placed cluster index connecting all members of one <see cref="RoomCluster"/>; -1 if unassigned.</summary>
+	public int ClusterId { get; set; } = -1;
+
 	public RoomRegion(int id)
 	{
 		Id = id;

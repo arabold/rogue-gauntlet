@@ -138,6 +138,9 @@ public sealed class ClearanceGrid
 		IsFrozen = true;
 	}
 
+	/// <summary>Bounded sample snapshot for localized transactional probes without cloning the whole grid.</summary>
+	public readonly record struct RegionSnapshot(int Left, int Top, int Width, int Height, float[] Values);
+
 	/// <summary>Sample snapshot for transactional edits; floor and gates are not part of it.</summary>
 	public float[] Save()
 	{
@@ -150,6 +153,44 @@ public sealed class ClearanceGrid
 		RequireLive();
 		Array.Copy(state, _sample, _sample.Length);
 		MarkStale(Vector2I.Zero, Size - Vector2I.One);
+	}
+
+	/// <summary>Captures only the lattice samples an obstacle in <paramref name="worldArea"/> can affect.</summary>
+	public RegionSnapshot SaveRegion(Rect2 worldArea)
+	{
+		RequireLive();
+		var grown = worldArea.Grow(MaxClearance);
+		float spacing = CellSize / 2;
+		int left = Math.Max(0, Mathf.FloorToInt((grown.Position.X - _origin.X) / spacing));
+		int right = Math.Min(_samples.X - 1, Mathf.CeilToInt((grown.End.X - _origin.X) / spacing));
+		int top = Math.Max(0, Mathf.FloorToInt((grown.Position.Y - _origin.Y) / spacing));
+		int bottom = Math.Min(_samples.Y - 1, Mathf.CeilToInt((grown.End.Y - _origin.Y) / spacing));
+		if (left > right || top > bottom) return new RegionSnapshot(0, 0, 0, 0, []);
+
+		int width = right - left + 1;
+		int height = bottom - top + 1;
+		var values = new float[width * height];
+		for (int row = 0; row < height; row++)
+		{
+			Array.Copy(_sample, (top + row) * _samples.X + left, values, row * width, width);
+		}
+		return new RegionSnapshot(left, top, width, height, values);
+	}
+
+	/// <summary>Restores a snapshot previously taken by <see cref="SaveRegion"/>.</summary>
+	public void RestoreRegion(RegionSnapshot snapshot)
+	{
+		RequireLive();
+		if (snapshot.Width <= 0 || snapshot.Height <= 0) return;
+		for (int row = 0; row < snapshot.Height; row++)
+		{
+			Array.Copy(snapshot.Values, row * snapshot.Width, _sample, (snapshot.Top + row) * _samples.X + snapshot.Left, snapshot.Width);
+		}
+		int right = snapshot.Left + snapshot.Width - 1;
+		int bottom = snapshot.Top + snapshot.Height - 1;
+		MarkStale(
+			new(Math.Max(0, (snapshot.Left - 1) / 2), Math.Max(0, (snapshot.Top - 1) / 2)),
+			new(Math.Min(Size.X - 1, right / 2), Math.Min(Size.Y - 1, bottom / 2)));
 	}
 
 	/// <summary>Clearance at the cell's roomiest sample, capped at <see cref="MaxClearance"/>; 0 off the floor.</summary>
