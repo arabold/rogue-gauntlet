@@ -1,6 +1,6 @@
 # Shops
 
-The Quartermaster stands near the arrival stairs on the Garrison's gatekeeper floor (Depth 3). The keeper uses the existing unhooded Rogue model and Ranger Coat. A head-sized gold **!** floats above the keeper and pulses with a stretch and squash. Its toon shading, black outline and wide gap keep the stem and dot distinct. In range and focused, it gives way to **Trade**. Hold **E** or gamepad Interact for half a second to open the trade in the run menu, which pauses the game.
+The Quartermaster stands near the arrival stairs on the Garrison's gatekeeper floor (Depth 3). The keeper uses the existing unhooded Rogue model and Ranger Coat. A head-sized gold **!** floats above the keeper, the mark of an NPC the hero can interact with, and pulses with a stretch and squash. Its toon shading, black outline and wide gap keep the stem and dot distinct, and it turns to face the camera however the keeper stands. In range and focused, it gives way to **Trade**. Hold **E** or gamepad Interact for half a second to open the trade in the run menu, which pauses the game.
 
 ## Placement
 
@@ -31,11 +31,13 @@ Potions and scrolls use the same display names, models and knowledge checks as t
 
 Every item's `Value` is its price once the hero knows what it is; that is the only price scale, so a new item is priced where it is authored. Until then, the shared `ShopPricingProfile` prices an unidentified item by what the hero sees: its identity category and appearance form (`potion:small`, `scroll`), else a flat fallback. Equipment uses its base value, visible quality and revealed affixes. Hidden attributes never change a price.
 
-The Quartermaster buys unequipped weapons, armor, potions and scrolls at **20%** of the current retail value, rounded down per unit. Sales leave the shelf as it was. When tuning a merchant, check price changes against the resale spread so that learning a potion or scroll cannot make a purchase profitable on its own. Shop gold is not yet part of the [balance model](specs/balance-model.md).
+The Quartermaster buys unequipped weapons, armor, potions and scrolls at **20%** of the current retail value, rounded down per unit. Sales leave the shelf as it was. When tuning a merchant, check price changes against the resale spread so that learning a potion or scroll cannot make a purchase profitable on its own.
+
+A shop's effect is bounded by its stock, so the [balance model](specs/balance-model.md#shops) does not simulate gold; it compares the gold a hero gathers before the Quartermaster with the shelf's price instead.
 
 ## Authoring a shop
 
-- Instance or inherit the [Quartermaster scene](../scenes/shops/quartermaster.tscn) and assign the keeper's character scene, outfit, idle animation and interaction prompt in the Inspector. Keep its solid `Body` on the props layer and the root in the `prop` group.
+- Instance or inherit the [Quartermaster scene](../scenes/shops/quartermaster.tscn) and assign the keeper's character scene, outfit, idle animation and interaction prompt in the Inspector. Keep its solid `Body` on the props layer and the root in the `prop` group. The **!** is the shared [interaction marker](../scenes/components/interaction_marker.tscn), which any `InteractiveComponent` can show as its `IdleMarker`; its `UprightBillboard3D` keeps it facing the camera.
 - Assign a `ShopProfile` to the `ShopComponent`. Configure the display name, accepted goods, guaranteed allocations, item creation policy and pricing. Each allocation references a weighted `LootPool` with optional depth and tier filters. Reuse the shared `ShopPricingProfile` to keep valuation consistent across merchants, and price new items through their `Value`. Generation rejects a profile that fails `ShopProfile.Validate()`, such as one whose creation policy rolls curses or tainted food.
 - Add a `ShopPlacementProfile` to the realm's `Shops`. Set a stable ID, the realm floor index, the keeper scene and the preferred distance from the arrival. Keep each ID unique within its realm and each stock ID unique within its profile.
 

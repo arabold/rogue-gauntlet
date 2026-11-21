@@ -63,7 +63,7 @@ Player spells and monster magic share `SpellDefinition`, spell/effect implementa
 
 ## Quick-item assignment and use
 
-A successful pickup automatically assigns an eligible consumable to the lowest-numbered **unassigned** quick slot if it is not already represented. Run this after inventory acquisition/stack merging succeeds, using the owned item/variety, never the disappearing world pickup. Failed pickups and an already-full quick bar do not change assignments or prevent inventory acquisition. Equipment, keys, tools, currency and non-consumable IPlayerAction implementations are not automatically eligible merely because they have a use method.
+A successful pickup or purchase automatically assigns an eligible consumable to the lowest-numbered **unassigned** quick slot if it is not already represented. Run this after inventory acquisition/stack merging succeeds, using the owned item/variety, never the disappearing world pickup. Failed pickups and an already-full quick bar do not change assignments or prevent inventory acquisition. Equipment, keys, tools, currency and non-consumable IPlayerAction implementations are not automatically eligible merely because they have a use method.
 
 Manual assignment, clearing and rearrangement remain available through inventory UI. Automatic assignment never overwrites an assigned slot, including one whose item is currently depleted. For stackable interchangeable potions/scrolls, bind the item variety and show total owned quantity across compatible stacks. An existing variety binding replenishes its count on pickup rather than taking another slot. Count zero keeps a visible depleted/reserved binding until explicitly cleared; it is not an unassigned slot. Auto-assignment does not create duplicate variety bindings.
 

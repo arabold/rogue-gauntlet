@@ -40,9 +40,9 @@ These are initial recipe targets, not claims that new room scenes already exist:
 | --- | --- | --- | --- |
 | 1: Garrison approach | Entrance, barracks, descent | Mess hall, storage, armory | Find the descent; a barracks traversal constraint is available when deliberately authored |
 | 2: Prison wing | Entrance, cell block, nest chamber, descent | Pickable cells, guard quarters, reward branches | Reach descent; nests create pressure without automatically becoming mandatory kills |
-| 3: Warden's domain | Entrance, Warden's hall, descent | Supplies, elite/reward branch | Defeat the Warden to remove the stair seal |
+| 3: Warden's domain | Entrance, Warden's hall, descent | Quartermaster near the arrival, supplies, elite/reward branch | Defeat the Warden to remove the stair seal |
 
-First delivery reuses existing skeleton encounters and dungeon pieces. A recipe role such as Warden's hall can use an existing room as a placeholder. New monsters, new tile kits, merchants, and bespoke boss phases are not prerequisites.
+First delivery reuses existing skeleton encounters and dungeon pieces. A recipe role such as Warden's hall can use an existing room as a placeholder. New monsters, new tile kits, a dedicated shop room and bespoke boss phases are not prerequisites.
 
 ## Connections and doors
 

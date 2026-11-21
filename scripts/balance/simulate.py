@@ -646,7 +646,8 @@ GODOT = R.ROOT / ".agents/skills/godot-mcp/scripts/godot.sh"
 
 def report_supply(depths, seeds, samples, save=False):
     """
-    Runs the game's loot supply probe headless and compares healing, food and gear per floor with SUPPLY. With `save`,
+    Runs the game's loot supply probe headless and compares healing, food and gear per floor with SUPPLY, and reports the
+    gold a floor holds, which shop prices are checked against (shops are bounded by stock, not modeled). With `save`,
     writes the weapons each depth drops to `weapon_supply.json` (params.WEAPON_SUPPLY).
     """
     import subprocess
@@ -669,8 +670,8 @@ def report_supply(depths, seeds, samples, save=False):
         gear = ", ".join(f"{k.split(':')[1]} {v:.1f}" for k, v in sorted(items.items()) if k.startswith("gear:"))
         rows.append([depth, f"{items.get('monsters', 0):.1f}", f"{sum(potions.values()):.2f}", f"{M.healing_potions(int(depth)):.2f}",
                      f"{heal:.0%}", f"{M.healing_share(int(depth)):.0%}", f"{items.get('food', 0):.2f}",
-                     f"{s['food']:.2f}", gear])
-    table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gear"], rows)
+                     f"{s['food']:.2f}", f"{items.get('gold', 0):.0f}", gear])
+    table(["depth", "monsters", "healing potions", "model", "healing", "model", "food", "model", "gold", "gear"], rows)
 
 
 def weapon_supply(report: dict) -> dict:
