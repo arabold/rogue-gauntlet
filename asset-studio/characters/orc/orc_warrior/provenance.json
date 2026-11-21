@@ -1,0 +1,26 @@
+{
+  "kind": "image_to_3d_retopology",
+  "concept": {
+    "image": "reference.png",
+    "prompt": "reference.prompt.txt"
+  },
+  "turnaround": {
+    "image": "turnaround.png",
+    "prompt": "turnaround.prompt.txt",
+    "views": [
+      "turnaround/front.png",
+      "turnaround/left.png",
+      "turnaround/back.png",
+      "turnaround/right.png"
+    ]
+  },
+  "reconstruction": {
+    "service": "Tripo",
+    "model": "H3.1",
+    "model_version": "v3.1-20260211",
+    "seed": 1,
+    "textured": false,
+    "separate_parts": true
+  },
+  "authoring": "orc_warrior_rigged.blend: retopologized, palette-UV mapped, rigged and weighted in Blender on the KayKit-compatible skeleton with two rigid pauldron pivots; the existing axe is baked to the right-hand socket."
+}

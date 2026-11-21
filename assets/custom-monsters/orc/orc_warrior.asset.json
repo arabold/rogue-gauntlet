@@ -141,9 +141,32 @@
     "Walking_D_Skeletons"
   ],
   "scale": 1,
-  "source_inputs": "c0456a0ba2875c4b4154b7109d5a1e056b650d9ab13ae81935d63aaae15d094d",
+  "source_inputs": "e58e612f8a21cf312d8af0bbf0f83d40611bdcc9c9f12bb3b7c28958e9638b32",
   "gameplay": false,
   "provenance": {
-    "kind": "blender_source"
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "orc_warrior_rigged.blend: retopologized, palette-UV mapped, rigged and weighted in Blender on the KayKit-compatible skeleton with two rigid pauldron pivots; the existing axe is baked to the right-hand socket."
   }
 }

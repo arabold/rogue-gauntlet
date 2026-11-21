@@ -136,8 +136,10 @@ def validate(path,p):
 
 def build(character):
     folder=work_root()/ 'characters'/character.key;folder.mkdir(parents=True,exist_ok=True)
-    r=character.recipe();target=folder/'model.glb'
+    r=character.recipe();target=folder/'model.glb';provenance=Path(character.dir)/'provenance.json'
     if r['builder']=='blender_source':
+        # Hand-finished art keeps a record of what it was reconstructed or modeled from.
+        if not provenance.is_file():raise ValueError(f'{character.key}: record the Blender source origin in provenance.json')
         from core.blender import export_character
         export_character(local(character.dir,r['source']),target,{**r['blender'],'idle':r['roles']['Idle']})
     elif r['builder'] in {'golem','warden'}:
@@ -147,10 +149,9 @@ def build(character):
     p=profile(character);info=validate(target,p)
     if info['triangles']>r.get('triangle_budget',float('inf')):
         raise ValueError('Character exceeds its authored triangle budget')
-    provenance=Path(character.dir)/'provenance.json'
     info.update(key=character.key,rig=r['rig'],roles=p['clips'],loops=p['loops'],scale=r.get('scale',1),
                 source_inputs=signature(character),gameplay=False,
-                provenance=json.loads(provenance.read_text()) if provenance.exists() else {'kind':r['builder'] if r['builder']=='blender_source' else 'procedural_geometry'})
+                provenance=json.loads(provenance.read_text()) if provenance.exists() else {'kind':'procedural_geometry'})
     (folder/'asset.json').write_text(json.dumps(info,indent=2)+'\n')
     publication.stage_stamp(folder,info['source_inputs'])
     return folder

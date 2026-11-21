@@ -32,10 +32,15 @@ def export_character(job):
         if not any(mod.type == "ARMATURE" and mod.object == rig for mod in mesh.modifiers):
             raise ValueError(f"{mesh.name} must be skinned to {rig.name}")
         for material in mesh.data.materials:
-            for node in material.node_tree.nodes:
+            if material is None:
+                raise ValueError(f"{mesh.name} has an empty material slot")
+            for node in material.node_tree.nodes if material.node_tree else ():
                 if node.type == "TEX_IMAGE" and node.image and not node.image.packed_file:
                     raise ValueError(f"Pack {node.image.name} into the Blender source")
     for original, exported in job.get("image_names", {}).items():
+        # Blender would silently rename a clash to `name.001`, and Godot would extract it as a new texture file.
+        if exported != original and exported in bpy.data.images:
+            raise ValueError(f"Image name {exported} is already taken in the Blender source")
         bpy.data.images[original].name = exported
 
     animation = rig.animation_data

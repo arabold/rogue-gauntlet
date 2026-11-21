@@ -1,11 +1,11 @@
 {
   "key": "orc/orc_warrior",
-  "inputs": "c0456a0ba2875c4b4154b7109d5a1e056b650d9ab13ae81935d63aaae15d094d",
+  "inputs": "e58e612f8a21cf312d8af0bbf0f83d40611bdcc9c9f12bb3b7c28958e9638b32",
   "files": {
-    "model.glb": "713061efc90beb7c300f4c4fc593b6be0f6cc7919ca2983718cb8388c05c195d",
-    "lineup.png": "121a58af5c91314b7538004468922509edee2e7ccca836957c7679cb9f2426e4",
-    "lineup.gif": "dc9b31151ccdd997819a57141da37d965051e9749c3d24a063dd085e17d7bcc8",
-    "asset.json": "b144746b697c88af79823b2f3fbcee4c745c186846f5ba2db1e6536b656b6466"
+    "model.glb": "ebc3f5fafee66b196d098db4be9d733fea126df5411eacebc01d3b67cde69068",
+    "lineup.png": "9639501def7ab1098a912a1b2837ff3a6a9ca2e34260bf1af0828c22c897d848",
+    "lineup.gif": "6a0df57ab1ff46a506ce1e476666031979baece9689b38275b4bc8989db9294b",
+    "asset.json": "5a6923a538d30ee2925affeae3976c610006e63537b4d216c0db80010542c618"
   },
   "metadata": {
     "engine_import_verified": true
