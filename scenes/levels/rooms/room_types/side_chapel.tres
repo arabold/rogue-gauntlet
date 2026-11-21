@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=32 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="along"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/arched_walls.tres" id="arched"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="crypt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/pillared_walls.tres" id="pillared"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/mossy_walls.tres" id="mossy"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/decorated_floor.tres" id="decorated_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker_floor.tres" id="checker_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_floor.tres" id="bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="flagstones_ruined_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/altar.tres" id="altar"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/altar_shrine.tres" id="altar_shrine"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_corner.tres" id="candle_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_ring.tres" id="candle_ring"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candelabra.tres" id="candelabra"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/statue.tres" id="statue"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/bust.tres" id="bust"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_red.tres" id="tapestry_red"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_blue.tres" id="tapestry_blue"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_green.tres" id="tapestry_green"]
+
+[sub_resource type="Resource" id="RectangleShape_chapel"]
+script = ExtResource("rectangle")
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
+
+[sub_resource type="Resource" id="AlongWallsStep_altar"]
+script = ExtResource("along")
+Id = "altar"
+Content = [ExtResource("altar"), ExtResource("altar_shrine")]
+MinimumCount = 1
+MaximumCount = 1
+AvoidDoorwayWalls = true
+
+[sub_resource type="Resource" id="CornersStep_candles"]
+script = ExtResource("corners")
+Id = "candles"
+Content = [ExtResource("candle_pile"), ExtResource("candle_corner"), ExtResource("candle_ring"), ExtResource("candelabra")]
+MaximumCount = 3
+
+[sub_resource type="Resource" id="AlongWallsStep_statue"]
+script = ExtResource("along")
+Id = "statue"
+Content = [ExtResource("statue"), ExtResource("bust")]
+MaximumCount = 1
+Chance = 0.5
+
+[sub_resource type="Resource" id="WallDecorStep_hangings"]
+script = ExtResource("decor")
+Id = "hangings"
+Content = [ExtResource("sconce"), ExtResource("tapestry_red"), ExtResource("tapestry_blue"), ExtResource("tapestry_green")]
+MaximumCount = 2
+
+[resource]
+script = ExtResource("room_type")
+Id = "side_chapel"
+Realms = PackedStringArray("garrison", "sewer", "jungle")
+Weight = 3.0
+Shapes = [SubResource("RectangleShape_chapel")]
+MinimumFloorTiles = 9
+MinDoorways = 1
+MaxDoorways = 1
+DoorwayPlacement = 3
+Walls = [ExtResource("arched"), ExtResource("crypt"), ExtResource("pillared"), ExtResource("mossy")]
+Floors = [ExtResource("decorated_floor"), ExtResource("checker_floor"), ExtResource("flagstones_floor"), ExtResource("bricks_floor"), ExtResource("flagstones_ruined_floor")]
+Steps = [SubResource("AlongWallsStep_altar"), SubResource("CornersStep_candles"), SubResource("AlongWallsStep_statue"), SubResource("WallDecorStep_hangings")]

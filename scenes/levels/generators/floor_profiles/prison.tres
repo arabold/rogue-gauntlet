@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FloorProfile" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/levels/generators/layouts/HallwayRoomLayout.cs" id="layout"]
@@ -8,10 +8,11 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/prison.tres" id="prison_block"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/guardroom.tres" id="guardroom"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/storage.tres" id="storage"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/interrogation.tres" id="interrogation"]
 
 [sub_resource type="Resource" id="HallwayRoomLayout"]
 script = ExtResource("layout")
-SideRooms = [ExtResource("cell"), ExtResource("prison_block"), ExtResource("guardroom"), ExtResource("storage")]
+SideRooms = [ExtResource("cell"), ExtResource("prison_block"), ExtResource("interrogation"), ExtResource("guardroom"), ExtResource("storage")]
 
 [sub_resource type="Resource" id="AStarCorridorConnector"]
 script = ExtResource("connector")

@@ -19,12 +19,33 @@ public class RoomAssemblyTest
 	/// <summary>Assembles a "realm/room" case as that realm would.</summary>
 	private static RoomAssemblyOptions In(string name, int floor = RoomAssemblyOptions.Seeded) => new() { Realm = name.Split('/')[0], Floor = floor };
 
-	/// <summary>Every room type the pool assembles and every realm with its corridor tiles validate; validation recurses into their styles, steps and props.</summary>
+	/// <summary>
+	/// Rooms the floor plans name outside the room pool: the side rooms of hall plans and the centers of courtyard plans.
+	/// </summary>
+	private static IEnumerable<RoomType> PlanRooms(RoomPool pool)
+	{
+		var pooled = pool.AllDefinitions.ToHashSet();
+		return DebugCatalog.Resources<FloorProfile>($"{Levels}generators/floor_profiles")
+			.SelectMany(profile => profile.Resource.Layout switch
+			{
+				CourtyardRoomLayout courtyard => courtyard.SideRooms.Append(courtyard.Center),
+				HallRoomLayout hall => hall.SideRooms,
+				_ => [],
+			})
+			.OfType<RoomType>().Where(type => !pooled.Contains(type)).Distinct();
+	}
+
+	/// <summary>
+	/// Every room type the pool or a floor plan assembles and every realm with its corridor tiles validate; validation
+	/// recurses into their styles, steps and props.
+	/// </summary>
 	[TestCase]
 	public void EveryRoomAndRealmDefinitionValidates()
 	{
 		var pool = TestFactories.RoomPool();
-		var errors = pool.AllDefinitions.SelectMany(type => type.Validate()).ToList();
+		var planRooms = PlanRooms(pool).ToArray();
+		AssertArray(planRooms).OverrideFailureMessage("no floor plan names rooms outside the pool").IsNotEmpty();
+		var errors = pool.AllDefinitions.Concat(planRooms).SelectMany(type => type.Validate()).ToList();
 		foreach (string id in new[] { "garrison", "sewer", "jungle" })
 		{
 			var realm = TestFactories.Load<Realm>($"{Levels}realms/{id}.tres");
@@ -86,13 +107,16 @@ public class RoomAssemblyTest
 	[TestCase("jungle")]
 	public void EveryRoomTheRealmAssemblesKeepsItsContracts(string realm)
 	{
-		var realmPool = TestFactories.RoomPool().ForRealm(realm);
-		var slots = realmPool.Rooms.OfType<RoomType>().Select(type => (type, Stairs: StairKind.None))
-			.Concat(realmPool.Entrances.OfType<RoomType>().Select(type => (type, Stairs: StairKind.Up)))
-			.Concat(realmPool.Exits.OfType<RoomType>().Select(type => (type, Stairs: StairKind.Down)));
+		var pool = TestFactories.RoomPool();
+		var realmPool = pool.ForRealm(realm);
+		// Floor-plan rooms keep the same contracts but stay out of the realm's size mix, which describes its pool.
+		var slots = realmPool.Rooms.OfType<RoomType>().Select(type => (type, Stairs: StairKind.None, Planned: false))
+			.Concat(realmPool.Entrances.OfType<RoomType>().Select(type => (type, Stairs: StairKind.Up, Planned: false)))
+			.Concat(realmPool.Exits.OfType<RoomType>().Select(type => (type, Stairs: StairKind.Down, Planned: false)))
+			.Concat(PlanRooms(pool).Where(type => type.SupportsRealm(realm)).Select(type => (type, Stairs: StairKind.None, Planned: true)));
 		var rotation = new List<string>();
 		int rotatedDoors = 0, small = 0, medium = 0, large = 0;
-		foreach (var (type, stairs) in slots)
+		foreach (var (type, stairs, planned) in slots)
 		{
 			int floors = type.FloorsIn(realm).Length;
 			// Cycle the floor styles (they never move furniture) so each one tiles some room of the type.
@@ -109,9 +133,12 @@ public class RoomAssemblyTest
 					AssertString(WallFootprints.FindOverlap(blueprint.Room.WallGridMap)).OverrideFailureMessage($"{label}: walls overlap").IsEmpty();
 					AssertString(FloorCoverage(blueprint)).OverrideFailureMessage($"{label} floor {blueprint.Floor.Id}").IsEmpty();
 					if (stairs != StairKind.None) AssertStairs(blueprint, stairs, label);
-					else if (blueprint.Footprint.Count <= 9) small++;
-					else if (blueprint.Footprint.Count <= 16) medium++;
-					else large++;
+					else if (!planned)
+					{
+						if (blueprint.Footprint.Count <= 9) small++;
+						else if (blueprint.Footprint.Count <= 16) medium++;
+						else large++;
+					}
 					if (seed > 1) continue;
 					var again = RoomAssembler.Build(type, seed * 7919, options);
 					try { AssertString(Signature(again)).OverrideFailureMessage($"{label}: not reproducible").IsEqual(Signature(blueprint)); }
