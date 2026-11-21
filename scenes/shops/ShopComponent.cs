@@ -54,7 +54,7 @@ public partial class ShopComponent : Node
 		{
 			string source = $"depth:{depth}:shop:{Id}:{stock.Id}";
 			using var rng = _level.CreateSourceLootRng(source);
-			var drawn = stock.Pool.Draw(depth, stock.Quantity, stock.DistinctItems, rng, Profile.CanStock);
+			var drawn = stock.Pool.Draw(depth, stock.Quantity, stock.DistinctItems, rng, ShopProfile.CanStock);
 			for (int i = 0; i < drawn.Count; i++)
 			{
 				var item = ItemFactory.Create(drawn[i], Profile.CreationPolicy, depth, rng, $"{source}:{i}");

@@ -23,7 +23,6 @@ public partial class ShopPricingProfile : Resource
 	[Export] public Godot.Collections.Dictionary<StatType, float> AffixUnitPrices { get; set; } = new();
 	[Export(PropertyHint.Range, "0,100,0.1,or_greater")] public float DefaultAffixUnitPrice { get; set; } = 1f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float MaxAffixPremium { get; set; } = .5f;
-	[Export(PropertyHint.Range, "0,1,0.01")] public float KnownCurseMultiplier { get; set; } = .5f;
 
 	[ExportGroup("Resale")]
 	[Export(PropertyHint.Range, "0,100,1,suffix:%")] public int ResalePercent { get; set; } = 20;
@@ -37,7 +36,6 @@ public partial class ShopPricingProfile : Resource
 			double premium = known && gear.AttributesKnown ? Math.Min(value * MaxAffixPremium, AffixPremium(gear)) : 0;
 			float multiplier = QualityMultipliers.TryGetValue(gear.Quality, out float configured) ? configured : 1f;
 			value = value * multiplier + premium;
-			if (gear.CurseStatusKnown && gear.IsCursed) value *= KnownCurseMultiplier;
 		}
 		return (int)Math.Clamp(Math.Round(value, MidpointRounding.AwayFromZero), 1, int.MaxValue);
 	}

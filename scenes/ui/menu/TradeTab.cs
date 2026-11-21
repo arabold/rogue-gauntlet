@@ -82,17 +82,10 @@ public abstract partial class TradeTab : ItemGridTab
 		Describe();
 	}
 
-	/// <summary>Adds what the shelf promises to the item's name; the shelf's own tab tells fresh food apart.</summary>
-	protected virtual string Qualify(Item item, string name) => name;
-
 	protected override void Describe()
 	{
 		(One, Stack) = Selected != null ? Quote(Selected.GetIndex()) : default;
 		base.Describe();
-		if (Selected?.Slot?.Item is { } item)
-		{
-			NameLabel.Text = Qualify(item, NameLabel.Text);
-		}
 		PriceLabel.Text = One.Describe();
 		EmitSignalPromptsChanged();
 	}

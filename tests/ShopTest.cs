@@ -211,7 +211,7 @@ public class ShopTest
 
 	/// <summary>
 	/// An unknown type's price depends only on what the hero sees, the same for every potion of one bottle size; a known
-	/// type is worth its item's value. Gear's hidden attributes and curse count only once revealed.
+	/// type is worth its item's value. Gear's hidden attributes count only once revealed, and a hidden curse never does.
 	/// </summary>
 	[TestCase]
 	public void PricesUseOnlyRevealedProperties()
@@ -242,8 +242,6 @@ public class ShopTest
 		AssertInt(pricing.RetailPrice(sword, run.Identification)).IsEqual(unknownGear);
 		sword.RevealAttributes();
 		AssertInt(pricing.RetailPrice(sword, run.Identification)).IsGreater(unknownGear);
-		sword.RevealCurseStatus();
-		AssertInt(pricing.RetailPrice(sword, run.Identification)).IsLess(unknownGear);
 	}
 
 	private static Player FindPlayer(Level level) => (Player)level.GetTree().GetFirstNodeInGroup("player");

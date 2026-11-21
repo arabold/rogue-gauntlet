@@ -16,7 +16,7 @@ A keeper's trade opens the [run menu](user-interface.md) on its **Buy** and **Se
 
 | Offer | Opening quantity | Selection |
 | --- | ---: | --- |
-| Fresh food | 2 individual loaves | The existing bread definition with contamination disabled for this source. Both are explicitly sold as fresh. |
+| Food | 2 individual loaves | The existing bread definition. The shop's creation policy never taints it. |
 | Small potions | 2 single bottles | Draw two different types from healing and beneficial attribute potions, weighted toward healing. |
 | Scroll | 1 | Draw from Identify, Protection and Remove Curse. |
 | Tool | 1 | A lockpick. It opens optional opportunities under the existing door rules. |
@@ -25,18 +25,18 @@ A keeper's trade opens the [run menu](user-interface.md) on its **Buy** and **Se
 
 Equipment comes from the local tier band, capped at Superior quality for this shop, with its rolled stats shown and marked uncursed. Each category rolls independently from authored counts and depth eligibility, so adding equipment varieties cannot crowd out supplies. Each purchase reduces the remaining quantity for the run. The hero's level and return visits do not affect stock. See the [item catalog](item-catalog.md) and [itemization rules](stats-and-itemization.md).
 
-Potions and scrolls use the same display names, models and knowledge checks as the Pack. A purchased item keeps its normal run appearance and only displays its true name if that run has learned the type through the existing rules. The shop communicates that it stocks beneficial supplies. Within that selection, price, order, copy and previews disclose only what the hero already knows or can see, such as bottle size. The Quartermaster's creation policy keeps food fresh and gear uncursed. See [item identification](item-identification-system.md).
+Potions and scrolls use the same display names, models and knowledge checks as the Pack. A purchased item keeps its normal run appearance and only displays its true name if that run has learned the type through the existing rules. The shop communicates that it stocks beneficial supplies. Within that selection, price, order, copy and previews disclose only what the hero already knows or can see, such as bottle size. Merchants are reputable: they sell neither cursed gear nor tainted food, and buy no gear known to be cursed. See [item identification](item-identification-system.md).
 
 ## Prices
 
-Every item's `Value` is its price once the hero knows what it is; that is the only price scale, so a new item is priced where it is authored. Until then, the shared `ShopPricingProfile` prices an unidentified item by what the hero sees: its identity category and appearance form (`potion:small`, `scroll`), else a flat fallback. Equipment uses its base value, visible quality and revealed affixes. Known curses discount the price when the merchant accepts them. Hidden attributes and curses never change a price.
+Every item's `Value` is its price once the hero knows what it is; that is the only price scale, so a new item is priced where it is authored. Until then, the shared `ShopPricingProfile` prices an unidentified item by what the hero sees: its identity category and appearance form (`potion:small`, `scroll`), else a flat fallback. Equipment uses its base value, visible quality and revealed affixes. Hidden attributes never change a price.
 
 The Quartermaster buys unequipped weapons, armor, potions and scrolls at **20%** of the current retail value, rounded down per unit. Sales leave the shelf as it was. When tuning a merchant, check price changes against the resale spread so that learning a potion or scroll cannot make a purchase profitable on its own. Shop gold is not yet part of the [balance model](specs/balance-model.md).
 
 ## Authoring a shop
 
 - Instance or inherit the [Quartermaster scene](../scenes/shops/quartermaster.tscn) and assign the keeper's character scene, outfit, idle animation and interaction prompt in the Inspector. Keep its solid `Body` on the props layer and the root in the `prop` group.
-- Assign a `ShopProfile` to the `ShopComponent`. Configure the display name, accepted goods, guaranteed allocations, item creation policy and pricing. Each allocation references a weighted `LootPool` with optional depth and tier filters. Reuse the shared `ShopPricingProfile` to keep valuation consistent across merchants, and price new items through their `Value`. Generation rejects a profile that fails `ShopProfile.Validate()`.
+- Assign a `ShopProfile` to the `ShopComponent`. Configure the display name, accepted goods, guaranteed allocations, item creation policy and pricing. Each allocation references a weighted `LootPool` with optional depth and tier filters. Reuse the shared `ShopPricingProfile` to keep valuation consistent across merchants, and price new items through their `Value`. Generation rejects a profile that fails `ShopProfile.Validate()`, such as one whose creation policy rolls curses or tainted food.
 - Add a `ShopPlacementProfile` to the realm's `Shops`. Set a stable ID, the realm floor index, the keeper scene and the preferred distance from the arrival. Keep each ID unique within its realm and each stock ID unique within its profile.
 
 Each keeper rolls its own deterministic shelf, one reward stream per stock category named after the floor, the keeper and the category. A sold offer joins the run's cleared entities, saved with the player's gold and inventory in the same run snapshot, so revisiting or reloading preserves depletion. See [saved world differences](randomness-and-seeds.md#saved-world-differences).

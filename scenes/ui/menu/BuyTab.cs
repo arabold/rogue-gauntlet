@@ -30,8 +30,4 @@ public partial class BuyTab : TradeTab
 	protected override (ShopQuote One, ShopQuote Stack) Quote(int index) => (Shop.QuotePurchase(Player, Shop.Offers[index]), default);
 
 	protected override string Commit(int index, ShopQuote displayed) => Shop.Buy(Player, Shop.Offers[index], displayed);
-
-	/// <summary>The keeper sells only sound food, which the hero could not otherwise tell from tainted.</summary>
-	protected override string Qualify(Item item, string name) =>
-		item is FoodItem && Shop.Profile.CreationPolicy?.RollFoodContamination != true ? $"Fresh {name}" : name;
 }

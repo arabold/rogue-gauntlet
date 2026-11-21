@@ -8,7 +8,10 @@ public enum ShopItemCategory
 	None = 0, Weapon = 1, Armor = 2, Potion = 4, Scroll = 8, Food = 16, Tool = 32, Jewelry = 64,
 }
 
-/// <summary>Reusable merchant rules. Each placed keeper rolls and owns their own shelf.</summary>
+/// <summary>
+/// Reusable merchant rules. Each placed keeper rolls and owns their own shelf. Merchants are reputable: they sell
+/// neither cursed gear nor tainted food, and buy no gear known to be cursed.
+/// </summary>
 [GlobalClass]
 public partial class ShopProfile : Resource
 {
@@ -17,19 +20,17 @@ public partial class ShopProfile : Resource
 	[Export] public ItemCreationPolicy CreationPolicy { get; set; }
 	[Export] public ShopPricingProfile Pricing { get; set; }
 	[Export] public ShopItemCategory Buys { get; set; }
-	[Export] public bool BuysKnownCursedGear { get; set; }
-	[Export] public bool SellsKnownCursedGear { get; set; }
 
-	/// <summary>Whether a drawn definition may go on the shelf: never a quest item, and cursed gear only for a merchant who sells it.</summary>
-	internal bool CanStock(Item item) => !item.IsQuestItem
-		&& (SellsKnownCursedGear || item is not EquipableItem { AlwaysCursed: true } and not EquipableItem { IsCursed: true });
+	/// <summary>Whether a drawn definition may go on the shelf: never a quest item or gear that is always cursed.</summary>
+	internal static bool CanStock(Item item) => !item.IsQuestItem && item is not EquipableItem { AlwaysCursed: true };
 
-	/// <summary>Authoring problems: missing pricing, stock without a pool or a unique ID, invalid pools, and curses a merchant would not sell.</summary>
+	/// <summary>Authoring problems: missing pricing, stock without a pool or a unique ID, invalid pools, and a creation policy that rolls curses or tainted food.</summary>
 	public string[] Validate()
 	{
 		var problems = new List<string>();
 		if (Pricing == null) problems.Add($"{ResourcePath}: assign a pricing profile.");
-		if (!SellsKnownCursedGear && CreationPolicy?.CurseChance > 0) problems.Add($"{ResourcePath}: the creation policy rolls curses the merchant does not sell.");
+		if (CreationPolicy == null || CreationPolicy.CurseChance > 0 || CreationPolicy.RollFoodContamination)
+			problems.Add($"{ResourcePath}: assign a creation policy that rolls neither curses nor tainted food.");
 		var ids = new HashSet<string>(StringComparer.Ordinal);
 		foreach (ShopStockProfile stock in Stock)
 		{
@@ -46,7 +47,7 @@ public partial class ShopProfile : Resource
 	/// <summary>Whether the merchant buys this item given its visible traits.</summary>
 	internal bool AcceptsForSale(Item item) => !item.IsQuestItem
 		&& (Buys & Category(item)) != ShopItemCategory.None
-		&& (BuysKnownCursedGear || item is not EquipableItem { CurseStatusKnown: true, IsCursed: true });
+		&& item is not EquipableItem { CurseStatusKnown: true, IsCursed: true };
 
 	private static ShopItemCategory Category(Item item) => item switch
 	{
