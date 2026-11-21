@@ -7,20 +7,27 @@ using Godot;
 /// <summary>Floor-generation helpers: the authored realms, a stress pool and the floor-level connectivity contract.</summary>
 public static partial class TestFactories
 {
+	/// <summary>The authored realms, in run order.</summary>
+	public static readonly string[] RealmIds = ["garrison", "prison", "sewer", "mines", "cathedral"];
+	/// <summary>The first depth of each authored look: the Garrison's (shared by the Prison and Cathedral), the Sewer's and the Mines' jungle theme.</summary>
+	public static readonly uint[] ThemeDepths = [1, 11, 16];
+	/// <summary>The Garrison's gatekeeper floor, where the Forsaken Warden and the Quartermaster stand.</summary>
+	public const uint GarrisonGatekeeperDepth = 5;
+
 	/// <summary>
 	/// Gives a generator from <see cref="LoadGenerator"/> the authored realms instead of the Garrison it is pinned to, so
 	/// its depth (see <see cref="RealmDepth"/>) picks each floor's rooms and corridors.
 	/// </summary>
 	public static void UseAuthoredRealms(MapGenerator generator)
 	{
-		generator.Realms = new[] { "garrison", "sewer", "jungle" }.Select(id => Load<Realm>($"res://scenes/levels/realms/{id}.tres")).ToArray();
+		generator.Realms = RealmIds.Select(id => Load<Realm>($"res://scenes/levels/realms/{id}.tres")).ToArray();
 	}
 
 	/// <summary>
 	/// A depth for <paramref name="seed"/> that spreads a seed sweep over the realms: half Garrison (depth 1, where seed
-	/// regressions were found), a quarter each Sewer and Jungle. Layouts depend on the seed and realm, not the depth.
+	/// regressions were found), a quarter each Sewer (depth 11) and Mines (depth 16, the jungle theme). Layouts depend on the seed and theme, not the depth.
 	/// </summary>
-	public static uint RealmDepth(ulong seed) => (seed % 4) switch { 2 => 4u, 0 => 7u, _ => 1u };
+	public static uint RealmDepth(ulong seed) => ThemeDepths[(seed % 4) switch { 2 => 1, 0 => 2, _ => 0 }];
 
 	/// <summary>
 	/// Stress profile where most doorways hold a door and some are concealed: tests doorway, frame and secret-wall fitting.

@@ -71,9 +71,8 @@ func _initialize():
 	_map_generator.Seed = _seed_value
 	_map_generator.DungeonDepth = _depth
 	if loaded_profile != null:
-		# An explicit profile renders at every depth, gatekeeper floors included.
+		# An explicit profile pins every depth, gatekeeper floors included.
 		_map_generator.Profile = loaded_profile
-		_map_generator.BossProfile = loaded_profile
 
 	_viewport = SubViewport.new()
 	_viewport.transparent_bg = false

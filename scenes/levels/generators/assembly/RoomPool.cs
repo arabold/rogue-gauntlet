@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -18,8 +19,11 @@ public partial class RoomPool : Resource
 	/// <summary>Weighted room definitions for every other slot.</summary>
 	[Export] public RoomDefinition[] Rooms { get; set; } = [];
 
-	/// <summary>The realm this view assembles for; null on the authored pool.</summary>
+	/// <summary>The realm theme this view assembles for; null on the authored pool.</summary>
 	public string RealmId { get; private init; }
+	/// <summary>The floor this view rolls rare definitions for; null on views that offer every definition.</summary>
+	private ulong? _floorSeed;
+	private readonly Dictionary<RoomDefinition, bool> _rolled = [];
 
 	/// <summary>Every definition the pool assembles: ordinary rooms, then entrances, then exits.</summary>
 	public RoomDefinition[] AllDefinitions => [.. Rooms, .. Entrances, .. Exits];
@@ -31,6 +35,48 @@ public partial class RoomPool : Resource
 
 	private static RoomDefinition[] In(RoomDefinition[] definitions, string realm) =>
 		definitions.Where(def => def == null || def.SupportsRealm(realm)).ToArray();
+
+	/// <summary>
+	/// This view for one floor: each rare definition (<see cref="RoomDefinition.FloorChance"/> below 1) is offered or
+	/// withheld by its own roll from <paramref name="floorSeed"/>, independent of the order rooms are considered in, and
+	/// a withheld definition leaves the slot lists, so layouts and room groups never draw it. A slot whose every
+	/// definition lost its roll keeps them all: rarity never leaves a slot unfilled.
+	/// </summary>
+	public RoomPool ForFloor(ulong floorSeed)
+	{
+		var view = new RoomPool { RealmId = RealmId, _floorSeed = floorSeed };
+		view.Entrances = view.Offered(Entrances);
+		view.Exits = view.Offered(Exits);
+		view.Rooms = view.Offered(Rooms);
+		return view;
+	}
+
+	/// <summary>The definitions this floor offers, keeping empty entries so assembly still reports them.</summary>
+	private RoomDefinition[] Offered(RoomDefinition[] definitions)
+	{
+		var offered = definitions.Where(def => def == null || Offers(def)).ToArray();
+		return offered.Any(def => def != null) ? offered : definitions;
+	}
+
+	/// <summary>Whether this floor offers <paramref name="definition"/>: it suits the realm and, if rare, won its roll.</summary>
+	public bool Offers(RoomDefinition definition)
+	{
+		if (definition == null || !definition.SupportsRealm(RealmId)) return false;
+		if (definition.FloorChance >= 1f || _floorSeed is not ulong seed) return true;
+		if (!_rolled.TryGetValue(definition, out bool offered))
+		{
+			using var rng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"rarity:{definition.Id}");
+			_rolled[definition] = offered = rng.Randf() < definition.FloorChance;
+		}
+		return offered;
+	}
+
+	/// <summary>
+	/// The definitions this floor offers that have not reached their <see cref="RoomDefinition.MaxPerFloor"/>, counting
+	/// uses with <paramref name="getUses"/> (no limit without it).
+	/// </summary>
+	public List<T> Available<T>(IEnumerable<T> definitions, Func<RoomDefinition, int> getUses = null) where T : RoomDefinition =>
+		definitions.Where(def => Offers(def) && (def.MaxPerFloor <= 0 || getUses == null || getUses(def) < def.MaxPerFloor)).ToList();
 
 	public RoomCluster CreateEntrance(RandomNumberGenerator rng, RoomAssemblyOptions options = null) =>
 		Assemble(Entrances, "entrance", rng, options: options);
@@ -64,9 +110,12 @@ public partial class RoomPool : Resource
 	{
 		if (definitions.Length == 0 || definitions.Any(def => def == null))
 			throw new InvalidOperationException($"Room pool: assign every {slot} entry{(RealmId == null ? "" : $" for realm '{RealmId}'")}.");
+		// Rarities and per-floor limits narrow the choice; a slot never goes unfilled because of them.
+		var offered = Available(definitions, getUses);
+		if (offered.Count == 0) offered = [.. definitions];
 		var definition = getUses == null
-			? Weighted.Pick(definitions, entry => entry.Weight, rng)
-			: Weighted.PickBalanced(definitions, entry => entry.Weight, getUses, rng);
+			? Weighted.Pick(offered, entry => entry.Weight, rng)
+			: Weighted.PickBalanced(offered, entry => entry.Weight, getUses, rng);
 		return CreateFrom(definition, rng, options);
 	}
 }

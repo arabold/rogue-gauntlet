@@ -12,52 +12,53 @@
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/rat/rat.tscn", "res://scenes/enemies/rat/rat.tscn", "res://scenes/enemies/rat/rat.tscn")
 Weight = 6
-MaximumDepth = 3
+MaximumDepth = 5
 
 [sub_resource type="Resource" id="rat_horde"]
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/rat/rat.tscn", "res://scenes/enemies/rat/rat.tscn", "res://scenes/enemies/rat/rat.tscn", "res://scenes/enemies/rat/rat.tscn", "res://scenes/enemies/rat/rat.tscn")
 Weight = 3
 MinimumDepth = 2
-MaximumDepth = 3
+MaximumDepth = 5
 
 [sub_resource type="Resource" id="fodder_pair"]
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/skeleton/skeleton_minion.tscn", "res://scenes/enemies/skeleton/skeleton_minion.tscn")
 Weight = 2
-MaximumDepth = 3
+MaximumDepth = 5
 
 [sub_resource type="Resource" id="lone_warrior"]
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/skeleton/skeleton_warrior.tscn")
 Weight = 2
-MaximumDepth = 3
+MaximumDepth = 5
 
 [sub_resource type="Resource" id="patrol"]
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/skeleton/skeleton_warrior.tscn", "res://scenes/enemies/skeleton/skeleton_minion.tscn")
 Weight = 2
 MinimumDepth = 2
-MaximumDepth = 3
+MaximumDepth = 5
 
 [sub_resource type="Resource" id="sentry"]
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/skeleton/skeleton_crossbow.tscn")
 Weight = 1
 MinimumDepth = 2
-MaximumDepth = 3
+MaximumDepth = 5
 
 [sub_resource type="Resource" id="warband"]
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/skeleton/skeleton_warrior.tscn", "res://scenes/enemies/skeleton/skeleton_warrior.tscn", "res://scenes/enemies/skeleton/skeleton_mage.tscn")
 Weight = 2
 MinimumDepth = 3
-MaximumDepth = 3
+MaximumDepth = 5
 
 [resource]
 script = ExtResource("factory")
 RealmName = "The Sunken Garrison"
 FirstDepth = 1
+FloorCount = 5
 Entries = [SubResource("rat_pack"), SubResource("rat_horde"), SubResource("fodder_pair"), SubResource("lone_warrior"), SubResource("patrol"), SubResource("sentry"), SubResource("warband")]
 Fallback = ExtResource("fallback")
 NestScene = ExtResource("nest")

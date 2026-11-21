@@ -37,6 +37,9 @@ Each existing plan works today, but one or two signature props would make it unm
 | Torture rack | Floor | 2 × 1 m | Interrogation room | Wooden frame with rope |
 | Stocks | Floor | 1.5 m | Interrogation room, prison yard | Pillory or foot stocks |
 | Hanging cage | Wall | 1 m | Interrogation room, prison halls | Iron cage on a chain, empty or with bones |
+| Throne | Floor, back to wall | 1.5 × 1.5 m | Throne room, great hall dais | High carved back and armrests with gilded trim; a toppled or broken variant for ruined halls |
+
+The throne makes a throne room possible: a rare landmark like the great hall and treasury, which set `FloorChance` and `MaxPerFloor` on their room type so most floors never offer them (see [level design](../level-design.md)).
 
 ## Priority 3: chasm and lake plan
 

@@ -14,9 +14,6 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class ShopTest
 {
-	/// <summary>The Garrison's gatekeeper floor: depth 3 of the authored realms.</summary>
-	private const uint GarrisonGatekeeperDepth = 3;
-
 	/// <summary>
 	/// Generation stands the Quartermaster as a solid prop the hero can walk up to: monsters cannot path through the
 	/// counter and nothing spawns or drops into it. Its shelf holds only sound, fully revealed goods, and what the hero
@@ -25,7 +22,7 @@ public class ShopTest
 	[TestCase]
 	public async Task KeeperStandsSolidAndItsShelfOutlivesTheFloor()
 	{
-		var (runner, level) = await TestFactories.GenerateLevel(42, GarrisonGatekeeperDepth);
+		var (runner, level) = await TestFactories.GenerateLevel(42, TestFactories.GarrisonGatekeeperDepth);
 		using (runner)
 		{
 			GeneratedFloor floor = level.Floor;
@@ -34,8 +31,8 @@ public class ShopTest
 			Vector3 front = position + ((floor.Arrival.LandingPosition - position) with { Y = 0 }).Normalized() * 1.2f;
 			AssertBool(floor.IsReachable(front)).IsTrue();
 			AssertBool(floor.IsReachable(position)).IsFalse();
-			// Even a rat-sized body finds no room in the keeper's cell.
-			AssertBool(floor.Clearance.IsTraversable(floor.Clearance.CellAt(position), .3f, null)).IsFalse();
+			// Even a rat-sized body finds no room where the keeper stands.
+			AssertFloat(floor.Clearance.ClearanceAt(position.Xz())).IsLess(.3f);
 			AssertBool(floor.IsColumnObstructed(position)).IsTrue();
 			AssertFloat(floor.FindFreePositionNear(position).DistanceTo(position)).IsGreater(.4f);
 			AssertBool(floor.IsInSpawnClearance(position)).IsTrue();
@@ -57,13 +54,13 @@ public class ShopTest
 			AssertBool(player.Inventory.Items.Any(entry => entry.Item == gear)).IsTrue();
 			string[] shelf = [.. shop.Offers.Select(offer => offer.InstanceId)];
 
-			level.ConfigureGeneration(level.Run, GarrisonGatekeeperDepth, null, null);
+			level.ConfigureGeneration(level.Run, TestFactories.GarrisonGatekeeperDepth, null, null);
 			level.Generate();
 			ShopComponent revisited = level.Floor.Shops.Single();
 			AssertVector(((Node3D)revisited.Owner).GlobalPosition).IsEqual(position);
 			AssertArray(revisited.Offers.Where(revisited.IsSold).Select(offer => offer.InstanceId).ToArray()).ContainsExactly(gear.InstanceId);
 
-			level.ConfigureGeneration(new RunState(42), GarrisonGatekeeperDepth, null, null);
+			level.ConfigureGeneration(new RunState(42), TestFactories.GarrisonGatekeeperDepth, null, null);
 			level.Generate();
 			ShopComponent otherRun = level.Floor.Shops.Single();
 			AssertArray(otherRun.Offers.Select(offer => offer.InstanceId).ToArray()).ContainsExactly(shelf);
@@ -77,14 +74,15 @@ public class ShopTest
 	{
 		var garrison = TestFactories.Load<Realm>("res://scenes/levels/realms/garrison.tres");
 		AssertArray(garrison.Validate()).IsEmpty();
-		AssertString(garrison.ShopsAt(GarrisonGatekeeperDepth).Single().Id).IsEqual("quartermaster");
-		AssertArray(garrison.ShopsAt(GarrisonGatekeeperDepth - 1).ToArray()).IsEmpty();
-		AssertArray(garrison.ShopsAt(GarrisonGatekeeperDepth + 1).ToArray()).IsEmpty();
+		AssertString(garrison.ShopsAt(TestFactories.GarrisonGatekeeperDepth).Single().Id).IsEqual("quartermaster");
+		AssertArray(garrison.ShopsAt(TestFactories.GarrisonGatekeeperDepth - 1).ToArray()).IsEmpty();
+		AssertArray(garrison.ShopsAt(TestFactories.GarrisonGatekeeperDepth + 1).ToArray()).IsEmpty();
 		using var deeper = (Realm)garrison.Duplicate();
-		deeper.FirstDepth = 4;
-		deeper.LastDepth = 6;
-		AssertInt(deeper.ShopsAt(6).Count()).IsEqual(1);
-		AssertArray(deeper.ShopsAt(GarrisonGatekeeperDepth).ToArray()).IsEmpty();
+		deeper.FirstDepth = 6;
+		deeper.LastDepth = 10;
+		AssertInt(deeper.ShopsAt(10).Count()).IsEqual(1);
+		AssertArray(deeper.ShopsAt(6).ToArray()).IsEmpty();
+		AssertArray(deeper.ShopsAt(TestFactories.GarrisonGatekeeperDepth).ToArray()).IsEmpty();
 	}
 
 	/// <summary>A layout with no spot for the keeper is re-rolled like one without stairs, never delivered without its shop.</summary>
@@ -96,7 +94,7 @@ public class ShopTest
 		{
 			TestFactories.UseAuthoredRealms(generator);
 			generator.Seed = 42;
-			generator.DungeonDepth = GarrisonGatekeeperDepth;
+			generator.DungeonDepth = TestFactories.GarrisonGatekeeperDepth;
 			var realm = (Realm)generator.Realms[0].Duplicate();
 			var placement = (ShopPlacementProfile)realm.Shops.Single().Duplicate();
 			placement.MinimumDistanceFromArrival = 1000;
@@ -118,7 +116,7 @@ public class ShopTest
 	[TestCase]
 	public async Task TradeThroughTheRunMenuAtTheQuotedPrice()
 	{
-		var (runner, level) = await TestFactories.GenerateLevel(42, GarrisonGatekeeperDepth);
+		var (runner, level) = await TestFactories.GenerateLevel(42, TestFactories.GarrisonGatekeeperDepth);
 		using (runner)
 		{
 			ShopComponent shop = level.Floor.Shops.Single();

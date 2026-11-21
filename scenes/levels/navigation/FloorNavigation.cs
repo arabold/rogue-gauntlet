@@ -95,12 +95,15 @@ public sealed class FloorNavigation
 		return entry.Flee;
 	}
 
-	/// <summary>Route waypoints from <paramref name="from"/> toward <paramref name="to"/> (see <see cref="GridPath.TryFind"/>).</summary>
-	public bool TryFindPath(Vector3 from, Vector3 to, float radius, List<Vector2> waypoints)
+	/// <summary>
+	/// Route waypoints from <paramref name="from"/> toward <paramref name="to"/> (see <see cref="GridPath.TryFind"/>),
+	/// searching at most <paramref name="maxExpansions"/> cells; zero keeps the profile's budget for local pursuit.
+	/// </summary>
+	public bool TryFindPath(Vector3 from, Vector3 to, float radius, List<Vector2> waypoints, int maxExpansions = 0)
 	{
 		RefreshGates();
 		return GridPath.TryFind(Grid, from.Xz(), to.Xz(), SizeClass(radius), _openGates, Profile.Costs,
-			Profile.MaxPathExpansions, SizeClass(radius) + Grid.CellSize * 2, waypoints);
+			maxExpansions > 0 ? maxExpansions : Profile.MaxPathExpansions, SizeClass(radius) + Grid.CellSize * 2, waypoints);
 	}
 
 	public bool IsTraversable(Vector3 point, float radius)

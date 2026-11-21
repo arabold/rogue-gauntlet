@@ -44,7 +44,7 @@
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
 MinimumSize = Vector2i(5, 5)
-MaximumSize = Vector2i(5, 7)
+MaximumSize = Vector2i(7, 9)
 OddWidth = true
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
@@ -109,6 +109,8 @@ metadata/_custom_type_script = ExtResource("37_CornersStep")
 [resource]
 script = ExtResource("1_RoomType")
 Id = "hall"
+FloorChance = 0.3
+MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Shapes = [SubResource("RectangleShape_1")]
 MinimumFloorTiles = 25

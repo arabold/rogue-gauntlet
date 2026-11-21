@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="Realm" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="realm"]
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorPlanChoice.cs" id="choice"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/garrison_corridors.tres" id="corridors"]
+[ext_resource type="Resource" path="res://scenes/levels/lighting/atmosphere_profiles/garrison.tres" id="atmosphere"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/boss.tres" id="boss"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cathedral.tres" id="cathedral"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cloister.tres" id="cloister"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster.tres" id="cluster"]
+
+[sub_resource type="Resource" id="plan_cathedral"]
+script = ExtResource("choice")
+Profile = ExtResource("cathedral")
+Weight = 2.0
+
+[sub_resource type="Resource" id="plan_cloister"]
+script = ExtResource("choice")
+Profile = ExtResource("cloister")
+Weight = 2.0
+
+[sub_resource type="Resource" id="plan_cluster"]
+script = ExtResource("choice")
+Profile = ExtResource("cluster")
+Weight = 1.0
+
+[resource]
+script = ExtResource("realm")
+Id = "cathedral"
+Theme = "garrison"
+FirstDepth = 21
+LastDepth = 25
+Corridors = ExtResource("corridors")
+Atmosphere = ExtResource("atmosphere")
+FloorPlans = [SubResource("plan_cathedral"), SubResource("plan_cloister"), SubResource("plan_cluster")]
+BossProfile = ExtResource("boss")

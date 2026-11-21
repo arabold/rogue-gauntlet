@@ -1,5 +1,8 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=53 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=57 format=3]
 
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ArcadeStep.cs" id="arcade"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/arcade_pier.tres" id="arcade_pier"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/arcade_arch.tres" id="arcade_arch"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/arched_walls.tres" id="3_arched_walls"]
@@ -47,7 +50,7 @@
 script = ExtResource("2_RectangleSha")
 Weight = 1.0
 MinimumSize = Vector2i(5, 5)
-MaximumSize = Vector2i(5, 6)
+MaximumSize = Vector2i(7, 8)
 OddWidth = true
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
@@ -57,6 +60,13 @@ Id = "colonnade"
 Column = [ExtResource("10_pillar"), ExtResource("11_pillar_ornat")]
 Spacing = 2
 metadata/_custom_type_script = ExtResource("9_PerimeterCol")
+
+[sub_resource type="Resource" id="ArcadeStep_aisles"]
+script = ExtResource("arcade")
+Id = "arcades"
+Content = [ExtResource("arcade_arch")]
+Layout = 1
+Pier = ExtResource("arcade_pier")
 
 [sub_resource type="Resource" id="AlongWallsStep_3"]
 script = ExtResource("12_AlongWallsSt")
@@ -135,6 +145,8 @@ metadata/_custom_type_script = ExtResource("sc_ScatterStep")
 [resource]
 script = ExtResource("1_RoomType")
 Id = "chapel"
+FloorChance = 0.5
+MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Weight = 0.6
 Shapes = [SubResource("RectangleShape_1")]
@@ -146,5 +158,5 @@ Walls = [ExtResource("3_arched_walls"), ExtResource("4_windowed_wal"), ExtResour
 Floors = [ExtResource("6_stone_floor"), ExtResource("7_decorated_fl"), ExtResource("8_decorated_bo"), ExtResource("x_checker_runner"), ExtResource("x_checker_floor")]
 Columns = [SubResource("PerimeterColumns_2")]
 ColumnChance = 0.4
-Steps = [SubResource("AlongWallsStep_3"), SubResource("RowsStep_4"), SubResource("CornersStep_9"), SubResource("AlongWallsStep_10"), SubResource("ScatterStep_candles"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7")]
+Steps = [SubResource("ArcadeStep_aisles"), SubResource("AlongWallsStep_3"), SubResource("RowsStep_4"), SubResource("CornersStep_9"), SubResource("AlongWallsStep_10"), SubResource("ScatterStep_candles"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

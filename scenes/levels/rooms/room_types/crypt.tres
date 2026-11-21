@@ -42,14 +42,14 @@
 script = ExtResource("3_rectangleshape")
 Weight = 2.0
 MinimumSize = Vector2i(3, 3)
-MaximumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
 [sub_resource type="Resource" id="LShape_2"]
 script = ExtResource("4_lshape")
 MinimumSize = Vector2i(3, 3)
-MaximumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("4_lshape")
 
@@ -144,6 +144,8 @@ metadata/_custom_type_script = ExtResource("29_walldecorstep")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "crypt"
+FloorChance = 0.5
+MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Weight = 0.5
 Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("RectangleShape_Compact")]

@@ -26,8 +26,8 @@ public partial class RealmEncounterFactory : MobFactory
 	public int FloorIndex(uint depth) => ContainsDepth(depth) ? (int)(depth - FirstDepth) : -1;
 	/// <summary>Realm floor index whose first two encounter slots become destructible nests.</summary>
 	public const int NestFloorIndex = 1;
-	/// <summary>Realm floor index whose descent is sealed by the gatekeeper encounter.</summary>
-	public const int GatekeeperFloorIndex = 2;
+	/// <summary>Realm floor index whose descent is sealed by the gatekeeper encounter: the realm's last.</summary>
+	public int GatekeeperFloorIndex => (int)FloorCount - 1;
 
 	/// <summary>Standard fights the ordinary monsters of the floor at <paramref name="depth"/> add up to.</summary>
 	public float FloorBudget(uint depth, ThreatProfile threat) => threat.FloorBudget(depth, FloorIndex(depth) == GatekeeperFloorIndex);

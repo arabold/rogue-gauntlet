@@ -1,16 +1,31 @@
-[gd_resource type="Resource" script_class="Realm" format=3]
+[gd_resource type="Resource" script_class="Realm" load_steps=11 format=3]
 
-[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="2_realm"]
-[ext_resource type="Resource" path="res://scenes/levels/realms/garrison_corridors.tres" id="3_garrison_corrido"]
-
+[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="realm"]
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorPlanChoice.cs" id="choice"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/garrison_corridors.tres" id="corridors"]
 [ext_resource type="Resource" path="res://scenes/levels/lighting/atmosphere_profiles/garrison.tres" id="atmosphere"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/boss.tres" id="boss"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster.tres" id="cluster"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/hallway.tres" id="hallway"]
 [ext_resource type="Resource" path="res://scenes/shops/quartermaster_placement.tres" id="quartermaster"]
 
+[sub_resource type="Resource" id="plan_cluster"]
+script = ExtResource("choice")
+Profile = ExtResource("cluster")
+Weight = 3.0
+
+[sub_resource type="Resource" id="plan_hallway"]
+script = ExtResource("choice")
+Profile = ExtResource("hallway")
+Weight = 2.0
+
 [resource]
-script = ExtResource("2_realm")
+script = ExtResource("realm")
 Id = "garrison"
-LastDepth = 3
-Corridors = ExtResource("3_garrison_corrido")
-metadata/_custom_type_script = ExtResource("2_realm")
+Theme = "garrison"
+LastDepth = 5
+Corridors = ExtResource("corridors")
 Atmosphere = ExtResource("atmosphere")
 Shops = [ExtResource("quartermaster")]
+FloorPlans = [SubResource("plan_cluster"), SubResource("plan_hallway")]
+BossProfile = ExtResource("boss")

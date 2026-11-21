@@ -49,7 +49,7 @@
 script = ExtResource("2_RectangleSha")
 Weight = 3.0
 MinimumSize = Vector2i(2, 3)
-MaximumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
@@ -57,7 +57,7 @@ metadata/_custom_type_script = ExtResource("2_RectangleSha")
 script = ExtResource("3_LShape")
 Weight = 1.0
 MinimumSize = Vector2i(3, 3)
-MaximumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(5, 5)
 ArmWidth = 2
 metadata/_custom_type_script = ExtResource("3_LShape")
 

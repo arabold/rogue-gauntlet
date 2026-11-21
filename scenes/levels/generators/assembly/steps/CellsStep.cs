@@ -16,8 +16,19 @@ public partial class CellsStep : FurnishingStep
 	/// <summary>How far the kit's corner and T pieces reach along each leg from their joint.</summary>
 	private const float JointReach = 2;
 	private readonly Dictionary<string, Prop> _structure = [];
+	private MeshLibrary _wallLibrary;
 
-	[Export] public MeshLibrary WallLibrary { get; set; }
+	/// <summary>Library of the wall pieces; changing it drops the pieces built from the previous one.</summary>
+	[Export]
+	public MeshLibrary WallLibrary
+	{
+		get => _wallLibrary;
+		set
+		{
+			_wallLibrary = value;
+			_structure.Clear();
+		}
+	}
 	[Export] public string FrontWall { get; set; } = "wall_gated";
 	/// <summary>Partition pieces, alternating along the row; short sections use the front piece.</summary>
 	[Export] public string[] PartitionWalls { get; set; } = ["wall_gated", "wall_archedwindow_gated"];

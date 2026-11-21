@@ -87,8 +87,9 @@ public class CorridorDecorationTest
 	}
 
 	/// <summary>
-	/// One floor per realm: each depth band is covered by exactly one realm, whose rooms and corridor floor tiles build the
-	/// connected floor; its corridors carry lights and decor, face their walls inward and replay identically.
+	/// Each depth is covered by exactly one realm, and one ordinary floor per look builds from its theme's rooms and its
+	/// realm's corridor tiles into a connected floor whose corridors carry lights and decor, face their walls inward and
+	/// replay identically.
 	/// </summary>
 	[TestCase]
 	public async Task EachRealmBuildsItsOwnConnectedFloorWithDeterministicInwardCorridors()
@@ -97,12 +98,13 @@ public class CorridorDecorationTest
 		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
 		var generator = level.MapGenerator;
-		for (uint depth = 1; depth <= 9; depth++)
+		for (uint depth = 1; depth <= 25; depth++)
 			AssertInt(generator.Realms.Count(realm => realm.Covers(depth))).OverrideFailureMessage($"depth {depth}: realms").IsEqual(1);
 		string failure = "";
 		level.GenerationFailed += error => failure = error;
 
-		foreach (uint depth in new uint[] { 2, 5, 8 })
+		// One ordinary floor per look: garrison, sewer and the mines' jungle theme.
+		foreach (uint depth in new uint[] { 2, 12, 17 })
 		{
 			level.ConfigureGeneration(new RunState(77), depth, null, null);
 			failure = "";
@@ -149,8 +151,8 @@ public class CorridorDecorationTest
 		string label = $"depth {depth}";
 		var realm = generator.CurrentRealm;
 		var rooms = generator.FloorContent.GetChildren().OfType<Room>().ToArray();
-		AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Realms.Contains(realm.Id)))
-			.OverrideFailureMessage($"{label}: rooms outside the {realm.Id} realm").IsTrue();
+		AssertBool(rooms.Length > 0 && rooms.All(room => room.Type.Realms.Contains(realm.Theme)))
+			.OverrideFailureMessage($"{label}: rooms outside the {realm.Theme} theme").IsTrue();
 		AssertArray(TestFactories.ConnectivityFailures(generator).ToArray()).OverrideFailureMessage(label).IsEmpty();
 		var corridors = realm.Corridors.Floor;
 		var map = generator.Map;

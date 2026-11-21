@@ -298,9 +298,7 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 		List<Vector2I> candidateExits,
 		RandomNumberGenerator rng)
 	{
-		var validDefs = context.Pool.Rooms
-			.Where(def => def != null && def.SupportsRealm(context.Pool.RealmId) && def is RoomType rt && rt.MinDoorways <= 1)
-			.ToList();
+		var validDefs = context.Pool.Available(context.Pool.Rooms.Where(def => def is RoomType rt && rt.MinDoorways <= 1), def => uses.GetValueOrDefault(def));
 		if (validDefs.Count == 0) return false;
 
 		var opts = CreateRoomOptions(context, minDoorways: 1, maxDoorways: 1);

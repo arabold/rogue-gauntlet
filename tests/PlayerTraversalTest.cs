@@ -19,10 +19,16 @@ public class PlayerTraversalTest
 	private const float Speed = 7.5f;
 	/// <summary>Distance between the independent copies of a staged scenario, so their bodies never meet.</summary>
 	private const float Spacing = 12;
+	/// <summary>
+	/// Search budget for a route across a whole floor. Monster navigation caps its search for local pursuit
+	/// (<see cref="NavigationProfile.MaxPathExpansions"/>), which a floor-wide route on the widest plans exceeds.
+	/// </summary>
+	private const int FloorRouteExpansions = 100_000;
 
 	/// <summary>
-	/// One floor per realm; 2983949030 is a Garrison floor a playtest got stuck on. The body climbs the arrival stairs,
-	/// walks the navigation route to the exit landing and descends the exit stairs.
+	/// A Garrison floor a playtest got stuck on (2983949030), the Garrison's gatekeeper floor and a Prison-realm floor (seed
+	/// 11 builds the 40-wide prison plan there). The body climbs the arrival stairs, walks the navigation route to the exit
+	/// landing and descends the exit stairs.
 	/// </summary>
 	[TestCase(2983949030ul, 1u)]
 	[TestCase(7ul, 5u)]
@@ -50,7 +56,8 @@ public class PlayerTraversalTest
 
 		var route = new List<Vector2>();
 		float radius = EnemyBase.HorizontalRadius(body.GetNode<CollisionShape3D>("CollisionShape3D"));
-		AssertBool(level.Navigation.TryFindPath(start, exit, radius, route)).OverrideFailureMessage("No route fits the player's body.").IsTrue();
+		AssertBool(level.Navigation.TryFindPath(start, exit, radius, route, FloorRouteExpansions))
+			.OverrideFailureMessage("No route fits the player's body.").IsTrue();
 		float length = GridPath.Length(start.Xz(), route);
 		int budget = Mathf.CeilToInt(length / Speed * 1000 / FrameMilliseconds * 1.6f) + 60;
 		int index = 0;

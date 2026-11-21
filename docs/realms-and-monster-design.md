@@ -1,6 +1,6 @@
 # Realms and Monster Design
 
-Status: world concept, revised October 23, 2026. The eight-realm, 24-depth descent is the current direction; later realm order, placement and rosters remain provisional. Delivery focuses on playable depths 1–3. [Monster design and authoring](monster-authoring-design.md) owns roster, capabilities and balancing rules; its [current system](development-roadmap.md#first-three-floor-acceptance) owns the rollout. Room/access/discovery rules live in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). See the [Game Design Document](game-design.md), current [Level Design](level-design.md), and remaining [implementation plan](specs/level-progression-prototype-plan.md) for their separate responsibilities.
+Status: world concept, revised October 23, 2026. The run is now five realms of five floors (Garrison, Prison, Sewer, Mines, Cathedral; see [level design](level-design.md#current-generation)); the eight-realm themes below remain a pool of ideas for those realms and later ones, with order, placement and rosters provisional. Delivery focuses on the first realm. [Monster design and authoring](monster-authoring-design.md) owns roster, capabilities and balancing rules; its [current system](development-roadmap.md#first-three-floor-acceptance) owns the rollout. Room/access/discovery rules live in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). See the [Game Design Document](game-design.md), current [Level Design](level-design.md), and remaining [implementation plan](specs/level-progression-prototype-plan.md) for their separate responsibilities.
 
 ---
 
@@ -15,15 +15,15 @@ The surface kingdom is currently fracturing: ground tremors, vanishing outposts,
 At the bottom of all history—at Depth 24—lies the **World-Anchor** (also known as the *Sinking Maw*). This colossal primordial tether acts as a cosmic siphon, slowly drinking the spiritual and material essence of civilizations across eons.
 
 - **The Hero's Mission:** The hero descends through all eight collapsed epochs carrying the **Gauntlet**, an ancient catalyst able to attune to and channel the runic energies of the fallen realms.
-- **The Climax:** At Depth 24, the hero enters the Anchor Sanctum, overcomes the guardian wound around the core mechanism, and strikes the anchor chain with the attuned Gauntlet, permanently breaking the downward tether and securing victory for the active run.
-- **Run Length and Victory:** The full journey spans 24 depths. Defeating the Depth 24 encounter ends the run in victory. Death anywhere during the descent ends the active run.
+- **The Climax:** At Depth 25, the hero enters the Anchor Sanctum, overcomes the guardian wound around the core mechanism, and strikes the anchor chain with the attuned Gauntlet, permanently breaking the downward tether and securing victory for the active run.
+- **Run Length and Victory:** The full journey spans 25 depths. Defeating the Depth 25 encounter ends the run in victory. Death anywhere during the descent ends the active run.
 - **Post-Victory Considerations:** An optional high-difficulty return trial (an escape ascent back to Depth 1 through collapsing ruins against surging hordes) is reserved as an advanced post-game challenge mode rather than a requirement for the initial game loop.
 
 ---
 
 ## 2. The Eight Sunken Epochs (Depths 1 to 24)
 
-The current world concept spans 24 depths partitioned into eight 3-depth realms. Each realm represents a fallen civilization with its own architecture, hazards and ecology. The order and depth assignments below are a provisional world-building sketch, not fixed content IDs or a requirement for the first-three-floor implementation.
+The original world concept partitioned 24 depths into eight 3-depth realms. The run now has five 5-floor realms (see the status above), and these eight epochs are the pool of themes those realms and later ones draw on. Each represents a fallen civilization with its own architecture, hazards and ecology. The depth assignments below are the original sketch, not fixed content IDs.
 
 ```
 [Surface Kingdom]
@@ -57,17 +57,17 @@ The current world concept spans 24 depths partitioned into eight 3-depth realms.
 
 ---
 
-## 3. The Three-Depth Realm Cadence
+## 3. The Realm Cadence
 
-Every realm spans three floors with a recognizable escalation. These are intended roles, not a claim that every encounter, room or merchant is implemented.
+Every realm spans five floors with a recognizable escalation; its middle floors share the escalation role. These are intended roles, not a claim that every encounter, room or merchant is implemented.
 
 | Floor | Progression role | Content direction |
 | --- | --- | --- |
 | 1 | Ingress and reconnaissance | Introduce realm architecture, baseline monsters and hazards; restrained patrols and optional supplies |
-| 2 | Escalation and swarm pressure | Nest chambers, denser encounters, specialists and optional guarded rewards |
-| 3 | Sanctum and Gatekeeper trial | Gatekeeper location and visibly sealed descent; a merchant near the arrival to prepare |
+| 2–4 | Escalation and swarm pressure | Nest chambers, denser encounters, specialists and optional guarded rewards |
+| 5 | Sanctum and Gatekeeper trial | Gatekeeper location and visibly sealed descent; a merchant near the arrival to prepare |
 
-Realm room pools and floor recipes select architecture appropriate to each depth. Required presence, required traversal and required encounter completion are distinct constraints, as defined in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). The Garrison's first floor emphasizes barracks and supplies, its second a prison wing and nest chamber, and its third the Warden's domain. Existing rooms and skeletons can stand in for these roles while content grows.
+Realm room pools and floor recipes select architecture appropriate to each depth. Required presence, required traversal and required encounter completion are distinct constraints, as defined in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). The Garrison's first floor emphasizes barracks and supplies, its middle floors a prison wing and nest chamber, and its fifth the Warden's domain. Existing rooms and skeletons can stand in for these roles while content grows.
 
 ### Ingress and reconnaissance
 

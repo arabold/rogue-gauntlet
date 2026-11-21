@@ -1,15 +1,30 @@
-[gd_resource type="Resource" script_class="Realm" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="Realm" load_steps=10 format=3]
 
-[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="2_realm"]
-[ext_resource type="Resource" path="res://scenes/levels/realms/sewer_corridors.tres" id="3_sewer_corridors"]
-
+[ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="realm"]
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorPlanChoice.cs" id="choice"]
+[ext_resource type="Resource" path="res://scenes/levels/realms/sewer_corridors.tres" id="corridors"]
 [ext_resource type="Resource" path="res://scenes/levels/lighting/atmosphere_profiles/sewer.tres" id="atmosphere"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/boss.tres" id="boss"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster_large.tres" id="cluster_large"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster.tres" id="cluster"]
+
+[sub_resource type="Resource" id="plan_cluster_large"]
+script = ExtResource("choice")
+Profile = ExtResource("cluster_large")
+Weight = 3.0
+
+[sub_resource type="Resource" id="plan_cluster"]
+script = ExtResource("choice")
+Profile = ExtResource("cluster")
+Weight = 1.0
 
 [resource]
-script = ExtResource("2_realm")
+script = ExtResource("realm")
 Id = "sewer"
-FirstDepth = 4
-LastDepth = 6
-Corridors = ExtResource("3_sewer_corridors")
-metadata/_custom_type_script = ExtResource("2_realm")
+Theme = "sewer"
+FirstDepth = 11
+LastDepth = 15
+Corridors = ExtResource("corridors")
 Atmosphere = ExtResource("atmosphere")
+FloorPlans = [SubResource("plan_cluster_large"), SubResource("plan_cluster")]
+BossProfile = ExtResource("boss")

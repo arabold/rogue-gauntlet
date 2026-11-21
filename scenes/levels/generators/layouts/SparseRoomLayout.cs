@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 /// <summary>
@@ -75,13 +76,7 @@ public partial class SparseRoomLayout : RoomLayoutStrategy
 				if (placedCount == 0 && fitOptions != null)
 				{
 					fitCandidates.Clear();
-					foreach (var def in context.Pool.Rooms)
-					{
-						if (def != null && def.SupportsRealm(context.Pool.RealmId) && !failedFitDefs.Contains(def))
-						{
-							fitCandidates.Add(def);
-						}
-					}
+					fitCandidates.AddRange(context.Pool.Available(context.Pool.Rooms).Where(def => !failedFitDefs.Contains(def)));
 					if (fitCandidates.Count > 0)
 					{
 						var picked = Weighted.PickBalanced(fitCandidates, d => d.Weight, d => uses.GetValueOrDefault(d), rng);

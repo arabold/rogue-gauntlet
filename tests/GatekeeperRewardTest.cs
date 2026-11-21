@@ -8,17 +8,15 @@ using static GdUnit4.Assertions;
 /// <summary>
 /// The Forsaken Warden rewards like a Diablo II boss, with its own realm's tier at a better quality: every drop is a
 /// never-cursed tier-1 weapon, through its own loot table and the gatekeeper creation policy wired on its loot component.
-/// The gatekeeper ladder never rolls below Magic and introduces Rare at the ordinary ladder's depth, so the depth-3 warden
-/// drops Magic and deeper gatekeepers grow their Rare share.
+/// The gatekeeper ladder never rolls below Magic and introduces Rare at the ordinary ladder's depth, so the Warden's
+/// drops are Magic or, now and then, Rare, and deeper gatekeepers grow their Rare share.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
 public class GatekeeperRewardTest
 {
-	private const uint WardenDepth = 3;
-
 	[TestCase]
-	public void TheWardenDropsAMagicTierOneWeaponThatIsNeverCursed()
+	public void TheWardenDropsATierOneWeaponOfMagicOrBetterThatIsNeverCursed()
 	{
 		var definition = TestFactories.Load<MonsterDefinition>("res://scenes/enemies/forsaken_warden/forsaken_warden_definition.tres");
 		ItemCreationPolicy policy = definition.Loot?.CreationPolicy;
@@ -27,10 +25,10 @@ public class GatekeeperRewardTest
 		using var rng = GenerationRandom.Create(42, "warden-reward");
 		for (int i = 0; i < 200; i++)
 		{
-			var weapon = ItemFactory.Create(definition.Loot.Table.PickEntry(WardenDepth, rng).Item, policy, WardenDepth, rng) as Weapon;
+			var weapon = ItemFactory.Create(definition.Loot.Table.PickEntry(TestFactories.GarrisonGatekeeperDepth, rng).Item, policy, TestFactories.GarrisonGatekeeperDepth, rng) as Weapon;
 			AssertObject(weapon).IsNotNull();
 			AssertInt(weapon.Tier).IsEqual(1);
-			AssertBool(weapon.Quality == ItemQuality.Magic).IsTrue();
+			AssertBool(weapon.Quality >= ItemQuality.Magic).IsTrue();
 			AssertBool(weapon.IsCursed).IsFalse();
 		}
 	}

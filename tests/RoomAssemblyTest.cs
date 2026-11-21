@@ -46,7 +46,7 @@ public class RoomAssemblyTest
 		var planRooms = PlanRooms(pool).ToArray();
 		AssertArray(planRooms).OverrideFailureMessage("no floor plan names rooms outside the pool").IsNotEmpty();
 		var errors = pool.AllDefinitions.Concat(planRooms).SelectMany(type => type.Validate()).ToList();
-		foreach (string id in new[] { "garrison", "sewer", "jungle" })
+		foreach (string id in TestFactories.RealmIds)
 		{
 			var realm = TestFactories.Load<Realm>($"{Levels}realms/{id}.tres");
 			errors.AddRange(realm.Validate());
@@ -99,8 +99,9 @@ public class RoomAssemblyTest
 	/// <summary>
 	/// Every room a realm assembles, entrance and exit included, as the realm assembles it: doorways stay mutually
 	/// connected, pockets stay within budget, props never interpenetrate, walls never overlap, every floor style tiles
-	/// the floor exactly once, stairs land arrivals on open reachable floor, the room reproduces from its seed and turns
-	/// losslessly, and the realm mixes compact and medium rooms with its larger landmarks.
+	/// the floor exactly once, stairs land arrivals on open reachable floor, arcades connect only under their arches, the
+	/// room reproduces from its seed and turns losslessly, and the realm mixes compact and medium rooms with its larger
+	/// landmarks.
 	/// </summary>
 	[TestCase("garrison")]
 	[TestCase("sewer")]
@@ -115,7 +116,7 @@ public class RoomAssemblyTest
 			.Concat(realmPool.Exits.OfType<RoomType>().Select(type => (type, Stairs: StairKind.Down, Planned: false)))
 			.Concat(PlanRooms(pool).Where(type => type.SupportsRealm(realm)).Select(type => (type, Stairs: StairKind.None, Planned: true)));
 		var rotation = new List<string>();
-		int rotatedDoors = 0, small = 0, medium = 0, large = 0;
+		int rotatedDoors = 0, small = 0, medium = 0, large = 0, arches = 0;
 		foreach (var (type, stairs, planned) in slots)
 		{
 			int floors = type.FloorsIn(realm).Length;
@@ -132,6 +133,9 @@ public class RoomAssemblyTest
 					AssertString(Overlaps(blueprint)).OverrideFailureMessage($"{label}: props interpenetrate").IsEmpty();
 					AssertString(WallFootprints.FindOverlap(blueprint.Room.WallGridMap)).OverrideFailureMessage($"{label}: walls overlap").IsEmpty();
 					AssertString(FloorCoverage(blueprint)).OverrideFailureMessage($"{label} floor {blueprint.Floor.Id}").IsEmpty();
+					var (arcadeFailure, roomArches) = CheckArcades(blueprint);
+					AssertString(arcadeFailure).OverrideFailureMessage(label).IsEmpty();
+					arches += roomArches;
 					if (stairs != StairKind.None) AssertStairs(blueprint, stairs, label);
 					else if (!planned)
 					{
@@ -153,15 +157,43 @@ public class RoomAssemblyTest
 			}
 		}
 		AssertInt(rotatedDoors).OverrideFailureMessage($"{realm}: no turned room had a door").IsGreater(0);
+		if (slots.Any(slot => slot.type.Steps.OfType<ArcadeStep>().Any())) AssertInt(arches).OverrideFailureMessage($"{realm}: no arcade stood").IsGreater(0);
 		AssertArray(rotation).OverrideFailureMessage(string.Join("\n", rotation)).IsEmpty();
 		int total = small + medium + large;
 		string mix = $"{realm}: small={small}, medium={medium}, large={large}";
-		AssertFloat(small / (float)total).OverrideFailureMessage(mix).IsGreaterEqual(.2f);
+		// Large rooms may make up half a realm's pool, but compact and medium rooms keep a real share of it.
+		AssertFloat(small / (float)total).OverrideFailureMessage(mix).IsGreaterEqual(.15f);
 		AssertFloat(medium / (float)total).OverrideFailureMessage(mix).IsGreaterEqual(.25f);
-		AssertFloat(large / (float)total).OverrideFailureMessage(mix).IsLessEqual(.4f);
+		AssertFloat(large / (float)total).OverrideFailureMessage(mix).IsLessEqual(.5f);
 	}
 
 	private enum StairKind { None, Up, Down }
+
+	/// <summary>
+	/// Arcades divide a room into bays that connect only under their arches: a body stands in every arch's opening but
+	/// not in its jambs or in the piers that close a row to the walls. Returns the first failure and the arches counted.
+	/// </summary>
+	private static (string Failure, int Arches) CheckArcades(RoomBlueprint blueprint)
+	{
+		var steps = blueprint.Type.Steps.OfType<ArcadeStep>().ToList();
+		var archProps = steps.SelectMany(step => step.Content).ToHashSet();
+		var piers = steps.Select(step => step.Pier).ToHashSet();
+		int arches = 0;
+		foreach (var piece in blueprint.Pieces)
+		{
+			var at = piece.Transform.Origin;
+			if (archProps.Contains(piece.Prop))
+			{
+				arches++;
+				var along = piece.Transform.Basis.X.Normalized();
+				if (!blueprint.Grid.IsStandable(RoomBlueprint.XZ(at))) return ($"arch at {at} is closed", arches);
+				if (new[] { -1.5f, 1.5f }.Any(side => blueprint.Grid.IsStandable(RoomBlueprint.XZ(at + along * side)))) return ($"jamb beside {at} is open", arches);
+			}
+			else if (piers.Contains(piece.Prop) && blueprint.Grid.IsStandable(RoomBlueprint.XZ(piece.Envelope.GetCenter())))
+				return ($"pier at {piece.Envelope.GetCenter()} is open", arches);
+		}
+		return ("", arches);
+	}
 
 	/// <summary>Surface choices and furnishing are independent axes: a floor style never moves furniture or walls, and an unfurnished room keeps the same walls.</summary>
 	[TestCase]
