@@ -20,7 +20,12 @@ public partial class DoorKeyMarker : MeshInstance3D
 
 	public override void _Ready()
 	{
-		if (Engine.IsEditorHint()) return;
+		// Godot enables processing for an overridden _Process before _Ready; an editor marker never turns.
+		if (Engine.IsEditorHint())
+		{
+			SetProcess(false);
+			return;
+		}
 		VisibilityChanged += UpdateProcessing;
 		UpdateProcessing();
 	}
