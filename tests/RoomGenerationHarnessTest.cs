@@ -103,7 +103,7 @@ public class RoomGenerationHarnessTest
 		AssertBool(harness.PreviewRoot.Visible).IsTrue();
 		AssertBool(harness.Generator.Visible).IsFalse();
 
-		// Switch floor profiles (packed, labyrinth, dense, linear_boss) and verify RoomGroup preview works cleanly.
+		// Switch through every floor profile and verify each floor preview generates and connects cleanly.
 		AssertInt(harness.Profiles.Count).IsGreaterEqual(4);
 		harness.Mode = RoomPreviewMode.Floor;
 		for (int p = 0; p < harness.Profiles.Count; p++)

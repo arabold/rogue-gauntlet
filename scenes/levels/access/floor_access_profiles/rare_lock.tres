@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorAccessProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/access/FloorAccessProfile.cs" id="profile"]
+[ext_resource type="Resource" path="res://scenes/levels/access/locks/gold.tres" id="gold"]
+[ext_resource type="Resource" path="res://scenes/levels/access/locks/silver.tres" id="silver"]
+[ext_resource type="Resource" path="res://scenes/levels/access/locks/arcane.tres" id="arcane"]
+
+[resource]
+script = ExtResource("profile")
+Locks = [ExtResource("gold"), ExtResource("silver"), ExtResource("arcane")]
+MaximumLockedRooms = 1
+MaximumLockedDoors = 1
+LockedRoomChance = 0.2

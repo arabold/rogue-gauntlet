@@ -126,7 +126,7 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public void RarityPolicyAllowsEmptyFloors()
 	{
-		var profile = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		var profile = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/floor_access_profiles/rare_lock.tres").Duplicate(true);
 		profile.ValidateOrThrow();
 		int locked = 0;
 		for (ulong seed = 0; seed < 200; seed++)

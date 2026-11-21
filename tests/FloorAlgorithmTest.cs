@@ -7,7 +7,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Sub-second plain-C# invariants for maze carving, interior gap-filling, and isolated linear branch edges.</summary>
+/// <summary>Sub-second plain-C# invariants for maze carving and isolated linear branch edges.</summary>
 [TestSuite]
 public class FloorAlgorithmTest
 {
@@ -131,59 +131,6 @@ public class FloorAlgorithmTest
 
 		var reached = AccessSolutionValidator.Reachable(map, new Vector2I(3, 3), new HashSet<Vector2I>());
 		AssertBool(reached.Contains(new Vector2I(12, 12))).IsTrue();
-	}
-
-	[TestCase]
-	public void InteriorGapsOnlyFillsEnclosedPocketsWithoutBreachingProtectedCorridorsOrCreatingIslands()
-	{
-		var map = new MapData(18, 18);
-		map.ResetToBorderedEmpty();
-
-		// Build a hollow ring of corridors around an enclosed 3x3 pocket at (6..8, 6..8).
-		for (int x = 5; x <= 9; x++)
-		{
-			map.SetTile(x, 5, MapTile.Corridor);
-			map.SetTile(x, 9, MapTile.Corridor);
-		}
-		for (int z = 6; z <= 8; z++)
-		{
-			map.SetTile(5, z, MapTile.Corridor);
-			map.SetTile(9, z, MapTile.Corridor);
-		}
-		// Mark (7, 5) on the ring as a protected cluster bridge so gap-fill never opens through it.
-		var bridge = new Vector2I(7, 5);
-		var protectedCorridors = new HashSet<Vector2I> { bridge };
-
-		// Also create a completely room-walled empty shaft at (13, 13) with NO touching corridor.
-		for (int x = 12; x <= 14; x++)
-		{
-			for (int z = 12; z <= 14; z++)
-			{
-				if (x == 13 && z == 13) continue;
-				map.SetTile(x, z, MapTile.Room);
-			}
-		}
-
-		var prng = new SplitMix(19);
-		GapFillCorridorConnector.CarveInteriorGaps(map, protectedCorridors, 0.7f, 0.1f, prng.NextInt, prng.NextFloat);
-
-		// Enclosed A*-adjacent 3x3 pocket must be carved into Corridor tiles and be reachable from (5, 5).
-		var reached = AccessSolutionValidator.Reachable(map, new Vector2I(5, 5), new HashSet<Vector2I>());
-		for (int x = 6; x <= 8; x++)
-		{
-			for (int z = 6; z <= 8; z++)
-			{
-				AssertBool(map.IsCorridor(x, z)).IsTrue();
-				AssertBool(reached.Contains(new Vector2I(x, z))).IsTrue();
-			}
-		}
-
-		// Protected bridge edge toward the carved pocket stays sealed.
-		AssertBool(map.IsCorridorEdgeSealed(bridge.X, bridge.Y, Vector2I.Down)).IsTrue();
-		// Room-walled 1x1 hole stays Empty (never turns into an unreachable corridor island).
-		AssertBool(map.IsEmpty(13, 13)).IsTrue();
-		// Irregular exterior border void remains Empty.
-		AssertBool(map.IsEmpty(1, 1)).IsTrue();
 	}
 
 	[TestCase]

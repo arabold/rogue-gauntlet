@@ -393,17 +393,6 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 		}
 	}
 
-	private static List<Vector2I> ExternalExitsAt(Vector2I placement, MapData clusterMap)
-	{
-		var ext = RoomCluster.GetExternalConnectors(clusterMap);
-		var exits = new List<Vector2I>(ext.Count);
-		foreach (var (tile, dir) in ext)
-		{
-			exits.Add(placement + tile + dir);
-		}
-		return exits;
-	}
-
 	private static (Vector2I Exit, Vector2I Target) PickClosestExitPair(List<Vector2I> exits, List<Vector2I> targets)
 	{
 		if (exits.Count == 0) return default;

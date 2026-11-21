@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/HallwayRoomLayout.cs" id="layout"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="connector"]
+[ext_resource type="Resource" path="res://scenes/levels/access/floor_access_profiles/rare_lock.tres" id="access"]
+
+[sub_resource type="Resource" id="HallwayRoomLayout"]
+script = ExtResource("layout")
+
+[sub_resource type="Resource" id="AStarCorridorConnector"]
+script = ExtResource("connector")
+
+[resource]
+script = ExtResource("profile")
+Layout = SubResource("HallwayRoomLayout")
+Connector = SubResource("AStarCorridorConnector")
+Access = ExtResource("access")
+RoomCount = 20
+MapSize = Vector2i(36, 24)

@@ -15,6 +15,12 @@ public partial class FloorProfile : Resource
 	[Export] public CorridorConnectorStrategy Connector { get; set; }
 	[Export] public FloorAccessProfile Access { get; set; }
 
+	[ExportGroup("Size")]
+	/// <summary>Rooms the layout tries to place besides the entrance and goal; 0 keeps the generator's <see cref="MapGenerator.MaxRooms"/>.</summary>
+	[Export(PropertyHint.Range, "0,100")] public int RoomCount { get; set; }
+	/// <summary>The floor's width and depth in tiles; zero keeps the generator's <see cref="MapGenerator.MapWidth"/> and <see cref="MapGenerator.MapDepth"/>.</summary>
+	[Export] public Vector2I MapSize { get; set; }
+
 	[ExportGroup("Rooms")]
 	[Export] public bool AllowSecretDoors { get; set; } = true;
 	[Export(PropertyHint.Range, "-1,1,0.05")] public float DoorChanceOverride { get; set; } = -1f;
@@ -59,6 +65,11 @@ public partial class FloorProfile : Resource
 		string name = string.IsNullOrEmpty(ResourcePath) ? "FloorProfile" : ResourcePath;
 		if (Layout == null) errors.Add($"{name}: Layout is required.");
 		if (Connector == null) errors.Add($"{name}: Connector is required.");
+		if (RoomCount < 0) errors.Add($"{name}: RoomCount ({RoomCount}) must be 0 (the generator's) or positive.");
+		if (MapSize != Vector2I.Zero && (MapSize.X < 20 || MapSize.Y < 20 || MapSize.X > 100 || MapSize.Y > 100))
+		{
+			errors.Add($"{name}: MapSize ({MapSize}) must be zero (the generator's) or between 20 and 100 tiles on each side.");
+		}
 		if (!float.IsFinite(DoorChanceOverride)
 			|| (!Mathf.IsEqualApprox(DoorChanceOverride, -1f) && (DoorChanceOverride < 0f || DoorChanceOverride > 1f)))
 		{

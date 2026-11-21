@@ -123,7 +123,7 @@ public partial class MazeCorridorConnector : CorridorConnectorStrategy
 			MazeCarver.CarveGrowingTree(map, isMaze, visited, seed, windingChance, nextInt, nextFloat);
 		}
 
-		MazeCarver.OpenControlledLoops(map, isMaze, seeds, loopChance, nextInt, nextFloat, allowOtherCorridorEntry: false);
+		MazeCarver.OpenControlledLoops(map, isMaze, seeds, loopChance, nextInt, nextFloat);
 
 		if (deadEndPruneChance > 0f)
 		{

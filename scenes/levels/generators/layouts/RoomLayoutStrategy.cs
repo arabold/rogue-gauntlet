@@ -70,6 +70,18 @@ public abstract partial class RoomLayoutStrategy : Resource
 		}
 	}
 
+	/// <summary>The floor tiles just outside each external doorway of <paramref name="clusterMap"/> placed at <paramref name="placement"/>.</summary>
+	protected static List<Vector2I> ExternalExitsAt(Vector2I placement, MapData clusterMap)
+	{
+		var ext = RoomCluster.GetExternalConnectors(clusterMap);
+		var exits = new List<Vector2I>(ext.Count);
+		foreach (var (tile, dir) in ext)
+		{
+			exits.Add(placement + tile + dir);
+		}
+		return exits;
+	}
+
 	/// <summary>True when every external connector opens onto a playable interior tile (not the outer border wall ring).</summary>
 	protected static bool AllExternalConnectorsPlayable(
 		MapData map,

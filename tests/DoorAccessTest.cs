@@ -230,7 +230,7 @@ public class DoorAccessTest
 		using var scope = runner;
 		var generator = level.MapGenerator;
 		TestFactories.WireLootScenes(generator);
-		generator.Profile.Access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		generator.Profile.Access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/floor_access_profiles/rare_lock.tres").Duplicate(true);
 		// Solvability coverage deliberately requests dense content; player-facing scarcity is tested separately. More
 		// locked rooms than locked doors are allowed, so rooms with several entrances press against the door cap.
 		generator.Profile.Access.LockedRoomChance = 1;
@@ -327,7 +327,7 @@ public class DoorAccessTest
 	{
 		var profile = TestFactories.ProfileWithDoors(1f);
 		profile.AllowSecretDoors = false;
-		var access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		var access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/floor_access_profiles/rare_lock.tres").Duplicate(true);
 		access.LockedRoomChance = 1f;
 		access.MaximumLockedRooms = 3;
 		access.MaximumLockedDoors = 6;
@@ -369,7 +369,7 @@ public class DoorAccessTest
 	{
 		var profile = TestFactories.ProfileWithDoors(1f);
 		profile.AllowSecretDoors = false;
-		var access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/garrison_access.tres").Duplicate(true);
+		var access = (FloorAccessProfile)TestFactories.Load<FloorAccessProfile>("res://scenes/levels/access/floor_access_profiles/rare_lock.tres").Duplicate(true);
 		access.LockedRoomChance = 1f;
 		access.MaximumLockedRooms = 3;
 		access.MaximumLockedDoors = 6;

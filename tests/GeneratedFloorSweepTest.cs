@@ -51,16 +51,14 @@ public class GeneratedFloorSweepTest
 		}
 	}
 
-	/// <summary>The alternative layout strategy and larger maps than the shipped 20x20 keep the same contracts.</summary>
+	/// <summary>Larger maps than the shipped 20x20 keep the same contracts.</summary>
 	[TestCase]
-	public async Task SimpleLayoutAndLargerFloorsAreSealedAndConnected()
+	public async Task LargerFloorsAreSealedAndConnected()
 	{
-		var (runner, generator) = await TestFactories.LoadGenerator(new SimpleRoomLayout { Retries = 3 });
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
 		using (runner)
 		{
 			var contracts = new FloorContracts();
-			await Sweep(generator, contracts, 10, _ => 1, "simple");
-			generator.Profile = TestFactories.CreateFloorProfile(new PackedRoomLayout());
 			generator.MapWidth = generator.MapDepth = 40;
 			generator.MaxRooms = 25;
 			await Sweep(generator, contracts, 3, _ => 1, "40x40");
@@ -162,9 +160,9 @@ public class GeneratedFloorSweepTest
 	}
 
 	[TestCase]
-	public async Task DenseProfileAcrossRealmsHasZeroInteriorHolesAndHoldsContracts()
+	public async Task LargeClusterProfileAcrossRealmsHoldsContracts()
 	{
-		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/dense.tres");
+		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/cluster_large.tres");
 		var (runner, generator) = await TestFactories.LoadGenerator(profile);
 		using (runner)
 		{
@@ -173,11 +171,11 @@ public class GeneratedFloorSweepTest
 			var contracts = new FloorContracts();
 			uint[] realmDepths = [1u, 4u, 7u];
 
-			for (ulong seed = 1; seed <= 9; seed++)
+			for (ulong seed = 1; seed <= 6; seed++)
 			{
 				generator.Seed = seed;
 				generator.DungeonDepth = realmDepths[(seed - 1) % 3];
-				string label = $"dense seed {seed} depth {generator.DungeonDepth}";
+				string label = $"cluster_large seed {seed} depth {generator.DungeonDepth}";
 				string failure = null;
 				try { generator.GenerateMap(includeGameplay: seed <= 3); }
 				catch (System.InvalidOperationException error) { failure = error.Message; }
@@ -189,8 +187,52 @@ public class GeneratedFloorSweepTest
 
 				string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
 				contracts.Check(generator, fullLabel);
-				string holeError = FindCorridorTouchingInteriorHole(generator.Map);
-				if (holeError != null) contracts.Fail("connectivity", $"{fullLabel}: {holeError}");
+
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+
+			contracts.AssertHeld();
+		}
+	}
+
+	/// <summary>
+	/// Hallway floors keep every contract across the realms, and their entrance and exit sit at opposite ends of the
+	/// main hallway, so the walk between them spans the floor.
+	/// </summary>
+	[TestCase]
+	public async Task HallwayProfileAcrossRealmsHoldsContractsAndSpansTheFloor()
+	{
+		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/hallway.tres");
+		var (runner, generator) = await TestFactories.LoadGenerator(profile);
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			var contracts = new FloorContracts();
+			uint[] realmDepths = [1u, 4u, 7u];
+
+			for (ulong seed = 1; seed <= 6; seed++)
+			{
+				generator.Seed = seed;
+				generator.DungeonDepth = realmDepths[(seed - 1) % 3];
+				string label = $"hallway seed {seed} depth {generator.DungeonDepth}";
+				string failure = null;
+				try { generator.GenerateMap(includeGameplay: seed <= 3); }
+				catch (System.InvalidOperationException error) { failure = error.Message; }
+				if (failure != null)
+				{
+					contracts.Fail("generation", $"{label}: {failure}");
+					continue;
+				}
+
+				string fullLabel = $"{label} ({generator.CurrentRealm.Id})";
+				contracts.Check(generator, fullLabel);
+				var map = generator.Map;
+				var arrival = map.WorldToTile(generator.Floor.Arrival.GlobalPosition);
+				var descent = map.WorldToTile(generator.Floor.Descent.GlobalPosition);
+				int span = System.Math.Max(System.Math.Abs(arrival.X - descent.X), System.Math.Abs(arrival.Y - descent.Y));
+				if (span < System.Math.Max(map.Width, map.Height) / 2)
+					contracts.Fail("generation", $"{fullLabel}: entrance and exit only {span} tiles apart");
 
 				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
 			}
@@ -200,9 +242,9 @@ public class GeneratedFloorSweepTest
 	}
 
 	[TestCase]
-	public async Task LinearBossProfileAcrossRealmsEnforcesBossCutVertexAndFit()
+	public async Task BossProfileAcrossRealmsEnforcesBossCutVertexAndFit()
 	{
-		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/linear_boss.tres");
+		var profile = TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/boss.tres");
 		var (runner, level) = await TestFactories.LoadLevel(profile);
 		using (runner)
 		{
@@ -218,7 +260,7 @@ public class GeneratedFloorSweepTest
 			{
 				generator.Seed = seed;
 				generator.DungeonDepth = realmDepths[(seed - 1) % 3];
-				string label = $"linear_boss seed {seed} depth {generator.DungeonDepth}";
+				string label = $"boss seed {seed} depth {generator.DungeonDepth}";
 				string failure = null;
 				try { level.Generate(); }
 				catch (System.InvalidOperationException error) { failure = error.Message; }
@@ -326,24 +368,6 @@ public class GeneratedFloorSweepTest
 			}
 			contracts.AssertHeld();
 		}
-	}
-
-	private static string FindCorridorTouchingInteriorHole(MapData map)
-	{
-		var exterior = MazeCarver.FindExteriorEmpty(map);
-		for (int x = 1; x < map.Width - 1; x++)
-		{
-			for (int z = 1; z < map.Height - 1; z++)
-			{
-				if (!map.IsEmpty(x, z) || exterior[x, z]) continue;
-				foreach (var dir in MapData.CardinalOffsets)
-				{
-					if (map.IsCorridor(x + dir.X, z + dir.Y))
-						return $"enclosed interior hole at ({x},{z}) touches corridor";
-				}
-			}
-		}
-		return null;
 	}
 
 	private static async Task Sweep(MapGenerator generator, FloorContracts contracts, int seeds, System.Func<ulong, uint> depth,

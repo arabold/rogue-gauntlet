@@ -88,8 +88,9 @@ func _generate_and_frame():
 	# Skip navigation + spawns (includeGameplay=false): this is a static geometry preview.
 	_map_generator.call("GenerateMap", false)
 
-	var map_width = float(_map_generator.MapWidth)
-	var map_depth = float(_map_generator.MapDepth)
+	var floor_size = _map_generator.FloorSize
+	var map_width = float(floor_size.x)
+	var map_depth = float(floor_size.y)
 	var world_width = map_width * TILE_SIZE
 	var world_depth = map_depth * TILE_SIZE
 	var aspect = world_width / world_depth

@@ -37,8 +37,12 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
 	public Realm CurrentRealm { get; private set; }
-	/// <summary>The floor recipe the current attempt builds with, resolved once its encounters are planned.</summary>
+	/// <summary>The floor recipe the current attempt builds with, resolved when the generator resets.</summary>
 	public FloorProfile CurrentProfile { get; private set; }
+	/// <summary>The current attempt's map size in tiles: its profile's <see cref="FloorProfile.MapSize"/>, or the generator's.</summary>
+	public Vector2I FloorSize => CurrentProfile?.MapSize is { X: > 0, Y: > 0 } size ? size : new((int)MapWidth, (int)MapDepth);
+	/// <summary>The current attempt's room budget: its profile's <see cref="FloorProfile.RoomCount"/>, or <see cref="MaxRooms"/>.</summary>
+	private uint RoomBudget => CurrentProfile?.RoomCount > 0 ? (uint)CurrentProfile.RoomCount : MaxRooms;
 	private RoomPool _realmRooms;
 	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
 	private readonly HashSet<Vector3I> _dividerCells = [];
@@ -147,7 +151,7 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Generating rooms...");
 
-		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, MaxRooms, _random.Layout);
+		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, RoomBudget, _random.Layout);
 		var plan = CurrentProfile.Layout.GenerateLayout(Map, context);
 		PlaceClusters(plan.Placements);
 		return plan;
@@ -661,10 +665,6 @@ public partial class MapGenerator : Node3D
 			// This is especially important to check in the editor
 			return true;
 		}
-		// Step 0: Plan special encounters before room layout. A gatekeeper floor builds from the boss profile, whose layout
-		// sizes the boss room for the gatekeeper's fit and makes it a required pass toward the descent.
-		Floor.Encounter = MobFactory.PlanEncounters(DungeonDepth);
-		CurrentProfile = Floor.Encounter?.GatekeeperId != null && BossProfile != null ? BossProfile : Profile;
 		CurrentProfile.ValidateOrThrow();
 
 		// Step 1: Generate random rooms
@@ -723,7 +723,11 @@ public partial class MapGenerator : Node3D
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 		CurrentRealm = Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true) ?? Realms.Where(realm => realm != null).MaxBy(realm => realm.LastDepth);
 		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Id);
-		CurrentProfile = Profile;
+		// Special encounters are planned before anything else: a gatekeeper floor builds from the boss profile, whose layout
+		// sizes the boss room for the gatekeeper's fit and makes it a required pass toward the descent, and the profile
+		// sizes the map.
+		var encounter = MobFactory?.PlanEncounters(DungeonDepth);
+		CurrentProfile = encounter?.GatekeeperId != null && BossProfile != null ? BossProfile : Profile;
 
 		ResetAccess();
 		_cachedStaticOutlines = null;
@@ -731,9 +735,9 @@ public partial class MapGenerator : Node3D
 		_framedEdges.Clear();
 
 		// Initialize the map with empty tiles and a walled border
-		Map = new MapData((int)MapWidth, (int)MapDepth);
+		Map = new MapData(FloorSize.X, FloorSize.Y);
 		Map.ResetToBorderedEmpty();
-		Floor = new GeneratedFloor(Map, this, DecorationGridMap);
+		Floor = new GeneratedFloor(Map, this, DecorationGridMap) { Encounter = encounter };
 
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();

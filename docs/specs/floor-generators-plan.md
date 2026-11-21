@@ -4,15 +4,16 @@ Status: proposed. [Level design](../level-design.md) describes the implemented g
 
 ## Scope
 
-Add three new floor generator archetypes and an Inversion-of-Control (`FloorProfile`) + composite room-group (`RoomGroup`) architecture on the existing fixed `MapWidth × MapDepth` canvas (default `20×20`, no dynamic bounds cropping):
+Add new floor generator archetypes and an Inversion-of-Control (`FloorProfile`) + composite room-group (`RoomGroup`) architecture. A profile may set its own map size and room count (`FloorProfile.MapSize`, `RoomCount`); otherwise the generator's `MapWidth × MapDepth` (default `20×20`) and `MaxRooms` (default 10) apply, with no dynamic bounds cropping:
 
 1. **Labyrinth (`labyrinth.tres`):** Entrance, distant Exit, and 1–3 dedicated rooms; the remaining playable space is carved into 1-tile-wide hallways with dead ends, traps, and optional loops. No secret doors. Physical doors on every room and the exit; lockable dedicated rooms and exit (with ordered key chains); keys, chests, and loose items eligible anywhere (weighted toward dead ends and corridors).
-2. **Dense / Gapless (`dense.tres`):** Tightly packed rooms with 1-tile corridors filling all interior empty pockets between rooms (organic outer silhouette, zero enclosed interior holes).
-3. **Linear Boss (`linear_boss.tres`):** Linear spine (`Entrance → [Approach...] → [Boss → Exit Group]`) with optional dead-end sidearms, strict no-bypass routing (`MustTraverse`), and an atomic `boss_exit.tres` `RoomGroup` placing the Exit behind one physical door reserved from random mechanical key locks. Boss-kill unlock logic on that door is deferred; this plan exposes the clean seam (`RoomRegion.ReserveAccess`, `RoomRegion.SlotId`, `Floor.Doors`).
+2. **Large cluster (`cluster_large.tres`):** The packed layout and corridors on a 30×30 floor with up to 22 rooms: the same tight packing as `cluster.tres` (20×20, 10 rooms), with about twice the rooms. Density comes from the room count, not a separate algorithm.
+3. **Hallway (`hallway.tres`):** `HallwayRoomLayout` lays one hallway the length of a 36×24 floor with the entrance at one end and the exit at the other, side halls branching off it toward the map edge, and up to 20 rooms lining both sides of every hall, each opening onto it. Halls are laid as corridor tiles and trimmed back to their farthest doorway; doorways that do not open onto a hall get short back corridors from `AStarCorridorConnector`.
+4. **Boss (`boss.tres`):** Linear spine (`Entrance → [Approach...] → [Boss → Exit Group]`) with optional dead-end sidearms, strict no-bypass routing (`MustTraverse`), and an atomic `boss_exit.tres` `RoomGroup` placing the Exit behind one physical door reserved from random mechanical key locks. Boss-kill unlock logic on that door is deferred; this plan exposes the clean seam (`RoomRegion.ReserveAccess`, `RoomRegion.SlotId`, `Floor.Doors`).
 
 **Shared baseline change:** Loose items, access keys, and wall-backed chests become eligible in both rooms and corridors across all profiles; scheduled fountains stay room-only.
 
-**Delivery boundary:** `level.tscn` builds ordinary floors from `floor_profiles/packed.tres` and gatekeeper floors from `floor_profiles/linear_boss.tres` (`MapGenerator.BossProfile`, chosen once the encounter plan holds a gatekeeper). `labyrinth.tres` and `dense.tres` stay unwired from live `Realm` progression and are previewed in [RoomGenerationHarness](../../scenes/debug/rooms/RoomGenerationHarness.cs) and verified via GdUnit4 sweeps; `SimpleRoomLayout` is retained for now via `floor_profiles/simple.tres`.
+**Delivery boundary:** `level.tscn` builds ordinary floors from `floor_profiles/cluster.tres` and gatekeeper floors from `floor_profiles/boss.tres` (`MapGenerator.BossProfile`, chosen once the encounter plan holds a gatekeeper). `cluster_large.tres`, `hallway.tres` and `labyrinth.tres` stay unwired from live `Realm` progression and are previewed in [RoomGenerationHarness](../../scenes/debug/rooms/RoomGenerationHarness.cs) and verified via GdUnit4 sweeps. Every profile sets its own map size and room count, and draws its locks from a shared preset in `access/floor_access_profiles/` (`rare_lock.tres`, or `lock_chains.tres` for the labyrinth) built from the shared lock definitions in `access/locks/`. The scatter-placement `SimpleRoomLayout` and `simple.tres` are retired.
 
 ---
 
@@ -24,11 +25,11 @@ No backward-compatibility shims are retained; all callers, `.tres`/`.tscn` files
 | --- | --- | --- |
 | `AssembledRoomFactory` | **`RoomPool`** | Move from `scenes/levels/generators/factories/` to `scenes/levels/generators/assembly/RoomPool.cs`; matches `room_pool.tres`, `LootPool`, `SpellPool`, `AppearancePool`. Rename `EntranceTypes`/`ExitTypes`/`RoomTypes`/`AllTypes` → **`Entrances`**, **`Exits`**, **`Rooms`**, **`AllDefinitions`** (`RoomDefinition[]`). |
 | `generators/factories/MobFactory.cs` | **`encounters/MobFactory.cs`** | Move to `scenes/levels/encounters/` beside `RealmEncounterFactory`; delete empty `generators/factories/`. |
-| `LevelAccessProfile` | **`FloorAccessProfile`** | Rename in `scenes/levels/access/FloorAccessProfile.cs`; update `garrison_access.tres`; align `Validate()` to `string[]` + `ValidateOrThrow()`. |
+| `LevelAccessProfile` | **`FloorAccessProfile`** | Rename in `scenes/levels/access/FloorAccessProfile.cs`; update the access preset (now `access/floor_access_profiles/rare_lock.tres`); align `Validate()` to `string[]` + `ValidateOrThrow()`. |
 | `scenes/levels/rooms/groups/` | **`scenes/levels/rooms/prop_groups/`** | Rename directory and update all `.tres`/`.md` paths (`PropGroup` & `SeatedTable` assets); mirrors `props/` vs. `room_types/` + new **`room_groups/`**. |
 | `FloorProfile.Corridors` (draft) | **`FloorProfile.Connector`** | Avoids colliding with `Realm.Corridors` (`DungeonTileFactory`). |
 | `RoomGenerationHarness.Factory` | **`RoomGenerationHarness.Pool`** | Matches `RoomPool`. |
-| `Boss` vs. `Gatekeeper` | **`Boss`** for new floor slots/presets | Use `SlotId = "boss"`, `rooms/room_groups/boss_exit.tres`, `floor_profiles/linear_boss.tres` (matching `MonsterArchetype.Boss` and `DamageSourceFlags.Boss`); retain existing `Gatekeeper*` encounter/balance symbols (`GeneratedFloor.GatekeeperSite`, `RealmEncounterFactory`, `scripts/balance/`) untouched in this scope. |
+| `Boss` vs. `Gatekeeper` | **`Boss`** for new floor slots/presets | Use `SlotId = "boss"`, `rooms/room_groups/boss_exit.tres`, `floor_profiles/boss.tres` (matching `MonsterArchetype.Boss` and `DamageSourceFlags.Boss`); retain existing `Gatekeeper*` encounter/balance symbols (`GeneratedFloor.GatekeeperSite`, `RealmEncounterFactory`, `scripts/balance/`) untouched in this scope. |
 
 ---
 
@@ -128,7 +129,7 @@ public partial class RoomGroup : RoomDefinition
   - `List<ApprovedEdge> ApprovedEdges` (cluster pair plus the doorway exit tiles the layout paired; empty for unconstrained layouts)
   - `HashSet<Vector2I> ProtectedCorridors` (bridge tiles stamped from placed clusters)
   - `void FreeUnplaced()` (safety cleanup if generation aborts before `PlaceClusters`)
-- **`FloorBuildContext`:** Plain C# record passed into layouts: `(RoomPool Pool, FloorProfile Profile, EncounterPlan Encounter, uint MaxRooms, RandomNumberGenerator Rng)`.
+- **`FloorBuildContext`:** Plain C# record passed into layouts: `(RoomPool Pool, FloorProfile Profile, EncounterPlan Encounter, uint MaxRooms, RandomNumberGenerator Rng)`, where `MaxRooms` is the profile's `RoomCount` or the generator's `MaxRooms`.
 - **`FloorProfile` (`scenes/levels/generators/FloorProfile.cs`, presets under `scenes/levels/generators/floor_profiles/`):**
   ```csharp
   [Tool, GlobalClass]
@@ -137,6 +138,10 @@ public partial class RoomGroup : RoomDefinition
   	[Export] public RoomLayoutStrategy Layout { get; set; }
   	[Export] public CorridorConnectorStrategy Connector { get; set; }
   	[Export] public FloorAccessProfile Access { get; set; }
+
+  	[ExportGroup("Size")]
+  	[Export(PropertyHint.Range, "0,100")] public int RoomCount { get; set; }   // 0: the generator's MaxRooms
+  	[Export] public Vector2I MapSize { get; set; }                             // zero: the generator's MapWidth × MapDepth
 
   	[ExportGroup("Rooms")]
   	[Export] public bool AllowSecretDoors { get; set; } = true;
@@ -151,15 +156,15 @@ public partial class RoomGroup : RoomDefinition
   	public void ValidateOrThrow();
   }
   ```
-  *(Authored Variant-safe fields only; `-1f` sentinel means defer to each `RoomType.DoorChance`. When `GoalOverride` is set, e.g. `boss_exit.tres` on `linear_boss.tres`, it replaces `RoomPool.Exits` for that floor without polluting `room_pool.tres`.)*
+  *(Authored Variant-safe fields only; `-1f` sentinel means defer to each `RoomType.DoorChance`. When `GoalOverride` is set, e.g. `boss_exit.tres` on `boss.tres`, it replaces `RoomPool.Exits` for that floor without polluting `room_pool.tres`.)*
 - **`FloorAccessProfile` (`scenes/levels/access/FloorAccessProfile.cs`):** Retains `Locks`, `MaximumLockedRooms`, `MaximumLockedDoors`, `LockedRoomChance`; adds:
   - `[Export] public bool AllowLockingExit { get; set; } = false;`
   - `[Export] public bool AllowLockChains { get; set; } = false;`
   - `public string[] Validate()` + `ValidateOrThrow()`
   - **Contract:** Never locks Entrance, Gatekeeper room, `ReserveAccess == true` rooms (such as `boss_exit`'s Exit door), or `MustTraverse` rooms that would cut progression without a reachable key. When `AllowLockChains == true`, locks rooms sequentially one tier at a time, placing each lock's key(s) in the region reachable *before* that lock (`AccessSolutionValidator.Reachable` + `ReachableWithoutConnectors`), guaranteeing acyclic solvability.
 - **`MapGenerator` (`scenes/levels/generators/MapGenerator.cs`, `.Access.cs`, `.Loot.cs`):**
-  - Replaces `RoomLayout`, `CorridorConnector`, and `AccessProfile` exports with `[Export] public FloorProfile Profile { get; set; }` (wired to `floor_profiles/packed.tres` in `level.tscn`).
-  - Retains `MapWidth`, `MapDepth`, `MaxRooms`, `MinChests..MaxLooseItems`, `ChestScene`, `TrapScene`, `LooseItemScene`, `LooseItems`, `Fountains`, `MobFactory`, `Rooms : RoomPool`, `Realms` on `MapGenerator` (preserving `scripts/balance/content.py` defaults, run-scoped fountains, and test isolation).
+  - Replaces `RoomLayout`, `CorridorConnector`, and `AccessProfile` exports with `[Export] public FloorProfile Profile { get; set; }` (wired to `floor_profiles/cluster.tres` in `level.tscn`).
+  - Retains `MapWidth`, `MapDepth`, `MaxRooms`, `MinChests..MaxLooseItems`, `ChestScene`, `TrapScene`, `LooseItemScene`, `LooseItems`, `Fountains`, `MobFactory`, `Rooms : RoomPool`, `Realms` on `MapGenerator` (preserving `scripts/balance/content.py` defaults, run-scoped fountains, and test isolation) as the defaults a profile's `MapSize` and `RoomCount` override. The profile is resolved, and the map sized, when the generator resets.
 - **`GeneratedFloor` (`scenes/levels/generators/GeneratedFloor.cs`):**
   - Keep `GatekeeperSite` and `GatekeeperSpawn`; add no parallel `BossRoomId`/`BossExitDoors`/`RoomRoles` arrays (read `SlotId`/`MustTraverse`/`ReserveAccess` directly from `Rooms`).
   - `TryFindLargeEncounterPosition(Vector3 reference, float minimumRadius, float preferredRadius, out Vector3 position, Func<int, bool> allowedRoom = null)` — iterates room tiles outside the arrival's room by default; restricted to the `SlotId == "boss"` room or the descent's room when a `"boss"` room exists.
@@ -171,16 +176,15 @@ public partial class RoomGroup : RoomDefinition
   - `public abstract FloorPlan GenerateLayout(MapData map, FloorBuildContext context);`
   - Provides protected shared helpers: `FitsWithinPlayableBounds`, `RestampAll`, `GetExternalConnectors`, `CountAlignedConnectors`, `TryFindBestPlacementAcrossRotations` (computes pure `MapData[4]` orientations via `.Turned()`, scores all candidate placements on lightweight `MapData` arrays, and calls `cluster.Rotate(chosen.Steps)` at most once on winner selection), and `CreateBalancedStandardRoom` / `RecordRoomUse` keyed by `RoomDefinition`.
   - **4 subclasses:**
-    1. `SimpleRoomLayout` — retained for now, updated to `RoomCluster` / `FloorPlan` and `RoomDefinition`.
-    2. `PackedRoomLayout` — serves both `packed.tres` and `dense.tres`; updated to `RoomCluster` / `FloorPlan` and pure `MapData[4]` search (with optional `AllowOverlapFreeEdges` / existing `RoomGap = 1`).
-    3. `SparseRoomLayout` — places Entrance, geometrically distant Exit (never evicted), and `MinDedicatedRooms..MaxDedicatedRooms` spaced rooms with configurable `MinRoomGap` (for `labyrinth.tres`).
+    1. `PackedRoomLayout` — serves both `cluster.tres` and `cluster_large.tres` (which differ only in map size and room count); updated to `RoomCluster` / `FloorPlan` and pure `MapData[4]` search (existing `RoomGap = 1`).
+    2. `SparseRoomLayout` — places Entrance, geometrically distant Exit (never evicted), and `MinDedicatedRooms..MaxDedicatedRooms` spaced rooms with configurable `MinRoomGap` (for `labyrinth.tres`).
+    3. `HallwayRoomLayout` — places the entrance at one end of a main hallway and the goal at the other, adds `Branches` side halls, then fills both sides of every hall with rooms (`MaxSideDoorways`, stopping after `Retries` misfits in a row), preferring spots nearest the entrance and doorways that open onto a hall.
     4. `LinearRoomLayout` — places spine `Entrance → [MinApproach..MaxApproach] → Goal` (`GoalOverride` or Exit) plus `[MinSidearms..MaxSidearms]` 1-doorway dead-end sidearms with a bounded backtrack cap (default 24), emitting `ApprovedEdges` and marking spine rooms `MustTraverse`. Passes `RequiredFit = encounter.GatekeeperFit` when assembling the `"boss"` slot (either via `GoalOverride`'s `boss_exit.tres` member or directly).
 - **`CorridorConnectorStrategy` (`scenes/levels/generators/connectors/CorridorConnectorStrategy.cs`):**
   - `public abstract void ConnectRooms(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms, RandomNumberGenerator rng);`
-  - **3 subclasses (sharing `MazeCarver` pure-C# helpers):**
+  - **2 subclasses:**
     1. `AStarCorridorConnector`: marks `plan.ProtectedCorridors` solid; builds initial components grouped by `RoomRegion.ClusterId` (so pre-linked `RoomGroup` rooms don't split into separate components); routes only external connectors. When `plan.ApprovedEdges` is non-empty, routes strictly edge-by-edge in order between each edge's paired exits (never another pairing, which could end a corridor on the next edge's doorway and skip the room between) and seals corridor-to-corridor edges (`SealCorridorEdge`) between unrelated routed corridors so separate branches never fuse into a bypass; otherwise runs the existing spanning tree + remaining doorways.
     2. `MazeCorridorConnector` (for `labyrinth.tres`): exports `WindingChance`, `LoopChance`, `DeadEndPruneChance`, `MinDeadEnds`; carves a 1-tile-wide maze across all doorway-reachable empty playable tiles via randomized growing-tree (`WindingChance`), sealing non-carved shared corridor edges (`SealCorridorEdge`); opens controlled loops (`LoopChance`) while never breaching `ProtectedCorridors`; runs O(W×H) queue-based dead-end pruning (`DeadEndPruneChance`) preserving connected doorways and a configurable minimum dead-end count.
-    3. `GapFillCorridorConnector` (for `dense.tres`): exports `WindingChance`, `LoopChance`; connects every doorway first (`AStarCorridorConnector`), floods exterior void from the map border (`MazeCarver.FindExteriorEmpty`), identifies enclosed interior `Empty` tiles and 1-tile crevices pinched inside the cluster hull, and carves accessible 1-tile corridors through them with `SealCorridorEdge`.
 
 ---
 
@@ -246,10 +250,11 @@ docs/
 scenes/levels/
 ├── RoomRegion.cs                                      (~ SlotId, Obligations, ReserveAccess, ClusterId)
 ├── FloorDiscovery.cs                                  (~ skip door x-ray indicators across RequiresInteriorWall)
-├── level.tscn                                         (~ assign Profile = floor_profiles/packed.tres; remove old RoomLayout/CorridorConnector/AccessProfile)
+├── level.tscn                                         (~ assign Profile = floor_profiles/cluster.tres, BossProfile = floor_profiles/boss.tres; remove old RoomLayout/CorridorConnector/AccessProfile)
 ├── access/
 │   ├── LevelAccessProfile.cs -> FloorAccessProfile.cs (~ rename + AllowLockingExit, AllowLockChains, string[] Validate())
-│   └── garrison_access.tres                           (~ script/path updated to FloorAccessProfile)
+│   ├── floor_access_profiles/                         (+ rare_lock.tres, lock_chains.tres; replaces garrison_access.tres)
+│   └── locks/                                         (+ gold.tres, silver.tres, arcane.tres shared by both presets)
 ├── encounters/
 │   └── MobFactory.cs                                  (+ moved from generators/factories/MobFactory.cs)
 ├── rooms/
@@ -273,11 +278,11 @@ scenes/levels/
     ├── BoundaryWallBuilder.cs                         (~ isPartition callback, MeshLibrary bounds cache, 4x4 spatial bucketing)
     ├── WallFootprints.cs                              (~ spatial bucketing in FindOverlap; item bounds/name cache)
     ├── floor_profiles/
-    │   ├── packed.tres                                (+ current default profile wired in level.tscn)
-    │   ├── simple.tres                                (+ SimpleRoomLayout + AStarCorridorConnector)
-    │   ├── labyrinth.tres                             (+ SparseRoomLayout + MazeCorridorConnector + lockable exit/chains)
-    │   ├── dense.tres                                 (+ PackedRoomLayout + GapFillCorridorConnector)
-    │   └── linear_boss.tres                           (+ LinearRoomLayout + AStarCorridorConnector(ApprovedEdges) + boss_exit.tres)
+    │   ├── cluster.tres                               (+ PackedRoomLayout + AStarCorridorConnector, 20×20, 10 rooms; default profile wired in level.tscn)
+    │   ├── cluster_large.tres                         (+ PackedRoomLayout + AStarCorridorConnector, 30×30, 22 rooms)
+    │   ├── hallway.tres                               (+ HallwayRoomLayout + AStarCorridorConnector, 36×24, 20 rooms)
+    │   ├── labyrinth.tres                             (+ SparseRoomLayout + MazeCorridorConnector + lock_chains.tres)
+    │   └── boss.tres                                  (+ LinearRoomLayout + AStarCorridorConnector(ApprovedEdges) + boss_exit.tres; BossProfile in level.tscn)
     ├── factories/                                     (- removed directory after moving AssembledRoomFactory & MobFactory)
     ├── assembly/
     │   ├── RoomDefinition.cs                          (+ abstract base Resource for RoomType & RoomGroup)
@@ -294,16 +299,16 @@ scenes/levels/
     │   └── CorridorBlueprint.cs                       (~ HasWallToward, Decoratable=false near doors, O(1) WallRun lookup, span wall breaks, same-side spacing)
     ├── layouts/
     │   ├── RoomLayoutStrategy.cs                      (~ FloorPlan signature + lifted protected helpers + MapData[4] rotation search)
-    │   ├── SimpleRoomLayout.cs                        (~ updated to FloorPlan/RoomCluster)
+    │   ├── SimpleRoomLayout.cs                        (- retired with simple.tres)
     │   ├── PackedRoomLayout.cs                        (~ updated to FloorPlan/RoomCluster + pure MapData[4] search)
     │   ├── SparseRoomLayout.cs                        (+ entrance, distant exit, MinDedicatedRooms..MaxDedicatedRooms, MinRoomGap)
+    │   ├── HallwayRoomLayout.cs                       (+ main hallway, side halls, rooms along both sides)
     │   └── LinearRoomLayout.cs                        (+ spine Entrance->Approach->Goal + dead-end Sidearms + ApprovedEdges + backtrack cap)
     └── connectors/
         ├── CorridorConnectorStrategy.cs               (~ FloorPlan + RNG signature)
         ├── AStarCorridorConnector.cs                  (~ ClusterId components, ProtectedCorridors, ApprovedEdges isolated routing)
-        ├── MazeCarver.cs                              (+ shared pure-C# maze carving, edge sealing, loop opening, exterior flood)
-        ├── MazeCorridorConnector.cs                   (+ AllPlayable labyrinth carving & dead-end pruning)
-        └── GapFillCorridorConnector.cs                (+ A* room linking + InteriorGapsOnly hole filling)
+        ├── MazeCarver.cs                              (+ pure-C# maze carving, edge sealing, loop opening)
+        └── MazeCorridorConnector.cs                   (+ AllPlayable labyrinth carving & dead-end pruning)
 
 scenes/levels/navigation/
 └── ClearanceGrid.cs                                   (~ localized SaveRegion/RestoreRegion for transactional prop/access probes)
@@ -316,7 +321,7 @@ scenes/debug/rooms/
 
 tests/
 ├── MapDataTileTest.cs                                 (~ unit tests for SealCorridorEdge, HasWallToward, Stamp, Turned, Reset)
-├── FloorAlgorithmTest.cs                              (+ plain-C# tests for maze carving, gap-fill, linear topology, cluster MapData join math)
+├── FloorAlgorithmTest.cs                              (+ plain-C# tests for maze carving, linear topology, cluster MapData join math)
 ├── RoomGroupTest.cs                                   (+ Validate() acyclicity/depth + AssembleCluster + Free() cleanup tests)
 ├── GarrisonRoomPoolTest.cs                            (~ RoomPool property/method renames)
 ├── DoorAccessTest.cs                                  (~ FloorProfile/FloorAccessProfile + lockable exit & chain solvability tests)
@@ -336,7 +341,7 @@ tests/
 
 ### Slice 1: Taxonomy renames and `MapData` edge-wall substrate
 - **Changes:** Rename `AssembledRoomFactory` → `RoomPool`, move `MobFactory.cs` → `scenes/levels/encounters/`, rename `LevelAccessProfile` → `FloorAccessProfile`, rename `rooms/groups/` → `rooms/prop_groups/`. Add 4-bit `_sealedEdges` / `_connectorMasks`, `SealCorridorEdge`, `HasWallToward`, `OpenNeighborCount`, `Stamp`, `Intersects(buffer)` to `MapData`. Apply `BoundaryWallBuilder` `isPartition` + item-bounds caching + 4×4 bucketing, `WallFootprints.FindOverlap` bucketing, `WallRun.Find` `canStep`, `CorridorBlueprint` `HasWallToward` / O(1) index / span fixes, `FloorDiscovery` x-ray wall guard, `GeneratedFloor.TryPlacePackMember` `HasSight`, and `CollisionOutlines` hull cache.
-- **Verification:** `dotnet build "Rogue Gauntlet.sln"` + `dotnet build "Rogue Gauntlet.csproj" -c ExportRelease`; headless Godot `--import` and `inspect_resource.gd` on `room_pool.tres`, `garrison_access.tres`, and sample `prop_groups/` + `room_types/` resources; plain-C# `MapDataTileTest` for `_sealedEdges`, `Turned()`, and `HasWallToward`; existing `WallIntegrityTest`, `CorridorDecorationTest`, `WallClipTest`, `DoorAccessTest`, and `GeneratedFloorSweepTest`.
+- **Verification:** `dotnet build "Rogue Gauntlet.sln"` + `dotnet build "Rogue Gauntlet.csproj" -c ExportRelease`; headless Godot `--import` and `inspect_resource.gd` on `room_pool.tres`, the access preset, and sample `prop_groups/` + `room_types/` resources; plain-C# `MapDataTileTest` for `_sealedEdges`, `Turned()`, and `HasWallToward`; existing `WallIntegrityTest`, `CorridorDecorationTest`, `WallClipTest`, `DoorAccessTest`, and `GeneratedFloorSweepTest`.
 - **Remaining:** New generators, `RoomGroup`, and `FloorProfile` do not exist yet; live gameplay unchanged.
 
 ### Slice 2: `RoomDefinition`, `RoomGroup`, `RoomCluster`, and early encounter planning
@@ -345,28 +350,27 @@ tests/
 - **Remaining:** `MapGenerator` still uses legacy `RoomLayout`/`CorridorConnector`/`AccessProfile` exports until Slice 3.
 
 ### Slice 3: `FloorProfile`, `FloorPlan`, corridor loot, and `FloorAccessProfile` extensions
-- **Changes:** Add `FloorProfile` and `FloorPlan`; update `RoomLayoutStrategy` (`SimpleRoomLayout`, `PackedRoomLayout`) and `CorridorConnectorStrategy` (`AStarCorridorConnector`) signatures; replace `MapGenerator`'s `RoomLayout`/`CorridorConnector`/`AccessProfile` exports with `Profile`; author `floor_profiles/packed.tres` (wired in `level.tscn`) and `floor_profiles/simple.tres`. Enable corridor loose items, keys, and pre-filtered/region-saved corridor chests in `MapGenerator.Loot.cs` (`DeadEndLootWeight`, `TrapDensityScale`; fountains pass `includeCorridors: false`). Add `AllowLockingExit`, `AllowLockChains`, `ReserveAccess` / `MustTraverse` guards, and shuffled lazy `IsColumnObstructed` checks in `MapGenerator.Access.cs`. Add `allowedRoom` predicate to `GeneratedFloor.TryFindLargeEncounterPosition`. Migrate `TestFactories` (`FloorProfile` helpers, retiring `RoomPoolWithDoors`/`WithSecrets`/`WithDoorsAndSecrets`).
+- **Changes:** Add `FloorProfile` and `FloorPlan`; update `RoomLayoutStrategy` (`PackedRoomLayout`) and `CorridorConnectorStrategy` (`AStarCorridorConnector`) signatures; replace `MapGenerator`'s `RoomLayout`/`CorridorConnector`/`AccessProfile` exports with `Profile`; author `floor_profiles/packed.tres` (wired in `level.tscn`) and `floor_profiles/simple.tres`. Enable corridor loose items, keys, and pre-filtered/region-saved corridor chests in `MapGenerator.Loot.cs` (`DeadEndLootWeight`, `TrapDensityScale`; fountains pass `includeCorridors: false`). Add `AllowLockingExit`, `AllowLockChains`, `ReserveAccess` / `MustTraverse` guards, and shuffled lazy `IsColumnObstructed` checks in `MapGenerator.Access.cs`. Add `allowedRoom` predicate to `GeneratedFloor.TryFindLargeEncounterPosition`. Migrate `TestFactories` (`FloorProfile` helpers, retiring `RoomPoolWithDoors`/`WithSecrets`/`WithDoorsAndSecrets`).
 - **Verification:** `dotnet build` (Debug & `ExportRelease`); verify `scripts/balance/content.py` still parses `MinTraps`/`MaxTraps` cleanly; run `LootPlacementTest`, `DoorAccessTest` (plus new exit-locking & chained-key solvability cases), `FountainTest`, `GarrisonRoomPoolTest`, and `GeneratedFloorSweepTest`.
-- **Remaining:** New layout/connector strategies (`SparseRoomLayout`, `LinearRoomLayout`, `MazeCorridorConnector`, `GapFillCorridorConnector`) not yet implemented.
+- **Remaining:** New layout/connector strategies (`SparseRoomLayout`, `HallwayRoomLayout`, `LinearRoomLayout`, `MazeCorridorConnector`) not yet implemented.
 
 ### Slice 4: New strategies and floor profile presets
-- **Changes:** Implement pure-C# core algorithms and `[GlobalClass]` wrappers for `SparseRoomLayout`, `LinearRoomLayout`, `MazeCarver`, `MazeCorridorConnector`, `GapFillCorridorConnector`, and `AStarCorridorConnector` `ApprovedEdges` isolated routing + `MustTraverse` realized-map validation in `MapGenerator.ConnectRooms`. Author `floor_profiles/labyrinth.tres`, `floor_profiles/dense.tres`, and `floor_profiles/linear_boss.tres` (unwired from live `Realm`s).
-- **Verification:** `dotnet build`; Godot `--import` + `inspect_resource.gd` on all `.tres` presets under `floor_profiles/`; sub-second plain-C# `FloorAlgorithmTest` verifying maze full connectivity + dead ends, Dense zero enclosed interior holes, and Linear Boss non-bypassability on realized `MapData`.
+- **Changes:** Implement pure-C# core algorithms and `[GlobalClass]` wrappers for `SparseRoomLayout`, `HallwayRoomLayout`, `LinearRoomLayout`, `MazeCarver`, `MazeCorridorConnector`, and `AStarCorridorConnector` `ApprovedEdges` isolated routing + `MustTraverse` realized-map validation in `MapGenerator.ConnectRooms`. Add `FloorProfile.RoomCount`/`MapSize`. Author `floor_profiles/cluster_large.tres`, `floor_profiles/hallway.tres`, `floor_profiles/labyrinth.tres`, and `floor_profiles/boss.tres`.
+- **Verification:** `dotnet build`; Godot `--import` + `inspect_resource.gd` on all `.tres` presets under `floor_profiles/`; sub-second plain-C# `FloorAlgorithmTest` verifying maze full connectivity + dead ends and Linear Boss non-bypassability on realized `MapData`.
 - **Remaining:** Visual harness preview and full multi-profile Godot runtime sweeps (Slice 5).
 
 ### Slice 5: `RoomGenerationHarness` preview, top-down visual checks, and 5-profile sweeps
 - **Changes:** Update `RoomGenerationHarness` (`Pool` rename, `DebugCatalog.Resources<FloorProfile>` selector in floor mode, `RoomGroup` cluster preview with `BoundaryWallBuilder` bridge rendering and axis-override hiding); extend `render_level_topdown.gd` with optional `--profile <path>`; add tiered `[RequireGodotRuntime]` sweeps in `GeneratedFloorSweepTest` across all 5 `FloorProfile`s and all 3 realms checking wall gaps, piece overlaps, doorway frames, connectivity, corridor loot/chest reachability, lock/key solvability, and boss placement.
-- **Verification:** Run full `dotnet test "Rogue Gauntlet.csproj" --settings .runsettings` (isolated `TMPDIR`) and inspect windowed `render_level_topdown.gd` renders for `labyrinth.tres`, `dense.tres`, and `linear_boss.tres` across realms.
+- **Verification:** Run full `dotnet test "Rogue Gauntlet.csproj" --settings .runsettings` (isolated `TMPDIR`) and inspect windowed `render_level_topdown.gd` renders for `cluster_large.tres`, `hallway.tres`, `labyrinth.tres`, and `boss.tres` across realms.
 
 ---
 
 ## Open decisions and deferred work
 
-1. **Wiring profiles into live runs:** Gatekeeper floors already use `linear_boss.tres`. Selecting `labyrinth.tres` or `dense.tres` per `Realm` or depth stays deferred until they are visually verified in `RoomGenerationHarness`.
+1. **Wiring profiles into live runs:** Gatekeeper floors already use `boss.tres`. Selecting `cluster_large.tres`, `hallway.tres` or `labyrinth.tres` per `Realm` or depth stays deferred until the realm definitions are revisited.
 2. **Boss-kill door unlock:** `boss_exit.tres` marks the Exit `RoomRegion` with `ReserveAccess = true` and `SlotId = "exit"` so `Floor.Doors` exposes the boss exit door cleanly when boss-kill unlocking is added later.
-3. **Retiring `SimpleRoomLayout` / `simple.tres`:** Retained during initial development and sweeps; delete in a small follow-up once the new profiles stabilize.
-4. **Mid-corridor labyrinth doors (optional later):** Initial Labyrinth locks live on room-owned doors (`Entrance`, `Dedicated` rooms, `Exit`); standalone corridor doors on sealed edges can be added later without changing `FloorProfile`.
-5. **Global `Gatekeeper*` rename (optional later):** Existing `Gatekeeper*` symbols in `scenes/levels/encounters/` and `scripts/balance/` stay untouched until a dedicated naming cleanup.
+3. **Mid-corridor labyrinth doors (optional later):** Initial Labyrinth locks live on room-owned doors (`Entrance`, `Dedicated` rooms, `Exit`); standalone corridor doors on sealed edges can be added later without changing `FloorProfile`.
+4. **Global `Gatekeeper*` rename (optional later):** Existing `Gatekeeper*` symbols in `scenes/levels/encounters/` and `scripts/balance/` stay untouched until a dedicated naming cleanup.
 
 ---
 

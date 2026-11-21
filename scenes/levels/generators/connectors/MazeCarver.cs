@@ -3,44 +3,10 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// Pure-C# Growing-Tree maze carving, edge sealing, exterior void flooding, and 2x2-free loop opening
-/// shared by <see cref="MazeCorridorConnector"/> and <see cref="GapFillCorridorConnector"/>.
+/// Pure-C# Growing-Tree maze carving, edge sealing and 2x2-free loop opening for <see cref="MazeCorridorConnector"/>.
 /// </summary>
 internal static class MazeCarver
 {
-	/// <summary>Returns a mask of playable interior <see cref="MapTile.Empty"/> tiles connected to the outer boundary.</summary>
-	public static bool[,] FindExteriorEmpty(MapData map)
-	{
-		var exterior = new bool[map.Width, map.Height];
-		var queue = new Queue<Vector2I>();
-		for (int x = 1; x < map.Width - 1; x++)
-		{
-			for (int z = 1; z < map.Height - 1; z++)
-			{
-				if (x > 1 && x < map.Width - 2 && z > 1 && z < map.Height - 2) continue;
-				if (!map.IsEmpty(x, z)) continue;
-				exterior[x, z] = true;
-				queue.Enqueue(new Vector2I(x, z));
-			}
-		}
-
-		while (queue.Count > 0)
-		{
-			var p = queue.Dequeue();
-			foreach (var dir in MapData.CardinalOffsets)
-			{
-				int nx = p.X + dir.X;
-				int nz = p.Y + dir.Y;
-				if (nx < 1 || nx >= map.Width - 1 || nz < 1 || nz >= map.Height - 1) continue;
-				if (exterior[nx, nz] || !map.IsEmpty(nx, nz)) continue;
-				exterior[nx, nz] = true;
-				queue.Enqueue(new Vector2I(nx, nz));
-			}
-		}
-
-		return exterior;
-	}
-
 	public static void SealCorridorMask(MapData map, bool[,] mask, IReadOnlyList<Vector2I> tiles)
 	{
 		foreach (var tile in tiles)
@@ -110,9 +76,7 @@ internal static class MazeCarver
 		IReadOnlyList<Vector2I> tiles,
 		float loopChance,
 		Func<int, int> nextInt,
-		Func<float> nextFloat,
-		bool allowOtherCorridorEntry,
-		IReadOnlySet<Vector2I> protectedCorridors = null)
+		Func<float> nextFloat)
 	{
 		if (loopChance <= 0f) return;
 
@@ -127,16 +91,8 @@ internal static class MazeCarver
 				if (!map.IsWithinBounds(nx, nz)) continue;
 				if (!map.IsCorridorEdgeSealed(a.X, a.Y, dir)) continue;
 
-				if (mask[nx, nz])
-				{
-					// Canonical orientation so each internal edge is tested once.
-					if (dir == Vector2I.Right || dir == Vector2I.Down)
-					{
-						edges.Add((a, dir));
-					}
-				}
-				else if (allowOtherCorridorEntry && map.IsCorridor(nx, nz)
-					&& (protectedCorridors == null || !protectedCorridors.Contains(new Vector2I(nx, nz))))
+				// Canonical orientation so each internal edge is tested once.
+				if (mask[nx, nz] && (dir == Vector2I.Right || dir == Vector2I.Down))
 				{
 					edges.Add((a, dir));
 				}

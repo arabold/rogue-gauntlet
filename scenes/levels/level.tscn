@@ -14,8 +14,8 @@
 [ext_resource type="Script" path="res://scenes/levels/LevelItemPersistence.cs" id="13_persistence"]
 
 
-[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/packed.tres" id="floor_profile"]
-[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/linear_boss.tres" id="boss_floor_profile"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster.tres" id="floor_profile"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/boss.tres" id="boss_floor_profile"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/room_pool.tres" id="room_pool"]
 [ext_resource type="Resource" path="res://scenes/levels/realms/garrison.tres" id="realm_garrison"]
 [ext_resource type="Resource" path="res://scenes/levels/realms/sewer.tres" id="realm_sewer"]

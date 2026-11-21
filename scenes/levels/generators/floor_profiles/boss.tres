@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/LinearRoomLayout.cs" id="layout"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="connector"]
+[ext_resource type="Resource" path="res://scenes/levels/access/floor_access_profiles/rare_lock.tres" id="access"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_groups/boss_exit.tres" id="boss_exit"]
+
+[sub_resource type="Resource" id="LinearRoomLayout"]
+script = ExtResource("layout")
+
+[sub_resource type="Resource" id="AStarCorridorConnector"]
+script = ExtResource("connector")
+
+[resource]
+script = ExtResource("profile")
+Layout = SubResource("LinearRoomLayout")
+Connector = SubResource("AStarCorridorConnector")
+Access = ExtResource("access")
+RoomCount = 10
+MapSize = Vector2i(20, 20)
+AllowSecretDoors = false
+GoalOverride = ExtResource("boss_exit")

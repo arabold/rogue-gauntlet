@@ -80,7 +80,7 @@ public partial class RoomGenerationHarness : Node3D
 
 		string preferredPath = Generator.Profile?.ResourcePath;
 		int preferredIdx = -1;
-		int packedIdx = -1;
+		int clusterIdx = -1;
 		for (int i = 0; i < Profiles.Count; i++)
 		{
 			if (!string.IsNullOrEmpty(preferredPath) && Profiles[i].Path == preferredPath)
@@ -88,12 +88,12 @@ public partial class RoomGenerationHarness : Node3D
 				preferredIdx = i;
 				break;
 			}
-			if (Profiles[i].Path.EndsWith("/packed.tres", StringComparison.OrdinalIgnoreCase))
+			if (Profiles[i].Path.EndsWith("/cluster.tres", StringComparison.OrdinalIgnoreCase))
 			{
-				packedIdx = i;
+				clusterIdx = i;
 			}
 		}
-		SelectedProfile = preferredIdx >= 0 ? preferredIdx : packedIdx >= 0 ? packedIdx : 0;
+		SelectedProfile = preferredIdx >= 0 ? preferredIdx : clusterIdx >= 0 ? clusterIdx : 0;
 	}
 
 	private void BuildControls()
@@ -275,7 +275,7 @@ public partial class RoomGenerationHarness : Node3D
 				}
 				else
 				{
-					FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
+					FramePreview(Mathf.Max(Generator.Map.Width, Generator.Map.Height) * Room.TileSize + 12);
 				}
 				string profileName = Profiles.Count > 0 && SelectedProfile >= 0 && SelectedProfile < Profiles.Count
 					? Local(Profiles[SelectedProfile].Path.GetFile().GetBaseName())

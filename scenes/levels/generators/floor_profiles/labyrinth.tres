@@ -1,65 +1,24 @@
-[gd_resource type="Resource" script_class="FloorProfile" load_steps=17 format=3]
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="1_FloorProfile"]
-[ext_resource type="Script" path="res://scenes/levels/generators/layouts/SparseRoomLayout.cs" id="2_SparseLayout"]
-[ext_resource type="Script" path="res://scenes/levels/generators/connectors/MazeCorridorConnector.cs" id="3_MazeConnecto"]
-[ext_resource type="Script" path="res://scenes/levels/access/FloorAccessProfile.cs" id="4_AccessProfil"]
-[ext_resource type="Script" path="res://scenes/levels/access/DoorLockDefinition.cs" id="5_DoorLockDefi"]
-[ext_resource type="Resource" path="res://scenes/items/keys/key/key_gold_treasury.tres" id="6_gold"]
-[ext_resource type="Resource" path="res://scenes/items/keys/key/key_silver_crypt.tres" id="7_silver"]
-[ext_resource type="Resource" path="res://scenes/items/keys/key/key_arcane_crystal.tres" id="8_arcane"]
-[ext_resource type="Resource" path="res://scenes/levels/access/unlock_key.tres" id="9_unlock_key"]
-[ext_resource type="Resource" path="res://scenes/levels/access/unlock_lockpick.tres" id="10_unlock_pick"]
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/SparseRoomLayout.cs" id="layout"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/MazeCorridorConnector.cs" id="connector"]
+[ext_resource type="Resource" path="res://scenes/levels/access/floor_access_profiles/lock_chains.tres" id="access"]
 
-[sub_resource type="Resource" id="SparseRoomLayout_1"]
-script = ExtResource("2_SparseLayout")
-MinDedicatedRooms = 1
-MaxDedicatedRooms = 3
-MinRoomGap = 2
-MinExitDistance = 8
-Retries = 8
-metadata/_custom_type_script = ExtResource("2_SparseLayout")
+[sub_resource type="Resource" id="SparseRoomLayout"]
+script = ExtResource("layout")
 
-[sub_resource type="Resource" id="MazeCorridorConnector_1"]
-script = ExtResource("3_MazeConnecto")
-WindingChance = 0.7
-LoopChance = 0.1
-DeadEndPruneChance = 0.0
-MinDeadEnds = 6
-metadata/_custom_type_script = ExtResource("3_MazeConnecto")
-
-[sub_resource type="Resource" id="GoldLock"]
-script = ExtResource("5_DoorLockDefi")
-RequiredKey = ExtResource("6_gold")
-Methods = [ExtResource("9_unlock_key"), ExtResource("10_unlock_pick")]
-
-[sub_resource type="Resource" id="SilverLock"]
-script = ExtResource("5_DoorLockDefi")
-RequiredKey = ExtResource("7_silver")
-Methods = [ExtResource("9_unlock_key"), ExtResource("10_unlock_pick")]
-
-[sub_resource type="Resource" id="ArcaneLock"]
-script = ExtResource("5_DoorLockDefi")
-RequiredKey = ExtResource("8_arcane")
-Methods = [ExtResource("9_unlock_key"), ExtResource("10_unlock_pick")]
-
-[sub_resource type="Resource" id="FloorAccessProfile_1"]
-script = ExtResource("4_AccessProfil")
-Locks = [SubResource("GoldLock"), SubResource("SilverLock"), SubResource("ArcaneLock")]
-MaximumLockedRooms = 3
-MaximumLockedDoors = 5
-LockedRoomChance = 1.0
-AllowLockingExit = true
-AllowLockChains = true
-metadata/_custom_type_script = ExtResource("4_AccessProfil")
+[sub_resource type="Resource" id="MazeCorridorConnector"]
+script = ExtResource("connector")
 
 [resource]
-script = ExtResource("1_FloorProfile")
-Layout = SubResource("SparseRoomLayout_1")
-Connector = SubResource("MazeCorridorConnector_1")
-Access = SubResource("FloorAccessProfile_1")
+script = ExtResource("profile")
+Layout = SubResource("SparseRoomLayout")
+Connector = SubResource("MazeCorridorConnector")
+Access = ExtResource("access")
+RoomCount = 10
+MapSize = Vector2i(20, 20)
 AllowSecretDoors = false
 DoorChanceOverride = 1.0
 DeadEndLootWeight = 4.0
 TrapDensityScale = 1.8
-metadata/_custom_type_script = ExtResource("1_FloorProfile")
