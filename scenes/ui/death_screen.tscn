@@ -78,8 +78,7 @@ uppercase = true
 
 [node name="Value" type="Label" parent="Frame/Content/Stats/Level"]
 layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 36
+theme_type_variation = &"ValueLabel"
 text = "0"
 horizontal_alignment = 1
 
@@ -97,8 +96,7 @@ uppercase = true
 
 [node name="Value" type="Label" parent="Frame/Content/Stats/Gold"]
 layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 36
+theme_type_variation = &"ValueLabel"
 text = "0"
 horizontal_alignment = 1
 
@@ -116,8 +114,7 @@ uppercase = true
 
 [node name="Value" type="Label" parent="Frame/Content/Stats/Time"]
 layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 36
+theme_type_variation = &"ValueLabel"
 text = "0"
 horizontal_alignment = 1
 

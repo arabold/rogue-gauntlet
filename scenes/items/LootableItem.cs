@@ -405,10 +405,10 @@ public partial class LootableItem : Node3D
 		else
 		{
 			_pickupBlocked = true;
-			var label = new Label3D
+			var label = new WorldLabel3D
 			{
 				Text = player.InventoryController.LastOperationMessage, Position = Vector3.Up * 1.5f,
-				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, FontSize = 32, NoDepthTest = true, RenderPriority = FloatingLabel.LabelRenderPriority,
+				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, NoDepthTest = true, RenderPriority = FloatingLabel.LabelRenderPriority,
 			};
 			label.AddChild(new ConstantScreenSize3D { Target = label });
 			AddChild(label);

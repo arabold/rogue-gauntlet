@@ -87,7 +87,6 @@ size_flags_horizontal = 4
 [node name="Tip" type="Label" parent="Card/Center"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
-theme_override_font_sizes/font_size = 28
 text = "Keep a wall at your back."
 horizontal_alignment = 1
 

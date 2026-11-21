@@ -106,6 +106,6 @@ public partial class DamageNumber : Node3D, IPooledNode
 		Label.Scale = Vector3.One * (_scale * Mathf.Lerp(PopScale, 1, pop));
 		float alpha = t <= FadeStart ? 1 : 1 - (t - FadeStart) / Mathf.Max(0.0001f, 1 - FadeStart);
 		Label.Modulate = _color with { A = alpha };
-		Label.OutlineModulate = Colors.Black with { A = alpha };
+		Label.OutlineModulate = Label.OutlineModulate with { A = alpha };
 	}
 }

@@ -163,17 +163,30 @@ public class DoorAccessTest
 		AssertBool(glyph.Visible).IsTrue(); AssertBool(label.Modulate == Colors.White).IsTrue();
 	}
 	[TestCase]
-	public void MarkerMatchesRequiredKeyAndHidesAfterUnlock()
+	public async Task MarkerTurnsInItsKeyColorAndStopsAfterUnlock()
 	{
-		var door = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>(); TestFactories.AddToSceneTree(door);
-		door.Lock.Initialize(LockDefinition());
+		using var runner = TestFactories.LoadScene("res://scenes/props/door.tscn");
+		await runner.SimulateFrames(2, 20);
+		var door = (Door)runner.Scene();
+		var definition = LockDefinition();
+		var gold = definition.RequiredKey;
+		door.Lock.Initialize(definition);
 		door.SetIndicatorVisible(true);
-		AssertBool(door.KeyMarker.Visible).IsTrue();
-		AssertBool(((StandardMaterial3D)door.KeyMarker.MaterialOverride).AlbedoColor == Gold.MarkerColor).IsTrue();
-		AssertBool(LootVisuals.ResolveColor(Gold) == Gold.MarkerColor).IsTrue();
-		var inventory = new Inventory(); inventory.AddItem(Gold, 1);
+		var marker = door.KeyMarker;
+		AssertBool(marker.Visible).IsTrue();
+		AssertBool(((StandardMaterial3D)marker.MaterialOverride).AlbedoColor == gold.MarkerColor).IsTrue();
+		AssertBool(LootVisuals.ResolveColor(gold) == gold.MarkerColor).IsTrue();
+		AssertFloat(marker.Mesh.GetAabb().Size.Z).IsGreater(0);
+		float start = marker.Rotation.Y;
+		await runner.SimulateFrames(6, 20);
+		AssertBool(!Mathf.IsEqualApprox(marker.Rotation.Y, start)).IsTrue();
+
+		var inventory = new Inventory(); inventory.AddItem(gold, 1);
 		door.Lock.TryUnlock(Context(inventory), "key_open"); // The lock's Changed signal refreshes the door.
-		AssertBool(door.KeyMarker.Visible).IsFalse();
+		AssertBool(marker.Visible).IsFalse();
+		float stopped = marker.Rotation.Y;
+		await runner.SimulateFrames(6, 20);
+		AssertFloat(marker.Rotation.Y).IsEqualApprox(stopped, .001f);
 	}
 	[TestCase]
 	public void DetectionChanceGrowsWithTheResolvedStatUpToItsCap()

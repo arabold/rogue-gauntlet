@@ -103,13 +103,17 @@ func _labels(theme: Theme) -> void:
 	_label_variation(theme, "AccentLabel", display, 32, GOLD, 5)
 	_label_variation(theme, "CaptionLabel", body, 24, MUTED, 4)
 	_label_variation(theme, "SmallCapsLabel", body_strong, 20, MUTED, 4)
-	_label_variation(theme, "DangerTitleLabel", display, 80, DANGER, 8)
+	_label_variation(theme, "DangerTitleLabel", display, 64, DANGER, 8)
 	_label_variation(theme, "WarningLabel", body_strong, 24, DANGER, 4)
 	# A stat's value in the run menu, and the gold bonus gear adds to it.
 	_label_variation(theme, "ValueLabel", display, 30, CREAM, 5)
 	_label_variation(theme, "BonusLabel", body_strong, 22, GOLD, 4)
 	# Numbers on the game: bar values, stack counts and costs.
 	_label_variation(theme, "CountLabel", body_strong, 22, CREAM, 5)
+	# Floating world text in the menu buttons' serif. All of it, item and enemy names, prompts, notices and objectives,
+	# shares one size; combat numbers are larger because they vanish within a second.
+	_world_label_variation(theme, "WorldLabel", 32, 8)
+	_world_label_variation(theme, "CombatWorldLabel", 64, 16)
 
 	# A gold ribbon tag ("Tip") whose swallowtail ends stay fixed while its middle stretches.
 	theme.set_type_variation("TagLabel", "Label")
@@ -128,6 +132,13 @@ func _label_variation(theme: Theme, name: String, font: Font, size: int, color: 
 	theme.set_font_size("font_size", name, size)
 	theme.set_color("font_color", name, color)
 	theme.set_constant("outline_size", name, outline)
+
+
+## A WorldLabel3D reads its variation's items straight from the theme, which follows no variation chain, so every
+## world variation carries its font, size and outline itself.
+func _world_label_variation(theme: Theme, name: String, size: int, outline: int) -> void:
+	_label_variation(theme, name, display_semi, size, Color.WHITE, outline)
+	theme.set_color("font_outline_color", name, INK)
 
 
 func _buttons(theme: Theme) -> void:
@@ -280,6 +291,35 @@ func _bars(theme: Theme) -> void:
 	for pair in [["HealthBar", Color("c8322b")], ["ManaBar", Color("2f6fd6")]]:
 		theme.set_type_variation(pair[0], "ProgressBar")
 		theme.set_stylebox("fill", pair[0], _bar_fill(pair[1]))
+
+	# Floating meters share left and right insets. Only the health fill is split into phases.
+	var health_frame := track.duplicate() as StyleBoxFlat
+	health_frame.set_content_margin_all(3)
+	theme.set_type_variation("EnemyHealthFrame", "PanelContainer")
+	theme.set_stylebox("panel", "EnemyHealthFrame", health_frame)
+	var poise_frame := thin_track.duplicate() as StyleBoxFlat
+	poise_frame.content_margin_left = 3
+	poise_frame.content_margin_right = 3
+	theme.set_type_variation("EnemyPoiseFrame", "PanelContainer")
+	theme.set_stylebox("panel", "EnemyPoiseFrame", poise_frame)
+
+	var empty := StyleBoxEmpty.new()
+	theme.set_type_variation("EnemyPoiseFill", "ThinBar")
+	theme.set_stylebox("background", "EnemyPoiseFill", empty)
+	theme.set_type_variation("EnemyHealthFill", "HealthBar")
+	theme.set_stylebox("background", "EnemyHealthFill", empty)
+	var health_fill := theme.get_stylebox("fill", "HealthBar") as StyleBoxFlat
+	for ends in [["EnemyHealthFillLeft", false, true], ["EnemyHealthFillCenter", true, true],
+			["EnemyHealthFillRight", true, false]]:
+		var fill := health_fill.duplicate() as StyleBoxFlat
+		if ends[1]:
+			fill.corner_radius_top_left = 0
+			fill.corner_radius_bottom_left = 0
+		if ends[2]:
+			fill.corner_radius_top_right = 0
+			fill.corner_radius_bottom_right = 0
+		theme.set_type_variation(ends[0], "EnemyHealthFill")
+		theme.set_stylebox("fill", ends[0], fill)
 
 
 func _bar_fill(color: Color) -> StyleBoxFlat:

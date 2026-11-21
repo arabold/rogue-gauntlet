@@ -154,8 +154,9 @@ ResistsKnockback = true
 [node name="Nameplate" parent="."]
 transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 5.1, 0)
 
-[node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("Poise")]
+[node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("Poise", "HealthPhases")]
 Poise = NodePath("../../PoiseComponent")
+HealthPhases = NodePath("../../HealthPhaseComponent")
 
 [node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
 script = ExtResource("gate_script")

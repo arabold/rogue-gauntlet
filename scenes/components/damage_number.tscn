@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/components/DamageNumber.cs" id="number"]
 [ext_resource type="Script" path="res://scenes/components/ConstantScreenSize3D.cs" id="screen_size"]
+[ext_resource type="Script" path="res://scenes/components/WorldLabel3D.cs" id="world_label"]
 
 [node name="DamageNumber" type="Node3D" node_paths=PackedStringArray("Label")]
 script = ExtResource("number")
@@ -14,11 +15,10 @@ script = ExtResource("screen_size")
 Target = NodePath("..")
 
 [node name="Label" type="Label3D" parent="ScreenScale"]
-pixel_size = 0.01
+script = ExtResource("world_label")
+ThemeTypeVariation = &"CombatWorldLabel"
 billboard = 1
 no_depth_test = true
 render_priority = 22
 outline_render_priority = 21
 text = "0"
-font_size = 64
-outline_size = 16
