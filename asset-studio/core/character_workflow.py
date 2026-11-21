@@ -141,7 +141,7 @@ def build(character):
         # Hand-finished art keeps a record of what it was reconstructed or modeled from.
         if not provenance.is_file():raise ValueError(f'{character.key}: record the Blender source origin in provenance.json')
         from core.blender import export_character
-        export_character(local(character.dir,r['source']),target,{**r['blender'],'idle':r['roles']['Idle']})
+        export_character(local(character.dir,r['source']),target,{**r['blender'],'idle':r['roles']['Idle']},r.get('scale',1))
     elif r['builder'] in {'golem','warden'}:
         from core.rigid_export import build_golem,build_warden
         (build_warden if r['builder']=='warden' else build_golem)(character,target)

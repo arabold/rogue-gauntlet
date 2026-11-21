@@ -85,11 +85,11 @@ transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", 
 graph_offset = Vector2(0, 40)
 
 [sub_resource type="CapsuleShape3D" id="cap_hurt"]
-radius = 0.68
-height = 2.24
+radius = 0.85
+height = 2.58
 [sub_resource type="CapsuleShape3D" id="cap_body"]
 radius = 0.58
-height = 2.18
+height = 2.5
 
 [node name="OrcWarrior" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "BodyShape")]
 BodyShape = NodePath("CollisionShape3D")
@@ -113,14 +113,14 @@ advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../../Pivot/OrcWarriorModel/AnimationPlayer")
 
 [node name="HurtBoxComponent" parent="." index="6"]
-position = Vector3(0, 1.12, 0)
+position = Vector3(0, 1.29, 0)
 ImpactSurface = ExtResource("flesh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
 shape = SubResource("cap_hurt")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.09, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 shape = SubResource("cap_body")
 
 [node name="CombatAnimationComponent" parent="." index="9"]
@@ -137,7 +137,7 @@ AnimationComponent = NodePath("../CombatAnimationComponent")
 ActionGate = NodePath("../ActorActionGateComponent")
 
 [node name="Nameplate" parent="."]
-position = Vector3(0, 2.48, 0)
+position = Vector3(0, 2.85, 0)
 
 [node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
 ActionGate = NodePath("../ActorActionGateComponent")

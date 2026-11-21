@@ -90,8 +90,9 @@ def checked_binary():
     return executable, found
 
 
-def export_character(source, target, options):
-    """Export a saved character scene in a fresh Blender process, without saving edits to the source."""
+def export_character(source, target, options, scale=1):
+    """Export a saved character scene in a fresh Blender process, without saving edits to the source, at the recipe's
+    `scale` (see `finish_export`)."""
     executable, _ = checked_binary()
     target = Path(target)
     with tempfile.TemporaryDirectory(dir=target.parent) as staging:
@@ -108,12 +109,16 @@ def export_character(source, target, options):
         log.write_text(result.stdout + result.stderr)
         if result.returncode or not output.is_file():
             raise ValueError(f"Blender character export failed (log: {log}):\n{result.stderr.strip()}")
-        finish_export(output)
+        finish_export(output, scale)
         output.replace(target)
 
 
-def finish_export(path):
-    """Give a Blender export the project's matte surfaces and a byte-stable layout, in place.
+def finish_export(path, scale=1):
+    """Give a Blender export the project's matte surfaces, its game scale and a byte-stable layout, in place.
+
+    `scale` (a number, or `[width, height, depth]` in glTF axes) multiplies the scene's root nodes. On a character that
+    is the rig root, so the skinned result grows after posing: clips, bind pose and weights stay as authored, and a
+    stockier non-uniform scale cannot shear a joint chain.
 
     Non-metal surfaces turn matte as everywhere else in the Studio (`export.matte_roughness`). Blender lists each clip's
     channels, and with them their accessors and buffer views, in a different order on every run; sorting channels by
@@ -163,6 +168,13 @@ def finish_export(path):
         owner["bufferView"] = new[owner["bufferView"]]
     g["bufferViews"] = [g["bufferViews"][i] for i in order]
     g["buffers"][0]["byteLength"] = len(data)
+
+    factors = list(scale) if isinstance(scale, (list, tuple)) else [scale] * 3
+    if factors != [1, 1, 1]:
+        for node in (g["nodes"][i] for i in g["scenes"][g.get("scene", 0)]["nodes"]):
+            if "matrix" in node or ("rotation" in node and len(set(factors)) > 1):
+                raise ValueError(f"{path}: scale {factors} needs an unrotated TRS root, not {node.get('name')}")
+            node["scale"] = [a * b for a, b in zip(node.get("scale", [1, 1, 1]), factors)]
 
     text = json.dumps(g, separators=(",", ":")).encode()
     text += b" " * (-len(text) % 4)

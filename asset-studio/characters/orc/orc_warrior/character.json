@@ -2,6 +2,7 @@
   "builder": "blender_source",
   "source": "orc_warrior_rigged.blend",
   "rig": "skeleton",
+  "scale": [1.25, 1.15, 1.25],
   "triangle_budget": 6500,
   "roles": {
     "Idle": "Idle_Combat",

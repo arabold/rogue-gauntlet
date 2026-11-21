@@ -117,6 +117,14 @@ class CharacterExportFinishTest(unittest.TestCase):
             g, _ = model.read(glb)
             self.assertEqual([m["pbrMetallicRoughness"]["roughnessFactor"] for m in g["materials"]], [0.85, 0.5, 0.2])
 
+    def test_the_recipe_scale_grows_the_scene_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            glb = Path(tmp) / "model.glb"
+            _clip_glb(glb, reverse=False)
+            blender.finish_export(glb, [1.25, 1.15, 1.25])
+            g, _ = model.read(glb)
+            self.assertEqual(g["nodes"][g["scenes"][0]["nodes"][0]]["scale"], [1.25, 1.15, 1.25])
+
     def test_exports_that_differ_only_in_order_finish_byte_identical_with_their_motion(self):
         with tempfile.TemporaryDirectory() as tmp:
             first, second = Path(tmp) / "first.glb", Path(tmp) / "second.glb"

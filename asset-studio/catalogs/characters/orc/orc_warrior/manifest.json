@@ -1,11 +1,11 @@
 {
   "key": "orc/orc_warrior",
-  "inputs": "e58e612f8a21cf312d8af0bbf0f83d40611bdcc9c9f12bb3b7c28958e9638b32",
+  "inputs": "168aaa1de7cbbd3424f0ae3a4e7376cdccb6f928a32524d8b48d26b9babf1929",
   "files": {
-    "model.glb": "ebc3f5fafee66b196d098db4be9d733fea126df5411eacebc01d3b67cde69068",
-    "lineup.png": "9639501def7ab1098a912a1b2837ff3a6a9ca2e34260bf1af0828c22c897d848",
-    "lineup.gif": "6a0df57ab1ff46a506ce1e476666031979baece9689b38275b4bc8989db9294b",
-    "asset.json": "5a6923a538d30ee2925affeae3976c610006e63537b4d216c0db80010542c618"
+    "model.glb": "70681eb1194c0beb833a1a008f232448c50f599794887b93fb1cb7b24a48571b",
+    "lineup.png": "0c80c615ce546f96b3844b8ddaad1e902f2f35fd06fc49fa7558887ddf3f7e57",
+    "lineup.gif": "e653c071191c2cd509d4c8856e6d0f5ed574178d2ec26c379096d7fb798fe9c9",
+    "asset.json": "a15098daf5f7c4ab3b8eba2a366207c801a6e9dd83d623d426091c503ad3a79e"
   },
   "metadata": {
     "engine_import_verified": true
