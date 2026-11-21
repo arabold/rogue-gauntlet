@@ -15,5 +15,5 @@ ValidSlots = 512
 RollTable = ExtResource("roll_table")
 Name = "Shield"
 Scene = ExtResource("1_h050v")
-Value = 40
+Value = 200
 metadata/_custom_type_script = ExtResource("2_47uxn")

@@ -67,7 +67,7 @@ public static class ItemIdentity
 	/// </summary>
 	public static bool IsTypeKnown(Item item) => IsTypeKnown(item, Service);
 
-	private static bool IsTypeKnown(Item item, IdentificationService service) =>
+	public static bool IsTypeKnown(Item item, IdentificationService service) =>
 		item is not IIdentifiable identifiable || service == null || service.IsIdentified(identifiable);
 
 	/// <summary>

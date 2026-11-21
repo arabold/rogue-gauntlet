@@ -20,5 +20,5 @@ ValidSlots = 192
 RollTable = ExtResource("roll_table")
 AlwaysCursed = true
 Name = "Ring of Frailty"
-Value = 120
+Value = 600
 metadata/_custom_type_script = ExtResource("1_item")

@@ -9,8 +9,12 @@
 [ext_resource type="Texture2D" path="res://assets/ui-kit/header_band.png" id="6_band"]
 [ext_resource type="PackedScene" uid="uid://cr2cd42w861x0" path="res://scenes/components/key_binding.tscn" id="7_key"]
 [ext_resource type="Texture2D" path="res://assets/ui-kit/coin.png" id="8_coin"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu/trade_tab.tscn" id="10_trade"]
+[ext_resource type="Script" path="res://scenes/ui/menu/BuyTab.cs" id="11_buy"]
+[ext_resource type="Script" path="res://scenes/ui/menu/SellTab.cs" id="12_sell"]
+[ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="13_slot"]
 
-[node name="RunMenu" type="Control" node_paths=PackedStringArray("GearTab", "PackTab", "NotesTab", "SystemTab", "GearButton", "PackButton", "NotesButton", "SystemButton", "GoldLabel", "Banner", "PromptRow", "ActionMenu")]
+[node name="RunMenu" type="Control" node_paths=PackedStringArray("GearTab", "PackTab", "NotesTab", "SystemTab", "GearButton", "PackButton", "NotesButton", "SystemButton", "BuyTab", "SellTab", "BuyButton", "SellButton", "GoldLabel", "Banner", "PromptRow", "ActionMenu")]
 process_mode = 3
 visible = false
 layout_mode = 3
@@ -28,6 +32,10 @@ GearButton = NodePath("Header/Tabs/GearButton")
 PackButton = NodePath("Header/Tabs/PackButton")
 NotesButton = NodePath("Header/Tabs/NotesButton")
 SystemButton = NodePath("Header/Tabs/SystemButton")
+BuyTab = NodePath("Pages/Buy")
+SellTab = NodePath("Pages/Sell")
+BuyButton = NodePath("Header/Tabs/BuyButton")
+SellButton = NodePath("Header/Tabs/SellButton")
 GoldLabel = NodePath("Header/Gold/GoldLabel")
 Banner = NodePath("Banner")
 PromptRow = NodePath("Prompts")
@@ -67,6 +75,34 @@ layout_mode = 1
 [node name="System" parent="Pages" instance=ExtResource("4_system")]
 visible = false
 layout_mode = 1
+
+[node name="Buy" parent="Pages" node_paths=PackedStringArray("Grid", "TitleLabel", "CountLabel", "ItemPreview", "NameLabel", "QuantityLabel", "PriceLabel", "Details") instance=ExtResource("10_trade")]
+visible = false
+layout_mode = 1
+script = ExtResource("11_buy")
+Grid = NodePath("Columns/Items/Grid")
+TitleLabel = NodePath("Columns/Items/Heading/Title")
+CountLabel = NodePath("Columns/Items/Heading/CountLabel")
+SlotScene = ExtResource("13_slot")
+ItemPreview = NodePath("Columns/Selected/ItemView/Viewport/Preview")
+NameLabel = NodePath("Columns/Selected/Info/NameClip/Name/NameLabel")
+QuantityLabel = NodePath("Columns/Selected/Info/NameClip/Name/QuantityLabel")
+PriceLabel = NodePath("Columns/Selected/Info/PriceLabel")
+Details = NodePath("Columns/Selected/Info/DetailsClip/Details")
+
+[node name="Sell" parent="Pages" node_paths=PackedStringArray("Grid", "TitleLabel", "CountLabel", "ItemPreview", "NameLabel", "QuantityLabel", "PriceLabel", "Details") instance=ExtResource("10_trade")]
+visible = false
+layout_mode = 1
+script = ExtResource("12_sell")
+Grid = NodePath("Columns/Items/Grid")
+TitleLabel = NodePath("Columns/Items/Heading/Title")
+CountLabel = NodePath("Columns/Items/Heading/CountLabel")
+SlotScene = ExtResource("13_slot")
+ItemPreview = NodePath("Columns/Selected/ItemView/Viewport/Preview")
+NameLabel = NodePath("Columns/Selected/Info/NameClip/Name/NameLabel")
+QuantityLabel = NodePath("Columns/Selected/Info/NameClip/Name/QuantityLabel")
+PriceLabel = NodePath("Columns/Selected/Info/PriceLabel")
+Details = NodePath("Columns/Selected/Info/DetailsClip/Details")
 
 [node name="Header" type="TextureRect" parent="."]
 layout_mode = 1
@@ -134,6 +170,22 @@ focus_mode = 0
 theme_type_variation = &"TabButton"
 toggle_mode = true
 text = "System"
+
+[node name="BuyButton" type="Button" parent="Header/Tabs"]
+visible = false
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "Buy"
+
+[node name="SellButton" type="Button" parent="Header/Tabs"]
+visible = false
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "Sell"
 
 [node name="RightGap" type="Control" parent="Header/Tabs"]
 custom_minimum_size = Vector2(24, 0)

@@ -153,7 +153,35 @@ public partial class PlayerInventoryController : Node
 	public ItemOperationResult TryPickup(LootableItem source) => source == null
 		? Report(ItemFailure.NotOwned) : Acquire(source.Item, source.Quantity, source);
 
-	private ItemOperationResult Acquire(Item item, int quantity, LootableItem source)
+	/// <summary>
+	/// Acquires <paramref name="item"/> like a pickup and runs <paramref name="onCommit"/> inside the same commit, so a
+	/// purchase pays as the pack takes the item and no observer or save sees one half without the other.
+	/// </summary>
+	public ItemOperationResult TryAcquire(Item item, int quantity, Action onCommit) => Acquire(item, quantity, null, onCommit);
+
+	/// <summary>
+	/// Takes <paramref name="quantity"/> of <paramref name="source"/> out of the pack and runs <paramref name="onCommit"/>
+	/// inside the same commit, for an item that changes hands rather than landing on the floor (a sale).
+	/// </summary>
+	public ItemOperationResult TryHandOver(InventoryItemSlot source, int quantity, Action onCommit)
+	{
+		if (IsCommittingItemOperation || _reservedSlots.Contains(source)) { return Report(ItemFailure.Busy); }
+		ItemOperationResult removable = Inventory.CanRemove(source, quantity);
+		if (removable.Failure == ItemFailure.Cursed) { return Report(removable); }
+		if (!removable.Success) { return Report(ItemFailure.NotOwned); }
+		if (source.Item.IsQuestItem) { return Report(ItemFailure.ProtectedItem); }
+		IsCommittingItemOperation = true;
+		try
+		{
+			using var update = Inventory.DeferChanges();
+			Inventory.RemoveItem(source, quantity);
+			onCommit();
+			return Report(ItemFailure.None);
+		}
+		finally { IsCommittingItemOperation = false; }
+	}
+
+	private ItemOperationResult Acquire(Item item, int quantity, LootableItem source, Action onCommit = null)
 	{
 		if (IsCommittingItemOperation) { return Report(ItemFailure.Busy); }
 		if (item == null || quantity <= 0 || source?.IsCollected == true) { return Report(ItemFailure.InvalidQuantity); }
@@ -169,6 +197,7 @@ public partial class PlayerInventoryController : Node
 				if (!check.Success) { return Report(check.Failure); }
 			}
 			source?.CommitCollected();
+			onCommit?.Invoke();
 			item.OnPickup(Player, quantity);
 			Player?.QuickItemController?.OnItemAcquired(item, quantity);
 			SignalBus.EmitItemPickedUp(Player, item, quantity);

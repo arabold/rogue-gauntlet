@@ -20,5 +20,5 @@ UnidentifiedNameTemplate = "Golden Pear"
 Buff = SubResource("Resource_buff")
 Name = "Golden Pear"
 Scene = ExtResource("3_scene")
-Value = 15
+Value = 40
 metadata/_custom_type_script = ExtResource("4_script")

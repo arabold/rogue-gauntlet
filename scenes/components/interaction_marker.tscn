@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/components/interaction_marker_glyph.tres" id="glyph"]
+[ext_resource type="Shader" path="res://scenes/magic/shared/toon/toon_core.gdshader" id="toon"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/pixel_perfect_outline3D.gdshader" id="outline"]
+[ext_resource type="Script" path="res://scenes/components/UprightBillboard3D.cs" id="billboard"]
+
+[sub_resource type="Gradient" id="GoldRamp"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.29, 0.42, 0.5, 1)
+colors = PackedColorArray(0.48, 0.17, 0.018, 1, 0.86, 0.4, 0.035, 1, 1, 0.7, 0.09, 1, 1, 0.87, 0.38, 1, 1, 0.91, 0.48, 1)
+
+[sub_resource type="GradientTexture1D" id="GoldTexture"]
+gradient = SubResource("GoldRamp")
+
+[sub_resource type="ShaderMaterial" id="Ink"]
+shader = ExtResource("outline")
+shader_parameter/outline_color = Color(0.012, 0.008, 0.006, 1)
+shader_parameter/outline_width = 2.5
+
+[sub_resource type="ShaderMaterial" id="ToonGold"]
+next_pass = SubResource("Ink")
+shader = ExtResource("toon")
+shader_parameter/color_ramp = SubResource("GoldTexture")
+shader_parameter/brightness = 0.55
+shader_parameter/noise_scale = 0.0
+shader_parameter/flow_speed = 0.0
+shader_parameter/pulse = 0.0
+shader_parameter/heat_bias = 0.15
+
+[sub_resource type="Animation" id="Reset"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Glyph:scale")
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Pulse"]
+resource_name = "pulse"
+length = 1.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Glyph:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.24, 0.49, 0.73, 1.02, 1.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(0.9, 1.25, 0.9), Vector3(1.17, 0.8, 1.17), Vector3(0.96, 1.08, 0.96), Vector3(1, 1, 1), Vector3(1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="Animations"]
+_data = {
+&"RESET": SubResource("Reset"),
+&"pulse": SubResource("Pulse")
+}
+
+[node name="InteractionMarker" type="Node3D"]
+
+[node name="Glyph" type="MeshInstance3D" parent="."]
+material_override = SubResource("ToonGold")
+cast_shadow = 0
+mesh = ExtResource("glyph")
+
+[node name="Billboard" type="Node" parent="." node_paths=PackedStringArray("Target")]
+script = ExtResource("billboard")
+Target = NodePath("..")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("Animations")
+}
+autoplay = &"pulse"

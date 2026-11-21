@@ -7,7 +7,7 @@
 script = ExtResource("2_script")
 Name = "Arcane Crystal Key"
 Scene = ExtResource("1_scene")
-Value = 250
+Value = 375
 ShowInInventory = true
 IsStackable = true
 MaxStackSize = 20

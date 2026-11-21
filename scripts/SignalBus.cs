@@ -100,6 +100,13 @@ public partial class SignalBus : Node
     public static void EmitPlayerStatusMessage(string message, LogSeverity severity = LogSeverity.Info) =>
         Instance?.EmitSignalPlayerStatusMessage(message, (int)severity);
 
+    /// <summary>
+    /// Fired when the hero finishes a keeper's trade interaction: the keeper offers its shelf. The run menu answers by
+    /// opening its trade tabs, or says through <see cref="PlayerStatusMessage"/> why it cannot.
+    /// </summary>
+    [Signal] public delegate void TradeOfferedEventHandler(ShopComponent shop, Player player);
+    public static void EmitTradeOffered(ShopComponent shop, Player player) => Instance?.EmitSignalTradeOffered(shop, player);
+
     /// <summary>Fired when a new buff or status activation is applied to the player.</summary>
     [Signal] public delegate void PlayerBuffAppliedEventHandler(Buff buff, bool hadCondition);
     public static void EmitPlayerBuffApplied(Buff buff, bool hadCondition) =>

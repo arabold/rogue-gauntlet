@@ -247,6 +247,19 @@ health, rolled against armor like a blow: 5 on depth 1 and 25 on depth 24, which
 `Damage` and `DamagePerDepth`. Together they cost about 6% of max health per floor. The trap count stays authored rather
 than spent from the budget: at 6% a floor, the budget fit simply leaves room for them.
 
+### Shops
+
+Shops are bounded by their stock instead of simulated. A merchant sells one finite shelf once per run: the
+Garrison's Quartermaster holds two small potions of different types (healing favored), two loaves, a scroll, a lockpick
+and three pieces of local-tier gear. At most that adds one healing potion to the realm, about two floors' worth of found
+healing and less than a fountain's full heal, on the floor before the gatekeeper. The model therefore leaves gold out
+of the run. `supply` reports the gold a
+floor holds, so prices can be checked against it by hand: about 125 on depth 1, 130 on depth 2 and 180 on depth 3,
+with every source looted. A hero who clears the first two floors reaches the Quartermaster with up to about 250 gold,
+and selling spare loot (a fifth of its retail value) adds about a hundred more. The shelf costs about 1,000, so that
+buys about a third of it: a weapon and a potion, or potions, a loaf and a lockpick, but never the whole shelf. Re-measure after changing gold drops, and
+model shops only if merchants ever restock or sell more than a shelf.
+
 ## Experience
 
 XP to the next level is `a × g^(level − 1)`, with `a` and `g` fitted to the expected XP of cleared floors (90% of
@@ -300,7 +313,8 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
   the default 300 runs can stray about 5 points, enough to flag a target near the edge of its tolerance.
 - **Supplies in the game.** `supply` runs a headless probe (`scenes/debug/balance/loot_supply_probe.tscn`) that
   generates seeded floors and samples every loot source on them, then compares healing potions, healing, food and
-  gear per floor with `SUPPLY`. Healing potions are the most common potion; realm 1 gives about one per floor.
+  gear per floor with `SUPPLY`, and lists the gold a floor holds. Realm 1 gives about one healing potion every two
+  floors.
   `--save` also writes each depth's weapons, as rolled, to `weapon_supply.json` for the expected hero's weapon; run
   `supply --depths 1-24 --save` after changing loot, encounters or weapons.
 
@@ -410,7 +424,7 @@ the bonus from quality and affixes. Item tables are free to vary around them.
 - XP and floor budgets follow the monsters' threat levels, and floors spawn rat-led packs;
 - heroes level up on the fitted ladder with percentage attributes;
 - elemental damage passes armor, potions and food heal fixed points by size, jewelry comes in tiers, and realm 1
-  drops about one healing potion per floor (`supply`);
+  drops about one healing potion every two floors (`supply`);
 - body armor and helmets exist in three weights, and every class starts in its own.
 
 The remaining steps:
@@ -419,11 +433,11 @@ The remaining steps:
    [Calibration](#calibration)). Most of the difficulty targets fall in these depths.
 2. **Realm by realm.** Each realm gets its monsters, packs and gear tier through `derive`, passes `audit`, and is
    playtested before the next one starts.
-3. **Unmodeled systems.** Shops, traps and the rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before
-   they are built. A shop, for example, turns gold into supplies and gear upgrades.
+3. **Unmodeled systems.** The rest of [Not modeled yet](#not-modeled-yet) enter `params.py` before they are built.
+   Shops are the exception: their finite stock bounds them (see [Shops](#shops)).
 
 ## Not modeled yet
 
-Shops and gold, traps, stealth and skipped fights, partial floor clears, the cost of harmful potions, spoiled food, blindness and confusion, and the
-gatekeepers' individual attacks. Each gatekeeper is the archetype above. Add them to the model before relying on it
+Gold (shops are bounded by stock instead; see [Shops](#shops)), stealth and skipped fights, partial floor clears, the
+cost of harmful potions, spoiled food, blindness and confusion, and the gatekeepers' individual attacks. Each gatekeeper is the archetype above. Add them to the model before relying on it
 for those systems.

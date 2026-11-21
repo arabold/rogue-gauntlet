@@ -31,7 +31,8 @@ public class RunMenuNotesAndLayoutTest
 			TestFactories.Load<PackedScene>("res://scenes/ui/menu/run_menu.tscn").Instantiate<RunMenu>());
 		try
 		{
-			var tabButtons = menu.GetNode<HBoxContainer>("Header/Tabs").GetChildren().OfType<Button>().ToArray();
+			// The run's own tabs; a keeper's Buy and Sell tabs show only while trading.
+			var tabButtons = menu.GetNode<HBoxContainer>("Header/Tabs").GetChildren().OfType<Button>().Where(button => button.Visible).ToArray();
 			AssertArray(tabButtons.Select(b => b.Text).ToArray()).ContainsExactly("Gear", "Pack", "Notes", "System");
 			AssertInt((int)RunMenuPage.Notes).IsEqual(2);
 			AssertInt((int)RunMenuPage.System).IsEqual(3);

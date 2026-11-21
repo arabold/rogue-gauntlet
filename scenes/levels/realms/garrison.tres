@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Realm" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="Realm" format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="2_realm"]
 [ext_resource type="Resource" path="res://scenes/levels/realms/garrison_corridors.tres" id="3_garrison_corrido"]
 
 [ext_resource type="Resource" path="res://scenes/levels/lighting/atmosphere_profiles/garrison.tres" id="atmosphere"]
+[ext_resource type="Resource" path="res://scenes/shops/quartermaster_placement.tres" id="quartermaster"]
 
 [resource]
 script = ExtResource("2_realm")
@@ -12,3 +13,4 @@ LastDepth = 3
 Corridors = ExtResource("3_garrison_corrido")
 metadata/_custom_type_script = ExtResource("2_realm")
 Atmosphere = ExtResource("atmosphere")
+Shops = [ExtResource("quartermaster")]

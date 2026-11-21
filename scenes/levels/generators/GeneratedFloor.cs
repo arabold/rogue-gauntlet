@@ -26,6 +26,7 @@ public sealed class GeneratedFloor
 	// Interior floor tile -> room id, for "which room is this in" queries.
 	private readonly Dictionary<Vector2I, int> _tileToRoom = new();
 	private readonly List<(Door Door, Vector2I Connector)> _doors = new();
+	private readonly List<ShopComponent> _shops = new();
 	private WalkabilityGrid _walkability;
 	private bool[] _reachable;
 	private readonly Dictionary<string, (Door Door, DoorAccessSaveData Baseline)> _doorBaselines = new();
@@ -61,6 +62,8 @@ public sealed class GeneratedFloor
 	public Transform3D? GatekeeperSite { get; internal set; }
 	/// <summary>The spawn point that brings the gatekeeper in; null on floors without one.</summary>
 	public SpawnPoint GatekeeperSpawn { get; internal set; }
+	/// <summary>The shops generation stood on this floor; their keepers are solid props under the floor content.</summary>
+	public IReadOnlyList<ShopComponent> Shops => _shops;
 	/// <summary>Whether <paramref name="spawn"/> places one of this floor's nests rather than a monster.</summary>
 	public bool IsNest(SpawnPoint spawn) => Encounter?.Nest != null && spawn.Scenes.Count > 0 && spawn.Scenes[0] == Encounter.Nest;
 	public bool IsFrozen => _decoratedTiles != null;
@@ -93,6 +96,14 @@ public sealed class GeneratedFloor
 	{
 		RequireLive();
 		_doors.Add((door, connector));
+	}
+
+	/// <summary>Records a placed keeper's shop. Its spot becomes a spawn anchor, so no pack spawns beside the counter.</summary>
+	internal void AddShop(ShopComponent shop, Vector3 position)
+	{
+		RequireLive();
+		_shops.Add(shop);
+		SpawnAnchors = [.. SpawnAnchors, position];
 	}
 
 	/// <summary>Records a door's seeded access state once its connection id is final.</summary>

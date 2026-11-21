@@ -7,7 +7,7 @@
 script = ExtResource("2_script")
 Name = "Gilded Looking Glass"
 Scene = ExtResource("1_scene")
-Value = 105
+Value = 165
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false

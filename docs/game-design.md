@@ -118,7 +118,7 @@ Every item has an authored definition, a particular instance when state is neede
 | Rings and amulets | Passive specialization and discovery | Equip for benefits or drawbacks; use the identification system |
 | Lamps and torches | Portable illumination | Hold lit in either hand to extend player light; competes with shields and two-handed weapons; activate or extinguish, consume fuel while active |
 | Keys | Access to matching locks | Matching key identity/color; stack to 20 and consume one per successful unlock |
-| Tools | Alternative ways to interact with the dungeon | Rare consumable lockpicks bypass pickable locks; Rogue starts with two, regular floors do not supply them, shops are a later source |
+| Tools | Alternative ways to interact with the dungeon | Rare consumable lockpicks bypass pickable locks; Rogue starts with two, regular floors do not supply them, shops sell them |
 | Currency | Purchasing decisions | Collect, spend, and receive through trade |
 
 ### Instance state and persistence
@@ -178,13 +178,13 @@ Depth drives world progression; player level should not silently rescale existin
 
 ## Shops and economy
 
-Occasional shops provide a chance to recover, address a weakness, or buy an interesting alternative. Their frequency and guaranteed placement rules remain open.
+Shops give the hero a chance to recover, address a weakness or buy an interesting alternative before a dangerous stretch. A realm stands its merchants on its own floors; the first realm's [Quartermaster](shops.md) trades near the arrival on the gatekeeper's floor, the last stop before the Warden. Merchants in later realms, and how often they appear, remain open.
 
-Proposed stock consists of a dependable core of basic supplies, several equipment options from the local depth band, and a small utility selection. An occasional expensive standout can appear within the allowed reward bounds. Stock should offer useful choices across builds without guaranteeing the ideal upgrade.
+Stock is a dependable core of basic supplies, a few equipment options from the local depth band across builds, and a small utility selection. It should offer useful choices without guaranteeing the ideal upgrade. Each shelf is rolled once from the run's seed and depletes for the rest of the run; reopening the trade, revisiting the floor or loading a save keeps what was bought. There is no restocking.
 
-Generate stock once for the shop and persist remaining quantities, item state, and transactions. Reopening the interface, revisiting a floor, or loading a save must preserve purchases. Restocking is deferred until a deliberate rule exists.
+Shops are bounded by their stock rather than by an economy model: a merchant sells at most one shelf, once, so its effect on difficulty stays small and visible. Prices should keep the hero from affording the whole shelf, so a weapon competes with potions. Every item carries one price, its `Value`, so a new item is priced where it is authored.
 
-Buying and selling must transfer items atomically: insufficient funds or inventory space cannot lose currency or items. Set buy/sell spreads to prevent immediate resale profit. Decide how merchants handle unidentified or contaminated goods before implementing prices that could reveal hidden properties.
+Trades are atomic: missing gold or pack space never loses currency or items. The buy/sell spread prevents resale profit. Merchants price only what the hero can see (an unidentified potion by its bottle size, an unidentified scroll at one flat price, gear's affixes only once revealed), and they are reputable: they sell neither cursed gear nor tainted food, and buy no gear known to be cursed. A dedicated shop room and later merchants are proposed in the [shop expansion design](specs/shop-design.md).
 
 ## Player experience and presentation
 
@@ -192,7 +192,7 @@ The world model, inventory preview, equipped appearance, and item details should
 
 Inventory interactions should make available actions, equipment comparisons, quantities, fuel or charges when known, and failure reasons understandable. Important effects need visible feedback. Dangerous encounters and item use must remain readable at the actual gameplay camera distance.
 
-Whether inventory and shop interfaces pause real-time play remains an explicit design decision. Establish it before balancing consumable timing and trading safety.
+Inventory and shop interfaces pause real-time play. Trading is therefore safe from attack, and using a consumable closes the menu so the hero uses it in the world.
 
 ## First playable scope
 
@@ -206,7 +206,6 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | --- | --- | --- |
 | Run objective, length, and victory | 24 depths across 8 realms (Sunken Epochs); World-Anchor victory at Depth 24 | Current direction; later realm order provisional (see [Realms and Monster Design](realms-and-monster-design.md)) |
 | Death and between-run progression | Death ends the run; permanent power undecided | First complete run milestone |
-| Inventory and shop pause behavior | Open | Balancing item-use timing and shop encounters |
 | Food contamination and detection | Per-instance creation exists; probability and detection need tuning | Three-floor balance |
 | Backpack capacity and upgrades | Implemented 20-entry backpack; food/equipment individual; larger packs later | Upgrade integration |
 | Capacity accounting and stack limits | Equipped entries count; currency stays in stats; potion/scroll caps are 20; upgrade size remains open | Backpack upgrade design |
@@ -214,7 +213,7 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | Lighting and fuel pacing | Seeded dark floors from depth 4, proposed 20% chance; either-hand lights compete with shields/two-handed weapons; light radius, fuel pacing and enemy response open | Lighting integration |
 | Armor tradeoffs and visual coverage | Small set with readable differences | Armor integration |
 | Keys and lockpicks | Implemented through [door access](door-access.md): optional mechanical locks; matching keys or deterministic timed picking; consume one key/pick on success, stack to 20, guarantee reachable matching keys. Lock counts, pick duration and rewards need tuning | Three-floor balance |
-| Merchant knowledge, prices, and frequency | Persistent finite stock scaled by depth | Shop integration |
+| Merchant frequency in later realms | The first realm has one merchant, on its gatekeeper floor; later realms are open | Realm 2 content |
 
 Update this document when intended behavior changes. Record implementation details in the linked feature documents and track delivery in the [roadmap](development-roadmap.md).
 

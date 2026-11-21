@@ -65,7 +65,7 @@ Every realm spans three floors with a recognizable escalation. These are intende
 | --- | --- | --- |
 | 1 | Ingress and reconnaissance | Introduce realm architecture, baseline monsters and hazards; restrained patrols and optional supplies |
 | 2 | Escalation and swarm pressure | Nest chambers, denser encounters, specialists and optional guarded rewards |
-| 3 | Sanctum and Gatekeeper trial | Gatekeeper location and visibly sealed descent; a peaceful merchant outpost is later content |
+| 3 | Sanctum and Gatekeeper trial | Gatekeeper location and visibly sealed descent; a merchant near the arrival to prepare |
 
 Realm room pools and floor recipes select architecture appropriate to each depth. Required presence, required traversal and required encounter completion are distinct constraints, as defined in [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md). The Garrison's first floor emphasizes barracks and supplies, its second a prison wing and nest chamber, and its third the Warden's domain. Existing rooms and skeletons can stand in for these roles while content grows.
 
@@ -81,7 +81,7 @@ Nests create reinforcement pressure in selected rooms; optional elite or locked 
 
 The staircase is visible but sealed by the realm's Gatekeeper condition. Finding the stairs or bypassing the boss spatially does not permit descent. Defeating the Gatekeeper automatically removes the visible seal and permanently enables descent for that run. A specific traversal constraint or arena lockdown can be authored for an encounter, but neither is required for this progression rule.
 
-A future sanctum can place a peaceful merchant near the entrance. High-tier boss rewards and Realm Sigils remain intended reward/attunement content; they are not random prerequisites for opening the initial seal. A guaranteed boss-key variant is possible later under the shared required-access guarantees.
+A merchant trades near the arrival, the last chance to prepare: the Garrison's [Quartermaster](shops.md); a dedicated [shop room](specs/shop-design.md) is later content. High-tier boss rewards and Realm Sigils remain intended reward/attunement content; they are not random prerequisites for opening the initial seal. A guaranteed boss-key variant is possible later under the shared required-access guarantees.
 
 ---
 

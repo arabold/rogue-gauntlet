@@ -36,7 +36,7 @@ Secret and trap detection use local gameplay streams separate from generation an
 
 Untouched floor content regenerates from its seed. Saves retain deviations rather than full floor snapshots:
 
-- Cleared enemies, destroyed nests, killed finite summon slots, gatekeeper defeat and drained fountains.
+- Cleared enemies, destroyed nests, killed finite summon slots, gatekeeper defeat, drained fountains and sold shop offers.
 - Exact explored tiles, discovered trap identities and discovered/locked/current-open door deviations per depth; closing an explored door does not reopen it on restore.
 - Removed or changed baseline items, added/player-dropped items and activated reward sources.
 - Carried item identities, quantities, rolls, food state and equipment references.

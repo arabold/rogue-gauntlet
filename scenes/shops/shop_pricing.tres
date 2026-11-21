@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ShopPricingProfile" format=3]
+
+[ext_resource type="Script" path="res://scenes/shops/ShopPricingProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+UnknownPrices = Dictionary[String, int]({"potion:small": 90, "potion:medium": 150, "potion:large": 275, "scroll": 75})
+UnknownItemPrice = 125
+QualityMultipliers = Dictionary[int, float]({0: 0.75, 1: 1.0, 2: 1.15, 3: 1.25, 4: 1.5})
+AffixUnitPrices = Dictionary[int, float]({0: 10.0, 1: 10.0, 2: 10.0, 3: 10.0, 7: 15.0, 8: 15.0, 9: 10.0, 10: 15.0})
+DefaultAffixUnitPrice = 5.0
+ResalePercent = 20

@@ -8,6 +8,8 @@ public enum RunMenuPage
 	Pack,
 	Notes,
 	System,
+	Buy,
+	Sell,
 }
 
 /// <summary>
@@ -15,7 +17,8 @@ public enum RunMenuPage
 /// inventory key opens Gear and the pause key System; a dead hero cannot open it, the death screen takes over. The
 /// open tab says what it offers for the selection. The menu draws that as the key row, whose keys act at once, and
 /// as a popup on a chosen slot, which the accept key and a click both open: choosing an item always shows what can
-/// be done with it before anything happens.
+/// be done with it before anything happens. A keeper's trade opens the same menu on its Buy and Sell tabs instead,
+/// with the run's own tabs hidden, so trading pauses the game and acts on items the way the pack does.
 /// </summary>
 public partial class RunMenu : Control
 {
@@ -28,6 +31,10 @@ public partial class RunMenu : Control
 	[Export] public Button PackButton { get; set; }
 	[Export] public Button NotesButton { get; set; }
 	[Export] public Button SystemButton { get; set; }
+	[Export] public TradeTab BuyTab { get; set; }
+	[Export] public TradeTab SellTab { get; set; }
+	[Export] public Button BuyButton { get; set; }
+	[Export] public Button SellButton { get; set; }
 
 	[ExportGroup("Readouts")]
 	[Export] public Label GoldLabel { get; set; }
@@ -42,10 +49,14 @@ public partial class RunMenu : Control
 	private static readonly StringName InventoryAction = "inventory", PauseAction = "pause", CancelAction = "ui_cancel",
 		AcceptAction = "ui_accept",
 		PreviousTabAction = "menu_previous_tab", NextTabAction = "menu_next_tab";
+	private static readonly RunMenuPage[] RunPages = [RunMenuPage.Gear, RunMenuPage.Pack, RunMenuPage.Notes, RunMenuPage.System],
+		TradePages = [RunMenuPage.Buy, RunMenuPage.Sell];
 
 	private RunMenuTab[] _tabs;
 	private Button[] _buttons;
 	private int _current = -1;
+	/// <summary>The tabs the open menu shows and turns through: the run's own, or a trade's.</summary>
+	private RunMenuPage[] _pages = RunPages;
 	private Player _player;
 	private MenuPrompt[] _prompts = [];
 	private Action _unsubscribeStats = () => { };
@@ -59,8 +70,8 @@ public partial class RunMenu : Control
 	{
 		ProcessMode = ProcessModeEnum.Always;
 		Visible = false;
-		_tabs = [GearTab, PackTab, NotesTab, SystemTab];
-		_buttons = [GearButton, PackButton, NotesButton, SystemButton];
+		_tabs = [GearTab, PackTab, NotesTab, SystemTab, BuyTab, SellTab];
+		_buttons = [GearButton, PackButton, NotesButton, SystemButton, BuyButton, SellButton];
 		for (int i = 0; i < _tabs.Length; i++)
 		{
 			int index = i;
@@ -72,6 +83,7 @@ public partial class RunMenu : Control
 			_buttons[i].Pressed += () => ShowTab(index);
 		}
 		ActionMenu.IndexPressed += index => _tabs[_current].Invoke(ActionMenu.GetItemMetadata((int)index).AsStringName());
+		this.SubscribeUntilExit(SignalBus.Instance, bus => bus.TradeOffered += OnTradeOffered, bus => bus.TradeOffered -= OnTradeOffered);
 	}
 
 	public override void _ExitTree()
@@ -94,9 +106,7 @@ public partial class RunMenu : Control
 		{
 			RunMenuPage? page = @event.IsActionPressed(InventoryAction) ? RunMenuPage.Gear
 				: @event.IsActionPressed(PauseAction) ? RunMenuPage.System : null;
-			// Not while something else holds the game (the death screen) or the depth card is up for a floor change.
-			if (page is { } opened && !GetTree().Paused && LoadingScreen.Instance?.IsCovering != true
-				&& GetTree().GetFirstNodeInGroup("player") is Player { IsDead: false } player)
+			if (page is { } opened && GetTree().GetFirstNodeInGroup("player") is Player player && CanOpenFor(player))
 			{
 				Open(player, opened);
 				GetViewport().SetInputAsHandled();
@@ -112,11 +122,11 @@ public partial class RunMenu : Control
 		}
 		else if (@event.IsActionPressed(PreviousTabAction))
 		{
-			ShowTab((_current + _tabs.Length - 1) % _tabs.Length);
+			TurnTab(-1);
 		}
 		else if (@event.IsActionPressed(NextTabAction))
 		{
-			ShowTab((_current + 1) % _tabs.Length);
+			TurnTab(1);
 		}
 		else if (_prompts.SelectMany(prompt => prompt.Actions).FirstOrDefault(action => @event.IsActionPressed(action)) is { } action)
 		{
@@ -141,7 +151,34 @@ public partial class RunMenu : Control
 			_unsubscribeStats = this.SubscribeUntilExit(player.Stats, stats => stats.Changed += RefreshGold, stats => stats.Changed -= RefreshGold);
 			RefreshGold();
 		}
+		_pages = Array.IndexOf(TradePages, page) >= 0 ? TradePages : RunPages;
+		for (int i = 0; i < _buttons.Length; i++)
+		{
+			_buttons[i].Visible = Array.IndexOf(_pages, (RunMenuPage)i) >= 0;
+		}
 		ShowTab((int)page);
+	}
+
+	/// <summary>Pauses the game on <paramref name="shop"/>'s Buy tab for <paramref name="player"/>, with Sell beside it.</summary>
+	public void OpenTrade(ShopComponent shop, Player player)
+	{
+		BuyTab.Shop = SellTab.Shop = shop;
+		Open(player, RunMenuPage.Buy);
+	}
+
+	/// <summary>Not while something else holds the game (the death screen) or the depth card is up for a floor change.</summary>
+	private bool CanOpenFor(Player player) =>
+		!GetTree().Paused && LoadingScreen.Instance?.IsCovering != true && !player.IsDead;
+
+	/// <summary>A keeper offered its shelf: trade, or tell the hero why the menu cannot open now.</summary>
+	private void OnTradeOffered(ShopComponent shop, Player player)
+	{
+		if (!IsOpen && CanOpenFor(player))
+		{
+			OpenTrade(shop, player);
+			return;
+		}
+		SignalBus.EmitPlayerStatusMessage($"The {shop.Profile.DisplayName.ToLowerInvariant()} cannot trade right now.", LogSeverity.Warning);
 	}
 
 	public void Close()
@@ -155,6 +192,7 @@ public partial class RunMenu : Control
 		_unsubscribeStats();
 		_unsubscribeStats = () => { };
 		_player = null;
+		BuyTab.Shop = SellTab.Shop = null;
 		GetViewport().GuiReleaseFocus();
 		Visible = false;
 		GetTree().Paused = false;
@@ -173,6 +211,12 @@ public partial class RunMenu : Control
 		_tabs[index].Open(_player);
 		_tabs[index].FocusDefault();
 		RefreshPrompts();
+	}
+
+	private void TurnTab(int step)
+	{
+		int at = Array.IndexOf(_pages, (RunMenuPage)_current);
+		ShowTab((int)_pages[(at + step + _pages.Length) % _pages.Length]);
 	}
 
 	private void LeaveTab()

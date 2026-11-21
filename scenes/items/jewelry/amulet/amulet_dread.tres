@@ -29,6 +29,6 @@ ValidSlots = 32
 RollTable = ExtResource("roll_table")
 AlwaysCursed = true
 Name = "Amulet of Dread"
-Value = 50
+Value = 250
 Tier = 0
 metadata/_custom_type_script = ExtResource("1_item")

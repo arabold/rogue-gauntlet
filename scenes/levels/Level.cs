@@ -200,6 +200,8 @@ public partial class Level : Node, IDebugWorld
 		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
+		// Shelves are seeded content, like untouched loot; the run's cleared entities say which offers are sold.
+		foreach (ShopComponent shop in Floor.Shops) shop.Stock();
 		try
 		{
 			RestoreFloorDeltas();

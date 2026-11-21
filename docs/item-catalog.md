@@ -64,7 +64,7 @@ A source's `LootDropProfile` names its table, drop chance, roll count and item c
 Monster definitions and chest scenes reference shared profiles in
 [`scenes/items/loot/drops/`](../scenes/items/loot/drops/).
 
-Actual category weights live in the [loot table Resources](../scenes/items/loot/), and depth bounds and quantity scaling in their pools, not a second numeric table here. Humanoid enemies favor currency/recovery; beasts drop only raw meat; rarer chests favor equipment. Base tier eligibility and rolled quality are independent, and both are fenced by depth. Every jewelry type is eligible from depth 1, through its tier-1 or tier-0 definition. Guaranteed matching keys are placed by the level access profile separately from random loot. Lockpicks never spawn in normal floors or loot tables; the Rogue starts with two, and future shops may stock them. Other deferred tools remain outside normal loot until their mechanics are implemented.
+Actual category weights live in the [loot table Resources](../scenes/items/loot/), and depth bounds and quantity scaling in their pools, not a second numeric table here. Humanoid enemies favor currency/recovery; beasts drop only raw meat; rarer chests favor equipment. Base tier eligibility and rolled quality are independent, and both are fenced by depth. Every jewelry type is eligible from depth 1, through its tier-1 or tier-0 definition. Guaranteed matching keys are placed by the level access profile separately from random loot. Lockpicks never spawn in normal floors or loot tables; the Rogue starts with two, and the [Quartermaster](shops.md) sells them. Other deferred tools remain outside normal loot until their mechanics are implemented.
 
 ## Active definitions
 

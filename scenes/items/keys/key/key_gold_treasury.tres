@@ -7,7 +7,7 @@
 script = ExtResource("2_script")
 Name = "Gold Treasury Key"
 Scene = ExtResource("1_scene")
-Value = 200
+Value = 300
 ShowInInventory = true
 IsStackable = true
 MaxStackSize = 20

@@ -1,0 +1,172 @@
+[gd_resource type="Resource" script_class="ShopProfile" format=3]
+
+[ext_resource type="Script" path="res://scenes/shops/ShopProfile.cs" id="script"]
+[ext_resource type="Script" path="res://scenes/shops/ShopStockProfile.cs" id="stock"]
+[ext_resource type="Script" path="res://scenes/components/LootPool.cs" id="pool"]
+[ext_resource type="Script" path="res://scenes/components/LootTableItem.cs" id="entry"]
+[ext_resource type="Resource" path="res://scenes/shops/shop_pricing.tres" id="pricing"]
+[ext_resource type="Resource" path="res://scenes/shops/quartermaster_item_policy.tres" id="policy"]
+[ext_resource type="Resource" path="res://scenes/items/quality/tier_depth_bands.tres" id="tiers"]
+[ext_resource type="Resource" path="res://scenes/items/food/food/food_bread_loaf.tres" id="bread"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_healing_small.tres" id="healing"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_strength_small.tres" id="strength"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_dexterity_small.tres" id="dexterity"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_vitality_small.tres" id="vitality"]
+[ext_resource type="Resource" path="res://scenes/items/potions/potion_intelligence_small.tres" id="intelligence"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_identify.tres" id="identify"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_protection.tres" id="protection"]
+[ext_resource type="Resource" path="res://scenes/items/scrolls/scroll_remove_curse.tres" id="remove_curse"]
+[ext_resource type="Resource" path="res://scenes/items/tools/tool/tool_lockpick_set.tres" id="lockpick"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/dagger_common.tres" id="dagger"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_common.tres" id="crossbow"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_crooked.tres" id="wand"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe_starter.tres" id="battleaxe"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/longsword_common.tres" id="sword"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/ranger_coat.tres" id="coat"]
+[ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_round_wood.tres" id="shield"]
+[ext_resource type="Resource" path="res://scenes/items/armor/body/knight_armor.tres" id="plate"]
+
+[sub_resource type="Resource" id="Entry_bread"]
+script = ExtResource("entry")
+Item = ExtResource("bread")
+
+[sub_resource type="Resource" id="Pool_food"]
+script = ExtResource("pool")
+Items = [SubResource("Entry_bread")]
+
+[sub_resource type="Resource" id="Stock_food"]
+script = ExtResource("stock")
+Id = "food"
+Pool = SubResource("Pool_food")
+Quantity = 2
+
+[sub_resource type="Resource" id="Entry_healing"]
+script = ExtResource("entry")
+Item = ExtResource("healing")
+Weight = 5.0
+
+[sub_resource type="Resource" id="Entry_strength"]
+script = ExtResource("entry")
+Item = ExtResource("strength")
+
+[sub_resource type="Resource" id="Entry_dexterity"]
+script = ExtResource("entry")
+Item = ExtResource("dexterity")
+
+[sub_resource type="Resource" id="Entry_vitality"]
+script = ExtResource("entry")
+Item = ExtResource("vitality")
+
+[sub_resource type="Resource" id="Entry_intelligence"]
+script = ExtResource("entry")
+Item = ExtResource("intelligence")
+
+[sub_resource type="Resource" id="Pool_potions"]
+script = ExtResource("pool")
+Items = [SubResource("Entry_healing"), SubResource("Entry_strength"), SubResource("Entry_dexterity"), SubResource("Entry_vitality"), SubResource("Entry_intelligence")]
+
+[sub_resource type="Resource" id="Stock_potions"]
+script = ExtResource("stock")
+Id = "potions"
+Pool = SubResource("Pool_potions")
+Quantity = 2
+DistinctItems = true
+
+[sub_resource type="Resource" id="Entry_identify"]
+script = ExtResource("entry")
+Item = ExtResource("identify")
+
+[sub_resource type="Resource" id="Entry_protection"]
+script = ExtResource("entry")
+Item = ExtResource("protection")
+
+[sub_resource type="Resource" id="Entry_remove_curse"]
+script = ExtResource("entry")
+Item = ExtResource("remove_curse")
+
+[sub_resource type="Resource" id="Pool_scroll"]
+script = ExtResource("pool")
+Items = [SubResource("Entry_identify"), SubResource("Entry_protection"), SubResource("Entry_remove_curse")]
+
+[sub_resource type="Resource" id="Stock_scroll"]
+script = ExtResource("stock")
+Id = "scroll"
+Pool = SubResource("Pool_scroll")
+Quantity = 1
+
+[sub_resource type="Resource" id="Entry_lockpick"]
+script = ExtResource("entry")
+Item = ExtResource("lockpick")
+
+[sub_resource type="Resource" id="Pool_tool"]
+script = ExtResource("pool")
+Items = [SubResource("Entry_lockpick")]
+
+[sub_resource type="Resource" id="Stock_tool"]
+script = ExtResource("stock")
+Id = "tool"
+Pool = SubResource("Pool_tool")
+Quantity = 1
+
+[sub_resource type="Resource" id="Entry_dagger"]
+script = ExtResource("entry")
+Item = ExtResource("dagger")
+
+[sub_resource type="Resource" id="Entry_crossbow"]
+script = ExtResource("entry")
+Item = ExtResource("crossbow")
+
+[sub_resource type="Resource" id="Entry_wand"]
+script = ExtResource("entry")
+Item = ExtResource("wand")
+
+[sub_resource type="Resource" id="Entry_battleaxe"]
+script = ExtResource("entry")
+Item = ExtResource("battleaxe")
+
+[sub_resource type="Resource" id="Entry_sword"]
+script = ExtResource("entry")
+Item = ExtResource("sword")
+
+[sub_resource type="Resource" id="Pool_weapon"]
+script = ExtResource("pool")
+Items = [SubResource("Entry_battleaxe"), SubResource("Entry_sword"), SubResource("Entry_dagger"), SubResource("Entry_crossbow"), SubResource("Entry_wand")]
+TierBands = ExtResource("tiers")
+
+[sub_resource type="Resource" id="Stock_weapon"]
+script = ExtResource("stock")
+Id = "weapon"
+Pool = SubResource("Pool_weapon")
+Quantity = 2
+DistinctItems = true
+
+[sub_resource type="Resource" id="Entry_coat"]
+script = ExtResource("entry")
+Item = ExtResource("coat")
+
+[sub_resource type="Resource" id="Entry_shield"]
+script = ExtResource("entry")
+Item = ExtResource("shield")
+
+[sub_resource type="Resource" id="Entry_plate"]
+script = ExtResource("entry")
+Item = ExtResource("plate")
+
+[sub_resource type="Resource" id="Pool_armor"]
+script = ExtResource("pool")
+Items = [SubResource("Entry_coat"), SubResource("Entry_shield"), SubResource("Entry_plate")]
+TierBands = ExtResource("tiers")
+
+[sub_resource type="Resource" id="Stock_armor"]
+script = ExtResource("stock")
+Id = "armor"
+Pool = SubResource("Pool_armor")
+Quantity = 1
+
+[resource]
+script = ExtResource("script")
+DisplayName = "Quartermaster"
+Stock = [SubResource("Stock_food"), SubResource("Stock_potions"), SubResource("Stock_scroll"), SubResource("Stock_tool"), SubResource("Stock_weapon"), SubResource("Stock_armor")]
+CreationPolicy = ExtResource("policy")
+Pricing = ExtResource("pricing")
+Buys = 15

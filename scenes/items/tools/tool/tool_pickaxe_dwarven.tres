@@ -7,7 +7,7 @@
 script = ExtResource("2_script")
 Name = "Dwarven Pickaxe"
 Scene = ExtResource("1_scene")
-Value = 70
+Value = 110
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
