@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
@@ -27,7 +28,10 @@ public partial class Hud : Control
 	private System.Action _unsubscribeInteraction = () => { };
 	private System.Action _unsubscribeMana = () => { };
 	private Tween _manaFlash;
-	private bool _interactionWasVisible;
+	private ActorInteractionComponent _interaction;
+	private bool _isPaused;
+	/// <summary>The readouts this HUD hid for the run menu: only these come back, so one hidden for its own reasons stays hidden.</summary>
+	private readonly List<Control> _hiddenForPause = [];
 
 	public override void _Ready()
 	{
@@ -68,8 +72,9 @@ public partial class Hud : Control
 	{
 		OnPlayerStatsChanged(player.Stats);
 		_unsubscribeInteraction();
+		_interaction = player?.InteractionComponent;
 		_unsubscribeInteraction = this.SubscribeUntilExit(
-			player?.InteractionComponent,
+			_interaction,
 			c =>
 			{
 				c.InteractionStarted += OnInteractionStarted;
@@ -89,31 +94,37 @@ public partial class Hud : Control
 			player?.ManaComponent,
 			m => m.ManaShortfall += OnManaShortfall,
 			m => m.ManaShortfall -= OnManaShortfall);
+		RefreshInteraction();
 	}
 
-	/// <summary>The run menu covers the paused game and shows its readouts itself, while keeping the message feed visible for actions taken in the menu.</summary>
+	/// <summary>
+	/// The run menu covers the paused game and shows its readouts itself, while keeping the message feed visible for
+	/// actions taken in the menu. Resuming brings back only the readouts pausing hid, such as Vitals, and never a
+	/// release build's debug menu.
+	/// </summary>
 	private void OnGamePaused(bool isPaused)
 	{
+		_isPaused = isPaused;
 		if (isPaused)
 		{
-			_interactionWasVisible = InteractionContainer.Visible;
-			InteractionContainer.Visible = false;
-		}
-
-		foreach (Node child in GetChildren())
-		{
-			if (child is not Control control || control is HudMessageFeed || control == InteractionContainer)
+			foreach (Node child in GetChildren())
 			{
-				continue;
+				if (child is Control { Visible: true } control && control is not HudMessageFeed && control != InteractionContainer)
+				{
+					control.Visible = false;
+					_hiddenForPause.Add(control);
+				}
 			}
-
-			control.Visible = !isPaused;
 		}
-
-		if (!isPaused)
+		else
 		{
-			InteractionContainer.Visible = _interactionWasVisible;
+			foreach (Control control in _hiddenForPause)
+			{
+				if (IsInstanceValid(control)) control.Visible = true;
+			}
+			_hiddenForPause.Clear();
 		}
+		RefreshInteraction();
 	}
 
 	/// <summary>
@@ -131,14 +142,22 @@ public partial class Hud : Control
 	private void OnInteractionStarted(string verb, float duration)
 	{
 		InteractionProgressBar.Value = 0;
-		InteractionContainer.Visible = true;
+		RefreshInteraction();
 	}
 
 	private void OnInteractionProgress(string verb, float elapsed, float duration) =>
 		InteractionProgressBar.Value = duration > 0 ? elapsed / duration * 100 : 100;
 
-	private void OnInteractionEnded(string verb, int result) => InteractionContainer.Visible = false;
-	private void OnInteractionCancelled(int reason) => InteractionContainer.Visible = false;
+	private void OnInteractionEnded(string verb, int result) => RefreshInteraction();
+	private void OnInteractionCancelled(int reason) => RefreshInteraction();
+
+	/// <summary>
+	/// Shows the bar while the hero channels an interaction in the running game. It reads the live session rather than
+	/// remembering itself across a pause, because a session can end while paused: a keeper's trade pauses the game from
+	/// inside the interaction's commit, before the session reports its end.
+	/// </summary>
+	private void RefreshInteraction() =>
+		InteractionContainer.Visible = !_isPaused && IsInstanceValid(_interaction) && _interaction.IsActive;
 
 	private void OnPlayerStatsChanged(PlayerStats stats)
 	{

@@ -112,7 +112,8 @@ public class ShopTest
 
 	/// <summary>
 	/// Holding the keeper's interaction opens the run menu on its trade tabs, paused. A trade goes through at the price
-	/// the hero saw, and a price that changed in between is refused until the hero confirms the new one.
+	/// the hero saw, and a price that changed in between is refused until the hero confirms the new one. The HUD's
+	/// interaction bar shows while the hold channels and is gone once the trade ends.
 	/// </summary>
 	[TestCase]
 	public async Task TradeThroughTheRunMenuAtTheQuotedPrice()
@@ -125,6 +126,8 @@ public class ShopTest
 			Player player = FindPlayer(level);
 			var menu = TestFactories.Load<PackedScene>("res://scenes/ui/menu/run_menu.tscn").Instantiate<RunMenu>();
 			level.AddChild(menu);
+			var hud = TestFactories.Load<PackedScene>("res://scenes/ui/hud.tscn").Instantiate<Hud>();
+			level.AddChild(hud);
 			AssertBool(shop.Interaction.IdleMarker.Visible).IsTrue();
 
 			var towardArrival = (level.Floor.Arrival.LandingPosition - keeper.GlobalPosition) with { Y = 0 };
@@ -142,10 +145,13 @@ public class ShopTest
 				PressE(false);
 				await runner.SimulateFrames(30, 20);
 				AssertBool(menu.IsOpen).IsFalse();
+				AssertBool(hud.InteractionContainer.Visible).IsFalse();
 				PressE(true);
+				await TestFactories.AwaitPhysicsUntil(runner, () => hud.InteractionContainer.Visible);
 				await TestFactories.AwaitPhysicsUntil(runner, () => menu.IsOpen);
 				PressE(false);
 				AssertBool(level.GetTree().Paused).IsTrue();
+				AssertBool(hud.InteractionContainer.Visible).IsFalse();
 				AssertInt((int)menu.Page.Value).IsEqual((int)RunMenuPage.Buy);
 				AssertBool(menu.GearButton.Visible || menu.SystemButton.Visible).IsFalse();
 
@@ -200,6 +206,8 @@ public class ShopTest
 
 				menu.Close();
 				AssertBool(level.GetTree().Paused).IsFalse();
+				// The trade paused the game from inside the interaction's commit; the finished channel must not come back.
+				AssertBool(hud.InteractionContainer.Visible).IsFalse();
 			}
 			finally
 			{
