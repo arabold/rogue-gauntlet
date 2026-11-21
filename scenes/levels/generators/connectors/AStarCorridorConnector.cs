@@ -81,17 +81,10 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
             if (map.IsWithinBounds(p.X, p.Y)) edgeOwner[p.X, p.Y] = -2;
         }
 
-        var clusterExits = new Dictionary<int, List<Vector2I>>(rooms.Count);
         var allExitTiles = new HashSet<Vector2I>();
         foreach (var room in rooms)
         {
-            int key = room.ClusterId >= 0 ? room.ClusterId : room.Id;
-            if (!clusterExits.TryGetValue(key, out var exits))
-            {
-                exits = [];
-                clusterExits[key] = exits;
-            }
-            CollectExternalExits(map, plan, room, exits, allExitTiles);
+            CollectExternalExits(map, plan, room, [], allExitTiles);
         }
 
         // Keep every doorway exit tile solid except the pair under evaluation so routed corridors
@@ -101,30 +94,16 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
             astar.SetPointSolid(exitTile, true);
         }
 
-        var usedExits = new HashSet<Vector2I>();
+        // Each edge connects exactly the exits its layout paired. Any other pairing could end one edge's corridor on
+        // a doorway planned for the next edge and link two rooms around the required room between them.
         for (int edgeIndex = 0; edgeIndex < plan.ApprovedEdges.Count; edgeIndex++)
         {
-            var (fromClusterId, toClusterId) = plan.ApprovedEdges[edgeIndex];
-            var fromExits = clusterExits.GetValueOrDefault(fromClusterId);
-            var toExits = clusterExits.GetValueOrDefault(toClusterId);
-
-            var candidates = new List<CorridorCandidate>();
-            if (fromExits != null && toExits != null)
+            var edge = plan.ApprovedEdges[edgeIndex];
+            var candidates = new List<CorridorCandidate> { new(edge.FromExit, edge.ToExit, 0, null) };
+            if (!TryFindShortestPath(astar, candidates, out _, out var bestPath, (grid, candidate) =>
             {
-                foreach (var from in fromExits)
-                {
-                    if (usedExits.Contains(from)) continue;
-                    foreach (var to in toExits)
-                    {
-                        if (usedExits.Contains(to)) continue;
-                        candidates.Add(new CorridorCandidate(from, to, candidates.Count, null));
-                    }
-                }
-            }
-
-            if (!TryFindShortestPath(astar, candidates, out var best, out var bestPath, (grid, candidate) =>
-            {
-                if (edgeOwner[candidate.From.X, candidate.From.Y] >= 0 || edgeOwner[candidate.To.X, candidate.To.Y] >= 0)
+                if (!allExitTiles.Contains(candidate.From) || !allExitTiles.Contains(candidate.To)
+                    || edgeOwner[candidate.From.X, candidate.From.Y] >= 0 || edgeOwner[candidate.To.X, candidate.To.Y] >= 0)
                 {
                     return null;
                 }
@@ -139,12 +118,10 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
                 return path;
             }))
             {
-                GD.PrintErr($"Approved edge {edgeIndex} ({fromClusterId} -> {toClusterId}) could not be routed.");
+                GD.Print($"Approved edge {edgeIndex} ({edge.FromClusterId} -> {edge.ToClusterId}) could not be routed; retrying layout.");
                 return;
             }
 
-            usedExits.Add(best.From);
-            usedExits.Add(best.To);
             foreach (var tile in bestPath)
             {
                 if (map.IsEmpty(tile.X, tile.Y))

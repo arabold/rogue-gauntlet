@@ -311,7 +311,10 @@ public sealed class GeneratedFloor
 		return IsReachableArea(point, radius);
 	}
 
-	/// <summary>Prefer a roomy room interior near <paramref name="reference"/>, keeping an oversized actor out of corridors.</summary>
+	/// <summary>
+	/// Prefer a roomy room interior near <paramref name="reference"/>, keeping an oversized actor out of corridors and the
+	/// arrival's room. A floor with a boss slot keeps it to the boss room or the descent's room behind it.
+	/// </summary>
 	public bool TryFindLargeEncounterPosition(
 		Vector3 reference,
 		float minimumRadius,
@@ -330,10 +333,11 @@ public sealed class GeneratedFloor
 			bool hasBossSlot = _rooms.Any(r => r.SlotId == "boss");
 			allowedRoom = roomId => roomId >= 0 && roomId < _rooms.Count
 				&& roomId != arrivalRoomId
-				&& roomId != descentRoomId
-				&& (hasBossSlot ? _rooms[roomId].SlotId == "boss" : _rooms[roomId].SlotId is not ("entrance" or "exit"));
+				&& (!hasBossSlot || _rooms[roomId].SlotId == "boss" || roomId == descentRoomId);
 		}
 
+		// No candidate scores above its widest measured clearance, so that bounds the score before measuring.
+		float widest = Mathf.Max(minimumRadius, preferredRadius) * 1000f;
 		foreach (var tilePoint in OpenTileCandidates())
 		{
 			// Half-tile offsets also find clear 2x2 spaces between cell centers.
@@ -347,7 +351,7 @@ public sealed class GeneratedFloor
 					if (!allowedRoom(roomId) || (accessible != null && !accessible.Contains(tile))
 						|| IsInSpawnClearance(point)) continue;
 					float dist = point.DistanceTo(reference);
-					if (preferredRadius * 1000f - dist <= best) continue;
+					if (widest - dist <= best) continue;
 					if (!IsFootprintClearNow(point, minimumRadius, roomId)) continue;
 					float clearance = minimumRadius;
 					for (float radius = minimumRadius + .2f; radius <= preferredRadius; radius += .2f)

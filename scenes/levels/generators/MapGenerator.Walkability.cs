@@ -59,18 +59,22 @@ public partial class MapGenerator
 		return false;
 	}
 
-	/// <summary>
-	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
-	/// their frame and their leaf standing open.
-	/// </summary>
 	private SolidOutline[] _cachedStaticOutlines;
 
+	/// <summary>
+	/// Wall and decoration GridMap outlines, cached per attempt: both grids are final before the first grid is built, and
+	/// <see cref="Reset"/> clears the cache.
+	/// </summary>
 	private IReadOnlyList<SolidOutline> StaticOutlines() => _cachedStaticOutlines ??=
 	[
 		.. CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity),
 		.. CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity),
 	];
 
+	/// <summary>
+	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
+	/// their frame and their leaf standing open.
+	/// </summary>
 	private IEnumerable<SolidOutline> SolidOutlines()
 	{
 		var toLocal = GlobalTransform.AffineInverse();

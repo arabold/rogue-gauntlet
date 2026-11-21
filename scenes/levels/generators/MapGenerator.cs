@@ -17,7 +17,13 @@ public partial class MapGenerator : Node3D
 	/// <summary>Editor: rebuilds the floor preview on demand instead of after every property change.</summary>
 	[ExportToolButton("Regenerate preview")] public Callable RegeneratePreviewButton => Callable.From(GenerateEditorPreview);
 
+	/// <summary>The floor recipe for ordinary floors.</summary>
 	[Export] public FloorProfile Profile { get; set; }
+	/// <summary>
+	/// The floor recipe for floors whose encounter plan holds a gatekeeper: a layout that sizes a boss room for the
+	/// gatekeeper's fit and makes it the only way to the descent. Unassigned, gatekeeper floors use <see cref="Profile"/>.
+	/// </summary>
+	[Export] public FloorProfile BossProfile { get; set; }
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
@@ -31,6 +37,8 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
 	public Realm CurrentRealm { get; private set; }
+	/// <summary>The floor recipe the current attempt builds with, resolved once its encounters are planned.</summary>
+	public FloorProfile CurrentProfile { get; private set; }
 	private RoomPool _realmRooms;
 	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
 	private readonly HashSet<Vector3I> _dividerCells = [];
@@ -139,8 +147,8 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Generating rooms...");
 
-		var context = new FloorBuildContext(_realmRooms, Profile, Floor.Encounter, MaxRooms, _random.Layout);
-		var plan = Profile.Layout.GenerateLayout(Map, context);
+		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, MaxRooms, _random.Layout);
+		var plan = CurrentProfile.Layout.GenerateLayout(Map, context);
 		PlaceClusters(plan.Placements);
 		return plan;
 	}
@@ -278,7 +286,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Connecting rooms...");
 
 		using var connectorRng = GenerationRandom.Create(Seed, GenerationRandom.Layout, $"corridors:{GenerationAttempt}");
-		Profile.Connector.ConnectRooms(Map, plan, Floor.Rooms, connectorRng);
+		CurrentProfile.Connector.ConnectRooms(Map, plan, Floor.Rooms, connectorRng);
 
 		// Doorways are structural commitments, including both ends of a hall's aisle, and their doors and frames are
 		// already set. Never turn an unrouteable doorway into a wall and deliver a different room.
@@ -653,10 +661,11 @@ public partial class MapGenerator : Node3D
 			// This is especially important to check in the editor
 			return true;
 		}
-		Profile.ValidateOrThrow();
-
-		// Step 0: Plan special encounters before room layout so layout can enforce RequiredFit on boss slots.
+		// Step 0: Plan special encounters before room layout. A gatekeeper floor builds from the boss profile, whose layout
+		// sizes the boss room for the gatekeeper's fit and makes it a required pass toward the descent.
 		Floor.Encounter = MobFactory.PlanEncounters(DungeonDepth);
+		CurrentProfile = Floor.Encounter?.GatekeeperId != null && BossProfile != null ? BossProfile : Profile;
+		CurrentProfile.ValidateOrThrow();
 
 		// Step 1: Generate random rooms
 		var plan = GenerateRooms();
@@ -714,6 +723,7 @@ public partial class MapGenerator : Node3D
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
 		CurrentRealm = Realms.FirstOrDefault(realm => realm?.Covers(DungeonDepth) == true) ?? Realms.Where(realm => realm != null).MaxBy(realm => realm.LastDepth);
 		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Id);
+		CurrentProfile = Profile;
 
 		ResetAccess();
 		_cachedStaticOutlines = null;

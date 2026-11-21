@@ -20,11 +20,16 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 	[Export(PropertyHint.Range, "1,4")] public int RoomGap { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,16")] public int Retries { get; set; } = 6;
 
+	/// <summary>
+	/// A placed node; <see cref="LinkedExit"/> is its own exit toward its parent and <see cref="ParentExitClaimed"/> the
+	/// parent's exit paired with it, together the approved edge's endpoints.
+	/// </summary>
 	private sealed record PlacedSpineNode(
 		RoomCluster Cluster,
 		Vector2I Position,
 		List<Vector2I> AllExits,
 		HashSet<Vector2I> UsedExits,
+		Vector2I? LinkedExit,
 		Vector2I? ParentExitClaimed);
 
 	public override FloorPlan GenerateLayout(MapData map, FloorBuildContext context)
@@ -178,26 +183,28 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 
 				var clusterExits = ExternalExitsAt(placement, cluster.Map);
 				var usedExits = new HashSet<Vector2I>();
+				Vector2I? linkedExitClaimed = null;
 				Vector2I? parentExitClaimed = null;
 				if (prevNode != null)
 				{
 					var (linkedExit, parentExit) = PickClosestExitPair(clusterExits, prevFreeExits);
 					usedExits.Add(linkedExit);
 					prevNode.UsedExits.Add(parentExit);
+					linkedExitClaimed = linkedExit;
 					parentExitClaimed = parentExit;
 				}
 
 				tried.Add((placement, cluster.Map.Width * 31 + cluster.Map.Height * 97 + clusterExits.Count * 397));
 				AddPlacement(map, plan, cluster, placement);
 				RecordRoomUse(uses, cluster);
-				stack.Add(new PlacedSpineNode(cluster, placement, clusterExits, usedExits, parentExitClaimed));
+				stack.Add(new PlacedSpineNode(cluster, placement, clusterExits, usedExits, linkedExitClaimed, parentExitClaimed));
 				depth++;
 			}
 
-			// Record sequential ApprovedEdges along the placed spine by ClusterId.
-			for (int i = 0; i < stack.Count - 1; i++)
+			// Record sequential ApprovedEdges along the placed spine by ClusterId, between the exits each link paired.
+			for (int i = 1; i < stack.Count; i++)
 			{
-				plan.ApprovedEdges.Add((i, i + 1));
+				plan.ApprovedEdges.Add(new ApprovedEdge(i - 1, i, stack[i].ParentExitClaimed.Value, stack[i].LinkedExit.Value));
 			}
 
 			// Place any promised sidearms off non-goal spine slots.
@@ -337,8 +344,8 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 				int sidearmClusterId = plan.Placements.Count;
 				AddPlacement(map, plan, sidearm, placement);
 				RecordRoomUse(uses, sidearm);
-				allNodes.Add(new PlacedSpineNode(sidearm, placement, sidearmExits, usedExits, parentExit));
-				plan.ApprovedEdges.Add((parentClusterId, sidearmClusterId));
+				allNodes.Add(new PlacedSpineNode(sidearm, placement, sidearmExits, usedExits, linkedExit, parentExit));
+				plan.ApprovedEdges.Add(new ApprovedEdge(parentClusterId, sidearmClusterId, parentExit, linkedExit));
 				return true;
 			}
 

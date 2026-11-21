@@ -268,8 +268,9 @@ public class GeneratedFloorSweepTest
 				if (bossRoom != null && generator.Floor.GatekeeperSite is Transform3D site)
 				{
 					gatekeepersChecked++;
-					if (generator.Floor.RoomIdAt(site.Origin) != bossRoom.Id)
-						contracts.Fail("generation", $"{fullLabel}: gatekeeper placed outside boss room");
+					int siteRoom = generator.Floor.RoomIdAt(site.Origin);
+					if (siteRoom != bossRoom.Id && siteRoom != exitRoom?.Id)
+						contracts.Fail("generation", $"{fullLabel}: gatekeeper placed outside the boss and exit rooms");
 				}
 
 				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -277,6 +278,53 @@ public class GeneratedFloorSweepTest
 
 			contracts.AssertHeld();
 			AssertInt(gatekeepersChecked).IsGreater(0);
+		}
+	}
+
+	/// <summary>
+	/// The shipped level builds its gatekeeper floor from its boss profile: the gatekeeper finds room in the boss room or
+	/// the descent's room behind it, and the descent cannot be reached without passing through the boss room.
+	/// </summary>
+	[TestCase]
+	public async Task ShippedGatekeeperFloorsLeadThroughTheBossRoom()
+	{
+		const uint gatekeeperDepth = 3; // The Garrison's gatekeeper floor.
+		var (runner, level) = await TestFactories.GenerateLevel(1, gatekeeperDepth);
+		using (runner)
+		{
+			var generator = level.MapGenerator;
+			var contracts = new FloorContracts();
+			for (ulong seed = 1; seed <= 3; seed++)
+			{
+				if (seed > 1)
+				{
+					level.ConfigureGeneration(new RunState(seed), gatekeeperDepth, null, null);
+					level.Generate();
+				}
+				string label = $"gatekeeper floor seed {seed} ({generator.CurrentRealm.Id})";
+				contracts.Check(generator, label);
+
+				var floor = generator.Floor;
+				var bossRoom = floor.Rooms.FirstOrDefault(r => r.SlotId == "boss");
+				int descentRoom = generator.RoomRegionFor(floor.Descent);
+				if (bossRoom == null || descentRoom < 0)
+				{
+					contracts.Fail("generation", $"{label}: no boss room or descent room");
+					continue;
+				}
+				if (floor.GatekeeperSite is not Transform3D site)
+					contracts.Fail("generation", $"{label}: no gatekeeper site");
+				else if (floor.RoomIdAt(site.Origin) is int siteRoom && siteRoom != bossRoom.Id && siteRoom != descentRoom)
+					contracts.Fail("generation", $"{label}: gatekeeper stands in room {siteRoom}, outside the boss and descent rooms");
+
+				var blocked = bossRoom.Tiles.Concat(bossRoom.ConnectorTiles).ToHashSet();
+				var reached = AccessSolutionValidator.Reachable(generator.Map, generator.Map.WorldToTile(floor.Arrival.GlobalPosition), blocked);
+				if (floor.Rooms[descentRoom].Tiles.Any(reached.Contains))
+					contracts.Fail("connectivity", $"{label}: the descent is reachable around the boss room");
+
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+			contracts.AssertHeld();
 		}
 	}
 

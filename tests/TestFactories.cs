@@ -321,7 +321,9 @@ public static partial class TestFactories
 
 	private static void Configure(MapGenerator mapGenerator, FloorProfile profile, RoomPool pool)
 	{
+		// Tests pin their profile at every depth, gatekeeper floors included.
 		mapGenerator.Profile = profile;
+		mapGenerator.BossProfile = null;
 		// Tests pin their rooms: the Garrison's, at every depth.
 		mapGenerator.Rooms = pool;
 		mapGenerator.Realms =

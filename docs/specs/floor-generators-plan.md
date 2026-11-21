@@ -12,7 +12,7 @@ Add three new floor generator archetypes and an Inversion-of-Control (`FloorProf
 
 **Shared baseline change:** Loose items, access keys, and wall-backed chests become eligible in both rooms and corridors across all profiles; scheduled fountains stay room-only.
 
-**Delivery boundary:** The new profiles (`labyrinth.tres`, `dense.tres`, `linear_boss.tres`) remain unwired from live `Realm` progression initially and are previewed in [RoomGenerationHarness](../../scenes/debug/rooms/RoomGenerationHarness.cs) and verified via GdUnit4 sweeps. `level.tscn` switches to `floor_profiles/packed.tres` (preserving identical live gameplay behavior); `SimpleRoomLayout` is retained for now via `floor_profiles/simple.tres`.
+**Delivery boundary:** `level.tscn` builds ordinary floors from `floor_profiles/packed.tres` and gatekeeper floors from `floor_profiles/linear_boss.tres` (`MapGenerator.BossProfile`, chosen once the encounter plan holds a gatekeeper). `labyrinth.tres` and `dense.tres` stay unwired from live `Realm` progression and are previewed in [RoomGenerationHarness](../../scenes/debug/rooms/RoomGenerationHarness.cs) and verified via GdUnit4 sweeps; `SimpleRoomLayout` is retained for now via `floor_profiles/simple.tres`.
 
 ---
 
@@ -125,7 +125,7 @@ public partial class RoomGroup : RoomDefinition
 - **`RoomRegion` (`scenes/levels/RoomRegion.cs`):** Add `SlotId` (`string`), `MustTraverse` (`bool`), `ReserveAccess` (`bool`), `ClusterId` (`int`).
 - **`FloorPlan` (`scenes/levels/generators/FloorPlan.cs`):** Pure data record returned by `RoomLayoutStrategy.GenerateLayout`:
   - `List<(RoomCluster Cluster, Vector2I Position)> Placements`
-  - `List<(int FromRoomIndex, int ToRoomIndex)> ApprovedEdges` (empty for unconstrained layouts)
+  - `List<ApprovedEdge> ApprovedEdges` (cluster pair plus the doorway exit tiles the layout paired; empty for unconstrained layouts)
   - `HashSet<Vector2I> ProtectedCorridors` (bridge tiles stamped from placed clusters)
   - `void FreeUnplaced()` (safety cleanup if generation aborts before `PlaceClusters`)
 - **`FloorBuildContext`:** Plain C# record passed into layouts: `(RoomPool Pool, FloorProfile Profile, EncounterPlan Encounter, uint MaxRooms, RandomNumberGenerator Rng)`.
@@ -162,7 +162,7 @@ public partial class RoomGroup : RoomDefinition
   - Retains `MapWidth`, `MapDepth`, `MaxRooms`, `MinChests..MaxLooseItems`, `ChestScene`, `TrapScene`, `LooseItemScene`, `LooseItems`, `Fountains`, `MobFactory`, `Rooms : RoomPool`, `Realms` on `MapGenerator` (preserving `scripts/balance/content.py` defaults, run-scoped fountains, and test isolation).
 - **`GeneratedFloor` (`scenes/levels/generators/GeneratedFloor.cs`):**
   - Keep `GatekeeperSite` and `GatekeeperSpawn`; add no parallel `BossRoomId`/`BossExitDoors`/`RoomRoles` arrays (read `SlotId`/`MustTraverse`/`ReserveAccess` directly from `Rooms`).
-  - `TryFindLargeEncounterPosition(Vector3 reference, float minimumRadius, float preferredRadius, out Vector3 position, Func<int, bool> allowedRoom = null)` — iterates matching room tiles (excluding `SlotId == "exit"` and `SlotId == "entrance"` by default; restricted to `SlotId == "boss"` when a `"boss"` room exists).
+  - `TryFindLargeEncounterPosition(Vector3 reference, float minimumRadius, float preferredRadius, out Vector3 position, Func<int, bool> allowedRoom = null)` — iterates room tiles outside the arrival's room by default; restricted to the `SlotId == "boss"` room or the descent's room when a `"boss"` room exists.
   - `TryPlacePackMember(...)` — checks `DungeonDiscovery.HasSight` (with `!Map.RequiresInteriorWall`) between `anchor` and `candidate` so corridor monster packs never spawn across thin sealed corridor walls.
 
 ### 5. Layout and corridor strategies
@@ -178,7 +178,7 @@ public partial class RoomGroup : RoomDefinition
 - **`CorridorConnectorStrategy` (`scenes/levels/generators/connectors/CorridorConnectorStrategy.cs`):**
   - `public abstract void ConnectRooms(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms, RandomNumberGenerator rng);`
   - **3 subclasses (sharing `MazeCarver` pure-C# helpers):**
-    1. `AStarCorridorConnector`: marks `plan.ProtectedCorridors` solid; builds initial components grouped by `RoomRegion.ClusterId` (so pre-linked `RoomGroup` rooms don't split into separate components); routes only external connectors. When `plan.ApprovedEdges` is non-empty, routes strictly edge-by-edge in order and seals corridor-to-corridor edges (`SealCorridorEdge`) between unrelated routed corridors so separate branches never fuse into a bypass; otherwise runs the existing spanning tree + remaining doorways.
+    1. `AStarCorridorConnector`: marks `plan.ProtectedCorridors` solid; builds initial components grouped by `RoomRegion.ClusterId` (so pre-linked `RoomGroup` rooms don't split into separate components); routes only external connectors. When `plan.ApprovedEdges` is non-empty, routes strictly edge-by-edge in order between each edge's paired exits (never another pairing, which could end a corridor on the next edge's doorway and skip the room between) and seals corridor-to-corridor edges (`SealCorridorEdge`) between unrelated routed corridors so separate branches never fuse into a bypass; otherwise runs the existing spanning tree + remaining doorways.
     2. `MazeCorridorConnector` (for `labyrinth.tres`): exports `WindingChance`, `LoopChance`, `DeadEndPruneChance`, `MinDeadEnds`; carves a 1-tile-wide maze across all doorway-reachable empty playable tiles via randomized growing-tree (`WindingChance`), sealing non-carved shared corridor edges (`SealCorridorEdge`); opens controlled loops (`LoopChance`) while never breaching `ProtectedCorridors`; runs O(W×H) queue-based dead-end pruning (`DeadEndPruneChance`) preserving connected doorways and a configurable minimum dead-end count.
     3. `GapFillCorridorConnector` (for `dense.tres`): exports `WindingChance`, `LoopChance`; connects every doorway first (`AStarCorridorConnector`), floods exterior void from the map border (`MazeCarver.FindExteriorEmpty`), identifies enclosed interior `Empty` tiles and 1-tile crevices pinched inside the cluster hull, and carves accessible 1-tile corridors through them with `SealCorridorEdge`.
 
@@ -224,7 +224,7 @@ MapGenerator.GenerateMapAttempt(includeGameplay)
 ├─ DecorateCorridors() -> PlaceOcclusion() -> Floor.SolidWalls
 ├─ if (!includeGameplay): Floor.Freeze(); return true
 ├─ BuildWalkability()                        // Caches static Wall/Decoration SolidOutlines for BuildNavigation
-├─ ResolveEncounters()                       // Restricts TryFindLargeEncounterPosition to SlotId=="boss" if present; excludes Exit/Arrival
+├─ ResolveEncounters()                       // Restricts TryFindLargeEncounterPosition to the boss or descent room if a boss slot exists; excludes Arrival
 ├─ PlaceAccess()                             // FloorAccessProfile: AllowLockingExit, AllowLockChains (stepwise Reachable + ReachableWithoutConnectors); skips ReserveAccess & MustTraverse; records ConnectionId & baselines
 ├─ PlaceLoot()                               // Fountains (room-only) -> Chests/Traps/LooseItems (rooms + corridors, weighted by DeadEndLootWeight & TrapDensityScale)
 ├─ BuildNavigation()                         // Reuses cached static wall outlines + refreshed FloorContent solids + door gates
@@ -362,7 +362,7 @@ tests/
 
 ## Open decisions and deferred work
 
-1. **Wiring profiles into live runs:** Selecting which `FloorProfile` runs per `Realm` or depth (e.g., `linear_boss.tres` on boss depths) stays deferred until all 3 new profiles are visually verified in `RoomGenerationHarness`.
+1. **Wiring profiles into live runs:** Gatekeeper floors already use `linear_boss.tres`. Selecting `labyrinth.tres` or `dense.tres` per `Realm` or depth stays deferred until they are visually verified in `RoomGenerationHarness`.
 2. **Boss-kill door unlock:** `boss_exit.tres` marks the Exit `RoomRegion` with `ReserveAccess = true` and `SlotId = "exit"` so `Floor.Doors` exposes the boss exit door cleanly when boss-kill unlocking is added later.
 3. **Retiring `SimpleRoomLayout` / `simple.tres`:** Retained during initial development and sweeps; delete in a small follow-up once the new profiles stabilize.
 4. **Mid-corridor labyrinth doors (optional later):** Initial Labyrinth locks live on room-owned doors (`Entrance`, `Dedicated` rooms, `Exit`); standalone corridor doors on sealed edges can be added later without changing `FloorProfile`.

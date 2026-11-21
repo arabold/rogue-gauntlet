@@ -14,7 +14,7 @@ public partial class MapGenerator
 	/// </summary>
 	private void PlaceAccess()
 	{
-		var accessProfile = Profile?.Access;
+		var accessProfile = CurrentProfile?.Access;
 		if (accessProfile != null) PlaceGeneratedLocks(accessProfile);
 
 		int ordinal = 0;
@@ -82,7 +82,7 @@ public partial class MapGenerator
 			doorByConnector[connector] = door;
 		}
 		var rawKeySpots = Floor.OpenTileCandidates();
-		float deadEndWeight = Profile?.DeadEndLootWeight ?? 1f;
+		float deadEndWeight = CurrentProfile?.DeadEndLootWeight ?? 1f;
 		var targets = accessProfile.AllowLockChains
 			? SelectChainedLockTargets(accessProfile, lockBudget, exitRoomId, entry, initialBlocked, initiallyReachable, protectedTiles, doorByConnector, candidates, rawKeySpots, deadEndWeight, rng)
 			: SelectFlatLockTargets(accessProfile, lockBudget, entry, initialBlocked, initiallyReachable, protectedTiles, doorByConnector, candidates, rawKeySpots, deadEndWeight, rng);
@@ -153,41 +153,43 @@ public partial class MapGenerator
 		float deadEndWeight,
 		RandomNumberGenerator rng)
 	{
+		// Keys are placed as each room is chosen: a room whose keys do not fit is never treated as locked, so it keeps
+		// its place in every later room's route check and nothing ends up gated behind an unplanned lock.
 		var blocked = new HashSet<Vector2I>(initialBlocked);
-		var accessible = initiallyReachable;
-		var selected = new List<(RoomRegion Region, List<Vector2I> Entrances, DoorLockDefinition Definition)>();
-		var selectedRegions = new HashSet<RoomRegion>();
+		var committed = new List<PendingLockTarget>();
+		var committedRegions = new HashSet<RoomRegion>();
+		var reservedKeys = new List<Vector3>();
 		int usedDoors = 0;
-		while (candidates.Count > 0 && selected.Count < lockBudget)
+		while (candidates.Count > 0 && committed.Count < lockBudget)
 		{
 			int index = rng.RandiRange(0, candidates.Count - 1);
 			var region = candidates[index];
 			candidates.RemoveAt(index);
 			var entrances = region.ConnectorTiles;
 			if (!CanLockRegion(region, entrances, usedDoors, accessProfile, protectedTiles, blocked, initiallyReachable,
-				selectedRegions, doorByConnector, entry, out var trial, out var trialReached))
+				committedRegions, doorByConnector, entry, out var trial, out var trialReached))
 			{
 				continue;
 			}
-			blocked = trial;
-			accessible = trialReached;
-			usedDoors += entrances.Count;
-			selected.Add((region, entrances, accessProfile.Locks[rng.RandiRange(0, accessProfile.Locks.Length - 1)]));
-			selectedRegions.Add(region);
-		}
-		if (selected.Count == 0) return [];
 
-		var physicalReach = ReachableWithoutConnectors(blocked);
-		var committed = new List<PendingLockTarget>(selected.Count);
-		var reservedKeys = new List<Vector3>();
-		foreach (var (region, entrances, definition) in selected)
-		{
-			if (!TryPickKeyPositions(rawKeySpots, accessible, physicalReach, reservedKeys, entrances.Count, deadEndWeight, null, rng, out var picked))
+			// Every key already placed must stay reachable with this room locked as well.
+			var physicalReach = ReachableWithoutConnectors(trial);
+			if (!reservedKeys.All(key => trialReached.Contains(Map.WorldToTile(key)) && IsPhysicallyReachable(key, physicalReach)))
 			{
 				continue;
 			}
+
+			var definition = accessProfile.Locks[rng.RandiRange(0, accessProfile.Locks.Length - 1)];
+			if (!TryPickKeyPositions(rawKeySpots, trialReached, physicalReach, reservedKeys, entrances.Count, deadEndWeight, null, rng, out var picked))
+			{
+				continue;
+			}
+
+			blocked = trial;
+			usedDoors += entrances.Count;
 			reservedKeys.AddRange(picked);
 			committed.Add(new PendingLockTarget(region, entrances, definition, picked));
+			committedRegions.Add(region);
 		}
 		return committed;
 	}
@@ -310,6 +312,15 @@ public partial class MapGenerator
 		return (reached, simBlocked);
 	}
 
+	/// <summary>Whether <paramref name="point"/> lies on walkability <paramref name="physicalReach"/> marks reachable; true without a grid.</summary>
+	private bool IsPhysicallyReachable(Vector3 point, bool[] physicalReach)
+	{
+		var grid = Floor.Walkability;
+		if (physicalReach == null || grid == null) return true;
+		var cell = grid.CellAt(new Vector2(point.X, point.Z));
+		return grid.Contains(cell) && physicalReach[cell.Y * grid.Size.X + cell.X];
+	}
+
 	private bool TryPickKeyPositions(
 		List<Vector3> rawCandidates,
 		HashSet<Vector2I> accessible,
@@ -323,14 +334,6 @@ public partial class MapGenerator
 		float bonusMultiplier = 1f)
 	{
 		picked = new List<Vector3>(count);
-		var grid = Floor.Walkability;
-		bool PhysicallyReachable(Vector3 point)
-		{
-			if (physicalReach == null || grid == null) return true;
-			var cell = grid.CellAt(new Vector2(point.X, point.Z));
-			return grid.Contains(cell) && physicalReach[cell.Y * grid.Size.X + cell.X];
-		}
-
 		var taken = new List<Vector3>(_accessPickupPoints.Count + alreadyTaken.Count + count);
 		taken.AddRange(_accessPickupPoints);
 		taken.AddRange(alreadyTaken);
@@ -339,7 +342,7 @@ public partial class MapGenerator
 		foreach (var p in rawCandidates)
 		{
 			var tile = Map.WorldToTile(p);
-			if (!accessible.Contains(tile) || !PhysicallyReachable(p) || IsBlockedLootPoint(p, taken, LootSpawnSpacing)) continue;
+			if (!accessible.Contains(tile) || !IsPhysicallyReachable(p, physicalReach) || IsBlockedLootPoint(p, taken, LootSpawnSpacing)) continue;
 			float w = Map.OpenNeighborCount(tile.X, tile.Y) == 1 ? deadEndWeight : 1f;
 			if (bonusTiles != null && bonusTiles.Contains(tile)) w *= bonusMultiplier;
 			eligible.Add((p, w));

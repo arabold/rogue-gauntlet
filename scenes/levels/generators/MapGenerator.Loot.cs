@@ -100,7 +100,7 @@ public partial class MapGenerator
 			return;
 		}
 
-		float deadEndWeight = Profile?.DeadEndLootWeight ?? 1f;
+		float deadEndWeight = CurrentProfile?.DeadEndLootWeight ?? 1f;
 		int count = _random.Items.RandiRange(MinChests, MaxChests);
 		var remaining = new List<(Vector3 Point, float RotationDegrees, float Weight)>(candidates.Count);
 		foreach (var (tile, point, rot) in candidates)
@@ -152,7 +152,7 @@ public partial class MapGenerator
 
 	private void PlaceTraps(List<Vector3> placedLootPoints)
 	{
-		float scale = Profile?.TrapDensityScale ?? 1f;
+		float scale = CurrentProfile?.TrapDensityScale ?? 1f;
 		int minTraps = Mathf.RoundToInt(MinTraps * scale);
 		int maxTraps = Math.Max(minTraps, Mathf.RoundToInt(MaxTraps * scale));
 		if (TrapScene == null || maxTraps <= 0)
@@ -219,7 +219,7 @@ public partial class MapGenerator
 			return;
 		}
 
-		float deadEndWeight = Profile?.DeadEndLootWeight ?? 1f;
+		float deadEndWeight = CurrentProfile?.DeadEndLootWeight ?? 1f;
 		uint depth = DungeonDepth;
 		int count = _random.Items.RandiRange(MinLooseItems, MaxLooseItems);
 		var remaining = new List<(Vector3 Point, float Weight)>(candidates.Count);
