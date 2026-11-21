@@ -184,9 +184,9 @@ Proposed stock consists of a dependable core of basic supplies, several equipmen
 
 Generate stock once for the shop and persist remaining quantities, item state, and transactions. Reopening the interface, revisiting a floor, or loading a save must preserve purchases. Restocking is deferred until a deliberate rule exists.
 
-Buying and selling must transfer items atomically: insufficient funds or inventory space cannot lose currency or items. Set buy/sell spreads to prevent immediate resale profit. Decide how merchants handle unidentified or contaminated goods before implementing prices that could reveal hidden properties.
+Buying and selling must transfer items atomically: insufficient funds or inventory space cannot lose currency or items. Set buy/sell spreads to prevent immediate resale profit. Merchants price only what the hero can see: an unidentified potion by its bottle size, an unidentified scroll at one flat price, and gear's affixes and curse only once revealed. Merchants sell only fresh food, and say so.
 
-The [Quartermaster](shops.md) trades near the Depth 3 arrival. The [shop expansion design](specs/shop-design.md) covers dedicated rooms and later merchants.
+The [Quartermaster](shops.md) trades near the arrival on the first realm's gatekeeper floor. The [shop expansion design](specs/shop-design.md) covers dedicated rooms and later merchants.
 
 ## Player experience and presentation
 
@@ -194,7 +194,7 @@ The world model, inventory preview, equipped appearance, and item details should
 
 Inventory interactions should make available actions, equipment comparisons, quantities, fuel or charges when known, and failure reasons understandable. Important effects need visible feedback. Dangerous encounters and item use must remain readable at the actual gameplay camera distance.
 
-Whether inventory and shop interfaces pause real-time play remains an explicit design decision. Establish it before balancing consumable timing and trading safety.
+Inventory and shop interfaces pause real-time play. Trading is therefore safe from attack, and using a consumable closes the menu so the hero uses it in the world.
 
 ## First playable scope
 

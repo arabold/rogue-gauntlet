@@ -14,7 +14,11 @@ public readonly record struct ShopQuote(Item Item, int Quantity, int Gold, strin
 	public bool IsAvailable => Item != null && string.IsNullOrEmpty(Reason);
 }
 
-/// <summary>Owns one keeper's shelf and commits transfers between the shelf, the hero's pack and their gold.</summary>
+/// <summary>
+/// Owns one keeper's shelf and commits transfers between the shelf, the hero's pack and their gold. Generation stands
+/// the keeper and names the shop; the level then stocks the shelf from its seed, and item persistence replays what the
+/// hero bought.
+/// </summary>
 [GlobalClass]
 public partial class ShopComponent : Node
 {
@@ -25,39 +29,49 @@ public partial class ShopComponent : Node
 	private readonly HashSet<string> _purchased = new(StringComparer.Ordinal);
 	private Level _level;
 
+	/// <summary>The floor-unique save key generation gives the shop; it also seeds the shelf.</summary>
+	public string Id { get; internal set; } = "";
 	public IReadOnlyList<ShopOffer> Offers => _offers;
 	public bool IsCommitting { get; private set; }
+
+	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
 
 	public override void _Ready() => Interaction.Interacted += OnInteracted;
 
 	private void OnInteracted(Player player)
 	{
-		if (CanTrade(player)) SignalBus.EmitTradeRequested(this, player);
+		if (CanTrade(player)) SignalBus.EmitTradeOffered(this, player);
 	}
 
-	internal void Initialize(Level level, string placementId, IReadOnlyList<string> purchased)
+	/// <summary>Rolls the shelf from the level seed, one stream per stock category, so adding gear never pushes out supplies.</summary>
+	internal void Stock()
 	{
-		if (Interaction?.Definition == null)
-			throw new InvalidOperationException($"Shop {placementId} needs a shop component and interaction definition.");
-		_level = level;
-		if (Profile?.Pricing == null) throw new InvalidOperationException($"Shop {placementId} needs a pricing profile.");
-		ulong seed = GenerationRandom.DeriveSeed(level.Seed, "shop.stock", placementId);
+		if (_level == null || Interaction?.Definition == null || Profile?.Pricing == null)
+			throw new InvalidOperationException($"Shop {Id} needs a level, an interaction definition and a pricing profile.");
+		_offers.Clear();
+		_purchased.Clear();
+		ulong seed = GenerationRandom.DeriveSeed(_level.Seed, "shop.stock", Id);
 		var ids = new HashSet<string>(StringComparer.Ordinal);
 		foreach (ShopStockProfile stock in Profile.Stock)
 		{
 			if (stock?.Pool == null || string.IsNullOrWhiteSpace(stock.Id) || stock.Id.Contains(':')
 				|| !ids.Add(stock.Id) || stock.Quantity < 1)
-				throw new InvalidOperationException($"Shop {placementId} needs unique stock IDs, pools and positive quantities.");
-			RollStock(level.Depth, placementId, seed, stock);
-		}
-		foreach (string id in purchased)
-		{
-			if (!_offers.Any(offer => offer.Id == id) || !_purchased.Add(id))
-				throw new InvalidOperationException($"Unknown or duplicate offer {id} in shop {placementId}.");
+				throw new InvalidOperationException($"Shop {Id} needs unique stock IDs, pools and positive quantities.");
+			RollStock(_level.Depth, seed, stock);
 		}
 	}
 
-	private void RollStock(uint depth, string placementId, ulong seed, ShopStockProfile stock)
+	/// <summary>Marks the saved offers sold; every one must be on the shelf, once.</summary>
+	internal void RestorePurchases(IReadOnlyList<string> purchased)
+	{
+		foreach (string id in purchased)
+		{
+			if (!_offers.Any(offer => offer.Id == id) || !_purchased.Add(id))
+				throw new InvalidOperationException($"Unknown or duplicate offer {id} in shop {Id}.");
+		}
+	}
+
+	private void RollStock(uint depth, ulong seed, ShopStockProfile stock)
 	{
 		var candidates = stock.Pool.Items.Where(entry => LootTableItem.CanRollAt(entry, depth, stock.Pool)
 			&& !entry.Item.IsQuestItem && (Profile.SellsKnownCursedGear
@@ -77,12 +91,12 @@ public partial class ShopComponent : Node
 		GenerationRandom.Shuffle(selected, rng);
 		for (int i = 0; i < selected.Count; i++)
 		{
-			string id = $"shop:{depth}:{placementId}:{stock.Id}:{i}";
+			string id = $"shop:{depth}:{Id}:{stock.Id}:{i}";
 			var item = ItemFactory.Create(selected[i], Profile.CreationPolicy, depth, rng, id);
 			if (item is EquipableItem gear)
 			{
 				if (gear.IsCursed && !Profile.SellsKnownCursedGear)
-					throw new InvalidOperationException($"Shop {placementId} rolled cursed stock. Disable curses in its creation policy.");
+					throw new InvalidOperationException($"Shop {Id} rolled cursed stock. Disable curses in its creation policy.");
 				gear.RevealAttributes();
 				gear.RevealCurseStatus();
 			}

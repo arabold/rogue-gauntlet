@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("script")
 Id = "quartermaster"
-Depth = 3
+FloorIndex = 2
 KeeperScene = ExtResource("keeper")
 DistanceFromArrival = 7.0
 MinimumDistanceFromArrival = 3.0

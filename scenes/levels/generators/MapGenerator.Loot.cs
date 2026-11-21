@@ -73,11 +73,15 @@ public partial class MapGenerator
 	private bool TryPlaceSolidProp(PackedScene scene, Vector3 point, float rotation, string persistentId)
 	{
 		var prop = scene.Instantiate<Node3D>();
-		if (!PreservesRoomPassage(prop, point, rotation))
-		{
-			prop.Free();
-			return false;
-		}
+		if (TryPlaceSolidProp(prop, point, rotation, persistentId)) return true;
+		prop.Free();
+		return false;
+	}
+
+	/// <summary><see cref="TryPlaceSolidProp(PackedScene, Vector3, float, string)"/> for a prop already instantiated; the caller frees it on false.</summary>
+	private bool TryPlaceSolidProp(Node3D prop, Vector3 point, float rotation, string persistentId)
+	{
+		if (!PreservesRoomPassage(prop, point, rotation)) return false;
 
 		prop.SetMeta("persistent_id", persistentId);
 		FloorContent.AddChild(prop);

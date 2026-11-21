@@ -1,0 +1,159 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cmguxod8mb5o6" path="res://scenes/ui/preview.tscn" id="4_preview"]
+[ext_resource type="Script" path="res://scenes/ui/ItemDetailsView.cs" id="6_details"]
+[ext_resource type="Script" path="res://scenes/ui/menu/AutoScrollViewport.cs" id="7_autoscroll"]
+[ext_resource type="Texture2D" path="res://scenes/ui/menu/oval_shade.tres" id="20_oval"]
+
+[node name="Trade" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Columns" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 144.0
+offset_top = 176.0
+offset_right = -144.0
+offset_bottom = -136.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 96
+
+[node name="Items" type="VBoxContainer" parent="Columns"]
+custom_minimum_size = Vector2(568, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Heading" type="HBoxContainer" parent="Columns/Items"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Columns/Items/Heading"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SmallCapsLabel"
+text = "Pack"
+uppercase = true
+
+[node name="CountLabel" type="Label" parent="Columns/Items/Heading"]
+layout_mode = 2
+theme_type_variation = &"SmallCapsLabel"
+text = "0 / 20"
+horizontal_alignment = 2
+
+[node name="Grid" type="GridContainer" parent="Columns/Items"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 5
+
+[node name="Selected" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="ItemView" type="Control" parent="Columns/Selected"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Oval" type="TextureRect" parent="Columns/Selected/ItemView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("20_oval")
+expand_mode = 1
+
+[node name="Viewport" type="SubViewportContainer" parent="Columns/Selected/ItemView"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -220.0
+offset_right = 220.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="Preview" parent="Columns/Selected/ItemView/Viewport" instance=ExtResource("4_preview")]
+size = Vector2i(440, 440)
+
+[node name="Info" type="VBoxContainer" parent="Columns/Selected"]
+custom_minimum_size = Vector2(0, 328)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="NameClip" type="Control" parent="Columns/Selected/Info"]
+clip_contents = true
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("7_autoscroll")
+ScrollHorizontal = true
+ScrollSpeed = 72.0
+
+[node name="Name" type="HBoxContainer" parent="Columns/Selected/Info/NameClip"]
+layout_mode = 0
+mouse_filter = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="Columns/Selected/Info/NameClip/Name"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+horizontal_alignment = 1
+
+[node name="QuantityLabel" type="Label" parent="Columns/Selected/Info/NameClip/Name"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_type_variation = &"AccentLabel"
+
+[node name="PriceLabel" type="Label" parent="Columns/Selected/Info"]
+layout_mode = 2
+theme_type_variation = &"AccentLabel"
+horizontal_alignment = 1
+
+[node name="Rule" type="HSeparator" parent="Columns/Selected/Info"]
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="DetailsClip" type="Control" parent="Columns/Selected/Info"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+script = ExtResource("7_autoscroll")
+ScrollHorizontal = true
+ScrollVertical = true
+ScrollSpeed = 36.0
+
+[node name="Details" type="VBoxContainer" parent="Columns/Selected/Info/DetailsClip"]
+layout_mode = 0
+mouse_filter = 2
+theme_override_constants/separation = 0
+script = ExtResource("6_details")
+ShowName = false
+LineVariation = &"CaptionLabel"

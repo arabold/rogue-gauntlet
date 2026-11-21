@@ -20,5 +20,5 @@ UnidentifiedNameTemplate = "Water Canteen"
 Buff = SubResource("Resource_buff")
 Name = "Water Canteen"
 Scene = ExtResource("3_scene")
-Value = 15
+Value = 8
 metadata/_custom_type_script = ExtResource("4_script")

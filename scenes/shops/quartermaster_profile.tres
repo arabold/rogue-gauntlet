@@ -20,6 +20,8 @@
 [ext_resource type="Resource" path="res://scenes/items/weapons/dagger_common.tres" id="dagger"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/crossbow_common.tres" id="crossbow"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/wand/wand_crooked.tres" id="wand"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/battleaxe_starter.tres" id="battleaxe"]
+[ext_resource type="Resource" path="res://scenes/items/weapons/longsword_common.tres" id="sword"]
 [ext_resource type="Resource" path="res://scenes/items/armor/body/ranger_coat.tres" id="coat"]
 [ext_resource type="Resource" path="res://scenes/items/armor/shield/shield_round_wood.tres" id="shield"]
 [ext_resource type="Resource" path="res://scenes/items/armor/body/knight_armor.tres" id="plate"]
@@ -118,16 +120,25 @@ Item = ExtResource("crossbow")
 script = ExtResource("entry")
 Item = ExtResource("wand")
 
+[sub_resource type="Resource" id="Entry_battleaxe"]
+script = ExtResource("entry")
+Item = ExtResource("battleaxe")
+
+[sub_resource type="Resource" id="Entry_sword"]
+script = ExtResource("entry")
+Item = ExtResource("sword")
+
 [sub_resource type="Resource" id="Pool_weapon"]
 script = ExtResource("pool")
-Items = [SubResource("Entry_dagger"), SubResource("Entry_crossbow"), SubResource("Entry_wand")]
+Items = [SubResource("Entry_battleaxe"), SubResource("Entry_sword"), SubResource("Entry_dagger"), SubResource("Entry_crossbow"), SubResource("Entry_wand")]
 TierBands = ExtResource("tiers")
 
 [sub_resource type="Resource" id="Stock_weapon"]
 script = ExtResource("stock")
 Id = "weapon"
 Pool = SubResource("Pool_weapon")
-Quantity = 1
+Quantity = 2
+DistinctItems = true
 
 [sub_resource type="Resource" id="Entry_coat"]
 script = ExtResource("entry")

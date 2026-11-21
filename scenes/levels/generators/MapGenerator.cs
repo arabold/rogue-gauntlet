@@ -552,12 +552,12 @@ public partial class MapGenerator : Node3D
 		for (GenerationAttempt = 0; GenerationAttempt < 8; GenerationAttempt++)
 		{
 			if (GenerateMapAttempt(includeGameplay)) return;
-			GD.Print($"Required structure, progression or encounter placement does not fit; retrying layout (attempt {GenerationAttempt + 1}/8).");
+			GD.Print($"Required structure, progression, encounter or shop placement does not fit; retrying layout (attempt {GenerationAttempt + 1}/8).");
 		}
-		throw new InvalidOperationException("No generated layout provides required stairs, structural fit and encounter space after eight attempts.");
+		throw new InvalidOperationException("No generated layout provides required stairs, structural fit, encounter and shop space after eight attempts.");
 	}
 
-	/// <summary>Retries layouts whose required stairs, walls or gatekeeper placement cannot fit.</summary>
+	/// <summary>Retries layouts whose required stairs, walls, gatekeeper or keeper placement cannot fit.</summary>
 	private bool GenerateMapAttempt(bool includeGameplay)
 	{
 		Reset();
@@ -604,10 +604,11 @@ public partial class MapGenerator : Node3D
 		// Step 3a: Decide special encounters before anything else claims the floor.
 		if (!ResolveEncounters()) return false;
 
-		// Step 3b: Place access, scheduled fountains, then chests/traps/loose items. Must run before BuildNavigation so
-		// fountains and chests are included as navigation solids, and before GenerateEnemySpawnPoints so
-		// enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
+		// Step 3b: Place access, the realm's keepers, scheduled fountains, then chests/traps/loose items. Must run before
+		// BuildNavigation so keepers, fountains and chests are included as navigation solids, and before
+		// GenerateEnemySpawnPoints so enemy-spawn clearance (which already checks the "prop" group) naturally avoids them.
 		PlaceAccess();
+		if (!PlaceShops()) return false;
 		PlaceLoot();
 
 		// Step 4: The clearance grid monsters navigate on

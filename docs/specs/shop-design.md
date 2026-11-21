@@ -1,6 +1,6 @@
 # Shop rooms and future merchants
 
-The [shop system](../shops.md) covers the playable Quartermaster, trade screen, prices, stock and save data. This proposal covers dedicated shop rooms and expansions after the map redesign.
+The [shop system](../shops.md) covers the playable Quartermaster, its realm placement, the trade tabs, prices, stock and save data. This proposal covers dedicated shop rooms and expansions after the map redesign.
 
 ## The Quartermaster's room
 

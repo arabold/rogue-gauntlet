@@ -19,7 +19,6 @@ public partial class Level : Node, IDebugWorld
 
 	/// <summary>Required to generate a playable floor: it records and replays this floor's item deltas.</summary>
 	[Export] public LevelItemPersistence ItemPersistence { get; set; }
-	[Export] public LevelShops Shops { get; set; }
 	/// <summary>The floor's exploration and fog. Unassigned, fog is disabled and everything shows.</summary>
 	[Export] public FloorDiscovery Discovery { get; set; }
 	/// <summary>Tuning for monster navigation. Unassigned, monsters cannot navigate and hold still.</summary>
@@ -114,16 +113,13 @@ public partial class Level : Node, IDebugWorld
 	/// <summary>Recreates a reward stream without advancing generation or gameplay RNGs.</summary>
 	public RandomNumberGenerator CreateSourceLootRng(string sourceId) => MapGenerator.CreateSourceLootRng(sourceId);
 
-	/// <summary>True while an item operation is mid-commit; capturing then would record a half-applied floor.</summary>
-	public bool IsCommittingFloorChanges => ItemPersistence?.IsCommitting == true || Shops?.IsCommitting == true;
+	/// <summary>True while an item operation or a trade is mid-commit; capturing then would record a half-applied floor.</summary>
+	public bool IsCommittingFloorChanges =>
+		ItemPersistence?.IsCommitting == true || Floor?.Shops.Any(shop => IsInstanceValid(shop) && shop.IsCommitting) == true;
 
 	/// <summary>This floor's deviations from its seeded baseline; the inverse of <see cref="RestoreFloorDeltas"/>.</summary>
-	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas()
-	{
-		var items = ItemPersistence.Capture();
-		if (Shops != null) items.ShopPurchases = Shops.CapturePurchases();
-		return (items, CaptureExploration());
-	}
+	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas() =>
+		(ItemPersistence.Capture(), CaptureExploration());
 
 	/// <summary>This floor's door, trap and exploration deviations from its seeded baseline; the inverse of <see cref="RestoreExploration"/>.</summary>
 	public RevealedLevelSaveData CaptureExploration()
@@ -171,7 +167,6 @@ public partial class Level : Node, IDebugWorld
 	private void RestoreFloorDeltas()
 	{
 		ItemPersistence.RecordInitialBaseline();
-		Shops?.Initialize(this, _savedItems?.ShopPurchases ?? new());
 		ItemPersistence.Apply(_savedItems);
 		RestoreExploration(_savedExploration);
 	}
@@ -208,6 +203,8 @@ public partial class Level : Node, IDebugWorld
 		ItemPersistence.Initialize(this);
 		try
 		{
+			// Shelves are seeded content, like untouched loot: rebuilt from the level seed before the deltas replay onto them.
+			foreach (ShopComponent shop in Floor.Shops) shop.Stock();
 			RestoreFloorDeltas();
 		}
 		catch (System.Exception error)

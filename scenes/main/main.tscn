@@ -8,8 +8,6 @@
 [ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="11_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="12_death"]
 
-[ext_resource type="PackedScene" path="res://scenes/ui/shop/shop_menu.tscn" id="shop_menu"]
-
 [node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "DeathScreen", "Reflections")]
 script = ExtResource("1_dl2xl")
 ScreenEffects = NodePath("ScreenEffects")
@@ -33,8 +31,6 @@ Seed = 30
 [node name="GameCamera" parent="." instance=ExtResource("11_camera")]
 
 [node name="RunMenu" parent="." instance=ExtResource("7_menu")]
-
-[node name="ShopMenu" parent="." instance=ExtResource("shop_menu")]
 
 [node name="DeathScreen" parent="." instance=ExtResource("12_death")]
 visible = false

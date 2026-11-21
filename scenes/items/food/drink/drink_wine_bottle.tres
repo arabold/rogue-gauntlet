@@ -20,5 +20,5 @@ UnidentifiedNameTemplate = "Vintage Red Wine"
 Buff = SubResource("Resource_buff")
 Name = "Vintage Red Wine"
 Scene = ExtResource("3_scene")
-Value = 45
+Value = 24
 metadata/_custom_type_script = ExtResource("4_script")

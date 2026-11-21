@@ -2,18 +2,21 @@ using Godot;
 using System;
 using System.Linq;
 
-/// <summary>Values the information visible to the hero. Both sides of the counter use this retail valuation.</summary>
+/// <summary>
+/// Values the information visible to the hero. Both sides of the counter use this retail valuation. A known type is
+/// worth its item's <see cref="Item.Value"/>, the one price scale every item carries; an unknown one is priced by what
+/// the hero sees (a scroll, a bottle's size), so a price never gives away what an item is.
+/// </summary>
 [GlobalClass]
 public partial class ShopPricingProfile : Resource
 {
-	[ExportGroup("Consumables")]
+	[ExportGroup("Unknown types")]
 	[Export(PropertyHint.Range, "1,1000,1,or_greater")] public int UnknownScrollPrice { get; set; } = 15;
 	[Export] public Godot.Collections.Dictionary<string, int> UnknownPotionPrices { get; set; } = new()
 	{
 		["small"] = 18, ["medium"] = 30, ["large"] = 55,
 	};
 	[Export(PropertyHint.Range, "1,1000,1,or_greater")] public int UnknownItemPrice { get; set; } = 25;
-	[Export] public Godot.Collections.Dictionary<Item, int> KnownPrices { get; set; } = new();
 
 	[ExportGroup("Equipment")]
 	[Export] public Godot.Collections.Dictionary<ItemQuality, float> QualityMultipliers { get; set; } = new()
@@ -32,7 +35,7 @@ public partial class ShopPricingProfile : Resource
 	public int RetailPrice(Item item, IdentificationService knowledge)
 	{
 		bool known = ItemIdentity.IsTypeKnown(item, knowledge);
-		double value = known ? KnownPrice(item) : item switch
+		double value = known ? item.Value : item switch
 		{
 			Scroll => UnknownScrollPrice,
 			ConsumableItem potion when UnknownPotionPrices.TryGetValue(potion.AppearanceForm ?? "", out int price) => price,
@@ -62,12 +65,5 @@ public partial class ShopPricingProfile : Resource
 			premium += modifier.Round(modifier.Value) / modifier.Unit * unitPrice;
 		}
 		return premium;
-	}
-
-	private int KnownPrice(Item item)
-	{
-		foreach (var entry in KnownPrices)
-			if (entry.Key == item || entry.Key.DefinitionPath == item.DefinitionPath) return entry.Value;
-		return item.Value;
 	}
 }

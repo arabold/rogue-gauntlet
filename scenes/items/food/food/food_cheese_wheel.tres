@@ -21,5 +21,5 @@ UnidentifiedNameTemplate = "Aged Cheese Wedge"
 Buff = SubResource("Resource_buff")
 Name = "Aged Cheese Wedge"
 Scene = ExtResource("3_scene")
-Value = 30
+Value = 15
 metadata/_custom_type_script = ExtResource("4_script")

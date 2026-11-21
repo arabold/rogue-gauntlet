@@ -20,5 +20,5 @@ UnidentifiedNameTemplate = "Foaming Beer Stein"
 Buff = SubResource("Resource_buff")
 Name = "Foaming Beer Stein"
 Scene = ExtResource("3_scene")
-Value = 30
+Value = 15
 metadata/_custom_type_script = ExtResource("4_script")

@@ -35,9 +35,6 @@ public partial class SignalBus : Node
     // Singleton instance for global access
     public static SignalBus Instance { get; private set; }
 
-    [Signal] public delegate void TradeRequestedEventHandler(ShopComponent shop, Player player);
-    public static void EmitTradeRequested(ShopComponent shop, Player player) => Instance?.EmitSignalTradeRequested(shop, player);
-
     [Signal] public delegate void GamePausedEventHandler(bool isPaused);
     public static void EmitGamePaused(bool isPaused) => Instance?.EmitSignalGamePaused(isPaused);
 
@@ -102,6 +99,13 @@ public partial class SignalBus : Node
     [Signal] public delegate void PlayerStatusMessageEventHandler(string message, int severity);
     public static void EmitPlayerStatusMessage(string message, LogSeverity severity = LogSeverity.Info) =>
         Instance?.EmitSignalPlayerStatusMessage(message, (int)severity);
+
+    /// <summary>
+    /// Fired when the hero finishes a keeper's trade interaction: the keeper offers its shelf. The run menu answers by
+    /// opening its trade tabs, or says through <see cref="PlayerStatusMessage"/> why it cannot.
+    /// </summary>
+    [Signal] public delegate void TradeOfferedEventHandler(ShopComponent shop, Player player);
+    public static void EmitTradeOffered(ShopComponent shop, Player player) => Instance?.EmitSignalTradeOffered(shop, player);
 
     /// <summary>Fired when a new buff or status activation is applied to the player.</summary>
     [Signal] public delegate void PlayerBuffAppliedEventHandler(Buff buff, bool hadCondition);

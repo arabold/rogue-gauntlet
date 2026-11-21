@@ -7,7 +7,7 @@
 script = ExtResource("2_script")
 Name = "Iron Grappling Hook"
 Scene = ExtResource("1_scene")
-Value = 70
+Value = 22
 ShowInInventory = true
 IsStackable = false
 IsQuestItem = false

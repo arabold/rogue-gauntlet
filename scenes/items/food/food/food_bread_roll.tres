@@ -21,5 +21,5 @@ UnidentifiedNameTemplate = "Glazed Sweet Roll"
 Buff = SubResource("Resource_buff")
 Name = "Glazed Sweet Roll"
 Scene = ExtResource("3_scene")
-Value = 30
+Value = 15
 metadata/_custom_type_script = ExtResource("4_script")

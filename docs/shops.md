@@ -1,10 +1,16 @@
 # Shops
 
-The Quartermaster stands near the arrival stairs on Depth 3. The keeper uses the existing unhooded Rogue model and Ranger Coat. A head-sized gold **!** floats above the keeper and pulses with a stretch and squash. Its toon shading, black outline and wide gap keep the stem and dot distinct. In range and focused, it gives way to **Trade**. Hold **E** or gamepad Interact for half a second to open the paused trade screen. Back returns to the floor.
+The Quartermaster stands near the arrival stairs on the Garrison's gatekeeper floor (Depth 3). The keeper uses the existing unhooded Rogue model and Ranger Coat. A head-sized gold **!** floats above the keeper and pulses with a stretch and squash. Its toon shading, black outline and wide gap keep the stem and dot distinct. In range and focused, it gives way to **Trade**. Hold **E** or gamepad Interact for half a second to open the trade in the run menu, which pauses the game.
+
+## Placement
+
+A [realm](level-design.md#current-generation) lists the shops on its floors. Each `ShopPlacementProfile` names a realm floor index (0 is the realm's first depth), so a keeper moves with its realm's depth band. The Quartermaster stands on floor index 2, the gatekeeper's floor (`RealmEncounterFactory.GatekeeperFloorIndex`).
+
+Generation stands keepers after locks and keys and before fountains, chests, traps and loose loot. The keeper takes a free room tile that the hero reaches without keys, preferring the arrival's room and the spot about 7 m ahead of the arrival. It keeps clear of stair landings, keys and the gatekeeper's arena. A keeper is a solid prop like a chest: it must keep door swings clear and leave no inaccessible pocket, and the navigation grid treats it as an obstacle. The hero, monsters and projectiles cannot pass through it. Dropped loot, teleports and summons do not land inside it, and no pack spawns beside the counter. A layout without a spot for a keeper is retried like one without stairs, so a seed never loses its shop. See [level design](level-design.md#shops).
 
 ## Trading
 
-The **Buy** and **Sell** tabs use the Pack's item slots, models and details. Select an item, then confirm the quoted price. Buy one at a time, or sell one or the whole stack. The shop shows when stock runs out and why a purchase or sale is blocked. A compatible stack can accept a purchase in a full pack.
+A keeper's trade opens the [run menu](user-interface.md) on its **Buy** and **Sell** tabs, with the run's own tabs hidden. It has the same pause, gold readout, banner, key row and popup as the Pack. Selecting an item quotes its price. Choosing it shows the priced trade before anything happens, and confirming it trades at that price. If the price changed in between, the shop refuses the trade until the hero confirms the new price. Buy one at a time; sell one, or the whole stack with the alternate key. A sold offer stays on the shelf, dimmed, and the Sell tab dims what the keeper would not buy right now. The price line says why a trade is blocked. A compatible stack can accept a purchase in a full pack. Trades commit atomically and cannot lose items or gold.
 
 ## Quartermaster's opening stock
 
@@ -14,24 +20,25 @@ The **Buy** and **Sell** tabs use the Pack's item slots, models and details. Sel
 | Small potions | 2 single bottles | Draw two different types from healing and beneficial attribute potions, weighted toward healing. |
 | Scroll | 1 | Draw from Identify, Protection and Remove Curse. |
 | Tool | 1 | A lockpick. It opens optional opportunities under the existing door rules. |
-| Equipment | 2 individual pieces | One weapon and one defensive piece from the local tier band, capped at Superior quality for this shop. Show their rolled stats and mark them uncursed. Include casting weapons in the eligible weapon pool. |
+| Weapons | 2 different pieces | From the battle axe, sword, dagger, crossbow and crooked wand, so every class can find its kind of weapon. |
+| Armor | 1 piece | From the ranger coat, round wooden shield and knight's armor. |
 
-Stock uses authored category counts and depth eligibility. Roll each category independently so adding equipment varieties cannot crowd out supplies. The quartermaster guarantees the categories on the shelf and rolls the types within them. Each purchase reduces the remaining quantity for the run. The hero's level and return visits do not affect stock. See the [item catalog](item-catalog.md) and [itemization rules](stats-and-itemization.md).
+Equipment comes from the local tier band, capped at Superior quality for this shop, with its rolled stats shown and marked uncursed. Stock uses authored category counts and depth eligibility. Each category rolls independently, so adding equipment varieties cannot crowd out supplies. The Quartermaster guarantees the categories on the shelf and rolls the types within them. Each purchase reduces the remaining quantity for the run. The hero's level and return visits do not affect stock. See the [item catalog](item-catalog.md) and [itemization rules](stats-and-itemization.md).
 
 Potions and scrolls use the same display names, models and knowledge checks as the Pack. A purchased item keeps its normal run appearance and only displays its true name if that run has learned the type through the existing rules. The shop communicates that it stocks beneficial supplies. Within that selection, price, order, copy and previews disclose only what the hero already knows or can see, such as bottle size. The Quartermaster's creation policy keeps food fresh and gear uncursed. See [item identification](item-identification-system.md).
 
 ## Prices
 
-The shared pricing profile starts with an 8-gold loaf, an 18-gold unidentified small potion and a 15-gold unidentified scroll. Once a type is discovered, the effect can carry its own price. For example, a small Healing potion is 35 gold and a small Strength potion is 25. Equipment uses its recognized base value, visible quality and revealed affixes. Known curses discount the price when the merchant accepts them.
+Every item's `Value` is its price once the hero knows what it is. That is the only price scale: a loaf is 8 gold, a small Healing potion 35, a small attribute potion 25, a small harmful potion 8, an Identify scroll 30 and a lockpick 22. Medium and large bottles keep the same proportions. The shared `ShopPricingProfile` prices what the hero cannot yet tell apart by what they see: an unidentified small, medium or large potion costs 18, 30 or 55 gold, and an unidentified scroll 15. Equipment uses its base value, visible quality and revealed affixes. Known curses discount the price when the merchant accepts them. Hidden attributes and curses never change a price.
 
-The Quartermaster buys unequipped weapons, armor, potions and scrolls at **20%** of the current retail value, rounded down per unit. Sales leave the shelf as it was. Check price changes against the resale spread when tuning a merchant so learning a potion or scroll cannot make a purchase profitable on its own.
+The Quartermaster buys unequipped weapons, armor, potions and scrolls at **20%** of the current retail value, rounded down per unit. Sales leave the shelf as it was. When tuning a merchant, check price changes against the resale spread so that learning a potion or scroll cannot make a purchase profitable on its own. Shop gold is not yet part of the [balance model](specs/balance-model.md).
 
 ## Authoring a shop
 
-- Instance or inherit the [Quartermaster scene](../scenes/shops/quartermaster.tscn) and assign the keeper's character scene, outfit, idle animation and interaction prompt in the Inspector.
-- Assign a `ShopProfile` to the `ShopComponent`. Configure the display name, accepted goods, guaranteed allocations, item creation policy and pricing. Each allocation references a weighted `LootPool` with optional depth and tier filters. Reuse the shared `ShopPricingProfile` to keep valuation consistent across merchants.
-- Add a `ShopPlacementProfile` to the level's `LevelShops` component. Set a stable placement ID, target depth, keeper scene and preferred distance from arrival. Keep each placement ID unique within its floor and each stock ID unique within its profile.
+- Instance or inherit the [Quartermaster scene](../scenes/shops/quartermaster.tscn) and assign the keeper's character scene, outfit, idle animation and interaction prompt in the Inspector. Keep its solid `Body` on the props layer and the root in the `prop` group.
+- Assign a `ShopProfile` to the `ShopComponent`. Configure the display name, accepted goods, guaranteed allocations, item creation policy and pricing. Each allocation references a weighted `LootPool` with optional depth and tier filters. Reuse the shared `ShopPricingProfile` to keep valuation consistent across merchants, and price new items through their `Value`.
+- Add a `ShopPlacementProfile` to the realm's `Shops`. Set a stable ID, the realm floor index, the keeper scene and the preferred distance from the arrival. Keep each ID unique within its realm and each stock ID unique within its profile.
 
-Each floor placement rolls its own deterministic shelf. Saves store purchased offer IDs with the per-floor item changes, along with the player's gold and inventory in the same run snapshot. Revisiting or reloading preserves depletion. See [saved world differences](randomness-and-seeds.md#saved-world-differences).
+Each keeper rolls its own deterministic shelf from the level seed and its ID. Saves store purchased offer IDs with the per-floor item changes, along with the player's gold and inventory in the same run snapshot. Revisiting or reloading preserves depletion. See [saved world differences](randomness-and-seeds.md#saved-world-differences).
 
 The first placement uses existing floor space. A dedicated room, safe threshold and merchant-specific dialogue are described in the [shop expansion design](specs/shop-design.md).
