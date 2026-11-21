@@ -167,4 +167,32 @@ public class DebugToolkitTest
 			AssertInt(inventory.Items.Count).OverrideFailureMessage(path).IsEqual(preset.Equipment.Length + preset.Backpack.Length);
 		}
 	}
+
+	/// <summary>
+	/// The arena's spawn menu scatters monsters around the hero with room to move: each stands in view, within the tool's
+	/// radius, and at least its separation from the hero and from every other monster, copies of one spawn included.
+	/// </summary>
+	[TestCase]
+	public async Task ArenaSpawnsScatterWithRoomAroundTheHeroAndEachOther()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		var tool = harness.Monsters;
+		var skeleton = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_warrior.tscn");
+		// Farther than the ring's arm's length, or scattering would be indistinguishable from it.
+		AssertFloat(tool.ScatterSeparation).IsGreater(2);
+		tool.Count = 3;
+		tool.Scatter(skeleton);
+		tool.Scatter(skeleton);
+
+		Vector3[] spots = [harness.Player.GlobalPosition, .. tool.Spawned.OfType<EnemyBase>().Select(monster => monster.GlobalPosition)];
+		AssertInt(spots.Length).IsEqual(7);
+		for (int i = 0; i < spots.Length; i++)
+		{
+			AssertBool(harness.Arena.Bounds.HasPoint(new Vector2(spots[i].X, spots[i].Z))).IsTrue();
+			AssertFloat(spots[i].HorizontalDistanceTo(spots[0])).IsLessEqual(tool.ScatterRadius);
+			for (int j = i + 1; j < spots.Length; j++)
+				AssertFloat(spots[i].HorizontalDistanceTo(spots[j])).IsGreaterEqual(tool.ScatterSeparation);
+		}
+	}
 }
