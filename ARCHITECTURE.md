@@ -110,7 +110,7 @@ Actor appearance effects, including invisibility, share the local world-effect h
 
 ## Directory Structure Overview
 
-- `/asset-studio`: Offline 3D art authoring with persistent character and item recipes. Concepts, source models, and build previews stay here; validated art is exported to `/assets`. Gameplay item definitions, stats, and runtime scene composition belong to a separate authoring step under `/scenes`.
+- [`/asset-studio`](asset-studio/README.md) owns visual authoring, including Blender character sources and item recipes. Selected concepts, sources, and published catalogs live here. Temporary reviews go to the OS work root and game-ready art goes to `/assets`. Gameplay definitions and scene composition live under `/scenes`.
 - `/scenes`: Contains Godot scene files (`.tscn`) representing game entities, levels, UI elements, and reusable component assemblies. Scenes often have a root node with attached C# scripts.
   - Subdirectories (`/player`, `/enemies`, `/items`, etc.) organize scenes by feature area.
 - `/scripts`: Holds core C# script files (`.cs`), particularly singleton/event infrastructure such as `SignalBus`, base classes, interfaces, and logic not directly tied to a specific scene node initially.

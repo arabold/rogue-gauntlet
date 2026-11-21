@@ -31,6 +31,22 @@ def posed(path,clip,t):
 
 
 class CharacterExportTests(unittest.TestCase):
+    def test_orc_warrior_uses_only_the_approved_blender_recipe(self):
+        from prefabs.creatures import characters
+        from studio import export_glb
+
+        key = "orc/orc_warrior"
+        character = Character(key)
+        self.assertEqual(characters.keys("orc").count(key), 1)
+        self.assertEqual(character.recipe()["builder"], "blender_source")
+        self.assertNotIn("weapons", character.recipe())
+        self.assertEqual(character.res, "res://assets/custom-monsters/orc/orc_warrior.glb")
+        archive = workflow.STUDIO / "maintenance/orc-warrior-kit/character.json"
+        self.assertEqual(json.loads(archive.read_text())["template"], "skeleton")
+        with patch.object(workflow, "export_asset") as export:
+            export_glb(character, no_import=True)
+        export.assert_called_once_with(character, no_import=True)
+
     def test_selected_sources_survive_build_without_donors(self):
         for name in ['wolf','rat','spider']:
             c=Character('beasts/'+name);source=Path(c.dir)/'source.glb';original=source.read_bytes()

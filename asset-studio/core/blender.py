@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 STUDIO = Path(__file__).resolve().parents[1]
@@ -72,16 +73,43 @@ def stale(sidecar, script, host, glb):
     return [f"{names[key]} changed since `item model`" for key in names if recorded.get(key) != current[key]]
 
 
+def checked_binary():
+    """Select a Blender executable on the Studio's pinned release."""
+    executable = binary()
+    found = version(executable)
+    if not (found == pinned() or found.startswith(pinned() + ".")):
+        raise ValueError(f"Blender {found} found; the Studio pins {pinned()} (asset-studio/blender/blender.json)")
+    return executable, found
+
+
+def export_character(source, target, options):
+    """Export a saved character scene in a fresh Blender process, without saving edits to the source."""
+    executable, _ = checked_binary()
+    target = Path(target)
+    with tempfile.TemporaryDirectory(dir=target.parent) as staging:
+        staging = Path(staging)
+        output = staging / "model.glb"
+        job = staging / "job.json"
+        job.write_text(json.dumps({**options, "glb": str(output)}))
+        result = subprocess.run(
+            [executable, "-b", "--factory-startup", str(source), "--python-exit-code", "1",
+             "--python", str(BLENDER / "export_character.py"), "--", str(job)],
+            capture_output=True, text=True, timeout=900,
+        )
+        log = target.parent / "blender.log"
+        log.write_text(result.stdout + result.stderr)
+        if result.returncode or not output.is_file():
+            raise ValueError(f"Blender character export failed (log: {log}):\n{result.stderr.strip()}")
+        output.replace(target)
+
+
 def run(job, workdir, timeout=900):
     """Run one job (see `blender/runner.py`) in a fresh headless Blender and return its report.
 
     Fails with Blender's own error output when the script raises, Blender is not the pinned release, or the job
     writes nothing.
     """
-    executable = binary()
-    found = version(executable)
-    if not (found == pinned() or found.startswith(pinned() + ".")):
-        raise ValueError(f"Blender {found} found; the Studio pins {pinned()} (asset-studio/blender/blender.json)")
+    executable, found = checked_binary()
     workdir = Path(workdir)
     workdir.mkdir(parents=True, exist_ok=True)
     job_path = workdir / "job.json"

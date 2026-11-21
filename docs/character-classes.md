@@ -118,6 +118,8 @@ animation plays once and freezes.
 
 ## Adding a class
 
+Follow the [Asset Studio character workflow](../asset-studio/character-workflow.md#rig-and-fit-for-the-assets-role) for a new hero model or replacement suit. Verify coverage and attachment names on the actual class model.
+
 1. Author `stat_profile_<id>.tres` and `class_<id>.tres` (mind `AttachmentNodeNames` — read
    the node names out of the model's imported scene) and add the class to
    `character_catalog.tres`.

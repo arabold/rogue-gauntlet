@@ -339,8 +339,8 @@ def build(name, art=None, attachments=None, reference=None):
     return folder
 
 
-def motion_bounds(path):
-    """Union sampled skinned bounds across clips; importer rest AABBs miss long tails."""
+def motion_bounds(path, clips=None):
+    """Union sampled skinned bounds across all clips or a selected preview set."""
     g, _, acc = _doc(path)
     meshes = []
     for n in g["nodes"]:
@@ -357,6 +357,8 @@ def motion_bounds(path):
             meshes.append((v, j, wt, sk["joints"], ibm))
     bounds = []
     for anim in g["animations"]:
+        if clips is not None and anim["name"] not in clips:
+            continue
         duration = max(float(acc(s["input"]).max()) for s in anim["samplers"])
         for t in np.linspace(0, duration, 7):
             posed = {**g, "nodes": [dict(n) for n in g["nodes"]]}
@@ -365,9 +367,15 @@ def motion_bounds(path):
                 if target["path"] == "weights":
                     raise ValueError("Creature motion bounds do not support morph animation")
                 sampler = anim["samplers"][ch["sampler"]]
-                if sampler.get("interpolation", "LINEAR") != "LINEAR":
-                    raise ValueError("Creature motion requires LINEAR sampled clips")
-                value = _sample(acc(sampler["input"])[:, 0], acc(sampler["output"]), t, target["path"] == "rotation")
+                times = acc(sampler["input"])[:, 0]
+                values = acc(sampler["output"])
+                interpolation = sampler.get("interpolation", "LINEAR")
+                if interpolation == "LINEAR":
+                    value = _sample(times, values, t, target["path"] == "rotation")
+                elif interpolation == "STEP":
+                    value = values[max(0, np.searchsorted(times, t, side="right") - 1)]
+                else:
+                    raise ValueError("Creature motion requires LINEAR or STEP sampled clips")
                 posed["nodes"][target["node"]][target["path"]] = value.tolist()
                 posed["nodes"][target["node"]].pop("matrix", None)
             worlds = mesh._node_worlds(posed)
