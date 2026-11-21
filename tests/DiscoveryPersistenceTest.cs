@@ -93,7 +93,7 @@ public class DiscoveryPersistenceTest
 	[TestCase]
 	public async Task SecretsStaySealedUntilOpened()
 	{
-		var (runner, level) = await TestFactories.LoadLevel(new PackedRoomLayout(), TestFactories.RoomPoolWithSecrets(1));
+		var (runner, level) = await TestFactories.LoadLevel(TestFactories.ProfileWithSecrets(1));
 		using var scope = runner;
 		var map = level.MapGenerator;
 		map.MapWidth = map.MapDepth = 30; map.MaxRooms = 6;

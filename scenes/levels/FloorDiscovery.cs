@@ -244,8 +244,7 @@ public partial class FloorDiscovery : Node3D
 		MapData map = _floor.Map;
 		Vector2I tile = map.WorldToTile(worldPosition);
 		if (!map.IsExplorable(tile.X, tile.Y)) return;
-		Vector2 origin = new(worldPosition.X / Room.TileSize + map.Width / 2 + 0.5f,
-			worldPosition.Z / Room.TileSize + map.Height / 2 + 0.5f);
+		Vector2 origin = map.WorldToTileSpace(worldPosition);
 		Present(_model.Reveal(origin, SightRadius / Room.TileSize, _canSeeAcross), false);
 	}
 
@@ -303,8 +302,8 @@ public partial class FloorDiscovery : Node3D
 		Vector2I direction = to - from;
 		if (map.RequiresInteriorWall(from.X, from.Y, direction)) return false;
 		// Every closed door seals its connector's authored outward edge, including concealed passages.
-		return !(IsSealed(from) && map.GetConnectorDirections(from.X, from.Y).Contains(direction))
-			&& !(IsSealed(to) && map.GetConnectorDirections(to.X, to.Y).Contains(-direction));
+		return !(IsSealed(from) && map.IsConnectorOpenToward(from.X, from.Y, direction))
+			&& !(IsSealed(to) && map.IsConnectorOpenToward(to.X, to.Y, -direction));
 	}
 
 	/// <summary>A doored connector stays sealed while any of its doors is closed.</summary>
@@ -333,7 +332,7 @@ public partial class FloorDiscovery : Node3D
 		foreach (var tile in tiles)
 		foreach (var offset in MapData.CardinalOffsets)
 		{
-			if (!_indicatorDoors.TryGetValue(tile + offset, out var doors)) continue;
+			if (_floor.Map.RequiresInteriorWall(tile.X, tile.Y, offset) || !_indicatorDoors.TryGetValue(tile + offset, out var doors)) continue;
 			foreach (var door in doors)
 				if (_indicatorsShown.Add(door) && IsInstanceValid(door)) door.SetIndicatorVisible(true);
 		}

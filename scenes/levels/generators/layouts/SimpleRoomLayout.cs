@@ -16,41 +16,45 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 	/// </summary>
 	[Export] public int Retries { get; set; } = 3;
 
-	public override List<RoomPlacement> GenerateRooms(MapData map, AssembledRoomFactory factory, uint maxRooms, RandomNumberGenerator rng)
+	public override FloorPlan GenerateLayout(MapData map, FloorBuildContext context)
 	{
-		List<RoomPlacement> rooms = new();
+		var plan = new FloorPlan();
+		var rng = context.Rng;
+		var pool = context.Pool;
+		var progressionOptions = context.Profile?.CreateRoomOptions(pool.RealmId, isProgressionRoom: true);
+		var roomOptions = context.Profile?.CreateRoomOptions(pool.RealmId);
 
-		var entranceRoom = factory.CreateEntrance(rng);
+		var entranceRoom = pool.CreateEntrance(rng, progressionOptions);
 		var entrancePlacement = TryPlaceRoom(map, entranceRoom.Map, 99, rng);
 		if (entrancePlacement == null)
 		{
 			GD.PrintErr("SimpleRoomLayout: Failed to place the entrance room; map is too crowded.");
 			entranceRoom.Free();
-			return rooms;
+			return plan;
 		}
-		AddPlacement(map, rooms, entranceRoom, entrancePlacement.Value);
+		AddPlacement(map, plan, entranceRoom, entrancePlacement.Value);
 
-		var exitRoom = factory.CreateExit(rng);
+		var exitRoom = CreateGoal(context, progressionOptions);
 		var exitPlacement = TryPlaceRoom(map, exitRoom.Map, 99, rng);
 		if (exitPlacement == null)
 		{
 			GD.PrintErr("SimpleRoomLayout: Failed to place the exit room; map is too crowded.");
 			exitRoom.Free();
-			return rooms;
+			return plan;
 		}
-		AddPlacement(map, rooms, exitRoom, exitPlacement.Value);
+		AddPlacement(map, plan, exitRoom, exitPlacement.Value);
 
-		var uses = new Dictionary<RoomType, int>();
-		for (int i = 0; i < maxRooms; i++)
+		var uses = new Dictionary<RoomDefinition, int>();
+		for (int i = 0; i < context.MaxRooms; i++)
 		{
 			var retries = Retries;
 			do
 			{
-				var room = CreateBalancedRoom(factory, rng, uses);
+				var room = CreateBalancedRoom(context, uses, roomOptions);
 				var placement = TryPlaceRoom(map, room.Map, retries, rng);
 				if (placement != null)
 				{
-					AddPlacement(map, rooms, room, placement.Value);
+					AddPlacement(map, plan, room, placement.Value);
 					RecordRoomUse(uses, room);
 					break; // Room placed successfully
 				}
@@ -62,7 +66,7 @@ public partial class SimpleRoomLayout : RoomLayoutStrategy
 			} while (retries-- > 0);
 		}
 
-		return rooms;
+		return plan;
 	}
 
 	private Vector2I? TryPlaceRoom(MapData map, MapData roomMap, int retries, RandomNumberGenerator rng)

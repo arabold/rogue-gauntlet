@@ -24,10 +24,19 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         public int MinPathCount { get; } = Math.Abs(To.X - From.X) + Math.Abs(To.Y - From.Y) + 1;
     }
 
-    public override void ConnectRooms(MapData map, IReadOnlyList<RoomRegion> rooms)
+    public override void ConnectRooms(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms, RandomNumberGenerator rng) =>
+        Connect(map, plan, rooms);
+
+    internal static void Connect(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms)
     {
-        using var astar = CreatePathGrid(map);
-        var components = BuildComponents(map, rooms);
+        using var astar = CreatePathGrid(map, plan);
+        if (plan != null && plan.ApprovedEdges.Count > 0)
+        {
+            ConnectApprovedEdges(map, plan, rooms, astar);
+            return;
+        }
+
+        var components = BuildComponents(map, plan, rooms);
 
         // Phase 1: link every room into a single reachable network (spanning tree),
         // guaranteeing each room at least one connection.
@@ -38,7 +47,139 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         ConnectRemainingDoorways(map, astar, components);
     }
 
-    private void ConnectComponents(MapData map, AStarGrid2D astar, List<RoomComponent> components)
+    /// <summary>
+    /// Seals edges between a newly carved corridor <paramref name="tile"/> owned by <paramref name="ownerId"/>
+    /// and any neighboring corridor tile belonging to another edge or protected bridge so separate branches
+    /// cannot merge into bypasses.
+    /// </summary>
+    internal static void SealAdjacentForeignCorridors(MapData map, int[,] edgeOwner, Vector2I tile, int ownerId)
+    {
+        foreach (var dir in MapData.CardinalOffsets)
+        {
+            int nx = tile.X + dir.X;
+            int nz = tile.Y + dir.Y;
+            if (!map.IsWithinBounds(nx, nz) || !map.IsCorridor(nx, nz)) continue;
+            if (edgeOwner[nx, nz] != ownerId)
+            {
+                map.SealCorridorEdge(tile, dir);
+            }
+        }
+    }
+
+    private static void ConnectApprovedEdges(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms, AStarGrid2D astar)
+    {
+        var edgeOwner = new int[map.Width, map.Height];
+        for (int x = 0; x < map.Width; x++)
+        {
+            for (int z = 0; z < map.Height; z++)
+            {
+                edgeOwner[x, z] = -1;
+            }
+        }
+        foreach (var p in plan.ProtectedCorridors)
+        {
+            if (map.IsWithinBounds(p.X, p.Y)) edgeOwner[p.X, p.Y] = -2;
+        }
+
+        var clusterExits = new Dictionary<int, List<Vector2I>>(rooms.Count);
+        var allExitTiles = new HashSet<Vector2I>();
+        foreach (var room in rooms)
+        {
+            int key = room.ClusterId >= 0 ? room.ClusterId : room.Id;
+            if (!clusterExits.TryGetValue(key, out var exits))
+            {
+                exits = [];
+                clusterExits[key] = exits;
+            }
+            CollectExternalExits(map, plan, room, exits, allExitTiles);
+        }
+
+        // Keep every doorway exit tile solid except the pair under evaluation so routed corridors
+        // never trespass across unrelated doorways or fuse branches.
+        foreach (var exitTile in allExitTiles)
+        {
+            astar.SetPointSolid(exitTile, true);
+        }
+
+        var usedExits = new HashSet<Vector2I>();
+        for (int edgeIndex = 0; edgeIndex < plan.ApprovedEdges.Count; edgeIndex++)
+        {
+            var (fromClusterId, toClusterId) = plan.ApprovedEdges[edgeIndex];
+            var fromExits = clusterExits.GetValueOrDefault(fromClusterId);
+            var toExits = clusterExits.GetValueOrDefault(toClusterId);
+
+            var candidates = new List<CorridorCandidate>();
+            if (fromExits != null && toExits != null)
+            {
+                foreach (var from in fromExits)
+                {
+                    if (usedExits.Contains(from)) continue;
+                    foreach (var to in toExits)
+                    {
+                        if (usedExits.Contains(to)) continue;
+                        candidates.Add(new CorridorCandidate(from, to, candidates.Count, null));
+                    }
+                }
+            }
+
+            if (!TryFindShortestPath(astar, candidates, out var best, out var bestPath, (grid, candidate) =>
+            {
+                if (edgeOwner[candidate.From.X, candidate.From.Y] >= 0 || edgeOwner[candidate.To.X, candidate.To.Y] >= 0)
+                {
+                    return null;
+                }
+
+                grid.SetPointSolid(candidate.From, false);
+                grid.SetPointSolid(candidate.To, false);
+                var path = candidate.From == candidate.To
+                    ? [candidate.From]
+                    : grid.GetIdPath(candidate.From, candidate.To);
+                grid.SetPointSolid(candidate.From, true);
+                grid.SetPointSolid(candidate.To, true);
+                return path;
+            }))
+            {
+                GD.PrintErr($"Approved edge {edgeIndex} ({fromClusterId} -> {toClusterId}) could not be routed.");
+                return;
+            }
+
+            usedExits.Add(best.From);
+            usedExits.Add(best.To);
+            foreach (var tile in bestPath)
+            {
+                if (map.IsEmpty(tile.X, tile.Y))
+                {
+                    map.SetTile(tile.X, tile.Y, MapTile.Corridor);
+                }
+                edgeOwner[tile.X, tile.Y] = edgeIndex;
+                astar.SetPointSolid(tile, true);
+                SealAdjacentForeignCorridors(map, edgeOwner, tile, edgeIndex);
+            }
+        }
+    }
+
+    private static void CollectExternalExits(
+        MapData map,
+        FloorPlan plan,
+        RoomRegion room,
+        List<Vector2I> destination,
+        HashSet<Vector2I> seenSet = null)
+    {
+        foreach (var connector in room.ConnectorTiles)
+        foreach (var direction in map.GetConnectorDirections(connector.X, connector.Y))
+        {
+            var outside = connector + direction;
+            if (plan != null && plan.ProtectedCorridors.Contains(outside)) continue;
+            if (map.IsWithinBounds(outside.X, outside.Y)
+                && (map.IsEmpty(outside.X, outside.Y) || map.IsCorridor(outside.X, outside.Y)))
+            {
+                destination.Add(outside);
+                seenSet?.Add(outside);
+            }
+        }
+    }
+
+    private static void ConnectComponents(MapData map, AStarGrid2D astar, List<RoomComponent> components)
     {
         if (components.Count <= 1)
         {
@@ -87,7 +228,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
     /// unconnected are routed here to the nearest connector already on the network
     /// (e.g. a 4-way crossing keeps all its doors).
     /// </summary>
-    private void ConnectRemainingDoorways(MapData map, AStarGrid2D astar, List<RoomComponent> components)
+    private static void ConnectRemainingDoorways(MapData map, AStarGrid2D astar, List<RoomComponent> components)
     {
         var connectors = new List<Vector2I>();
         foreach (var component in components)
@@ -125,7 +266,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         }
     }
 
-    private AStarGrid2D CreatePathGrid(MapData map)
+    private static AStarGrid2D CreatePathGrid(MapData map, FloorPlan plan)
     {
         var astar = new AStarGrid2D();
         astar.DiagonalMode = AStarGrid2D.DiagonalModeEnum.Never;
@@ -141,14 +282,15 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
             for (int z = 0; z < map.Height; z++)
             {
                 var node = new Vector2I(x, z);
-                if (map.IsCorridor(x, z))
+                bool protectedBridge = plan != null && plan.ProtectedCorridors.Contains(node);
+                if (map.IsCorridor(x, z) && !protectedBridge)
                 {
                     astar.SetPointWeightScale(node, 0);
                 }
 
-                // Corridors are routed outside rooms. Room connectors become solid
-                // here so paths cannot enter through a closed side of a doorway tile.
-                if (map.IsRoom(x, z) || map.IsConnector(x, z) || map.IsWall(x, z) || map.IsChasm(x, z))
+                // Corridors are routed outside rooms and protected cluster bridges. Room connectors
+                // become solid here so paths cannot enter through a closed side of a doorway tile.
+                if (map.IsRoom(x, z) || map.IsConnector(x, z) || map.IsWall(x, z) || map.IsChasm(x, z) || protectedBridge)
                 {
                     astar.SetPointSolid(node, solid: true);
                 }
@@ -158,27 +300,35 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         return astar;
     }
 
-    /// <summary>Uses the rooms and doorway tiles already registered by the layout, without flood-filling the map.</summary>
-    private static List<RoomComponent> BuildComponents(MapData map, IReadOnlyList<RoomRegion> rooms)
+    /// <summary>Uses the rooms and doorway tiles already registered by the layout, grouping cluster siblings into one component.</summary>
+    private static List<RoomComponent> BuildComponents(MapData map, FloorPlan plan, IReadOnlyList<RoomRegion> rooms)
     {
         var components = new List<RoomComponent>(rooms.Count);
+        var byCluster = new Dictionary<int, RoomComponent>();
         foreach (var room in rooms)
         {
-            var component = new RoomComponent();
-            foreach (var connector in room.ConnectorTiles)
-            foreach (var direction in map.GetConnectorDirections(connector.X, connector.Y))
+            RoomComponent component;
+            if (room.ClusterId >= 0)
             {
-                var outside = connector + direction;
-                if (map.IsWithinBounds(outside.X, outside.Y)
-                    && (map.IsEmpty(outside.X, outside.Y) || map.IsCorridor(outside.X, outside.Y)))
-                    component.Connectors.Add(outside);
+                if (!byCluster.TryGetValue(room.ClusterId, out component))
+                {
+                    component = new RoomComponent();
+                    byCluster[room.ClusterId] = component;
+                    components.Add(component);
+                }
             }
-            components.Add(component);
+            else
+            {
+                component = new RoomComponent();
+                components.Add(component);
+            }
+
+            CollectExternalExits(map, plan, room, component.Connectors);
         }
         return components;
     }
 
-    private bool TryFindBestConnection(
+    private static bool TryFindBestConnection(
         AStarGrid2D astar,
         List<RoomComponent> connectedComponents,
         List<RoomComponent> remainingComponents,
@@ -215,7 +365,8 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         AStarGrid2D astar,
         List<CorridorCandidate> candidates,
         out CorridorCandidate best,
-        out Godot.Collections.Array<Vector2I> bestPath)
+        out Godot.Collections.Array<Vector2I> bestPath,
+        Func<AStarGrid2D, CorridorCandidate, Godot.Collections.Array<Vector2I>> queryPath = null)
     {
         candidates.Sort(static (a, b) => a.MinPathCount != b.MinPathCount
             ? a.MinPathCount.CompareTo(b.MinPathCount)
@@ -233,8 +384,8 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
                 break;
             }
 
-            var path = astar.GetIdPath(candidate.From, candidate.To);
-            if (path.Count > 0 && (path.Count < bestCount || (path.Count == bestCount && candidate.Order < best.Order)))
+            var path = queryPath != null ? queryPath(astar, candidate) : astar.GetIdPath(candidate.From, candidate.To);
+            if (path != null && path.Count > 0 && (path.Count < bestCount || (path.Count == bestCount && candidate.Order < best.Order)))
             {
                 best = candidate;
                 bestPath = path;
@@ -245,7 +396,7 @@ public partial class AStarCorridorConnector : CorridorConnectorStrategy
         return bestPath != null;
     }
 
-    private void PlaceCorridorPath(MapData map, AStarGrid2D astar, Godot.Collections.Array<Vector2I> path)
+    private static void PlaceCorridorPath(MapData map, AStarGrid2D astar, Godot.Collections.Array<Vector2I> path)
     {
         foreach (var node in path)
         {

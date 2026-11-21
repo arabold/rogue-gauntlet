@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="RoomGroup" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomGroup.cs" id="1_RoomGroup"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomGroupMember.cs" id="2_RoomGroupMem"]
+
+[sub_resource type="Resource" id="RoomGroupMember_boss"]
+script = ExtResource("2_RoomGroupMem")
+PoolSlot = 0
+AttachToIndex = -1
+SlotId = "boss"
+Obligations = 3
+AllowExternalDoorways = true
+AllowSecretDoors = false
+DoorChanceOverride = -1.0
+FrameChanceOverride = -1.0
+ReserveAccess = false
+metadata/_custom_type_script = ExtResource("2_RoomGroupMem")
+
+[sub_resource type="Resource" id="RoomGroupMember_exit"]
+script = ExtResource("2_RoomGroupMem")
+PoolSlot = 2
+AttachToIndex = 0
+SlotId = "exit"
+Obligations = 1
+AllowExternalDoorways = false
+AllowSecretDoors = false
+DoorChanceOverride = 1.0
+FrameChanceOverride = -1.0
+ReserveAccess = true
+metadata/_custom_type_script = ExtResource("2_RoomGroupMem")
+
+[resource]
+script = ExtResource("1_RoomGroup")
+Id = "boss_exit"
+Weight = 1.0
+Realms = PackedStringArray()
+Members = [SubResource("RoomGroupMember_boss"), SubResource("RoomGroupMember_exit")]
+Attempts = 8
+metadata/_custom_type_script = ExtResource("1_RoomGroup")

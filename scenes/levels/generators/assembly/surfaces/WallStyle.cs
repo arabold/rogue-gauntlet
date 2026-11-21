@@ -68,15 +68,19 @@ public partial class WallStyle : Resource
 		}
 		var footprint = room.Footprint;
 		var grid = room.Room.WallGridMap;
+		var itemIds = new Dictionary<string, int>();
+		int FindItem(string name) => itemIds.TryGetValue(name, out int id) ? id : itemIds[name] = Library.FindItemByName(name);
+		string fallback = Straight.Keys.First();
 		if (!BoundaryWallBuilder.Build(
 			grid,
 			footprint.Tiles.Select(tile => (tile, (Vector3I)RoomFootprint.TileCenter(tile))),
 			(tile, dx, dz) => !footprint.IsFloor(tile + new Vector2I(dx, dz)) && !room.IsDoorway(tile, new Vector2I(dx, dz)),
-			position => Library.FindItemByName(pieces.TryGetValue(position, out var piece) ? piece.Item : Straight.Keys.First()),
+			(position, _) => FindItem(pieces.TryGetValue(position, out var piece) ? piece.Item : fallback),
 			framedEdges: room.Room.FramedEdges)) return false;
+		var measureCache = new Dictionary<int, (Aabb Bounds, string Name)>();
 		foreach (var (cell, piece) in pieces)
 		{
-			var edge = WallFootprints.MeasureEdge(grid, cell, -piece.Outward, Room.TileSize);
+			var edge = WallFootprints.MeasureEdge(grid, cell, -piece.Outward, Room.TileSize, measureCache);
 			room.SetWall(piece.Tile, piece.Outward, edge.Depth, IsPlain(edge.Item));
 		}
 		return true;
@@ -92,14 +96,16 @@ public partial class WallStyle : Resource
 
 	/// <summary>
 	/// One wall edge: an accent at <see cref="AccentChance"/>, else a straight piece. Both are drawn for every edge so a
-	/// style change never reshuffles the rest of a run.
+	/// style change never reshuffles the rest of a run. When <paramref name="partitionOnly"/> is true (a two-sided wall
+	/// separating walkable corridors), accents and breached straight pieces are suppressed for an opaque symmetric wall.
 	/// </summary>
-	public string DrawEdge(RandomNumberGenerator rng)
+	public string DrawEdge(RandomNumberGenerator rng, bool partitionOnly = false)
 	{
 		bool accent = rng.Randf() < AccentChance && Accents.Count > 0;
 		string straight = Weighted.Pick(Straight, rng);
 		string accentItem = Accents.Count > 0 ? Weighted.Pick(Accents, rng) : null;
-		return accent ? accentItem : straight;
+		if (!partitionOnly) return accent ? accentItem : straight;
+		return straight == "wall_broken" ? "wall" : straight;
 	}
 
 	protected static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>

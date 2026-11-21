@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="1_FloorProfile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/PackedRoomLayout.cs" id="2_PackedLayout"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/MazeCorridorConnector.cs" id="3_MazeConnecto"]
+[ext_resource type="Resource" path="res://scenes/levels/access/garrison_access.tres" id="4_garrison_acc"]
+
+[sub_resource type="Resource" id="PackedRoomLayout_1"]
+script = ExtResource("2_PackedLayout")
+RoomGap = 1
+Retries = 4
+DoorwayAlignmentBonus = 3.0
+ScoreTolerance = 1.0
+metadata/_custom_type_script = ExtResource("2_PackedLayout")
+
+[sub_resource type="Resource" id="MazeCorridorConnector_1"]
+script = ExtResource("3_MazeConnecto")
+FillScope = 1
+WindingChance = 0.7
+LoopChance = 0.15
+DeadEndPruneChance = 0.0
+MinDeadEnds = 6
+metadata/_custom_type_script = ExtResource("3_MazeConnecto")
+
+[resource]
+script = ExtResource("1_FloorProfile")
+Layout = SubResource("PackedRoomLayout_1")
+Connector = SubResource("MazeCorridorConnector_1")
+Access = ExtResource("4_garrison_acc")
+AllowSecretDoors = true
+DoorChanceOverride = -1.0
+DeadEndLootWeight = 1.5
+TrapDensityScale = 1.0
+metadata/_custom_type_script = ExtResource("1_FloorProfile")

@@ -24,7 +24,7 @@ public class RoomAssemblyTest
 	public void EveryRoomAndRealmDefinitionValidates()
 	{
 		var pool = TestFactories.RoomPool();
-		var errors = pool.AllTypes.SelectMany(type => type.Validate()).ToList();
+		var errors = pool.AllDefinitions.SelectMany(type => type.Validate()).ToList();
 		foreach (string id in new[] { "garrison", "sewer", "jungle" })
 		{
 			var realm = TestFactories.Load<Realm>($"{Levels}realms/{id}.tres");
@@ -86,10 +86,10 @@ public class RoomAssemblyTest
 	[TestCase("jungle")]
 	public void EveryRoomTheRealmAssemblesKeepsItsContracts(string realm)
 	{
-		var factory = TestFactories.RoomPool().ForRealm(realm);
-		var slots = factory.RoomTypes.Select(type => (type, Stairs: StairKind.None))
-			.Concat(factory.EntranceTypes.Select(type => (type, Stairs: StairKind.Up)))
-			.Concat(factory.ExitTypes.Select(type => (type, Stairs: StairKind.Down)));
+		var realmPool = TestFactories.RoomPool().ForRealm(realm);
+		var slots = realmPool.Rooms.OfType<RoomType>().Select(type => (type, Stairs: StairKind.None))
+			.Concat(realmPool.Entrances.OfType<RoomType>().Select(type => (type, Stairs: StairKind.Up)))
+			.Concat(realmPool.Exits.OfType<RoomType>().Select(type => (type, Stairs: StairKind.Down)));
 		var rotation = new List<string>();
 		int rotatedDoors = 0, small = 0, medium = 0, large = 0;
 		foreach (var (type, stairs) in slots)

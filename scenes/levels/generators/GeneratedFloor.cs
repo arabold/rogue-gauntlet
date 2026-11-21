@@ -66,7 +66,7 @@ public sealed class GeneratedFloor
 	public IReadOnlyList<ShopComponent> Shops => _shops;
 	/// <summary>Whether <paramref name="spawn"/> places one of this floor's nests rather than a monster.</summary>
 	public bool IsNest(SpawnPoint spawn) => Encounter?.Nest != null && spawn.Scenes.Count > 0 && spawn.Scenes[0] == Encounter.Nest;
-	public bool IsFrozen => _decoratedTiles != null;
+	public bool IsFrozen { get; private set; }
 	/// <summary>Every door's generated access state, keyed by its stable connection id: what exploration saves diff against.</summary>
 	public IReadOnlyDictionary<string, (Door Door, DoorAccessSaveData Baseline)> DoorBaselines => _doorBaselines;
 	/// <summary>Authored and generated floor traps, collected when the floor freezes.</summary>
@@ -172,10 +172,10 @@ public sealed class GeneratedFloor
 		if (IsFrozen) throw new InvalidOperationException("A frozen floor cannot change.");
 	}
 
-	/// <summary>Ends generation: snapshots decoration occupancy and traps. Nothing writes to the floor after this.</summary>
-	public void Freeze()
+	/// <summary>Caches decorated tiles once rooms and corridors have finished adding GridMap decorations.</summary>
+	internal void FreezeDecorations()
 	{
-		RequireLive();
+		if (_decoratedTiles != null) return;
 		var decorated = new HashSet<Vector2I>();
 		int half = Room.TileSize / 2;
 		foreach (Vector3I cell in _decoration.GetUsedCells())
@@ -185,8 +185,15 @@ public sealed class GeneratedFloor
 			decorated.Add(new Vector2I(Mathf.FloorToInt((cell.X + half) / (float)Room.TileSize) + Map.Width / 2,
 				Mathf.FloorToInt((cell.Z + half) / (float)Room.TileSize) + Map.Height / 2));
 		}
-		_traps = _world.FindChildren("*", "", true, false).OfType<FloorTrap>().Where(trap => !trap.IsQueuedForDeletion()).ToList();
 		_decoratedTiles = decorated;
+	}
+
+	public void Freeze()
+	{
+		RequireLive();
+		FreezeDecorations();
+		_traps = _world.FindChildren("*", "", true, false).OfType<FloorTrap>().Where(trap => !trap.IsQueuedForDeletion()).ToList();
+		IsFrozen = true;
 	}
 
 	/// <summary>The room owning an interior floor tile, or -1 for corridors, thresholds, void and out-of-bounds tiles.</summary>
@@ -200,8 +207,8 @@ public sealed class GeneratedFloor
 		return IsOccupiedNow(x, z);
 	}
 
-	/// <summary><see cref="IsOccupied"/> for loops that refreshed the prop tiles once up front.</summary>
-	private bool IsOccupiedNow(int x, int z)
+	/// <summary><see cref="IsOccupied"/> for loops that called <see cref="RefreshPropTiles"/> once up front.</summary>
+	internal bool IsOccupiedNow(int x, int z)
 	{
 		var tile = new Vector2I(x, z);
 		return !IsReachable(Map.TileToWorld(x, z)) || HasDecorationInTile(x, z) || _propTiles.Contains(tile);
@@ -267,7 +274,7 @@ public sealed class GeneratedFloor
 				// The grid is built for the largest ordinary body, so a reachable cell has room for any pack member.
 				var tile = Map.WorldToTile(candidate);
 				if (RoomIdAt(candidate) != room || !IsWalkableMapPosition(candidate) || !IsReachable(candidate)
-					|| IsOccupiedNow(tile.X, tile.Y) || IsInSpawnClearance(candidate)) continue;
+					|| !Map.HasWorldSight(anchor, candidate) || IsOccupiedNow(tile.X, tile.Y) || IsInSpawnClearance(candidate)) continue;
 				if (pack.Any(other => candidate.HorizontalDistanceTo(other) < spacing)) continue;
 				point = candidate;
 				return true;
@@ -282,6 +289,11 @@ public sealed class GeneratedFloor
 	{
 		if (roomId < 0 || radius <= 0) return false;
 		RefreshPropTiles();
+		return IsFootprintClearNow(point, radius, roomId);
+	}
+
+	private bool IsFootprintClearNow(Vector3 point, float radius, int roomId)
+	{
 		var center = Map.WorldToTile(point);
 		int extent = Mathf.CeilToInt(radius / Room.TileSize + .5f);
 		float half = Room.TileSize * .5f;
@@ -300,12 +312,28 @@ public sealed class GeneratedFloor
 	}
 
 	/// <summary>Prefer a roomy room interior near <paramref name="reference"/>, keeping an oversized actor out of corridors.</summary>
-	public bool TryFindLargeEncounterPosition(Vector3 reference, float minimumRadius, float preferredRadius, out Vector3 position)
+	public bool TryFindLargeEncounterPosition(
+		Vector3 reference,
+		float minimumRadius,
+		float preferredRadius,
+		out Vector3 position,
+		Func<int, bool> allowedRoom = null)
 	{
 		position = default;
+		if (minimumRadius <= 0) return false;
 		float best = float.NegativeInfinity;
-		var occupied = new List<Vector3>();
 		var accessible = ProgressionAccessibleTiles();
+		if (allowedRoom == null)
+		{
+			int arrivalRoomId = Arrival?.GetAncestorOrNull<Room>()?.RegionId ?? -1;
+			int descentRoomId = Descent?.GetAncestorOrNull<Room>()?.RegionId ?? -1;
+			bool hasBossSlot = _rooms.Any(r => r.SlotId == "boss");
+			allowedRoom = roomId => roomId >= 0 && roomId < _rooms.Count
+				&& roomId != arrivalRoomId
+				&& roomId != descentRoomId
+				&& (hasBossSlot ? _rooms[roomId].SlotId == "boss" : _rooms[roomId].SlotId is not ("entrance" or "exit"));
+		}
+
 		foreach (var tilePoint in OpenTileCandidates())
 		{
 			// Half-tile offsets also find clear 2x2 spaces between cell centers.
@@ -316,16 +344,18 @@ public sealed class GeneratedFloor
 					var point = tilePoint + new Vector3(dx * Room.TileSize * .5f, 0, dz * Room.TileSize * .5f);
 					var tile = Map.WorldToTile(point);
 					int roomId = RoomIdAt(tile);
-					if (accessible != null && !accessible.Contains(tile)
-						|| IsBlockedSpawnPoint(point, occupied)
-						|| !IsFootprintClear(point, minimumRadius, roomId)) continue;
+					if (!allowedRoom(roomId) || (accessible != null && !accessible.Contains(tile))
+						|| IsInSpawnClearance(point)) continue;
+					float dist = point.DistanceTo(reference);
+					if (preferredRadius * 1000f - dist <= best) continue;
+					if (!IsFootprintClearNow(point, minimumRadius, roomId)) continue;
 					float clearance = minimumRadius;
 					for (float radius = minimumRadius + .2f; radius <= preferredRadius; radius += .2f)
 					{
-						if (!IsFootprintClear(point, radius, roomId)) break;
+						if (!IsFootprintClearNow(point, radius, roomId)) break;
 						clearance = radius;
 					}
-					float score = clearance * 1000 - point.DistanceTo(reference);
+					float score = clearance * 1000f - dist;
 					if (score <= best) continue;
 					best = score;
 					position = point;
@@ -529,7 +559,7 @@ public sealed class GeneratedFloor
 	/// floor is live a changed group size is the only staleness; a frozen floor also refreshes once per physics frame,
 	/// because runtime props move, drop and get picked up.
 	/// </summary>
-	private void RefreshPropTiles()
+	internal void RefreshPropTiles()
 	{
 		SceneTree tree = _world.GetTree();
 		int count = tree.GetNodeCountInGroup("prop");

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="1_FloorProfile"]
+[ext_resource type="Script" path="res://scenes/levels/generators/layouts/PackedRoomLayout.cs" id="2_PackedLayout"]
+[ext_resource type="Script" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="3_AStarConnect"]
+[ext_resource type="Resource" path="res://scenes/levels/access/garrison_access.tres" id="4_garrison_acc"]
+
+[sub_resource type="Resource" id="PackedRoomLayout_1"]
+script = ExtResource("2_PackedLayout")
+RoomGap = 1
+Retries = 3
+DoorwayAlignmentBonus = 3.0
+ScoreTolerance = 1.0
+metadata/_custom_type_script = ExtResource("2_PackedLayout")
+
+[sub_resource type="Resource" id="AStarCorridorConnector_1"]
+script = ExtResource("3_AStarConnect")
+metadata/_custom_type_script = ExtResource("3_AStarConnect")
+
+[resource]
+script = ExtResource("1_FloorProfile")
+Layout = SubResource("PackedRoomLayout_1")
+Connector = SubResource("AStarCorridorConnector_1")
+Access = ExtResource("4_garrison_acc")
+AllowSecretDoors = true
+DoorChanceOverride = -1.0
+DeadEndLootWeight = 1.0
+TrapDensityScale = 1.0
+metadata/_custom_type_script = ExtResource("1_FloorProfile")

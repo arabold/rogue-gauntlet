@@ -8,9 +8,10 @@ extends SceneTree
 # images and hangs. A real window briefly opens (uses the machine's GPU).
 #
 #   .agents/skills/godot-mcp/scripts/godot.sh --path "$PWD" \
-#     --script .agents/skills/godot-mcp/scripts/render_level_topdown.gd -- <outfile.png> [seed] [size] [depth]
+#     --script .agents/skills/godot-mcp/scripts/render_level_topdown.gd -- <outfile.png> [seed] [size] [depth] [profile.tres]
 #
-# e.g. -- /tmp/level_preview.png 23 1600 5
+# Or pass --profile <res://...tres> anywhere after `--`.
+# e.g. -- /tmp/level_preview.png 23 1600 5 res://scenes/levels/generators/floor_profiles/labyrinth.tres
 #
 # The level's own generator renders the floor; the depth (default 1) picks the realm whose rooms and corridors it uses.
 #
@@ -31,23 +32,46 @@ var _seed_value = 0
 var _image_size = 0
 var _depth = 1
 var _outfile = ""
+var _profile_path = ""
 var _state = "waiting_for_ready"
 var _wait_frames = 0
 
 func _initialize():
-	var args = OS.get_cmdline_user_args()
-	_outfile = args[0] if args.size() > 0 else "/tmp/level_preview.png"
-	_seed_value = int(args[1]) if args.size() > 1 else 23
-	_image_size = int(args[2]) if args.size() > 2 else 1600
-	_depth = int(args[3]) if args.size() > 3 else 1
+	var raw_args = OS.get_cmdline_user_args()
+	var positional: Array[String] = []
+	var i = 0
+	while i < raw_args.size():
+		if raw_args[i] == "--profile" and i + 1 < raw_args.size():
+			_profile_path = raw_args[i + 1]
+			i += 2
+		else:
+			positional.append(raw_args[i])
+			i += 1
 
-	# The production level's generator, with its layout, corridors and realms; only the seed and depth change.
+	_outfile = positional[0] if positional.size() > 0 else "/tmp/level_preview.png"
+	_seed_value = int(positional[1]) if positional.size() > 1 else 23
+	_image_size = int(positional[2]) if positional.size() > 2 else 1600
+	_depth = int(positional[3]) if positional.size() > 3 else 1
+	if positional.size() > 4 and _profile_path.is_empty():
+		_profile_path = positional[4]
+
+	var loaded_profile = null
+	if not _profile_path.is_empty():
+		loaded_profile = load(_profile_path)
+		if loaded_profile == null:
+			push_error("Failed to load floor profile: %s" % _profile_path)
+			quit(1)
+			return
+
+	# The production level's generator, with its layout, corridors and realms; only the seed, depth, and optional profile change.
 	var level = load("res://scenes/levels/level.tscn").instantiate()
 	_map_generator = level.get_node("MapGenerator")
 	level.remove_child(_map_generator)
 	level.free()
 	_map_generator.Seed = _seed_value
 	_map_generator.DungeonDepth = _depth
+	if loaded_profile != null:
+		_map_generator.Profile = loaded_profile
 
 	_viewport = SubViewport.new()
 	_viewport.transparent_bg = false
@@ -101,7 +125,8 @@ func _generate_and_frame():
 
 	_add_connector_overlay(_map_generator)
 
-	print("Rendering %dx%d preview of seed %d, depth %d to %s" % [_viewport.size.x, _viewport.size.y, _seed_value, _depth, _outfile])
+	var active_profile = _profile_path if not _profile_path.is_empty() else "level.tscn default"
+	print("Rendering %dx%d preview of seed %d, depth %d (%s) to %s" % [_viewport.size.x, _viewport.size.y, _seed_value, _depth, active_profile, _outfile])
 
 func _add_connector_overlay(map_generator):
 	var surface_tool = SurfaceTool.new()

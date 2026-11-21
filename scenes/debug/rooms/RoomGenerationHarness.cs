@@ -12,10 +12,14 @@ public enum RoomPreviewMode { Room, Floor }
 /// </summary>
 public partial class RoomGenerationHarness : Node3D
 {
+	private const string FloorProfilesDir = "res://scenes/levels/generators/floor_profiles";
+	private const string RoomGroupsDir = "res://scenes/levels/rooms/room_groups";
+
 	/// <summary>The production generator: its room pool and realms are what the harness previews.</summary>
 	[Export] public MapGenerator Generator { get; set; }
 	[Export] public Airflow Airflow { get; set; }
 	[Export] public int SelectedRealm { get; set; }
+	[Export] public int SelectedProfile { get; set; } = -1;
 	[Export] public Node3D PreviewRoot { get; set; }
 	[Export] public Camera3D PreviewCamera { get; set; }
 	[Export] public Container Controls { get; set; }
@@ -37,13 +41,16 @@ public partial class RoomGenerationHarness : Node3D
 	public string LastError { get; private set; } = "";
 	public Realm Realm => Generator.Realms[SelectedRealm];
 	/// <summary>The room pool narrowed to the selected realm.</summary>
-	public AssembledRoomFactory Factory { get; private set; }
-	/// <summary>The realm's ordinary rooms followed by entrances and exits.</summary>
-	public IReadOnlyList<RoomType> Recipes => Factory.AllTypes;
+	public RoomPool Pool { get; private set; }
+	public IReadOnlyList<(FloorProfile Resource, string Path)> Profiles { get; private set; } = [];
+	/// <summary>The realm's ordinary rooms, entrances/exits, and matching room groups.</summary>
+	public IReadOnlyList<RoomDefinition> Recipes => _recipes;
 
+	private readonly List<RoomDefinition> _recipes = [];
+	private Node3D _previewNode;
 	private int _quarterTurns;
-	private OptionButton _modePicker, _realmPicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
-	private HBoxContainer _shapeRow, _wallsRow, _floorRow, _columnRow;
+	private OptionButton _modePicker, _profilePicker, _realmPicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
+	private HBoxContainer _profileRow, _shapeRow, _wallsRow, _floorRow, _columnRow;
 	private SpinBox _seedInput;
 	private CheckButton _furnishingsToggle, _walkabilityToggle;
 	private Button _rotateButton;
@@ -59,9 +66,34 @@ public partial class RoomGenerationHarness : Node3D
 			GD.PushError(LastError);
 			return;
 		}
+		LoadProfiles();
 		BuildControls();
 		ApplyRealm(Mathf.Clamp(SelectedRealm, 0, Generator.Realms.Length - 1));
 		Regenerate();
+	}
+
+	private void LoadProfiles()
+	{
+		Profiles = DebugCatalog.Resources<FloorProfile>(FloorProfilesDir);
+		if (Profiles.Count == 0) return;
+		if (SelectedProfile >= 0 && SelectedProfile < Profiles.Count) return;
+
+		string preferredPath = Generator.Profile?.ResourcePath;
+		int preferredIdx = -1;
+		int packedIdx = -1;
+		for (int i = 0; i < Profiles.Count; i++)
+		{
+			if (!string.IsNullOrEmpty(preferredPath) && Profiles[i].Path == preferredPath)
+			{
+				preferredIdx = i;
+				break;
+			}
+			if (Profiles[i].Path.EndsWith("/packed.tres", StringComparison.OrdinalIgnoreCase))
+			{
+				packedIdx = i;
+			}
+		}
+		SelectedProfile = preferredIdx >= 0 ? preferredIdx : packedIdx >= 0 ? packedIdx : 0;
 	}
 
 	private void BuildControls()
@@ -69,6 +101,11 @@ public partial class RoomGenerationHarness : Node3D
 		_modePicker = Picker("View", out _, index => Mode = (RoomPreviewMode)index);
 		_modePicker.AddItem("Single room");
 		_modePicker.AddItem("Generated floor");
+		_profilePicker = Picker("Profile", out _profileRow, index => SelectedProfile = index);
+		foreach (var (_, path) in Profiles)
+		{
+			_profilePicker.AddItem(Local(path.GetFile().GetBaseName()).Replace('_', ' ').Capitalize());
+		}
 		_realmPicker = Picker("Realm", out _, SelectRealm);
 		foreach (var realm in Generator.Realms) _realmPicker.AddItem($"{realm.Id.Capitalize()} ({realm.FirstDepth}–{realm.LastDepth})");
 		_recipePicker = Picker("Recipe", out _, SelectRecipe);
@@ -132,7 +169,7 @@ public partial class RoomGenerationHarness : Node3D
 		return button;
 	}
 
-	private static string RecipeName(RoomType type) => type == null ? "Missing room type" : Local(type.Id).Replace('_', ' ').Capitalize();
+	private static string RecipeName(RoomDefinition def) => def == null ? "Missing room type" : Local(def.Id).Replace('_', ' ').Capitalize();
 
 	/// <summary>An ID without its realm prefix (garrison.hall → hall).</summary>
 	private static string Local(string id) => id.Split('.').Last();
@@ -147,11 +184,28 @@ public partial class RoomGenerationHarness : Node3D
 		SelectRecipe(0);
 	}
 
+	/// <summary>Selects a floor profile recipe when viewing generated floors.</summary>
+	public void SelectProfile(int index)
+	{
+		if (Profiles.Count == 0) return;
+		SelectedProfile = Mathf.Clamp(index, 0, Profiles.Count - 1);
+		RequestRegeneration();
+	}
+
 	private void ApplyRealm(int index)
 	{
 		SelectedRealm = index;
 		Generator.DungeonDepth = Realm.FirstDepth;
-		Factory = Generator.Rooms.ForRealm(Realm.Id);
+		Pool = Generator.Rooms.ForRealm(Realm.Id);
+		_recipes.Clear();
+		_recipes.AddRange(Pool.AllDefinitions);
+		foreach (var (group, _) in DebugCatalog.Resources<RoomGroup>(RoomGroupsDir))
+		{
+			if (group != null && group.SupportsRealm(Realm.Id) && !_recipes.Contains(group))
+			{
+				_recipes.Add(group);
+			}
+		}
 		_recipePicker.Clear();
 		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
 	}
@@ -196,6 +250,10 @@ public partial class RoomGenerationHarness : Node3D
 			else
 			{
 				ClearRoom();
+				if (Profiles.Count > 0 && SelectedProfile >= 0 && SelectedProfile < Profiles.Count)
+				{
+					Generator.Profile = Profiles[SelectedProfile].Resource;
+				}
 				Generator.Seed = Seed;
 				Generator.GenerateMap(false);
 				var usedCells = Generator.FloorGridMap.GetUsedCells();
@@ -219,7 +277,10 @@ public partial class RoomGenerationHarness : Node3D
 				{
 					FramePreview(Mathf.Max(Generator.MapWidth, Generator.MapDepth) * Room.TileSize + 12);
 				}
-				Status.Text = $"{Realm.Id.Capitalize()} floor · depth {Generator.DungeonDepth} · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms";
+				string profileName = Profiles.Count > 0 && SelectedProfile >= 0 && SelectedProfile < Profiles.Count
+					? Local(Profiles[SelectedProfile].Path.GetFile().GetBaseName())
+					: Generator.Profile?.GetType().Name ?? "custom";
+				Status.Text = $"{Realm.Id.Capitalize()} · {profileName} · depth {Generator.DungeonDepth} · Seed {Seed} · {Generator.Floor.Rooms.Count} rooms";
 			}
 			Airflow?.Bind(Mode == RoomPreviewMode.Room ? PreviewRoot : Generator);
 		}
@@ -236,9 +297,12 @@ public partial class RoomGenerationHarness : Node3D
 	{
 		if (_modePicker == null) return;
 		_syncing = true;
-		var type = Recipes.ElementAtOrDefault(SelectedRecipe);
+		var definition = Recipes.ElementAtOrDefault(SelectedRecipe);
+		var type = definition as RoomType;
 		bool room = Mode == RoomPreviewMode.Room;
 		_modePicker.Select((int)Mode);
+		_profileRow.Visible = !room && Profiles.Count > 0;
+		if (Profiles.Count > 0) _profilePicker.Select(Mathf.Clamp(SelectedProfile, 0, Profiles.Count - 1));
 		_realmPicker.Select(SelectedRealm);
 		_recipePicker.Select(SelectedRecipe);
 		_recipePicker.Disabled = !room;
@@ -248,12 +312,13 @@ public partial class RoomGenerationHarness : Node3D
 		Fill(_columnRow, _columnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
 			ColumnsOverride == RoomAssemblyOptions.Seeded ? 0 : ColumnsOverride == RoomAssemblyOptions.Off ? 1 : ColumnsOverride + 2,
 			$"Type chance ({type?.ColumnChance:P0})", "Off");
-		foreach (var row in new[] { _shapeRow, _wallsRow, _floorRow, _columnRow }) row.Visible &= room;
+		bool singleType = room && type != null;
+		foreach (var row in new[] { _shapeRow, _wallsRow, _floorRow, _columnRow }) row.Visible &= singleType;
 		_seedInput.SetValueNoSignal(Seed);
 		_furnishingsToggle.SetPressedNoSignal(Furnishings);
 		_furnishingsToggle.Visible = room;
 		_walkabilityToggle.SetPressedNoSignal(ShowWalkability);
-		_walkabilityToggle.Visible = room;
+		_walkabilityToggle.Visible = singleType;
 		_rotateButton.Disabled = !room;
 		_syncing = false;
 	}
@@ -269,7 +334,15 @@ public partial class RoomGenerationHarness : Node3D
 
 	private void GenerateRoom()
 	{
-		var candidate = AssembleRoomType(Recipes[SelectedRecipe]);
+		var definition = Recipes[SelectedRecipe];
+		if (definition is RoomGroup group)
+		{
+			GenerateCluster(group);
+			return;
+		}
+
+		var blueprint = AssembleRoomType(definition);
+		var candidate = blueprint.Room;
 		try
 		{
 			candidate.Rotate(_quarterTurns);
@@ -277,31 +350,139 @@ public partial class RoomGenerationHarness : Node3D
 			PreviewRoot.AddChild(candidate);
 			var map = candidate.Map;
 			candidate.Position = -(candidate.Origin + new Vector3I(map.Width - 1, 0, map.Height - 1) * (Room.TileSize / 2));
+			PreviewBlueprint = blueprint;
 			PreviewRoom = candidate;
+			_previewNode = candidate;
 			FramePreview(Mathf.Max(map.Width, map.Height) * Room.TileSize + 12);
 		}
 		catch
 		{
-			if (candidate != PreviewRoom) candidate.Free();
+			if (candidate != _previewNode) candidate.Free();
 			throw;
 		}
 	}
 
-	private Room AssembleRoomType(RoomType type)
+	private void GenerateCluster(RoomGroup group)
 	{
+		var options = new RoomAssemblyOptions { Furnish = Furnishings, Realm = Realm.Id };
+		var cluster = RoomAssembler.AssembleCluster(group, Seed, options, Pool);
+		Node3D container = null;
+		try
+		{
+			cluster.Rotate(_quarterTurns);
+			container = new Node3D { Name = group.Id };
+			var map = cluster.Map;
+			container.Position = -new Vector3((map.Width - 1) * 0.5f * Room.TileSize, 0, (map.Height - 1) * 0.5f * Room.TileSize);
+
+			var dividerCells = new HashSet<Vector3I>();
+			var framedEdges = new HashSet<(Vector3I Center, bool Horizontal)>();
+			foreach (var member in cluster.Members)
+			{
+				container.AddChild(member.Room);
+				var gridOffset = new Vector3I(member.Offset.X * Room.TileSize, 0, member.Offset.Y * Room.TileSize) - member.Room.Origin;
+				member.Room.Position = gridOffset;
+				foreach (var cell in member.Room.DividerCells) dividerCells.Add(cell + gridOffset);
+				foreach (var (center, horizontal) in member.Room.FramedEdges) framedEdges.Add((center + gridOffset, horizontal));
+			}
+			int memberCount = cluster.Members.Count;
+			cluster.DetachRooms();
+
+			BuildClusterBridges(container, map, dividerCells, framedEdges);
+			ClearRoom();
+			PreviewRoot.AddChild(container);
+			PreviewRoom = cluster.PrimaryRoom;
+			PreviewBlueprint = null;
+			_previewNode = container;
+			FramePreview(Mathf.Max(map.Width, map.Height) * Room.TileSize + 12);
+			Status.Text = $"{group.Id} (group) · {memberCount} rooms · {map.Width}×{map.Height} tiles · Seed {Seed} · {_quarterTurns * 90}°";
+		}
+		catch
+		{
+			cluster.Free();
+			container?.Free();
+			throw;
+		}
+	}
+
+	private void BuildClusterBridges(
+		Node3D container,
+		MapData map,
+		HashSet<Vector3I> dividerCells,
+		HashSet<(Vector3I Center, bool Horizontal)> framedEdges)
+	{
+		var corridors = Realm?.Corridors;
+		if (corridors == null || Generator.FloorGridMap == null || Generator.WallGridMap == null) return;
+
+		var corridorTiles = new List<(Vector2I Tile, Vector3I Center)>();
+		for (int x = 0; x < map.Width; x++)
+		{
+			for (int z = 0; z < map.Height; z++)
+			{
+				if (map.IsCorridor(x, z))
+				{
+					corridorTiles.Add((new Vector2I(x, z), new Vector3I(x * Room.TileSize, 0, z * Room.TileSize)));
+				}
+			}
+		}
+		if (corridorTiles.Count == 0) return;
+
+		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Decoration, "harness-group-bridges");
+		var floorGrid = CreateBridgeGrid("BridgeFloors", Generator.FloorGridMap.MeshLibrary);
+		foreach (var (_, center) in corridorTiles)
+		{
+			floorGrid.SetCellItem(center, corridors.GetCorridorTileIndex(rng), 0);
+		}
+		container.AddChild(floorGrid);
+
+		var wallGrid = CreateBridgeGrid("BridgeWalls", Generator.WallGridMap.MeshLibrary);
+		var wallItemIds = new Dictionary<string, int>();
+		BoundaryWallBuilder.Build(
+			wallGrid,
+			corridorTiles,
+			(tile, dx, dz) => map.HasWallToward(tile.X, tile.Y, new Vector2I(dx, dz)),
+			(_, isPartition) =>
+			{
+				string name = corridors.Walls.DrawEdge(rng, isPartition);
+				if (!wallItemIds.TryGetValue(name, out int id))
+				{
+					id = wallGrid.MeshLibrary.FindItemByName(name);
+					wallItemIds[name] = id;
+				}
+				return id;
+			},
+			dividerCells: dividerCells,
+			framedEdges: framedEdges);
+		container.AddChild(wallGrid);
+	}
+
+	private static GridMap CreateBridgeGrid(string name, MeshLibrary library) => new()
+	{
+		Name = name,
+		CellSize = Vector3.One,
+		CellCenterX = false,
+		CellCenterY = false,
+		CellCenterZ = false,
+		MeshLibrary = library,
+	};
+
+	private RoomBlueprint AssembleRoomType(RoomDefinition definition)
+	{
+		if (definition is not RoomType type)
+		{
+			throw new InvalidOperationException($"Room preview currently requires a RoomType, got {definition?.Id ?? "null"}.");
+		}
 		var options = new RoomAssemblyOptions
 		{
 			Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings, Realm = Realm.Id,
 		};
 		var blueprint = RoomAssembler.Build(type, Seed, options);
-		PreviewBlueprint = blueprint;
 		var (reachable, pockets) = AddWalkabilityOverlay(blueprint);
 		Status.Text = $"{type.Id} · Seed {Seed} · {_quarterTurns * 90}°\n"
 			+ $"{blueprint.Footprint.Width} × {blueprint.Footprint.Length} tile bounds · {blueprint.Footprint.Count} footprint tiles\n"
 			+ $"{ShapeName(blueprint.Shape)}\n"
 			+ $"walls {Local(blueprint.Walls.Id)} · floor {Local(blueprint.Floor.Id)} · columns {blueprint.Columns?.Id ?? "none"}\n"
 			+ $"{blueprint.Pieces.Count} props · {blueprint.Doorways.Count} doorways · pockets {(reachable + pockets == 0 ? 0 : 100f * pockets / (reachable + pockets)):F1}% of standable floor";
-		return blueprint.Room;
+		return blueprint;
 	}
 
 	/// <summary>Colours every standable cell: reachable from the doorways, reserved for circulation, or an inaccessible pocket.</summary>
@@ -309,15 +490,17 @@ public partial class RoomGenerationHarness : Node3D
 	{
 		var grid = blueprint.Grid;
 		var reached = grid.Reachable(blueprint.Doorways.Select(doorway => RoomBlueprint.XZ(doorway.Approach)));
-		var cells = new List<(Vector2 Center, Color Color)>();
+		var cells = ShowWalkability ? new List<(Vector2 Center, Color Color)>() : null;
 		int reachable = 0, pockets = 0;
 		for (int index = 0; index < reached.Length; index++)
 		{
 			var cell = new Vector2I(index % grid.Size.X, index / grid.Size.X);
 			if (!grid.IsStandable(cell)) continue;
-			var center = grid.CellCenter(cell);
 			if (reached[index]) reachable++;
 			else pockets++;
+			if (!ShowWalkability) continue;
+
+			var center = grid.CellCenter(cell);
 			var color = !reached[index] ? new Color(1, .15f, .1f, .8f)
 				: blueprint.Reserved.Concat(blueprint.Landings).Any(area => area.HasPoint(center)) ? new Color(.3f, .55f, 1, .45f) : new Color(.2f, .95f, .35f, .3f);
 			cells.Add((center, color));
@@ -344,9 +527,11 @@ public partial class RoomGenerationHarness : Node3D
 
 	private void ClearRoom()
 	{
-		if (PreviewRoom == null) return;
-		PreviewRoot.RemoveChild(PreviewRoom);
-		PreviewRoom.QueueFree();
+		PreviewBlueprint = null;
+		if (_previewNode == null) return;
+		PreviewRoot.RemoveChild(_previewNode);
+		_previewNode.QueueFree();
+		_previewNode = null;
 		PreviewRoom = null;
 	}
 

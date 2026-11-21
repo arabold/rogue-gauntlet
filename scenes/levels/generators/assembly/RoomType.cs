@@ -14,13 +14,8 @@ public enum CirculationMode { DoorwayApproaches, DoorToDoorSpine, None }
 /// New behaviour is a new strategy Resource, never a new room-type class.
 /// </summary>
 [Tool, GlobalClass]
-public partial class RoomType : Resource
+public partial class RoomType : RoomDefinition
 {
-	[Export] public string Id { get; set; } = "";
-	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1;
-	/// <summary>Realms (by ID) this room appears in; its styles and steps narrow down per realm by their own tags.</summary>
-	[Export] public string[] Realms { get; set; } = [];
-
 	[ExportGroup("Structure")]
 	[Export] public RoomShape[] Shapes { get; set; } = [];
 	[Export(PropertyHint.Range, "1,144")] public int MinimumFloorTiles { get; set; } = 1;
@@ -61,7 +56,7 @@ public partial class RoomType : Resource
 	public FloorStyle[] FloorsIn(string realm) => Floors.Where(style => Realm.Allows(style.Realms, realm)).ToArray();
 	public FurnishingStep[] StepsIn(string realm) => Steps.Where(step => Realm.Allows(step.Realms, realm)).ToArray();
 
-	public string[] Validate()
+	public override string[] Validate()
 	{
 		var errors = new List<string>();
 		if (string.IsNullOrWhiteSpace(Id)) errors.Add("Room type: assign a stable ID.");

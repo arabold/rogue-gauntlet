@@ -44,8 +44,8 @@ public class GenerationBaselineTest
 	[TestCase]
 	public async Task MissingExitRetriesInsteadOfDeliveringADeadEnd()
 	{
-		using var pool = (AssembledRoomFactory)TestFactories.RoomPool().Duplicate();
-		pool.ExitTypes = pool.EntranceTypes; // no descent anchor in the would-be exit
+		using var pool = (RoomPool)TestFactories.RoomPool().Duplicate();
+		pool.Exits = pool.Entrances; // no descent anchor in the would-be exit
 		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout(), pool);
 		using (runner)
 		{

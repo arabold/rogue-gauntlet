@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="SeatedTable" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/SeatedTable.cs" id="1_SeatedTable"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/groups/set_long_table.tres" id="2_set_long_tab"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/set_long_table.tres" id="2_set_long_tab"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/table_long_laden.tres" id="3_table_long_l"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/chair.tres" id="4_chair"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bench.tres" id="5_bench"]

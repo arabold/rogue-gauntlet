@@ -63,11 +63,18 @@ public partial class MapGenerator
 	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
 	/// their frame and their leaf standing open.
 	/// </summary>
+	private SolidOutline[] _cachedStaticOutlines;
+
+	private IReadOnlyList<SolidOutline> StaticOutlines() => _cachedStaticOutlines ??=
+	[
+		.. CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity),
+		.. CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity),
+	];
+
 	private IEnumerable<SolidOutline> SolidOutlines()
 	{
 		var toLocal = GlobalTransform.AffineInverse();
-		foreach (var outline in CollisionOutlines.FromGridMap(WallGridMap, Transform3D.Identity)) yield return outline;
-		foreach (var outline in CollisionOutlines.FromGridMap(DecorationGridMap, Transform3D.Identity)) yield return outline;
+		foreach (var outline in StaticOutlines()) yield return outline;
 		foreach (var outline in CollisionOutlines.FromStaticBodies(FloorContent, toLocal * FloorContent.GlobalTransform)) yield return outline;
 	}
 
@@ -76,13 +83,21 @@ public partial class MapGenerator
 	{
 		var grid = Floor.Walkability;
 		if (grid == null) return null;
-		var saved = grid.Save();
+		var snapshots = new List<(Rect2 Area, ClearanceGrid.RegionSnapshot Snapshot)>();
+		foreach (var tile in blocked)
+		{
+			var area = RoomFootprint.TileArea(Map.TileToWorld(tile));
+			snapshots.Add((area, grid.SaveRegion(area)));
+		}
 		try
 		{
-			foreach (var tile in blocked) grid.AddObstacle(RoomFootprint.TileArea(Map.TileToWorld(tile)));
+			foreach (var (area, _) in snapshots) grid.AddObstacle(area);
 			return grid.Reachable([ArrivalPoint()], Room.TileSize);
 		}
-		finally { grid.Restore(saved); }
+		finally
+		{
+			for (int i = snapshots.Count - 1; i >= 0; i--) grid.RestoreRegion(snapshots[i].Snapshot);
+		}
 	}
 
 	/// <summary>
@@ -92,9 +107,13 @@ public partial class MapGenerator
 	private bool TryBlockReachably(IReadOnlyList<SolidOutline> solids)
 	{
 		var grid = Floor.Walkability;
-		if (grid == null) return true;
+		if (grid == null || solids.Count == 0) return true;
+		var union = solids[0].Bounds;
+		for (int i = 1; i < solids.Count; i++) union = union.Merge(solids[i].Bounds);
+		var area = new Rect2(union.Position.X, union.Position.Z, union.Size.X, union.Size.Z);
+
 		var before = Floor.Reachable;
-		var saved = grid.Save();
+		var saved = grid.SaveRegion(area);
 		foreach (var solid in solids) grid.AddObstacle(solid);
 		var after = grid.Reachable([ArrivalPoint()], Room.TileSize);
 		for (int index = 0; index < before.Length; index++)
@@ -102,13 +121,13 @@ public partial class MapGenerator
 			if (!before[index] || after[index]) continue;
 			if (grid.IsStandable(new Vector2I(index % grid.Size.X, index / grid.Size.X)))
 			{
-				grid.Restore(saved);
+				grid.RestoreRegion(saved);
 				return false;
 			}
 		}
 		if (!after.Any(reached => reached))
 		{
-			grid.Restore(saved);
+			grid.RestoreRegion(saved);
 			return false;
 		}
 		Floor.SetWalkability(grid, after);
