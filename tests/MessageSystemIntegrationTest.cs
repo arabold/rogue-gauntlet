@@ -34,6 +34,9 @@ public partial class MessageSystemIntegrationTest
 		var hud = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/ui/hud.tscn").Instantiate<Hud>());
 		var feed = hud.GetNode<HudMessageFeed>("HudMessageFeed");
 		var vitals = hud.GetNode<Control>("Vitals");
+		// A release build hides the debug menu; the run menu must not bring it back.
+		var debugMenu = hud.GetNode<Control>("DebugMenu");
+		debugMenu.Visible = false;
 
 		SignalBus.EmitGamePaused(true);
 
@@ -45,6 +48,7 @@ public partial class MessageSystemIntegrationTest
 
 		SignalBus.EmitGamePaused(false);
 		AssertBool(vitals.Visible).IsTrue();
+		AssertBool(debugMenu.Visible).IsFalse();
 
 		hud.QueueFree();
 	}
