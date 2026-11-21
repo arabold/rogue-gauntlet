@@ -17,18 +17,18 @@ public class WardenTest
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
-		GameSession.Instance.ResetLevelDebugState(5);
+		GameSession.Instance.ResetLevelDebugState(TestFactories.GarrisonGatekeeperDepth);
 		// Seed 42 places the Warden on the first layout attempt, seed 8 only after retries.
 		foreach (ulong seed in new ulong[] { 42, 8 })
 		{
-			level.ConfigureGeneration(new RunState(seed), 5, null, null);
+			level.ConfigureGeneration(new RunState(seed), TestFactories.GarrisonGatekeeperDepth, null, null);
 			level.Generate();
 			var boss = Boss(level);
 			int home = HomeRoom(level, boss);
 			AssertBool(level.Floor.IsFootprintClear(boss.GlobalPosition,
 				level.Floor.Encounter.GatekeeperFit.MinimumClearance, home)).IsTrue();
 			AssertBool(home >= 0).IsTrue();
-			AssertBool(level.Seed == RunState.GetLevelSeed(seed, 5)).IsTrue();
+			AssertBool(level.Seed == RunState.GetLevelSeed(seed, TestFactories.GarrisonGatekeeperDepth)).IsTrue();
 			Vector3 firstPosition = boss.GlobalPosition;
 			int attempt = level.MapGenerator.GenerationAttempt;
 			// Room content may change which attempt fits; only the bound and reproducibility are contractual.
@@ -50,9 +50,9 @@ public class WardenTest
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
-		GameSession.Instance.ResetLevelDebugState(5);
+		GameSession.Instance.ResetLevelDebugState(TestFactories.GarrisonGatekeeperDepth);
 		GameSession.Instance.ResetCurrentLevelDebugState();
-		level.ConfigureGeneration(new RunState(42), 5, null, null);
+		level.ConfigureGeneration(new RunState(42), TestFactories.GarrisonGatekeeperDepth, null, null);
 		level.Generate();
 		// Keep player-driven reveal out of this component-specific visibility check.
 		level.FindChildren("*", "", true, false).OfType<RoomManager>().Single().SetPhysicsProcess(false);
@@ -86,8 +86,8 @@ public class WardenTest
 		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2, 20);
 		var level = (Level)runner.Scene();
-		GameSession.Instance.ResetLevelDebugState(5);
-		level.ConfigureGeneration(new RunState(12345), 5, null, null);
+		GameSession.Instance.ResetLevelDebugState(TestFactories.GarrisonGatekeeperDepth);
+		level.ConfigureGeneration(new RunState(12345), TestFactories.GarrisonGatekeeperDepth, null, null);
 		level.Generate();
 		var boss = Boss(level);
 		// Drive navigation directly; the behavior layer would otherwise pick its own goals.
@@ -469,5 +469,5 @@ public class WardenTest
 	private static int HomeRoom(Level level, EnemyBase boss) => level.Floor.RoomIdAt(boss.GlobalPosition);
 
 	private static EnemyBase Boss(Level level) => level.FindChildren("*", "", true, false)
-		.OfType<EnemyBase>().Single(e => e.GetMeta("persistent_id", "").AsString() == "depth:5:gatekeeper");
+		.OfType<EnemyBase>().Single(e => e.GetMeta("persistent_id", "").AsString() == $"depth:{TestFactories.GarrisonGatekeeperDepth}:gatekeeper");
 }

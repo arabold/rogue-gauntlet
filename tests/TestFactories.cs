@@ -326,7 +326,7 @@ public static partial class TestFactories
 		// Tests pin their rooms: the Garrison's, at every depth.
 		mapGenerator.Rooms = pool;
 		mapGenerator.Realms =
-			[new Realm { Id = "garrison", FirstDepth = 1, LastDepth = 100, Corridors = Load<DungeonTileFactory>("res://scenes/levels/realms/garrison_corridors.tres") }];
+			[new Realm { Id = "garrison", Theme = "garrison", FirstDepth = 1, LastDepth = 100, Corridors = Load<DungeonTileFactory>("res://scenes/levels/realms/garrison_corridors.tres") }];
 		mapGenerator.MobFactory = Load<MobFactory>("res://scenes/levels/dungeon/dungeon_mob_factory.tres");
 	}
 

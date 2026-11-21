@@ -69,7 +69,8 @@ public class GarrisonRoomPoolTest
 		string failure = "";
 		level.GenerationFailed += error => failure = error;
 		const ulong runSeed = 23;
-		for (uint depth = 1; depth <= 5; depth++)
+		// One floor of each kind: an ordinary floor, the nest floor and the gatekeeper floor.
+		foreach (uint depth in new[] { 0, RealmEncounterFactory.NestFloorIndex, encounters.GatekeeperFloorIndex }.Select(index => encounters.FirstDepth + (uint)index))
 		{
 			level.ConfigureGeneration(new RunState(runSeed), depth, null, null);
 			failure = "";
@@ -98,8 +99,8 @@ public class GarrisonRoomPoolTest
 					.OverrideFailureMessage($"seed={runSeed} {spawn.PersistentId}").IsFalse();
 			}
 			AssertInt(generator.EnemySpawnPoints.Count(generator.Floor.IsNest)).IsEqual(floor == RealmEncounterFactory.NestFloorIndex ? MapGenerator.NestsPerFloor : 0);
-			AssertBool(level.CanDescend).IsEqual(depth != 5);
-			if (depth == 5) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);
+			AssertBool(level.CanDescend).IsEqual(floor != encounters.GatekeeperFloorIndex);
+			if (floor == encounters.GatekeeperFloorIndex) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);
 			AssertBool(generator.EnemySpawnPoints.All(spawn => generator.Floor.IsReachable(spawn.GlobalPosition))).IsTrue();
 			AssertString(UnreachableLoot(generator)).OverrideFailureMessage($"seed={runSeed} depth={depth}").IsEmpty();
 			string first = Fingerprint(generator);

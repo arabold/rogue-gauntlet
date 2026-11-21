@@ -1,5 +1,8 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=40 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=44 format=3]
 
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ArcadeStep.cs" id="arcade"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/arcade_pier.tres" id="arcade_pier"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/arcade_arch.tres" id="arcade_arch"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="4_slimy_walls"]
@@ -38,7 +41,7 @@
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
 MinimumSize = Vector2i(5, 5)
-MaximumSize = Vector2i(5, 7)
+MaximumSize = Vector2i(7, 8)
 OddWidth = true
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
@@ -92,6 +95,13 @@ MaximumCount = 2
 Spacing = 0.6
 metadata/_custom_type_script = ExtResource("p_AlongWallsStep")
 
+[sub_resource type="Resource" id="ArcadeStep_aisles"]
+script = ExtResource("arcade")
+Id = "arcades"
+Content = [ExtResource("arcade_arch")]
+Layout = 1
+Pier = ExtResource("arcade_pier")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "cistern_hall"
@@ -106,5 +116,5 @@ DoorwayPlacement = 1
 Circulation = 0
 Walls = [ExtResource("4_slimy_walls"), ExtResource("5_arched_walls")]
 Floors = [ExtResource("6_grated_flagstone"), ExtResource("7_drained_flagston"), ExtResource("8_bricks_bordered_")]
-Steps = [SubResource("PoolStep_cistern"), SubResource("AlongWallsStep_pipework"), SubResource("CornersStep_3"), SubResource("ScatterStep_4"), SubResource("WallDecorStep_5")]
+Steps = [SubResource("PoolStep_cistern"), SubResource("ArcadeStep_aisles"), SubResource("AlongWallsStep_pipework"), SubResource("CornersStep_3"), SubResource("ScatterStep_4"), SubResource("WallDecorStep_5")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

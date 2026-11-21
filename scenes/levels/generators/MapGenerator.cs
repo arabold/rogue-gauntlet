@@ -35,15 +35,16 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	[Export] public Realm[] Realms { get; set; } = [];
 
-	/// <summary>The realm the current attempt builds from, resolved when the generator resets.</summary>
+	/// <summary>The realm the current floor builds from, resolved once before its first layout attempt.</summary>
 	public Realm CurrentRealm { get; private set; }
-	/// <summary>The floor recipe the current attempt builds with, resolved when the generator resets.</summary>
+	/// <summary>The floor recipe every layout attempt of the current floor builds with.</summary>
 	public FloorProfile CurrentProfile { get; private set; }
 	/// <summary>The current attempt's map size in tiles: its profile's <see cref="FloorProfile.MapSize"/>, or the generator's.</summary>
 	public Vector2I FloorSize => CurrentProfile?.MapSize is { X: > 0, Y: > 0 } size ? size : new((int)MapWidth, (int)MapDepth);
 	/// <summary>The current attempt's room budget: its profile's <see cref="FloorProfile.RoomCount"/>, or <see cref="MaxRooms"/>.</summary>
 	private uint RoomBudget => CurrentProfile?.RoomCount > 0 ? (uint)CurrentProfile.RoomCount : MaxRooms;
 	private RoomPool _realmRooms;
+	private EncounterPlan _encounter;
 	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
 	private readonly HashSet<Vector3I> _dividerCells = [];
 	private readonly HashSet<(Vector3I Center, bool Horizontal)> _framedEdges = [];
@@ -645,6 +646,7 @@ public partial class MapGenerator : Node3D
 
 	public void GenerateMap(bool includeGameplay = true)
 	{
+		PrepareFloor();
 		for (GenerationAttempt = 0; GenerationAttempt < 8; GenerationAttempt++)
 		{
 			if (GenerateMapAttempt(includeGameplay)) return;
@@ -729,47 +731,33 @@ public partial class MapGenerator : Node3D
 	private FloorProfile FloorPlanFor(EncounterPlan encounter)
 	{
 		if (encounter?.GatekeeperId != null && CurrentRealm?.BossProfile != null) return CurrentRealm.BossProfile;
-		if (UniqueFloorPlanAt(DungeonDepth) is { } unique) return unique;
+		if (UniqueFloorPlan.At(UniqueFloorPlans, RunSeed, DungeonDepth, IsOrdinaryFloor) is { } unique) return unique;
 		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Layout, "floor-plan");
 		return CurrentRealm?.PickFloorPlan(rng);
-	}
-
-	/// <summary>
-	/// The unique plan the run seed scheduled on <paramref name="depth"/>, if any. Each plan takes one ordinary floor of its
-	/// depth band (no gatekeeper, no shop) not already claimed by an earlier plan.
-	/// </summary>
-	public FloorProfile UniqueFloorPlanAt(uint depth)
-	{
-		var taken = new HashSet<uint>();
-		foreach (var plan in UniqueFloorPlans)
-		{
-			if (plan?.Profile == null) continue;
-			var candidates = new List<uint>();
-			for (uint candidate = plan.FirstDepth; candidate <= plan.LastDepth; candidate++)
-				if (!taken.Contains(candidate) && IsOrdinaryFloor(candidate)) candidates.Add(candidate);
-			if (candidates.Count == 0) continue;
-			using var rng = GenerationRandom.Create(RunSeed, "unique-floor", plan.Profile.ResourcePath);
-			uint chosen = candidates[rng.RandiRange(0, candidates.Count - 1)];
-			if (chosen == depth) return plan.Profile;
-			taken.Add(chosen);
-		}
-		return null;
 	}
 
 	/// <summary>A floor with neither a gatekeeper nor a shop, which a unique plan may take over.</summary>
 	private bool IsOrdinaryFloor(uint depth) =>
 		MobFactory?.PlanEncounters(depth)?.GatekeeperId == null && RealmAt(depth)?.ShopsAt(depth).Any() != true;
 
+	/// <summary>
+	/// Floor-wide choices every layout attempt shares: the realm, its rooms with the rare ones rolled for this floor, the
+	/// special encounters (planned before anything else, since they decide the floor plan, which sizes the map) and the plan.
+	/// </summary>
+	private void PrepareFloor()
+	{
+		var errors = UniqueFloorPlans.SelectMany(plan => plan?.Validate() ?? ["MapGenerator: remove empty unique floor plan entries."]).ToArray();
+		if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
+		CurrentRealm = RealmAt(DungeonDepth);
+		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Theme).ForFloor(Seed);
+		_encounter = MobFactory?.PlanEncounters(DungeonDepth);
+		CurrentProfile = Profile ?? FloorPlanFor(_encounter);
+	}
+
 	private void Reset()
 	{
 		GD.Print("Resetting map generator...");
 		_random = new LevelGenerationContext(Seed, GenerationAttempt);
-		CurrentRealm = RealmAt(DungeonDepth);
-		// Rare rooms are rolled once per floor, so retried layouts offer the same rooms.
-		_realmRooms = Rooms?.ForRealm(CurrentRealm?.ThemeId).ForFloor(Seed);
-		// Special encounters are planned before anything else: they decide the floor's plan, and the plan sizes the map.
-		var encounter = MobFactory?.PlanEncounters(DungeonDepth);
-		CurrentProfile = Profile ?? FloorPlanFor(encounter);
 
 		ResetAccess();
 		_cachedStaticOutlines = null;
@@ -779,7 +767,7 @@ public partial class MapGenerator : Node3D
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData(FloorSize.X, FloorSize.Y);
 		Map.ResetToBorderedEmpty();
-		Floor = new GeneratedFloor(Map, this, DecorationGridMap) { Encounter = encounter };
+		Floor = new GeneratedFloor(Map, this, DecorationGridMap) { Encounter = _encounter };
 
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();

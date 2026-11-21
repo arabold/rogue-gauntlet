@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/structure/arcade_arch.tscn" id="2_arch"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "arcade_arch"
+Scenes = [ExtResource("2_arch")]
+Gap = 0.0
+Structural = true
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

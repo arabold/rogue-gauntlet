@@ -26,8 +26,9 @@ public class PlayerTraversalTest
 	private const int FloorRouteExpansions = 100_000;
 
 	/// <summary>
-	/// A Garrison floor a playtest got stuck on (2983949030), the Garrison's gatekeeper floor and a prison floor, the widest
-	/// plan. The body climbs the arrival stairs, walks the navigation route to the exit landing and descends the exit stairs.
+	/// A Garrison floor a playtest got stuck on (2983949030), the Garrison's gatekeeper floor and a Prison-realm floor (seed
+	/// 11 builds the 40-wide prison plan there). The body climbs the arrival stairs, walks the navigation route to the exit
+	/// landing and descends the exit stairs.
 	/// </summary>
 	[TestCase(2983949030ul, 1u)]
 	[TestCase(7ul, 5u)]
@@ -55,10 +56,8 @@ public class PlayerTraversalTest
 
 		var route = new List<Vector2>();
 		float radius = EnemyBase.HorizontalRadius(body.GetNode<CollisionShape3D>("CollisionShape3D"));
-		var grid = level.Navigation.Grid;
-		float size = FloorNavigation.SizeClass(radius);
-		AssertBool(GridPath.TryFind(grid, start.Xz(), exit.Xz(), size, null, level.Navigation.Profile.Costs, FloorRouteExpansions,
-			size + grid.CellSize * 2, route)).OverrideFailureMessage("No route fits the player's body.").IsTrue();
+		AssertBool(level.Navigation.TryFindPath(start, exit, radius, route, FloorRouteExpansions))
+			.OverrideFailureMessage("No route fits the player's body.").IsTrue();
 		float length = GridPath.Length(start.Xz(), route);
 		int budget = Mathf.CeilToInt(length / Speed * 1000 / FrameMilliseconds * 1.6f) + 60;
 		int index = 0;

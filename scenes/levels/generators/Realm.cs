@@ -13,7 +13,7 @@ using Godot;
 public partial class Realm : Resource
 {
 	[Export] public string Id { get; set; } = "";
-	/// <summary>The content tag the realm's rooms, styles and furnishing steps name; empty uses <see cref="Id"/>.</summary>
+	/// <summary>The content tag the realm's rooms, styles and furnishing steps name; realms that share a look share it.</summary>
 	[Export] public string Theme { get; set; } = "";
 	[Export(PropertyHint.Range, "1,100")] public uint FirstDepth { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,100")] public uint LastDepth { get; set; } = 1;
@@ -28,9 +28,6 @@ public partial class Realm : Resource
 	[Export] public FloorPlanChoice[] FloorPlans { get; set; } = [];
 	/// <summary>The plan a gatekeeper floor builds from: a boss room sized for the gatekeeper that the descent lies behind.</summary>
 	[Export] public FloorProfile BossProfile { get; set; }
-
-	/// <summary>The theme the realm's content is tagged with.</summary>
-	public string ThemeId => string.IsNullOrEmpty(Theme) ? Id : Theme;
 
 	public bool Covers(uint depth) => depth >= FirstDepth && depth <= LastDepth;
 
@@ -47,7 +44,8 @@ public partial class Realm : Resource
 	public string[] Validate()
 	{
 		var errors = new List<string>();
-		if (string.IsNullOrWhiteSpace(Id) || Corridors == null) errors.Add($"Realm {Id}: assign an ID and its corridor tiles.");
+		if (string.IsNullOrWhiteSpace(Id) || string.IsNullOrWhiteSpace(Theme) || Corridors == null)
+			errors.Add($"Realm {Id}: assign an ID, a theme and its corridor tiles.");
 		if (FirstDepth > LastDepth) errors.Add($"Realm {Id}: the first depth must not follow the last.");
 		foreach (var plan in FloorPlans)
 			if (plan?.Profile == null) errors.Add($"Realm {Id}: every floor plan needs a profile.");

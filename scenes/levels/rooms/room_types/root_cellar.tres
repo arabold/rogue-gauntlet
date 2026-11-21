@@ -34,7 +34,7 @@
 script = ExtResource("3_rectangleshape")
 Weight = 2.0
 MinimumSize = Vector2i(2, 2)
-MaximumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(4, 5)
 OddWidth = false
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 

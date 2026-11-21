@@ -83,7 +83,7 @@ public class GeneratedFloorSweepTest
 			var contracts = new FloorContracts();
 			int totalCorridorLoot = 0;
 			int totalLockedDoors = 0;
-			uint[] realmDepths = [1u, 11u, 16u];
+			var realmDepths = TestFactories.ThemeDepths;
 
 			for (ulong seed = 1; seed <= 9; seed++)
 			{
@@ -145,7 +145,7 @@ public class GeneratedFloorSweepTest
 			TestFactories.WireLootScenes(gateGen);
 			gateGen.MobFactory = TestFactories.Load<MobFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 			gateGen.Seed = 1;
-			gateGen.DungeonDepth = 5;
+			gateGen.DungeonDepth = TestFactories.GarrisonGatekeeperDepth;
 			gateLevel.Generate();
 			var gateContracts = new FloorContracts();
 			gateContracts.Check(gateGen, "labyrinth seed 1 depth 5 (garrison)");
@@ -169,7 +169,7 @@ public class GeneratedFloorSweepTest
 			TestFactories.UseAuthoredRealms(generator);
 			TestFactories.WireLootScenes(generator);
 			var contracts = new FloorContracts();
-			uint[] realmDepths = [1u, 11u, 16u];
+			var realmDepths = TestFactories.ThemeDepths;
 
 			for (ulong seed = 1; seed <= 6; seed++)
 			{
@@ -209,7 +209,7 @@ public class GeneratedFloorSweepTest
 			TestFactories.UseAuthoredRealms(generator);
 			TestFactories.WireLootScenes(generator);
 			var contracts = new FloorContracts();
-			uint[] realmDepths = [1u, 11u, 16u];
+			var realmDepths = TestFactories.ThemeDepths;
 			foreach (string plan in new[] { "prison", "cathedral", "cloister", "mines" })
 			{
 				generator.Profile = TestFactories.Load<FloorProfile>($"res://scenes/levels/generators/floor_profiles/{plan}.tres");
@@ -282,7 +282,7 @@ public class GeneratedFloorSweepTest
 			TestFactories.UseAuthoredRealms(generator);
 			TestFactories.WireLootScenes(generator);
 			var contracts = new FloorContracts();
-			uint[] realmDepths = [1u, 11u, 16u];
+			var realmDepths = TestFactories.ThemeDepths;
 
 			for (ulong seed = 1; seed <= 6; seed++)
 			{
@@ -326,7 +326,7 @@ public class GeneratedFloorSweepTest
 			TestFactories.WireLootScenes(generator);
 			generator.MobFactory = TestFactories.Load<MobFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 			var contracts = new FloorContracts();
-			uint[] realmDepths = [5u, 11u, 16u];
+			uint[] realmDepths = [TestFactories.GarrisonGatekeeperDepth, TestFactories.ThemeDepths[1], TestFactories.ThemeDepths[2]];
 			int gatekeepersChecked = 0;
 
 			for (ulong seed = 1; seed <= 9; seed++)
@@ -403,8 +403,7 @@ public class GeneratedFloorSweepTest
 	[TestCase]
 	public async Task ShippedGatekeeperFloorsLeadThroughTheBossRoom()
 	{
-		const uint gatekeeperDepth = 5; // The Garrison's gatekeeper floor.
-		var (runner, level) = await TestFactories.GenerateLevel(1, gatekeeperDepth);
+		var (runner, level) = await TestFactories.GenerateLevel(1, TestFactories.GarrisonGatekeeperDepth);
 		using (runner)
 		{
 			var generator = level.MapGenerator;
@@ -413,7 +412,7 @@ public class GeneratedFloorSweepTest
 			{
 				if (seed > 1)
 				{
-					level.ConfigureGeneration(new RunState(seed), gatekeeperDepth, null, null);
+					level.ConfigureGeneration(new RunState(seed), TestFactories.GarrisonGatekeeperDepth, null, null);
 					level.Generate();
 				}
 				string label = $"gatekeeper floor seed {seed} ({generator.CurrentRealm.Id})";

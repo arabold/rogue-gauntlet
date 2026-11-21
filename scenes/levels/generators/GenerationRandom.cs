@@ -17,6 +17,8 @@ public static class GenerationRandom
 	public const string Loot = "loot";
 	/// <summary>The run's fountain schedule (keyed by the run seed) and each floor's fountain placement.</summary>
 	public const string Fountains = "fountains";
+	/// <summary>The run's schedule of floor plans it meets only once, keyed by the run seed.</summary>
+	public const string UniqueFloors = "unique-floor";
 	/// <summary>Rolls made during play without a stable source (enchanting, summons), keyed by a saved counter.</summary>
 	public const string GameplayLoot = "gameplay-loot";
 	/// <summary>Presentation-only rolls, such as where a drop lands, kept apart so they never shift gameplay streams.</summary>

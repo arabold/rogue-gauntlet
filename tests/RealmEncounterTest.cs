@@ -15,7 +15,7 @@ public class RealmEncounterTest
 	{
 		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
-		for (uint depth = 1; depth <= 5; depth++)
+		for (uint depth = factory.FirstDepth; factory.ContainsDepth(depth); depth++)
 		{
 			var costs = factory.Entries.Where(e => e.EligibleAt(depth)).ToDictionary(e => e, e => RealmEncounterFactory.Cost(e, depth, threat));
 			float cheapest = costs.Values.Min();
@@ -35,11 +35,11 @@ public class RealmEncounterTest
 		}
 		using var fallbackA = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		using var fallbackB = GenerationRandom.Create(42, GenerationRandom.Monsters);
-		AssertString(Fingerprint(Members(factory.CreatePacks(6, threat, fallbackA))))
-			.IsEqual(Fingerprint(Members(factory.Fallback.CreatePacks(6, threat, fallbackB))));
+		AssertString(Fingerprint(Members(factory.CreatePacks(TestFactories.GarrisonGatekeeperDepth + 1, threat, fallbackA))))
+			.IsEqual(Fingerprint(Members(factory.Fallback.CreatePacks(TestFactories.GarrisonGatekeeperDepth + 1, threat, fallbackB))));
 		AssertBool(factory.ContainsDepth(0)).IsFalse();
-		AssertBool(factory.ContainsDepth(5)).IsTrue();
-		AssertBool(factory.ContainsDepth(6)).IsFalse();
+		AssertBool(factory.ContainsDepth(TestFactories.GarrisonGatekeeperDepth)).IsTrue();
+		AssertBool(factory.ContainsDepth(TestFactories.GarrisonGatekeeperDepth + 1)).IsFalse();
 	}
 
 	private static string[][] Members(System.Collections.Generic.List<PackedScene[]> packs) =>
@@ -86,7 +86,7 @@ public class RealmEncounterTest
 		AssertBool(level.FindChildren("*", "", true, false).OfType<DestructibleNest>()
 			.Any(n => n.GetMeta("persistent_id").AsString() == nestId)).IsFalse();
 
-		level.ConfigureGeneration(new RunState(12345), 5, null, null);
+		level.ConfigureGeneration(new RunState(12345), TestFactories.GarrisonGatekeeperDepth, null, null);
 		level.Generate();
 		AssertBool(level.CanDescend).IsFalse();
 		var boss = level.FindChildren("*", "", true, false).OfType<EnemyBase>()
@@ -129,7 +129,7 @@ public class RealmEncounterTest
 		var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory.Duplicate();
 		realm.GatekeeperScene = null;
 		level.MapGenerator.MobFactory = realm;
-		level.ConfigureGeneration(new RunState(12345), 5, null, null);
+		level.ConfigureGeneration(new RunState(12345), TestFactories.GarrisonGatekeeperDepth, null, null);
 		level.Generate();
 		AssertObject(level.Floor).IsNotNull();
 		AssertObject(level.Floor.GatekeeperSpawn).IsNull();

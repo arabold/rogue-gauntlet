@@ -1,0 +1,81 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ArcadeStep.cs" id="arcade"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="along"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="scatter"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/arcade_pier.tres" id="arcade_pier"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/arcade_arch.tres" id="arcade_arch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/arched_walls.tres" id="arched_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/grated_flagstones.tres" id="grated_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/drained_flagstones.tres" id="drained_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_bordered_flagstones.tres" id="bricks_bordered_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/channel_flagstones.tres" id="channel_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/valve.tres" id="valve"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/pipe_run.tres" id="pipe_run"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/pipe_outlet.tres" id="pipe_outlet"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble.tres" id="rubble"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/goo_puddle.tres" id="goo_puddle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel.tres" id="barrel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/goo_barrel.tres" id="goo_barrel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="torch"]
+
+[sub_resource type="Resource" id="RectangleShape_vault"]
+script = ExtResource("rectangle")
+MinimumSize = Vector2i(3, 6)
+MaximumSize = Vector2i(5, 10)
+
+[sub_resource type="Resource" id="ArcadeStep_bays"]
+script = ExtResource("arcade")
+Id = "arcade"
+Content = [ExtResource("arcade_arch")]
+MinimumCount = 1
+MaximumCount = 3
+Pier = ExtResource("arcade_pier")
+
+[sub_resource type="Resource" id="AlongWallsStep_pipework"]
+script = ExtResource("along")
+Id = "pipework"
+Content = [ExtResource("valve"), ExtResource("pipe_run"), ExtResource("pipe_outlet")]
+MaximumCount = 3
+Spacing = 0.8
+
+[sub_resource type="Resource" id="CornersStep_debris"]
+script = ExtResource("corners")
+Id = "corner_debris"
+Content = [ExtResource("rubble"), ExtResource("barrel_stack"), ExtResource("bone_pile"), ExtResource("goo_barrel")]
+MaximumCount = 4
+
+[sub_resource type="Resource" id="ScatterStep_flotsam"]
+script = ExtResource("scatter")
+Id = "flotsam"
+Content = [ExtResource("barrel"), ExtResource("bucket"), ExtResource("floor_debris"), ExtResource("bone_pile"), ExtResource("goo_puddle"), ExtResource("goo_barrel")]
+MaximumCount = 10
+WallChance = 0.7
+
+[sub_resource type="Resource" id="WallDecorStep_torches"]
+script = ExtResource("decor")
+Id = "torches"
+Content = [ExtResource("torch")]
+MaximumCount = 4
+Spacing = 6.0
+
+[resource]
+script = ExtResource("room_type")
+Id = "sewer_vault"
+Realms = PackedStringArray("sewer")
+Shapes = [SubResource("RectangleShape_vault")]
+MinimumFloorTiles = 18
+MinDoorways = 2
+MaxDoorways = 3
+Walls = [ExtResource("slimy_walls"), ExtResource("arched_walls")]
+Floors = [ExtResource("grated_flagstones"), ExtResource("drained_flagstones"), ExtResource("bricks_bordered_flagstones"), ExtResource("channel_flagstones")]
+Steps = [SubResource("ArcadeStep_bays"), SubResource("AlongWallsStep_pipework"), SubResource("CornersStep_debris"), SubResource("ScatterStep_flotsam"), SubResource("WallDecorStep_torches")]

@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="walls"]
+
+[sub_resource type="BoxShape3D" id="jamb"]
+size = Vector3(1, 4, 1)
+
+[node name="ArcadeArch" type="Node3D"]
+
+[node name="Arch" type="GridMap" parent="."]
+mesh_library = ExtResource("walls")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+collision_layer = 0
+collision_mask = 0
+data = {
+"cells": PackedInt32Array(0, 0, 12)
+}
+
+[node name="Body" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="LeftJamb" type="CollisionShape3D" parent="Body"]
+position = Vector3(-1.5, 2, 0)
+shape = SubResource("jamb")
+
+[node name="RightJamb" type="CollisionShape3D" parent="Body"]
+position = Vector3(1.5, 2, 0)
+shape = SubResource("jamb")

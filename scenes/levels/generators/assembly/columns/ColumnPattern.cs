@@ -38,14 +38,4 @@ public abstract partial class ColumnPattern : Resource
 	/// <summary>Points at interior tile corners only, so every column stands clear of the walls.</summary>
 	protected static Vector3[] Corners(RoomFootprint footprint, params Vector2I[] corners) =>
 		corners.Distinct().All(footprint.IsInteriorCorner) ? corners.Distinct().Select(RoomFootprint.CornerPoint).ToArray() : [];
-
-	/// <summary>Evenly spaced corner indices between 1 and <paramref name="tiles"/>-1, centered on the span.</summary>
-	protected static IEnumerable<int> Spaced(int tiles, int spacing)
-	{
-		if (tiles < 2) yield break;
-		spacing = Mathf.Max(1, spacing);
-		int count = (tiles - 2) / spacing + 1;
-		int first = 1 + ((tiles - 2) - (count - 1) * spacing) / 2;
-		for (int index = 0; index < count; index++) yield return first + index * spacing;
-	}
 }

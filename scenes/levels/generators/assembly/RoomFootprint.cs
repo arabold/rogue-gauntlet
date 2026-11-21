@@ -45,6 +45,19 @@ public sealed class RoomFootprint
 	/// <summary>Local position of the corner shared by tiles (x-1..x, z-1..z).</summary>
 	public static Vector3 CornerPoint(Vector2I corner) => TileCenter(corner) - new Vector3(Room.TileSize / 2f, 0, Room.TileSize / 2f);
 
+	/// <summary>
+	/// Corner indices <paramref name="spacing"/> apart between <paramref name="margin"/> and
+	/// <paramref name="tiles"/> - <paramref name="margin"/>, centered on the span: leftover tiles split between its ends.
+	/// </summary>
+	public static IEnumerable<int> Spaced(int tiles, int spacing, int margin = 1)
+	{
+		if (tiles < 2 * margin) yield break;
+		spacing = Mathf.Max(1, spacing);
+		int count = (tiles - 2 * margin) / spacing + 1;
+		int first = margin + ((tiles - 2 * margin) - (count - 1) * spacing) / 2;
+		for (int index = 0; index < count; index++) yield return first + index * spacing;
+	}
+
 	/// <summary>Builds a footprint from a mask, trimming empty outer rows and columns.</summary>
 	public static RoomFootprint Trimmed(bool[,] mask)
 	{

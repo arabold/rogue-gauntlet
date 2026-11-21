@@ -15,7 +15,7 @@ Add new floor generator archetypes and an Inversion-of-Control (`FloorProfile`) 
 
 **Shared baseline change:** Loose items, access keys, and wall-backed chests become eligible in both rooms and corridors across all profiles; scheduled fountains stay room-only.
 
-**Delivery boundary:** Realms pick each floor's plan: five realms of five floors each list weighted `FloorPlans` and a `BossProfile` (`boss.tres`) for gatekeeper floors, and `level.tscn`'s `MapGenerator.UniqueFloorPlans` schedules `labyrinth.tres` once per run between depths 7 and 19. A generator `Profile` pins every floor for tests and previews. Every profile sets its own map size and room count, and draws its locks from a shared preset in `access/floor_access_profiles/` (`rare_lock.tres`, or `lock_chains.tres` for the labyrinth) built from the shared lock definitions in `access/locks/`. The scatter-placement `SimpleRoomLayout` and `simple.tres` are retired.
+**Delivery boundary:** Realms pick each floor's plan, and the labyrinth comes once per run (see [current generation](../level-design.md#current-generation)). Every profile sets its own map size and room count, and draws its locks from a shared preset in `access/floor_access_profiles/` (`rare_lock.tres`, or `lock_chains.tres` for the labyrinth) built from the shared lock definitions in `access/locks/`. The scatter-placement `SimpleRoomLayout` and `simple.tres` are retired.
 
 ---
 

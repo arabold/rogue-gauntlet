@@ -38,12 +38,25 @@ public partial class RoomPool : Resource
 
 	/// <summary>
 	/// This view for one floor: each rare definition (<see cref="RoomDefinition.FloorChance"/> below 1) is offered or
-	/// withheld by its own roll from <paramref name="floorSeed"/>, independent of the order rooms are considered in.
+	/// withheld by its own roll from <paramref name="floorSeed"/>, independent of the order rooms are considered in, and
+	/// a withheld definition leaves the slot lists, so layouts and room groups never draw it. A slot whose every
+	/// definition lost its roll keeps them all: rarity never leaves a slot unfilled.
 	/// </summary>
-	public RoomPool ForFloor(ulong floorSeed) => new()
+	public RoomPool ForFloor(ulong floorSeed)
 	{
-		RealmId = RealmId, Entrances = Entrances, Exits = Exits, Rooms = Rooms, _floorSeed = floorSeed,
-	};
+		var view = new RoomPool { RealmId = RealmId, _floorSeed = floorSeed };
+		view.Entrances = view.Offered(Entrances);
+		view.Exits = view.Offered(Exits);
+		view.Rooms = view.Offered(Rooms);
+		return view;
+	}
+
+	/// <summary>The definitions this floor offers, keeping empty entries so assembly still reports them.</summary>
+	private RoomDefinition[] Offered(RoomDefinition[] definitions)
+	{
+		var offered = definitions.Where(def => def == null || Offers(def)).ToArray();
+		return offered.Any(def => def != null) ? offered : definitions;
+	}
 
 	/// <summary>Whether this floor offers <paramref name="definition"/>: it suits the realm and, if rare, won its roll.</summary>
 	public bool Offers(RoomDefinition definition)

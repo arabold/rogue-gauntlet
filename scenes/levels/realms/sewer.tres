@@ -21,6 +21,7 @@ Weight = 1.0
 [resource]
 script = ExtResource("realm")
 Id = "sewer"
+Theme = "sewer"
 FirstDepth = 11
 LastDepth = 15
 Corridors = ExtResource("corridors")
