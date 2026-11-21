@@ -23,7 +23,7 @@ public partial class FloatingLabel : Sprite3D
 			field = value;
 			if (IsNodeReady())
 			{
-				_label.Text = value;
+				LabelNode.Text = value;
 				QueueLayout();
 			}
 		}
@@ -39,7 +39,7 @@ public partial class FloatingLabel : Sprite3D
 			field = value;
 			if (IsNodeReady())
 			{
-				_keyBinding.ActionBinding = value;
+				KeyBindingNode.ActionBinding = value;
 				RefreshAvailability();
 				QueueLayout();
 			}
@@ -58,11 +58,18 @@ public partial class FloatingLabel : Sprite3D
 			if (IsNodeReady()) { RefreshAvailability(); QueueLayout(); }
 		}
 	} = true;
+	private bool _layoutQueued;
 	private SubViewport _viewport;
 	private HBoxContainer _content;
-	private bool _layoutQueued;
 	private Label _label;
 	private KeyBinding _keyBinding;
+
+	// The label's own scene parts, looked up on first use instead of in _Ready: when the editor reloads C# scripts it
+	// recreates this object without running _Ready again and restores the exports through their setters.
+	private SubViewport ContentViewport => _viewport ??= GetNode<SubViewport>("SubViewport");
+	private HBoxContainer Content => _content ??= GetNode<HBoxContainer>("SubViewport/HFlowContainer");
+	private Label LabelNode => _label ??= GetNode<Label>("%Label");
+	private KeyBinding KeyBindingNode => _keyBinding ??= GetNode<KeyBinding>("%KeyBinding");
 
 	public override void _EnterTree()
 	{
@@ -85,22 +92,17 @@ public partial class FloatingLabel : Sprite3D
 	public override void _Ready()
 	{
 		if (!Engine.IsEditorHint()) Visible = false;
-		_label = GetNode<Label>("%Label");
-		_label.Text = Text;
-
-		_keyBinding = GetNode<KeyBinding>("%KeyBinding");
-		_keyBinding.ActionBinding = ActionBinding;
-		_viewport = GetNode<SubViewport>("SubViewport");
-		_content = GetNode<HBoxContainer>("SubViewport/HFlowContainer");
+		LabelNode.Text = Text;
+		KeyBindingNode.ActionBinding = ActionBinding;
 		RefreshAvailability();
 		QueueLayout();
 	}
 
 	private void RefreshAvailability()
 	{
-		_keyBinding.Visible = IsAvailable && !string.IsNullOrEmpty(ActionBinding);
-		_keyBinding.IsDisabled = !IsAvailable;
-		_label.Modulate = IsAvailable ? Colors.White : new Color(1, 0.35f, 0.35f);
+		KeyBindingNode.Visible = IsAvailable && !string.IsNullOrEmpty(ActionBinding);
+		KeyBindingNode.IsDisabled = !IsAvailable;
+		LabelNode.Modulate = IsAvailable ? Colors.White : new Color(1, 0.35f, 0.35f);
 	}
 	private void QueueLayout()
 	{
@@ -111,8 +113,8 @@ public partial class FloatingLabel : Sprite3D
 	private void UpdateLayout()
 	{
 		_layoutQueued = false;
-		if (!IsInsideTree() || _content == null) return;
-		var minimum = _content.GetCombinedMinimumSize();
-		_viewport.Size = new Vector2I(Mathf.Max(64, Mathf.CeilToInt(minimum.X) + 32), Mathf.Max(64, Mathf.CeilToInt(minimum.Y) + 16));
+		if (!IsInsideTree()) return;
+		var minimum = Content.GetCombinedMinimumSize();
+		ContentViewport.Size = new Vector2I(Mathf.Max(64, Mathf.CeilToInt(minimum.X) + 32), Mathf.Max(64, Mathf.CeilToInt(minimum.Y) + 16));
 	}
 }
