@@ -1,13 +1,18 @@
-[gd_resource type="Resource" script_class="FloorProfile" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/levels/generators/layouts/CourtyardRoomLayout.cs" id="layout"]
 [ext_resource type="Script" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="connector"]
 [ext_resource type="Resource" path="res://scenes/levels/access/floor_access_profiles/rare_lock.tres" id="access"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/nave.tres" id="nave"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/side_chapel.tres" id="side_chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/chapel.tres" id="chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/crypt.tres" id="crypt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/library.tres" id="library"]
 
 [sub_resource type="Resource" id="CourtyardRoomLayout"]
 script = ExtResource("layout")
+SideRooms = [ExtResource("side_chapel"), ExtResource("chapel"), ExtResource("crypt"), ExtResource("library")]
 Center = ExtResource("nave")
 
 [sub_resource type="Resource" id="AStarCorridorConnector"]
