@@ -1,13 +1,21 @@
-[gd_resource type="Resource" script_class="FloorProfile" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="FloorProfile" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/FloorProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/levels/generators/layouts/CourtyardRoomLayout.cs" id="layout"]
 [ext_resource type="Script" path="res://scenes/levels/generators/connectors/AStarCorridorConnector.cs" id="connector"]
 [ext_resource type="Resource" path="res://scenes/levels/access/floor_access_profiles/rare_lock.tres" id="access"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/courtyard.tres" id="courtyard"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/monk_cell.tres" id="monk_cell"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/scriptorium.tres" id="scriptorium"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/dining.tres" id="dining"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/kitchen.tres" id="kitchen"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/chapel.tres" id="chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/library.tres" id="library"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/storage.tres" id="storage"]
 
 [sub_resource type="Resource" id="CourtyardRoomLayout"]
 script = ExtResource("layout")
+SideRooms = [ExtResource("monk_cell"), ExtResource("scriptorium"), ExtResource("dining"), ExtResource("kitchen"), ExtResource("chapel"), ExtResource("library"), ExtResource("storage")]
 Branches = 4
 Center = ExtResource("courtyard")
 

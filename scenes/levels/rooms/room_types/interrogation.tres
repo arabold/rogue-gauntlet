@@ -1,0 +1,67 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=28 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="center"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/prison_walls.tres" id="prison"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="stone"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="crypt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_floor.tres" id="stone_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_floor.tres" id="bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/chopping_block.tres" id="chopping_block"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/chair.tres" id="chair"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/brazier.tres" id="brazier"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/cauldron.tres" id="cauldron"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/shackles.tres" id="shackles"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/keyring.tres" id="keyring"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/straw_pile.tres" id="straw_pile"]
+
+[sub_resource type="Resource" id="RectangleShape_interrogation"]
+script = ExtResource("rectangle")
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
+
+[sub_resource type="Resource" id="CenterStep_block"]
+script = ExtResource("center")
+Id = "block"
+Content = [ExtResource("chopping_block"), ExtResource("chair")]
+MaximumCount = 1
+
+[sub_resource type="Resource" id="CornersStep_fire"]
+script = ExtResource("corners")
+Id = "fire"
+Content = [ExtResource("brazier"), ExtResource("cauldron")]
+MaximumCount = 2
+
+[sub_resource type="Resource" id="WallDecorStep_shackles"]
+script = ExtResource("decor")
+Id = "shackles"
+Content = [ExtResource("shackles"), ExtResource("keyring")]
+MaximumCount = 3
+
+[sub_resource type="Resource" id="ScatterStep_remains"]
+script = ExtResource("scatter")
+Id = "remains"
+Content = [ExtResource("bone_pile"), ExtResource("bucket"), ExtResource("straw_pile")]
+MaximumCount = 2
+
+[resource]
+script = ExtResource("room_type")
+Id = "interrogation"
+Realms = PackedStringArray("garrison", "sewer", "jungle")
+Shapes = [SubResource("RectangleShape_interrogation")]
+MinimumFloorTiles = 9
+MinDoorways = 1
+MaxDoorways = 1
+DoorwayPlacement = 3
+DoorChance = 1.0
+Walls = [ExtResource("prison"), ExtResource("stone"), ExtResource("crypt")]
+Floors = [ExtResource("stone_floor"), ExtResource("flagstones_floor"), ExtResource("bricks_floor"), ExtResource("earth_floor")]
+Steps = [SubResource("CenterStep_block"), SubResource("CornersStep_fire"), SubResource("WallDecorStep_shackles"), SubResource("ScatterStep_remains")]
