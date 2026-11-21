@@ -19,5 +19,5 @@ Tier = 5
 ValidSlots = 192
 RollTable = ExtResource("roll_table")
 Name = "Ring of Dexterity"
-Value = 750
+Value = 3750
 metadata/_custom_type_script = ExtResource("1_item")

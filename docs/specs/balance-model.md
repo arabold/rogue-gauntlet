@@ -256,8 +256,9 @@ healing and less than a fountain's full heal, on the floor before the gatekeeper
 of the run. `supply` reports the gold a
 floor holds, so prices can be checked against it by hand: about 125 on depth 1, 130 on depth 2 and 180 on depth 3,
 with every source looted. A hero who clears the first two floors reaches the Quartermaster with up to about 250 gold,
-roughly the shelf's full price. Re-measure after changing gold drops, and model shops only if merchants ever restock or
-sell more than a shelf.
+and selling spare loot (a fifth of its retail value) adds about a hundred more. The shelf costs about 1,000, so that
+buys about a third of it: a weapon and a potion, or potions, a loaf and a lockpick, but never the whole shelf. Re-measure after changing gold drops, and
+model shops only if merchants ever restock or sell more than a shelf.
 
 ## Experience
 

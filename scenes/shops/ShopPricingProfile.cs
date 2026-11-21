@@ -15,13 +15,13 @@ public partial class ShopPricingProfile : Resource
 	/// <summary>Prices of unknown types by what the hero sees: "category:form" (a "potion:small"), else the bare category ("scroll").</summary>
 	[Export] public Godot.Collections.Dictionary<string, int> UnknownPrices { get; set; } = new();
 	/// <summary>An unknown type <see cref="UnknownPrices"/> does not list.</summary>
-	[Export(PropertyHint.Range, "1,1000,1,or_greater")] public int UnknownItemPrice { get; set; } = 25;
+	[Export(PropertyHint.Range, "1,10000,1,or_greater")] public int UnknownItemPrice { get; set; } = 125;
 
 	[ExportGroup("Equipment")]
 	[Export] public Godot.Collections.Dictionary<ItemQuality, float> QualityMultipliers { get; set; } = new();
 	/// <summary>Gold per visible unit of an affix's stat, such as one percentage point of critical chance.</summary>
 	[Export] public Godot.Collections.Dictionary<StatType, float> AffixUnitPrices { get; set; } = new();
-	[Export(PropertyHint.Range, "0,100,0.1,or_greater")] public float DefaultAffixUnitPrice { get; set; } = 1f;
+	[Export(PropertyHint.Range, "0,1000,0.1,or_greater")] public float DefaultAffixUnitPrice { get; set; } = 5f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float MaxAffixPremium { get; set; } = .5f;
 
 	[ExportGroup("Resale")]

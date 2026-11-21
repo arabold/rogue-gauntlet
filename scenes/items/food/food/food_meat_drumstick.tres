@@ -21,5 +21,5 @@ UnidentifiedNameTemplate = "Roasted Turkey Drumstick"
 Buff = SubResource("Resource_buff")
 Name = "Roasted Turkey Drumstick"
 Scene = ExtResource("3_scene")
-Value = 15
+Value = 75
 metadata/_custom_type_script = ExtResource("4_script")

@@ -19,5 +19,5 @@ Tier = 2
 ValidSlots = 192
 RollTable = ExtResource("roll_table")
 Name = "Ring of Health"
-Value = 300
+Value = 1500
 metadata/_custom_type_script = ExtResource("1_item")

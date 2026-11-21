@@ -21,6 +21,6 @@ IntrinsicModifiers = [SubResource("Modifier_0")]
 ValidSlots = 32
 RollTable = ExtResource("roll_table")
 Name = "Amulet of Swiftness"
-Value = 200
+Value = 1000
 Tier = 0
 metadata/_custom_type_script = ExtResource("1_item")

@@ -7,7 +7,7 @@
 script = ExtResource("2_script")
 Name = "Thief's Lockpick Set"
 Scene = ExtResource("1_scene")
-Value = 22
+Value = 110
 ShowInInventory = true
 IsStackable = true
 MaxStackSize = 20

@@ -51,7 +51,7 @@ public class ShopTest
 			}
 
 			Player player = FindPlayer(level);
-			player.Stats.AddGold(500);
+			player.Stats.AddGold(5000);
 			Item gear = shop.Offers.First(offer => offer is EquipableItem);
 			AssertString(shop.Buy(player, gear, shop.QuotePurchase(player, gear))).IsEmpty();
 			AssertBool(player.Inventory.Items.Any(entry => entry.Item == gear)).IsTrue();
@@ -159,7 +159,7 @@ public class ShopTest
 				buy.Invoke("ui_accept");
 				AssertBool(shop.IsSold(potion)).IsFalse();
 
-				player.Stats.AddGold(500);
+				player.Stats.AddGold(5000);
 				int gold = player.Stats.Gold;
 				int price = shop.QuotePurchase(player, potion).Gold;
 				// Choosing the item shows the trade at its price before anything happens; the entry confirms it.

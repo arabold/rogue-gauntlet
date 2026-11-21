@@ -21,5 +21,5 @@ Tier = 2
 ValidSlots = 32
 RollTable = ExtResource("roll_table")
 Name = "Amulet of Mind"
-Value = 400
+Value = 2000
 metadata/_custom_type_script = ExtResource("1_item")

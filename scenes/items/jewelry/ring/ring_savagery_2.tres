@@ -25,5 +25,5 @@ Tier = 2
 ValidSlots = 192
 RollTable = ExtResource("roll_table")
 Name = "Ring of Savagery"
-Value = 360
+Value = 1800
 metadata/_custom_type_script = ExtResource("1_item")

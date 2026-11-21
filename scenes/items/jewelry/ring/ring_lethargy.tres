@@ -20,6 +20,6 @@ ValidSlots = 192
 RollTable = ExtResource("roll_table")
 AlwaysCursed = true
 Name = "Ring of Lethargy"
-Value = 40
+Value = 200
 Tier = 0
 metadata/_custom_type_script = ExtResource("1_item")

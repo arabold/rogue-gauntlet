@@ -7,7 +7,7 @@
 script = ExtResource("2_script")
 Name = "Ornate Bronze Key"
 Scene = ExtResource("1_scene")
-Value = 30
+Value = 150
 ShowInInventory = true
 IsStackable = true
 MaxStackSize = 20
