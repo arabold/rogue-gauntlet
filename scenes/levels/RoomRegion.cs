@@ -20,8 +20,8 @@ public class RoomRegion
 	/// <summary>Logical floor role copied from a <see cref="RoomGroupMember"/> or layout slot (e.g., "entrance", "boss", "exit").</summary>
 	public string SlotId { get; set; } = "";
 
-	/// <summary>Topological guarantees carried from layout/group authoring (e.g., MustTraverse).</summary>
-	public RoomObligations Obligations { get; set; } = RoomObligations.None;
+	/// <summary>When true, layout and lock passes treat this room as a required progression choke point.</summary>
+	public bool MustTraverse { get; set; } = false;
 
 	/// <summary>When true, excludes this region's doors from random floor lock/secret assignment.</summary>
 	public bool ReserveAccess { get; set; } = false;

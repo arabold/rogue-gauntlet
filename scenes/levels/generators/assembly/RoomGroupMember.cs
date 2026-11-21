@@ -1,13 +1,4 @@
-using System;
 using Godot;
-
-[Flags]
-public enum RoomObligations
-{
-	None = 0,
-	MustExist = 1,
-	MustTraverse = 2,
-}
 
 public enum RoomPoolSlot
 {
@@ -31,11 +22,10 @@ public partial class RoomGroupMember : Resource
 	[Export] public int AttachToIndex { get; set; } = -1;
 	/// <summary>Logical role identifier copied onto <see cref="RoomRegion.SlotId"/> (e.g., "boss", "exit").</summary>
 	[Export] public string SlotId { get; set; } = "";
-	[Export] public RoomObligations Obligations { get; set; } = RoomObligations.None;
+	[Export] public bool MustTraverse { get; set; } = false;
 	[Export] public bool AllowExternalDoorways { get; set; } = true;
 	[Export] public bool AllowSecretDoors { get; set; } = true;
 	[Export(PropertyHint.Range, "-1,1,0.05")] public float DoorChanceOverride { get; set; } = -1f;
-	[Export(PropertyHint.Range, "-1,1,0.05")] public float FrameChanceOverride { get; set; } = -1f;
 	/// <summary>When true, excludes this member's doorways from random floor lock/secret passes.</summary>
 	[Export] public bool ReserveAccess { get; set; } = false;
 }

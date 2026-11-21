@@ -196,7 +196,7 @@ public partial class MapGenerator : Node3D
 		var region = new RoomRegion(Floor.Rooms.Count)
 		{
 			SlotId = member.SlotId,
-			Obligations = member.Obligations,
+			MustTraverse = member.MustTraverse,
 			ReserveAccess = member.ReserveAccess,
 			ClusterId = clusterId,
 		};
@@ -324,7 +324,7 @@ public partial class MapGenerator : Node3D
 
 	private bool ValidateMustTraverseCutVertices()
 	{
-		if (Floor.Rooms.Count < 2 || !Floor.Rooms.Any(r => (r.Obligations & RoomObligations.MustTraverse) != 0)) return true;
+		if (Floor.Rooms.Count < 2 || !Floor.Rooms.Any(r => r.MustTraverse)) return true;
 
 		int arrivalRoomId = RoomRegionFor(Floor.Arrival);
 		int exitRoomId = RoomRegionFor(Floor.Descent);
@@ -335,7 +335,7 @@ public partial class MapGenerator : Node3D
 
 		foreach (var region in Floor.Rooms)
 		{
-			if ((region.Obligations & RoomObligations.MustTraverse) == 0
+			if (!region.MustTraverse
 				|| region.Id == arrivalRoomId
 				|| region.Id == exitRoomId)
 			{

@@ -94,7 +94,6 @@ public partial class RoomGroup : RoomDefinition
 				}
 
 				ValidateOverride(label, i, "DoorChanceOverride", member.DoorChanceOverride, errors);
-				ValidateOverride(label, i, "FrameChanceOverride", member.FrameChanceOverride, errors);
 
 				var options = member.Options ?? [];
 				if (options.Any(opt => opt == null))

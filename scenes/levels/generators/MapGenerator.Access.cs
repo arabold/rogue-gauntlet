@@ -69,7 +69,7 @@ public partial class MapGenerator
 			r.Id != requiredEncounterRoom
 			&& r.SlotId != "boss"
 			&& !r.ReserveAccess
-			&& (r.Obligations & RoomObligations.MustTraverse) == 0
+			&& !r.MustTraverse
 			&& !protectedRooms.Contains(r.Id)
 			&& r.Tiles.Any(initiallyReachable.Contains)
 			&& !r.Tiles.Contains(entry)).ToList();

@@ -115,11 +115,11 @@ public class RoomGroupTest
 					var boss = cluster.Members[0];
 					var exit = cluster.Members[1];
 					AssertString(boss.SlotId).IsEqual("boss");
-					AssertBool(boss.Obligations == (RoomObligations.MustExist | RoomObligations.MustTraverse)).IsTrue();
+					AssertBool(boss.MustTraverse).IsTrue();
 					AssertBool(boss.ReserveAccess).IsFalse();
 
 					AssertString(exit.SlotId).IsEqual("exit");
-					AssertBool(exit.Obligations == RoomObligations.MustExist).IsTrue();
+					AssertBool(exit.MustTraverse).IsFalse();
 					AssertBool(exit.ReserveAccess).IsTrue();
 					AssertInt(exit.Room.Doors.Count).OverrideFailureMessage($"{label}: exit must have 1 physical door").IsEqual(1);
 					var (_, exitDoor) = exit.Room.Doors.Single();

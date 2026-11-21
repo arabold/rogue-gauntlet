@@ -8,11 +8,10 @@ script = ExtResource("2_RoomGroupMem")
 PoolSlot = 0
 AttachToIndex = -1
 SlotId = "boss"
-Obligations = 3
+MustTraverse = true
 AllowExternalDoorways = true
 AllowSecretDoors = false
 DoorChanceOverride = -1.0
-FrameChanceOverride = -1.0
 ReserveAccess = false
 metadata/_custom_type_script = ExtResource("2_RoomGroupMem")
 
@@ -21,11 +20,10 @@ script = ExtResource("2_RoomGroupMem")
 PoolSlot = 2
 AttachToIndex = 0
 SlotId = "exit"
-Obligations = 1
+MustTraverse = false
 AllowExternalDoorways = false
 AllowSecretDoors = false
 DoorChanceOverride = 1.0
-FrameChanceOverride = -1.0
 ReserveAccess = true
 metadata/_custom_type_script = ExtResource("2_RoomGroupMem")
 

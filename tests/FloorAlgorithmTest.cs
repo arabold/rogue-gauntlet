@@ -165,7 +165,7 @@ public class FloorAlgorithmTest
 		}
 
 		var prng = new SplitMix(19);
-		MazeCorridorConnector.CarveInteriorGaps(map, protectedCorridors, 0.7f, 0.1f, prng.NextInt, prng.NextFloat);
+		GapFillCorridorConnector.CarveInteriorGaps(map, protectedCorridors, 0.7f, 0.1f, prng.NextInt, prng.NextFloat);
 
 		// Enclosed A*-adjacent 3x3 pocket must be carved into Corridor tiles and be reachable from (5, 5).
 		var reached = AccessSolutionValidator.Reachable(map, new Vector2I(5, 5), new HashSet<Vector2I>());

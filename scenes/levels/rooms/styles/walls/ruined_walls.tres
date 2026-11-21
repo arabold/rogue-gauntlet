@@ -10,5 +10,6 @@ Id = "ruined_walls"
 Weight = 1.0
 Library = ExtResource("2_WallsMeshLib")
 Straight = Dictionary[String, float]({"wall": 4.0, "wall_cracked": 3.0, "wall_broken": 2.0})
+ExteriorOnly = PackedStringArray("wall_broken")
 DoorScene = ExtResource("door")
 metadata/_custom_type_script = ExtResource("1_WallStyle")

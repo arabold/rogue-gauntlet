@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>One placed room inside a <see cref="RoomCluster"/>, with its cluster-local tile offset and role metadata.</summary>
-public sealed record ClusterMember(Room Room, Vector2I Offset, string SlotId, RoomObligations Obligations, bool ReserveAccess);
+public sealed record ClusterMember(Room Room, Vector2I Offset, string SlotId, bool MustTraverse, bool ReserveAccess);
 
 /// <summary>
 /// Atomic placement unit for dungeon layouts: either one leaf room or an assembled <see cref="RoomGroup"/> tree
@@ -96,12 +96,15 @@ public sealed class RoomCluster
 
 	public List<(Vector2I Tile, Vector2I Direction)> GetExternalConnectors() => GetExternalConnectors(Map);
 
-	/// <summary>Applies <paramref name="obligations"/> onto every member room in this cluster.</summary>
-	public void AddObligations(RoomObligations obligations)
+	/// <summary>Marks every member room in this cluster as a required progression cut-vertex (<c>MustTraverse = true</c>).</summary>
+	public void MarkMustTraverse()
 	{
 		for (int i = 0; i < _members.Count; i++)
 		{
-			_members[i] = _members[i] with { Obligations = _members[i].Obligations | obligations };
+			if (!_members[i].MustTraverse)
+			{
+				_members[i] = _members[i] with { MustTraverse = true };
+			}
 		}
 	}
 

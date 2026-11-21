@@ -22,7 +22,6 @@ metadata/_custom_type_script = ExtResource("2_SparseLayout")
 
 [sub_resource type="Resource" id="MazeCorridorConnector_1"]
 script = ExtResource("3_MazeConnecto")
-FillScope = 0
 WindingChance = 0.7
 LoopChance = 0.1
 DeadEndPruneChance = 0.0

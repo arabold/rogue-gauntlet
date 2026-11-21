@@ -236,7 +236,7 @@ public class GeneratedFloorSweepTest
 
 				var bossRoom = generator.Floor.Rooms.FirstOrDefault(r => r.SlotId == "boss");
 				var exitRoom = generator.Floor.Rooms.FirstOrDefault(r => r.SlotId == "exit");
-				if (bossRoom == null || (bossRoom.Obligations & RoomObligations.MustTraverse) == 0)
+				if (bossRoom == null || !bossRoom.MustTraverse)
 					contracts.Fail("generation", $"{fullLabel}: missing MustTraverse boss room");
 				if (exitRoom == null || !exitRoom.ReserveAccess)
 					contracts.Fail("generation", $"{fullLabel}: missing ReserveAccess exit room");
@@ -254,7 +254,7 @@ public class GeneratedFloorSweepTest
 					int arrivalId = generator.RoomRegionFor(generator.Floor.Arrival);
 					var arrivalTile = generator.Map.WorldToTile(generator.Floor.Arrival.GlobalPosition);
 					foreach (var must in generator.Floor.Rooms.Where(r =>
-						(r.Obligations & RoomObligations.MustTraverse) != 0 && r.Id != arrivalId && r.Id != exitRoom.Id))
+						r.MustTraverse && r.Id != arrivalId && r.Id != exitRoom.Id))
 					{
 						var blocked = new HashSet<Vector2I>(must.Tiles.Count + must.ConnectorTiles.Count);
 						foreach (var t in must.Tiles) blocked.Add(t);
@@ -282,7 +282,7 @@ public class GeneratedFloorSweepTest
 
 	private static string FindCorridorTouchingInteriorHole(MapData map)
 	{
-		var exterior = MazeCorridorConnector.FindExteriorEmpty(map);
+		var exterior = MazeCarver.FindExteriorEmpty(map);
 		for (int x = 1; x < map.Width - 1; x++)
 		{
 			for (int z = 1; z < map.Height - 1; z++)

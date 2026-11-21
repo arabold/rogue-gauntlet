@@ -6,7 +6,7 @@ using Godot;
 /// <summary>
 /// Builds a linear progression spine (<c>Entrance -> [Approach...] -> Goal</c>) with optional 1-doorway
 /// dead-end sidearms, emitting exact <see cref="FloorPlan.ApprovedEdges"/> and marking intermediate
-/// approach rooms (and the boss slot) as <see cref="RoomObligations.MustTraverse"/>.
+/// approach rooms (and the boss slot) as <see cref="RoomRegion.MustTraverse"/>.
 /// </summary>
 [Tool]
 [GlobalClass]
@@ -120,7 +120,7 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 				bool isGoal = depth == spineNodeCount - 1;
 				if (depth > 0 && !isGoal)
 				{
-					cluster.AddObligations(RoomObligations.MustTraverse);
+					cluster.MarkMustTraverse();
 				}
 
 				CollectReservedExits(stack, reservedExits);

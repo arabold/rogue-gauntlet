@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -33,6 +34,8 @@ public partial class WallStyle : Resource
 	/// <summary>Occasional feature pieces by weight; decorations never hang on them.</summary>
 	[Export] public Godot.Collections.Dictionary<string, float> Accents { get; set; } = [];
 	[Export(PropertyHint.Range, "0,1,0.01")] public float AccentChance { get; set; }
+	/// <summary>Straight pieces (such as breached walls) replaced with <c>"wall"</c> on two-sided corridor partitions.</summary>
+	[Export] public string[] ExteriorOnly { get; set; } = [];
 
 	public virtual string[] Validate()
 	{
@@ -40,7 +43,8 @@ public partial class WallStyle : Resource
 		if (string.IsNullOrWhiteSpace(Id) || Library == null || Straight.Count == 0)
 			return [$"Wall style {Id}: assign an ID, the wall library and straight pieces."];
 		var names = Straight.Keys.Concat(Accents.Keys)
-			.Concat(["wall", "wall_half", "wall_junction_short", "wall_corner", "wall_Tsplit", "wall_crossing"]);
+			.Concat(["wall", "wall_half", "wall_junction_short", "wall_corner", "wall_Tsplit", "wall_crossing"])
+			.Concat(ExteriorOnly ?? []);
 		if (PillarEvery > 0) names = names.Append(Pillar);
 		if (!string.IsNullOrEmpty(Opening)) names = names.Append(Opening);
 		errors.AddRange(names.Where(name => Library.FindItemByName(name) < 0).Select(name => $"Wall style {Id}: '{name}' is not in the wall library."));
@@ -105,7 +109,7 @@ public partial class WallStyle : Resource
 		string straight = Weighted.Pick(Straight, rng);
 		string accentItem = Accents.Count > 0 ? Weighted.Pick(Accents, rng) : null;
 		if (!partitionOnly) return accent ? accentItem : straight;
-		return straight == "wall_broken" ? "wall" : straight;
+		return ExteriorOnly != null && Array.IndexOf(ExteriorOnly, straight) >= 0 ? "wall" : straight;
 	}
 
 	protected static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>
