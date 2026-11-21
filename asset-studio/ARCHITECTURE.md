@@ -4,13 +4,18 @@ The Studio owns art: geometry, materials, palettes, scale, skeletons, weights, a
 previews and export metadata. Game scenes, physics, hurtboxes, navigation dimensions, stats,
 behavior, combat timing, loot and spawning belong to game-side authoring.
 
+New enemies, helmets, body armor, and future heroes use the [Blender character workflow](character-workflow.md).
+The authoring source owns the geometry, UVs and skin. The Orc Warrior recipe exports its saved Blender source as a GLB.
+The [standalone item workflow](README.md#standalone-item-workflow) continues to use the Studio recipe lifecycle.
+Godot scene and equipment authoring consumes the exported art and verifies it in the game.
+
 No separate Godot project is required. The existing game project can host optional GPU
 reviews and import validation. `godot/godot.sh` locates the engine through `GODOT_BIN` or
 standard executable locations; Studio commands no longer depend on an agent skill launcher.
 
 ## Sources, builds, publications and game exports
 
-- `characters/<family>/<name>/`: recipe, selected authoring sources, concepts and provenance.
+- `characters/<family>/<name>/`: selected editable sources, concepts, prompts and provenance, plus recipes where a builder consumes them.
 - `rigs/`: local technical skeletons, animations and required skinning mannequins.
 - `core.paths.work_root()`: disposable models, render frames, jobs, caches and rollback files,
   outside the repository. These can be rebuilt; they are not authoring inputs.
@@ -22,7 +27,7 @@ standard executable locations; Studio commands no longer depend on an agent skil
   publishes one reviewed lineup to `catalogs/tiles/` and exports GLBs to `assets/custom-tiles/`;
   GridMap mesh libraries, collision and generator rules stay game-side.
 
-Concept-driven items can be modeled in Blender by a committed script (`source.py`). Blender runs only at
+The item recipe pipeline supports Blender model scripts (`source.py`). Blender runs only at
 authoring time: `item model` runs the script in a fresh headless Blender (`core/blender.py`, pinned release) and
 commits the result as the item's `source.glb` with a provenance sidecar `source.json`. Builds, lineups and exports
 read that GLB and reject it when the script, the modeling helpers or the host changed since, so they never need
@@ -36,16 +41,15 @@ catalog entry. Publication rejects source/artifact drift. On import failure, the
 GLB, `.import` and art metadata are restored. Existing Godot UIDs are preserved.
 `--no-import` deliberately defers engine validation; the publication records that state.
 
-The existing kit character and item/costume lifecycles remain supported. Their publication
-commands and catalog organization are documented in [README.md](README.md).
+See [character and wearable maintenance](maintenance/character-and-wearable-recipes.md) for older recipe commands.
 
-## Character builders
+## Existing character recipe builders
 
-All 18 registered recipes have an export handler through `studio.py list`, `lineup` and
-`export`; `export --all` no longer silently excludes non-kit recipes.
+Registered recipes use `studio.py list`, `lineup`, and `export`.
 
 | Builder | Inputs | Export path |
 | --- | --- | --- |
+| `blender_source` | Saved rigged Blender scene, packed materials and actions, and a technical template | Headless Blender stages a GLB for the same review, validation and export as bound sources |
 | `kit` | Local modular parts, recipes, mannequin weights and technical humanoid templates | Existing character exporter |
 | `skinned_source` | Selected bound GLB, semantic palette metadata and rig profile | `core/character_workflow.py` preserves geometry, skin and clips |
 | `golem` | Procedural rigid rocks, local large rig and shoulder helper definitions | `core/rigid_export.py` binds rigid parts and bakes helper motion |
@@ -101,12 +105,9 @@ tracks, and explicitly assign loop modes to every exported clip. Art inspection 
 the actual skeleton/AnimationPlayer rather than assuming a humanoid node path. Missing
 roles remain missing; for example, the rat does not acquire a fabricated hit clip.
 
-## Entry points and validation
+## Existing recipe validation
 
 ```bash
-./.venv/bin/python asset-studio/studio.py list
-./.venv/bin/python asset-studio/studio.py lineup beasts/wolf beasts/rat golem/stone_golem
-./.venv/bin/python asset-studio/studio.py export beasts/wolf beasts/rat golem/stone_golem
 ./.venv/bin/python asset-studio/studio.py audit
 PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python -m unittest discover -s asset-studio/tests
 ```
@@ -125,12 +126,8 @@ validation in addition to the Python checks.
 
 ## Remaining explicit dependencies
 
-Six older humanoid recipes reference game weapon Resources for their selected held art:
-goblin, necromancer, dark wizard, orc warrior, orc shaman and orc king. `audit` lists these
-as `legacy_weapon_inputs`, separately from authoring hygiene errors. Wolf, rat and golem
-have no such dependencies. Migrating those six should use selected Studio item sources and
-verify grip, scale and appearance; do not silently substitute a different weapon merely to
-remove a path or copy original third-party packs into the Studio.
+Older humanoid recipes can reference game weapon Resources for held art. The audit lists them under
+`legacy_weapon_inputs`. Confirm the weapon's identity, grip, scale and appearance when authoring a replacement. The current Orc carries its baked axe in the Blender source.
 
 Original-pack armor comparison and pack-acquisition/harvesting commands are opt-in tools.
 They can read external art explicitly; they are not required for normal creature exports.

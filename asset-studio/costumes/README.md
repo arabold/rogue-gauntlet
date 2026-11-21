@@ -1,6 +1,8 @@
-# Armor style guide
+# Existing costume recipes
 
-The [Paladin plate costume](knight_plate/README.md) is the user-approved reference pattern for all new armor. Use its current [fitting sheet](../catalogs/costumes/knight_plate/lineup.png), [animated fitting](../catalogs/costumes/knight_plate/lineup.gif) as the construction, proportion and shading baseline. Legacy armor studies are excluded from the final catalog.
+This manual covers existing costume construction, fittings, and published wearable recipes. Use the [character workflow](../character-workflow.md#rig-and-fit-for-the-assets-role) for new body armor and helmets.
+
+The [Paladin plate costume](knight_plate/README.md) set the construction, proportion and shading reference for the recipe-built suits. See its [fitting sheet](../catalogs/costumes/knight_plate/lineup.png) and [animated fitting](../catalogs/costumes/knight_plate/lineup.gif).
 
 - Keep a readable neck and shoulder transition above the breastplate. Fit to our shared character body and reference skeleton; do not compensate for missing anatomy with armor or shifted joints.
 - Balance breastplate, close-fitting belly and a restrained skirt flare. Keep the belt seated against the actual armor outline, with a readable buckle and substantial but controlled thickness.
@@ -84,7 +86,7 @@ The existing blue [barbarian](barbarian/README.md) is preserved as a separate co
 
 ## Shared belt and fur construction
 
-Use `belts.build_fitted(torso, supports, y, ...)` for new belts. It follows radial hits on the actual completed armor triangles at each height and samples intermediate rows through the strap height, including a wider front. Select the supporting material with `fit_slot` when needed; tuck decorative harness tails beneath the strap instead of letting them determine the whole waist outline. In character recipes use `kind: belt`, `conform: true` and an optional `fit_slot`. The older fixed/envelope hosts remain compatibility tools for existing authored sets, not the default construction method for new belts. Review gap and clipping together around the circumference and through animation.
+Use `belts.build_fitted(torso, supports, y, ...)` when refitting a recipe-built belt. It follows radial hits on the completed armor triangles and samples intermediate rows through the strap height, including a wider front. Select the supporting material with `fit_slot` when needed. Tuck decorative harness tails beneath the strap. In character recipes use `kind: belt`, `conform: true` and an optional `fit_slot`. Review gap and clipping around the circumference and through animation.
 
 Use `prefabs.details.fur.border(support, path, outward, ...)` on any closed armor part. Author its continuous root loop in the actual support surface, with local outward and tuft-direction vectors. The helper makes a continuous uneven pelt backing and unions it into that part, preserving palette regions and the carrying bone; disconnected fur and mixed bone attachments are rejected. For multiple borders, create `fur.edge(...)` pieces and call `fur.attach(support, *borders)` together. The belt's upper/lower fur uses these same helpers. Never approximate a border with independent glued-on triangular meshes. Do not union parts carried by different bones.
 
