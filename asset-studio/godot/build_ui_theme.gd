@@ -110,9 +110,11 @@ func _labels(theme: Theme) -> void:
 	_label_variation(theme, "BonusLabel", body_strong, 22, GOLD, 4)
 	# Numbers on the game: bar values, stack counts and costs.
 	_label_variation(theme, "CountLabel", body_strong, 22, CREAM, 5)
-	# One readable scale for 2D viewport prompts and native 3D world text.
-	_label_variation(theme, "WorldLabel", display_semi, 32, Color.WHITE, 8)
-	theme.set_color("font_outline_color", "WorldLabel", INK)
+	# Floating world text in the menu buttons' serif: names, notices and objectives; the larger combat numbers; the
+	# interaction prompt beside its keycap. A WorldLabel3D sets its own pixel size for its size in the world.
+	_world_label_variation(theme, "WorldLabel", 32, 8)
+	_world_label_variation(theme, "CombatWorldLabel", 64, 16)
+	_world_label_variation(theme, "PromptWorldLabel", 28, 8)
 
 	# A gold ribbon tag ("Tip") whose swallowtail ends stay fixed while its middle stretches.
 	theme.set_type_variation("TagLabel", "Label")
@@ -131,6 +133,13 @@ func _label_variation(theme: Theme, name: String, font: Font, size: int, color: 
 	theme.set_font_size("font_size", name, size)
 	theme.set_color("font_color", name, color)
 	theme.set_constant("outline_size", name, outline)
+
+
+## A WorldLabel3D reads its variation's items straight from the theme, which follows no variation chain, so every
+## world variation carries its font, size and outline itself.
+func _world_label_variation(theme: Theme, name: String, size: int, outline: int) -> void:
+	_label_variation(theme, name, display_semi, size, Color.WHITE, outline)
+	theme.set_color("font_outline_color", name, INK)
 
 
 func _buttons(theme: Theme) -> void:

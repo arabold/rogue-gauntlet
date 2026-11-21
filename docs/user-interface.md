@@ -60,13 +60,13 @@ The pieces are rendered at 1× for a 1080p canvas, so they soften slightly when 
 | `TabButton` | Button | a run-menu tab on the header band; the open one sits on the pennant, which its stylebox draws past the band's scallops |
 | `ValueLabel`, `BonusLabel` | Label | a stat's value in the serif; the gold bonus gear adds to it |
 | `CountLabel` | Label | numbers on the game: bar values, stack counts, costs |
-| `WorldLabel` | Label | floating text at a shared 32 px base size in the same Alegreya serif as the menu buttons |
+| `WorldLabel`, `CombatWorldLabel`, `PromptWorldLabel` | Label | floating text in the menu buttons' Alegreya serif: names, notices and objectives (32 px); combat numbers (64 px); the interaction prompt beside its keycap (28 px) |
 | `HealthBar`, `ManaBar` | ProgressBar | colored bar fills |
 | `ThinBar`, `CooldownBar` | ProgressBar | a hairline gold bar (XP, small cooldowns); a dark veil that drains off a slot |
 
 Enemy nameplates use one continuous frame around the HUD's red health fill. For enemies with health phases, straight vertical gaps divide the fill at the authored health thresholds. The segments drain from right to left as health falls. Enemies with visible poise have a thin gold meter aligned under the health bar.
 
-Enemy and loot names, prompts, objectives, pickup notices and combat text share the `WorldLabel` font and base size. Native `WorldLabel3D` nodes use the same theme variation as the text beside the existing keycap images.
+Native 3D text is a `WorldLabel3D` (`scenes/components/`): a `Label3D` takes no Control theme, so it reads its font, size and outline from the world-label variation its `ThemeTypeVariation` names, in the editor too, and keeps them read-only. Its pixel size sets how large the text stands in the world (font size × pixel size), so a label picks a variation for its role and a pixel size for its size.
 
 **Item icons** are the items' own models, shown by one scene in every slot (`scenes/ui/item_icon.tscn`, `ItemIcon`: run menu, HUD hand and quick slots). The icon is a little larger than its niche by its `Overhang`, so the model reaches over the edge, and its `Preview` viewport renders at twice the shown size so it stays sharp when the window scales up. `item_icon.gdshader` draws it with a soft dark halo around the silhouette, which stands it off the niche, a worn slot's gold or the game behind the HUD.
 

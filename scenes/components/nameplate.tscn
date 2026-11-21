@@ -15,6 +15,7 @@ Target = NodePath("..")
 [node name="NameLabel" type="Label3D" parent="."]
 script = ExtResource("3_label")
 position = Vector3(0, 0.45, 0)
+pixel_size = 0.01
 billboard = 1
 no_depth_test = true
 render_priority = 20
