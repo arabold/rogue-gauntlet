@@ -47,7 +47,7 @@ STUDIO_DIR = os.path.dirname(os.path.abspath(__file__))
 if STUDIO_DIR not in sys.path:
     sys.path.insert(0, STUDIO_DIR)
 
-from core import catalog, export, kit, match  # noqa: E402
+from core import catalog, character_workflow, export, kit, match  # noqa: E402
 from core import mesh as mm  # noqa: E402
 from core.rig import Rig, mannequin, skin, skinned  # noqa: E402
 from prefabs.anatomy import adventurer_parts  # noqa: E402
@@ -182,8 +182,7 @@ def _attach_weapons(piece, weaps, rig, clip, t, colors):
 
 def lineup(c, size=420):
     """`lineup.png`: 2D reference (if present), front view, side profile, and action poses in pure Python."""
-    if c.recipe().get("builder") in {"skinned_source", "golem", "warden"}:
-        from core import character_workflow
+    if c.recipe().get("builder") in character_workflow.BUILDERS:
         folder = character_workflow.lineup(c)
         print(f"{c.key}: {folder / 'lineup.png'}")
         return Image.open(folder / "lineup.png").copy()
@@ -304,8 +303,7 @@ def hero_export(recipe, pieces):
 
 def export_glb(c, no_import=False):
     """Write the character's GLB to `assets/` and its `.import` (template import settings, looping clips)."""
-    if c.recipe().get("builder") in {"skinned_source", "golem", "warden"}:
-        from core import character_workflow
+    if c.recipe().get("builder") in character_workflow.BUILDERS:
         return character_workflow.export_asset(c, no_import=no_import)
     r, pieces, colors = c.build()
     if r.get("builder", "kit") != "kit":
@@ -496,7 +494,7 @@ def main():
         for c in chars:
             preview(c)
     elif args.command == "export":
-        unsupported = [c.key for c in chars if c.recipe().get("builder", "kit") not in {"kit", "skinned_source", "golem", "warden"}]
+        unsupported = [c.key for c in chars if c.recipe().get("builder", "kit") not in character_workflow.BUILDERS | {"kit"}]
         if unsupported:
             raise SystemExit("No art exporter for: " + ", ".join(unsupported))
         for c in chars:

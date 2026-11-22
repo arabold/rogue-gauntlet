@@ -65,7 +65,6 @@ These documents explain code that exists today. Any proposed extension or future
 | [Logging and message feed](specs/logging-plan.md) | Proposed channels, settings, player messages and diagnostic sinks |
 | [UI redesign](specs/ui-system-plan.md) | Front end, depth card, desktop HUD, run menu, death and confirmation landed; the touch HUD, credits and settings remain |
 | [Shared debug toolkit](specs/debug-toolkit-plan.md) | Implemented; remaining class switching, captured builds and open harness decisions |
-| [Blender-modeled Studio assets](specs/blender-modeling-pipeline.md) | Model scripts, concept scoring and head hosts landed; game wiring, per-class fit, kit heads and organic forms remain |
 
 Completed plans are consolidated into current-system documents. The [roadmap](development-roadmap.md) owns priority and acceptance. Use the [program-design skill](../.agents/skills/program-design/SKILL.md) for substantial future changes; a plan describes proposed work, not delivered behavior.
 
@@ -76,7 +75,7 @@ Completed plans are consolidated into current-system documents. The [roadmap](de
 - [Room assembly authoring](../scenes/levels/generators/assembly/README.md): props, groups, styles, steps and room types; harness and editor plugin.
 
 - [Gameplay item catalog](item-catalog.md) and [monster catalog](monster-catalog/README.md): references for authored gameplay content. Use the Asset Studio catalogs below for published models and previews.
-- [Asset Studio](../asset-studio/README.md), its [architecture and export boundary](../asset-studio/ARCHITECTURE.md), [item visual catalog](../asset-studio/catalogs/items/README.md), and [character visual catalog](../asset-studio/catalogs/characters/README.md): visual authoring and published models. A published model does not imply completed gameplay behavior.
+- [Asset Studio](../asset-studio/README.md) covers [new character and wearable art](../asset-studio/character-workflow.md), [standalone items](../asset-studio/README.md#standalone-item-workflow), and [existing recipe maintenance](../asset-studio/maintenance/character-and-wearable-recipes.md). See the [architecture and export boundary](../asset-studio/ARCHITECTURE.md) and the [item](../asset-studio/catalogs/items/README.md) and [character](../asset-studio/catalogs/characters/README.md) visual catalogs.
 
 ## Organization rules
 

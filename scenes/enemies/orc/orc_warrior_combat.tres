@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_ring.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="chop_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_1h.tres" id="slash_contact"]
+
+[sub_resource type="Resource" id="chop_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("chop_contact")
+PoiseDamage = 15.0
+HitStopDuration = 0.04
+FacingLockLead = 0.12
+WindUpTurnRate = 300.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="diagonal_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("slash_contact")
+PoiseDamage = 13.0
+HitStopDuration = 0.04
+FacingLockLead = 0.12
+WindUpTurnRate = 300.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="sweep_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("slash_contact")
+PoiseDamage = 18.0
+HitStopDuration = 0.05
+FacingLockLead = 0.14
+WindUpTurnRate = 300.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="chop"]
+resource_name = "Overhead chop"
+script = ExtResource("action")
+Cooldown = 2.2
+MaximumRange = 2.7
+Attack = SubResource("chop_attack")
+Style = &"axe.1h.chop"
+Duration = 0.7
+MinDamage = 3.5
+MaxDamage = 7.0
+
+[sub_resource type="Resource" id="diagonal"]
+resource_name = "Diagonal cut"
+script = ExtResource("action")
+Cooldown = 2.8
+MaximumRange = 2.7
+Attack = SubResource("diagonal_attack")
+Style = &"axe.1h.combo2"
+Duration = 0.95
+MinDamage = 3.5
+MaxDamage = 6.0
+
+[sub_resource type="Resource" id="sweep"]
+resource_name = "Horizontal sweep"
+script = ExtResource("action")
+Cooldown = 3.4
+MaximumRange = 2.7
+Attack = SubResource("sweep_attack")
+Style = &"axe.1h.special"
+Duration = 1.35
+MinDamage = 4.0
+MaxDamage = 7.5
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("chop"), SubResource("diagonal"), SubResource("sweep")]

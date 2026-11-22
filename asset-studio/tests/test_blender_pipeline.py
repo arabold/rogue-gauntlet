@@ -3,6 +3,7 @@
 The Blender runner tests need the pinned Blender (`asset-studio/blender/blender.json`) and skip without it; every
 other test reads committed files only.
 """
+import json
 from pathlib import Path
 import shutil
 import sys
@@ -14,6 +15,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from core import blender, concept_score, hosts, kit
 from core.export import _Writer
+from core.mesh import read_glb
 from items import model
 from items.source_surface import material_piece
 
@@ -38,6 +40,27 @@ def _triangle_glb(path, material):
                                        "material": 0}]}]
     w.g["materials"] = [{"name": material, "pbrMetallicRoughness": {"baseColorFactor": [1, 1, 1, 1]}}]
     w.save(str(path))
+
+
+def _clip_glb(path, reverse):
+    """Three materials and a two-channel clip; `reverse` writes the clip's data and channels in the opposite order, as
+    Blender's exporter does from one run to the next."""
+    w = _Writer()
+    position = w.add(np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], np.float32), "VEC3", 5126, 34962, bounds=True)
+    w.g["meshes"] = [{"primitives": [{"attributes": {"POSITION": position}, "material": 0}]}]
+    w.g["materials"] = [{"name": name, "pbrMetallicRoughness": {"metallicFactor": metallic, "roughnessFactor": roughness}}
+                        for name, metallic, roughness in (("cloth", 0, 0.5), ("steel", 1, 0.5), ("gem", 0, 0.2))]
+    channels = []
+    for target, kind, values in (CLIP[::-1] if reverse else CLIP):
+        times = w.add(np.array([[0], [1]], np.float32), "SCALAR", 5126, bounds=True)
+        channels.append((target, times, w.add(np.array(values, np.float32), kind, 5126)))
+    w.g["animations"] = [{"name": "Idle", "samplers": [{"input": t, "output": o} for _, t, o in channels],
+                          "channels": [{"sampler": i, "target": {"node": 0, "path": target}}
+                                       for i, (target, _, _) in enumerate(channels)]}]
+    w.save(str(path))
+
+
+CLIP = [("translation", "VEC3", [[0, 0, 0], [0, 1, 0]]), ("rotation", "VEC4", [[0, 0, 0, 1], [0, 0, 0.6, 0.8]])]
 
 
 def _disk(size, radius, center):
@@ -83,6 +106,50 @@ class ModelProvenanceTest(unittest.TestCase):
             script.write_text("def build(ctx):\n    ctx.origin.z = 1\n")
             self.assertEqual(blender.stale(sidecar, script, host, glb), ["source.py changed since `item model`"])
             self.assertEqual(len(blender.stale(tmp / "missing.json", script, host, glb)), 1)
+
+
+class CharacterExportFinishTest(unittest.TestCase):
+    def test_non_metal_surfaces_turn_matte_while_metal_and_gloss_keep_theirs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            glb = Path(tmp) / "model.glb"
+            _clip_glb(glb, reverse=False)
+            blender.finish_export(glb)
+            g, _ = model.read(glb)
+            self.assertEqual([m["pbrMetallicRoughness"]["roughnessFactor"] for m in g["materials"]], [0.85, 0.5, 0.2])
+
+    def test_the_recipe_scale_grows_the_scene_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            glb = Path(tmp) / "model.glb"
+            _clip_glb(glb, reverse=False)
+            blender.finish_export(glb, [1.25, 1.15, 1.25])
+            g, _ = model.read(glb)
+            self.assertEqual(g["nodes"][g["scenes"][0]["nodes"][0]]["scale"], [1.25, 1.15, 1.25])
+
+    def test_exports_that_differ_only_in_order_finish_byte_identical_with_their_motion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first, second = Path(tmp) / "first.glb", Path(tmp) / "second.glb"
+            _clip_glb(first, reverse=False)
+            _clip_glb(second, reverse=True)
+            self.assertNotEqual(first.read_bytes(), second.read_bytes())
+            blender.finish_export(first)
+            blender.finish_export(second)
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            g, _, acc = read_glb(str(second))
+            clip = g["animations"][0]
+            motion = {c["target"]["path"]: acc(clip["samplers"][c["sampler"]]["output"]).tolist() for c in clip["channels"]}
+            self.assertEqual(motion, {target: np.array(values, np.float32).tolist() for target, _, values in CLIP})
+
+
+class ScriptedModelsTest(unittest.TestCase):
+    def test_committed_scripted_models_are_current(self):
+        """`item build` refuses a scripted model whose script, host or Blender helpers changed since `item model`."""
+        from items import workflow
+        for recipe in sorted((STUDIO / "objects").glob("*/*/item.json")):
+            if "model" not in json.loads(recipe.read_text()):
+                continue
+            item = workflow.Item(f"{recipe.parent.parent.name}/{recipe.parent.name}")
+            with self.subTest(item=item.key):
+                self.assertEqual(item.model_staleness(item.recipe()), [])
 
 
 class ConceptScoreTest(unittest.TestCase):

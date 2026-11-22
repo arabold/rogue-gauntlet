@@ -1,6 +1,6 @@
 # Published costumes
 
-Final wearable GLBs, Godot lineups and walk/attack animations. Source recipes remain under `costumes/`.
+Final wearable GLBs, Godot lineups and walk/attack animations. Source recipes remain under `costumes/`. For new armor, see the [character workflow](../../character-workflow.md#rig-and-fit-for-the-assets-role).
 
 Build and review in OS temporary storage: `studio.py armor compare costume_knight`. After visual review, publish explicitly: `studio.py armor publish costume_knight`. `armor catalog` recomposes published outputs only. Changed inputs require fresh review; old final artifacts remain visible with `source_current: false`.
 

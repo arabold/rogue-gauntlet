@@ -1,0 +1,59 @@
+{
+  "template": "skeleton",
+  "scale": 1.0,
+  "head": {
+    "preset": "orc_king",
+    "hair": null,
+    "scar": null,
+    "colors": {
+      "skin": [
+        104,
+        150,
+        62
+      ],
+      "skin_dark": [
+        70,
+        104,
+        44
+      ],
+      "accent": [
+        110,
+        84,
+        60
+      ],
+      "eye": [
+        18,
+        18,
+        20
+      ]
+    }
+  },
+  "body": {
+    "torso": "brute",
+    "arms": {
+      "style": "gorilla",
+      "length": 1.32,
+      "hand": "fist",
+      "hand_size": 1.8
+    },
+    "legs": {
+      "style": "stocky",
+      "foot": "boot",
+      "foot_size": 1.2
+    }
+  },
+  "outfit": [
+    {
+      "kind": "costume_ref",
+      "name": "orc_warrior"
+    },
+    {
+      "kind": "helmet",
+      "style": "horned"
+    }
+  ],
+  "concept": "turn this mannequin into a burly orc warrior: green skin, a heavy underbite jaw with two big tusks at the mouth corners, small angry eyes under a thick brow, a dented iron half-helm with a nose guard, a big spiked iron pauldron on one shoulder and a leather one on the other, a studded leather chest harness over a bare muscular chest, a wide belt with a big iron buckle, a short ragged hide skirt, wrapped forearms and heavy boots; for the whole roster: a chunky stylized dungeon-crawler monster with heroic stylized proportions (big head, short limbs), a bold readable silhouette, exaggerated oversized accessories, a limited palette of four to six flat colors, empty hands (no weapons)",
+  "weapons": {
+    "handslot.r": "res://scenes/items/weapons/axe_common.tres"
+  }
+}

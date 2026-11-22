@@ -1,0 +1,13 @@
+{
+  "key": "orc/orc_warrior",
+  "inputs": "c45a00873c38ab9c3c45df9828fd606290ab447a0d92e9177378c6e675154e72",
+  "files": {
+    "model.glb": "67e9205d44b931233085bf3e22b594c8f96db845102283ccab3a8da15403d2f5",
+    "lineup.png": "0c80c615ce546f96b3844b8ddaad1e902f2f35fd06fc49fa7558887ddf3f7e57",
+    "lineup.gif": "e653c071191c2cd509d4c8856e6d0f5ed574178d2ec26c379096d7fb798fe9c9",
+    "asset.json": "47f1ad9f597f71b9e39f8a3e78d672b834105a92fc058dfd51f7aa18d4d221d1"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

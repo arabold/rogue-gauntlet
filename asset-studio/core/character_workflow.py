@@ -14,7 +14,7 @@ from core.paths import work_root
 
 STUDIO=Path(__file__).resolve().parents[1]
 FILES=('model.glb','lineup.png','lineup.gif','asset.json')
-BUILDERS={'skinned_source','golem','warden'}
+BUILDERS={'blender_source','skinned_source','golem','warden'}
 
 
 def local(folder,value):
@@ -26,7 +26,19 @@ def local(folder,value):
 
 
 def profile(character):
-    name=character.recipe()['rig']
+    recipe=character.recipe()
+    name=recipe['rig']
+    if recipe['builder']=='blender_source':
+        template,_,_=cr._doc(local(STUDIO/'rigs/templates',name+'.glb'))
+        bones={template['nodes'][i]['name'] for i in template['skins'][0]['joints']}
+        bones.update(recipe.get('required_bones', []))
+        return {
+            'bones':{bone:bone for bone in sorted(bones)},
+            'clips':recipe['roles'],
+            'required_clips':recipe['clips'],
+            'loops':recipe['loops'],
+            'fps':recipe.get('animation_fps',30),
+        }
     if name=='large':
         path=STUDIO/'rigs/large/profile.json'
         p=json.loads(path.read_text())
@@ -42,14 +54,18 @@ def signature(character):
     paths=[Path(character.recipe_path),STUDIO/'core/character_workflow.py',STUDIO/'core/creature_rigs.py',
            STUDIO/'core/export.py',STUDIO/'core/mesh.py',STUDIO/'core/rig.py',STUDIO/'core/kit.py',STUDIO/'godot/render_creature.gd',
            STUDIO/'godot/render_armor_fittings.gd',STUDIO/'godot/item_surface_colors.gd']
-    if r['builder']=='skinned_source':paths += [local(folder,r['source']),local(folder,r['surface'])]
+    if r['builder']=='blender_source':
+        paths += [local(folder,r['source']),local(STUDIO/'rigs/templates',r['rig']+'.glb'),
+                  STUDIO/'core/blender.py',STUDIO/'blender/blender.json',STUDIO/'blender/export_character.py']
+    elif r['builder']=='skinned_source':paths += [local(folder,r['source']),local(folder,r['surface'])]
     else:paths += [STUDIO/'prefabs/creatures/golems.py',STUDIO/'rigs/large/rig.glb',STUDIO/'core/hinges.py',STUDIO/'core/rigid_export.py']
     if r['builder']=='warden':
         paths += [STUDIO/'rigs/large/attachment_frames.json']
         paths += sorted((STUDIO/'prefabs').rglob('*.py'))
         paths += sorted((STUDIO/'items').glob('*.py'))
-    if r['rig']=='large':paths += [STUDIO/'rigs/large/profile.json']
-    else:paths += [STUDIO/'rigs/creatures'/r['rig']/'profile.json',STUDIO/'rigs/creatures'/r['rig']/'rig.glb']
+    if r['builder']!='blender_source':
+        if r['rig']=='large':paths += [STUDIO/'rigs/large/profile.json']
+        else:paths += [STUDIO/'rigs/creatures'/r['rig']/'profile.json',STUDIO/'rigs/creatures'/r['rig']/'rig.glb']
     for name in ['provenance.json','source.blend']:
         if (folder/name).exists():paths.append(folder/name)
     values={str(p.relative_to(STUDIO)):publication.digest(p) for p in paths}
@@ -90,7 +106,8 @@ def validate(path,p):
     names={n.get('name') for n in g['nodes']}
     if not set(p['bones'].values())<=names:raise ValueError('Art is missing required profile joints')
     clips={a['name'] for a in g['animations']}
-    if not set(p['clips'].values())<=clips:raise ValueError('Art is missing required animation roles')
+    required_clips=set(p['clips'].values()) | set(p.get('required_clips', [])) | set(p['loops'])
+    if not required_clips<=clips:raise ValueError('Art is missing required animation roles or clips')
     tracks=None
     for a in g['animations']:
         keys={(ch['target']['node'],ch['target']['path']) for ch in a['channels']}
@@ -119,15 +136,19 @@ def validate(path,p):
 
 def build(character):
     folder=work_root()/ 'characters'/character.key;folder.mkdir(parents=True,exist_ok=True)
-    r=character.recipe();target=folder/'model.glb'
-    if r['builder'] in {'golem','warden'}:
+    r=character.recipe();target=folder/'model.glb';provenance=Path(character.dir)/'provenance.json'
+    if r['builder']=='blender_source':
+        # Hand-finished art keeps a record of what it was reconstructed or modeled from.
+        if not provenance.is_file():raise ValueError(f'{character.key}: record the Blender source origin in provenance.json')
+        from core.blender import export_character
+        export_character(local(character.dir,r['source']),target,{**r['blender'],'idle':r['roles']['Idle'],'clips':r['clips']},r.get('scale',1))
+    elif r['builder'] in {'golem','warden'}:
         from core.rigid_export import build_golem,build_warden
         (build_warden if r['builder']=='warden' else build_golem)(character,target)
     else:_bound(character,target)
     p=profile(character);info=validate(target,p)
     if info['triangles']>r.get('triangle_budget',float('inf')):
         raise ValueError('Character exceeds its authored triangle budget')
-    provenance=Path(character.dir)/'provenance.json'
     info.update(key=character.key,rig=r['rig'],roles=p['clips'],loops=p['loops'],scale=r.get('scale',1),
                 source_inputs=signature(character),gameplay=False,
                 provenance=json.loads(provenance.read_text()) if provenance.exists() else {'kind':'procedural_geometry'})
@@ -140,7 +161,9 @@ def render(character,folder):
     """GPU review uses only the staged art; the game project supplies the renderer, not art inputs."""
     p=profile(character);roles=list(p['clips'].values());frames=folder/'frames';frames.mkdir(exist_ok=True)
     info=json.loads((folder/'asset.json').read_text());job=folder/'render-job.json'
-    job.write_text(json.dumps([[str(folder/'model.glb'),str(frames),roles,info['bounds']]]))
+    model=folder/'model.glb'
+    bounds=cr.motion_bounds(model,roles) if character.recipe()['builder']=='blender_source' else info['bounds']
+    job.write_text(json.dumps([[str(model),str(frames),roles,bounds]]))
     result=subprocess.run([str(STUDIO/'godot/godot.sh'),'--path',str(STUDIO.parent),'--script',str(STUDIO/'godot/render_creature.gd'),'--',str(job)],capture_output=True,text=True,timeout=300)
     if result.returncode or 'CREATURE_REVIEW_COMPLETE' not in result.stdout:raise ValueError(result.stdout+result.stderr)
     captures=json.loads((frames/'captures.json').read_text());images=[];durations=[]
@@ -168,9 +191,9 @@ def import_settings(target,p):
         text=target.read_text()
         if '[params]' not in text:raise ValueError('Malformed existing Godot import metadata')
         head=text[:text.index('[params]')]
-    g,_,_=cr._doc(target.with_suffix(''))
-    loops={a['name']:{'settings/loop_mode':1 if a['name'] in p['loops'] else 0} for a in g['animations']}
-    params='[params]\n\nnodes/root_scale=1.0\nnodes/import_as_skeleton_bones=false\nskins/use_named_skins=true\nanimation/import=true\nanimation/fps=30\nanimation/trimming=false\nanimation/remove_immutable_tracks=false\nanimation/import_rest_as_RESET=false\n'
+    # Godot defaults to no loop. Writing explicit defaults expands each clip into unused slice settings.
+    loops={name:{'settings/loop_mode':1} for name in p['loops']}
+    params=f'[params]\n\nnodes/root_scale=1.0\nnodes/import_as_skeleton_bones=false\nskins/use_named_skins=true\nanimation/import=true\nanimation/fps={p.get("fps",30)}\nanimation/trimming=false\nanimation/remove_immutable_tracks=false\nanimation/import_rest_as_RESET=false\n'
     params+='_subresources='+json.dumps({'animations':loops},indent=2)+'\n'
     target.write_text(head+params)
 
