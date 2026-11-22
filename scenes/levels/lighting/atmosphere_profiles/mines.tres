@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="AtmosphereProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://dljt3e3wp3eho" path="res://scenes/levels/lighting/AtmosphereProfile.cs" id="profile"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/scuffs.tscn" id="scuffs"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/dust_falling.tscn" id="dust"]
+
+[resource]
+script = ExtResource("profile")
+Effects = [ExtResource("scuffs"), ExtResource("dust")]

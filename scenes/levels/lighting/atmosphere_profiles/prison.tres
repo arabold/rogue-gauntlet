@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AtmosphereProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" uid="uid://dljt3e3wp3eho" path="res://scenes/levels/lighting/AtmosphereProfile.cs" id="profile"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/haze_garrison.tscn" id="haze"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/dust_garrison.tscn" id="dust"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/scuffs.tscn" id="scuffs"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/blood_splatters.tscn" id="splatters"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/blood_drags.tscn" id="drags"]
+
+[resource]
+script = ExtResource("profile")
+Effects = [ExtResource("haze"), ExtResource("dust"), ExtResource("scuffs"), ExtResource("splatters"), ExtResource("drags")]
