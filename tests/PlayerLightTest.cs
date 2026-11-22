@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
@@ -19,11 +20,16 @@ public class PlayerLightTest
 		level.AddChild(player);
 		TestFactories.AddToSceneTree(level);
 		player.MovementComponent.SetPhysicsProcess(false);
+		var lamp = ItemFactory.Create(TestFactories.Load<PortableLightItem>("res://scenes/items/tools/lamp/tool_lamp_oil.tres"));
+		AssertBool(player.Inventory.TryAdd(lamp).Success).IsTrue();
+		AssertBool(player.InventoryController.TryEquip(player.Inventory.Items.Single(entry => entry.Item == lamp),
+			EquipmentSlot.ShieldHand).Success).IsTrue();
 		// A one-unit wall whose near face is 0.6 from the player's center: the light's spot two units ahead lies past it.
 		var wall = TestFactories.AddToSceneTree(new StaticBody3D { CollisionLayer = 2, CollisionMask = 0, Position = new Vector3(1.1f, 2, 0) });
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(1, 4, 8) } });
 		var pivot = player.GetNode<Node3D>("Pivot");
-		var light = player.GetNode<PlayerLight>("Pivot/PlayerLight").Light;
+		var light = player.Lighting.Light;
+		AssertBool(light.Visible).IsTrue();
 
 		pivot.Rotation = Vector3.Up * Mathf.Pi / 2; // Facing +X, into the wall.
 		await PhysicsFrames(player, 2);

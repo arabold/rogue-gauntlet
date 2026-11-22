@@ -11,7 +11,7 @@ public partial class Main : Node
 	private Tween _deathScreenDelay;
 	private bool _pausedForDeath;
 
-	/// <summary>Full-screen status overlays bound to the player when it spawns. Optional: unassigned means no screen effects.</summary>
+	/// <summary>Full-screen effects bound to the player when it spawns. Optional.</summary>
 	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
 	/// <summary>Optional nearby-world reflection capture, explicitly bound to the spawned hero.</summary>
 	[Export] public LocalReflectionProbe Reflections { get; set; }

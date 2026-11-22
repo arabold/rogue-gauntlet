@@ -1,7 +1,7 @@
 using Godot;
 
 /// <summary>
-/// Blindness overlay that keeps a small circle of gray sight around a world-space <see cref="Focus"/>
+/// Limited-visibility overlay that keeps a small circle of sight around a world-space <see cref="Focus"/>
 /// (normally the player). The sight radius is authored in world units and re-projected every frame, so it
 /// stays the same physical size regardless of camera zoom, rotation or the focus moving on screen.
 /// </summary>
@@ -10,6 +10,7 @@ public partial class BlindnessScreenEffect : ScreenEffect
 {
 	private static readonly StringName FocusParameter = "focus_uv";
 	private static readonly StringName RadiusParameter = "sight_radius";
+	private static readonly StringName ColorGradeParameter = "color_grade";
 
 	/// <summary>
 	/// Node the remaining sight is centered on. Runtime context: assign it when the focus actor spawns.
@@ -23,9 +24,22 @@ public partial class BlindnessScreenEffect : ScreenEffect
 	/// <summary>Height above the focus origin to center on, e.g. the actor's chest instead of its feet.</summary>
 	[Export(PropertyHint.Range, "0,3,0.05,suffix:m")] public float FocusHeight { get; set; } = 0.8f;
 
+	/// <summary>How strongly the remaining sight takes on the shader's cold gray tint.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")]
+	public float ColorGrade
+	{
+		get => field;
+		set
+		{
+			field = value;
+			if (IsNodeReady()) EffectMaterial?.SetShaderParameter(ColorGradeParameter, value);
+		}
+	} = 1f;
+
 	public override void _Ready()
 	{
 		base._Ready();
+		EffectMaterial?.SetShaderParameter(ColorGradeParameter, ColorGrade);
 		UpdateProcessing();
 		VisibilityChanged += UpdateProcessing;
 	}

@@ -79,8 +79,14 @@ public partial class ScreenEffect : Control
 	public void FadeTo(float target, float duration)
 	{
 		_fade?.Kill();
+		if (duration <= 0f)
+		{
+			Intensity = target;
+			return;
+		}
+
 		_fade = CreateTween();
-		_fade.TweenProperty(this, PropertyName.Intensity.ToString(), Mathf.Clamp(target, 0f, 1f), Mathf.Max(duration, 0f));
+		_fade.TweenProperty(this, PropertyName.Intensity.ToString(), Mathf.Clamp(target, 0f, 1f), duration);
 	}
 
 	/// <summary>

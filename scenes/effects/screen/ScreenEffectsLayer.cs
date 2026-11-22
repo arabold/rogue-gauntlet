@@ -3,7 +3,7 @@ using Godot.Collections;
 using System.Linq;
 
 /// <summary>
-/// Root of <c>screen_effects.tscn</c>: the full-screen status overlays drawn above the 3D world and below the HUD.
+/// Root of <c>screen_effects.tscn</c>: full-screen effects drawn above the 3D world and below the HUD.
 /// The layer is the only adapter between the player and the effect drivers. The hosting scene (normally
 /// <see cref="Main"/>) calls <see cref="Bind"/> when the player spawns, and the layer passes the player's
 /// components to its authored drivers. Drivers therefore stay reusable and depend only on the component they observe.
@@ -13,6 +13,10 @@ public partial class ScreenEffectsLayer : CanvasLayer
 {
 	/// <summary>Effect whose remaining sight is centered on the bound player. Optional.</summary>
 	[Export] public BlindnessScreenEffect Blindness { get; set; }
+
+	/// <summary>Player-centered sight on unlit dark floors. Optional.</summary>
+	[Export] public BlindnessScreenEffect Darkness { get; set; }
+	[Export] public DarknessScreenEffectDriver DarknessDriver { get; set; }
 
 	/// <summary>Drivers that observe the bound player's <see cref="HealthComponent"/>, e.g. near death.</summary>
 	[Export] public Array<HealthScreenEffectDriver> HealthDrivers { get; set; } = [];
@@ -44,6 +48,16 @@ public partial class ScreenEffectsLayer : CanvasLayer
 		if (Blindness != null)
 		{
 			Blindness.Focus = player;
+		}
+
+		if (Darkness != null)
+		{
+			Darkness.Focus = player;
+		}
+
+		if (DarknessDriver != null)
+		{
+			DarknessDriver.Lighting = player?.Lighting;
 		}
 
 		foreach (HealthScreenEffectDriver driver in HealthDrivers)

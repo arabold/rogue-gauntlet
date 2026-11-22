@@ -246,7 +246,7 @@ radius = 2.0
 radius = 0.75
 height = 2.5
 
-[node name="Player" type="CharacterBody3D" unique_id=1814290365 node_paths=PackedStringArray("WorldEffects", "ItemUseEffects", "Invisibility", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "AttackSlots", "HealthComponent", "ManaComponent", "SpellCaster", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager") groups=["player"]]
+[node name="Player" type="CharacterBody3D" unique_id=1814290365 node_paths=PackedStringArray("WorldEffects", "ItemUseEffects", "Lighting", "Invisibility", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "ActionGate", "QuickItemController", "InteractionComponent", "DodgeComponent", "GuardComponent", "AttackSlots", "HealthComponent", "ManaComponent", "SpellCaster", "HurtBoxComponent", "MovementComponent", "InputComponent", "ActionManager", "BuffController", "InteractionController", "StatsController", "InventoryController", "InputController", "AttackController", "InteractionArea", "Pivot", "CharacterModelNode", "AnimationTree", "AttachmentManager") groups=["player"]]
 collision_layer = 4
 collision_mask = 763
 platform_floor_layers = 4294901761
@@ -254,6 +254,7 @@ platform_wall_layers = 2
 script = ExtResource("1_5y8vd")
 WorldEffects = NodePath("WorldEffects")
 ItemUseEffects = NodePath("ItemUseEffects")
+Lighting = NodePath("Pivot/PlayerLight")
 Invisibility = NodePath("InvisibilityComponent")
 FrozenStatus = NodePath("FrozenStatusComponent")
 SlowStatus = NodePath("SlowStatusComponent")
