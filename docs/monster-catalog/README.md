@@ -4,14 +4,14 @@ The playable roster contains six monsters. Gameplay definitions and policies in 
 
 | Monster definition | Role | First-realm availability |
 | --- | --- | --- |
-| [Skeleton Minion](../../scenes/enemies/skeleton/skeleton_minion_definition.tres) | Direct melee | Depths 1–3 |
-| [Skeleton Warrior](../../scenes/enemies/skeleton/skeleton_warrior_definition.tres) | Melee with guard, dodge and conditional riposte | Depths 1–3 |
-| [Skeleton Crossbowman](../../scenes/enemies/skeleton/skeleton_crossbow_definition.tres) | Projectile-only distance fighter | Depths 1–3 |
-| [Skeleton Mage](../../scenes/enemies/skeleton/skeleton_mage_definition.tres) | Missile volleys, fireballs, ally healing, self healing and empowerment | Depths 2–3 |
-| [Plague Rat](../../scenes/enemies/rat/rat_definition.tres) | Bite/retreat, bounded low-health override | Depths 2–3 and finite nests |
-| [Forsaken Warden](../../scenes/enemies/forsaken_warden/forsaken_warden_definition.tres) | Sword/guard gatekeeper with conditional riposte | Depth 3 |
+| [Skeleton Minion](../../scenes/enemies/skeleton/skeleton_minion_definition.tres) | Direct melee | Depths 1–5 |
+| [Skeleton Warrior](../../scenes/enemies/skeleton/skeleton_warrior_definition.tres) | Melee with guard, dodge and conditional riposte | Depths 1–5 |
+| [Skeleton Crossbowman](../../scenes/enemies/skeleton/skeleton_crossbow_definition.tres) | Projectile-only distance fighter | Depths 2–5 |
+| [Skeleton Mage](../../scenes/enemies/skeleton/skeleton_mage_definition.tres) | Missile volleys, fireballs, ally healing, self healing and empowerment | Depths 3–5 |
+| [Plague Rat](../../scenes/enemies/rat/rat_definition.tres) | Bite/retreat, bounded low-health override | Depths 1–5 and finite nests |
+| [Forsaken Warden](../../scenes/enemies/forsaken_warden/forsaken_warden_definition.tres) | Sword/guard gatekeeper with conditional riposte | Depth 5 |
 
-Stats, rewards and policy tuning live in the linked definitions and Resources. They await [three-floor balance acceptance](../development-roadmap.md#first-three-floor-acceptance); no automatic depth-based stat scaling or monster-level field is used. Later depths use a development fallback rather than finished realm content.
+Stats, rewards and policy tuning live in the linked definitions and Resources. They await [first-realm balance acceptance](../development-roadmap.md#first-three-floor-acceptance); no automatic depth-based stat scaling or monster-level field is used. Later depths use a development fallback until the [realm monster roster](../specs/realm-monster-roster-plan.md) lands.
 
 Use the [Asset Studio character catalog](../../asset-studio/catalogs/characters/README.md) for published monster models and previews, including the [rat](../../asset-studio/catalogs/characters/beasts/rat/lineup.png) and [Warden](../../asset-studio/catalogs/characters/bosses/forsaken_warden/lineup.png). The gameplay roster above is separate from the art catalog: Studio art for future monsters does not automatically add them to encounters.
 

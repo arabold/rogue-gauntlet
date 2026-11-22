@@ -121,7 +121,7 @@ The first floor introduces direct melee, frontal defense and readable ranged pre
 
 The Warden remains a single-phase encounter for the initial rollout. A larger silhouette and committed swings can make it distinct without phase scripting. Summoning, leaps, shockwaves, weapon changes and enrage phases are deferred rather than prerequisites for a playable third floor.
 
-Later realm monsters and bosses remain open design work. Choose them to support a realm's tactical focus after the first realm is enjoyable. Earlier detailed HP/damage tables, threat-class ranges and room-budget formulas have been retired: they were speculative and conflicted with the implemented roster. A later realm need not reuse those exact creatures or numbers.
+Later realm monsters and bosses are proposed in the [realm monster roster](specs/realm-monster-roster-plan.md). Choose them to support a realm's tactical focus after the first realm is enjoyable. Earlier detailed HP/damage tables, threat-class ranges and room-budget formulas have been retired: they were speculative and conflicted with the implemented roster. A later realm need not reuse those exact creatures or numbers.
 
 ## 6. Encounter direction
 
