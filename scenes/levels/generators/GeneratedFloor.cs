@@ -53,6 +53,8 @@ public sealed class GeneratedFloor
 	public IReadOnlyList<(Door Door, Vector2I Connector)> Doors => _doors;
 	/// <summary>The descent arrival the floor is built around; null only for a layout without one.</summary>
 	public PlayerSpawnPoint Arrival { get; internal set; }
+	/// <summary>The arrival from the next floor, whose landing marks the walk-on end of the down stairs.</summary>
+	public PlayerSpawnPoint ArrivalFromBelow { get; internal set; }
 	/// <summary>The exit down to the next floor; null for a layout without one.</summary>
 	public LevelTransitionTrigger Descent { get; internal set; }
 	/// <summary>This floor's special encounters, decided before generation places anything; null on floors without any.</summary>
@@ -74,6 +76,8 @@ public sealed class GeneratedFloor
 	/// <summary>World XZ outlines of the solid wall pieces, from their mesh footprints rather than collision hulls: a corner
 	/// counts as its two arms, so a room's inner corner stays open. Set once the walls are final.</summary>
 	public IReadOnlyList<Vector2[]> SolidWalls { get; internal set; } = [];
+	/// <summary>World XZ centerlines of fixed structures inside rooms, including cell walls and GridMap dividers.</summary>
+	internal IReadOnlyList<(Vector2 Start, Vector2 End)> InteriorWallSegments { get; set; } = [];
 
 	/// <summary>Progression anchors and stairs that keep spawns at a distance; collected with the arrival once rooms are placed.</summary>
 	public IReadOnlyList<Vector3> SpawnAnchors { get; internal set; } = [];

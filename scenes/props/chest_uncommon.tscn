@@ -10,7 +10,7 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_body"]
 size = Vector3(1.84, 0.81, 1.1)
 
-[node name="Chest" type="Node3D" node_paths=PackedStringArray("Interactive", "LootTable", "Lid") groups=["prop"]]
+[node name="Chest" type="Node3D" node_paths=PackedStringArray("Interactive", "LootTable", "Lid") groups=["loot", "prop"]]
 script = ExtResource("1_script")
 Interactive = NodePath("InteractiveComponent")
 LootTable = NodePath("LootTableComponent")

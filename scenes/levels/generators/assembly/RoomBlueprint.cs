@@ -436,6 +436,11 @@ public sealed class RoomBlueprint
 			node.SetMeta("prop_id", piece.Prop.Id);
 			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
 			root.AddChild(node);
+			if (piece.Prop.Structural)
+			{
+				string meshItem = piece.Prop.Scenes.Length == 0 ? piece.Prop.Items[piece.Variant] : null;
+				Room.StructuralProps.Add((node, meshItem));
+			}
 		}
 		// A low curb can be climbed by rounded character colliders. Water needs a full-height actor-only barrier.
 		if (_walkingBarriers.Count > 0)
