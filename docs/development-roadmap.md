@@ -68,6 +68,12 @@ Spell casting from wands and staves is implemented: the mana pool, all 20 spells
 
 The next consumable-feedback goal is [catalog-wide activation coverage](specs/consumable-feedback-plan.md): distinct world/screen signatures for all 9 potion families and 11 scroll types, independent of longer-lived status presentation. Sizes share their type's signature. This is proposed work, beyond the existing healing/strength cues, shared scroll-reading ring and teleport/spawn presentation.
 
+## Audio
+
+The [audio system](audio-system.md) provides pooled positional cues, separate music/effects/UI mixing, saved volume/mono settings, looping exploration music and boss crossfades. It follows the shared combat executor, multi-action monster profiles, paired melee and either-hand spell casting; the production camera rig supplies the listener in gameplay and the arena. Footsteps follow authored floor materials, defense contacts use distinct impacts, and deaths/doors/chests/item pickup/drop have committed cues.
+
+The [combat listening pass](specs/audio-combat-integration-plan.md) remains outstanding, including new spell/volley/support/Tremor defaults, Warden overhead weight, stereo and crowd clarity. [Remaining content](specs/audio-system-plan.md) covers material/element impacts, more spell/item signatures, ambience and realm music. Automated event/resource checks do not establish the final mix.
+
 ## Later delivery
 
 - **Architecture cleanup:** floor services, the run state and player persistence are separated. Remaining: item use through one context (consumable and scroll-effect signatures, `ActionManager` slot creation), and a scene autoload for the session-flow scene paths shared with `SceneDebugBootstrap`.

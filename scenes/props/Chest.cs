@@ -18,6 +18,7 @@ public partial class Chest : Node3D
 	} = false;
 
 	[Export] public InteractiveComponent Interactive { get; set; }
+	[Export] public SoundCueProfile OpenCue { get; set; }
 	/// <summary>Optional: without it the chest opens empty.</summary>
 	[Export] public LootTableComponent LootTable { get; set; }
 	/// <summary>The hinged lid that swings open.</summary>
@@ -64,6 +65,7 @@ public partial class Chest : Node3D
 		// Commit the reward with opening, rather than after the animation: a save
 		// during the tween must not restore an empty opened chest.
 		LootTable?.DropLoot();
+		if (OpenCue != null) SignalBus.EmitWorldSoundEmitted(OpenCue, this, GlobalPosition);
 
 		_activeTween?.Kill();
 		_activeTween = CreateTween();

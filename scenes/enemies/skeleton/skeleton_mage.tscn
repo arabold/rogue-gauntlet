@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3]
+[gd_scene load_steps=42 format=3]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
 [ext_resource type="PackedScene" path="res://assets/kaykit-skeletons/Skeleton_Mage.glb" id="mage_model"]
@@ -221,3 +221,6 @@ Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
 [node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
 Movement = NodePath("../MovementComponent")
 AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
+
+[node name="ActorAudioComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")

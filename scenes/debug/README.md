@@ -7,13 +7,16 @@ Open the scene in Godot and run it with **F6**. Each feature folder keeps its sc
 | Room generation | [rooms/room_generation_harness.tscn](rooms/room_generation_harness.tscn) | Inspect each realm's room types alone or in a production floor |
 | Combat | [combat/combat_harness.tscn](combat/combat_harness.tscn) | Interactive combat with the game's debug menu, monster tactics and scripted traces; [guide](../../docs/combat-harness.md) |
 | World effects | [effects/world_effect_harness.tscn](effects/world_effect_harness.tscn) | Replay and tune production trap/secret discovery, loot glow, blood hit and prop x-rays |
+| Audio | [audio/audio_harness.tscn](audio/audio_harness.tscn) | Audition production cue profiles and exploration/boss music, compare left/center/right playback, pause routing and voice limits |
 | Actor/item effects | [effects/actor_item_effect_preview.tscn](effects/actor_item_effect_preview.tscn) | Inspect one effect/subject, skin finishes, teleport fades and fitted curse wisps; [guide](../../docs/world-effects.md) |
 | Scroll reading | [effects/runes/scroll_rune_study.tscn](effects/runes/scroll_rune_study.tscn) | Preview the production ring with its assigned scroll appearance; [guide](../../docs/world-effects.md#scroll-reading-preview) |
 | Screen effects | [effects/screen_effect_harness.tscn](effects/screen_effect_harness.tscn) | Exercise overlays in gameplay; [guide](../../docs/screen-effects.md) |
 
 ## Lighting, camera and floor
 
-Every harness except room generation shows its subject as the game does. It lights through `scenes/levels/lighting/world_lighting.tscn`, the game's own environment with the **Dark level** switch, and the hero carries `scenes/player/player_light.tscn`; workbenches without a playing hero place that light beside their subject. The combat arena uses the game camera (`scenes/main/camera/game_camera.tscn`, its angle and zoom in `game_camera_profile.tres`), and the workbench cameras start at the same angle. Subjects stand on `scenes/debug/stage/sample_floor.tscn`, paved with the dungeon's stone floor tile. Room generation keeps its bright top-down overview, set on its level's lighting node.
+The audio harness uses a diagnostic marker stage and listener for stereo/distance audition. Combat synchronization uses the production combat arena; see [audio authoring](../../docs/audio-system.md).
+
+Visual harnesses use the game's presentation. It lights through `scenes/levels/lighting/world_lighting.tscn`, the game's own environment with the **Dark level** switch, and the hero carries `scenes/player/player_light.tscn`; workbenches without a playing hero place that light beside their subject. The combat arena uses the game camera (`scenes/main/camera/game_camera.tscn`, its angle and zoom in `game_camera_profile.tres`), and the workbench cameras start at the same angle. Subjects stand on `scenes/debug/stage/sample_floor.tscn`, paved with the dungeon's stone floor tile. Room generation keeps its bright top-down overview, set on its level's lighting node.
 
 ## In-game debug menu
 

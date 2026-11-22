@@ -21,6 +21,8 @@ public partial class MainMenu : Control
 	[Export] public Label ContinueCaption { get; set; }
 	[Export] public Button NewRunButton { get; set; }
 	[Export] public Button RunsButton { get; set; }
+	[Export] public Button AudioSettingsButton { get; set; }
+	[Export] public AudioSettingsPanel AudioSettings { get; set; }
 	[Export] public Button QuitButton { get; set; }
 
 	[Export] public Control RunsScreen { get; set; }
@@ -49,6 +51,10 @@ public partial class MainMenu : Control
 		ProcessMode = ProcessModeEnum.Always;
 		GetTree().Paused = false;
 		_cards = CardRow.GetChildren().OfType<RunCard>().ToArray();
+
+		SignalBus.EmitMainMenuEntered();
+		AudioSettingsButton.Pressed += OpenAudioSettings;
+		AudioSettings.Closed += ShowTitle;
 
 		ContinueButton.Pressed += () => GameSession.Instance.LoadGame(_latest.SlotId);
 		NewRunButton.Pressed += StartNewRun;
@@ -81,6 +87,13 @@ public partial class MainMenu : Control
 			LeaveRuns();
 			GetViewport().SetInputAsHandled();
 		}
+	}
+
+	/// <summary>Shows audio preferences on their own screen and returns to the title when closed.</summary>
+	private void OpenAudioSettings()
+	{
+		Show(null);
+		AudioSettings.Open();
 	}
 
 	private void ShowTitle()

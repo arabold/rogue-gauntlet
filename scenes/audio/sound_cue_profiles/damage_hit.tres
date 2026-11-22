@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/chop.ogg" id="2_chop"]
+
+[resource]
+script = ExtResource("1_script")
+Variants = Array[AudioStream]([ExtResource("2_chop")])
+Category = 0
+GainDb = -12.0
+PitchMinimum = 0.96
+PitchMaximum = 1.04
+PanningStrength = 0.3
+UnitSize = 4.0
+MaxDistance = 22.0
+Priority = 6
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 8
+MinIntervalSeconds = 0.04

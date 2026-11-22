@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/menu/MainMenu.cs" id="1_menu"]
 [ext_resource type="PackedScene" path="res://scenes/menu/stage/menu_stage.tscn" id="2_stage"]
@@ -10,6 +10,10 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog.tscn" id="8_confirm"]
 [ext_resource type="Texture2D" path="res://assets/ui-kit/title_logo.png" id="9_logo"]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_panel.tscn" id="audio_settings"]
+[ext_resource type="Script" path="res://scenes/audio/UiAudioComponent.cs" id="ui_audio"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/ui_click.tres" id="ui_click"]
+
 [sub_resource type="Gradient" id="Gradient_shade"]
 offsets = PackedFloat32Array(0, 0.45, 1)
 colors = PackedColorArray(0.0705882, 0.0431373, 0.0235294, 0.9, 0.0705882, 0.0431373, 0.0235294, 0.6, 0.0705882, 0.0431373, 0.0235294, 0)
@@ -19,7 +23,7 @@ gradient = SubResource("Gradient_shade")
 width = 256
 height = 4
 
-[node name="MainMenu" type="Control" node_paths=PackedStringArray("Stage", "TitleScreen", "ContinueRow", "ContinueButton", "ContinueCaption", "NewRunButton", "RunsButton", "QuitButton", "RunsScreen", "RunsTitle", "CardRow", "RunsBackButton", "HeroScreen", "DeathScreen", "ReplaceDialog")]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("Stage", "TitleScreen", "ContinueRow", "ContinueButton", "ContinueCaption", "NewRunButton", "RunsButton", "AudioSettingsButton", "AudioSettings", "QuitButton", "RunsScreen", "RunsTitle", "CardRow", "RunsBackButton", "HeroScreen", "DeathScreen", "ReplaceDialog")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15
@@ -37,6 +41,8 @@ ContinueButton = NodePath("Title/Column/ContinueRow/ContinueButton")
 ContinueCaption = NodePath("Title/Column/ContinueRow/Caption")
 NewRunButton = NodePath("Title/Column/NewRunButton")
 RunsButton = NodePath("Title/Column/RunsButton")
+AudioSettingsButton = NodePath("Title/Column/AudioSettingsButton")
+AudioSettings = NodePath("AudioSettings")
 QuitButton = NodePath("Title/Column/QuitButton")
 RunsScreen = NodePath("Runs")
 RunsTitle = NodePath("Runs/Header/Title")
@@ -120,6 +126,13 @@ layout_mode = 2
 size_flags_horizontal = 0
 focus_mode = 2
 text = "Runs"
+
+[node name="AudioSettingsButton" type="Button" parent="Title/Column"]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 2
+size_flags_horizontal = 0
+focus_mode = 2
+text = "Audio"
 
 [node name="QuitButton" type="Button" parent="Title/Column"]
 custom_minimum_size = Vector2(320, 64)
@@ -222,3 +235,10 @@ DismissText = "Back"
 [node name="ReplaceDialog" parent="." instance=ExtResource("8_confirm")]
 visible = false
 layout_mode = 1
+
+[node name="AudioSettings" parent="." instance=ExtResource("audio_settings")]
+
+[node name="UiAudioComponent" type="Node" parent="." node_paths=PackedStringArray("ButtonRoot")]
+script = ExtResource("ui_audio")
+ButtonRoot = NodePath("..")
+PressedCue = ExtResource("ui_click")

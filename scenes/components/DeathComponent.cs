@@ -8,6 +8,7 @@ public partial class DeathComponent : Node
 {
 	[Export] public HealthComponent HealthComponent { get; set; }
 	[Export] public LootTableComponent LootTableComponent { get; set; }
+	[Export] public SoundCueProfile DeathCue { get; set; }
 
 	[Export] public int Xp { get; set; } = 100;
 	/// <summary>Practice instances suppress both reward outputs while retaining their authored dependencies.</summary>
@@ -35,6 +36,7 @@ public partial class DeathComponent : Node
 	{
 		// Disable collision detection for character
 		var owner = GetOwner<CharacterBody3D>();
+		if (DeathCue != null) SignalBus.EmitWorldSoundEmitted(DeathCue, owner, owner.GlobalPosition);
 
 		if (owner.HasMeta("persistent_id"))
 		{

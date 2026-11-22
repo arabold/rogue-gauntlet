@@ -111,7 +111,7 @@ public class DungeonAtmosphereTest
 		AssertBool(haze.Volume.IsVisibleInTree()).IsTrue();
 		var replacement = new MapData(6, 6);
 		replacement.SetTile(4, 1, MapTile.Room);
-		air.Initialize(new GeneratedFloor(replacement, level.MapGenerator, level.MapGenerator.DecorationGridMap), profile, 42);
+		air.Initialize(new GeneratedFloor(replacement, level.MapGenerator, level.MapGenerator.FloorGridMap, level.MapGenerator.DecorationGridMap), profile, 42);
 		haze = air.GetChildren().OfType<AtmosphereHaze>().Single();
 		using var replaced = ((ShaderMaterial)haze.Volume.Material).GetShaderParameter("floor_mask").As<ImageTexture>().GetImage();
 		AssertFloat(replaced.GetPixel(1, 1).R).IsEqual(0);
@@ -153,7 +153,7 @@ public class DungeonAtmosphereTest
 		map.SetTile(1, 1, MapTile.Room);
 		map.SetTile(3, 4, MapTile.Chasm);
 		map.SetTile(2, 2, MapTile.Wall);
-		return (level, new GeneratedFloor(map, level.MapGenerator, level.MapGenerator.DecorationGridMap));
+		return (level, new GeneratedFloor(map, level.MapGenerator, level.MapGenerator.FloorGridMap, level.MapGenerator.DecorationGridMap));
 	}
 
 	private static byte[] PointBytes(ParticleProcessMaterial motion)

@@ -1,6 +1,8 @@
-[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=3 format=3]
 
 [ext_resource type="Script" uid="uid://dirab7d4baxkb" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/spell_release.tres" id="release_audio"]
 
 [resource]
 script = ExtResource("attack")
@@ -11,3 +13,4 @@ Range = 16.0
 PoiseDamage = 0.0
 Knockback = 0.0
 metadata/_custom_type_script = ExtResource("attack")
+ReleaseCue = ExtResource("release_audio")

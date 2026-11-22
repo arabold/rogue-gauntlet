@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStream" path="res://assets/artisticdude-rpg-sound-pack/inventory/bubble.wav" id="clip_0"]
+[ext_resource type="AudioStream" path="res://assets/artisticdude-rpg-sound-pack/inventory/bubble2.wav" id="clip_1"]
+
+[resource]
+script = ExtResource("script")
+Variants = [ExtResource("clip_0"), ExtResource("clip_1")]
+Category = 0
+GainDb = -13
+PitchMinimum = 0.98
+PitchMaximum = 1.04
+PanningStrength = 0.2
+UnitSize = 3.0
+MaxDistance = 24.0
+Priority = 4
+MaxVoicesPerSource = 2
+MaxVoicesGlobal = 6
+MinIntervalSeconds = 0.05

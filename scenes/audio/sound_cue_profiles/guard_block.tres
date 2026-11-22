@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/impactTin_medium_000.ogg" id="sample_1"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/impactTin_medium_001.ogg" id="sample_2"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/impactTin_medium_002.ogg" id="sample_3"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/impactTin_medium_003.ogg" id="sample_4"]
+[ext_resource type="AudioStreamOggVorbis" path="res://assets/kenney-impact-sounds/audio/impactTin_medium_004.ogg" id="sample_5"]
+
+[resource]
+script = ExtResource("script")
+Variants = Array[AudioStream]([ExtResource("sample_1"), ExtResource("sample_2"), ExtResource("sample_3"), ExtResource("sample_4"), ExtResource("sample_5")])
+Category = 0
+GainDb = -10.0
+PitchMinimum = 0.94
+PitchMaximum = 1.06
+PanningStrength = 0.2
+UnitSize = 4.0
+MaxDistance = 24.0
+Priority = 4
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 4
+MinIntervalSeconds = 0.08

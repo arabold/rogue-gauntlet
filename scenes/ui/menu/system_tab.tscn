@@ -2,7 +2,9 @@
 
 [ext_resource type="Script" path="res://scenes/ui/menu/SystemTab.cs" id="1_script"]
 
-[node name="System" type="Control" node_paths=PackedStringArray("ResumeButton", "SaveAndQuitButton", "StatusLabel")]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_panel.tscn" id="audio_settings"]
+
+[node name="System" type="Control" node_paths=PackedStringArray("ResumeButton", "SaveAndQuitButton", "Menu", "AudioSettingsButton", "AudioSettings", "StatusLabel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,6 +15,9 @@ mouse_filter = 2
 script = ExtResource("1_script")
 ResumeButton = NodePath("Center/Column/ResumeButton")
 SaveAndQuitButton = NodePath("Center/Column/SaveAndQuitButton")
+Menu = NodePath("Center")
+AudioSettingsButton = NodePath("Center/Column/AudioSettingsButton")
+AudioSettings = NodePath("AudioSettings")
 StatusLabel = NodePath("Center/Column/StatusLabel")
 
 [node name="Center" type="CenterContainer" parent="."]
@@ -44,6 +49,11 @@ layout_mode = 2
 theme_type_variation = &"PrimaryButton"
 text = "Resume"
 
+[node name="AudioSettingsButton" type="Button" parent="Center/Column"]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 2
+text = "Audio"
+
 [node name="SaveAndQuitButton" type="Button" parent="Center/Column"]
 custom_minimum_size = Vector2(320, 64)
 layout_mode = 2
@@ -54,3 +64,5 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 theme_type_variation = &"WarningLabel"
 horizontal_alignment = 1
+
+[node name="AudioSettings" parent="." instance=ExtResource("audio_settings")]

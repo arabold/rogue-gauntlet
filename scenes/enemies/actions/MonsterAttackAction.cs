@@ -26,7 +26,7 @@ public partial class MonsterAttackAction : MonsterTimedAction
 		if (Attack == null) return ActorActionRequestResult.InvalidDefinition;
 		if (!context.TryReserveSlot(ReservedSlot, out var slots)) return ActorActionRequestResult.Busy;
 		if (!controller.TryPrepareAttack(Attack, Style, Duration, out var prepared)
-			|| !controller.StartAttack(prepared, ResolvePower(context), HostileMask))
+			|| !controller.StartAttack(prepared with { VoiceCue = VoiceCue }, ResolvePower(context), HostileMask))
 		{
 			slots?.Release(context.Actor, yield: false);
 			return ActorActionRequestResult.InvalidDefinition;

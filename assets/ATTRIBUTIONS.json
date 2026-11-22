@@ -24,6 +24,18 @@
 		"game-ui": {
 			"look": "The game's own interface kit: hand-carved warm-brown wood with chipped, wandering edges, oversized gold curls that differ per corner, recessed translucent slots that glow ochre when filled and white when selected, a tone-on-tone scroll-relief backdrop, cream serif titles over curl-ended dividers. Storybook fantasy in the manner of recent Zelda remakes, kept muted: in-game UI is translucent shades and thin carved outlines, with heavy frames only on menus.",
 			"notes": "Rendered by asset-studio/ui/ui_kit.py and applied through scenes/ui/theme.tres. Fonts: Alegreya (display) and Alegreya Sans (body). New interface art extends the generator rather than mixing in third-party UI kits."
+		},
+		"kenney-audio": {
+			"look": "Concise, cleanly recorded game sound effects with separate UI and RPG foley collections.",
+			"notes": "Audio provenance grouping; individual recordings remain subject to in-game audition and mix tuning."
+		},
+		"opengameart-music": {
+			"look": "Individually selected loopable community music tracks; evaluate their mix and loop boundaries in gameplay.",
+			"notes": "Tracks are registered independently with their own source listing and license evidence."
+		},
+		"opengameart-audio": {
+			"look": "Individually selected community sound effects for game playback.",
+			"notes": "Sound effects are evaluated in-game for timbre, mix and repetition; keep the source listing and license evidence with each acquisition."
 		}
 	},
 	"packs": [
@@ -252,6 +264,103 @@
 			"compatibility_group": "game-ui",
 			"acquired": "2026-11-15",
 			"notes": "Carved frames, plaques, slots, glow, card, divider, ribbon, header band, backdrop, feathered shade, thin outline frame, carousel arrows, gear-slot icons, touch action icons and the coin, all drawn from distance fields; regenerate with ./.venv/bin/python asset-studio/ui/ui_kit.py rather than editing the PNGs. Rendered at 1x for 1080p. title_logo.png is the title screen's logo, drawn by asset-studio/ui/title_logo.py from the glyphs of the project's Alegreya display font (OFL, see the fonts pack) at 2x."
+		},
+		{
+			"id": "kenney-rpg-audio",
+			"name": "Kenney - RPG Audio",
+			"dir": "assets/kenney-rpg-audio",
+			"author": "Kenney Vleugels (Kenney.nl)",
+			"source": "https://kenney.nl/assets/rpg-audio",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "kenney-audio",
+			"acquired": "2026-11-07",
+			"notes": "51 OGG audio effects copied from the locally supplied Downloads pack. Original recordings are under audio/ with a filename-map.csv mapping from upstream names. License.txt is preserved as license.txt; Preview.ogg, URLs and archives are excluded."
+		},
+		{
+			"id": "kenney-ui-audio",
+			"name": "Kenney - UI Audio",
+			"dir": "assets/kenney-ui-audio",
+			"author": "Kenney Vleugels (Kenney.nl)",
+			"source": "https://kenney.nl/assets/ui-audio",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "kenney-audio",
+			"acquired": "2026-11-07",
+			"notes": "51 OGG audio effects copied from the locally supplied Downloads pack. Original recordings are under audio/ with a filename-map.csv mapping from upstream names. License.txt is preserved as license.txt; Preview.ogg, URLs and archives are excluded."
+		},
+		{
+			"id": "mintodog-rpg-music",
+			"name": "MintoDog - RPG Metal Music",
+			"dir": "assets/mintodog-rpg-music",
+			"author": "MintoDog",
+			"source": "https://opengameart.org/content/heavy-dungeon ; https://opengameart.org/content/heavy-battle-1",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio",
+				"music"
+			],
+			"compatibility_group": "opengameart-music",
+			"acquired": "2026-11-07",
+			"notes": "Two OGG loops labeled CC0 on their individual OpenGameArt listings. Source filenames, author, license and per-track listing URLs are recorded in provenance.txt. Selected by the project maintainer for exploration and boss-music prototyping."
+		},
+		{
+			"id": "opengameart-swishes",
+			"name": "OpenGameArt - Swishes Sound Pack",
+			"dir": "assets/opengameart-swishes",
+			"author": "artisticdude",
+			"source": "https://opengameart.org/content/swishes-sound-pack",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "opengameart-audio",
+			"acquired": "2026-11-07",
+			"notes": "13 WAV swish effects from the freely downloadable pack; the OpenGameArt listing marks the pack CC0. The game copies are downmixed from stereo to mono for positional 3D playback. Imported as randomized melee-release variants to distinguish misses from contact impacts. Original filenames, conversion and source are recorded in provenance.txt."
+		},
+		{
+			"id": "kenney-impact-sounds",
+			"name": "Kenney - Impact Sounds",
+			"dir": "assets/kenney-impact-sounds",
+			"author": "Kenney Vleugels (Kenney.nl)",
+			"source": "https://kenney.nl/assets/impact-sounds",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "kenney-audio",
+			"acquired": "2026-11-08",
+			"notes": "The supplied Audio folder and License.txt are copied without changing the recordings. The pack includes surface footsteps and impact variants."
+		},
+		{
+			"id": "artisticdude-rpg-sound-pack",
+			"name": "Artisticdude - RPG Sound Pack",
+			"dir": "assets/artisticdude-rpg-sound-pack",
+			"author": "artisticdude",
+			"source": "https://opengameart.org/content/rpg-sound-pack",
+			"license": "CC0-1.0",
+			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+			"attribution_required": false,
+			"types": [
+				"audio"
+			],
+			"compatibility_group": "opengameart-audio",
+			"acquired": "2026-11-08",
+			"notes": "The supplied WAV collection is copied with its category folders and original filenames. The OpenGameArt listing identifies this pack as CC0; see provenance.txt because the download did not include a license file."
 		}
 	]
 }
