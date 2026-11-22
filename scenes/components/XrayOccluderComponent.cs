@@ -6,7 +6,7 @@ using Godot;
 /// (body, worn and held gear, and anything attached later) draws <see cref="Mask"/> as its material overlay: the stencil
 /// pass that monsters and loot already use to mark the pixels where they are in view (<c>occlusion_xray_mask.tres</c>).
 /// Door, chest, monster and loot x-rays skip those pixels, so a silhouette hidden behind this actor never paints over it.
-/// Surface effects that replace the overlay (cloak, skins) drop the mask while they run and restore it afterwards.
+/// Skins keep the mask; cloak and teleport transitions, which hide the actor, drop it while they run.
 /// </summary>
 [GlobalClass]
 public partial class XrayOccluderComponent : Node
@@ -22,19 +22,6 @@ public partial class XrayOccluderComponent : Node
 	public override void _EnterTree()
 	{
 		if (_unwatch != null || Engine.IsEditorHint() || Target == null || Mask == null) return;
-		Apply(Target);
-		_unwatch = this.SubscribeUntilExit(GetTree(), tree => tree.NodeAdded += OnNodeAdded, tree => tree.NodeAdded -= OnNodeAdded);
-	}
-
-	private void OnNodeAdded(Node node)
-	{
-		if (node is MeshInstance3D mesh && Target.IsAncestorOf(mesh) && !VisualHelper.IsInHelperSubtree(mesh)) mesh.MaterialOverlay = Mask;
-	}
-
-	private void Apply(Node node)
-	{
-		if (VisualHelper.IsHelper(node)) return;
-		if (node is MeshInstance3D mesh) mesh.MaterialOverlay = Mask;
-		foreach (Node child in node.GetChildren()) Apply(child);
+		_unwatch = VisualHelper.WatchMeshes(this, Target, mesh => mesh.MaterialOverlay = Mask);
 	}
 }

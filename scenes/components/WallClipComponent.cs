@@ -35,8 +35,7 @@ public partial class WallClipComponent : Node
 	public override void _EnterTree()
 	{
 		if (_unwatch != null || Engine.IsEditorHint() || Target == null || Shader == null) return;
-		Apply(Target);
-		_unwatch = this.SubscribeUntilExit(GetTree(), tree => tree.NodeAdded += OnNodeAdded, tree => tree.NodeAdded -= OnNodeAdded);
+		_unwatch = VisualHelper.WatchMeshes(this, Target, Clip);
 	}
 
 	public override void _Ready() => SetProcess(_unwatch != null);
@@ -48,19 +47,6 @@ public partial class WallClipComponent : Node
 		_anchor = anchor;
 		_clipped.RemoveAll(mesh => !IsInstanceValid(mesh));
 		foreach (var mesh in _clipped) mesh.SetInstanceShaderParameter(AnchorParameter, anchor);
-	}
-
-	/// <summary>Gear and models clip from the moment they enter the tree, before a running surface effect captures them.</summary>
-	private void OnNodeAdded(Node node)
-	{
-		if (node is MeshInstance3D mesh && Target.IsAncestorOf(mesh) && !VisualHelper.IsInHelperSubtree(mesh)) Clip(mesh);
-	}
-
-	private void Apply(Node node)
-	{
-		if (VisualHelper.IsHelper(node)) return;
-		if (node is MeshInstance3D mesh) Clip(mesh);
-		foreach (Node child in node.GetChildren()) Apply(child);
 	}
 
 	private void Clip(MeshInstance3D mesh)

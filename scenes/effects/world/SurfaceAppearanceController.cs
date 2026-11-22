@@ -133,7 +133,8 @@ public partial class SurfaceAppearanceController : Node
 	private Surface Build(MeshMaterialSnapshot snapshot)
 	{
 		var (overrides, materials) = SurfaceMaterialFactory.Create(snapshot, _winner.Profile, _winner.Amount);
-		snapshot.ApplySurfaces(overrides, clearOverlay: true);
+		// A skin recolors a solid actor, so its overlay (the hero's x-ray mask) stays; cloak and transitions hide the actor.
+		snapshot.ApplySurfaces(overrides, clearOverlay: _winner.Profile.Kind != SurfaceAppearanceKind.Skin);
 		snapshot.Mesh.CastShadow = _winner.Profile.Kind == SurfaceAppearanceKind.Cloak ? GeometryInstance3D.ShadowCastingSetting.Off : snapshot.CastShadow;
 		return new Surface(snapshot, materials);
 	}

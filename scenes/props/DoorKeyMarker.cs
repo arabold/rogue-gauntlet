@@ -1,10 +1,9 @@
 using Godot;
 
 /// <summary>
-/// A visible lock cue that turns in place and takes its color from the required key. Its scene draws it in the
-/// transparent pass after the fog (<see cref="FloorDiscovery.AboveFogRenderPriority"/> for the ink, one above for the
-/// gem) without a depth test: the fog shades whatever the depth buffer holds, so an opaque gem hovering over the
-/// unexplored side of its door would darken. The door shows it only once the door's area is revealed.
+/// A visible lock cue that turns in place and takes its color from the required key. Its scene (<c>key_marker.tscn</c>)
+/// shades it with the self-lit world marker shader and draws it above the fog
+/// (<see cref="FloorDiscovery.AboveFogRenderPriority"/> for the ink, one above for the gem).
 /// </summary>
 [Tool]
 [GlobalClass]
@@ -21,7 +20,7 @@ public partial class DoorKeyMarker : MeshInstance3D
 		}
 	} = 42f;
 
-	private StandardMaterial3D _finish;
+	private static readonly StringName BaseColor = "base_color";
 
 	public override void _Ready()
 	{
@@ -36,22 +35,12 @@ public partial class DoorKeyMarker : MeshInstance3D
 	}
 
 	public override string[] _GetConfigurationWarnings() =>
-		MaterialOverride is StandardMaterial3D ? [] : ["Assign a StandardMaterial3D override to tint from the required key."];
+		MaterialOverride is ShaderMaterial ? [] : ["Assign a world marker material override; the required key tints its base_color."];
 
 	public override void _Process(double delta) =>
 		RotateY(Mathf.DegToRad(TurnSpeed) * (float)delta);
 
 	private void UpdateProcessing() => SetProcess(IsVisibleInTree() && !Mathf.IsZeroApprox(TurnSpeed));
 
-	internal void SetTint(Color color)
-	{
-		if (_finish == null)
-		{
-			if (MaterialOverride is not StandardMaterial3D material) return;
-			_finish = (StandardMaterial3D)material.Duplicate();
-			MaterialOverride = _finish;
-		}
-		_finish.AlbedoColor = color;
-		_finish.Emission = color;
-	}
+	internal void SetTint(Color color) => SetInstanceShaderParameter(BaseColor, color);
 }
