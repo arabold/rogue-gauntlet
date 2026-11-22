@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://scenes/effects/shaders/occlusion_xray_mask.gdshader" id="1_mask"]
+
+[resource]
+shader = ExtResource("1_mask")

@@ -16,7 +16,8 @@ public enum XrayCategory
 /// visible x-ray. The mask marks the pixels where the actor is actually visible; the x-ray then
 /// draws only where the actor is hidden (stencil != 1). Because the gate is per-pixel rather than
 /// per-fragment, the actor never x-rays through its own body, regardless of how deep or complex
-/// it is (see the two <c>occlusion_xray*.gdshader</c> files).
+/// it is (see the two <c>occlusion_xray*.gdshader</c> files). Every actor's mask shares the stencil, so no x-ray draws
+/// over another visible monster, loot, or the hero (<see cref="XrayOccluderComponent"/>).
 ///
 /// Silhouettes are shown only when the category's global toggle is on (<see cref="GameDebug"/>)
 /// AND the actor stands on a discovered tile (<see cref="ExplorationVisibility"/>), matching how
@@ -25,11 +26,11 @@ public enum XrayCategory
 [GlobalClass]
 public partial class OcclusionXrayComponent : Node
 {
-	private const string MaskShaderPath = "res://scenes/effects/shaders/occlusion_xray_mask.gdshader";
+	private const string MaskMaterialPath = "res://scenes/effects/shaders/occlusion_xray_mask.tres";
 	private const string XrayShaderPath = "res://scenes/effects/shaders/occlusion_xray.gdshader";
-	// Transparent draw order: every mask must render (and write its stencil) before any x-ray reads it.
-	private const int MaskRenderPriority = 0;
-	private const int XrayRenderPriority = 8;
+	// Transparent draw order: every mask (priority 0) must write its stencil before any x-ray reads it, and the x-ray
+	// draws above the fog so walls still under fog do not hide it; the discovery gate keeps it off unexplored tiles.
+	private const int XrayRenderPriority = FloorDiscovery.AboveFogRenderPriority;
 	private const double PollInterval = 0.3;
 
 	/// <summary>Root whose <see cref="MeshInstance3D"/> descendants get silhouettes.</summary>
@@ -63,17 +64,12 @@ public partial class OcclusionXrayComponent : Node
 	/// <summary>Optional authored occlusion material. Unassigned uses the shared actor stencil pair.</summary>
 	[Export] public ShaderMaterial OcclusionMaterial { get; set; }
 
-	private static Shader _maskShader;
 	private static Shader _xrayShader;
-	private static Shader MaskShader => _maskShader ??= GD.Load<Shader>(MaskShaderPath);
 	private static Shader XrayShader => _xrayShader ??= GD.Load<Shader>(XrayShaderPath);
 
-	private static ShaderMaterial _sharedMaskMaterial;
-	private static ShaderMaterial MaskMaterial => _sharedMaskMaterial ??= new()
-	{
-		Shader = MaskShader,
-		RenderPriority = MaskRenderPriority,
-	};
+	// Shared with actors that only mask, such as the hero (XrayOccluderComponent).
+	private static ShaderMaterial _maskMaterial;
+	private static ShaderMaterial MaskMaterial => _maskMaterial ??= GD.Load<ShaderMaterial>(MaskMaterialPath);
 
 	private readonly List<MeshInstance3D> _silhouettes = new();
 	private Node3D _targetRoot;

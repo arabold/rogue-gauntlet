@@ -174,7 +174,7 @@ public class DoorAccessTest
 		door.SetIndicatorVisible(true);
 		var marker = door.KeyMarker;
 		AssertBool(marker.Visible).IsTrue();
-		AssertBool(((StandardMaterial3D)marker.MaterialOverride).AlbedoColor == gold.MarkerColor).IsTrue();
+		AssertBool(marker.GetInstanceShaderParameter("base_color").AsColor() == gold.MarkerColor).IsTrue();
 		AssertBool(LootVisuals.ResolveColor(gold) == gold.MarkerColor).IsTrue();
 		AssertFloat(marker.Mesh.GetAabb().Size.Z).IsGreater(0);
 		float start = marker.Rotation.Y;

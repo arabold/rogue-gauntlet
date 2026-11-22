@@ -26,8 +26,9 @@ public partial class FloorDiscovery : Node3D
 
 	/// <summary>Transparent draw order of the fog surface.</summary>
 	public const int FogRenderPriority = 120;
-	/// <summary>Draw order for door and chest x-rays, which stay readable over fogged walls. Their own discovery gates
-	/// keep them off until their tile (or, for doors, an adjacent tile) is explored, so drawing above fog leaks nothing.</summary>
+	/// <summary>Draw order for x-rays (doors, chests, monsters, loot) and lock markers, which stay readable over fogged
+	/// walls. Their own discovery gates keep them off until their tile (or, for doors, an adjacent tile) is explored, so
+	/// drawing above fog leaks nothing.</summary>
 	public const int AboveFogRenderPriority = FogRenderPriority + 1;
 
 	private const double PollSeconds = 0.1;
