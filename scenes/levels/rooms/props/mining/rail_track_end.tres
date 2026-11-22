@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/rail_track_end.tscn" id="2_end"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "rail_track_end"
+Scenes = [ExtResource("2_end")]
+Blocking = true
+Gap = 0.0
+TurnJitter = 0.0
+ShiftJitter = 0.0
+metadata/_custom_type_script = ExtResource("1_Prop")

@@ -55,8 +55,9 @@ public partial class Prop : Placeable
 	/// <summary>Sinks into a pit cut from the floor tiles under it, and may reach under the perimeter walls there: the
 	/// down-stairs' stairwell, a pool's water. Circulation and prop overlap still apply.</summary>
 	[Export] public bool Sunken { get; set; }
-	/// <summary>Bars, fences, corners and posts: structural pieces may overlap each other where they join (a corner over
-	/// the ends of two runs), never furniture.</summary>
+	/// <summary>Bars, fences, corners, posts and corridor frames: structural pieces may overlap each other where they join
+	/// (a corner over the ends of two runs), never furniture. In corridors they may also stand over walk-over floor
+	/// pieces such as rails.</summary>
 	[Export] public bool Structural { get; set; }
 	/// <summary>Largest random turn, in degrees either way, so loose things (barrels, stools, vases, food) never line up
 	/// perfectly. Placement measures the turned prop, so jitter never causes overlaps.</summary>

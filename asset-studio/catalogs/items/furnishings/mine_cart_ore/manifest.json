@@ -1,0 +1,107 @@
+{
+  "key": "furnishings/mine_cart_ore",
+  "inputs": "99973d7fac62b2e6c1dafe0299ef7150accdc1d51a148aa5b8c6e300b23396b5",
+  "files": {
+    "mine_cart_ore.glb": "f24110e297af148dd46c760a55a2a62074edf021219ddc6e8769c88961a84567",
+    "lineup.png": "3cd341e579387e9b2e8ff764683fda909327af750df7885460998be20cfbde2e"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 5222,
+      "bounds": [
+        [
+          -0.6159176230430603,
+          0.0,
+          -1.101364016532898
+        ],
+        [
+          0.6159176230430603,
+          1.4298657178878784,
+          1.101364016532898
+        ]
+      ],
+      "dimensions": [
+        1.2318352460861206,
+        1.4298657178878784,
+        2.202728033065796
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.2439307843980607
+      },
+      "host_fit": null,
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mine Cart Ore",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mine_cart_ore"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7500,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "ore_gold": {
+          "crease": 35
+        },
+        "rock": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/mine_cart_ore.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop at dungeon pack scale: stands on y=0 facing +Z, iron-ribbed mine cart heaped with faceted rock and gold ore chunks. No gameplay data."
+      }
+    }
+  }
+}

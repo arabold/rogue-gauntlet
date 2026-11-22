@@ -1,0 +1,102 @@
+{
+  "key": "furnishings/winch",
+  "inputs": "b4e3512d62273da9e7be26b4fd05fa0561087d7361013c7f6ad094d7ef4f60d3",
+  "files": {
+    "winch.glb": "69715eb508854d35d6e1fa12ac01524bec621e1a9cbce32969b247215ad6bd04",
+    "lineup.png": "f0d605723ba4a6b026455ce6bdb3f882857f6e7270ba4f127e5f411715501739"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 8502,
+      "bounds": [
+        [
+          -0.75,
+          0.0,
+          -0.6316898465156555
+        ],
+        [
+          0.9919999837875366,
+          1.625210165977478,
+          0.6316898465156555
+        ]
+      ],
+      "dimensions": [
+        1.7419999837875366,
+        1.625210165977478,
+        1.263379693031311
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.4298345679662132
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Winch",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "winch"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 10000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "ore_gold": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/winch.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop (~1.5 m, standing on y=0 facing +Z): timber A-frame trestle winch with iron ratchet wheel, coiled rope drum, crank handle, and suspended banded bucket with ore. No gameplay data."
+      }
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "key": "furnishings/rail_track_straight",
+  "inputs": "a00da71e9f288f90cedf863b0c4270479d7fab9948984a8f10a5ef5a600e352e",
+  "files": {
+    "rail_track_straight.glb": "359cd06026845281e0d2268a3858ae3948c9772254a8747ea707fd96c15c5c52",
+    "lineup.png": "08b7e9afa84a79b6807661962c66bf74cd5da0631931d9f1e02b1f35f0ae4119"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 4734,
+      "bounds": [
+        [
+          -0.8027495741844177,
+          0.0,
+          -2.0
+        ],
+        [
+          0.7942066788673401,
+          0.13723662495613098,
+          2.0
+        ]
+      ],
+      "dimensions": [
+        1.5969562530517578,
+        0.13723662495613098,
+        4.0
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1978811976001085
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Rail Track Straight",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "rail_track_straight"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 6500,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "endgrain": {
+          "crease": 35
+        },
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/rail_track_straight.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm 4x4 m walkable floor inlay: 1.0 m gauge iron rails over weathered sleepers (< 0.15 m tall) with missing and cracked sleeper detail. No gameplay data."
+      }
+    }
+  }
+}

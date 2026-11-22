@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/rail_track_end.glb" id="model"]
+
+[sub_resource type="BoxShape3D" id="buffer_stop"]
+size = Vector3(1.62, 0.86, 0.98)
+
+[node name="RailTrackEnd" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("model")]
+
+[node name="Body" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="BufferStop" type="CollisionShape3D" parent="Body"]
+position = Vector3(0, 0.43, -1.37)
+shape = SubResource("buffer_stop")

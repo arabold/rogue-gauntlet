@@ -404,7 +404,7 @@ public partial class MapGenerator : Node3D
 				}
 				return id;
 			},
-			dividerCells: _dividerCells, framedEdges: _framedEdges);
+			dividerCells: _dividerCells, framedEdges: _framedEdges, structural: Corridors.Walls.Pieces);
 	}
 
 	/// <summary>

@@ -1,0 +1,111 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=38 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_rectangleshape"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="3_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="6_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/cave_floor.tres" id="7_cave_floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="8_alongwallsstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="9_cornersstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="10_scatterstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="11_walldecorstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/rail_spur.tres" id="12_rail_spur"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/winch.tres" id="13_winch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/mine_cart.tres" id="14_mine_cart"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/mine_cart_tipped.tres" id="15_mine_cart_tipped"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_pile.tres" id="16_ore_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate_stack.tres" id="17_crate_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="18_barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/mine_lantern_post.tres" id="19_lantern_post"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/pickaxe_loose.tres" id="20_pickaxe_loose"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="21_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_boulders.tres" id="22_rubble_boulders"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="23_rubble_scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/fallen_beam.tres" id="24_fallen_beam"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="25_mushrooms"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_vein.tres" id="26_ore_vein"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tool_rack.tres" id="27_tool_rack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="28_lantern_wall"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_rectangleshape")
+MinimumSize = Vector2i(3, 4)
+MaximumSize = Vector2i(4, 5)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("2_rectangleshape")
+
+[sub_resource type="Resource" id="RectangleShape_Compact"]
+script = ExtResource("2_rectangleshape")
+Weight = 0.6
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 4)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("2_rectangleshape")
+
+[sub_resource type="Resource" id="AlongWallsStep_spur"]
+script = ExtResource("8_alongwallsstep")
+Id = "rail_spur"
+Content = [ExtResource("12_rail_spur")]
+MinimumCount = 0
+MaximumCount = 1
+Sides = 3
+AvoidDoorwayWalls = true
+Centered = true
+metadata/_custom_type_script = ExtResource("8_alongwallsstep")
+
+[sub_resource type="Resource" id="AlongWallsStep_workings"]
+script = ExtResource("8_alongwallsstep")
+Id = "workings"
+Content = [ExtResource("13_winch"), ExtResource("14_mine_cart"), ExtResource("15_mine_cart_tipped"), ExtResource("16_ore_pile")]
+MinimumCount = 1
+MaximumCount = 3
+Spacing = 0.5
+metadata/_custom_type_script = ExtResource("8_alongwallsstep")
+
+[sub_resource type="Resource" id="CornersStep_stockpile"]
+script = ExtResource("9_cornersstep")
+Id = "stockpile"
+Content = [ExtResource("16_ore_pile"), ExtResource("15_mine_cart_tipped"), ExtResource("17_crate_stack"), ExtResource("18_barrel_stack"), ExtResource("19_lantern_post")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("9_cornersstep")
+
+[sub_resource type="Resource" id="ScatterStep_debris"]
+script = ExtResource("10_scatterstep")
+Id = "debris"
+Content = [ExtResource("16_ore_pile"), ExtResource("20_pickaxe_loose"), ExtResource("19_lantern_post"), ExtResource("21_bucket"), ExtResource("22_rubble_boulders"), ExtResource("23_rubble_scatter"), ExtResource("24_fallen_beam"), ExtResource("25_mushrooms")]
+MaximumCount = 5
+WallChance = 0.6
+metadata/_custom_type_script = ExtResource("10_scatterstep")
+
+[sub_resource type="Resource" id="WallDecorStep_veins"]
+script = ExtResource("11_walldecorstep")
+Id = "veins"
+Content = [ExtResource("26_ore_vein"), ExtResource("27_tool_rack")]
+MaximumCount = 4
+Spacing = 4.0
+metadata/_custom_type_script = ExtResource("11_walldecorstep")
+
+[sub_resource type="Resource" id="WallDecorStep_lanterns"]
+script = ExtResource("11_walldecorstep")
+Id = "lanterns"
+Content = [ExtResource("28_lantern_wall")]
+MaximumCount = 3
+Spacing = 5.0
+metadata/_custom_type_script = ExtResource("11_walldecorstep")
+
+[resource]
+script = ExtResource("1_roomtype")
+Id = "ore_chamber"
+Realms = PackedStringArray("jungle")
+Weight = 3.6
+Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
+MinimumFloorTiles = 9
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.4
+Circulation = 0
+Walls = [ExtResource("3_cave_walls")]
+Floors = [ExtResource("6_earth_floor"), ExtResource("7_cave_floor")]
+Steps = [SubResource("AlongWallsStep_spur"), SubResource("AlongWallsStep_workings"), SubResource("CornersStep_stockpile"), SubResource("ScatterStep_debris"), SubResource("WallDecorStep_veins"), SubResource("WallDecorStep_lanterns")]
+metadata/_custom_type_script = ExtResource("1_roomtype")

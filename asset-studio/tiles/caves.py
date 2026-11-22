@@ -50,16 +50,22 @@ def groove(p0, p1, face, slot, depth=.02, width=.012):
     return kit.hull(np.vstack([p0 + np.array(lips), p1 + np.array(lips)]), slot)
 
 
-def split(point, outward, lateral, length, width, depth, angle, slot):
-    """A grain split, the wooden shields' V-cut: a cutter to subtract, laid on a face at `point`
-    and turned `angle` degrees off vertical toward `lateral`."""
-    cutter = solid_gash(length, width, depth, slot)
+def split(cutter_verts, point, outward, lateral, slot):
+    """Place a grain-split cutter laid on a face at `point`, turned toward `lateral`."""
+    up = np.array([0.0, 1.0, 0.0])
+    # Mirrored placements reflect the cutter, so take the hull again to keep it outward-facing.
+    return kit.hull(point + np.outer(cutter_verts[:, 0], lateral) + np.outer(cutter_verts[:, 1], up) + np.outer(cutter_verts[:, 2], outward), slot)
+
+
+def _rotated_gash(length, width, depth, angle, slot):
+    verts = solid_gash(length, width, depth, slot).verts
     t = np.radians(angle)
     up = np.array([0.0, 1.0, 0.0])
-    grain, across = np.cos(t) * up + np.sin(t) * lateral, np.cos(t) * lateral - np.sin(t) * up
-    local = cutter.verts
-    # Mirrored placements reflect the cutter, so take the hull again to keep it outward-facing.
-    return kit.hull(point + np.outer(local[:, 0], across) + np.outer(local[:, 1], grain) + np.outer(local[:, 2], outward), slot)
+    lateral = np.array([1.0, 0.0, 0.0])
+    # Match grain = cos(t)*up + sin(t)*lateral, across = cos(t)*lateral - sin(t)*up.
+    x = np.cos(t) * verts[:, 0] + np.sin(t) * verts[:, 1]
+    y = -np.sin(t) * verts[:, 0] + np.cos(t) * verts[:, 1]
+    return np.column_stack([x, y, verts[:, 2]])
 
 
 # Arms: start (x, z), direction (x, z), length, start open, end open. Closed ends meet the hub post
@@ -70,6 +76,7 @@ DOOR = (1.0, 3.0, 2.8)
 PIECES = {
     "wall": {"arms": [((-2.0, 0.0), (1.0, 0.0), 4.0, True, True)]},
     "wall_half": {"arms": [((0.0, 0.0), (1.0, 0.0), 2.0, True, True)]},
+    "wall_junction_short": {"arms": [((-0.5, 0.0), (1.0, 0.0), 1.5, True, True)]},
     "wall_corner": {"arms": [(*WEST, True, False), (*NORTH, False, True)]},
     "wall_Tsplit": {"arms": [(*WEST, True, False), (*EAST, False, True), (*NORTH, False, True)]},
     "wall_crossing": {"arms": [(*WEST, True, False), (*EAST, False, True), (*NORTH, False, True), (*SOUTH, False, True)]},
@@ -111,19 +118,21 @@ def post(base, along, half_width, half_depth, design, family, wood, footing, hei
     marks = [(f.uniform(.03, half_width - .07), f.uniform(.7, 3.5), f.uniform(.22, .45), f.uniform(-7, 7))
              for _ in range(design.get("splits", 3))]
     marks = [m for m in marks if m[1] + m[2] < height - .1] or marks[:1]
+    cutters = [(offset, y, _rotated_gash(length, .016, .022, angle, wood[1])) for offset, y, length, angle in marks]
+    branch_offset, branch_y0, branch_length, branch_angle = marks[0]
+    branch_verts = _rotated_gash(branch_length * .45, .011, .016, branch_angle - 18, wood[1])
     cuts = []
     for lateral_dir, outward_dir, reach, half in ((along, across, half_depth, half_width), (across, along, half_width, half_depth)):
         for side in (1, -1):
-            for offset, y, length, angle in marks:
+            for offset, y, cutter_verts in cutters:
                 offset = min(offset, half - .07)
                 for mirror in (1, -1):
                     point = base + up * y + outward_dir * side * reach + lateral_dir * mirror * offset
-                    cuts.append(split(point, outward_dir * side, lateral_dir * mirror, length, .016, .022, angle, wood[1]))
+                    cuts.append(split(cutter_verts, point, outward_dir * side, lateral_dir * mirror, wood[1]))
             # One short branching split off the first, as on the shields.
-            offset, y, length, angle = marks[0]
             for mirror in (1, -1):
-                point = base + up * (y + length * .3) + outward_dir * side * reach + lateral_dir * mirror * min(offset, half - .07)
-                cuts.append(split(point, outward_dir * side, lateral_dir * mirror, length * .45, .011, .016, angle - 18, wood[1]))
+                point = base + up * (branch_y0 + branch_length * .3) + outward_dir * side * reach + lateral_dir * mirror * min(branch_offset, half - .07)
+                cuts.append(split(branch_verts, point, outward_dir * side, lateral_dir * mirror, wood[1]))
     return parts, cuts
 
 
@@ -132,12 +141,12 @@ def fill(r, origin, along, lo, hi, core, slot, skip):
     across = np.array([along[2], 0.0, -along[0]])
     lumps, cracks = [], []
     for side in (1, -1):
-        for s in np.arange(lo + .2, hi, .65):
-            for y in np.arange(.35, 3.5, .55):
+        for s in np.arange(lo + .25, hi, .80):
+            for y in np.arange(.45, 3.4, .68):
                 if skip(s, y):
                     continue
-                center = origin + along * (s + r.normal(0, .12)) + [0, y + r.normal(0, .08), 0] + across * side * (core - .02)
-                lumps.append(boulder(r, center, (r.uniform(.4, .6), r.uniform(.3, .45), r.uniform(.07, .11)), along, slot))
+                center = origin + along * (s + r.normal(0, .10)) + [0, y + r.normal(0, .06), 0] + across * side * (core - .025)
+                lumps.append(boulder(r, center, (r.uniform(.45, .65), r.uniform(.36, .50), r.uniform(.05, .08)), along, slot))
         for _ in range(r.poisson(3 * (hi - lo) / 3.6)):
             angle = r.uniform(-.45, .45)
             s, y = r.uniform(lo + .4, hi - .4), r.uniform(.5, 3.2)
@@ -146,7 +155,7 @@ def fill(r, origin, along, lo, hi, core, slot, skip):
             direction = along * np.cos(angle) + np.array([0, np.sin(angle), 0])
             center = origin + along * s + [0, y, 0]
             length = r.uniform(.3, .7)
-            face = across * side * (core + .07)
+            face = across * side * (core + .06)
             cracks.append(groove(center - direction * length / 2, center + direction * length / 2, face, slot, depth=.07, width=.018))
     return lumps, cracks
 
@@ -220,7 +229,7 @@ def cave(design, piece, variant, family):
     tones = list(design.get("tones", ["rock", "rock_light", "rock_dark"]))
     wood = list(design.get("wood_tones", ["wood", "wood_cut"]))
     footing, iron = design.get("footing_tone", "footing"), design.get("iron_tone", "iron")
-    core = design.get("core", .22)
+    core = design.get("core", .24)
     width, depth = design.get("post", [.2, .3])
     spec = PIECES[piece]
     if spec.get("leaf"):
@@ -273,8 +282,20 @@ def cave(design, piece, variant, family):
         lumps, cracks = fill(r, origin, along, lo, hi, core, tones[2], skip)
         parts += lumps
         cuts += cracks
-        # Big stacked boulders, biggest at the foot, rounded inside the half-unit depth, between posts.
-        for y, size in design.get("rows", [[.75, .82], [2.05, .74], [3.25, .55]]):
+        # Chunky plinth and crown boulders stand near +/-0.47, while the middle hanging band (y = 0.5..3.2)
+        # pulls into KayKit's +/-0.33 mounting face so wall lamps, ore veins and tool racks seat flush.
+        default_rows = [
+            [.20, .24, .34, (.11, .15), .03],
+            [.92, .46, .24, (.05, .07), .05],
+            [1.82, .50, .245, (.05, .07), .05],
+            [2.72, .44, .24, (.05, .07), .05],
+            [3.52, .26, .34, (.12, .16), .03],
+        ]
+        for row in design.get("rows", default_rows):
+            y, size = row[0], row[1]
+            depth_r = row[2] if len(row) > 2 else .24
+            out_band = tuple(row[3]) if len(row) > 3 else (.05, .07)
+            y_jit = row[4] if len(row) > 4 else .05
             for side in (1, -1):
                 s, room = lo + r.uniform(0, .2), hi - lo
                 while room > .3:
@@ -282,17 +303,19 @@ def cave(design, piece, variant, family):
                     center_s = s + rs
                     scale = min(1.0, max(.35, (top(center_s) - y + size) / (2 * size))) if taper else 1.0
                     if not skip(center_s, y, rs) and y - size * scale < top(center_s):
-                        center = origin + along * center_s + [0, min(y, top(center_s)) + r.normal(0, .08), 0] + across * side * r.uniform(.08, .12)
-                        parts.append(boulder(r, center, (rs, size * scale * r.uniform(.9, 1.1), .38 * max(scale, .7)), along,
+                        center = (origin + along * center_s
+                                  + [0, min(y, top(center_s)) + r.uniform(-y_jit, y_jit), 0]
+                                  + across * side * r.uniform(*out_band))
+                        parts.append(boulder(r, center, (rs, size * scale * r.uniform(.9, 1.05), depth_r * max(scale, .7)), along,
                                              tones[r.integers(2)]))
-                    step = rs * r.uniform(1.3, 1.6)
+                    step = rs * r.uniform(1.4, 1.7)
                     s, room = s + step, room - step
         if taper:
             # Rubble spills past the slumped end onto the floor.
             for _ in range(r.integers(5, 9)):
                 s_ = r.uniform(length * .55, length - .15)
-                rs = r.uniform(.15, .32)
-                center = origin + along * s_ + [0, rs * .4, 0] + across * r.uniform(-.25, .25)
+                rs = r.uniform(.18, .32)
+                center = origin + along * s_ + [0, rs * .25, 0] + across * r.uniform(-.14, .14)
                 parts.append(boulder(r, center, (rs, rs * .8, rs), along, tones[r.integers(2)]))
     # Cutting to the footprint trims everything to the wall's half-unit depth and halves the end posts.
     return union(parts, cuts=cuts, within=bounds)

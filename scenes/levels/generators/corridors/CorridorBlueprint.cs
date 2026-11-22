@@ -32,17 +32,20 @@ public readonly record struct CorridorSpan(Vector2I Start, Vector2I Along, int L
 	public Vector2I Perpendicular => new(-Along.Y, Along.X);
 }
 
+/// <summary>A corridor dead-end tile with its single open cardinal direction.</summary>
+public readonly record struct CorridorDeadEnd(Vector2I Tile, Vector2I OpenDirection);
+
 /// <summary>
 /// Blueprint for decorating generated dungeon corridors after boundary walls have been placed.
-/// Measures corridor wall runs, doorway thresholds, corners/T-junctions, and straight 1-tile-wide spans in the same
-/// local tile coordinate frame as <see cref="RoomBlueprint"/> (origin at map tile (0, 0)).
+/// Measures corridor wall runs, doorway thresholds, corners/T-junctions, dead ends, and straight 1-tile-wide spans
+/// in the same local tile coordinate frame as <see cref="RoomBlueprint"/> (origin at map tile (0, 0)).
 /// </summary>
 public sealed class CorridorBlueprint
 {
 	private const float Tolerance = .02f;
 	private static readonly Vector2I[] Cardinals = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];
 
-	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, bool Decoratable)> _walls = [];
+	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, float MountDepth, bool Decoratable)> _walls = [];
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _blockedEdges = [];
 	private readonly List<(Vector3 Position, Vector2I Tile)> _doors = [];
 	private readonly List<PlacedPiece> _pieces = [];
@@ -57,6 +60,8 @@ public sealed class CorridorBlueprint
 	private CorridorThreshold[] _thresholds;
 	private CorridorJunction[] _junctions;
 	private CorridorSpan[] _spans;
+	private CorridorDeadEnd[] _deadEnds;
+	private HashSet<Vector2I> _deadEndTiles;
 
 	public CorridorBlueprint(MapGenerator generator, WallStyle walls, ulong seed)
 	{
@@ -110,20 +115,35 @@ public sealed class CorridorBlueprint
 	public IReadOnlyList<CorridorThreshold> Thresholds => _thresholds;
 	public IReadOnlyList<CorridorJunction> Junctions => _junctions ??= ComputeJunctions().ToArray();
 	public IReadOnlyList<CorridorSpan> Spans => _spans ??= ComputeSpans().ToArray();
+	public IReadOnlyList<CorridorDeadEnd> DeadEnds => _deadEnds ??= ComputeDeadEnds().ToArray();
 
 	public bool HasWall(Vector2I tile, Vector2I outward) => _walls.ContainsKey((tile, outward));
 	public float WallDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Depth : .5f;
+	public float WallMountDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.MountDepth : .5f;
 	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
 
-	public float RunDepth(WallRun run)
+	/// <summary>Whether <paramref name="tile"/> is one of <see cref="DeadEnds"/>: a shaft end clear of doors and connectors.</summary>
+	public bool IsDeadEnd(Vector2I tile) => (_deadEndTiles ??= DeadEnds.Select(deadEnd => deadEnd.Tile).ToHashSet()).Contains(tile);
+
+	/// <summary>Maximum wall depth over only the tiles spanned by [alongStart, alongEnd] along <paramref name="run"/>.</summary>
+	public float SpanDepth(WallRun run, float alongStart, float alongEnd, bool wallMount = false) =>
+		run.SpanDepth(alongStart, alongEnd, wallMount ? WallMountDepth : WallDepth, Tolerance);
+
+	/// <summary>Fills <paramref name="buffer"/> with walkable, unblocked cardinal neighbors of <paramref name="tile"/>.</summary>
+	public int OpenDirections(Vector2I tile, Span<Vector2I> buffer)
 	{
-		float max = .5f;
-		for (int index = 0; index < run.Length; index++)
+		int count = 0;
+		for (int i = 0; i < Cardinals.Length; i++)
 		{
-			float depth = WallDepth(run.TileAt(index), run.Outward);
-			if (depth > max) max = depth;
+			var dir = Cardinals[i];
+			if (!_blockedEdges.Contains((tile, dir))
+				&& !Map.HasWallToward(tile.X, tile.Y, dir)
+				&& Map.IsWalkable(tile.X + dir.X, tile.Y + dir.Y))
+			{
+				buffer[count++] = dir;
+			}
 		}
-		return max;
+		return count;
 	}
 
 	public RandomNumberGenerator Random(string key) =>
@@ -212,9 +232,9 @@ public sealed class CorridorBlueprint
 		if (along < -Tolerance || along + width > run.LengthUnits + Tolerance) return false;
 
 		var (inwardMin, _) = RoomBlueprint.Project(all, run.Inward);
-		float face = RunDepth(run) - (prop.Mount == PropMount.Wall ? prop.WallInset : 0);
+		float face = SpanDepth(run, along, along + width, wallMount: true) - prop.WallInset;
 		var origin = run.LineStart + run.Tangent * (along - alongMin) + run.Inward * (face - inwardMin);
-		if (prop.Mount == PropMount.Wall) origin.Y = prop.MountHeight;
+		origin.Y = prop.MountHeight;
 		var transform = new Transform3D(run.Facing, origin);
 
 		var pieceTile = run.TileAt(Math.Clamp(Mathf.FloorToInt(centerAlong / Room.TileSize), 0, run.Length - 1));
@@ -256,6 +276,106 @@ public sealed class CorridorBlueprint
 
 		AcceptPiece(prop, variant, transform, envelope, tile);
 		_passageways.Add((center, tile));
+		return true;
+	}
+
+	/// <summary>Whether <paramref name="prop"/> can stand on corridor <paramref name="tile"/> centered at <paramref name="facing"/>.</summary>
+	public bool CanPlaceFloorTile(Prop prop, Vector2I tile, Basis facing)
+	{
+		if (prop == null || prop.Mount != PropMount.Floor) return false;
+		var transform = new Transform3D(facing, RoomFootprint.TileCenter(tile));
+		for (int variant = 0; variant < prop.VariantCount; variant++)
+		{
+			if (!CanAcceptPiece(prop, transform * prop.Geometry(variant).Envelope, tile)) return false;
+		}
+		return prop.VariantCount > 0;
+	}
+
+	/// <summary>Places a floor prop centered on corridor <paramref name="tile"/> with <paramref name="facing"/>.</summary>
+	public bool TryPlaceFloorTile(Prop prop, Vector2I tile, Basis facing, RandomNumberGenerator rng)
+	{
+		if (prop == null || prop.Mount != PropMount.Floor) return false;
+		int variant = PickVariant(prop, rng);
+		var transform = new Transform3D(facing, RoomFootprint.TileCenter(tile));
+		var envelope = transform * prop.Geometry(variant).Envelope;
+		if (!CanAcceptPiece(prop, envelope, tile)) return false;
+		AcceptPiece(prop, variant, transform, envelope, tile);
+		return true;
+	}
+
+	/// <summary>
+	/// Attempts to place a floor prop on <paramref name="tile"/> over an existing <paramref name="underlay"/>
+	/// (such as a dead-end rail track piece), keeping its footprint inside the tile's walls and clear of other props.
+	/// </summary>
+	public bool TryPlaceOnFloorInlay(
+		Prop prop,
+		Vector2I tile,
+		Vector3 localOffset,
+		Basis facing,
+		RandomNumberGenerator rng,
+		Prop underlay = null)
+	{
+		if (prop == null || prop.Mount != PropMount.Floor) return false;
+		int variant = PickVariant(prop, rng);
+		var center = RoomFootprint.TileCenter(tile);
+		var transform = new Transform3D(facing, center + localOffset);
+		var envelope = transform * prop.Geometry(variant).Envelope;
+		if (!FitsInsideTileWalls(tile, center, envelope)) return false;
+		if (!CanAcceptPiece(prop, envelope, tile, underlay)) return false;
+		AcceptPiece(prop, variant, transform, envelope, tile);
+		return true;
+	}
+
+	private bool FitsInsideTileWalls(Vector2I tile, Vector3 center, Aabb envelope)
+	{
+		float half = Room.TileSize * 0.5f;
+		float minX = center.X - half + (HasWall(tile, Vector2I.Left) ? WallDepth(tile, Vector2I.Left) : 0f);
+		float maxX = center.X + half - (HasWall(tile, Vector2I.Right) ? WallDepth(tile, Vector2I.Right) : 0f);
+		float minZ = center.Z - half + (HasWall(tile, Vector2I.Up) ? WallDepth(tile, Vector2I.Up) : 0f);
+		float maxZ = center.Z + half - (HasWall(tile, Vector2I.Down) ? WallDepth(tile, Vector2I.Down) : 0f);
+		return envelope.Position.X >= minX - Tolerance
+			&& envelope.End.X <= maxX + Tolerance
+			&& envelope.Position.Z >= minZ - Tolerance
+			&& envelope.End.Z <= maxZ + Tolerance;
+	}
+
+	/// <summary>
+	/// Attempts to place a floor prop tucked against the back wall of a corridor <paramref name="deadEnd"/>,
+	/// facing <see cref="CorridorDeadEnd.OpenDirection"/>.
+	/// </summary>
+	public bool TryPlaceInDeadEnd(Prop prop, CorridorDeadEnd deadEnd, RandomNumberGenerator rng)
+	{
+		if (prop == null || prop.Mount != PropMount.Floor) return false;
+		var center = RoomFootprint.TileCenter(deadEnd.Tile);
+		if (HasNearbyDoor(deadEnd.Tile, center, Room.TileSize * 0.85f)) return false;
+
+		int variant = PickVariant(prop, rng);
+		var geometry = prop.Geometry(variant);
+		float yaw = Mathf.Atan2(deadEnd.OpenDirection.X, deadEnd.OpenDirection.Y);
+		if (prop.TurnJitter > 0f) yaw += Mathf.DegToRad(rng.RandfRange(-prop.TurnJitter, prop.TurnJitter));
+		var facing = new Basis(Vector3.Up, yaw);
+		var open = new Vector3(deadEnd.OpenDirection.X, 0, deadEnd.OpenDirection.Y);
+		var leftOutward = new Vector2I(-deadEnd.OpenDirection.Y, deadEnd.OpenDirection.X);
+		var side = new Vector3(leftOutward.X, 0, leftOutward.Y);
+
+		var rotated = new Transform3D(facing, Vector3.Zero) * geometry.Envelope;
+		var (inwardMin, inwardMax) = RoomBlueprint.Project(rotated, open);
+		var (sideMin, sideMax) = RoomBlueprint.Project(rotated, side);
+		float leftDepth = WallDepth(deadEnd.Tile, leftOutward);
+		float rightDepth = WallDepth(deadEnd.Tile, -leftOutward);
+		float backDepth = WallDepth(deadEnd.Tile, -deadEnd.OpenDirection);
+		if (sideMax - sideMin > Room.TileSize - leftDepth - rightDepth - 0.10f) return false;
+
+		float alongOpen = -Room.TileSize / 2f + backDepth + 0.12f - inwardMin;
+		if (alongOpen + inwardMax > Room.TileSize / 2f - 0.15f) return false;
+
+		float sideCenter = (rightDepth - leftDepth) * 0.5f;
+		var origin = center + open * alongOpen + side * (sideCenter - (sideMin + sideMax) * 0.5f);
+		var transform = new Transform3D(facing, origin);
+		var envelope = transform * geometry.Envelope;
+		if (!CanAcceptPiece(prop, envelope, deadEnd.Tile)) return false;
+
+		AcceptPiece(prop, variant, transform, envelope, deadEnd.Tile);
 		return true;
 	}
 
@@ -301,7 +421,7 @@ public sealed class CorridorBlueprint
 		return _wallRunIndex.GetValueOrDefault((tile, outward));
 	}
 
-	private bool CanAcceptPiece(Prop prop, Aabb envelope, Vector2I tile)
+	private bool CanAcceptPiece(Prop prop, Aabb envelope, Vector2I tile, Prop ignoreUnderlay = null)
 	{
 		var area = RoomBlueprint.XZ(envelope);
 		float queryRadius = Mathf.Max(prop.Gap, _maxPieceGap) - Tolerance;
@@ -321,6 +441,10 @@ public sealed class CorridorBlueprint
 				{
 					if (!_seenPieceIndices.Add(pieceIndex)) continue;
 					var other = _pieces[pieceIndex];
+					if (ignoreUnderlay != null && other.Prop == ignoreUnderlay && otherTile == tile) continue;
+					bool floorInlayUnderFrame = (prop.Structural && other.Prop.Mount == PropMount.Floor && !other.Prop.Blocking)
+						|| (other.Prop.Structural && prop.Mount == PropMount.Floor && !prop.Blocking);
+					if (floorInlayUnderFrame) continue;
 					float gap = Mathf.Max(prop.Gap, other.Prop.Gap);
 					bool vertical = envelope.Position.Y < other.Envelope.End.Y - .01f && envelope.End.Y > other.Envelope.Position.Y + .01f;
 					if (vertical && RoomBlueprint.XZ(other.Envelope).Grow(gap - Tolerance).Intersects(area) && Map.HasTileSight(tile, otherTile))
@@ -365,7 +489,7 @@ public sealed class CorridorBlueprint
 	private void MeasureWalls()
 	{
 		if (WallGridMap?.MeshLibrary == null) return;
-		var itemCache = new Dictionary<int, (Aabb Bounds, string Name)>();
+		var itemCache = new Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)>();
 		int half = Room.TileSize / 2;
 		foreach (var tile in CorridorTiles)
 		{
@@ -379,7 +503,7 @@ public sealed class CorridorBlueprint
 				var edge = WallFootprints.MeasureEdge(WallGridMap, worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half), -outward, Room.TileSize, itemCache);
 				if (!edge.Covered) continue;
 				bool nearDoor = HasNearbyDoor(tile, localEdge, 2.2f);
-				_walls[(tile, outward)] = (edge.Depth, !nearDoor && Walls?.IsPlain(edge.Item) == true);
+				_walls[(tile, outward)] = (edge.Depth, edge.MountDepth, !nearDoor && Walls?.IsPlain(edge.Item) == true);
 			}
 		}
 	}
@@ -410,17 +534,7 @@ public sealed class CorridorBlueprint
 		var open = new Vector2I[4];
 		foreach (var tile in CorridorTiles)
 		{
-			int count = 0;
-			for (int i = 0; i < Cardinals.Length; i++)
-			{
-				var dir = Cardinals[i];
-				if (!_blockedEdges.Contains((tile, dir))
-					&& !Map.HasWallToward(tile.X, tile.Y, dir)
-					&& Map.IsWalkable(tile.X + dir.X, tile.Y + dir.Y))
-				{
-					open[count++] = dir;
-				}
-			}
+			int count = OpenDirections(tile, open);
 			if (count == 3)
 			{
 				yield return new(tile, [open[0], open[1], open[2]], IsTJunction: true);
@@ -429,6 +543,20 @@ public sealed class CorridorBlueprint
 			{
 				yield return new(tile, [open[0], open[1]], IsTJunction: false);
 			}
+		}
+	}
+
+	private IEnumerable<CorridorDeadEnd> ComputeDeadEnds()
+	{
+		var open = new Vector2I[4];
+		foreach (var tile in CorridorTiles)
+		{
+			if (Map.IsConnector(tile.X, tile.Y)) continue;
+			if (OpenDirections(tile, open) != 1) continue;
+			var neighbor = tile + open[0];
+			if (Map.IsConnector(neighbor.X, neighbor.Y)) continue;
+			if (HasNearbyDoor(tile, RoomFootprint.TileCenter(tile), Room.TileSize * 0.85f)) continue;
+			yield return new(tile, open[0]);
 		}
 	}
 

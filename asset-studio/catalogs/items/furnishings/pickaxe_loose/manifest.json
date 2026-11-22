@@ -1,0 +1,90 @@
+{
+  "key": "furnishings/pickaxe_loose",
+  "inputs": "97ea3fa369f9885bb43a89c0cbfd8d62064f0f877650470c12e80f723bedd371",
+  "files": {
+    "pickaxe_loose.glb": "ae0d35bc044a4e6b09b3d99897f32980be956683e7d3c5b2911e6cada67e28a8",
+    "lineup.png": "5f3f92e16c65ef36fa03352c3a883454433e1cd4a2d41dfdb2c576e9f68268ec"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 524,
+      "bounds": [
+        [
+          -0.2838582992553711,
+          0.0,
+          -0.4609023332595825
+        ],
+        [
+          0.2838582992553711,
+          0.13500000536441803,
+          0.4609023332595825
+        ]
+      ],
+      "dimensions": [
+        0.5677165985107422,
+        0.13500000536441803,
+        0.921804666519165
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.007993067187839807
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Pickaxe Loose",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "pickaxe_loose"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 1600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/pickaxe_loose.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm non-blocking floor scatter prop (~1.0 m long, lying flat on y=0): chunky mining pickaxe matching the tool rack silhouette. No gameplay data."
+      }
+    }
+  }
+}

@@ -13,17 +13,16 @@ extends SceneTree
 ## floor's clearance grid. Pool pieces are laid as props by `PoolStep` over a pit with no floor: they get one box from
 ## their bed to a low curb above the floor, so actors stop at the edge while missiles fly over. Raised foundations keep
 ## their own collision. Every
-## translucent surface (water) is drawn with the water shader. Doorway pieces and the gate leaf only get their meshes
-## saved, for door scenes; T-splits, crossings, endcaps and pillars have no generator use yet, so they stay out of the
-## libraries.
+## translucent surface (water) is drawn with the water shader. Doorway B and gate leaf parts only get their meshes
+## saved for door scenes; gated walls, endcaps and pillars have no generator use yet, so they stay out of the libraries.
 
 const SOURCE := "res://assets/custom-tiles/dungeon"
 const OUTPUT := "res://scenes/levels/dungeon/custom_tiles"
 const FLOORS := "res://scenes/levels/dungeon/FloorMeshLibrary.tres"
 const WALLS := "res://scenes/levels/dungeon/WallsMeshLibrary.tres"
 const DECORATION := "res://scenes/levels/dungeon/DecorationMeshLibrary.tres"
-const SKIPPED := ["_Tsplit_", "_crossing_", "_half_endcap_", "_pillar_"]
-const DOOR_PARTS := ["_doorway_", "_gate_leaf_"]
+const SKIPPED := ["_gated_", "_half_endcap_", "_pillar_"]
+const DOOR_PARTS := ["_doorway_B", "_gate_leaf_"]
 ## Target of pieces that only get their mesh saved.
 const DOOR_PART := "door part"
 const WATER := "res://scenes/levels/dungeon/water/water.tres"
@@ -93,10 +92,10 @@ func _register() -> bool:
 			library.set_item_shapes(id, [pool, Transform3D(Basis.IDENTITY, Vector3(0, (POOL_CURB - 1.7) / 2, 0))])
 			continue
 		if target == WALLS:
-			var shape_path := "%s/shapes/%s.res" % [OUTPUT, name]
-			if ResourceSaver.save(mesh.create_convex_shape(true, true), shape_path, ResourceSaver.FLAG_COMPRESS) != OK:
+			var shapes := _wall_shapes(name, mesh)
+			if shapes.is_empty():
 				return false
-			library.set_item_shapes(id, [load(shape_path), Transform3D.IDENTITY])
+			library.set_item_shapes(id, shapes)
 	if not _flatten_floors(libraries[FLOORS]):
 		return false
 	for path in libraries:
@@ -120,6 +119,46 @@ func _library_for(name: String) -> String:
 	if name.begins_with("carpet_") or name.begins_with("candle_"):
 		return DECORATION
 	return ""
+
+
+## Compound BoxShape3D colliders for corners, T-splits, crossings, junctions and doorways so interior spaces stay walkable.
+func _wall_shapes(name: String, mesh: Mesh) -> Array:
+	var specs := []
+	if "_junction_short_" in name:
+		var bounds := mesh.get_aabb()
+		specs = [[bounds.size, bounds.get_center()]]
+	elif "_corner_" in name:
+		specs = [[Vector3(2.5, 4.0, 1.0), Vector3(-0.75, 2.0, 0.0)],
+			[Vector3(1.0, 4.0, 2.5), Vector3(0.0, 2.0, 0.75)]]
+	elif "_Tsplit_" in name:
+		specs = [[Vector3(4.0, 4.0, 1.0), Vector3(0.0, 2.0, 0.0)],
+			[Vector3(1.0, 4.0, 2.5), Vector3(0.0, 2.0, 0.75)]]
+	elif "_crossing_" in name:
+		specs = [[Vector3(4.0, 4.0, 1.0), Vector3(0.0, 2.0, 0.0)],
+			[Vector3(1.0, 4.0, 4.0), Vector3(0.0, 2.0, 0.0)]]
+	elif "_doorway_" in name:
+		specs = [[Vector3(1.0, 4.0, 1.0), Vector3(-1.5, 2.0, 0.0)],
+			[Vector3(1.0, 4.0, 1.0), Vector3(1.5, 2.0, 0.0)]]
+	if not specs.is_empty():
+		var shapes := []
+		for i in specs.size():
+			var box := BoxShape3D.new()
+			box.size = specs[i][0]
+			var suffix := "" if specs.size() == 1 else "_%d" % i
+			var saved := _save_shape(box, "%s/shapes/%s%s.res" % [OUTPUT, name, suffix])
+			if saved == null:
+				return []
+			shapes.append(saved)
+			shapes.append(Transform3D(Basis.IDENTITY, specs[i][1]))
+		return shapes
+	var convex := _save_shape(mesh.create_convex_shape(true, true), "%s/shapes/%s.res" % [OUTPUT, name])
+	return [convex, Transform3D.IDENTITY] if convex != null else []
+
+
+func _save_shape(shape: Shape3D, path: String) -> Shape3D:
+	if ResourceSaver.save(shape, path, ResourceSaver.FLAG_COMPRESS) != OK:
+		return null
+	return load(path)
 
 
 ## One box over a whole pool tile, from under its bed (y -1.7) to the curb; saved once so the libraries reference it.

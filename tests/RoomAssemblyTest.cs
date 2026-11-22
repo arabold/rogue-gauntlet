@@ -556,6 +556,67 @@ public class RoomAssemblyTest
 			.Select(cell => $"{cell}:{grid.GetCellItem(cell)}:{grid.GetCellItemOrientation(cell)}"));
 	}
 
+	/// <summary>
+	/// Wall-mounted props hang on their wall's mounting face, 0.27 to 0.36 from the wall line, whatever stands beside or
+	/// below it: cave rock in the Mines rooms, cracked walls' base rubble in the garrison's stores.
+	/// </summary>
+	[TestCase]
+	public void WallMountedPropsHangOnTheirWallsMountingFace()
+	{
+		foreach (string id in new[] { "timbered_mine", "ore_chamber", "foremans_hut" })
+		{
+			var type = TestFactories.Load<RoomType>($"{Levels}rooms/room_types/{id}.tres");
+			int styleCount = type.WallsIn("jungle").Length;
+			for (int wallStyle = 0; wallStyle < styleCount; wallStyle++)
+			for (ulong seed = 1; seed <= 8; seed++)
+			{
+				var blueprint = RoomAssembler.Build(type, seed * 97, new RoomAssemblyOptions { Realm = "jungle", Walls = wallStyle });
+				try
+				{
+					AssertBool(blueprint.IsAcceptable).OverrideFailureMessage($"jungle/{id} style={wallStyle} seed={seed}").IsTrue();
+					AssertWallMountsFlush(blueprint, $"jungle/{id} style={wallStyle} seed={seed}");
+				}
+				finally { blueprint.Room.Free(); }
+			}
+		}
+
+		foreach (string name in new[] { "garrison/storage", "garrison/barracks" })
+		{
+			var type = Load(name);
+			for (ulong seed = 1; seed <= 8; seed++)
+			{
+				var blueprint = RoomAssembler.Build(type, seed * 131, In(name));
+				try { AssertWallMountsFlush(blueprint, $"{name} seed={seed}"); }
+				finally { blueprint.Room.Free(); }
+			}
+		}
+	}
+
+	private static void AssertWallMountsFlush(RoomBlueprint blueprint, string label)
+	{
+		foreach (var piece in blueprint.Pieces.Where(p => p.Prop.Mount == PropMount.Wall))
+		{
+			Vector3 inward = piece.Transform.Basis.Z.Normalized();
+			var outward = new Vector2I(-Mathf.RoundToInt(inward.X), -Mathf.RoundToInt(inward.Z));
+			if (Mathf.Abs(outward.X) + Mathf.Abs(outward.Y) != 1) continue;
+
+			var (inwardMin, _) = RoomBlueprint.Project(piece.Envelope, inward);
+			var run = blueprint.WallRuns
+				.Where(candidate => candidate.Outward == outward)
+				.OrderBy(candidate => Mathf.RoundToInt(Mathf.Abs(candidate.LineStart.Dot(inward) - inwardMin) * 10f))
+				.ThenBy(candidate =>
+				{
+					float centerAlong = RoomBlueprint.AlongRun(candidate, piece.Transform.Origin);
+					return centerAlong >= 0f && centerAlong <= candidate.LengthUnits ? 0f : 100f;
+				})
+				.First();
+			float backOffset = inwardMin - run.LineStart.Dot(inward);
+			AssertFloat(backOffset)
+				.OverrideFailureMessage($"{label}: '{piece.Prop.Id}' back face at {backOffset:F3} m from the wall line (expected 0.27..0.36 m)")
+				.IsBetween(.27f, .36f);
+		}
+	}
+
 	private static string Signature(RoomBlueprint blueprint) => string.Join("|", blueprint.Pieces.Select(piece =>
 		$"{piece.Prop.Id}:{piece.Variant}:{piece.Transform.Origin.Snapped(Vector3.One * .001f)}"));
 }

@@ -1,0 +1,53 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/LightFixture.cs" id="1_fixture"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/mine_lantern_post.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/mine_lantern_post_glow.glb" id="3_glow"]
+[ext_resource type="PackedScene" uid="uid://bkpudkppdj568" path="res://scenes/effects/flickering_light.tscn" id="4_light"]
+[ext_resource type="PackedScene" path="res://scenes/effects/candle_flame.tscn" id="5_flame"]
+[ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="6_gate"]
+[ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="7_lighting"]
+
+[sub_resource type="BoxShape3D" id="post_collider"]
+size = Vector3(0.32, 1.84, 0.32)
+
+[node name="MineLanternPostLit" type="Node3D" node_paths=PackedStringArray("Flame", "Light", "EnvironmentalLight")]
+script = ExtResource("1_fixture")
+IsLit = true
+Flame = NodePath("Flame")
+Light = NodePath("FlickeringLight")
+EnvironmentalLight = NodePath("EnvironmentalLightComponent")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+
+[node name="Flame" type="Node3D" parent="."]
+
+[node name="Glow" parent="Flame" instance=ExtResource("3_glow")]
+
+[node name="CandleFlame" parent="Flame" instance=ExtResource("5_flame")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.305, 0.36)
+
+[node name="FlickeringLight" parent="." instance=ExtResource("4_light")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.32, 0.4)
+light_color = Color(1, 0.72, 0.36, 1)
+light_energy = 0.9
+shadow_enabled = false
+omni_range = 7.0
+
+[node name="Body" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="PostShape" type="CollisionShape3D" parent="Body"]
+position = Vector3(0, 0.92, 0)
+shape = SubResource("post_collider")
+
+[node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("6_gate")
+Target = NodePath("..")
+
+[node name="EnvironmentalLightComponent" type="Node" parent="." node_paths=PackedStringArray("Light", "Flame")]
+script = ExtResource("7_lighting")
+Light = NodePath("../FlickeringLight")
+Flame = NodePath("../Flame")

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/mine_cart_tipped.glb" id="2_tipped"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "mine_cart_tipped"
+Scenes = [ExtResource("2_tipped")]
+Blocking = true
+Gap = 0.25
+TurnJitter = 25.0
+ShiftJitter = 0.08
+metadata/_custom_type_script = ExtResource("1_Prop")

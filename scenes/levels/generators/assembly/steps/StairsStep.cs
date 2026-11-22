@@ -47,7 +47,7 @@ public partial class StairsStep : FurnishingStep
 				var at = room.AgainstWall(plan, run, along);
 				// Seat the stairs on the wall directly behind them, not a deeper pillar elsewhere on the run.
 				// TryPlace still rejects any neighbouring wall that would intersect the wider staircase.
-				at.Origin += run.Inward * (room.WallDepth(run.TileAt(index), run.Outward) - room.RunDepth(run));
+				at.Origin += run.Inward * (room.WallDepth(run.TileAt(index), run.Outward) - room.SpanDepth(run, along, along + width));
 				yield return at;
 			}
 		}

@@ -9,6 +9,7 @@ script = ExtResource("1_Prop")
 Id = "cave_passageway"
 Scenes = [ExtResource("2_cave_doorway_a"), ExtResource("3_cave_doorway_b")]
 Blocking = false
+Structural = true
 Gap = 0.5
 Weight = 1.5
 metadata/_custom_type_script = ExtResource("1_Prop")

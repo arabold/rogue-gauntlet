@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_vein_a.glb" id="2_a"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_vein_b.glb" id="3_b"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_vein_crystal.glb" id="4_crystal"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "ore_vein"
+Scenes = [ExtResource("2_a"), ExtResource("3_b"), ExtResource("4_crystal")]
+Mount = 1
+MountHeight = 0.0
+Blocking = false
+Gap = 0.2
+metadata/_custom_type_script = ExtResource("1_Prop")

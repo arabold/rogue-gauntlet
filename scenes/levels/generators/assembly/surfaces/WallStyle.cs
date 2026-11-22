@@ -34,8 +34,32 @@ public partial class WallStyle : Resource
 	/// <summary>Occasional feature pieces by weight; decorations never hang on them.</summary>
 	[Export] public Godot.Collections.Dictionary<string, float> Accents { get; set; } = [];
 	[Export(PropertyHint.Range, "0,1,0.01")] public float AccentChance { get; set; }
-	/// <summary>Straight pieces (such as breached walls) replaced with <c>"wall"</c> on two-sided corridor partitions.</summary>
+	/// <summary>Straight pieces (such as breached walls) replaced with <see cref="FallbackStraight"/> on two-sided corridor partitions.</summary>
 	[Export] public string[] ExteriorOnly { get; set; } = [];
+	[ExportGroup("Structural Pieces")]
+	[Export] public string Half { get; set; } = "wall_half";
+	[Export] public string Short { get; set; } = "wall_junction_short";
+	[Export] public string Corner { get; set; } = "wall_corner";
+	[Export] public string TSplit { get; set; } = "wall_Tsplit";
+	[Export] public string Crossing { get; set; } = "wall_crossing";
+
+	/// <summary>Primary opaque straight piece used for structural fallbacks, secret doors, and partition walls.</summary>
+	public string FallbackStraight
+	{
+		get
+		{
+			string first = null;
+			foreach (string key in Straight.Keys)
+			{
+				first ??= key;
+				if (ExteriorOnly == null || Array.IndexOf(ExteriorOnly, key) < 0) return key;
+			}
+			return first ?? "wall";
+		}
+	}
+
+	/// <summary>Structural piece set passed to <see cref="BoundaryWallBuilder.Build"/> for this family.</summary>
+	public BoundaryWallBuilder.WallPieces Pieces => new(FallbackStraight, Half, Short, Corner, TSplit, Crossing);
 
 	public virtual string[] Validate()
 	{
@@ -43,7 +67,7 @@ public partial class WallStyle : Resource
 		if (string.IsNullOrWhiteSpace(Id) || Library == null || Straight.Count == 0)
 			return [$"Wall style {Id}: assign an ID, the wall library and straight pieces."];
 		var names = Straight.Keys.Concat(Accents.Keys)
-			.Concat(["wall", "wall_half", "wall_junction_short", "wall_corner", "wall_Tsplit", "wall_crossing"])
+			.Concat([Half, Short, Corner, TSplit, Crossing])
 			.Concat(ExteriorOnly ?? []);
 		if (PillarEvery > 0) names = names.Append(Pillar);
 		if (!string.IsNullOrEmpty(Opening)) names = names.Append(Opening);
@@ -74,28 +98,32 @@ public partial class WallStyle : Resource
 		var grid = room.Room.WallGridMap;
 		var itemIds = new Dictionary<string, int>();
 		int FindItem(string name) => itemIds.TryGetValue(name, out int id) ? id : itemIds[name] = Library.FindItemByName(name);
-		string fallback = Straight.Keys.First();
+		string fallback = FallbackStraight;
 		if (!BoundaryWallBuilder.Build(
 			grid,
 			footprint.Tiles.Select(tile => (tile, (Vector3I)RoomFootprint.TileCenter(tile))),
 			(tile, dx, dz) => !footprint.IsFloor(tile + new Vector2I(dx, dz)) && !room.IsDoorway(tile, new Vector2I(dx, dz)),
 			(position, _) => FindItem(pieces.TryGetValue(position, out var piece) ? piece.Item : fallback),
-			framedEdges: room.Room.FramedEdges)) return false;
-		var measureCache = new Dictionary<int, (Aabb Bounds, string Name)>();
+			framedEdges: room.Room.FramedEdges,
+			structural: Pieces)) return false;
+		var measureCache = new Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)>();
 		foreach (var (cell, piece) in pieces)
 		{
 			var edge = WallFootprints.MeasureEdge(grid, cell, -piece.Outward, Room.TileSize, measureCache);
-			room.SetWall(piece.Tile, piece.Outward, edge.Depth, IsPlain(edge.Item));
+			room.SetWall(piece.Tile, piece.Outward, edge.Depth, IsPlain(edge.Item), edge.MountDepth);
 		}
 		return true;
 	}
 
-	/// <summary>Whether decorations may hang in front of an edge's own piece (a library item): a plain straight piece,
-	/// or a run end's half piece (-1: corners alone) when <see cref="PlainEnds"/>.</summary>
+	/// <summary>Whether decorations may hang in front of an edge's own piece (a library item): a plain straight piece
+	/// (excluding exterior-only breached pieces), or a run end's half piece (-1: corners alone) when <see cref="PlainEnds"/>.</summary>
 	public bool IsPlain(int item)
 	{
 		string name = item < 0 ? null : Library.GetItemName(item);
-		return name == null || name is "wall_half" or "wall_junction_short" ? PlainEnds : name == "wall" || Straight.ContainsKey(name) && !Accents.ContainsKey(name) && name != Pillar;
+		if (name == null || name == Half || name == Short) return PlainEnds;
+		if (ExteriorOnly != null && Array.IndexOf(ExteriorOnly, name) >= 0) return false;
+		if (Straight.ContainsKey(name)) return !Accents.ContainsKey(name) && name != Pillar;
+		return name == FallbackStraight;
 	}
 
 	/// <summary>
@@ -109,7 +137,7 @@ public partial class WallStyle : Resource
 		string straight = Weighted.Pick(Straight, rng);
 		string accentItem = Accents.Count > 0 ? Weighted.Pick(Accents, rng) : null;
 		if (!partitionOnly) return accent ? accentItem : straight;
-		return ExteriorOnly != null && Array.IndexOf(ExteriorOnly, straight) >= 0 ? "wall" : straight;
+		return ExteriorOnly != null && Array.IndexOf(ExteriorOnly, straight) >= 0 ? FallbackStraight : straight;
 	}
 
 	protected static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>

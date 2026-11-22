@@ -1,0 +1,561 @@
+{
+  "key": "dungeon/wall_cave",
+  "inputs": "6cac63bfe6ff64b4e67ec212371be58fb125f2a5358c3dc2eb429ebd013f1341",
+  "files": {
+    "lineup.png": "fb7e8386c1489fee5b9eebb453c4d911ca90d2dd03a9608f48482f742ee012d7"
+  },
+  "metadata": {
+    "recipe": {
+      "version": 1,
+      "name": "Cave wall",
+      "concept": "Big faceted boulders heaped between squared timber posts with grain splits; every open end is a post. Doorway and gate frame KayKit's 2 x 2.8 door opening in timber; gate_leaf is the gate's swinging leaf, hinged like KayKit's door leaf; the half endcap slumps into rubble; the pillar is a bound heap of boulders. Rock uses KayKit's rubble swatch.",
+      "reference": "wall_cave.reference.png",
+      "kind": "wall",
+      "style": "cave",
+      "design": {
+        "core": 0.24
+      },
+      "colors": {
+        "rock": [
+          107,
+          92,
+          83
+        ],
+        "rock_light": [
+          116,
+          100,
+          90
+        ],
+        "rock_dark": [
+          92,
+          79,
+          72
+        ],
+        "footing": [
+          129,
+          140,
+          145
+        ],
+        "wood": [
+          138,
+          84,
+          56
+        ],
+        "wood_cut": [
+          84,
+          50,
+          34
+        ],
+        "iron": [
+          86,
+          88,
+          94
+        ]
+      },
+      "materials": {
+        "rock": {
+          "crease": 18,
+          "ramp": [
+            [
+              131,
+              114,
+              101
+            ],
+            [
+              83,
+              71,
+              65
+            ]
+          ]
+        },
+        "rock_light": {
+          "crease": 18,
+          "ramp": [
+            [
+              140,
+              122,
+              108
+            ],
+            [
+              90,
+              77,
+              70
+            ]
+          ]
+        },
+        "rock_dark": {
+          "crease": 18,
+          "ramp": [
+            [
+              112,
+              97,
+              88
+            ],
+            [
+              70,
+              60,
+              55
+            ]
+          ]
+        },
+        "wood": {
+          "crease": 30
+        },
+        "wood_cut": {
+          "crease": 30
+        },
+        "iron": {
+          "metallic": 0.4,
+          "roughness": 0.55,
+          "crease": 30
+        }
+      },
+      "pieces": {
+        "wall": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "wall_half": [
+          "A",
+          "B"
+        ],
+        "wall_junction_short": [
+          "A"
+        ],
+        "wall_corner": [
+          "A",
+          "B"
+        ],
+        "wall_Tsplit": [
+          "A"
+        ],
+        "wall_crossing": [
+          "A"
+        ],
+        "wall_doorway": [
+          "A",
+          "B"
+        ],
+        "wall_gated": [
+          "A"
+        ],
+        "wall_half_endcap": [
+          "A",
+          "B"
+        ],
+        "pillar": [
+          "A",
+          "B"
+        ],
+        "gate_leaf": [
+          "A"
+        ]
+      },
+      "budget": {
+        "triangles": 7500
+      },
+      "export": {
+        "folder": "res://assets/custom-tiles/dungeon"
+      }
+    },
+    "report": {
+      "tiles": {
+        "wall_cave_A": {
+          "triangles": 4544,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4634
+            ],
+            [
+              2.0,
+              4.0,
+              0.4897
+            ]
+          ]
+        },
+        "wall_cave_B": {
+          "triangles": 4262,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4884
+            ],
+            [
+              2.0,
+              4.0,
+              0.4729
+            ]
+          ]
+        },
+        "wall_cave_C": {
+          "triangles": 4616,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4953
+            ],
+            [
+              2.0,
+              4.0,
+              0.459
+            ]
+          ]
+        },
+        "wall_cave_D": {
+          "triangles": 4476,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4826
+            ],
+            [
+              2.0,
+              4.0,
+              0.4604
+            ]
+          ]
+        },
+        "wall_cave_half_A": {
+          "triangles": 1998,
+          "components": 1,
+          "bounds": [
+            [
+              0.0,
+              0.0,
+              -0.4477
+            ],
+            [
+              2.0,
+              4.0,
+              0.4902
+            ]
+          ]
+        },
+        "wall_cave_half_B": {
+          "triangles": 2148,
+          "components": 1,
+          "bounds": [
+            [
+              0.0,
+              0.0,
+              -0.491
+            ],
+            [
+              2.0,
+              4.0,
+              0.441
+            ]
+          ]
+        },
+        "wall_cave_junction_short_A": {
+          "triangles": 1312,
+          "components": 1,
+          "bounds": [
+            [
+              -0.5,
+              0.0,
+              -0.4324
+            ],
+            [
+              1.0,
+              4.0,
+              0.4445
+            ]
+          ]
+        },
+        "wall_cave_corner_A": {
+          "triangles": 4160,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.489
+            ],
+            [
+              0.4503,
+              4.0,
+              2.0
+            ]
+          ]
+        },
+        "wall_cave_corner_B": {
+          "triangles": 3978,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4949
+            ],
+            [
+              0.4713,
+              4.0,
+              2.0
+            ]
+          ]
+        },
+        "wall_cave_Tsplit_A": {
+          "triangles": 5658,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4938
+            ],
+            [
+              2.0,
+              4.0,
+              2.0
+            ]
+          ]
+        },
+        "wall_cave_crossing_A": {
+          "triangles": 7206,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -2.0
+            ],
+            [
+              2.0,
+              4.0,
+              2.0
+            ]
+          ]
+        },
+        "wall_cave_doorway_A": {
+          "triangles": 3766,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4864
+            ],
+            [
+              2.0,
+              4.0,
+              0.4631
+            ]
+          ]
+        },
+        "wall_cave_doorway_B": {
+          "triangles": 3700,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4965
+            ],
+            [
+              2.0,
+              4.0,
+              0.4702
+            ]
+          ]
+        },
+        "wall_cave_gated_A": {
+          "triangles": 4606,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.48
+            ],
+            [
+              2.0,
+              4.0,
+              0.4567
+            ]
+          ]
+        },
+        "wall_cave_half_endcap_A": {
+          "triangles": 1734,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4182
+            ],
+            [
+              0.0,
+              4.0,
+              0.4516
+            ]
+          ]
+        },
+        "wall_cave_half_endcap_B": {
+          "triangles": 1808,
+          "components": 1,
+          "bounds": [
+            [
+              -2.0,
+              0.0,
+              -0.4707
+            ],
+            [
+              0.0,
+              4.0,
+              0.4432
+            ]
+          ]
+        },
+        "wall_cave_pillar_A": {
+          "triangles": 958,
+          "components": 1,
+          "bounds": [
+            [
+              -0.7481,
+              0.0,
+              -0.695
+            ],
+            [
+              0.7041,
+              3.9285,
+              0.75
+            ]
+          ]
+        },
+        "wall_cave_pillar_B": {
+          "triangles": 964,
+          "components": 1,
+          "bounds": [
+            [
+              -0.6912,
+              0.0,
+              -0.75
+            ],
+            [
+              0.7226,
+              3.963,
+              0.6912
+            ]
+          ]
+        },
+        "wall_cave_gate_leaf_A": {
+          "triangles": 890,
+          "components": 1,
+          "bounds": [
+            [
+              -0.16,
+              0.05,
+              -0.075
+            ],
+            [
+              1.8,
+              2.72,
+              0.075
+            ]
+          ]
+        }
+      },
+      "seams": {
+        "worst_mismatch": 0.0,
+        "errors": []
+      },
+      "face": {
+        "kaykit_face": 0.33,
+        "kaykit_panel": 0.25,
+        "faces": {
+          "wall_cave_A:front": [
+            0.245,
+            0.3
+          ],
+          "wall_cave_A:back": [
+            0.248,
+            0.3
+          ],
+          "wall_cave_B:front": [
+            0.244,
+            0.3
+          ],
+          "wall_cave_B:back": [
+            0.245,
+            0.3
+          ],
+          "wall_cave_C:front": [
+            0.247,
+            0.31
+          ],
+          "wall_cave_C:back": [
+            0.246,
+            0.3
+          ],
+          "wall_cave_D:front": [
+            0.246,
+            0.305
+          ],
+          "wall_cave_D:back": [
+            0.247,
+            0.3
+          ],
+          "wall_cave_half_A:front": [
+            0.244,
+            0.3
+          ],
+          "wall_cave_half_A:back": [
+            0.248,
+            0.3
+          ],
+          "wall_cave_half_B:front": [
+            0.254,
+            0.3
+          ],
+          "wall_cave_half_B:back": [
+            0.249,
+            0.305
+          ],
+          "wall_cave_junction_short_A:front": [
+            0.24,
+            0.3
+          ],
+          "wall_cave_junction_short_A:back": [
+            0.249,
+            0.3
+          ]
+        },
+        "errors": []
+      },
+      "errors": []
+    },
+    "models": {
+      "wall_cave_A.glb": "c379df00a9f3138ab37b9dac6125c5b210ac5fb686c15cf9e37a6e2c03dc2c8e",
+      "wall_cave_B.glb": "38175a7aeba39b738971fa5693dac2375e7fb93fa7fb4e032dff73abe816414c",
+      "wall_cave_C.glb": "e41056030d1e3ff5dc7ef1d99bdd2c442fc23bbc8b1c3ecc41a4b3532c2965e2",
+      "wall_cave_D.glb": "86ca790d1dbec14eaf87b308c65b3291047a3d45c0297307431558f2e4dadd73",
+      "wall_cave_Tsplit_A.glb": "87378104f58dcf18623c975f41a6e749b037c1e12c2efb3feaede67f21e0045b",
+      "wall_cave_corner_A.glb": "1402c5003f9b027e12153b6eca28b39a8a40a3181e1f6f5c4e0b69de7c51c18c",
+      "wall_cave_corner_B.glb": "3779f36f436cfc49a9b274c21628163a43a9f56e7b7d466b554b78c8088e53f0",
+      "wall_cave_crossing_A.glb": "1e9bd44f0a1b3e224142a450f46ad973664e2549e6a32e8da55374ddd7d5379c",
+      "wall_cave_doorway_A.glb": "b52d00221fc6dd53831b92570b895c08d80e09d4222e516b65a0372897ed961f",
+      "wall_cave_doorway_B.glb": "abfdd83f4f4aab2ae253755669d865eeb5cdbadd0450ce9fffc49839300e26bf",
+      "wall_cave_gate_leaf_A.glb": "cf753a6e6e473c94e96bc28b7e74074995aa258de70cb3d08314e5e72151d5f4",
+      "wall_cave_gated_A.glb": "3aca0affcd16f314bb3c56e06ef9dff34bead60d5c05091093ee2d366589959a",
+      "wall_cave_half_A.glb": "43d8bf7110e158a872effb044a10898df6f3415d3dba4f7f7b77ea7da73984eb",
+      "wall_cave_half_B.glb": "c2e9b58391f55fe124074ffd79d9b3a93f24214b4002de4f3d40d959cd33ff2a",
+      "wall_cave_half_endcap_A.glb": "d6619ecfe9b2e7fb51ac06e8a883002cf23e6d02cd4ac8e4e42368e553a5cc2b",
+      "wall_cave_half_endcap_B.glb": "724c866ba70dcd18e302e676e1435dd3bda7e75d690a3101278d9172e28be808",
+      "wall_cave_junction_short_A.glb": "7e094a4c34fac5cc768f289ae5130be7c781246998178172c47451c7a22e81c3",
+      "wall_cave_pillar_A.glb": "5cf62cb6db85e5a9df6c43c40984b94cfc566463aebebd7db4cfb4846312df8e",
+      "wall_cave_pillar_B.glb": "08088620ec3babf6714fec4ba3de12167ba5ea97a165f6aad813b307e8b94afc"
+    }
+  }
+}

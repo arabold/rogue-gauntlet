@@ -13,32 +13,26 @@ and hearths hold dead coals; their lit scenes add the fire. Recipes export with
 `color_mode: "world"`, so every prop wears the dungeon pack's own texture and material.
 """
 
-import zlib
 from pathlib import Path
 
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items import foliage, webs
+from items import foliage, mining, webs
 from items.solid import Assembly, lathe, loop, welded
 from items.furnishing_kit import (block, cushion, post, rod, ball, bend, framed, board, planks, square_post, stones,
                                   rivet, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands,
-                                  turned, moved, grounded, ring, chain, torus, log)
+                                  turned, moved, grounded, ring, chain, torus, log, random)
 
 # Colors come from the dungeon texture (`world_surface.SWATCHES`); slots only choose how hard their edges shade:
 # boards, stone and metal keep crisp facets, cast pots, bowls and soft goods shade smooth.
 CREASE = {
     **{slot: 35 for slot in ('wood', 'wood_dark', 'wood_light', 'endgrain', 'bark', 'stone', 'stone_dark', 'marble',
-                             'marble_dark', 'rock', 'rock_dark')},
+                             'marble_dark', 'rock', 'rock_dark', 'ore_gold', 'ore_crystal')},
     **{slot: 40 for slot in ('iron', 'iron_dark', 'steel', 'gold', 'silver', 'trim', 'web')},
     **{slot: 75 for slot in ('pot', 'pot_inner', 'stone_light')},
-    **{slot: 60 for slot in ('flame', 'liquid')},
+    **{slot: 60 for slot in ('flame', 'liquid', 'lantern_glow')},
 }
-
-
-def random(name):
-    """Each design's own reproducible generator."""
-    return np.random.default_rng(zlib.crc32(name.encode()))
 
 
 def around(count, phase=np.pi / 2):
@@ -1259,7 +1253,7 @@ KINDS = {
     'rubble_large': rubble_large, 'rubble_boulders': rubble_boulders,
     'sarcophagus': sarcophagus, 'sarcophagus_open': sarcophagus_open, 'valve': valve, 'pipe_outlet': pipe_outlet,
     'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle, **foliage.KINDS,
-    **webs.KINDS,
+    **mining.KINDS, **webs.KINDS,
 }
 
 
