@@ -439,7 +439,10 @@ public sealed class RoomBlueprint
 			if (piece.Prop.Structural)
 			{
 				string meshItem = piece.Prop.Scenes.Length == 0 ? piece.Prop.Items[piece.Variant] : null;
-				Room.StructuralProps.Add((node, meshItem));
+				// Pieces run along their turned local X. Scene roots carry the turn, mesh and wrapped pieces turn a child,
+				// so express that direction in the node's own frame to survive the room's later rotation.
+				Vector3 run = node.Basis.Inverse() * (piece.Transform.Basis * piece.Prop.Turn).X;
+				Room.StructuralProps.Add((node, meshItem, run));
 			}
 		}
 		// A low curb can be climbed by rounded character colliders. Water needs a full-height actor-only barrier.

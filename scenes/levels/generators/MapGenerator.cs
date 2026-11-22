@@ -732,7 +732,7 @@ public partial class MapGenerator : Node3D
 			AddSegment(bounds, bounds.Size.X >= bounds.Size.Z);
 		}
 
-		foreach (var (node, meshItem) in FloorContent.GetChildren().OfType<Room>().SelectMany(room => room.StructuralProps))
+		foreach (var (node, meshItem, run) in FloorContent.GetChildren().OfType<Room>().SelectMany(room => room.StructuralProps))
 		foreach (var solid in CollisionOutlines.FromStaticBodies(node, node.GlobalTransform))
 		{
 			if (solid.Bottom >= ClearanceGrid.MaximumBlockingHeight || solid.Top <= ClearanceGrid.MinimumBlockingHeight) continue;
@@ -747,10 +747,10 @@ public partial class MapGenerator : Node3D
 					continue;
 				}
 			}
-			// Straight wall modules run along local X, even when stretched shorter than their thickness to fit a jamb.
-			Vector3 axis = node.GlobalBasis.X;
-			bool horizontal = meshItem?.StartsWith("wall_") == true ? Mathf.Abs(axis.X) >= Mathf.Abs(axis.Z) : bounds.Size.X >= bounds.Size.Z;
-			AddSegment(bounds, horizontal);
+			// Follow the piece's run, not its bounds: a wall stretched shorter than its thickness to fit a jamb, or an
+			// arch's square jamb, says nothing about direction by its shape.
+			Vector3 axis = node.GlobalBasis * run;
+			AddSegment(bounds, Mathf.Abs(axis.X) >= Mathf.Abs(axis.Z));
 		}
 		return segments;
 

@@ -98,8 +98,11 @@ public partial class FloorMap : Control
 			_interiorWalls.Add(((start - origin) / Room.TileSize, (end - origin) / Room.TileSize));
 	}
 
-	/// <summary>Stops a partition at unexplored tiles. On a tile edge, sight from either side is enough to draw it.</summary>
-	private void AddExploredInteriorWalls(IReadOnlySet<Vector2I> revealed)
+	/// <summary>
+	/// Stops a partition at unexplored tiles. On a tile edge, sight from either side is enough to draw it, unless the
+	/// terrain pass already walls that edge: a divider junction's crossbar or a cell corner's arm lying on a perimeter wall.
+	/// </summary>
+	private void AddExploredInteriorWalls(FloorDiscovery discovery, IReadOnlySet<Vector2I> revealed)
 	{
 		const float edgeTolerance = 0.0001f;
 		foreach (var (start, end) in _interiorWalls)
@@ -115,6 +118,7 @@ public partial class FloorMap : Control
 				var nearTile = horizontal ? new Vector2I(along, near) : new Vector2I(near, along);
 				var farTile = horizontal ? new Vector2I(along, far) : new Vector2I(far, along);
 				if (!KnownFloor(nearTile) && (near == far || !KnownFloor(farTile))) continue;
+				if (near != far && !(Walkable(nearTile) && Walkable(farTile) && discovery.CanSeeAcross(nearTile, farTile))) continue;
 
 				float visibleFrom = Mathf.Max(from, along);
 				float visibleTo = Mathf.Min(to, along + 1);
@@ -124,7 +128,8 @@ public partial class FloorMap : Control
 			}
 		}
 
-		bool KnownFloor(Vector2I tile) => revealed.Contains(tile) && _map.IsWalkable(tile.X, tile.Y);
+		bool KnownFloor(Vector2I tile) => revealed.Contains(tile) && Walkable(tile);
+		bool Walkable(Vector2I tile) => _map.IsWithinBounds(tile.X, tile.Y) && _map.IsWalkable(tile.X, tile.Y);
 	}
 
 	private void RebuildTerrain(FloorDiscovery discovery, IReadOnlySet<Vector2I> revealed)
@@ -158,7 +163,7 @@ public partial class FloorMap : Control
 			ImageTexture feather = openEdges == 0 ? null : _feathersByEdgeMask[openEdges] ??= CreateTileFeather(openEdges);
 			_tiles.Add((tile, feather));
 		}
-		AddExploredInteriorWalls(revealed);
+		AddExploredInteriorWalls(discovery, revealed);
 	}
 
 	/// <summary>Varies the curve by position while keeping endpoints fixed so adjacent strokes meet.</summary>

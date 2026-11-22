@@ -23,8 +23,9 @@ public partial class Room : Node3D
 
 	/// <summary>Wall cells intentionally placed as interior dividers, retained during floor assembly.</summary>
 	internal HashSet<Vector3I> DividerCells { get; private set; } = [];
-	/// <summary>Placed bars, front walls and other structural props that form interior partitions.</summary>
-	internal List<(Node3D Node, string MeshItem)> StructuralProps { get; } = [];
+	/// <summary>Placed bars, front walls and other structural props that form interior partitions, each with the
+	/// direction its run follows in the node's own frame.</summary>
+	internal List<(Node3D Node, string MeshItem, Vector3 Run)> StructuralProps { get; } = [];
 	/// <summary>Edges occupied by doorway frames or concealed walls, in room-local grid coordinates.</summary>
 	internal HashSet<(Vector3I Center, bool Horizontal)> FramedEdges { get; private set; } = [];
 

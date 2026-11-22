@@ -28,7 +28,8 @@ public partial class FloorMapOverlay : Control
 			return;
 		}
 
-		if (!input.IsActionPressed(MapAction, exactMatch: true)
+		// Not an exact match: the map must open while a modifier such as walk's Shift is held.
+		if (!input.IsActionPressed(MapAction)
 			|| GetTree().GetFirstNodeInGroup(PlayerGroup) is not Player player || !CanShowFor(player)) return;
 		_player = player;
 		PresentMap(0, refreshMarkers: true);
