@@ -1,0 +1,199 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/AudioSettingsPanel.cs" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="panel_style"]
+bg_color = Color(0.035, 0.043, 0.055, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.59, 0.29, 0.55)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="AudioSettingsPanel" type="Control" node_paths=PackedStringArray("MasterSlider", "MusicSlider", "EffectsSlider", "UiSlider", "MasterValue", "MusicValue", "EffectsValue", "UiValue", "MonoToggle", "StatusLabel", "CloseButton")]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+MasterSlider = NodePath("Panel/Margin/Content/MasterRow/MasterSlider")
+MusicSlider = NodePath("Panel/Margin/Content/MusicRow/MusicSlider")
+EffectsSlider = NodePath("Panel/Margin/Content/EffectsRow/EffectsSlider")
+UiSlider = NodePath("Panel/Margin/Content/UiRow/UiSlider")
+MasterValue = NodePath("Panel/Margin/Content/MasterRow/MasterValue")
+MusicValue = NodePath("Panel/Margin/Content/MusicRow/MusicValue")
+EffectsValue = NodePath("Panel/Margin/Content/EffectsRow/EffectsValue")
+UiValue = NodePath("Panel/Margin/Content/UiRow/UiValue")
+MonoToggle = NodePath("Panel/Margin/Content/MonoToggle")
+StatusLabel = NodePath("Panel/Margin/Content/Footer/StatusLabel")
+CloseButton = NodePath("Panel/Margin/Content/Footer/CloseButton")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.4)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -250.0
+offset_right = 340.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 34
+theme_override_constants/margin_bottom = 28
+
+[node name="Content" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+theme_override_colors/font_color = Color(1, 0.86, 0.61, 1)
+text = "Audio Settings"
+horizontal_alignment = 1
+
+[node name="MasterRow" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="MasterName" type="Label" parent="Panel/Margin/Content/MasterRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Master"
+
+[node name="MasterSlider" type="HSlider" parent="Panel/Margin/Content/MasterRow"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MasterValue" type="Label" parent="Panel/Margin/Content/MasterRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="MusicRow" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="MusicName" type="Label" parent="Panel/Margin/Content/MusicRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Music"
+
+[node name="MusicSlider" type="HSlider" parent="Panel/Margin/Content/MusicRow"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicValue" type="Label" parent="Panel/Margin/Content/MusicRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="EffectsRow" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="EffectsName" type="Label" parent="Panel/Margin/Content/EffectsRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Effects"
+
+[node name="EffectsSlider" type="HSlider" parent="Panel/Margin/Content/EffectsRow"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="EffectsValue" type="Label" parent="Panel/Margin/Content/EffectsRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="UiRow" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="UiName" type="Label" parent="Panel/Margin/Content/UiRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "UI"
+
+[node name="UiSlider" type="HSlider" parent="Panel/Margin/Content/UiRow"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="UiValue" type="Label" parent="Panel/Margin/Content/UiRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="MonoToggle" type="CheckButton" parent="Panel/Margin/Content"]
+layout_mode = 2
+focus_mode = 2
+text = "Mono output"
+
+[node name="Footer" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="StatusLabel" type="Label" parent="Panel/Margin/Content/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Changes apply immediately and save automatically."
+autowrap_mode = 3
+
+[node name="CloseButton" type="Button" parent="Panel/Margin/Content/Footer"]
+custom_minimum_size = Vector2(110, 48)
+layout_mode = 2
+focus_mode = 2
+text = "Back"

@@ -16,6 +16,8 @@ public partial class Fountain : Node3D
 
 	[Export] public InteractiveComponent Interactive { get; set; }
 	[Export] public FountainBlessing Blessing { get; set; }
+	/// <summary>Optional cue for a successful drink; leave empty until a fitting liquid or magic sound is authored.</summary>
+	[Export] public SoundCueProfile DrinkCue { get; set; }
 	/// <summary>The liquid filling the basin, a separate node of the Studio art; hidden once drained, leaving it empty.</summary>
 	[Export] public Node3D Liquid { get; set; }
 	/// <summary>Pool effects that fade out when the fountain is drained.</summary>
@@ -74,6 +76,7 @@ public partial class Fountain : Node3D
 
 		Blessing.Grant(drinker);
 		_isDrained = true;
+		if (DrinkCue != null) SignalBus.EmitWorldSoundEmitted(DrinkCue, this, GlobalPosition);
 		if (!string.IsNullOrEmpty(SourceId)) _level?.Run?.MarkCleared(SourceId);
 		if (Blessing.DrinkEffect != null)
 			drinker.WorldEffects?.PlayBurst(Blessing.DrinkEffect, (uint)GenerationRandom.DeriveSeed(_level?.Seed ?? 0, GenerationRandom.Cosmetic, SourceId));

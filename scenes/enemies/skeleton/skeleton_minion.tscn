@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://cp8o80bbyblfj"]
+[gd_scene load_steps=43 format=3 uid="uid://cp8o80bbyblfj"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_u7kdf"]
 [ext_resource type="PackedScene" uid="uid://dx6rvie14m5bg" path="res://assets/kaykit-skeletons/Skeleton_Minion.glb" id="2_lb3ug"]
@@ -342,3 +342,6 @@ Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
 [node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
 Movement = NodePath("../MovementComponent")
 AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
+
+[node name="ActorAudioComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")

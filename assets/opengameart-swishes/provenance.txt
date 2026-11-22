@@ -1,0 +1,7 @@
+OpenGameArt listing: https://opengameart.org/content/swishes-sound-pack
+Title: Swishes Sound Pack
+Author: artisticdude
+License: CC0 1.0, as listed on OpenGameArt
+License deed: https://creativecommons.org/publicdomain/zero/1.0/
+
+Downloaded 2026-11-07. The pack provides 13 stereo 24-bit/44.1 kHz WAV weapon swishes. The game copies under audio/ retain each source filename and are downmixed to mono at the same bit depth and sample rate for positional 3D playback. The OpenGameArt listing describes lighter and heavier recordings.

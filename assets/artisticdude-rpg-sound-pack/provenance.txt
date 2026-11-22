@@ -1,0 +1,8 @@
+Artisticdude - RPG Sound Pack
+
+Source: https://opengameart.org/content/rpg-sound-pack
+Author: artisticdude
+License: CC0-1.0, as stated on the OpenGameArt listing
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+
+The supplied WAV recordings and category folders are preserved with their original names. No audio edits or conversions have been made. The downloaded archive contained no separate license file.

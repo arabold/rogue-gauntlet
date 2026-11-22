@@ -32,11 +32,11 @@ The run menu is built ([user interface](../user-interface.md#in-run-screens)). L
 ## Later
 
 - **Credits** generated from `assets/ATTRIBUTIONS.json`: every pack with `attribution_required`, and both fonts' OFL notices. Required before any release.
-- **Settings:** audio, display and controls. Needs kit pieces and theme styles for `CheckBox`, `HSlider` and `OptionButton`, and a settings store (proposed: a `ConfigFile` in `user://`).
+- **Settings:** display and controls still need screens and theme work. Audio preferences are available from the title and System menus. See [audio settings](../audio-system.md#components-and-mix).
 - **Menu stage:** a more dramatic scene (stronger light and shadow, a grander room, more effects such as torch smoke and light shafts beside the embers); Continue's hero wearing the run's saved gear rather than the class's starting kit; a slow camera drift; the entrance of the run's current realm once realms settle.
 - **Kit resolution:** render the kit at 2× and draw it at half scale, so frames stay crisp on 1440p and 4K windows.
 - **Threaded first load:** load `main.tscn` with `ResourceLoader.LoadThreadedRequest` so the depth card's pips keep moving; floor generation stays on the main thread. Measure first: a floor builds in well under a second.
-- **Interface sounds:** hover, press, open and close cues from a CC0 pack (Kenney's UI Audio is the candidate), recorded in the manifest.
+- **Interface sounds:** extend the existing Kenney button press cues with deliberate hover, open and close feedback where useful.
 
 ## Asset rules
 

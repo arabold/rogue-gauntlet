@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Weapon" load_steps=8 format=3 uid="uid://btk1o3ydc6yaf"]
+[gd_resource type="Resource" script_class="Weapon" load_steps=9 format=3 uid="uid://btk1o3ydc6yaf"]
 
 [ext_resource type="Resource" path="res://scenes/combat/definitions/weapon_guard.tres" id="guard_weapon"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_1h.tres" id="melee_contact"]
@@ -7,6 +7,9 @@
 [ext_resource type="Script" uid="uid://bb7ire18vxwkm" path="res://scenes/items/Weapon.cs" id="2_e51uk"]
 [ext_resource type="Resource" path="res://scenes/items/quality/tables/metal_weapon.tres" id="roll_table"]
 [ext_resource type="Resource" path="res://scenes/attacks/combos/sword_1h.tres" id="primary_combo"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/attack_release.tres" id="release_audio"]
+
 
 [resource]
 script = ExtResource("2_e51uk")
@@ -33,3 +36,5 @@ ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
 metadata/_custom_type_script = ExtResource("2_e51uk")
+PrimaryReleaseCue = ExtResource("release_audio")
+SecondaryReleaseCue = ExtResource("release_audio")

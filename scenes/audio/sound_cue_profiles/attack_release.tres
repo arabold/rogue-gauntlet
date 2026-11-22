@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-1.wav" id="2_swish_1"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-2.wav" id="3_swish_2"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-3.wav" id="4_swish_3"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-4.wav" id="5_swish_4"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-5.wav" id="6_swish_5"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-6.wav" id="7_swish_6"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-7.wav" id="8_swish_7"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-8.wav" id="9_swish_8"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-9.wav" id="10_swish_9"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-10.wav" id="11_swish_10"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-11.wav" id="12_swish_11"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-12.wav" id="13_swish_12"]
+[ext_resource type="AudioStream" path="res://assets/opengameart-swishes/audio/swish-13.wav" id="14_swish_13"]
+
+[resource]
+script = ExtResource("1_script")
+Variants = [ExtResource("2_swish_1"), ExtResource("3_swish_2"), ExtResource("4_swish_3"), ExtResource("5_swish_4"), ExtResource("6_swish_5"), ExtResource("7_swish_6"), ExtResource("8_swish_7"), ExtResource("9_swish_8"), ExtResource("10_swish_9"), ExtResource("11_swish_10"), ExtResource("12_swish_11"), ExtResource("13_swish_12"), ExtResource("14_swish_13")]
+Category = 0
+GainDb = -12.0
+PitchMinimum = 0.9
+PitchMaximum = 1.1
+PanningStrength = 0.2
+UnitSize = 3.0
+MaxDistance = 24.0
+Priority = 3
+MaxVoicesPerSource = 2
+MaxVoicesGlobal = 6
+MinIntervalSeconds = 0.05

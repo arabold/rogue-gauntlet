@@ -12,6 +12,9 @@ public partial class DashProfile : Resource
 	[Export(PropertyHint.Range, "0.05,3,0.01,suffix:s")] public float TravelDuration { get; set; } = 0.55f;
 	[Export(PropertyHint.Range, "0,3,0.01,suffix:s")] public float RecoveryDuration { get; set; } = 0.3f;
 
+	/// <summary>Optional travel sound, played only once the dash actually displaces its actor.</summary>
+	[Export] public SoundCueProfile TravelCue { get; set; }
+
 	public float TravelSpeed => Distance / TravelDuration;
 
 	/// <summary>Reject incomplete timing or a missing animation style before acquiring action ownership.</summary>

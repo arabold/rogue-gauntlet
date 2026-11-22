@@ -127,6 +127,7 @@ public partial class MapGenerator : Node3D
 	/// </summary>
 	private void MergeRoomGridMaps(Room room, Vector3I offset)
 	{
+		Floor.RegisterFootstepCues(room.FootstepCuesByFloorItem);
 		foreach (var cell in room.DividerCells) _dividerCells.Add(cell + offset);
 		foreach (var (center, horizontal) in room.FramedEdges) _framedEdges.Add((center + offset, horizontal));
 		foreach (var (source, target) in new[] { (room.FloorGridMap, FloorGridMap), (room.WallGridMap, WallGridMap), (room.DecorationGridMap, DecorationGridMap) })
@@ -369,6 +370,7 @@ public partial class MapGenerator : Node3D
 	private void PlaceCorridors()
 	{
 		GD.Print("Placing corridors...");
+		Floor.RegisterFootstepMaterial(Corridors.Floor);
 		for (int x = 0; x < Map.Width; x++)
 		{
 			for (int z = 0; z < Map.Height; z++)
@@ -811,7 +813,7 @@ public partial class MapGenerator : Node3D
 		// Initialize the map with empty tiles and a walled border
 		Map = new MapData(FloorSize.X, FloorSize.Y);
 		Map.ResetToBorderedEmpty();
-		Floor = new GeneratedFloor(Map, this, DecorationGridMap) { Encounter = _encounter };
+		Floor = new GeneratedFloor(Map, this, FloorGridMap, DecorationGridMap) { Encounter = _encounter };
 
 		FloorGridMap?.Clear();
 		WallGridMap?.Clear();

@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://cvvu87irfmqm1"]
+[gd_scene load_steps=42 format=3 uid="uid://cvvu87irfmqm1"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/burning_status.tscn" id="burning_status_scene"]
 
@@ -49,6 +49,8 @@
 [ext_resource type="Resource" path="res://scenes/effects/combat/feedback_profiles/default.tres" id="combat_feedback_profile"]
 [ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/flesh.tres" id="impact_surface_profile"]
 [ext_resource type="Script" path="res://scenes/effects/combat/CombatVisualMotionComponent.cs" id="combat_motion_script"]
+
+[ext_resource type="Script" path="res://scenes/audio/ActorAudioComponent.cs" id="audio_component_script"]
 
 [node name="Enemy" type="CharacterBody3D" node_paths=PackedStringArray("Nameplate", "FrozenStatus", "SlowStatus", "BurningStatus", "IronSkinStatus", "StoneSkinStatus", "BuffController", "WorldEffects", "Invisibility", "AttackController", "SpellCaster", "ManaComponent", "EnemyBehaviorComponent", "MovementComponent", "HealthComponent", "HurtBoxComponent", "DeathComponent", "LootTableComponent", "Stats") groups=["enemy"]]
 Nameplate = NodePath("Nameplate")
@@ -220,3 +222,9 @@ Invisibility = NodePath("../InvisibilityComponent")
 Movement = NodePath("../MovementComponent")
 Effects = NodePath("../WorldEffects")
 Profile = ExtResource("movement_profile")
+
+[node name="ActorAudioComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Movement", "Attack")]
+script = ExtResource("audio_component_script")
+Actor = NodePath("..")
+Movement = NodePath("../MovementComponent")
+Attack = NodePath("../AttackController")

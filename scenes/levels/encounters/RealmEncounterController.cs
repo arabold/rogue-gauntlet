@@ -9,6 +9,7 @@ public partial class RealmEncounterController : Node
 	public bool DescentUnlocked { get; private set; } = true;
 	public string GatekeeperId { get; private set; } = "";
 	private Label3D _objective;
+	private bool _bossEncounterActive;
 
 	public void Initialize(Level level, EncounterPlan plan)
 	{
@@ -48,13 +49,42 @@ public partial class RealmEncounterController : Node
 	{
 		if (node is EnemyBase enemy)
 		{
+			if (enemy.EncounterNotifier != null)
+			{
+				this.SubscribeUntilExit(enemy.EncounterNotifier,
+					notifier => notifier.ScreenEntered += OnGatekeeperSeen,
+					notifier => notifier.ScreenEntered -= OnGatekeeperSeen);
+				if (enemy.EncounterNotifier.IsOnScreen()) BeginBossEncounter();
+			}
+			if (enemy.EnemyBehaviorComponent != null)
+			{
+				this.SubscribeUntilExit(enemy.EnemyBehaviorComponent,
+					behavior => behavior.PlayerTargetAcquired += OnGatekeeperTargetAcquired,
+					behavior => behavior.PlayerTargetAcquired -= OnGatekeeperTargetAcquired);
+			}
 			this.SubscribeUntilExit(enemy.HealthComponent, h => h.Died += Unlock, h => h.Died -= Unlock);
 		}
+	}
+
+	private void OnGatekeeperSeen() => BeginBossEncounter();
+	private void OnGatekeeperTargetAcquired(Player player) => BeginBossEncounter();
+
+	/// <summary>Both discovery paths start the boss transition once, even if they occur in the same frame.</summary>
+	private void BeginBossEncounter()
+	{
+		if (_bossEncounterActive) return;
+		_bossEncounterActive = true;
+		SignalBus.EmitBossEncounterChanged(true);
 	}
 
 	private void Unlock()
 	{
 		DescentUnlocked = true;
 		if (GodotObject.IsInstanceValid(_objective)) _objective.Text = "Descent open";
+		if (_bossEncounterActive)
+		{
+			_bossEncounterActive = false;
+			SignalBus.EmitBossEncounterChanged(false);
+		}
 	}
 }

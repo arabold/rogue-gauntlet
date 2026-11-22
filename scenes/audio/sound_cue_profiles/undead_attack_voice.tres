@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="script"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/shade/shade1.wav" id="sample_1"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/shade/shade2.wav" id="sample_2"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/shade/shade3.wav" id="sample_3"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/shade/shade4.wav" id="sample_4"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/shade/shade5.wav" id="sample_5"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/shade/shade6.wav" id="sample_6"]
+[ext_resource type="AudioStreamWav" path="res://assets/artisticdude-rpg-sound-pack/NPC/shade/shade7.wav" id="sample_7"]
+
+[resource]
+script = ExtResource("script")
+Variants = Array[AudioStream]([ExtResource("sample_1"), ExtResource("sample_2"), ExtResource("sample_3"), ExtResource("sample_4"), ExtResource("sample_5"), ExtResource("sample_6"), ExtResource("sample_7")])
+Category = 0
+GainDb = -14.0
+PitchMinimum = 0.96
+PitchMaximum = 1.04
+PanningStrength = 0.2
+UnitSize = 4.0
+MaxDistance = 22.0
+Priority = 4
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 4
+MinIntervalSeconds = 0.08

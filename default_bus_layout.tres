@@ -1,0 +1,33 @@
+[gd_resource type="AudioBusLayout" format=3 uid="uid://b3jgg2vxp5s0q"]
+
+[sub_resource type="AudioEffectStereoEnhance" id="AudioEffectStereoEnhance_mono"]
+resource_name = "Mono Output"
+pan_pullout = 0.0
+
+[resource]
+bus/0/effect/0/effect = SubResource("AudioEffectStereoEnhance_mono")
+bus/0/effect/0/enabled = false
+bus/1/name = &"Music"
+bus/1/solo = false
+bus/1/mute = false
+bus/1/bypass_fx = false
+bus/1/volume_db = 0.0
+bus/1/send = &"Master"
+bus/2/name = &"Effects"
+bus/2/solo = false
+bus/2/mute = false
+bus/2/bypass_fx = false
+bus/2/volume_db = 0.0
+bus/2/send = &"Master"
+bus/3/name = &"UI"
+bus/3/solo = false
+bus/3/mute = false
+bus/3/bypass_fx = false
+bus/3/volume_db = 0.0
+bus/3/send = &"Master"
+bus/4/name = &"Ambience"
+bus/4/solo = false
+bus/4/mute = false
+bus/4/bypass_fx = false
+bus/4/volume_db = 0.0
+bus/4/send = &"Effects"

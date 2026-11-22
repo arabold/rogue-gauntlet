@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3 uid="uid://coev873edfqw6"]
+[gd_scene load_steps=50 format=3 uid="uid://coev873edfqw6"]
 
 [ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_p3la7"]
 [ext_resource type="PackedScene" uid="uid://c7qnx3sxaoosn" path="res://assets/kaykit-skeletons/Skeleton_Warrior.glb" id="2_srno3"]
@@ -20,6 +20,8 @@
 [ext_resource type="Resource" path="res://scenes/enemies/skeleton/skeleton_warrior_poise.tres" id="poise_definition"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
+
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/guard_raise.tres" id="guard_audio"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idauc"]
 animation = &"Death_A_Pose"
@@ -370,3 +372,9 @@ AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
 
 [node name="MovementEffectsComponent" parent="." node_paths=PackedStringArray("Dodge")]
 Dodge = NodePath("../DodgeComponent")
+
+[node name="ActorAudioComponent" parent="." node_paths=PackedStringArray("ActionGate", "Guard", "Dodge")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Guard = NodePath("../GuardComponent")
+Dodge = NodePath("../DodgeComponent")
+GuardCue = ExtResource("guard_audio")

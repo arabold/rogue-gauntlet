@@ -14,6 +14,9 @@
 [ext_resource type="Script" path="res://scenes/ui/menu/SellTab.cs" id="12_sell"]
 [ext_resource type="PackedScene" uid="uid://c03l8q524arxf" path="res://scenes/ui/item_slot_panel.tscn" id="13_slot"]
 
+[ext_resource type="Script" path="res://scenes/audio/UiAudioComponent.cs" id="ui_audio"]
+[ext_resource type="Resource" path="res://scenes/audio/sound_cue_profiles/ui_click.tres" id="ui_click"]
+
 [node name="RunMenu" type="Control" node_paths=PackedStringArray("GearTab", "PackTab", "NotesTab", "SystemTab", "GearButton", "PackButton", "NotesButton", "SystemButton", "BuyTab", "SellTab", "BuyButton", "SellButton", "GoldLabel", "Banner", "PromptRow", "ActionMenu")]
 process_mode = 3
 visible = false
@@ -258,3 +261,8 @@ theme_override_constants/separation = 40
 alignment = 2
 
 [node name="ActionMenu" type="PopupMenu" parent="."]
+
+[node name="UiAudioComponent" type="Node" parent="." node_paths=PackedStringArray("ButtonRoot")]
+script = ExtResource("ui_audio")
+ButtonRoot = NodePath("..")
+PressedCue = ExtResource("ui_click")

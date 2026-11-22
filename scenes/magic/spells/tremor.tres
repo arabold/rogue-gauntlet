@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/magic/SpellDefinition.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/magic/earth/tremor_spell.tscn" id="scene"]
-[ext_resource type="Resource" path="res://scenes/magic/spells/spell_cast.tres" id="cast"]
+[ext_resource type="Resource" path="res://scenes/magic/spells/tremor_cast.tres" id="cast"]
 
 [resource]
 script = ExtResource("script")

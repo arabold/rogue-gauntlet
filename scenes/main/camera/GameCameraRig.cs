@@ -10,6 +10,9 @@ using System.Linq;
 public partial class GameCameraRig : Node
 {
 	[Export] public GameCameraProfile Profile { get; set; }
+	/// <summary>Player-centered world listener shared by gameplay and the combat arena.</summary>
+	[Export] public AudioListener3D AudioListener { get; set; }
+	[Export(PropertyHint.Range, "0,4,0.1")] public float ListeningHeight { get; set; } = 1.4f;
 
 	/// <summary>The orthographic camera the Phantom Camera host drives.</summary>
 	[Export] public Camera3D Camera { get; set; }
@@ -31,6 +34,8 @@ public partial class GameCameraRig : Node
 			return;
 		}
 
+		if (AudioListener == null) GD.PushError($"{Name}: assign the world audio listener.");
+		else AudioListener.MakeCurrent();
 		Camera.Size = Profile.Size;
 		Basis basis = Profile.ViewBasis;
 		PhantomCamera.GlobalTransform = new Transform3D(basis, Profile.ViewPosition(Vector3.Zero, basis));
@@ -82,5 +87,7 @@ public partial class GameCameraRig : Node
 	{
 		Basis basis = PhantomCamera.GlobalBasis.Orthonormalized();
 		PhantomCamera.GlobalTransform = new Transform3D(basis, Profile.ViewPosition(_player.GlobalPosition, basis));
+		if (AudioListener != null)
+			AudioListener.GlobalTransform = new Transform3D(basis, _player.GlobalPosition + Vector3.Up * ListeningHeight);
 	}
 }

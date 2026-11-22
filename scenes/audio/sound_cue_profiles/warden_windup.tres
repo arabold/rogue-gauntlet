@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SoundCueProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/audio/SoundCueProfile.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/draw_knife_1.ogg" id="2_draw_1"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/draw_knife_2.ogg" id="3_draw_2"]
+[ext_resource type="AudioStream" path="res://assets/kenney-rpg-audio/audio/draw_knife_3.ogg" id="4_draw_3"]
+
+[resource]
+script = ExtResource("1_script")
+Variants = Array[AudioStream]([ExtResource("2_draw_1"), ExtResource("3_draw_2"), ExtResource("4_draw_3")])
+Category = 0
+GainDb = -7.0
+PitchMinimum = 0.94
+PitchMaximum = 1.04
+PanningStrength = 0.2
+UnitSize = 4.0
+MaxDistance = 26.0
+Priority = 7
+MaxVoicesPerSource = 1
+MaxVoicesGlobal = 4
+MinIntervalSeconds = 0.1
