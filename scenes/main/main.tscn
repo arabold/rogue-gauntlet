@@ -7,12 +7,42 @@
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="10_effects"]
 [ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="11_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="12_death"]
+[ext_resource type="Script" uid="uid://cb2bhp7vfuy1v" path="res://scenes/ui/map/FloorMapOverlay.cs" id="13_map_overlay"]
+[ext_resource type="Script" uid="uid://cc6w6kwght6ef" path="res://scenes/ui/map/FloorMap.cs" id="14_map"]
 
 [node name="Main" type="Node" unique_id=488156596 node_paths=PackedStringArray("ScreenEffects", "DeathScreen", "Reflections")]
 script = ExtResource("1_dl2xl")
 ScreenEffects = NodePath("ScreenEffects")
 Reflections = NodePath("Level/LocalReflections")
 DeathScreen = NodePath("DeathScreen")
+
+[node name="FloorMapOverlay" type="Control" parent="." node_paths=PackedStringArray("Level", "Map")]
+process_priority = 310
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("13_map_overlay")
+Level = NodePath("../Level")
+Map = NodePath("Map")
+
+[node name="Map" type="Control" parent="FloorMapOverlay" node_paths=PackedStringArray("Markers")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14_map")
+Markers = NodePath("Markers")
+
+[node name="Markers" type="Control" parent="FloorMapOverlay/Map"]
+mouse_filter = 2
 
 [node name="HUD" parent="." unique_id=2078119296 instance=ExtResource("3_stuk7")]
 

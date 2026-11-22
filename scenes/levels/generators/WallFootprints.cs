@@ -164,16 +164,19 @@ public static class WallFootprints
 	/// tile deep along both axes) its two arms, each as thick as its wall, so the inside of the L stays open.
 	/// Junction assets must conform to these structural regions; their meshes are responsible for clean internal geometry.
 	/// </summary>
-	internal static FootprintPair PieceFootprintPair(Aabb local, int orientation, Vector3I cell, string itemName)
+	internal static FootprintPair PieceFootprintPair(Aabb local, int orientation, Vector3I cell, string itemName) =>
+		PieceFootprintPair(FootprintWorld(local, orientation, cell), cell, itemName);
+
+	/// <summary>Splits the world bounds of a junction around its placement origin, including off-grid wall pieces.</summary>
+	internal static FootprintPair PieceFootprintPair(Aabb footprint, Vector3 origin, string itemName)
 	{
-		var footprint = FootprintWorld(local, orientation, cell);
 		if (footprint.Size.X < Room.TileSize / 2f || footprint.Size.Z < Room.TileSize / 2f)
 		{
 			return new FootprintPair(footprint, default, false);
 		}
 
-		float halfDepthZ = Mathf.Min(cell.Z - footprint.Position.Z, footprint.End.Z - cell.Z);
-		float halfDepthX = Mathf.Min(cell.X - footprint.Position.X, footprint.End.X - cell.X);
+		float halfDepthZ = Mathf.Min(origin.Z - footprint.Position.Z, footprint.End.Z - origin.Z);
+		float halfDepthX = Mathf.Min(origin.X - footprint.Position.X, footprint.End.X - origin.X);
 		// A T junction is centered on its crossbar: its stem has the same thickness as that bar.
 		if (itemName.StartsWith("wall_Tsplit") || itemName == "wall_crossing")
 		{
@@ -181,8 +184,8 @@ public static class WallFootprints
 			halfDepthX = thickness;
 			halfDepthZ = thickness;
 		}
-		var h = new Aabb(new Vector3(footprint.Position.X, footprint.Position.Y, cell.Z - halfDepthZ), new Vector3(footprint.Size.X, footprint.Size.Y, 2 * halfDepthZ));
-		var v = new Aabb(new Vector3(cell.X - halfDepthX, footprint.Position.Y, footprint.Position.Z), new Vector3(2 * halfDepthX, footprint.Size.Y, footprint.Size.Z));
+		var h = new Aabb(new Vector3(footprint.Position.X, footprint.Position.Y, origin.Z - halfDepthZ), new Vector3(footprint.Size.X, footprint.Size.Y, 2 * halfDepthZ));
+		var v = new Aabb(new Vector3(origin.X - halfDepthX, footprint.Position.Y, footprint.Position.Z), new Vector3(2 * halfDepthX, footprint.Size.Y, footprint.Size.Z));
 		return new FootprintPair(h, v, true);
 	}
 
@@ -296,8 +299,9 @@ public static class WallFootprints
 	/// World-space XZ footprints of every piece currently in a wall GridMap, from each
 	/// piece's actual mesh AABB + orientation; corners count as their two arms (see <see cref="PieceFootprints"/>).
 	/// <paramref name="solidOnly"/> skips visual-only pieces without collision, such as doorway frames.
+	/// <paramref name="cells"/> restricts the collection to specific wall cells when supplied.
 	/// </summary>
-	public static List<Aabb> Collect(GridMap wallGridMap, bool solidOnly = false)
+	public static List<Aabb> Collect(GridMap wallGridMap, bool solidOnly = false, IEnumerable<Vector3I> cells = null)
 	{
 		var boxes = new List<Aabb>();
 		MeshLibrary library = wallGridMap?.MeshLibrary;
@@ -307,7 +311,7 @@ public static class WallFootprints
 		}
 
 		var cache = new Dictionary<int, (bool Valid, Aabb Bounds, string Name)>();
-		foreach (Vector3I cell in wallGridMap.GetUsedCells())
+		foreach (Vector3I cell in cells ?? wallGridMap.GetUsedCells())
 		{
 			int tileIndex = wallGridMap.GetCellItem(cell);
 			if (tileIndex < 0)

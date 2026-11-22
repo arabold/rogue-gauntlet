@@ -70,7 +70,7 @@ _data = {
 &"spin": SubResource("Animation_b0fih")
 }
 
-[node name="LootableItem" type="Node3D" groups=["prop"] node_paths=PackedStringArray("Pivot", "Trigger", "AnimationPlayer", "Nameplate")]
+[node name="LootableItem" type="Node3D" groups=["loot", "prop"] node_paths=PackedStringArray("Pivot", "Trigger", "AnimationPlayer", "Nameplate")]
 script = ExtResource("1_an4ny")
 AuraPresentation = ExtResource("aura_vfx")
 Pivot = NodePath("Pivot")

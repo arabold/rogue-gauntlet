@@ -497,6 +497,8 @@ public partial class MapGenerator : Node3D
 		var nodes = LiveNodes<Node3D>().ToList();
 		Floor.Arrival = nodes.OfType<PlayerSpawnPoint>()
 			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Down);
+		Floor.ArrivalFromBelow = nodes.OfType<PlayerSpawnPoint>()
+			.FirstOrDefault(point => point.SpawnAfterTravelDirection == GameSession.LevelTravelDirection.Up);
 		Floor.Descent = nodes.OfType<LevelTransitionTrigger>()
 			.FirstOrDefault(trigger => trigger.Direction == GameSession.LevelTravelDirection.Down);
 		Floor.StairLandings = nodes.OfType<PlayerSpawnPoint>().Select(point => point.LandingPosition).ToList();
@@ -686,6 +688,7 @@ public partial class MapGenerator : Node3D
 		PlaceOcclusion();
 		Floor.SolidWalls = WallFootprints.Collect(WallGridMap, solidOnly: true)
 			.Select(box => CollisionOutlines.FromBox(WallGridMap.Transform * box).Polygon).ToList();
+		Floor.InteriorWallSegments = CollectInteriorWallSegments();
 
 		if (!includeGameplay)
 		{
@@ -717,6 +720,47 @@ public partial class MapGenerator : Node3D
 
 		GD.Print("Map generated.");
 		return true;
+	}
+
+	/// <summary>Captures the fixed partitions after rooms have reached their final rotation and position.</summary>
+	private List<(Vector2 Start, Vector2 End)> CollectInteriorWallSegments()
+	{
+		var segments = new List<(Vector2 Start, Vector2 End)>();
+		foreach (var box in WallFootprints.Collect(WallGridMap, solidOnly: true, cells: _dividerCells))
+		{
+			Aabb bounds = WallGridMap.GlobalTransform * box;
+			AddSegment(bounds, bounds.Size.X >= bounds.Size.Z);
+		}
+
+		foreach (var (node, meshItem, run) in FloorContent.GetChildren().OfType<Room>().SelectMany(room => room.StructuralProps))
+		foreach (var solid in CollisionOutlines.FromStaticBodies(node, node.GlobalTransform))
+		{
+			if (solid.Bottom >= ClearanceGrid.MaximumBlockingHeight || solid.Top <= ClearanceGrid.MinimumBlockingHeight) continue;
+			Aabb bounds = solid.Bounds;
+			if (meshItem != null && (meshItem.StartsWith("wall_corner") || meshItem.StartsWith("wall_Tsplit") || meshItem == "wall_crossing"))
+			{
+				var arms = WallFootprints.PieceFootprintPair(bounds, node.GlobalPosition, meshItem);
+				if (arms.HasSecond)
+				{
+					AddSegment(arms.First, horizontal: true);
+					AddSegment(arms.Second, horizontal: false);
+					continue;
+				}
+			}
+			// Follow the piece's run, not its bounds: a wall stretched shorter than its thickness to fit a jamb, or an
+			// arch's square jamb, says nothing about direction by its shape.
+			Vector3 axis = node.GlobalBasis * run;
+			AddSegment(bounds, Mathf.Abs(axis.X) >= Mathf.Abs(axis.Z));
+		}
+		return segments;
+
+		void AddSegment(Aabb bounds, bool horizontal)
+		{
+			Vector3 center = bounds.GetCenter();
+			segments.Add(horizontal
+				? (new Vector2(bounds.Position.X, center.Z), new Vector2(bounds.End.X, center.Z))
+				: (new Vector2(center.X, bounds.Position.Z), new Vector2(center.X, bounds.End.Z)));
+		}
 	}
 
 	/// <summary>The realm covering <paramref name="depth"/>; the deepest realm carries on below the last band.</summary>

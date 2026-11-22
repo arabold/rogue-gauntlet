@@ -178,6 +178,7 @@ public partial class FloorDiscovery : Node3D
 
 	private void OnDoorChanged(Node3D door)
 	{
+		DoorRevision++;
 		_untilPoll = 0;
 		_refresh = true;
 		if (_walls == null) return;
@@ -233,6 +234,15 @@ public partial class FloorDiscovery : Node3D
 	}
 
 	public bool IsRevealedAt(Vector3 worldPosition) => _model != null && _model.RevealedTiles.Contains(_floor.Map.WorldToTile(worldPosition));
+
+	/// <summary>Tiles with explored samples on this floor, or null before exploration is initialized.</summary>
+	internal IReadOnlySet<Vector2I> RevealedTiles => _model?.RevealedTiles;
+
+	/// <summary>Whether this door borders explored space on a side that can see the threshold.</summary>
+	internal bool IsDoorRevealed(Door door) => _indicatorsShown.Contains(door);
+
+	/// <summary>Changes when a connector may have opened or closed, invalidating any cached map outline.</summary>
+	internal uint DoorRevision { get; private set; }
 
 	/// <summary>Whether wall-clipped visuals are cut off at this position: it lies inside a solid wall or a closed door.</summary>
 	public bool IsWallAt(Vector3 worldPosition) => _walls?.IsWall(new Vector2(worldPosition.X, worldPosition.Z)) == true;
@@ -296,7 +306,7 @@ public partial class FloorDiscovery : Node3D
 		Present(added, true);
 	}
 
-	private bool CanSeeAcross(Vector2I from, Vector2I to)
+	internal bool CanSeeAcross(Vector2I from, Vector2I to)
 	{
 		MapData map = _floor.Map;
 		if (!map.IsExplorable(from.X, from.Y) || !map.IsExplorable(to.X, to.Y)) return false;

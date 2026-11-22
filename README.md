@@ -148,6 +148,7 @@ The game is playable with keyboard or gamepad:
 | **Dodge** | `Space` | `B` Button / East Button |
 | **Interact** (Doors, Chests, Shrines) | `E` (hold to interact) | `A` Button / South Button |
 | **Item Quick Slots 1–4** | `1`, `2`, `3`, `4` | `LB` + Face Buttons |
+| **Floor Map** | Hold `Tab` | — |
 | **Rotate Camera** | `,` / `.` | Right Stick (X-Axis) |
 | **Zoom Camera** | `'` / `/` | Right Stick (Y-Axis) |
 
