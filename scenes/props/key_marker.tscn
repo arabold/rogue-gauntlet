@@ -5,12 +5,16 @@
 [ext_resource type="Shader" path="res://scenes/effects/shaders/pixel_perfect_outline3D.gdshader" id="outline"]
 
 [sub_resource type="ShaderMaterial" id="Ink"]
+render_priority = 121
 shader = ExtResource("outline")
 shader_parameter/outline_color = Color(0.012, 0.008, 0.006, 1)
 shader_parameter/outline_width = 2.5
 
 [sub_resource type="StandardMaterial3D" id="Finish"]
+render_priority = 122
 next_pass = SubResource("Ink")
+transparency = 1
+no_depth_test = true
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.9, 0.65, 0.12, 1)

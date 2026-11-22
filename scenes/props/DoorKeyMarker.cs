@@ -1,6 +1,11 @@
 using Godot;
 
-/// <summary>A visible lock cue that turns in place and takes its color from the required key.</summary>
+/// <summary>
+/// A visible lock cue that turns in place and takes its color from the required key. Its scene draws it in the
+/// transparent pass after the fog (<see cref="FloorDiscovery.AboveFogRenderPriority"/> for the ink, one above for the
+/// gem) without a depth test: the fog shades whatever the depth buffer holds, so an opaque gem hovering over the
+/// unexplored side of its door would darken. The door shows it only once the door's area is revealed.
+/// </summary>
 [Tool]
 [GlobalClass]
 public partial class DoorKeyMarker : MeshInstance3D

@@ -4,8 +4,11 @@ shader_type spatial;
 // view on a surface that is still unexplored. The silhouette therefore appears
 // only while the door cannot be seen, and stays invisible when it is in plain
 // explored view, even under the fog's soft fringe at the explored edge.
-// Alpha fades with distance so far doors stay quiet.
+// Alpha fades with distance so far doors stay quiet. Like the actor x-rays, it skips the
+// pixels where an actor's mask marks it in view, so it never paints over the hero, a monster
+// or loot standing in front of the door.
 render_mode unshaded, cull_disabled, depth_draw_never, depth_test_disabled;
+stencil_mode read, compare_not_equal, 1;
 
 #include "res://scenes/levels/fog_of_war.gdshaderinc"
 
