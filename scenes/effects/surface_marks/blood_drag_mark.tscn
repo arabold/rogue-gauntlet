@@ -1,13 +1,15 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/surface_mark.tscn" id="base"]
 [ext_resource type="Script" path="res://scenes/effects/surface_marks/SurfaceMarkProfile.cs" id="profile"]
 [ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/blood_drag_mask.svg" id="mask"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/drag_mask_split.svg" id="split"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/drag_mask_smear.svg" id="smear"]
 
 [sub_resource type="Resource" id="Drag"]
 script = ExtResource("profile")
-AlbedoMask = ExtResource("mask")
-Tint = Color(0.22, 0.045, 0.032, 0.91)
+AlbedoMasks = [ExtResource("mask"), ExtResource("split"), ExtResource("smear")]
+Tint = Color(0.56, 0.055, 0.06, 0.91)
 AffectRoughness = false
 AlbedoMix = 0.94
 

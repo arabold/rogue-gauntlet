@@ -1,12 +1,12 @@
 using Godot;
 using System.Collections.Generic;
 
-/// <summary>Shared decal appearance with an authored mask or a procedural soft-edged patch.</summary>
+/// <summary>Shared decal appearance with authored mask variants or a procedural soft-edged patch.</summary>
 [Tool, GlobalClass]
 public partial class SurfaceMarkProfile : ObservableResource
 {
 	[Export] public Color Tint { get; set => SetValue(ref field, value); } = new(.4f, .47f, .5f, .4f);
-	[Export] public Texture2D AlbedoMask { get; set => SetValue(ref field, value); }
+	[Export] public Texture2D[] AlbedoMasks { get; set => SetValue(ref field, value ?? []); } = [];
 	[Export] public bool AffectRoughness { get; set => SetValue(ref field, value); } = true;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float Roughness { get; set => Update(ref field, Mathf.Clamp(value, 0, 1), ref _orm); } = .15f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float AlbedoMix { get; set => SetValue(ref field, Mathf.Clamp(value, 0, 1)); } = .35f;
@@ -20,9 +20,10 @@ public partial class SurfaceMarkProfile : ObservableResource
 		SetValue(ref storage, value);
 	}
 	/// <summary>Applies shared textures and tint to the decal while preserving its authored placement.</summary>
-	public void Apply(Decal mark)
+	internal void Apply(SurfaceMark mark)
 	{
-		mark.TextureAlbedo = AlbedoMask ?? (_albedo ??= CreateAlbedo());
+		Texture2D mask = AlbedoMasks.Length > 0 ? AlbedoMasks[mark.MaskVariant % AlbedoMasks.Length] : null;
+		mark.TextureAlbedo = mask ?? (_albedo ??= CreateAlbedo());
 		mark.TextureOrm = AffectRoughness ? _orm ??= CreateOrm() : null;
 		mark.Modulate = Tint;
 		mark.AlbedoMix = AlbedoMix;

@@ -1,13 +1,15 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/surface_mark.tscn" id="base"]
 [ext_resource type="Script" path="res://scenes/effects/surface_marks/SurfaceMarkProfile.cs" id="profile"]
 [ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/blood_splatter_mask.svg" id="mask"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/blood_splatter_mask_drops.svg" id="drops"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/blood_splatter_mask_fan.svg" id="fan"]
 
 [sub_resource type="Resource" id="Splatter"]
 script = ExtResource("profile")
-AlbedoMask = ExtResource("mask")
-Tint = Color(0.25, 0.053, 0.037, 0.94)
+AlbedoMasks = [ExtResource("mask"), ExtResource("drops"), ExtResource("fan")]
+Tint = Color(0.62, 0.06, 0.063, 0.94)
 AffectRoughness = false
 AlbedoMix = 0.94
 

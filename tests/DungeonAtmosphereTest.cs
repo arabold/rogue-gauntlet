@@ -73,6 +73,7 @@ public class DungeonAtmosphereTest
 		layer.ParticlesPerTile = 1;
 		AssertBool(layer.Particles.Visible && layer.Particles.Emitting).IsTrue();
 		level.Lighting.IsDark = true;
+		layer.ParticlesPerTile = .25f;
 		AssertBool(layer.IsVisibleInTree() || layer.Particles.Emitting).IsFalse();
 		level.Lighting.IsDark = false;
 		AssertBool(air.Visible && layer.Particles.Emitting).IsTrue();
@@ -163,16 +164,25 @@ public class DungeonAtmosphereTest
 		}
 		var scuffs = air.GetChildren().OfType<AtmosphereSurfaceMarks>().Single(layer => layer.SeedKey == "floor-scuffs");
 		scuffs.MarksPerTile = 1f;
-		var corridorMark = scuffs.GetChildren().OfType<SurfaceMark>()
-			.Single(mark => floor.Map.WorldToTile(mark.GlobalPosition) == corridor);
+		var scuffMarks = scuffs.GetChildren().OfType<SurfaceMark>().ToArray();
+		var corridorMark = scuffMarks.Single(mark => floor.Map.WorldToTile(mark.GlobalPosition) == corridor);
 		AssertFloat(corridorMark.GlobalBasis.Z.Dot(Vector3.Back)).IsEqualApprox(1f, .001f);
-		var placements = splatters.Concat(drags).Select(mark => mark.GlobalTransform).ToArray();
+		AssertInt(splatters.Select(mark => mark.TextureAlbedo.ResourcePath).Distinct().Count()).IsEqual(splatters.Length);
+		AssertInt(drags.Select(mark => mark.TextureAlbedo.ResourcePath).Distinct().Count()).IsEqual(drags.Length);
+		AssertBool(drags.All(drag => scuffMarks.Any(scuff => scuff.TextureAlbedo == drag.TextureAlbedo
+			&& scuff.Modulate != drag.Modulate))).IsTrue();
+		var blood = splatters.Concat(drags).ToArray();
+		var placements = blood.Select(mark => mark.GlobalTransform).ToArray();
+		var masks = blood.Select(mark => mark.TextureAlbedo.ResourcePath).ToArray();
 		level.Lighting.DisabledEffects = EnvironmentalEffect.SurfaceMarks;
-		AssertBool(splatters.Concat(drags).Any(mark => mark.IsVisibleInTree())).IsFalse();
+		AssertBool(blood.Any(mark => mark.IsVisibleInTree())).IsFalse();
+		scuffs.MaximumCount = 1;
 		level.Lighting.DisabledEffects = EnvironmentalEffect.None;
+		AssertInt(scuffs.GetChildren().OfType<SurfaceMark>().Count(mark => mark.IsVisibleInTree())).IsEqual(1);
 		air.Initialize(floor, profile, 23);
-		AssertArray(BloodMarks("blood-splatters").Concat(BloodMarks("blood-drags"))
-			.Select(mark => mark.GlobalTransform).ToArray()).IsEqual(placements);
+		var restored = BloodMarks("blood-splatters").Concat(BloodMarks("blood-drags")).ToArray();
+		AssertArray(restored.Select(mark => mark.GlobalTransform).ToArray()).IsEqual(placements);
+		AssertArray(restored.Select(mark => mark.TextureAlbedo.ResourcePath).ToArray()).IsEqual(masks);
 
 		SurfaceMark[] BloodMarks(string seedKey) => air.GetChildren().OfType<AtmosphereSurfaceMarks>()
 			.Single(layer => layer.SeedKey == seedKey).GetChildren().OfType<SurfaceMark>()

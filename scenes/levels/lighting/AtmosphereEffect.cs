@@ -24,7 +24,8 @@ public abstract partial class AtmosphereEffect : Node3D
 
 	private bool _isDark;
 	protected AtmosphereContext Context { get; private set; }
-	protected bool IsActive => _prepared && _requestedActive && Enabled;
+	protected bool IsActive => _prepared && ShouldActivate;
+	private bool ShouldActivate => _requestedActive && (!_isDark || ActiveInDarkness) && Enabled && Context != null;
 	private bool _requestedActive;
 	private bool _prepared;
 
@@ -47,14 +48,27 @@ public abstract partial class AtmosphereEffect : Node3D
 	public void Clear()
 	{
 		SetActive(false);
+		ReleasePreparation();
+		Context = null;
+	}
+
+	/// <summary>Discards stale content and prepares the new settings when this effect can run.</summary>
+	protected void InvalidatePreparation()
+	{
+		if (!IsNodeReady()) return;
+		ReleasePreparation();
+		ApplyActive();
+	}
+
+	private void ReleasePreparation()
+	{
 		if (_prepared) Release();
 		_prepared = false;
-		Context = null;
 	}
 
 	private void ApplyActive()
 	{
-		bool active = _requestedActive && (!_isDark || ActiveInDarkness) && Enabled && Context != null;
+		bool active = ShouldActivate;
 		if (active && !_prepared) _prepared = Prepare(Context);
 		active &= _prepared;
 		Visible = active;

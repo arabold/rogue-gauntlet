@@ -5,32 +5,32 @@ using System.Collections.Generic;
 [GlobalClass]
 public partial class AtmosphereSurfaceMarks : AtmosphereEffect
 {
-	[Export] public PackedScene MarkScene { get; set { field = value; Rebuild(); } }
-	[Export(PropertyHint.Range, "0,2,0.01")] public float MarksPerTile { get; set { field = Mathf.Max(0, value); Rebuild(); } } = .12f;
-	[Export(PropertyHint.Range, "0,512,1")] public int MaximumCount { get; set { field = Mathf.Max(0, value); Rebuild(); } } = 128;
-	[Export] public Vector2 ScaleRange { get; set { field = value; Rebuild(); } } = new(.7f, 1.3f);
-	[Export] public string SeedKey { get; set { field = value; Rebuild(); } } = "damp-floor";
+	[Export] public PackedScene MarkScene { get; set { field = value; InvalidatePreparation(); } }
+	[Export(PropertyHint.Range, "0,2,0.01")] public float MarksPerTile { get; set { field = Mathf.Max(0, value); InvalidatePreparation(); } } = .12f;
+	[Export(PropertyHint.Range, "0,512,1")] public int MaximumCount { get; set { field = Mathf.Max(0, value); InvalidatePreparation(); } } = 128;
+	[Export] public Vector2 ScaleRange { get; set { field = value; InvalidatePreparation(); } } = new(.7f, 1.3f);
+	[Export] public string SeedKey { get; set { field = value; InvalidatePreparation(); } } = "damp-floor";
 	// Placement settings intentionally match the default drip field, but remain authorable for other sources.
-	[Export] public float Height { get; set { field = value; Rebuild(); } } = .025f;
-	[Export(PropertyHint.Range, "1,16,1")] public int SamplesPerTile { get; set { field = Mathf.Clamp(value, 1, 16); Rebuild(); } } = 4;
-	[Export(PropertyHint.Range, "0,0.5,0.01")] public float TileInset { get; set { field = Mathf.Clamp(value, 0, .5f); Rebuild(); } } = .25f;
+	[Export] public float Height { get; set { field = value; InvalidatePreparation(); } } = .025f;
+	[Export(PropertyHint.Range, "1,16,1")] public int SamplesPerTile { get; set { field = Mathf.Clamp(value, 1, 16); InvalidatePreparation(); } } = 4;
+	[Export(PropertyHint.Range, "0,0.5,0.01")] public float TileInset { get; set { field = Mathf.Clamp(value, 0, .5f); InvalidatePreparation(); } } = .25f;
 	/// <summary>Optional RoomType IDs that can receive this mark. Empty permits rooms and corridors.</summary>
-	[Export] public string[] RoomTypeIds { get; set { field = value ?? []; Rebuild(); } } = [];
+	[Export] public string[] RoomTypeIds { get; set { field = value ?? []; InvalidatePreparation(); } } = [];
 	/// <summary>Maximum marks from this layer per room. Zero allows any count within the floor budget.</summary>
-	[Export(PropertyHint.Range, "0,32,1")] public int MaximumPerRoom { get; set { field = Mathf.Max(0, value); Rebuild(); } }
+	[Export(PropertyHint.Range, "0,32,1")] public int MaximumPerRoom { get; set { field = Mathf.Max(0, value); InvalidatePreparation(); } }
 	/// <summary>Place long marks along corridors and inside ordinary doorways, with local +Z along the passage.</summary>
-	[Export] public bool FollowPassages { get; set { field = value; Rebuild(); } }
-	private bool _dirty;
+	[Export] public bool FollowPassages { get; set { field = value; InvalidatePreparation(); } }
 
 	protected override bool Prepare(AtmosphereContext context)
 	{
-		_dirty = false;
 		if (MarkScene == null) { GD.PushError($"{Name}: assign a MarkScene."); return false; }
 		int count = Mathf.Min(MaximumCount, Mathf.CeilToInt(context.TileCount * MarksPerTile));
 		if (count == 0) return true;
 		var field = context.GetEmission(Height, Height, SamplesPerTile, TileInset, true);
 		var positions = field.Positions;
 		using var random = GenerationRandom.Create(context.Seed, GenerationRandom.Cosmetic, SeedKey);
+		// Cycle through each layer's masks from a seeded starting index without advancing placement randomness.
+		ulong maskStart = GenerationRandom.DeriveSeed(context.Seed, GenerationRandom.Cosmetic, $"{SeedKey}:masks");
 		var indices = new int[field.Count];
 		for (int i = 0; i < indices.Length; i++) indices[i] = i;
 		HashSet<string> roomTypes = RoomTypeIds.Length > 0 ? new(RoomTypeIds, System.StringComparer.Ordinal) : null;
@@ -53,6 +53,8 @@ public partial class AtmosphereSurfaceMarks : AtmosphereEffect
 			}
 			var instance = MarkScene.Instantiate();
 			if (instance is not Decal mark) { instance.Free(); Release(); GD.PushError($"{Name}: MarkScene needs a Decal root."); return false; }
+			if (mark is SurfaceMark surface && surface.Profile?.AlbedoMasks is { Length: > 1 } masks)
+				surface.MaskVariant = (int)((maskStart + (ulong)placed) % (ulong)masks.Length);
 			AddChild(mark);
 			mark.GlobalPosition = point;
 			float yaw = FollowPassages ? Mathf.Atan2(direction.X, direction.Y) : random.RandfRange(0, Mathf.Tau);
@@ -62,17 +64,6 @@ public partial class AtmosphereSurfaceMarks : AtmosphereEffect
 			placed++;
 		}
 		return true;
-	}
-	private void Rebuild()
-	{
-		_dirty = true;
-		if (IsNodeReady() && IsActive && Visible) OnActiveChanged(true);
-	}
-	protected override void OnActiveChanged(bool active)
-	{
-		if (!active || !_dirty) return;
-		Release();
-		Prepare(Context);
 	}
 	protected override void Release() { foreach (Node child in GetChildren()) child.Free(); }
 }
