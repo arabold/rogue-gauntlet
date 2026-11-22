@@ -42,8 +42,9 @@ public class WallIntegrityTest
 		for (int omitted = -1; omitted < 4; omitted++) AssertJunction(library, omitted);
 	}
 
-	private static void AssertJunction(MeshLibrary library, int omitted)
+	private static void AssertJunction(MeshLibrary library, int omitted, BoundaryWallBuilder.WallPieces? structural = null)
 	{
+		var pieces = structural ?? BoundaryWallBuilder.WallPieces.Default;
 		var grid = new GridMap { MeshLibrary = library, CellSize = Vector3.One, CellCenterX = false, CellCenterY = false, CellCenterZ = false };
 		try
 		{
@@ -53,9 +54,9 @@ public class WallIntegrityTest
 				(new Vector2I(0, 0), 1, 0), (new Vector2I(0, 1), 1, 0) };
 			var wanted = new HashSet<(Vector2I, int, int)>();
 			for (int i = 0; i < arms.Length; i++) if (i != omitted) wanted.Add(arms[i]);
-			BoundaryWallBuilder.Build(grid, source, (tile, dx, dz) => wanted.Contains((tile, dx, dz)));
+			BoundaryWallBuilder.Build(grid, source, (tile, dx, dz) => wanted.Contains((tile, dx, dz)), structural: structural);
 			var junction = new Vector3I(2, 0, 2);
-			AssertString(library.GetItemName(grid.GetCellItem(junction))).IsEqual(omitted < 0 ? "wall_crossing" : "wall_Tsplit");
+			AssertString(library.GetItemName(grid.GetCellItem(junction))).IsEqual(omitted < 0 ? pieces.Crossing : pieces.TSplit);
 			AssertString(WallFootprints.FindOverlap(grid)).IsEmpty();
 			var boxes = WallFootprints.Collect(grid);
 			for (int i = 0; i < arms.Length; i++)
@@ -95,7 +96,12 @@ public class WallIntegrityTest
 	public void ShortWallMeshAndCollisionHaveTheSameFootprint()
 	{
 		var library = TestFactories.Load<MeshLibrary>("res://scenes/levels/dungeon/WallsMeshLibrary.tres");
-		int item = library.FindItemByName("wall_junction_short");
+		AssertShortWallCollider(library, "wall_junction_short");
+	}
+
+	private static void AssertShortWallCollider(MeshLibrary library, string itemName)
+	{
+		int item = library.FindItemByName(itemName);
 		AssertInt(item).IsGreaterEqual(0);
 		var mesh = WallFootprints.MeshBounds(library, item);
 		var shapes = library.GetItemShapes(item);
@@ -294,5 +300,27 @@ public class WallIntegrityTest
 		{
 			grid.Free();
 		}
+	}
+
+	[TestCase]
+	public void CaveWallStyleFitsJunctionsAndMaintainsFlushMountingDepth()
+	{
+		var walls = TestFactories.Load<WallStyle>("res://scenes/levels/rooms/styles/walls/cave_walls.tres");
+		AssertArray(walls.Validate()).IsEmpty();
+		var library = walls.Library;
+		AssertShortWallCollider(library, walls.Short);
+
+		foreach (string pieceName in new[] { "wall_cave_A", "wall_cave_B", "wall_cave_C", "wall_cave_D", walls.Half, walls.Short })
+		{
+			int item = library.FindItemByName(pieceName);
+			AssertInt(item).IsGreaterEqual(0);
+			var upper = WallFootprints.UpperMeshBounds(library, item);
+			float upperDepth = Mathf.Min(-upper.Position.Z, upper.End.Z);
+			AssertFloat(upperDepth)
+				.OverrideFailureMessage($"{pieceName} upper crown depth {upperDepth:F3} should stay close to standard wall trim")
+				.IsBetween(0.42f, 0.51f);
+		}
+
+		for (int omitted = -1; omitted < 4; omitted++) AssertJunction(library, omitted, walls.Pieces);
 	}
 }

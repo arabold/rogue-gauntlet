@@ -42,7 +42,8 @@ DERIVED = {"dressed", "water"}
 GROWTH_ALLOWANCE = np.array([.15, .25, .15])
 # Where the game hangs wall decor (tapestries, shields, banners) on a straight wall: between the plinth and the cap,
 # away from the ends. Studio-built walls must present KayKit's face there (see `face_report`).
-FACE_BAND = {"wall": ((-1.9, 1.9), (.5, 3.2)), "wall_half": ((.1, 1.9), (.5, 3.2))}
+FACE_BAND = {"wall": ((-1.9, 1.9), (.5, 3.2)), "wall_half": ((.1, 1.9), (.5, 3.2)),
+             "wall_junction_short": ((-.4, .9), (.5, 3.2))}
 # How far a built face may stray from KayKit's before decor visibly floats or sinks into it.
 FACE_TOLERANCE = .02
 RECESS_TOLERANCE = .05
@@ -56,6 +57,7 @@ HEIGHT_RANGE = {"floor": (-0.03, 0.27), "wall": (-3.0, 7.0), "overlay": (0.0, 0.
 # Footprints (min, max) every piece must fill exactly, matching the KayKit dungeon tiles.
 FOOTPRINT = {"large": ([-2, -.1, -2], [2, None, 2]), "small": ([-1, -.1, -1], [1, None, 1]),
              "wall": ([-2, 0, -.5], [2, 4, .5]), "wall_half": ([0, 0, -.5], [2, 4, .5]),
+             "wall_junction_short": ([-.5, 0, -.5], [1, 4, .5]),
              "wall_corner": ([-2, 0, -.5], [.5, 4, 2]), "wall_Tsplit": ([-2, 0, -.5], [2, 4, 2]),
              "wall_crossing": ([-2, 0, -2], [2, 4, 2]), "wall_doorway": ([-2, 0, -.5], [2, 4, .5]),
              "wall_gated": ([-2, 0, -.5], [2, 4, .5]), "wall_half_endcap": ([-2, 0, -.5], [0, 4, .5]),

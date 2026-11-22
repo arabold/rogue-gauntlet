@@ -1,0 +1,99 @@
+{
+  "key": "furnishings/rail_track_end",
+  "inputs": "dbf13584566cbe2a2a25cd67e3c7059fcacb6a22cce3e23d724a88dcaceddb18",
+  "files": {
+    "rail_track_end.glb": "0eb91260b643fb54b4bc758800dfe65f13377efb881fa4b80177afb31aa14395",
+    "lineup.png": "0a364a6d4543fc8c39a85c538fe891c1f2b06345ec198f7ff0dab191ba84d8ae"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 5868,
+      "bounds": [
+        [
+          -0.8023816347122192,
+          0.0007285657338798046,
+          -1.8600000143051147
+        ],
+        [
+          0.8023816347122192,
+          0.8450000286102295,
+          2.0
+        ]
+      ],
+      "dimensions": [
+        1.6047632694244385,
+        0.8442714628763497,
+        3.8600000143051147
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.3875824980065845
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Rail Track End",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "rail_track_end"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7500,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "endgrain": {
+          "crease": 35
+        },
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/rail_track_end.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm 4x4 m rail track end piece with 1.0 m gauge walkable rails (< 0.15 m tall) terminating at a heavy timber-and-iron buffer stop. No gameplay data."
+      }
+    }
+  }
+}

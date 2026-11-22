@@ -42,6 +42,20 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	}
 	/// <summary>Rotation that turns local +Z into the room, so a prop's back (-Z) faces this wall.</summary>
 	public Basis Facing => new(Vector3.Up, Mathf.Atan2(Inward.X, Inward.Z));
+
+	/// <summary>Maximum wall depth over only the tiles spanned by [alongStart, alongEnd] along this run.</summary>
+	public float SpanDepth(float alongStart, float alongEnd, Func<Vector2I, Vector2I, float> depthAt, float tolerance)
+	{
+		int first = Mathf.Clamp(Mathf.FloorToInt((alongStart + tolerance) / Room.TileSize), 0, Length - 1);
+		int last = Mathf.Clamp(Mathf.FloorToInt((alongEnd - tolerance) / Room.TileSize), first, Length - 1);
+		float max = 0f;
+		for (int index = first; index <= last; index++)
+		{
+			float depth = depthAt(TileAt(index), Outward);
+			if (depth > max) max = depth;
+		}
+		return max > 0f ? max : .5f;
+	}
 }
 
 /// <summary>A prop accepted into the room, in room-local space.</summary>
@@ -59,7 +73,7 @@ public readonly record struct FloorPatch(Rect2 Area, FloorMaterial Material);
 public sealed class RoomBlueprint
 {
 	private const float Tolerance = .02f;
-	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, bool Decoratable)> _walls = [];
+	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, float MountDepth, bool Decoratable)> _walls = [];
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _doorwayEdges;
 	private readonly List<Aabb> _wallBoxes = [];
 	private readonly List<PlacedPiece> _pieces = [];
@@ -125,12 +139,18 @@ public sealed class RoomBlueprint
 		_floorPatches.Add(new(area, material));
 	}
 
-	/// <summary>Records the wall piece on an edge: how far its face reaches into the room, and whether decor may hang on it.</summary>
-	public void SetWall(Vector2I tile, Vector2I outward, float depth, bool decoratable) => _walls[(tile, outward)] = (depth, decoratable);
+	/// <summary>Records the wall piece on an edge: how far its face and upper mounting band reach into the room, and whether decor may hang on it.</summary>
+	public void SetWall(Vector2I tile, Vector2I outward, float depth, bool decoratable, float mountDepth = -1f) =>
+		_walls[(tile, outward)] = (depth, mountDepth < 0f ? depth : mountDepth, decoratable);
 
 	public float WallDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Depth : .5f;
+	public float WallMountDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.MountDepth : .5f;
 	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
 	public float RunDepth(WallRun run) => Enumerable.Range(0, run.Length).Max(index => WallDepth(run.TileAt(index), run.Outward));
+
+	/// <summary>Maximum wall depth over only the tiles spanned by [alongStart, alongEnd] along <paramref name="run"/>.</summary>
+	public float SpanDepth(WallRun run, float alongStart, float alongEnd, bool wallMount = false) =>
+		run.SpanDepth(alongStart, alongEnd, wallMount ? WallMountDepth : WallDepth, Tolerance);
 	/// <summary>How far the perpendicular wall at the run's start (or end) corner reaches into the room.</summary>
 	public float EndDepth(WallRun run, bool atStart) => atStart ? WallDepth(run.Start, -run.Along) : WallDepth(run.Last, run.Along);
 
@@ -303,11 +323,12 @@ public sealed class RoomBlueprint
 		var facing = new Transform3D(run.Facing, Vector3.Zero);
 		var all = facing * plan.Bounds();
 		var required = facing * plan.Bounds(includeOptional: false);
-		var (alongMin, _) = Project(all, run.Tangent);
+		var (alongMin, alongMax) = Project(all, run.Tangent);
 		var (inwardMin, _) = Project(required, run.Inward);
-		float face = RunDepth(run) - (anchor.Mount == PropMount.Wall ? anchor.WallInset : 0);
+		bool wallMount = anchor.Mount == PropMount.Wall;
+		float face = SpanDepth(run, along, along + (alongMax - alongMin), wallMount) - (wallMount ? anchor.WallInset : 0);
 		var origin = run.LineStart + run.Tangent * (along - alongMin) + run.Inward * (face - inwardMin);
-		if (anchor.Mount == PropMount.Wall) origin.Y = anchor.MountHeight;
+		if (wallMount) origin.Y = anchor.MountHeight;
 		return new Transform3D(run.Facing, origin);
 	}
 

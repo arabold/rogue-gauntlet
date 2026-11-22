@@ -35,7 +35,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="x_slimy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_boulders.tres" id="r_rubble_boulders"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="r_rubble_scatter"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/overgrown_walls.tres" id="x_overgrown_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="x_cave_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silted_bricks.tres" id="x_silted_bricks"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silt_floor.tres" id="x_silt_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/overgrown_flagstones.tres" id="x_overgrown_flagstones"]
@@ -203,13 +203,13 @@ metadata/_custom_type_script = ExtResource("24_WallDecorSte")
 script = ExtResource("1_RoomType")
 Id = "ruins"
 Realms = PackedStringArray("garrison", "sewer", "jungle")
-Weight = 0.6
+Weight = 0.3
 Shapes = [SubResource("LShape_1"), SubResource("TShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4"), SubResource("RectangleShape_5"), SubResource("RectangleShape_Compact")]
 MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 3
 MaxPocketShare = 0.15
-Walls = [ExtResource("7_ruined_walls"), ExtResource("8_scaffold_wal"), ExtResource("x_slimy_walls"), ExtResource("x_overgrown_walls")]
+Walls = [ExtResource("7_ruined_walls"), ExtResource("8_scaffold_wal"), ExtResource("x_slimy_walls"), ExtResource("x_cave_walls")]
 Floors = [ExtResource("9_worn_stone"), ExtResource("10_dirt_with_st"), ExtResource("11_drained_ston"), ExtResource("12_dirt_floor"), ExtResource("x_flagstones_ruined_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_earth_floor"), ExtResource("x_silted_bricks"), ExtResource("x_silt_floor"), ExtResource("x_overgrown_flagstones")]
 Columns = [SubResource("CenterColumns_6"), SubResource("CornerColumns_7")]
 ColumnChance = 0.5

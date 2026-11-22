@@ -6,6 +6,12 @@ using static WallFootprints;
 /// <summary>Fits a room or floor wall graph into one non-overlapping candidate GridMap.</summary>
 public static class BoundaryWallBuilder
 {
+	/// <summary>The six structural wall item names a wall family supplies for boundaries, corners, and junctions.</summary>
+	public readonly record struct WallPieces(string Straight, string Half, string Short, string Corner, string TSplit, string Crossing)
+	{
+		public static readonly WallPieces Default = new("wall", "wall_half", "wall_junction_short", "wall_corner", "wall_Tsplit", "wall_crossing");
+	}
+
 	/// <summary>
 	/// Resolves a room or floor boundary as a graph. Junction pieces own their vertex and the adjacent half of each
 	/// incident edge; the remaining half or full edge is then tiled exactly once. The grid is replaced only after the
@@ -13,7 +19,8 @@ public static class BoundaryWallBuilder
 	/// </summary>
 	public static bool Build(GridMap grid, IEnumerable<(Vector2I Tile, Vector3I Center)> tiles,
 		Func<Vector2I, int, int, bool> needsWall, Func<Vector3I, bool, int> pickStraight = null,
-		IReadOnlySet<Vector3I> dividerCells = null, IReadOnlySet<(Vector3I Center, bool Horizontal)> framedEdges = null)
+		IReadOnlySet<Vector3I> dividerCells = null, IReadOnlySet<(Vector3I Center, bool Horizontal)> framedEdges = null,
+		WallPieces? structural = null)
 	{
 		const int west = 1, east = 2, north = 4, south = 8;
 		var edges = new Dictionary<(Vector3I Cell, bool Horizontal), Vector2I>();
@@ -58,13 +65,15 @@ public static class BoundaryWallBuilder
 			if (axes == 3) throw new InvalidOperationException($"Perpendicular doorway frames overlap at {vertex}.");
 
 		var library = grid.MeshLibrary;
+		var set = structural ?? WallPieces.Default;
 		var itemCache = new Dictionary<int, (Aabb Bounds, string Name)>();
-		int straight = library.FindItemByName("wall"), halfWall = library.FindItemByName("wall_half");
-		int shortWall = library.FindItemByName("wall_junction_short");
-		int corner = library.FindItemByName("wall_corner"), tee = library.FindItemByName("wall_Tsplit");
-		int crossing = library.FindItemByName("wall_crossing");
+		int straight = library.FindItemByName(set.Straight), halfWall = library.FindItemByName(set.Half);
+		int shortWall = library.FindItemByName(set.Short);
+		int corner = library.FindItemByName(set.Corner), tee = library.FindItemByName(set.TSplit);
+		int crossing = library.FindItemByName(set.Crossing);
 		if (straight < 0 || halfWall < 0 || shortWall < 0 || corner < 0 || tee < 0 || crossing < 0)
-			throw new InvalidOperationException("Floor walls require wall, wall_half, wall_junction_short, wall_corner, wall_Tsplit and wall_crossing.");
+			throw new InvalidOperationException(
+				$"Floor walls require {set.Straight}, {set.Half}, {set.Short}, {set.Corner}, {set.TSplit} and {set.Crossing}.");
 		var pieces = new Dictionary<Vector3I, (int Item, int Orientation)>();
 		var variants = new List<(Vector3I Cell, int Item, int Orientation)>();
 		var junctions = new HashSet<Vector2I>();

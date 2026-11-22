@@ -1,0 +1,93 @@
+{
+  "key": "furnishings/blasting_kegs",
+  "inputs": "24ba7f1beb81c9f7f854cd6da42f2f9d3536e9079fe8c009321aec685702a3c7",
+  "files": {
+    "blasting_kegs.glb": "367287ee3c5e3cd53cc8bd80f051219ee7914913f3f8d4b1f35eaef9cfee8a40",
+    "lineup.png": "b484c3b6562b584b929da937050392facec30d82e4aaa58c6bea5d3f764870b0"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 4436,
+      "bounds": [
+        [
+          -0.48674649000167847,
+          0.0,
+          -0.3358364999294281
+        ],
+        [
+          0.48847696185112,
+          1.1924721002578735,
+          0.3579975962638855
+        ]
+      ],
+      "dimensions": [
+        0.9752234518527985,
+        1.1924721002578735,
+        0.6938340961933136
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.27236388063973116
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Blasting Kegs",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "blasting_kegs"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 6000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "gold": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/blasting_kegs.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop (~1.0 m stack, standing on y=0 facing +Z): three small powder kegs with carved stave grooves, iron hoops, carved hazard emblems, and a coiled fuse on top. No gameplay data."
+      }
+    }
+  }
+}

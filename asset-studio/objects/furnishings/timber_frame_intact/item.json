@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "Timber Frame Intact",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "timber_frame_intact"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3500,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    },
+    "wood": {
+      "crease": 35
+    },
+    "wood_dark": {
+      "crease": 35
+    },
+    "wood_light": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/timber_frame_intact.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm 4x4 m tunnel passageway frame with heavy posts, knee braces, iron brackets, and >= 2.8 m clear opening. No gameplay data."
+  }
+}

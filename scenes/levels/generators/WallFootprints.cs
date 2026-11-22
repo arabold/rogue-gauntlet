@@ -21,11 +21,53 @@ public static class WallFootprints
 	/// <summary>Bounds in the GridMap item's local coordinates, including the library's mesh transform.</summary>
 	public static Aabb MeshBounds(MeshLibrary library, int item) => library.GetItemMeshTransform(item) * library.GetItemMesh(item).GetAabb();
 
+	/// <summary>Bounds of mesh vertices at or above <paramref name="minY"/>, excluding floor-level base rubble/vines.</summary>
+	public static Aabb UpperMeshBounds(MeshLibrary library, int item, float minY = 0.7f)
+	{
+		Mesh mesh = library.GetItemMesh(item);
+		return mesh != null ? UpperMeshBounds(mesh, library.GetItemMeshTransform(item), minY) : default;
+	}
+
+	private static Aabb UpperMeshBounds(Mesh mesh, Transform3D meshTransform, float minY = 0.7f)
+	{
+		Aabb? bounds = null;
+		for (int surface = 0; surface < mesh.GetSurfaceCount(); surface++)
+		{
+			var arrays = mesh.SurfaceGetArrays(surface);
+			if (arrays.Count <= (int)Mesh.ArrayType.Vertex) continue;
+			var verts = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+			for (int i = 0; i < verts.Length; i++)
+			{
+				Vector3 p = meshTransform * verts[i];
+				if (p.Y < minY) continue;
+				bounds = bounds?.Expand(p) ?? new Aabb(p, Vector3.Zero);
+			}
+		}
+		return bounds ?? (meshTransform * mesh.GetAabb());
+	}
+
+	private static (Aabb Bounds, Aabb UpperBounds, string Name) ReadWallItemInfo(MeshLibrary library, int item)
+	{
+		Mesh mesh = library.GetItemMesh(item);
+		if (mesh == null) return (default, default, null);
+		Transform3D meshTransform = library.GetItemMeshTransform(item);
+		return (meshTransform * mesh.GetAabb(), UpperMeshBounds(mesh, meshTransform), library.GetItemName(item));
+	}
+
 	/// <summary>Cached item mesh bounds and name within one validation or build pass.</summary>
 	internal static (Aabb Bounds, string Name) GetItemInfo(MeshLibrary library, int item, Dictionary<int, (Aabb Bounds, string Name)> cache)
 	{
 		if (!cache.TryGetValue(item, out var info))
 			cache[item] = info = (MeshBounds(library, item), library.GetItemName(item));
+		return info;
+	}
+
+	internal static (Aabb Bounds, Aabb UpperBounds, string Name) GetWallItemInfo(
+		MeshLibrary library, int item, Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)> cache)
+	{
+		if (cache == null) return ReadWallItemInfo(library, item);
+		if (!cache.TryGetValue(item, out var info))
+			cache[item] = info = ReadWallItemInfo(library, item);
 		return info;
 	}
 
@@ -72,12 +114,13 @@ public static class WallFootprints
 
 	/// <summary>One tile edge as its wall pieces cover it. <see cref="Item"/> is the edge's own piece at
 	/// <see cref="Cell"/> (a straight, or a half beside a corner), -1 where corner arms alone cover it.</summary>
-	public readonly record struct WallEdge(bool Covered, float Depth, int Item, Vector3I Cell);
+	public readonly record struct WallEdge(bool Covered, float Depth, float MountDepth, int Item, Vector3I Cell);
 
 	/// <summary>
 	/// Measures the tile edge centered on <paramref name="edgeCell"/> from the pieces running along it: whether they seal
 	/// it, how far they reach from the wall line toward <paramref name="inward"/> (a corner by its arm, not its whole L),
-	/// and the edge's own piece. Walls crossing the edge's ends share only their thickness with it and do not count.
+	/// how far their upper mounting band reaches, and the edge's own piece. Walls crossing the edge's ends share only
+	/// their thickness with it and do not count.
 	/// </summary>
 	public static WallEdge MeasureEdge(GridMap wallGridMap, Vector3I edgeCell, Vector2I inward, int tileSize) =>
 		MeasureEdge(wallGridMap, edgeCell, inward, tileSize, null);
@@ -87,13 +130,14 @@ public static class WallFootprints
 		Vector3I edgeCell,
 		Vector2I inward,
 		int tileSize,
-		Dictionary<int, (Aabb Bounds, string Name)> itemCache)
+		Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)> itemCache)
 	{
 		bool horizontal = inward.X == 0;
 		var (line, min, max) = EdgeSpan(edgeCell, horizontal, tileSize);
 		var step = horizontal ? Vector3I.Right : Vector3I.Back;
 		var covering = new List<Aabb>();
 		float depth = 0;
+		float mountDepth = 0;
 		var own = (Item: -1, Cell: Vector3I.Zero);
 		var library = wallGridMap.MeshLibrary;
 		// Pieces on the edge sit on its line within a tile of its center; the center goes first.
@@ -102,33 +146,16 @@ public static class WallFootprints
 			var cell = edgeCell + step * ((index + 1) / 2 * (index % 2 == 0 ? -1 : 1));
 			int item = wallGridMap.GetCellItem(cell);
 			if (item < 0) continue;
-			Aabb meshBounds;
-			string name;
-			if (itemCache != null)
-			{
-				if (!itemCache.TryGetValue(item, out var info))
-				{
-					Mesh mesh = library.GetItemMesh(item);
-					itemCache[item] = info = mesh != null
-						? (library.GetItemMeshTransform(item) * mesh.GetAabb(), library.GetItemName(item))
-						: (default, null);
-				}
-				if (info.Name == null) continue;
-				(meshBounds, name) = info;
-			}
-			else
-			{
-				Mesh mesh = library.GetItemMesh(item);
-				if (mesh == null) continue;
-				meshBounds = library.GetItemMeshTransform(item) * mesh.GetAabb();
-				name = library.GetItemName(item);
-			}
+			var (meshBounds, upperBounds, name) = GetWallItemInfo(library, item, itemCache);
+			if (name == null) continue;
 
-			var pair = PieceFootprintPair(meshBounds, wallGridMap.GetCellItemOrientation(cell), cell, name);
-			CheckBox(pair.First);
-			if (pair.HasSecond) CheckBox(pair.Second);
+			int orientation = wallGridMap.GetCellItemOrientation(cell);
+			var pair = PieceFootprintPair(meshBounds, orientation, cell, name);
+			var upperPair = PieceFootprintPair(upperBounds, orientation, cell, name);
+			CheckBox(pair.First, upperPair.First);
+			if (pair.HasSecond) CheckBox(pair.Second, upperPair.HasSecond ? upperPair.Second : upperPair.First);
 
-			void CheckBox(Aabb box)
+			void CheckBox(Aabb box, Aabb upperBox)
 			{
 				var (a, b) = Along(box, horizontal);
 				if (Mathf.Min(b, max) - Mathf.Max(a, min) <= tileSize / 4f)
@@ -137,8 +164,11 @@ public static class WallFootprints
 				}
 
 				covering.Add(box);
+				bool positiveInward = (horizontal ? inward.Y : inward.X) > 0;
 				var (near, far) = Across(box, horizontal);
-				depth = Mathf.Max(depth, (horizontal ? inward.Y : inward.X) > 0 ? far - line : line - near);
+				depth = Mathf.Max(depth, positiveInward ? far - line : line - near);
+				var (uNear, uFar) = Across(upperBox, horizontal);
+				mountDepth = Mathf.Max(mountDepth, positiveInward ? uFar - line : line - uNear);
 				if (own.Item < 0 && a >= min - Eps && b <= max + Eps)
 				{
 					own = (item, cell);
@@ -148,10 +178,11 @@ public static class WallFootprints
 
 		if (covering.Count == 0)
 		{
-			return new(false, .5f, -1, default);
+			return new(false, .5f, .5f, -1, default);
 		}
 
-		return new(!TryGetUncoveredSpan(covering, horizontal, line, min, max, out _), depth, own.Item, own.Cell);
+		if (mountDepth <= 0f) mountDepth = depth;
+		return new(!TryGetUncoveredSpan(covering, horizontal, line, min, max, out _), depth, mountDepth, own.Item, own.Cell);
 	}
 
 	public static bool EdgeFullyCovered(List<Aabb> wallBoxes, bool horizontal, float lineCoord, float spanMin, float spanMax)
@@ -175,9 +206,9 @@ public static class WallFootprints
 		float halfDepthZ = Mathf.Min(cell.Z - footprint.Position.Z, footprint.End.Z - cell.Z);
 		float halfDepthX = Mathf.Min(cell.X - footprint.Position.X, footprint.End.X - cell.X);
 		// A T junction is centered on its crossbar: its stem has the same thickness as that bar.
-		if (itemName.StartsWith("wall_Tsplit") || itemName == "wall_crossing")
+		if (itemName.Contains("_Tsplit") || itemName.Contains("_crossing"))
 		{
-			float thickness = itemName == "wall_crossing" ? .5f : Mathf.Min(halfDepthX, halfDepthZ);
+			float thickness = itemName.Contains("_crossing") ? .5f : Mathf.Min(halfDepthX, halfDepthZ);
 			halfDepthX = thickness;
 			halfDepthZ = thickness;
 		}

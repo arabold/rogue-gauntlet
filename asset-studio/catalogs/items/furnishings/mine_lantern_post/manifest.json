@@ -1,0 +1,98 @@
+{
+  "key": "furnishings/mine_lantern_post",
+  "inputs": "a7d46a7928f2b12ce9231d2b225b2fd753dbcb5275de46d53d2c7dbe4423b17d",
+  "files": {
+    "mine_lantern_post.glb": "2ecf644fad7e0c838f654ee7e9472c6ea7cad234c93977631f1d0b6cf44bdf52",
+    "lineup.png": "a21d02c4d5bf2aa33bf6f4d19610b8f072902e0acff70b059bf738ad43cb0785"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2158,
+      "bounds": [
+        [
+          -0.32370468974113464,
+          0.0,
+          -0.3160502314567566
+        ],
+        [
+          0.32370468974113464,
+          1.8566420078277588,
+          0.5099999904632568
+        ]
+      ],
+      "dimensions": [
+        0.6474093794822693,
+        1.8566420078277588,
+        0.8260502219200134
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.10038944295632611
+      },
+      "host_fit": null,
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mine Lantern Post",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mine_lantern_post"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/mine_lantern_post.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop (~1.8 m tall, standing on y=0 facing +Z): weathered timber lantern post with cross-foot base, iron bracket, and hanging ~0.5 m iron cage lantern housing. No gameplay data."
+      }
+    }
+  }
+}

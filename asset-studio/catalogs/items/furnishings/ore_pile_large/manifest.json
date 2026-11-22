@@ -1,0 +1,92 @@
+{
+  "key": "furnishings/ore_pile_large",
+  "inputs": "f93226393ef90ea562650fae3945b04390bdc93aa834d31e376ded1753be9588",
+  "files": {
+    "ore_pile_large.glb": "62b348f21fa6291a2697942523226f3f7377007247e5137148fcf59e2878f808",
+    "lineup.png": "9b70dfecac1d685366b7472b2e6388519eb818ea4570a31607f7d8f624c6cf06"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 850,
+      "bounds": [
+        [
+          -0.69336998462677,
+          0.0,
+          -0.6503815650939941
+        ],
+        [
+          0.732438325881958,
+          0.7881363034248352,
+          0.6664911508560181
+        ]
+      ],
+      "dimensions": [
+        1.425808310508728,
+        0.7881363034248352,
+        1.3168727159500122
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 7,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.2770419137728498
+      },
+      "host_fit": null,
+      "warnings": [
+        "7 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Ore Pile Large",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "ore_pile_large"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 1600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "ore_crystal": {
+          "crease": 35
+        },
+        "ore_gold": {
+          "crease": 35
+        },
+        "rock": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/ore_pile_large.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop (~1.5 m across): stepped heap of faceted rock, gold ore chunks, and crystal shards. No gameplay data."
+      }
+    }
+  }
+}

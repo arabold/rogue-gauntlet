@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/ore_vein_a",
+  "inputs": "16fad435efacac35aefed634234ad57e0e175347f38b1b80f2fa826d75867f3f",
+  "files": {
+    "ore_vein_a.glb": "797ce1788b25652f0a45f0e306c5748c55fcd2919b1ec57f24cbbb475778d0b1",
+    "lineup.png": "07140e2acac419e57ffe2f12ed5336b44ec42270e002faee1713a4587c1cd2b1"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 506,
+      "bounds": [
+        [
+          -0.477984219789505,
+          0.8128858804702759,
+          0.0
+        ],
+        [
+          0.5417036414146423,
+          2.292091131210327,
+          0.27305907011032104
+        ]
+      ],
+      "dimensions": [
+        1.0196878612041473,
+        1.4792052507400513,
+        0.27305907011032104
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.1405804238142536
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Ore Vein A",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "ore_vein_a"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 1600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "ore_gold": {
+          "crease": 35
+        },
+        "rock": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/ore_vein_a.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm wall prop trimmed at z=0 and <= 0.32 m depth: diagonal rock outcrop with carved fissure seam and embedded gold ore chunks. No gameplay data."
+      }
+    }
+  }
+}

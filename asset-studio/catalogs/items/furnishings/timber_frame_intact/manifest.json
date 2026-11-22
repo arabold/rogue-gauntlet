@@ -1,0 +1,95 @@
+{
+  "key": "furnishings/timber_frame_intact",
+  "inputs": "2a30b4611ed8afdf2b23515346b01569d804691f26900b8efa4c0ec0944d39e6",
+  "files": {
+    "timber_frame_intact.glb": "a1f33cc9d1ff627b8793fd0c07a1f66ea59b179272b15856e70696a48bf608fc",
+    "lineup.png": "6ff9e2f295033638596efb319acc6187c6912823f11a45b0d723bb5fdb685e2d"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2106,
+      "bounds": [
+        [
+          -1.98909330368042,
+          0.0,
+          -0.36382153630256653
+        ],
+        [
+          1.9955638647079468,
+          4.0034403800964355,
+          0.36382153630256653
+        ]
+      ],
+      "dimensions": [
+        3.9846571683883667,
+        4.0034403800964355,
+        0.7276430726051331
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 3.355632576736907
+      },
+      "host_fit": null,
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Timber Frame Intact",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "timber_frame_intact"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/timber_frame_intact.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm 4x4 m tunnel passageway frame with heavy posts, knee braces, iron brackets, and >= 2.8 m clear opening. No gameplay data."
+      }
+    }
+  }
+}

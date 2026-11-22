@@ -5,7 +5,9 @@
   "reference": "wall_cave.reference.png",
   "kind": "wall",
   "style": "cave",
-  "design": {},
+  "design": {
+    "core": 0.24
+  },
   "colors": {
     "rock": [
       107,
@@ -111,6 +113,9 @@
     "wall_half": [
       "A",
       "B"
+    ],
+    "wall_junction_short": [
+      "A"
     ],
     "wall_corner": [
       "A",

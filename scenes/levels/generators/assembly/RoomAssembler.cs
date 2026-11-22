@@ -267,7 +267,7 @@ public static partial class RoomAssembler
 			if (secret)
 			{
 				if (node.Secret == null) throw new InvalidOperationException($"Room type {blueprint.Type.Id}: secret door scene needs a SecretDoorComponent.");
-				int item = blueprint.Walls.Library.FindItemByName("wall");
+				int item = blueprint.Walls.Library.FindItemByName(blueprint.Walls.FallbackStraight);
 				node.Secret.InitializeRoomDoor(blueprint.Walls.Library, item, detection,
 					GenerationRandom.DeriveSeed(blueprint.Seed, "secret-discovery", $"{blueprint.Type.Id}:{index}"));
 			}

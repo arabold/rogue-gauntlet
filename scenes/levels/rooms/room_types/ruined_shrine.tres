@@ -2,8 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="4_crypt_walls"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/mossy_walls.tres" id="5_mossy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="5_cave_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="6_flagstones_ruine"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker_floor.tres" id="7_checker_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="8_flagstones_floor"]
@@ -28,7 +27,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/vase_broken.tres" id="22_vase_broken"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="23_floor_debris"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="24_scatterstep"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="25_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="25_lantern_wall"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="27_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus_robbed.tres" id="p_sarcophagus_ro"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus.tres" id="p_sarcophagus"]
@@ -95,7 +94,7 @@ metadata/_custom_type_script = ExtResource("24_scatterstep")
 [sub_resource type="Resource" id="WallDecorStep_7"]
 script = ExtResource("27_walldecorstep")
 Id = "door_torches"
-Content = [ExtResource("25_torch")]
+Content = [ExtResource("25_lantern_wall")]
 MaximumCount = 2
 BesideDoorways = true
 metadata/_custom_type_script = ExtResource("27_walldecorstep")
@@ -147,14 +146,14 @@ metadata/_custom_type_script = ExtResource("27_walldecorstep")
 script = ExtResource("2_roomtype")
 Id = "ruined_shrine"
 Realms = PackedStringArray("jungle")
-Weight = 0.7
+Weight = 0.25
 Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
 MinimumFloorTiles = 6
 MinDoorways = 1
 MaxDoorways = 2
 DoorwayPlacement = 3
 Circulation = 0
-Walls = [ExtResource("4_crypt_walls"), ExtResource("5_mossy_walls")]
+Walls = [ExtResource("5_cave_walls")]
 Floors = [ExtResource("6_flagstones_ruine"), ExtResource("7_checker_floor"), ExtResource("8_flagstones_floor")]
 Columns = [SubResource("CornerColumns_2")]
 ColumnChance = 0.5

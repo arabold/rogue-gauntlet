@@ -1,0 +1,89 @@
+{
+  "key": "furnishings/ore_pile_small",
+  "inputs": "9afbaf38bac13fcca94eac0945f3788ea1cfa2d1d0151db8775e608f39410167",
+  "files": {
+    "ore_pile_small.glb": "ecb7a75bb7676909907ed72857f5a21bbe9e34b32dfd3ea997c74a542ac77e80",
+    "lineup.png": "23d76aac97446cc570796f6d88c75593d5f25f60682b2abd931fb61aa0a3be91"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 586,
+      "bounds": [
+        [
+          -0.4721767008304596,
+          0.0,
+          -0.4799511134624481
+        ],
+        [
+          0.497099906206131,
+          0.467510461807251,
+          0.45279553532600403
+        ]
+      ],
+      "dimensions": [
+        0.9692766070365906,
+        0.467510461807251,
+        0.9327466487884521
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 4,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.07755651579429468
+      },
+      "host_fit": null,
+      "warnings": [
+        "4 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Ore Pile Small",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "ore_pile_small"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 1600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "ore_gold": {
+          "crease": 35
+        },
+        "rock": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/ore_pile_small.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop (~1.0 m across): low heap of faceted rock and gold ore chunks matching the wall ore veins. No gameplay data."
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="1_PropGroup"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="2_PropGroupMem"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/rail_track_end.tres" id="3_rail_end"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/rail_track_straight.tres" id="4_rail_straight"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/mine_cart.tres" id="5_mine_cart"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_pile.tres" id="6_ore_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/pickaxe_loose.tres" id="7_pickaxe"]
+
+[sub_resource type="Resource" id="PropGroupMember_track"]
+script = ExtResource("2_PropGroupMem")
+Options = [ExtResource("4_rail_straight")]
+Offset = Vector3(0, 0, 4.0)
+Required = true
+Chance = 1.0
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("2_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_cart"]
+script = ExtResource("2_PropGroupMem")
+Options = [ExtResource("5_mine_cart")]
+Offset = Vector3(0, 0.135, 4.0)
+Chance = 0.8
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("2_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_ore"]
+script = ExtResource("2_PropGroupMem")
+Options = [ExtResource("6_ore_pile")]
+Offset = Vector3(2.05, 0, 1.8)
+Chance = 0.75
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("2_PropGroupMem")
+
+[sub_resource type="Resource" id="PropGroupMember_pickaxe"]
+script = ExtResource("2_PropGroupMem")
+Options = [ExtResource("7_pickaxe")]
+Offset = Vector3(-1.65, 0, 2.2)
+Chance = 0.6
+QuarterTurns = 0
+metadata/_custom_type_script = ExtResource("2_PropGroupMem")
+
+[resource]
+script = ExtResource("1_PropGroup")
+Id = "rail_spur"
+Weight = 1.0
+Anchor = [ExtResource("3_rail_end")]
+Members = [SubResource("PropGroupMember_track"), SubResource("PropGroupMember_cart"), SubResource("PropGroupMember_ore"), SubResource("PropGroupMember_pickaxe")]
+MirrorChance = 0.5
+metadata/_custom_type_script = ExtResource("1_PropGroup")

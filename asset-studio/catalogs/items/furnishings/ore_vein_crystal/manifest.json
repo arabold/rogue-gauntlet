@@ -1,0 +1,90 @@
+{
+  "key": "furnishings/ore_vein_crystal",
+  "inputs": "44f434971aab7b0382bc8d5212137e81035b4a0fb169c1c40b9f1c3a034f52dc",
+  "files": {
+    "ore_vein_crystal.glb": "dc077183ebe21a50dbf6663ca5ed055175bbfc90590dfa5c64f607b9c234c12f",
+    "lineup.png": "c49a655bd0c99411f8d0df96f88338b7d7ff8a38983acdbc1544018232bd3f57"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 998,
+      "bounds": [
+        [
+          -0.7741132974624634,
+          0.7950109839439392,
+          0.0
+        ],
+        [
+          0.7663040161132812,
+          2.063627243041992,
+          0.27159610390663147
+        ]
+      ],
+      "dimensions": [
+        1.5404173135757446,
+        1.268616259098053,
+        0.27159610390663147
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.17620144240565347
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Ore Vein Crystal",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "ore_vein_crystal"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 1800,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "ore_crystal": {
+          "crease": 35
+        },
+        "ore_gold": {
+          "crease": 35
+        },
+        "rock": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/ore_vein_crystal.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm wall prop trimmed at z=0 and <= 0.32 m depth: carved rock geode erupting with hexagonal turquoise crystal spires and gold flecks. No gameplay data."
+      }
+    }
+  }
+}

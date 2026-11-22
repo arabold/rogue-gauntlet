@@ -1,0 +1,102 @@
+{
+  "key": "furnishings/mine_cart_empty",
+  "inputs": "072419cbc8972df0346678d55fedddcb78bec935c1b78ee57645d9eecff0aae6",
+  "files": {
+    "mine_cart_empty.glb": "9b5309c81bf38476f56f92f5a81bebae34a5ec4513e116354b547dbf95fee634",
+    "lineup.png": "8ce0439d123629ab78525d1afbf68a55dce43b5478adaad4538bec6d9bddfc5a"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 4304,
+      "bounds": [
+        [
+          -0.6159176230430603,
+          0.0,
+          -1.101364016532898
+        ],
+        [
+          0.6159176230430603,
+          1.1775000095367432,
+          1.101364016532898
+        ]
+      ],
+      "dimensions": [
+        1.2318352460861206,
+        1.1775000095367432,
+        2.202728033065796
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.7622888485401705
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mine Cart Empty",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mine_cart_empty"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "rock": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/mine_cart_empty.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop at dungeon pack scale: stands on y=0 facing +Z, 1.0 m flanged wheel gauge, carved hollow plank tub with dark banded iron and coupling hooks. No gameplay data."
+      }
+    }
+  }
+}

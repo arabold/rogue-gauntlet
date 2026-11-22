@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/blasting_kegs.glb" id="2_kegs"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "blasting_kegs"
+Scenes = [ExtResource("2_kegs")]
+Blocking = true
+Gap = 0.2
+TurnJitter = 25.0
+ShiftJitter = 0.06
+metadata/_custom_type_script = ExtResource("1_Prop")

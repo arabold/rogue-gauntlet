@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "name": "Rail Track Curve",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "rail_track_curve"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 7000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "endgrain": {
+      "crease": 35
+    },
+    "iron": {
+      "crease": 40
+    },
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    },
+    "wood": {
+      "crease": 35
+    },
+    "wood_dark": {
+      "crease": 35
+    },
+    "wood_light": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/rail_track_curve.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm 4x4 m walkable 90-degree curved rail track inlay at 1.0 m gauge (< 0.15 m tall) with weathered radial sleepers. No gameplay data."
+  }
+}

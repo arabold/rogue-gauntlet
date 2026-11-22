@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_pile_small.glb" id="2_small"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_pile_large.glb" id="3_large"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "ore_pile"
+Scenes = [ExtResource("2_small"), ExtResource("3_large")]
+Blocking = true
+Gap = 0.15
+TurnJitter = 45.0
+ShiftJitter = 0.08
+metadata/_custom_type_script = ExtResource("1_Prop")

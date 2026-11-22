@@ -451,7 +451,8 @@ public partial class RoomGenerationHarness : Node3D
 				return id;
 			},
 			dividerCells: dividerCells,
-			framedEdges: framedEdges);
+			framedEdges: framedEdges,
+			structural: corridors.Walls.Pieces);
 		container.AddChild(wallGrid);
 	}
 

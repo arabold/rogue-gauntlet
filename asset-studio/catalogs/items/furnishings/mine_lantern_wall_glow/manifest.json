@@ -1,0 +1,82 @@
+{
+  "key": "furnishings/mine_lantern_wall_glow",
+  "inputs": "97051883b04e4de5260d5330f966d88e458c8526d7bed294c990b3129ad25f4d",
+  "files": {
+    "mine_lantern_wall_glow.glb": "16ff642b5b208ecb204576d70e7b9d50ce6dd4716765c4a2e446af3c0768d97d",
+    "lineup.png": "0e6123ebb533b170eb2a83092bd2ee77806560aca0707f990bd254204bd80748"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 80,
+      "bounds": [
+        [
+          -0.08799999952316284,
+          1.9199999570846558,
+          0.2720000147819519
+        ],
+        [
+          0.08799999952316284,
+          2.134999990463257,
+          0.4480000138282776
+        ]
+      ],
+      "dimensions": [
+        0.17599999904632568,
+        0.21500003337860107,
+        0.17599999904632568
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.003733956069146048
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mine Lantern Wall Glow",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mine_lantern_wall",
+        "glow": true
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 300,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 60,
+      "materials": {
+        "lantern_glow": {
+          "crease": 60
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/mine_lantern_wall_glow.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Emissive warm lantern core for mine_lantern_wall.glb, toggled separately by LightFixture. No gameplay data."
+      }
+    }
+  }
+}

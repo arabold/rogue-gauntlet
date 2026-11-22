@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "name": "Pickaxe Loose",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "pickaxe_loose"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1600,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    },
+    "wood": {
+      "crease": 35
+    },
+    "wood_light": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/pickaxe_loose.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm non-blocking floor scatter prop (~1.0 m long, lying flat on y=0): chunky mining pickaxe matching the tool rack silhouette. No gameplay data."
+  }
+}
