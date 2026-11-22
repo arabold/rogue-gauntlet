@@ -50,8 +50,9 @@ SWATCHES = {
     'meat': ((1, 7), .45, .1), 'herb': ((2, 1), .45, 0), 'lavender': ((1, 3), .45, -.2), 'leaf': ((1, 6), .45, 0),
     # Sewer fixtures: the slimy wall's drain pipe is the rubble swatch's darker half, its slime the bright end of the green.
     'pipe': ((0, 7), .45, .15), 'slime': ((2, 1), .45, -.36),
-    # Mines: glinting pyrite/gold ore, turquoise crystal accents, and warm amber lantern core.
-    'ore_gold': ((2, 5), .45, -.15), 'ore_crystal': ((1, 5), .45, -.18), 'lantern_glow': ((2, 7), .45, -.28),
+    # Mines: pyrite, turquoise and blue crystal, and warm amber lantern core.
+    'ore_gold': ((2, 5), .45, -.15), 'ore_crystal': ((1, 5), .45, -.18),
+    'ore_crystal_blue': ((2, 6), .45, -.28), 'lantern_glow': ((2, 7), .45, -.28),
 }
 EMISSIVE = {'flame', 'liquid', 'lantern_glow'}
 
