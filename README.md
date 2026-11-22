@@ -59,7 +59,7 @@ Rogue Gauntlet uses the low-poly, chunky stylized aesthetic popularized by **Kay
 ### Why a custom asset pipeline?
 KayKit provides great free starter assets, but extended packs and specific items are paid or Patreon-exclusive. Because this is an open-source project under a permissive license, commercial and Patreon-gated assets cannot be committed to the repository.
 
-To solve this as a solo developer, I built **[Asset Studio](asset-studio/README.md)**: a custom, AI-assisted asset pipeline using Python and Blender. It takes structured recipes and concept prompts to procedurally generate original 3D models (characters, monsters, weapons, armor, shields, and dungeon props) that fit KayKit's proportions, bevels, and palette gradients.
+To solve this as a solo developer, I built **[Asset Studio](asset-studio/README.md)**. The [Orc Warrior](asset-studio/characters/orc/orc_warrior/README.md) shows how we take approved concept art through image-to-3D, Blender, and Godot. We use that workflow for new characters and wearable armor, and use Python recipes for food, potions, weapons, and props. Both routes follow KayKit's proportions, bevels, and palette gradients.
 
 > [!TIP]
 > ### Support Kay Lousberg on Patreon
@@ -83,7 +83,7 @@ rogue-gauntlet/
 │   └── ui/             # HUD, inventory, menus, and screen overlays
 ├── scripts/            # Core engine singletons (GameSession, SignalBus, ScenePool)
 ├── common/             # Shared C# infrastructure, ObservableResource, interfaces, codecs
-├── asset-studio/       # Python + Blender procedural 3D modeling pipeline
+├── asset-studio/       # Blender character sources, item recipes, and art catalogs
 ├── assets/             # Game-ready 3D models (.glb), textures, audio, and materials
 ├── docs/               # Game design document, roadmap, specs, and system guides
 └── tests/              # GdUnit4 automated test suites (unit tests & runtime tests)
@@ -163,7 +163,7 @@ Explore the design and technical documentation in the [`docs/`](docs/) directory
 - **[Level Generation & Design](docs/level-design.md):** Room assembly, doorway-driven connectivity, monster navigation, and fog of war.
 - **[Combat System](docs/combat-system.md):** Action gating, contact timing, hurtboxes, poise, and parry mechanics.
 - **[Stats & Itemization](docs/stats-and-itemization.md):** Equipment tiers, modifiers, item identification, and persistence.
-- **[Asset Studio Guide](asset-studio/README.md):** Setup and workflow for the Blender/Python procedural 3D asset generator.
+- **[Asset Studio Guide](asset-studio/README.md)** covers character, wearable, item, and prop authoring.
 - **[Documentation Index](docs/README.md):** Full catalog of technical specs, harness guides, and design docs.
 
 ---

@@ -6,7 +6,7 @@ The active roster is Skeleton Minion, Skeleton Warrior, Skeleton Crossbowman, Sk
 
 | Surface | Owns |
 | --- | --- |
-| Asset Studio | Visuals, rig, clips, attachments and provenance |
+| [Asset Studio](../asset-studio/character-workflow.md) | Visuals, rig, clips, baked gear and provenance |
 | Godot monster scene | Editable component composition, model, shapes, animations and explicit dependencies |
 | Monster definition and policy Resources | Starting stats, XP, loot, perception and combat decisions |
 | Realm encounter Resources | Packs (member scenes), depth eligibility, weights, nest and boss assignments; budgets come from the level's threat profile |

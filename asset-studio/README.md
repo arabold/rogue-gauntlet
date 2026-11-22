@@ -1,258 +1,56 @@
-# Rogue Gauntlet Asset Studio (`asset-studio/`)
+# Rogue Gauntlet Asset Studio
 
-`asset-studio/` is the self-contained procedural 3D character, monster, and item generation studio for **Rogue Gauntlet**.
+Asset Studio owns visual authoring and exports for Rogue Gauntlet. Godot gameplay scenes and resources own stats, equipment, collisions, behavior and spawning. The Studio also builds the [2D UI kit](../docs/user-interface.md#ui-kit).
 
-Authoring recipes, original models and selected concepts live inside `asset-studio/`, hidden from Godot by `.gdignore`. **All generated candidates, caches, render frames, comparisons and job manifests live in OS temporary storage outside the repository.** `core.paths.work_root()` reports the checkout-specific location. Temporary storage may be deleted at any time; rebuild candidates when needed.
+## Choose a workflow
 
-Final outputs live in `catalogs/` and change only through explicit publication. Rendering never publishes. `export` separately writes finished game art to `assets/custom-heroes/`, `assets/custom-monsters/`, `assets/custom-items/` or, for world props, `assets/custom-props/`. Existing game shield paths remain `assets/custom-items/armor/shield/` for compatibility.
+| Asset | Default |
+| --- | --- |
+| New enemies, helmets, body armor, and future heroes | [Concept and turnaround → separate image-to-3D parts → Blender → Godot](character-workflow.md). Start from the [approved Orc Warrior](characters/orc/orc_warrior/README.md). |
+| Food, potions, weapons, shields, tools, and props | [Standalone item workflow](#standalone-item-workflow). Keep the existing recipe, validation, review and export lifecycle. |
+| Modular floors, walls and rugs | [Tileset workflow](#modular-floor-and-wall-tiles). |
+| Existing kit characters, creature rigs and costume recipes | [Maintenance commands](maintenance/character-and-wearable-recipes.md). |
 
-The studio owns **3D art**, plus the interface's 2D generators: `ui/ui_kit.py` renders the kit (frames, plaques, slots, ornaments) and `ui/title_logo.py` the title screen's logo into `assets/ui-kit/`, and `godot/build_ui_theme.gd` builds the project theme from them; see [user interface](../docs/user-interface.md#ui-kit). Damage, stats, equipment rules, item identities, effects, `.tres` definitions, and gameplay `.tscn` composition belong to a separate Godot resource-authoring step. Godot import/mesh validation here verifies the exported art. The agreed [monster authoring workflow](../docs/monster-authoring-design.md) and [first-realm acceptance](../docs/development-roadmap.md#first-three-floor-acceptance) compose gameplay separately in the Godot editor; monster balance, tactics and realm eligibility do not belong in Studio JSON.
+The Orc's Studio export uses its approved Blender source. Its [earlier kit recipe](maintenance/orc-warrior-kit/README.md) is archived outside the active character recipes.
 
 ## Current catalogs and folder policy
 
-Start at **[catalogs/items/README.md](catalogs/items/README.md)** for every recreated item, category sheets, individual Godot lineups and current validation/export status. [catalogs/items/overview.png](catalogs/items/overview.png) shows the complete catalog. Reusable prefab catalogs live separately in [catalogs/prefabs/](catalogs/prefabs/README.md). Weapons follow the KayKit-matched [weapon style guide](objects/weapons/README.md).
-
 | Location | Keep |
 | --- | --- |
-| `objects/<category>/<name>/` | `item.json`, original `source.glb`/`source.blend` or a model script `source.py` with its generated `source.glb` and provenance `source.json`, selected concept and exact prompt, export ownership receipt |
-| `characters/<family>/<name>/` | Character recipe and selected reference/source assets |
-| `costumes/<name>/` | Art-only outfit recipe, construction notes and selected concept/prompt |
-| `catalogs/items/<category>/<name>/` | Final GLB, Godot lineup and fingerprint manifest |
-| `catalogs/costumes/<name>/` | Final wearable GLB, Godot fitting lineup, walk/attack GIF and fingerprint manifest |
-| `catalogs/characters/` | Current selected previews; bound/golem entries also keep the final GLB, motion, art metadata and fingerprint receipt |
-| `catalogs/prefabs/` | Current reusable-part catalogs |
-| OS temporary work root | Every build, technical report, software preview, review comparison, weapon cache and render job |
+| `characters/<family>/<name>/` | Selected concepts and exact prompts, approved turnaround inputs and the current editable source. Existing recipe-built assets keep the inputs their recipe consumes. |
+| `objects/<category>/<name>/` | Item recipe, selected concept and prompt, current editable or GLB source, and source provenance or export receipt where the recipe uses it. |
+| `costumes/<name>/` | Existing art-only outfit recipes, selected concepts, and construction notes. |
+| [Item catalog](catalogs/items/README.md), [costume catalog](catalogs/costumes/README.md), [character catalog](catalogs/characters/README.md), [prefab catalog](catalogs/prefabs/README.md) | Selected publications and their manifests. |
+| OS temporary work root | Raw reconstructions, intermediate builds, technical reports, review comparisons, shot frames and jobs. `core.paths.work_root()` gives the checkout-specific location. |
+| `assets/custom-*` | Game-ready exports consumed by Godot. |
 
-`catalogs/items/` and `catalogs/costumes/` also keep an overview, useful family/category sheets, README and status index. Barbarian and orc concepts are now selected; their model candidates stay outside the final catalog until review. `gorget_study` is an unpublished draft recipe. Legacy armor previews and ad hoc comparison sheets do not belong in the catalog.
-
-The hidden `.export.json` beside an item recipe records ownership of its game export. Publication manifests store hashes of final files and the recipe/modeling/shading/rig inputs used for review. `source_current: false` means the final art predates source changes; it does not silently approve the new source. Catalog regeneration reads published files and needs no build cache. If a candidate changes after rendering, publication rejects it until rebuilt and rendered again.
-
-```bash
-# Iterate in temporary storage, inspect the resulting stills and motion, then finalize:
-./.venv/bin/python asset-studio/studio.py armor compare costume_knight
-./.venv/bin/python asset-studio/studio.py armor publish costume_knight
-./.venv/bin/python asset-studio/studio.py item build shields/shield_dragon_scale
-./.venv/bin/python asset-studio/studio.py item lineup shields/shield_dragon_scale --mount shield
-./.venv/bin/python asset-studio/studio.py item publish shields/shield_dragon_scale
-# Refresh indexes from final artifacts only, without rendering or importing:
-./.venv/bin/python asset-studio/studio.py armor catalog
-./.venv/bin/python asset-studio/studio.py item catalog
-```
-
-
----
-
-## Creature art and rig exports
-
-Wolf, rat and stone golem use the same normal character entry points as heroes and other
-monsters. Sources and rig/animation inputs are local to the Studio; no donor model or
-previous game export is needed for these builds.
-
-```bash
-./.venv/bin/python asset-studio/studio.py lineup beasts/wolf beasts/rat golem/stone_golem
-./.venv/bin/python asset-studio/studio.py export beasts/wolf beasts/rat golem/stone_golem
-./.venv/bin/python asset-studio/studio.py audit
-```
-
-`export` writes the finished GLB, deliberate Godot import settings and art metadata to the
-recipe's configured game destination, verifies the actual import, and updates the current
-character catalog. `lineup` only stages temporary GPU reviews. Source/skin fidelity,
-constant reset tracks, clip roles and loop settings are validated without humanoid node
-assumptions. `--no-import` explicitly defers Godot verification.
-
-The selected [wolf](characters/beasts/wolf/README.md) and [rat](characters/beasts/rat/README.md)
-are bound sources with editable named palettes and optional additional uniform scale. The
-[golem](characters/golem/stone_golem/README.md) exports rigid stone parts and baked shoulder
-helpers on its local large rig. No enemy scenes or gameplay Resources are generated.
-
-`beasts/spider` is a registered surface-polished review candidate using the same
-bound-source workflow. Its original proportions and five clips are preserved;
-`lineup beasts/spider` previews its charcoal shell and red-eye palette.
-
-The [Forsaken Warden](characters/bosses/forsaken_warden/README.md) is a large-rig
-boss assembled from the approved plate vocabulary, with glowing eyes and a broad
-executioner blade. `lineup bosses/forsaken_warden` and `export bosses/forsaken_warden`
-use the same character workflow; the GLB keeps sword/shield/horn as separate meshes.
-
-See [Studio architecture](ARCHITECTURE.md) for source ownership, export boundaries and the
-remaining older weapon-preview dependencies. [Technical creature rigs](rigs/creatures/README.md)
-cover blob/spider/wolf/rat extraction and explicit external-donor tools. The old
-`creature study` builders are superseded by the normal production recipes.
+Rendering stages candidates. Publication copies selected reviews to the catalog and export installs game art. Recipe publication manifests track the source inputs used for review. A `source_current: false` status indicates that the source changed after publication. See the [Studio architecture](ARCHITECTURE.md) for implementation boundaries.
 
 ## Class heroes
 
-The playable classes (`characters/heroes/{barbarian,knight,mage,rogue}`) are bare bodies that the game dresses. Helmets, body armor suits and weapons are items the game equips. Each class extends `heroes/hero_base` (`"hero": true`) and keeps its contract:
+Existing classes use the recipe-built heroes described in the [maintenance guide](maintenance/character-and-wearable-recipes.md#class-heroes) and the [game's model swap documentation](../docs/character-classes.md#the-model-swap). New hero and wearable art follows the [character workflow](character-workflow.md#rig-and-fit-for-the-assets-role).
 
-- **One shared body and tunic:** every class has the same torso and tunic (`underlayer`), so armor fitted once fits every class. Classes differ only in their head and clothing colors.
-- **KayKit's plain limbs:** every hero wears the KayKit rogue's arms and legs (`"arms"`, `"legs": {"kaykit": true}`): full sleeves in the tunic's color, bracers and gloves; pants in the pants color, bare knees and boots. The legs come with KayKit's hips, the seat of its body, which closes the hero's body from below in place of the body's own pelvis, so the pants belong to the legs as the sleeves belong to the arms. They are exported as `<Class>_Arms` and `<Class>_Legs`, so a body armor suit that brings a class's own KayKit limbs can hide them.
-- **KayKit's own heads:** each class wears its KayKit adventurer head exactly (`"head": {"kaykit": "knight"}`, harvested by `prefabs/anatomy/adventurer_parts.py`), so KayKit's hats fit it natively.
-- **Head parts as nodes:** the hair and the ears with any earrings (`head_parts`) are exported as `<Class>_Hair` and `<Class>_Ears` so equipped headgear can hide them. KayKit hair is the top of the head itself, so a generated `<Class>_Scalp` (the hair pulled down onto the bald barbarian skull) lies under it; the game shows the scalp only while the hair is hidden. Everything else is merged into `<Class>_Body`.
-- **Shoulder hinges:** every hero carries the `shoulder_cap.l/.r` joints from `rigs/hero_hinges.json` with their motion baked into every clip, so armor with pauldrons binds to any hero. The pivots are the knight costume's caps fitted over `hero_base`; regenerate them with `characters.hero_hinges()` if that body changes.
+## Item CLI quick start
 
-`export heroes/<class>` writes `assets/custom-heroes/<class>.glb` on the class's KayKit template, keeping its prop nodes, skeleton and clips. It rejects a class hero that wears a helmet, cape or weapons.
-
-What heroes wear is exported separately:
-
-- **Helmets:** item recipes in `objects/headgear/` built with `kaykit_headgear` are KayKit's own hats, exactly as authored, in the hat-prop frame. They are exported to `assets/custom-items/armor/helmet/`.
-- **Body armor suits:** costumes with an `item`. `armor suit` renders one on the class hero in temporary storage for review; `armor equip` writes it into the game (see the [armor style guide](costumes/README.md#body-armor-suits-for-the-class-heroes)).
-
-## Wearable armor fitting
-
-The approved reference pattern for all future armor is [Paladin plate](costumes/knight_plate/README.md) (the original `knight_plate` path is retained), documented in the [armor style guide](costumes/README.md): torso, articulated waist, belt and thigh plates as a single `{"kind":"costume","variant":"knight_plate"}` outfit choice. The builder returns separately named physical pieces so the exporter can preserve rigid plate attachments through each piece's explicit `bone`. Both software posing and skinned GLB export honor those attachments and reject unknown bones. Surface color uses the shared character palette; rims share their plate's topology. The costume recipe supplies its colors. Worn by the class heroes, a costume becomes a [body armor suit](costumes/README.md#body-armor-suits-for-the-class-heroes) whose gauntlets, greaves and boots are a KayKit class's own limbs.
-
-The costume's `belt_y` parameter controls the lower stylized belt position and moves its hanging plates and straps together. Pelvis-mounted thigh plates share the hips attachment with their straps; binding them to upper-leg sockets causes separation during motion. The fitting dummy uses fuller arm geometry while preserving the reference skeleton's shoulder joints.
-
-Humanoid torso presets use an integrated shoulder slope and narrow neck instead of tapering a barrel straight into the head; custom torso recipes can set `neck: false`. This is body geometry, not a skeleton relocation. The first costume's waist is body-close at the upper belly and modestly flared toward the lower skirt. The belt keeps its body height, with a costume-specific `belt_height` of 0.105 and a thin strap fitted to the actual armor outline. Short curved hip panels and their straps follow the same surface using `cuirass.plate`'s `azimuth` parameter. Generic belts retain a broader configurable default with a shared closed buckle.
-
-For direct source comparisons, use `./.venv/bin/python asset-studio/studio.py armor compare costume_knight_plate`. It creates a temporary fitting, `comparison.png` and animated `comparison.gif` outside the repository. The actual original knight is rendered with its source materials, hiding helmet/cape/held props to expose the body. Both models share scale, world origin, camera, lights and clip timestamps; no separate height normalization is applied. The comparison retains visible proportion differences for review. Current comparison images supplement the fitting lineup; intermediate frames stay in OS temporary storage and are removed after success.
-
-`armor compare` also creates the standalone animated `lineup.gif`. `./.venv/bin/python asset-studio/studio.py armor export costume_knight_plate` automatically rebuilds the model and these previews, then writes a portable art bundle to the temporary review `export/` folder: wearable-only `costume.glb`, `preview.gif`, fitting/comparison images and a manifest. Use `--out /absolute/folder` for another destination. This is a review/export package; publishing game art and creating gameplay resources remain separate actions. Publish only the final fitting, animation and wearable with `armor publish`; comparisons remain temporary.
-
-The current plate family also includes [practical knight](costumes/knight/README.md), [Maiden](costumes/maiden/README.md) and [dark knight](costumes/dark_knight/README.md), all built by the same costume constructor. Compare them with the approved Paladin in the [plate-family sheet](catalogs/costumes/plate_family.png). Each has a current fitting, walking/attack animation and wearable export bundle; these three plate costumes are user-approved. Legacy studies are excluded from the final catalog.
-
-The [chain mail](costumes/chain_mail/README.md), [Crusader](costumes/crusader/README.md) and [scale armor](costumes/scale/README.md) studies add modeled ring relief, a caped tabard with articulated steel pauldrons, and shield-derived torso scales recolored as silver steel above plain metal hip protection. See the [current comparison](catalogs/costumes/mail_family.png). These remain pending visual review. The approved barbarian and royal orc concepts are documented below.
-
-The next batch comprises [segmented plate](costumes/segmented/README.md), [brigandine](costumes/brigandine/README.md) and [gambeson](costumes/gambeson/README.md). These replace their legacy audit studies with material-specific construction while reusing the fitted costume foundation. See their [current comparison](catalogs/costumes/field_family.png); these three are user-approved. Gambeson uses softly skinned torso cloth and an integrated quilt pattern, with cloth skirt and hip panels rather than recolored metal plates. Wearable bundles include source animation clips and current walk/attack previews.
-
-The [female necromancer costume](costumes/necromancer/README.md) adapts that pattern with a breast-only shaped cuirass, extended fitted belly plates, violet seams on the same shell and an oversized bone skull relief buckle. `./.venv/bin/python asset-studio/studio.py armor character costume_necromancer` stages the associated character GLB and its `lineup.png`/`lineup.gif` in OS temporary storage in Godot, using the same lighting as the dummy review. An authored costume can associate its character via the art-only `character` key.
-
-Use `./.venv/bin/python asset-studio/studio.py armor list` for current authored costumes. `armor lineup --all` renders temporary fitting candidates; `armor compare costume_knight` adds matched source comparison and animation. After inspection, `armor publish costume_knight` replaces that costume's final catalog entry. `armor build --all` stages current costumes without starting Godot; legacy builtins and draft recipes are excluded.
-
-Fittings use featureless gray dummies, the production assembler, shared palette gradients, crease normals and skinned GLB exporter. All review views use the actual Godot GPU renderer. Front, three-quarter, side and back poses expose fit; sampled walk/attack poses and motion previews expose deformation; an elevated camera shows game-scale readability. Technical checks and sampled motion do not establish complete collision-free animation.
-
----
-
-## Directory Layout
-
-```text
-asset-studio/
-├── .gdignore                 # Keeps interim studio files out of Godot's asset importer
-├── README.md                 # Architecture and usage guide
-├── requirements.txt          # Python dependencies (numpy, scipy, Pillow, trimesh, etc.)
-├── studio.py                 # Unified CLI entrypoint (list, schema, new, reference, preview, export, lineup, catalog)
-├── blender/                  # Runs inside Blender only: `runner.py` and the `modeling/` helpers model scripts use
-├── core/                     # Core geometry, meshing, rigging, shading, and export engine
-│   ├── kit.py                # Superellipse lofts, sweeps, hulls, bevel boxes, surface projection, battle damage
-│   ├── mesh.py               # GLB reader, gradient/flat palette Atlas, color space & view splitting
-│   ├── image3d.py            # Voxel remeshing, orientation, decimation, and software rasterizer
-│   ├── rig.py                # 41-joint rig sampler, mannequin skin-weight transfer, Laplacian smoothing
-│   ├── export.py             # Skinned glTF/GLB writer, crease-angle normals, PBR material presets, .import generator
-│   ├── catalog.py            # Multi-angle contact-sheet renderer and stand-in hosts
-│   ├── match.py              # Concept redraw prompts for character parts
-│   ├── concept_score.py      # Concept-vs-model silhouette scoring, diff sheets and vision audit (`item compare`)
-│   ├── blender.py            # Headless Blender jobs for model scripts, version pin and provenance (`item model`)
-│   ├── hosts.py              # Committed hosts worn art is modeled on (`rigs/hosts/`), fit checks
-│   ├── ai.py                 # Gemini / OpenAI / TRELLIS image & 3D providers
-│   └── trellis_runner.py     # Remote GPU runner for image-to-3D reconstruction
-├── prefabs/                  # Modular, parameterized 3D building blocks
-│   ├── registry.py           # Introspectable JSON schema of all prefabs, presets, and parameters
-│   ├── anatomy/              # 1. BODY PARTS & CREATURE ANATOMY
-│   │   ├── heads.py          # Cranium shapes (round, tall, brute, blocky, snout, skull, flat), head presets & smoothing
-│   │   ├── faces.py          # Eyes (beads, female lashes, socket, glow, slit, cyclops), noses (wedge, boxer, lump,
-│   │   │                     #   hooked, bulb, button, snout, slits), mouths, jaws, tusks, beards, ears, horns,
-│   │   │                     #   hair, wraps, scars, and warpaint
-│   │   ├── bodies.py         # Torso trunks (standard, hero, female, brute, round, skinny, goblin) and body assembly
-│   │   ├── limbs.py          # Arm and leg limb tubes (normal, thin, muscular, gorilla, bony, stocky)
-│   │   ├── extremities.py    # Hands (mitten, fist, claw, bony) and feet (boot, bare, paw)
-│   │   ├── appendages.py     # Wings (bat, scalloped), tails (spade, whip), exposed ribs, curved beast horns
-│   │   └── adventurer_parts.py # KayKit's own class heads, arms, legs and hips for the class heroes and suits
-│   ├── outfits/              # 2. WEARABLE EQUIPMENT (ARMOR & CLOTHES)
-│   │   ├── clothes.py        # Tunics, robes, sleeves, shorts, loincloths, aprons, collars, cuffs, wraps
-│   │   ├── cuirass.py        # Fitted plate cuirasses (knight, orc, corset)
-│   │   ├── armor.py          # Breastplates, backplates, lames, mail, scales, tabards, faulds, limb plates, cops
-│   │   ├── helmets.py        # KayKit's own hats refitted to any head (bear, horned, wizard, knight, hood); procedural headdress, crusader, kettle, ...
-│   │   ├── crowns.py         # Crowns, circlets, diadems, halos
-│   │   ├── pauldrons.py      # Layered, spiked, and skull shoulder armor
-│   │   └── belts.py          # Belts, sashes, ropes, chains, buckles, pouches, trophies
-│   ├── items/                # 3. HELD & WORLD ITEMS
-│   │   ├── weapons.py        # 1H/2H swords, 1H/double battleaxes, assassin daggers, arcane wands, crossbows
-│   │   ├── shields.py        # Heater, kite, round, and spiked shields
-│   │   └── props.py          # Spellbooks (closed/open), potion flasks
-│   ├── details/              # 4. SMALL ACCENTS & FASTENERS ONLY
-│   │   ├── fasteners.py      # Rivets, studs, frame buckles, plate buckles, chain links, shackles, cuffs, straps
-│   │   ├── trophies.py       # Mini skulls, faceted gems, horn trophies, scarabs, pouches, sash knots, emblems
-│   │   └── wear.py           # Battle damage gashes, surface weathering, carvings, paint cuts
-│   ├── harvest.py            # Automated CC0 model harvester routing into domain meshes/
-│   ├── library.py            # Unified loader, scaler, recolorer, and visual index generator
-│   └── creatures/            # Full character recipe loaders and monster builders
-├── items/                    # 3D-only item authoring pipeline
-│   ├── workflow.py           # Recipes, backends, references, previews, validation, adoption, export
-│   ├── model.py              # Static GLB hierarchy/primitive inspection and non-destructive placement
-│   ├── builders.py           # Topology-first builders with surface colors (steak)
-│   ├── designs.py            # Fresh item families built with coherent profiles and solid unions
-│   ├── solid.py              # Boolean assembly and closed-surface connectivity validation
-│   ├── preserve.py           # Preserve original detail, choose character surface roles
-│   ├── source_surface.py     # Recover original palette regions for character shading
-│   ├── source_repair.py      # Repair source winding and missing boundary caps
-│   ├── surface_marks.py      # Paint scroll symbols into parchment faces
-│   ├── catalogs.py           # Current overview/category catalog generator
-│   ├── recreate.py           # Optional family/blockout recipe migration
-│   ├── concept.py            # Offline procedural blockout images
-│   ├── build_item.py         # Compatibility entrypoint accepting the new item subcommands
-│   ├── align.py              # Low-poly item builders, palette UV mapper, grip/AABB alignment
-│   └── hf_image3d.py         # Image-to-3D mesh reconstruction helper
-├── objects/                  # Item source folders (<category>/<name>/item.json, reference.png, source.glb, source.blend or source.py)
-├── tiles/                    # Modular floor, wall and rug tile builders and their workflow
-├── tilesets/                 # Tile family recipes (<set>/<family>.json); see tilesets/README.md
-├── characters/               # Per-character folders (<family>/<name>/character.json, reference.png)
-├── catalogs/                 # Current finished-item and reusable-prefab catalogs
-│   ├── items/                # Overview, categories, index and current validation/export status
-│   └── prefabs/              # Anatomy, outfits, item parts and details
-├── rigs/                     # Self-contained base rigs, mannequins, animation templates, and item palette
-└── godot/                    # Headless/windowed GDScript helpers for inspection and catalog rendering
-```
-
----
-
-## Quick Start CLI
-
-Run all commands using the workspace `.venv`:
+Run Studio commands using the workspace virtual environment.
 
 ```bash
-# List all characters and their export status
-./.venv/bin/python asset-studio/studio.py list
-
-# Inspect the modular prefab schema (used by CLI and future Godot creator UI)
-./.venv/bin/python asset-studio/studio.py schema
-./.venv/bin/python asset-studio/studio.py schema anatomy
-./.venv/bin/python asset-studio/studio.py schema items
-./.venv/bin/python asset-studio/studio.py schema details
-
-# Render reusable-part candidates outside the repo; inspect before publishing:
-./.venv/bin/python asset-studio/studio.py catalog anatomy
-./.venv/bin/python asset-studio/studio.py catalog outfits
-./.venv/bin/python asset-studio/studio.py catalog items
-./.venv/bin/python asset-studio/studio.py catalog details
-./.venv/bin/python asset-studio/studio.py catalog outfits --publish
-
-# Render a character's multi-pose review into OS temporary storage
-./.venv/bin/python asset-studio/studio.py lineup mage/necromancer
-
-# Export a character's rigged GLB + .import (automatically generates lineup.png)
-./.venv/bin/python asset-studio/studio.py export mage/necromancer
-
-# List item recipes, then build and inspect an existing item locally
 ./.venv/bin/python asset-studio/studio.py item list
 ./.venv/bin/python asset-studio/studio.py item build tools/tool_lantern_brass
 ./.venv/bin/python asset-studio/studio.py item validate tools/tool_lantern_brass
 ./.venv/bin/python asset-studio/studio.py item lineup tools/tool_lantern_brass
-
-# Regenerate a Blender-modeled item headless, then score it against its concept
-./.venv/bin/python asset-studio/studio.py item model headgear/shaman_antler_headdress
-./.venv/bin/python asset-studio/studio.py item compare headgear/shaman_antler_headdress
+./.venv/bin/python asset-studio/studio.py item catalog
 ```
-
----
 
 ## Standalone Item Workflow
 
-Weapons, potions, trinkets, lamps, tools, and arbitrary props share a recipe lifecycle:
+Food, potions, weapons, shields, tools, and props share a recipe lifecycle:
 
 ```text
 item.json + concept/source → explicit build backend → placement → validation + preview → export GLB
 ```
 
-Items live under `objects/<category>/<name>/` to distinguish authored assets from the Python implementation in `items/`. Category names are open-ended; a custom prop does not need a procedural archetype. Existing character commands keep their original syntax and behavior.
+Items live under `objects/<category>/<name>/` to distinguish authored assets from the Python implementation in `items/`. Category names are open-ended; a custom prop does not need a procedural archetype.
 
 ### Choose a creation method
 
@@ -343,47 +141,9 @@ The dragon horn mounts use exaggerated faceted `construction.horn_socket` boots 
 
 The existing character `kit.stud` provides repair-plate fasteners. `prefabs/details/wear.py` adds `solid_gash`, a closed negative cutter matching the armor's chiseled V-groove shape. Subtract it for closed props; the original surface-patch `gash` remains available for character armor. Dents subtract shallow faceted volumes. Wear is deterministic and uses explicit placements, with wood damage applied before attaching hardware so knots cannot bore through later rivets. Shield recipes enable this pass with `design.details: true`; `false` is available for geometry comparison. Shared construction and wear helpers are included in build-freshness checks.
 
-### Model a concept faithfully in Blender
+### Scripted item models
 
-Concept-driven, one-off art (headgear first, any item or prop next) is modeled by a committed Blender script and
-scored against its concept in a short loop. Blender runs only when the model is regenerated; builds, lineups and
-exports read the committed result and never need it.
-
-```text
-objects/headgear/shaman_antler_headdress/
-  item.json           backend source, "model": "source.py", optional "host", surface.palette "materials"
-  reference.png       three-view concept turnaround (+ reference.prompt.txt)
-  source.py           build(ctx): the model, written against blender/modeling
-  source.glb          generated by `item model` (committed)
-  source.json         provenance: Blender version and hashes of the script, helpers, host and GLB
-```
-
-```bash
-item=headgear/shaman_antler_headdress
-./.venv/bin/python asset-studio/studio.py item reference $item --turnaround --brief "..."  # or --image <concept>
-./.venv/bin/python asset-studio/studio.py item model $item       # headless Blender: source.py -> source.glb
-./.venv/bin/python asset-studio/studio.py item compare $item     # IoU per view + diff sheet; --audit adds a review
-./.venv/bin/python asset-studio/studio.py item lineup $item --mount head
-```
-
-- **Iterate:** edit `source.py`, run `item model` and `item compare`, read the diff sheet (and `--audit` notes), repeat.
-  A stale `source.glb` (script, helpers or host changed since `item model`) fails `item build`.
-- **Concept:** `--turnaround` asks for front, three-quarter (turned toward the viewer's left) and left-facing profile
-  panels, the angles `item compare` renders. Worn items are drawn on the host's reference head, which the command
-  renders and passes to the image model; its concepts and compares share framing.
-- **Frame and hosts:** Blender's frame is the asset's (Z up, front toward -Y). Headgear uses the game's hat-prop frame
-  on the adventurer heads (`"host": "adventurer_heads"`, see `core/hosts.py`); `ctx.host_bvh` lets a shell clear a
-  head, and `item validate` reports where each class head shows through. `ctx.origin` lets a script model around a
-  local centre such as the head it was designed on.
-- **Surface:** each part's material name is its palette slot (`ctx.material`, `ctx.add(name, bm, slots)`); the
-  recipe's `colors` color the slots, the Studio's character surface shades them, and Blender's sharp edges become the
-  shipped normals. `surface.height_range` keeps the shading ramp fixed across a family.
-- **Scoring:** worn items keep one scale across all views (registered on the host head), so a part modeled too large
-  scores badly instead of being rescaled per view. The score measures silhouettes; review detail, junctions and
-  color in the sheet, the audit and the Godot lineup.
-- **Blender:** `BLENDER_BIN` or a standard install; `blender/blender.json` pins the release that generates committed
-  models. Jobs run in a fresh factory-settings Blender, never in an open session. Grow `blender/modeling/` when an
-  asset needs a new form; keep asset-specific shapes in its own script.
+The item `source` backend can run `item model <key>` in a fresh headless Blender when a recipe provides `source.py`. Keep the regenerated `source.glb` and its provenance `source.json` beside the recipe. `item compare <key>` can review a compatible concept turnaround. See [maintenance](maintenance/character-and-wearable-recipes.md#wearables) for existing scripted helmets.
 
 ### Create an item with Blender MCP and AI reference art
 
@@ -514,45 +274,3 @@ Water comes in two tile kinds: inlays (`floor_water`, KayKit's own grates with w
 The studio owns the tile art only. Mesh libraries, collision, navigation and which realm or room uses which family are game-side wiring.
 
 ---
-
-## Blender MCP & Godot Creator Tool Integration
-
-- **Blender**: concept-driven models are committed scripts that `item model` runs in a fresh headless Blender ([Model a concept faithfully in Blender](#model-a-concept-faithfully-in-blender)). Blender MCP stays useful for inspecting a generated model, hand adjustments, NLA animation tweaks or lookdev on any `kit.Piece` or exported `.glb`; save results back into domain `meshes/` via `harvest.py` or as a hand-made item source.
-- **Godot Character/Monster Creator Tool**: `prefabs/registry.py` (`studio.py schema`) exposes every prefab category, preset list, and parameter signature as structured JSON, and `characters/<family>/<name>/character.json` is a declarative recipe format designed so an in-engine Godot visual editor can inspect, tweak, preview, and export characters directly.
-
-Current cloth costume studies: `costumes/ranger`, `costumes/scout`, `costumes/arcanist` and `costumes/adventurer`. Their current comparison is [`catalogs/costumes/travel_family.png`](catalogs/costumes/travel_family.png). Reusable scarves, cowls and a separate steel gorget live in `prefabs/outfits/neckwear.py`; `costumes/gorget_study` fits the steel option on the practical knight without changing existing armor. See [costume construction notes](costumes/README.md). Mantles currently use skeletal deformation, without physical cloth simulation.
-
-The five steel armor costumes now include gorget-mounted pauldrons through `kind: steel_shoulders` (`size` controls dome size). The caps use two rigid pivot joints with baked animation; see [construction and export notes](costumes/README.md#gorget-mounted-steel-shoulders) and the [current steel family](catalogs/costumes/plate_family.png).
-
-## Primitive and royal orc costumes
-
-`costumes/barbarian/` preserves the existing blue barbarian as a coordinated `costume_set`. Its `parts` are the original shorts, tunic, harness, belt and cape recipes. Its fitting study and `test_primal_costumes` use it; the class heroes are dressed by items instead. A `costume_set` expands normal garment layering with original fitting semantics; nested sets are rejected.
-
-`costumes/barbarian_primitive/` is a separate bare-chested hero-body costume: a continuous leather harness, one hinged fur-lined pauldron, a fitted belt, hide skirt and curved hip panels. `costumes/orc_king/` fits the brute torso and retains the king's established head, crown and limbs while replacing his obsolete torso and shoulder armor. Their selected image concepts and exact master prompts are authoring inputs; generated models remain visual-review candidates until publication. Other orc costumes are unchanged.
-
-Reusable connected fur borders and horned-skull buckle reliefs live in `prefabs/details/primal.py` and are discoverable under `studio.py schema details primal`. The new shoulder fittings reuse horn sockets and curved horns, maintain actual contact and bake the existing half-arm hinge into standard animation clips. Fitting recipes can carry a complete `body` preset so broader orc arms and legs are visible in review instead of silently substituting human limbs.
-
-
-### Complete costumes versus prefab parts
-
-A character selects a complete authored outfit with `{"kind":"costume_ref","name":"knight"}`.
-This expands `costumes/knight/costume.json` in place, including steel shoulders and the costume palette.
-The character keeps its own anatomy, head, scale, equipment and explicit color overrides. Character colors
-win over costume colors; later costume references win over earlier references. Cyclic references are rejected.
-The lower-level `kind: costume` selects only a procedural builder; use it inside a costume definition.
-`costume_set` remains available for the preserved blue barbarian assembly.
-
-The knight now selects the practical steel costume. Necromancer, primitive barbarian and orc king select their
-complete authored costumes. Orc warrior, shaman and goblin clothing has been extracted without geometry changes
-into named `status: legacy` costume recipes. These distinct designs still need art rework and are excluded from
-the current armor fitting catalog. Their reusable straps, collars and limb armor remain available as parts.
-Unused complete-outfit presets were removed from `prefabs/outfits/armor.py`; its shared geometry is retained.
-
-Prefab source folders contain code, harvested `.npz` geometry and metadata indexes only. `catalog <domain>`
-stages a sheet in OS temporary storage. `catalog <domain> --publish` publishes the existing reviewed candidate,
-checking source and image hashes without rerendering. `--out` accepts external preview destinations only.
-`catalog library --index` refreshes metadata tables without generating images. Complete costumes belong in
-`catalogs/costumes/`; prefab sheets show reusable parts. Superseded knight, barbarian, necromancer and orc king
-character previews were removed. Regenerating a character review does not update the game's exported GLB.
-
-Character categories group zombies, ghouls, mummies and wraiths under `characters/undead/`. An optional recipe `export.glb` (`res://assets/...glb`) preserves an existing game-art destination when an authoring category moves; the zombie retains its historical export path for compatibility.

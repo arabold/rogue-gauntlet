@@ -11,7 +11,7 @@ Selected current previews; new review renders go to OS temporary storage.
 - [heroes/barbarian_base](heroes/barbarian_base/lineup.png)
 - [mage/dark_wizard](mage/dark_wizard/lineup.png)
 - [orc/orc_shaman](orc/orc_shaman/lineup.png)
-- [orc/orc_warrior](orc/orc_warrior/lineup.png)
+- [orc/orc_warrior](orc/orc_warrior/lineup.png) · [motion](orc/orc_warrior/lineup.gif) · [GLB](orc/orc_warrior/model.glb) · [source](../../characters/orc/orc_warrior/README.md)
 - [undead/ghoul](undead/ghoul/lineup.png)
 - [undead/mummy](undead/mummy/lineup.png)
 - [undead/wraith](undead/wraith/lineup.png)
