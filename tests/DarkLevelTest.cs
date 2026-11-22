@@ -27,11 +27,10 @@ public class DarkLevelTest
 		bool[] lights = fixtures.Select(f => f.Light.Visible).ToArray();
 		bool[] flames = fixtures.Select(f => f.Flame.Visible).ToArray();
 		var player = scene.GetTree().GetNodesInGroup("player").OfType<Player>().Single();
-		var playerLights = player.FindChildren("*", "Light3D", true, false).OfType<Light3D>().ToArray();
-		AssertBool(playerLights.Length > 0).IsTrue();
-		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
-		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Normal.Range);
-		AssertBool(playerLight.Light.Visible).IsTrue();
+		var playerLight = player.Lighting;
+		var darkness = ((Main)scene).ScreenEffects.Darkness;
+		AssertBool(playerLight.Light.Visible).IsFalse();
+		AssertBool(darkness.Visible).IsFalse();
 		var popup = TestFactories.Tool<LevelTool>(scene).Popup;
 		int index = Enumerable.Range(0, popup.ItemCount).Single(i => popup.GetItemText(i) == "Dark level");
 		TestFactories.Press(popup, "Dark level");
@@ -39,8 +38,11 @@ public class DarkLevelTest
 		AssertBool(popup.IsItemChecked(index)).IsTrue();
 		AssertFloat(environment.AmbientLightEnergy).IsEqual(0f);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();
-		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Dark.Range);
-		AssertBool(playerLight.Light.Visible).IsTrue();
+		AssertBool(playerLight.Light.Visible).IsFalse();
+		AssertBool(playerLight.IsPhysicsProcessing()).IsFalse();
+		AssertBool(playerLight.Highlight.ShadowEnabled).IsFalse();
+		AssertFloat(playerLight.Highlight.LightEnergy).IsGreater(0f);
+		AssertFloat(darkness.Intensity).IsEqual(1f);
 
 		// Fixtures added while dark must start extinguished too, including their flames.
 		var lit = TestFactories.Torch();
@@ -63,8 +65,9 @@ public class DarkLevelTest
 		AssertArray(fixtures.Select(f => f.Flame.Visible).ToArray()).IsEqual(flames);
 		TestFactories.AssertTorchEffects(lit, true);
 		TestFactories.AssertTorchEffects(unlit, false);
-		AssertFloat(playerLight.Light.OmniRange).IsEqual(playerLight.Normal.Range);
-		AssertBool(playerLight.Light.Visible).IsTrue();
+		AssertBool(playerLight.Light.Visible).IsFalse();
+		await TestFactories.AwaitPhysicsUntil(runner, () => !darkness.Visible);
+		AssertBool(darkness.Visible).IsFalse();
 	}
 
 }

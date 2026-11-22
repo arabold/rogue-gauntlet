@@ -1,8 +1,7 @@
 using Godot;
 
 /// <summary>
-/// One player-light mode: broad normal-floor shadow light, a held light in darkness, or the small innate light in darkness.
-/// The point light's brightness, reach and flicker remain separate from the fill's rendering layers and falloff.
+/// Lighting for a normal floor, a dark floor with a held light, or a dark floor with only overhead fill.
 /// </summary>
 [GlobalClass]
 public partial class PlayerLightProfile : Resource
@@ -13,7 +12,7 @@ public partial class PlayerLightProfile : Resource
 	[Export(PropertyHint.ExpEasing, "attenuation")] public float Attenuation { get; set; } = 1f;
 	/// <summary>Unassigned holds the light steady.</summary>
 	[Export] public FlickerProfile Flicker { get; set; }
-	/// <summary>Normal-floor helper light can exclude air effects while carried lights retain their physical reach.</summary>
+	/// <summary>Rendering layers illuminated by the equipped or standalone forward light.</summary>
 	[Export(PropertyHint.Layers3DRender)] public uint LightLayers { get; set; } = 4293919231;
 
 	[Export(PropertyHint.Range, "0,16,0.01,or_greater")] public float HighlightEnergy { get; set; } = 1f;

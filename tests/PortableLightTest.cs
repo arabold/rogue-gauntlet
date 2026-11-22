@@ -70,18 +70,15 @@ public class PortableLightTest
 	}
 
 	/// <summary>
-	/// The player's own light burns broad on normal floors and dims on dark ones; holding any light keeps it broad there,
-	/// held lights add no light of their own, and putting one away, saving or dropping it behaves like the real hand.
+	/// Every equipped light enables the forward light on either floor and uses the real equipment and save paths.
 	/// </summary>
 	[TestCase]
 	public async Task EveryHeldLightAttachesAndKeepsThePlayerLightBroadOnDarkFloors()
 	{
 		var (level, player) = LevelWithPlayer();
 		var inventory = player.Inventory;
-		var playerLight = player.GetNode<PlayerLight>("Pivot/PlayerLight");
-		var (normal, lit, dark) = (playerLight.Normal, playerLight.Lit, playerLight.Dark);
-		// The modes must differ for the checks below to tell which one burns.
-		AssertFloat(dark.Range).IsLess(lit.Range);
+		var playerLight = player.Lighting;
+		var (normal, lit) = (playerLight.Normal, playerLight.Lit);
 		void AssertBurns(PlayerLightProfile profile, string context)
 		{
 			AssertBool(playerLight.Light.Visible).OverrideFailureMessage($"{context}: shadow light visibility").IsTrue();
@@ -94,9 +91,9 @@ public class PortableLightTest
 			AssertObject(playerLight.Light.Profile).OverrideFailureMessage($"{context}: flicker").IsSame(profile.Flicker);
 			AssertFloat(playerLight.Highlight.OmniRange).OverrideFailureMessage($"{context}: highlight range").IsEqual(profile.HighlightRange);
 		}
-		AssertBurns(normal, "normal floor");
+		AssertBool(playerLight.Light.Visible).IsFalse();
 		level.Lighting.IsDark = true;
-		AssertBurns(dark, "dark floor");
+		AssertBool(playerLight.Light.Visible).IsFalse();
 
 		foreach (string name in Lights)
 		{
@@ -117,7 +114,7 @@ public class PortableLightTest
 			level.Lighting.IsDark = true;
 			AssertBool(player.InventoryController.TryUnequip(entry).Success).IsTrue();
 			AssertInt(offhand.GetChildCount()).IsEqual(0);
-			AssertBurns(dark, $"{name} put away on a dark floor");
+			AssertBool(playerLight.Light.Visible).OverrideFailureMessage($"{name} put away").IsFalse();
 
 			// A held light survives a save and burns again once restored.
 			AssertBool(player.InventoryController.TryEquip(entry).Success).IsTrue();
@@ -136,7 +133,7 @@ public class PortableLightTest
 			// Dropping equipped gear uses the same unequip events and must leave no carried light.
 			AssertBool(player.InventoryController.TryDrop(inventory.Items.Single(), 1).Success).IsTrue();
 			AssertInt(offhand.GetChildCount()).IsEqual(0);
-			AssertBurns(dark, $"{name} dropped on a dark floor");
+			AssertBool(playerLight.Light.Visible).OverrideFailureMessage($"{name} dropped").IsFalse();
 		}
 		await FreeRemovedModels(player);
 	}
