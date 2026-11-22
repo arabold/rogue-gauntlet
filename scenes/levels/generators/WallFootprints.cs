@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Godot;
 
 /// <summary>
@@ -21,15 +23,24 @@ public static class WallFootprints
 	/// <summary>Bounds in the GridMap item's local coordinates, including the library's mesh transform.</summary>
 	public static Aabb MeshBounds(MeshLibrary library, int item) => library.GetItemMeshTransform(item) * library.GetItemMesh(item).GetAabb();
 
-	/// <summary>Bounds of mesh vertices at or above <paramref name="minY"/>, excluding floor-level base rubble/vines.</summary>
-	public static Aabb UpperMeshBounds(MeshLibrary library, int item, float minY = 0.7f)
+	/// <summary>Bottom of the band wall decor hangs in: base rubble, roots and plinths below it never push decor out.</summary>
+	private const float MountBandBottom = .7f;
+
+	private static readonly ConditionalWeakTable<MeshLibrary, ConcurrentDictionary<int, Aabb>> MountBandBounds = new();
+
+	/// <summary>
+	/// Bounds of the item's mesh vertices at or above <see cref="MountBandBottom"/>, where wall decor hangs. Scanning the
+	/// vertices is costly, so each library item is read once and kept for as long as its library lives; wall libraries
+	/// do not change at runtime.
+	/// </summary>
+	public static Aabb UpperMeshBounds(MeshLibrary library, int item) =>
+		MountBandBounds.GetOrCreateValue(library).GetOrAdd(item, static (id, lib) => ReadUpperMeshBounds(lib, id), library);
+
+	private static Aabb ReadUpperMeshBounds(MeshLibrary library, int item)
 	{
 		Mesh mesh = library.GetItemMesh(item);
-		return mesh != null ? UpperMeshBounds(mesh, library.GetItemMeshTransform(item), minY) : default;
-	}
-
-	private static Aabb UpperMeshBounds(Mesh mesh, Transform3D meshTransform, float minY = 0.7f)
-	{
+		if (mesh == null) return default;
+		Transform3D meshTransform = library.GetItemMeshTransform(item);
 		Aabb? bounds = null;
 		for (int surface = 0; surface < mesh.GetSurfaceCount(); surface++)
 		{
@@ -39,7 +50,7 @@ public static class WallFootprints
 			for (int i = 0; i < verts.Length; i++)
 			{
 				Vector3 p = meshTransform * verts[i];
-				if (p.Y < minY) continue;
+				if (p.Y < MountBandBottom) continue;
 				bounds = bounds?.Expand(p) ?? new Aabb(p, Vector3.Zero);
 			}
 		}
@@ -50,8 +61,7 @@ public static class WallFootprints
 	{
 		Mesh mesh = library.GetItemMesh(item);
 		if (mesh == null) return (default, default, null);
-		Transform3D meshTransform = library.GetItemMeshTransform(item);
-		return (meshTransform * mesh.GetAabb(), UpperMeshBounds(mesh, meshTransform), library.GetItemName(item));
+		return (library.GetItemMeshTransform(item) * mesh.GetAabb(), UpperMeshBounds(library, item), library.GetItemName(item));
 	}
 
 	/// <summary>Cached item mesh bounds and name within one validation or build pass.</summary>

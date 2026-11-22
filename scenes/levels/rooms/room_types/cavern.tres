@@ -130,6 +130,7 @@ metadata/_custom_type_script = ExtResource("3_rectangleshape")
 script = ExtResource("2_roomtype")
 Id = "cavern"
 Realms = PackedStringArray("jungle")
+Weight = 2.0
 Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("UShape_3"), SubResource("CrossShape_4"), SubResource("RectangleShape_Compact")]
 MinimumFloorTiles = 6
 MinDoorways = 1

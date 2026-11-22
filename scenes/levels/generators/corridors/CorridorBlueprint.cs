@@ -61,6 +61,7 @@ public sealed class CorridorBlueprint
 	private CorridorJunction[] _junctions;
 	private CorridorSpan[] _spans;
 	private CorridorDeadEnd[] _deadEnds;
+	private HashSet<Vector2I> _deadEndTiles;
 
 	public CorridorBlueprint(MapGenerator generator, WallStyle walls, ulong seed)
 	{
@@ -121,16 +122,8 @@ public sealed class CorridorBlueprint
 	public float WallMountDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.MountDepth : .5f;
 	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
 
-	public float RunDepth(WallRun run)
-	{
-		float max = .5f;
-		for (int index = 0; index < run.Length; index++)
-		{
-			float depth = WallDepth(run.TileAt(index), run.Outward);
-			if (depth > max) max = depth;
-		}
-		return max;
-	}
+	/// <summary>Whether <paramref name="tile"/> is one of <see cref="DeadEnds"/>: a shaft end clear of doors and connectors.</summary>
+	public bool IsDeadEnd(Vector2I tile) => (_deadEndTiles ??= DeadEnds.Select(deadEnd => deadEnd.Tile).ToHashSet()).Contains(tile);
 
 	/// <summary>Maximum wall depth over only the tiles spanned by [alongStart, alongEnd] along <paramref name="run"/>.</summary>
 	public float SpanDepth(WallRun run, float alongStart, float alongEnd, bool wallMount = false) =>

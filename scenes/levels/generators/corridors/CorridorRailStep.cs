@@ -6,6 +6,7 @@ using Godot;
 /// <summary>
 /// Lays connected mining rail runs along 1-tile-wide corridors and into dead-end shafts using
 /// straight, 90-degree curved, and buffer-stop end pieces. Pre-validates every tile before committing a run.
+/// Buffer stops only go on <see cref="CorridorBlueprint.DeadEnds"/>, so a run never stops in front of a doorway.
 /// </summary>
 [Tool, GlobalClass]
 public partial class CorridorRailStep : CorridorStep
@@ -17,11 +18,11 @@ public partial class CorridorRailStep : CorridorStep
 	[Export] public Prop Cart { get; set; }
 	[Export(PropertyHint.Range, "0,1,0.05")] public float CartChance { get; set; } = 0.65f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float CartElevation { get; set; } = 0.135f;
+	/// <summary>How far the parked cart sits from the buffer stop's tile center toward the open shaft.</summary>
+	[Export(PropertyHint.Range, "0,1.5,0.05,suffix:m")] public float CartOffset { get; set; } = 0.55f;
 	[Export(PropertyHint.Range, "2,16")] public int MinimumRunTiles { get; set; } = 3;
 	[Export(PropertyHint.Range, "2,24")] public int MaximumRunTiles { get; set; } = 10;
 	[Export(PropertyHint.Range, "0,1,0.05")] public float PerRunChance { get; set; } = 0.6f;
-
-	private const float DeadEndCartOffset = 0.55f;
 
 	private readonly record struct PlannedRail(Vector2I Tile, Prop Prop, Basis Facing, Vector2I? DeadEndOpenDir);
 
@@ -55,8 +56,7 @@ public partial class CorridorRailStep : CorridorStep
 			if (placedRuns >= MaximumCount) break;
 			if (claimed.Contains(deadEnd.Tile) || rng.Randf() >= PerRunChance) continue;
 			if (!TryPlanRun(corridors, deadEnd.Tile, deadEnd.OpenDirection, startIsDeadEnd: true, claimed, planned)) continue;
-			CommitRun(corridors, planned, claimed, rng);
-			placedRuns++;
+			if (CommitRun(corridors, planned, claimed, rng)) placedRuns++;
 		}
 
 		if (placedRuns >= MaximumCount) return;
@@ -68,8 +68,7 @@ public partial class CorridorRailStep : CorridorStep
 			if (placedRuns >= MaximumCount) break;
 			if (claimed.Contains(span.Start) || rng.Randf() >= PerRunChance) continue;
 			if (!TryPlanRun(corridors, span.Start, span.Along, startIsDeadEnd: false, claimed, planned)) continue;
-			CommitRun(corridors, planned, claimed, rng);
-			placedRuns++;
+			if (CommitRun(corridors, planned, claimed, rng)) placedRuns++;
 		}
 	}
 
@@ -100,12 +99,15 @@ public partial class CorridorRailStep : CorridorStep
 		var cur = startTile + initialStep;
 		while (planned.Count < MaximumRunTiles)
 		{
-			if (claimed.Contains(cur) || !corridors.Map.IsCorridor(cur.X, cur.Y) || corridors.Map.IsConnector(cur.X, cur.Y))
+			// A corridor loop can lead the walk back onto its own track.
+			if (claimed.Contains(cur) || planned.Exists(rail => rail.Tile == cur)
+				|| !corridors.Map.IsCorridor(cur.X, cur.Y) || corridors.Map.IsConnector(cur.X, cur.Y))
 				break;
 			int count = corridors.OpenDirections(cur, open);
-			if (count == 1 && startIsDeadEnd && open[0] == -stepDir)
+			if (count == 1 && open[0] == -stepDir)
 			{
-				planned.Add(new(cur, End, StraightFacing(-stepDir), -stepDir));
+				// A one-way tile may face a secret door (its edge is blocked); only true dead ends get a buffer stop.
+				if (startIsDeadEnd && corridors.IsDeadEnd(cur)) planned.Add(new(cur, End, StraightFacing(-stepDir), -stepDir));
 				break;
 			}
 			if (count == 2)
@@ -134,24 +136,34 @@ public partial class CorridorRailStep : CorridorStep
 		return true;
 	}
 
-	private void CommitRun(
+	/// <summary>
+	/// Lays the planned run in order and stops at the first piece that no longer fits, so a run never has gaps. Carts
+	/// park only on buffer stops that were laid. Returns whether any track went down.
+	/// </summary>
+	private bool CommitRun(
 		CorridorBlueprint corridors,
 		List<PlannedRail> planned,
 		HashSet<Vector2I> claimed,
 		RandomNumberGenerator rng)
 	{
+		var ends = new List<PlannedRail>(2);
 		foreach (var rail in planned)
 		{
-			if (corridors.TryPlaceFloorTile(rail.Prop, rail.Tile, rail.Facing, rng)) claimed.Add(rail.Tile);
+			if (!corridors.TryPlaceFloorTile(rail.Prop, rail.Tile, rail.Facing, rng)) break;
+			claimed.Add(rail.Tile);
+			if (rail.DeadEndOpenDir != null) ends.Add(rail);
 		}
-		if (Cart == null) return;
-		foreach (var rail in planned)
+		if (Cart != null)
 		{
-			if (rail.DeadEndOpenDir is not Vector2I openDir) continue;
-			if (rng.Randf() >= CartChance) continue;
-			var offset = new Vector3(openDir.X * DeadEndCartOffset, CartElevation, openDir.Y * DeadEndCartOffset);
-			corridors.TryPlaceOnFloorInlay(Cart, rail.Tile, offset, rail.Facing, rng, underlay: End);
+			foreach (var end in ends)
+			{
+				if (rng.Randf() >= CartChance) continue;
+				var openDir = end.DeadEndOpenDir.Value;
+				var offset = new Vector3(openDir.X * CartOffset, CartElevation, openDir.Y * CartOffset);
+				corridors.TryPlaceOnFloorInlay(Cart, end.Tile, offset, end.Facing, rng, underlay: End);
+			}
 		}
+		return claimed.Contains(planned[0].Tile);
 	}
 
 	private (Prop Prop, Basis Facing) PieceForTwoWayTile(Vector2I a, Vector2I b) =>

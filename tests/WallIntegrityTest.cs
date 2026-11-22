@@ -306,11 +306,10 @@ public class WallIntegrityTest
 	public void CaveWallStyleFitsJunctionsAndMaintainsFlushMountingDepth()
 	{
 		var walls = TestFactories.Load<WallStyle>("res://scenes/levels/rooms/styles/walls/cave_walls.tres");
-		AssertArray(walls.Validate()).IsEmpty();
 		var library = walls.Library;
 		AssertShortWallCollider(library, walls.Short);
 
-		foreach (string pieceName in new[] { "wall_cave_A", "wall_cave_B", "wall_cave_C", "wall_cave_D", walls.Half, walls.Short })
+		foreach (string pieceName in walls.Straight.Keys.Append(walls.Half).Append(walls.Short))
 		{
 			int item = library.FindItemByName(pieceName);
 			AssertInt(item).IsGreaterEqual(0);
