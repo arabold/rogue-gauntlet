@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/lighting/AtmosphereSurfaceMarks.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/blood_drag_mark.tscn" id="mark"]
+
+[node name="BloodDrags" type="Node3D"]
+script = ExtResource("script")
+Category = 2
+ActiveInDarkness = true
+MarkScene = ExtResource("mark")
+MarksPerTile = 1.0
+MaximumCount = 8
+MaximumPerRoom = 1
+FollowPassages = true
+RoomTypeIds = PackedStringArray("prison", "interrogation")
+ScaleRange = Vector2(0.78, 1.03)
+SeedKey = "blood-drags"
+SamplesPerTile = 1
+TileInset = 0.08

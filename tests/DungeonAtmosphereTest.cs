@@ -124,6 +124,62 @@ public class DungeonAtmosphereTest
 	}
 
 	[TestCase]
+	public void PrisonBloodStaysInEligibleRoomsAndReturnsAtTheSameSpots()
+	{
+		var (level, floor) = CreateFloor();
+		string[] types = ["prison", "interrogation", "guardroom", "cell"];
+		for (int id = 0; id < types.Length; id++)
+		{
+			var room = new RoomRegion(id) { TypeId = types[id] };
+			for (int z = 1; z <= 2; z++)
+			{
+				var tile = new Vector2I(id + 1, z);
+				floor.Map.SetTile(tile.X, tile.Y, MapTile.Room);
+				floor.AssignTile(tile, id);
+				room.Tiles.Add(tile);
+			}
+			var doorway = new Vector2I(id + 1, 3);
+			floor.Map.SetConnector(doorway.X, doorway.Y, [Vector2I.Down]);
+			floor.Map.SetTile(doorway.X, doorway.Y + 1, MapTile.Corridor);
+			room.ConnectorTiles.Add(doorway);
+			floor.AddRoom(room);
+		}
+		var corridor = new Vector2I(0, 4);
+		floor.Map.SetTile(corridor.X, corridor.Y, MapTile.Corridor);
+		floor.Map.SetTile(corridor.X, corridor.Y + 1, MapTile.Corridor);
+		floor.Map.SealCorridorEdge(corridor, Vector2I.Right);
+		var profile = TestFactories.Load<AtmosphereProfile>("res://scenes/levels/lighting/atmosphere_profiles/prison.tres");
+		var air = level.Atmosphere;
+		level.Lighting.IsDark = true;
+		air.Initialize(floor, profile, 23);
+		var splatters = BloodMarks("blood-splatters");
+		var drags = BloodMarks("blood-drags");
+		AssertArray(splatters.Select(mark => floor.RoomIdAt(mark.GlobalPosition)).Order().ToArray()).IsEqual(new[] { 0, 1, 3 });
+		AssertArray(drags.Select(mark => floor.RoomIdAt(mark.GlobalPosition)).Order().ToArray()).IsEqual(new[] { 0, 1 });
+		foreach (var mark in drags)
+		{
+			AssertInt(floor.Map.WorldToTile(mark.GlobalPosition).Y).IsEqual(2);
+			AssertFloat(mark.GlobalBasis.Z.Dot(Vector3.Back)).IsEqualApprox(1f, .001f);
+		}
+		var scuffs = air.GetChildren().OfType<AtmosphereSurfaceMarks>().Single(layer => layer.SeedKey == "floor-scuffs");
+		scuffs.MarksPerTile = 1f;
+		var corridorMark = scuffs.GetChildren().OfType<SurfaceMark>()
+			.Single(mark => floor.Map.WorldToTile(mark.GlobalPosition) == corridor);
+		AssertFloat(corridorMark.GlobalBasis.Z.Dot(Vector3.Back)).IsEqualApprox(1f, .001f);
+		var placements = splatters.Concat(drags).Select(mark => mark.GlobalTransform).ToArray();
+		level.Lighting.DisabledEffects = EnvironmentalEffect.SurfaceMarks;
+		AssertBool(splatters.Concat(drags).Any(mark => mark.IsVisibleInTree())).IsFalse();
+		level.Lighting.DisabledEffects = EnvironmentalEffect.None;
+		air.Initialize(floor, profile, 23);
+		AssertArray(BloodMarks("blood-splatters").Concat(BloodMarks("blood-drags"))
+			.Select(mark => mark.GlobalTransform).ToArray()).IsEqual(placements);
+
+		SurfaceMark[] BloodMarks(string seedKey) => air.GetChildren().OfType<AtmosphereSurfaceMarks>()
+			.Single(layer => layer.SeedKey == seedKey).GetChildren().OfType<SurfaceMark>()
+			.Where(mark => mark.IsVisibleInTree() && mark.TextureAlbedo != null).ToArray();
+	}
+
+	[TestCase]
 	public void CpuAndGpuEmissionConsumersShareTheSameDryFloorPositions()
 	{
 		var map = new MapData(4, 4);

@@ -59,9 +59,9 @@ public class VisualEffectsToolTest
 		AssertBool(level.Airflow.IsActive && level.Airflow.IsProcessing()).IsTrue();
 
 		var mark = level.FindChildren("*", "", true, false).OfType<SurfaceMark>().First();
-		TestFactories.Press(popup, "Surface marks (wet spots, soot)");
+		TestFactories.Press(popup, "Surface marks");
 		AssertBool(mark.IsVisibleInTree() || mark.CanProcess()).IsFalse();
-		TestFactories.Press(popup, "Surface marks (wet spots, soot)");
+		TestFactories.Press(popup, "Surface marks");
 		AssertBool(mark.IsVisibleInTree() && mark.CanProcess()).IsTrue();
 
 		var probe = level.GetChildren().OfType<LocalReflectionProbe>().Single();

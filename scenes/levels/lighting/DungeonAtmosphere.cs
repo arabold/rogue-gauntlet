@@ -41,7 +41,7 @@ public partial class DungeonAtmosphere : Node3D
 	{
 		Clear();
 		if (floor == null || Lighting == null || profile?.Effects is not { Length: > 0 }) return;
-		_context = new(floor.Map, seed);
+		_context = new(floor, seed);
 		if (_context.TileCount == 0) { Clear(); return; }
 		foreach (var scene in profile.Effects)
 		{

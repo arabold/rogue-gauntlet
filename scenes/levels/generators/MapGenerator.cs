@@ -208,6 +208,7 @@ public partial class MapGenerator : Node3D
 		var roomMap = room.Map;
 		var region = new RoomRegion(Floor.Rooms.Count)
 		{
+			TypeId = room.Type?.Id ?? "",
 			SlotId = member.SlotId,
 			MustTraverse = member.MustTraverse,
 			ReserveAccess = member.ReserveAccess,
