@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/mausoleum",
+  "inputs": "7eaebb39cd09ac292f01e8192fd4d09873efbde89848a78c2b947fa5c3f7c37b",
+  "files": {
+    "mausoleum.glb": "c9d7663790cb62261b741c57279cfa780f46122f5e32770db46ec18d56e4f655",
+    "lineup.png": "5a973854de13f192835160afaaafacb417350f404af4e6847e113fd84f12c999"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 24820,
+      "bounds": [
+        [
+          -2.307400941848755,
+          0.0,
+          -2.450000047683716
+        ],
+        [
+          2.307692766189575,
+          4.360000133514404,
+          3.0272908210754395
+        ]
+      ],
+      "dimensions": [
+        4.61509370803833,
+        4.360000133514404,
+        5.477290868759155
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 54.83495735677834
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mausoleum",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mausoleum"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 28000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/graveyard/mausoleum.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Burial-ground furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; graves keep their marker at -Z; fence modules run along X in exact 4 m and 2 m lengths. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

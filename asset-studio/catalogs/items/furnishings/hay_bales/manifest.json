@@ -1,0 +1,77 @@
+{
+  "key": "furnishings/hay_bales",
+  "inputs": "abc4c1694cb54ccf4d7583e1341bb9bf1040f8b6bf727a77ae72de62b1677904",
+  "files": {
+    "hay_bales.glb": "94a9acc2125b7713008137a40f7cb9bfc20826c867e66ce33cb710b36439afd7",
+    "lineup.png": "1485d35247f606455900379bfe72793c7f43daeadc14c074fc908b9319113c75"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 4948,
+      "bounds": [
+        [
+          -0.6844589114189148,
+          0.0,
+          -0.8328070044517517
+        ],
+        [
+          0.7330933213233948,
+          1.3000000715255737,
+          0.8402886390686035
+        ]
+      ],
+      "dimensions": [
+        1.4175522327423096,
+        1.3000000715255737,
+        1.6730956435203552
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.8474269188309076
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Hay Bale Stack",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "hay_bales"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 5600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {},
+      "export": {
+        "glb": "res://assets/custom-props/ruins/hay_bales.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

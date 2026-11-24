@@ -147,6 +147,9 @@ class Assembly:
         bodies = sum(component.volume() > 0 for component in components)
         if bodies != 1 and not (loose and bodies > 1):
             raise ValueError(f"Assembly has {bodies} disconnected solids; model actual connecting geometry")
+        if bodies < len(components):
+            # A cavity sealed inside (a groove one part cut and another covered) can never be seen: drop it.
+            result = mf.Manifold.compose([component for component in components if component.volume() > 0])
         mesh = result.to_mesh()
         p, f = np.asarray(mesh.vert_properties[:, :3]), np.asarray(mesh.tri_verts)
         labels = np.rint(mesh.vert_properties[:, 3][f].mean(axis=1)).astype(int)
