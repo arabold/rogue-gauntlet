@@ -1,0 +1,211 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/custom-monsters/orc/orc_captain.glb" id="2_glb"]
+[ext_resource type="Resource" path="res://scenes/enemies/orc/orc_captain_animation.tres" id="attack_animation_profile"]
+[ext_resource type="Resource" path="res://scenes/enemies/orc/orc_captain_definition.tres" id="definition"]
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/flesh.tres" id="flesh"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
+[ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
+[ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/medium_monster.tres" id="movement_profile"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/orc/orc_captain_poise.tres" id="poise_definition"]
+[ext_resource type="PackedScene" path="res://scenes/items/weapons/mace/morning_star_iron.tscn" id="held_0"]
+[ext_resource type="PackedScene" path="res://scenes/items/armor/shield/shield_badge_spikes_red.tscn" id="held_1"]
+[ext_resource type="Script" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyDefenseController.cs" id="defense_controller_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/orc/orc_captain_guard.tres" id="guard_definition"]
+
+[sub_resource type="AnimationNodeAnimation" id="anim_idle"]
+animation = &"Idle_Combat"
+[sub_resource type="AnimationNodeAnimation" id="anim_walk_clip"]
+animation = &"Walking_A"
+
+[sub_resource type="AnimationNodeTimeScale" id="anim_walk_ts"]
+
+[sub_resource type="AnimationNodeBlendTree" id="anim_walk"]
+nodes/Animation/node = SubResource("anim_walk_clip")
+nodes/Animation/position = Vector2(0, 0)
+nodes/TimeScale/node = SubResource("anim_walk_ts")
+nodes/TimeScale/position = Vector2(160, 0)
+nodes/output/position = Vector2(320, 0)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+[sub_resource type="AnimationNodeAnimation" id="anim_hit"]
+animation = &"Hit_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_dying"]
+animation = &"Death_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_dead"]
+animation = &"Death_A_Pose"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_start_idle"]
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_walk"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_idle"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_hit"]
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_hit"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_idle"]
+advance_mode = 2
+advance_expression = "!IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_dying"]
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_dying_dead"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="sm"]
+states/Dead/node = SubResource("anim_dead")
+states/Dead/position = Vector2(820, 100)
+states/Dying/node = SubResource("anim_dying")
+states/Dying/position = Vector2(640, 100)
+states/Hit/node = SubResource("anim_hit")
+states/Hit/position = Vector2(440, 220)
+states/Idle/node = SubResource("anim_idle")
+states/Idle/position = Vector2(240, 100)
+states/Start/position = Vector2(60, 100)
+states/Walking/node = SubResource("anim_walk")
+states/Walking/position = Vector2(240, 320)
+transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Walking", "Hit", SubResource("t_walk_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Idle", "Dying", SubResource("t_idle_dying"), "Walking", "Dying", SubResource("t_walk_dying"), "Hit", "Dying", SubResource("t_hit_dying"), "Dying", "Dead", SubResource("t_dying_dead")]
+graph_offset = Vector2(0, 40)
+
+[sub_resource type="CapsuleShape3D" id="cap_hurt"]
+radius = 0.95
+height = 2.9
+[sub_resource type="CapsuleShape3D" id="cap_body"]
+radius = 0.6
+height = 2.8
+
+[node name="OrcCaptain" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "BodyShape", "GuardComponent", "DefenseController")]
+BodyShape = NodePath("CollisionShape3D")
+Definition = ExtResource("definition")
+ActionGate = NodePath("ActorActionGateComponent")
+GuardComponent = NodePath("GuardComponent")
+DefenseController = NodePath("EnemyDefenseController")
+
+[node name="OrcCaptainModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
+
+[node name="OrcCaptainBody" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D" index="0"]
+layers = 8
+
+[node name="WeaponHand" type="BoneAttachment3D" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D"]
+bone_name = "handslot.r"
+
+[node name="Grip" type="Node3D" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/WeaponHand"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0.033309, 0)
+
+[node name="MorningStar" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/WeaponHand/Grip" instance=ExtResource("held_0")]
+
+[node name="Item" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/WeaponHand/Grip/MorningStar/Model"]
+layers = 8
+
+[node name="ShieldHand" type="BoneAttachment3D" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D"]
+bone_name = "handslot.l"
+
+[node name="Grip" type="Node3D" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/ShieldHand"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.017012, 0.155885)
+
+[node name="Shield" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/ShieldHand/Grip" instance=ExtResource("held_1")]
+
+[node name="shield_spikes_color2" parent="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/ShieldHand/Grip/Shield"]
+layers = 8
+
+[node name="EnemyBehaviorComponent" parent="." index="1"]
+
+[node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
+root_node = NodePath("../../Pivot/OrcCaptainModel")
+tree_root = SubResource("sm")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../../Pivot/OrcCaptainModel/AnimationPlayer")
+
+[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../PoiseComponent")
+position = Vector3(0, 1.45, 0)
+ImpactSurface = ExtResource("flesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+shape = SubResource("cap_hurt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("cap_body")
+
+[node name="CombatAnimationComponent" parent="." index="9"]
+AnimationPlayerPath = NodePath("../Pivot/OrcCaptainModel/AnimationPlayer")
+AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
+Profile = ExtResource("attack_animation_profile")
+
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("gate_script")
+AnimationProfile = ExtResource("defense_animation")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="GuardComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent", "Actor", "MovementComponent", "ActionGate")]
+script = ExtResource("guard_script")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+Actor = NodePath("..")
+MovementComponent = NodePath("../MovementComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
+GuardDef = ExtResource("guard_definition")
+
+[node name="EnemyDefenseController" type="Node" parent="." node_paths=PackedStringArray("Enemy", "GuardComponent")]
+script = ExtResource("defense_controller_script")
+Enemy = NodePath("..")
+GuardComponent = NodePath("../GuardComponent")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="Nameplate" parent="."]
+position = Vector3(0, 3.25, 0)
+
+[node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../../PoiseComponent")
+
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate", "BakedWeapon")]
+ActionGate = NodePath("../ActorActionGateComponent")
+BakedWeapon = NodePath("../Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/WeaponHand/Grip/MorningStar")
+
+[node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
+
+[node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
+Movement = NodePath("../MovementComponent")
+AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
+NaturalLocomotionSpeed = 2.5
+
+[node name="CombatFeedbackController" parent="."]
+SurfaceProfile = ExtResource("flesh")
+
+[node name="MovementEffectsComponent" parent="."]
+Profile = ExtResource("movement_profile")
+
+[editable path="Pivot/OrcCaptainModel"]
+[editable path="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/WeaponHand/Grip/MorningStar"]
+[editable path="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/WeaponHand/Grip/MorningStar/Model"]
+[editable path="Pivot/OrcCaptainModel/OrcCaptainRig/Skeleton3D/ShieldHand/Grip/Shield"]

@@ -1,0 +1,13 @@
+{
+  "key": "orc/orc_spearman",
+  "inputs": "624fcea7266a89666f7c73dbb11142cebcd6a999eb4ed81328c939ec1efcf27e",
+  "files": {
+    "model.glb": "03c0f4ae6bbef98493995f1e439aa54af6a7ebdb4cc63d871547345c31fd2586",
+    "lineup.png": "b73ad7c2c19fcf4f5cc9a33543799d0f61b0ad1ebdce03acee69540c73d8109a",
+    "lineup.gif": "0d7454abddaeff6859aa5b6d8cca0ecb7efeac2610de76cc9f3debd810d1fbb7",
+    "asset.json": "dcb901e962465ae76ce0361bdd6140c2007f836fce84b42d0d403d9203ddb5ec"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

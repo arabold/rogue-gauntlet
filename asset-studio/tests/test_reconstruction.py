@@ -38,7 +38,7 @@ class ConfigCheckTest(unittest.TestCase):
 
     def test_the_authored_configs_are_complete(self):
         for key in ("nymph/nymph", "slime/acid_blob", "bat/giant_bat", "mimic/chest_mimic", "snake/snake",
-                    "bosses/forsaken_warden"):
+                    "bosses/forsaken_warden", "orc/orc_spearman", "orc/orc_shaman", "orc/orc_captain"):
             config = json.loads((STUDIO / "characters" / key / "reconstruction.json").read_text())
             self.assertEqual(reconstruction.check_config(config), [], key)
 

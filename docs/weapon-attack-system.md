@@ -105,7 +105,7 @@ Melee uses horizontal reach and one shared vertical contact envelope. Visual hei
 
 During the timed contact window, stationary and moving overlaps resolve to one damage owner and one result per swing. Crossing an entire window in a physics step still checks contact. Walls and blocking props obstruct damage. Facing commits at contact, or `FacingLockLead` seconds earlier when an attack authors a lead (melee only, at most the wind-up). An AI attacker tracks its target until then, turning no faster than `WindUpTurnRate`. Interruption stops further queries. Forward reach and engagement settings must agree with the visible attack.
 
-Optional swooshes follow authored `TrailBase`/`TrailTip` markers on the equipped weapon, or, for a monster whose weapon is baked into its model, on the node its `AttackController.BakedWeapon` names, mounted on the hand bone (the Forsaken Warden's sword). Natural attacks can use a generic arc; thrusts can omit effects. Fading or disabling the visual cannot extend or remove damage.
+Optional swooshes follow authored `TrailBase`/`TrailTip` markers on the equipped weapon, or, for a monster whose weapon is baked into its model, on the node its `AttackController.BakedWeapon` names, mounted on the hand bone (the Forsaken Warden's sword). A monster can also hold one of the game's weapon or shield scenes on a hand-slot `BoneAttachment3D` through the KayKit grip transform (the orc tiers' spear, staff, morning star and shield); a `Muzzle` marker under its `BakedWeapon` is where its projectiles leave, as the spearman's javelins leave his hand. Natural attacks can use a generic arc; thrusts can omit effects. Fading or disabling the visual cannot extend or remove damage.
 
 ## Placement and review
 
