@@ -9,5 +9,6 @@ Id = "crystal_cluster_huge"
 Scenes = [ExtResource("2_huge")]
 Blocking = true
 Gap = 0.4
-TurnJitter = 30.0
+TurnJitter = 45.0
+ShiftJitter = 0.1
 metadata/_custom_type_script = ExtResource("1_Prop")
