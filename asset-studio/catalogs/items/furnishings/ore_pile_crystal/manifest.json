@@ -1,0 +1,76 @@
+{
+  "key": "furnishings/ore_pile_crystal",
+  "inputs": "da3c648fce7172e83e4f4557655ef8297d386ff1686ca512afdca0d67f591098",
+  "files": {
+    "ore_pile_crystal.glb": "9a37716791792fab71d28f98e9d28d8761088b1e41fe9139adfdc7a014c36661",
+    "lineup.png": "158fdbc857904f12eb98d7f113b35032205502e96976c45079004bbf2500bf99"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 638,
+      "bounds": [
+        [
+          -0.550836980342865,
+          0.0,
+          -0.41150930523872375
+        ],
+        [
+          0.488446444272995,
+          1.1559803485870361,
+          0.5123027563095093
+        ]
+      ],
+      "dimensions": [
+        1.03928342461586,
+        1.1559803485870361,
+        0.923812061548233
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.16058407250990828
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Crystal Ore Pile",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "ore_pile_crystal"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 1600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "export": {
+        "glb": "res://assets/custom-props/mines/ore_pile_crystal.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines floor prop with tall splayed crystals rooted in a low bed of excavated rock."
+      }
+    }
+  }
+}

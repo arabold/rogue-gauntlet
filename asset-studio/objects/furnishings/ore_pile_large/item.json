@@ -22,6 +22,9 @@
     "ore_crystal": {
       "crease": 35
     },
+    "ore_crystal_blue": {
+      "crease": 35
+    },
     "ore_gold": {
       "crease": 35
     },
@@ -37,6 +40,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Mines realm floor prop (~1.5 m across): stepped heap of faceted rock, gold ore chunks, and crystal shards. No gameplay data."
+    "quality_notes": "Mines floor prop with blue and turquoise crystal at the crown and gold ore scattered through the rubble."
   }
 }

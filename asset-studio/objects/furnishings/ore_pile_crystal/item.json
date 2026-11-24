@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "Crystal Ore Pile",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "ore_pile_crystal"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1600,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "export": {
+    "glb": "res://assets/custom-props/mines/ore_pile_crystal.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines floor prop with tall splayed crystals rooted in a low bed of excavated rock."
+  }
+}

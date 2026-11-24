@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_vein_crystal_seam.glb" id="1_model"]
+[ext_resource type="PackedScene" path="res://scenes/effects/crystal_light.tscn" id="2_light"]
+
+[node name="OreVeinCrystalSeam" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="CrystalLight" parent="." instance=ExtResource("2_light")]
+position = Vector3(0.14, 1.43, 0.32)
+rotation = Vector3(0, 0, 0.34)

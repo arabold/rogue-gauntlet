@@ -593,6 +593,30 @@ def ore_vein_crystal():
     return _trim_wall_back(a)
 
 
+def ore_vein_crystal_seam():
+    """A narrow split in the wall lined with short blue crystal blades."""
+    a, rng = Assembly(), random('ore_vein_crystal_seam')
+    for pos, size, tilt in [
+        ((-0.50, 1.06, 0.03), (0.64, 0.47, 0.40), -12),
+        ((-0.18, 1.22, 0.07), (0.74, 0.48, 0.42), -8),
+        ((0.25, 1.43, 0.02), (0.80, 0.48, 0.43), 14),
+        ((0.56, 1.54, 0.04), (0.49, 0.38, 0.37), 10),
+    ]:
+        a.add(_rock_chunk(pos, size, rng, tilt_deg=tilt), 'rock')
+    a.cut(ball((0, 0, 0), (0.69, 0.13, 0.20), 10).rotate((0, 0, 24))
+          .translate((0.0, 1.30, 0.19)), 'rock_dark')
+    for radius, height, tilt, pos, slot in [
+        (0.060, 0.25, (20, 5, -54), (-0.59, 1.06, 0.14), 'ore_crystal'),
+        (0.079, 0.34, (26, -10, -61), (-0.40, 1.14, 0.12), 'ore_crystal_blue'),
+        (0.045, 0.21, (20, 24, 45), (-0.14, 1.25, 0.16), 'ore_crystal'),
+        (0.092, 0.44, (25, 12, -65), (-0.06, 1.23, 0.12), 'ore_crystal_blue'),
+        (0.063, 0.29, (18, -20, -48), (0.27, 1.40, 0.11), 'ore_crystal'),
+        (0.080, 0.31, (24, -8, -69), (0.42, 1.48, 0.10), 'ore_crystal_blue'),
+    ]:
+        a.add(_crystal_spire(radius, height, tilt, pos), slot)
+    return _trim_wall_back(a)
+
+
 # ---------------------------------------------------------------------------- ore piles (floor, 1.0 - 1.5 m across)
 
 def ore_pile_small():
@@ -622,7 +646,7 @@ def ore_pile_small():
 
 
 def ore_pile_large():
-    """Larger asymmetric ore heap (~1.48 m across, ~0.76 m tall) with rock, gold ore, and small crystals."""
+    """Larger asymmetric ore heap with a crown of blue crystal and scattered gold ore."""
     a, rng = Assembly(), random('ore_pile_large')
     chunks = [
         ((-0.08, 0.30, -0.06), (0.82, 0.56, 0.76), 'rock_dark', 6),
@@ -632,11 +656,11 @@ def ore_pile_large():
         ((-0.34, 0.17, -0.32), (0.48, 0.30, 0.44), 'rock', 12),
         ((0.40, 0.15, -0.28), (0.42, 0.26, 0.40), 'rock_dark', -14),
         ((0.02, 0.14, 0.42), (0.46, 0.28, 0.42), 'rock', 9),
-        # Stepped crown & prominent gold chunks
+        # Stepped crown and loose ore
         ((-0.04, 0.56, -0.04), (0.42, 0.30, 0.38), 'rock', -8),
-        ((0.04, 0.62, 0.08), (0.28, 0.22, 0.26), 'ore_gold', 22),
-        ((-0.24, 0.42, 0.14), (0.28, 0.22, 0.26), 'ore_gold', -18),
-        ((0.28, 0.38, -0.06), (0.26, 0.20, 0.24), 'ore_gold', 15),
+        ((0.04, 0.62, 0.08), (0.28, 0.22, 0.26), 'ore_crystal_blue', 22),
+        ((-0.24, 0.42, 0.14), (0.28, 0.22, 0.26), 'ore_crystal', -18),
+        ((0.28, 0.38, -0.06), (0.26, 0.20, 0.24), 'ore_crystal_blue', 15),
         ((-0.14, 0.30, -0.34), (0.24, 0.18, 0.22), 'ore_gold', -12),
         ((0.46, 0.20, 0.26), (0.22, 0.17, 0.20), 'ore_gold', 20),
         ((-0.44, 0.16, 0.02), (0.20, 0.16, 0.20), 'ore_gold', -24),
@@ -644,15 +668,37 @@ def ore_pile_large():
     ]
     for pos, size, slot, tilt in chunks:
         a.add(_rock_chunk(pos, size, rng, facets=6, tilt_deg=tilt, slot=slot), slot)
-    # Two small crystal spikes poking out of one corner
-    a.add(_crystal_spire(0.065, 0.32, (28, 12, -32), (-0.20, 0.44, -0.18)), 'ore_crystal')
-    a.add(_crystal_spire(0.055, 0.26, (38, -18, -22), (-0.28, 0.36, -0.10)), 'ore_crystal')
+    a.add(_crystal_spire(0.090, 0.39, (24, 12, 28), (-0.15, 0.54, -0.12)), 'ore_crystal_blue')
+    a.add(_crystal_spire(0.065, 0.29, (38, -18, -22), (-0.18, 0.49, 0.02)), 'ore_crystal')
     for x, z, sz, slot in [
         (0.64, 0.12, 0.18, 'rock'), (-0.64, 0.22, 0.17, 'rock_dark'),
         (0.24, 0.62, 0.16, 'ore_gold'), (-0.26, -0.60, 0.18, 'rock'),
         (0.56, -0.44, 0.16, 'rock_dark'), (-0.54, -0.36, 0.15, 'ore_gold'),
     ]:
         a.add(_rock_chip((x, sz * 0.24, z), (sz, sz * 0.48, sz * 0.85), rng, slot), slot)
+    return grounded(a.build(loose=True))
+
+
+def ore_pile_crystal():
+    """Tall splayed crystals rooted in a low bed of excavated rock."""
+    a, rng = Assembly(), random('ore_pile_crystal')
+    for pos, size, slot, tilt in [
+        ((0.00, 0.17, 0.00), (0.78, 0.34, 0.73), 'rock_dark', 8),
+        ((0.30, 0.14, -0.18), (0.55, 0.28, 0.47), 'rock', -13),
+        ((-0.32, 0.12, -0.12), (0.53, 0.24, 0.46), 'rock', 10),
+        ((0.07, 0.10, 0.35), (0.52, 0.22, 0.40), 'rock', -7),
+    ]:
+        a.add(_rock_chunk(pos, size, rng, tilt_deg=tilt), slot)
+    for radius, height, tilt, pos, slot in [
+        (0.145, 0.98, (-12, 20, 7), (-0.05, 0.19, 0.03), 'ore_crystal_blue'),
+        (0.109, 0.68, (19, 15, -29), (0.11, 0.16, -0.10), 'ore_crystal'),
+        (0.120, 0.61, (24, -8, 36), (-0.15, 0.16, 0.09), 'ore_crystal_blue'),
+        (0.091, 0.48, (39, 20, -16), (0.13, 0.13, 0.15), 'ore_crystal_blue'),
+        (0.078, 0.38, (-31, 10, -22), (0.19, 0.13, -0.21), 'ore_crystal'),
+        (0.070, 0.34, (22, 35, 40), (-0.39, 0.11, -0.12), 'ore_crystal'),
+        (0.069, 0.28, (47, -25, 6), (-0.04, 0.12, 0.23), 'ore_crystal'),
+    ]:
+        a.add(_crystal_spire(radius, height, tilt, pos), slot)
     return grounded(a.build(loose=True))
 
 
@@ -1020,8 +1066,10 @@ KINDS = {
     'ore_vein_a': ore_vein_a,
     'ore_vein_b': ore_vein_b,
     'ore_vein_crystal': ore_vein_crystal,
+    'ore_vein_crystal_seam': ore_vein_crystal_seam,
     'ore_pile_small': ore_pile_small,
     'ore_pile_large': ore_pile_large,
+    'ore_pile_crystal': ore_pile_crystal,
     'tool_rack': tool_rack,
     'pickaxe_loose': pickaxe_loose,
     'mine_lantern_wall': mine_lantern_wall,

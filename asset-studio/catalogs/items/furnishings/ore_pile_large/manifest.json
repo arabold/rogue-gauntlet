@@ -1,13 +1,13 @@
 {
   "key": "furnishings/ore_pile_large",
-  "inputs": "f93226393ef90ea562650fae3945b04390bdc93aa834d31e376ded1753be9588",
+  "inputs": "8847eca9ee26039c53cb3b233c2b2781558b225b5a52e4de0ec5318ecfa3311a",
   "files": {
-    "ore_pile_large.glb": "62b348f21fa6291a2697942523226f3f7377007247e5137148fcf59e2878f808",
-    "lineup.png": "9b70dfecac1d685366b7472b2e6388519eb818ea4570a31607f7d8f624c6cf06"
+    "ore_pile_large.glb": "2b24ff435d2174fd7c1e152216f39727864cd91db8168ab7c7cdacf40072ce04",
+    "lineup.png": "1b81a8f1905c7afa8678603a3697a3a82abbdab214add7ddb3f154aefb27c686"
   },
   "metadata": {
     "report": {
-      "triangles": 850,
+      "triangles": 914,
       "bounds": [
         [
           -0.69336998462677,
@@ -16,13 +16,13 @@
         ],
         [
           0.732438325881958,
-          0.7881363034248352,
+          0.9216188788414001,
           0.6664911508560181
         ]
       ],
       "dimensions": [
         1.425808310508728,
-        0.7881363034248352,
+        0.9216188788414001,
         1.3168727159500122
       ],
       "materials": 1,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.2770419137728498
+        "signed_volume": 0.28279776624374514
       },
       "host_fit": null,
       "warnings": [
@@ -70,6 +70,9 @@
         "ore_crystal": {
           "crease": 35
         },
+        "ore_crystal_blue": {
+          "crease": 35
+        },
         "ore_gold": {
           "crease": 35
         },
@@ -85,7 +88,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Mines realm floor prop (~1.5 m across): stepped heap of faceted rock, gold ore chunks, and crystal shards. No gameplay data."
+        "quality_notes": "Mines floor prop with blue and turquoise crystal at the crown and gold ore scattered through the rubble."
       }
     }
   }

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_pile_large.glb" id="1_model"]
+[ext_resource type="PackedScene" path="res://scenes/effects/crystal_light.tscn" id="2_light"]
+
+[node name="OrePileLarge" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="CrystalLight" parent="." instance=ExtResource("2_light")]
+position = Vector3(-0.02, 0.72, 0.15)
