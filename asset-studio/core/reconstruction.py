@@ -5,6 +5,7 @@
     reconstruct tripo <key>                    run the multiview image-to-3D job (spends Tripo credits)
     reconstruct parts <key>                    render a sheet identifying the reconstruction's pieces
     reconstruct build <key>                    build the rigged Blender source from reconstruction.json
+    reconstruct palette <key>                  recolor the saved source from reconstruction.json's palette
 
 Selected inputs (sheet, views, prompts, `reconstruction.json`, the source) live in the character folder; drafts, the
 reconstruction GLB, part sheets and Blender logs live in the OS temporary work root. Paid steps never run implicitly.
@@ -27,6 +28,9 @@ STUDIO = Path(__file__).resolve().parents[1]
 JOBS = STUDIO / "blender" / "reconstruction"
 VIEWS = ("front", "left", "back", "right")  # sheet order: top left, top right, bottom left, bottom right
 BACKGROUND = 232
+FRAMES = STUDIO / "rigs" / "large" / "attachment_frames.json"  # verified hand-slot mounts of the large rig
+PROP_PREFABS = ("executioner_sword", "warden_shield")  # functions of `items.executioner`
+GLTF_TO_BLENDER = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])  # glTF's Y-up to Blender's Z-up
 
 
 class Source:
@@ -124,7 +128,49 @@ def check_config(config):
         problems += [f"rig.actions names unknown bone {b}" for b in sorted(keyed - set(bones))]
     for chain, points in config.get("chains", {}).items():
         problems += [f"chain {chain} needs joint {p}.l" for p in points if f"{p}.l" not in config.get("joints", {})]
+    frames = json.loads(FRAMES.read_text())["frames"]
+    for name, prop in config.get("props", {}).items():
+        if name in parts:
+            problems.append(f"prop {name} shares a part's name")
+        if prop["prefab"] not in PROP_PREFABS:
+            problems.append(f"prop {name} names unknown prefab {prop['prefab']}")
+        if prop["frame"] not in frames:
+            problems.append(f"prop {name} names unknown frame {prop['frame']}")
+        problems += [f"prop {name} maps to {s}, missing from the palette" for s in prop["slots"].values()
+                     if s not in config["palette"]]
     return problems
+
+
+def props(config, rig):
+    """The `props` of a reconstruction: rigid equipment the Studio builds procedurally (`prefab` with `args`), mounted
+    on the hand slot of its verified `frame` on the large rig and skinned to that bone alone, so the template clips
+    swing it as KayKit's equipped weapons are swung. `slots` maps each prefab material to a palette slot. The meshes
+    come back in the Blender frame of the unfitted template; the build moves each with its slot as the skeleton is
+    fitted, keeping its authored size."""
+    entries = config.get("props", {})
+    if not entries:
+        return {}
+    if rig != "large":
+        raise SystemExit("props mount on the large rig's verified attachment frames")
+    from core.rig import Rig, _quat_matrix
+    from items import executioner
+    frames = json.loads(FRAMES.read_text())["frames"]
+    rest = Rig.load("large").rest
+    placed = {}
+    for name, entry in entries.items():
+        piece = getattr(executioner, entry["prefab"])(**entry.get("args", {}))
+        unmapped = {str(s) for s in piece.slots} - set(entry["slots"])
+        if unmapped:
+            raise SystemExit(f"prop {name}: map the prefab materials {sorted(unmapped)} to palette slots")
+        frame = frames[entry["frame"]]
+        local = np.eye(4)
+        local[:3, :3] = _quat_matrix(np.asarray(frame["rotation"], float))
+        local[:3, 3] = frame["translation"]
+        world = rest[frame["bone"]] @ local
+        verts = (piece.verts @ world[:3, :3].T + world[:3, 3]) @ GLTF_TO_BLENDER.T
+        placed[name] = {"bone": frame["bone"], "verts": verts.tolist(), "faces": piece.faces.tolist(),
+                        "slots": [entry["slots"][str(s)] for s in piece.slots]}
+    return placed
 
 
 def turnaround(src, count=1):
@@ -177,6 +223,33 @@ def parts(src):
     print(f"{src.key}: {out}")
 
 
+def palette_atlas(src, config):
+    """The palette atlas of `config` saved to the work folder, and each slot's cell in it. Its layout depends only on
+    the palette's slot count and order, so recoloring a palette keeps every face's UVs."""
+    names = list(config["palette"])
+    atlas = mesh.Atlas([base_color(config["palette"][n]) for n in names], slot_names=names,
+                       looks={n: {"ramp": (v["light"], v["shadow"], v["base"])} for n, v in config["palette"].items()
+                              if isinstance(v, dict)})
+    atlas_png = src.work / "palette.png"
+    atlas.image.save(atlas_png)
+    return atlas_png, {n: {"u": float(atlas.u_coords[i]), "v_top": float(atlas.v_top[i]), "v_bot": float(atlas.v_bot[i])}
+                       for i, n in enumerate(names)}
+
+
+def repaint(src):
+    """Replace the saved source's packed palette with the atlas of `reconstruction.json`'s current colors, without the
+    reconstruction: geometry, slots, UVs, weights and clips stay as built. Refused when the slots changed."""
+    config = src.json("reconstruction.json")
+    if problems := check_config(config):
+        raise SystemExit(f"{src.key}: reconstruction.json: " + "; ".join(problems))
+    recipe = src.json("character.json")
+    atlas_png, _ = palette_atlas(src, config)
+    blend = src.dir / recipe["source"]
+    blender.run({"blend": str(blend), "image": config["name"].lower() + "_palette", "atlas_png": str(atlas_png)},
+                src.work, JOBS / "repaint.py", source=blend, outputs=("blend",))
+    print(f"{src.key}: {blend.relative_to(STUDIO)} repainted")
+
+
 def build(src):
     if not src.glb.is_file():
         raise SystemExit(f"{src.key}: run `reconstruct tripo` first")
@@ -184,18 +257,12 @@ def build(src):
     if problems := check_config(config):
         raise SystemExit(f"{src.key}: reconstruction.json: " + "; ".join(problems))
     recipe = src.json("character.json")
-    names = list(config["palette"])
-    atlas = mesh.Atlas([base_color(config["palette"][n]) for n in names], slot_names=names,
-                       looks={n: {"ramp": (v["light"], v["shadow"], v["base"])} for n, v in config["palette"].items()
-                              if isinstance(v, dict)})
-    atlas_png = src.work / "palette.png"
-    atlas.image.save(atlas_png)
-    cells = {n: {"u": float(atlas.u_coords[i]), "v_top": float(atlas.v_top[i]), "v_bot": float(atlas.v_bot[i])}
-             for i, n in enumerate(names)}
+    atlas_png, cells = palette_atlas(src, config)
     job = {"config": config, "reconstruction": str(src.glb), "views": str(src.dir / "turnaround"),
            "atlas_png": str(atlas_png), "atlas": cells, "report": str(src.work / "build.json"),
            "colors": {n: base_color(v) for n, v in config["palette"].items()},
            "template": str(character_workflow.rig_template(recipe["rig"]) or ""),
+           "props": props(config, recipe["rig"]),
            "blend": str(src.dir / recipe["source"])}
     result = blender.run(job, src.work, JOBS / "build.py", outputs=("blend",), timeout=1800)
     print(f"{src.key}: {src.dir.relative_to(STUDIO) / recipe['source']}, {sum(result['triangles'].values())} triangles")
@@ -206,11 +273,12 @@ def build(src):
 def main(argv):
     ap = argparse.ArgumentParser(prog="studio.py reconstruct", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["turnaround", "views", "tripo", "parts", "build"])
+    ap.add_argument("command", choices=["turnaround", "views", "tripo", "parts", "build", "palette"])
     ap.add_argument("key", help="family/name, e.g. nymph/nymph")
     ap.add_argument("--count", type=int, default=1, help="turnaround: drafts to request")
     ap.add_argument("--image", help="views: the selected sheet to install as turnaround.png")
     args = ap.parse_args(argv)
     src = Source(args.key)
     {"turnaround": lambda: turnaround(src, args.count), "views": lambda: views(src, args.image),
-     "tripo": lambda: reconstruct(src), "parts": lambda: parts(src), "build": lambda: build(src)}[args.command]()
+     "tripo": lambda: reconstruct(src), "parts": lambda: parts(src), "build": lambda: build(src),
+     "palette": lambda: repaint(src)}[args.command]()

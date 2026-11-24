@@ -126,8 +126,8 @@ def _sample(c, nrm, images, reg, tree):
 def _label_faces(me, slots, lab_of, regions, under, sample):
     """Each face's slot (an index into `slots`) and whether the turnaround showed it.
 
-    A face takes the slot whose Lab color (`lab_of`) is nearest its sampled color, among those its `regions` allow;
-    `under` gives faces turned down past its `facing` its slot outright.
+    A face takes the slot with a shade (`lab_of`, Lab colors per slot) nearest its sampled color, among those its
+    `regions` allow; `under` gives faces turned down past its `facing` its slot outright.
     """
     slot_labs = np.array([lab_of[s] for s in slots])
     labels = np.zeros(len(me.polygons), int)
@@ -140,7 +140,7 @@ def _label_faces(me, slots, lab_of, regions, under, sample):
         color = sample(c, nrm)
         if color is None:
             continue
-        dist = ((slot_labs - srgb_to_lab(color)) ** 2).sum(-1)
+        dist = ((slot_labs - srgb_to_lab(color)) ** 2).sum(-1).min(-1)
         for i, slot in enumerate(slots):
             if slot in regions and not regions[slot](c, nrm):
                 dist[i] = np.inf
@@ -148,13 +148,18 @@ def _label_faces(me, slots, lab_of, regions, under, sample):
     return labels, seen
 
 
-def _settle(me, labels, seen, slots, details):
-    """Unseen faces and lone specks take their neighbours' majority slot over three passes; face-detail slots
-    (`details`) may stand alone."""
+def _neighbours(me):
+    """Each face's edge-adjacent faces."""
     bm = bmesh.new()
     bm.from_mesh(me)
     neighbours = [np.array([g.index for e in f.edges for g in e.link_faces if g is not f], int) for f in bm.faces]
     bm.free()
+    return neighbours
+
+
+def _settle(neighbours, labels, seen, slots, details):
+    """Unseen faces and lone specks take their neighbours' majority slot over three passes; face-detail slots
+    (`details`) may stand alone."""
     for _ in range(3):
         new = labels.copy()
         for f, nb in enumerate(neighbours):
@@ -164,6 +169,33 @@ def _settle(me, labels, seen, slots, details):
             if not seen[f] or (cnt[labels[f]] == 0 and slots[labels[f]] not in details):
                 new[f] = int(np.argmax(cnt))
         labels, seen = new, np.ones_like(seen)
+    return labels
+
+
+def _absorb_islands(neighbours, labels, slots, details, min_faces):
+    """Relabel each connected same-slot island under `min_faces` faces with the slot bordering it most, leaving
+    face-detail slots (`details`) alone, until no such island remains."""
+    for _ in range(4):
+        changed, done = False, np.zeros(len(labels), bool)
+        for start in range(len(labels)):
+            if done[start]:
+                continue
+            label, island, border, stack = labels[start], [], [], [start]
+            done[start] = True
+            while stack:
+                f = stack.pop()
+                island.append(f)
+                for g in neighbours[f]:
+                    if labels[g] != label:
+                        border.append(labels[g])
+                    elif not done[g]:
+                        done[g] = True
+                        stack.append(g)
+            if len(island) < min_faces and border and slots[label] not in details:
+                labels[island] = np.bincount(border).argmax()
+                changed = True
+        if not changed:
+            break
     return labels
 
 
@@ -192,16 +224,29 @@ def _write_uvs(me, cells, labels):
     me.uv_layers["Palette"].data.foreach_set("uv", np.column_stack([u, 1.0 - v]).astype(np.float32).ravel())
 
 
+def map_palette(me, cells, labels, mat, smooth_angle):
+    """Shade a labelled mesh and give it the palette's UVs (`cells`, by label) and material: the last step of `paint`,
+    and all a procedural prop needs, since its faces already name their slots."""
+    _shade(me, smooth_angle)
+    _write_uvs(me, cells, labels)
+    me.materials.clear()
+    me.materials.append(mat)
+
+
 def paint(config, views_folder, atlas_png, atlas, colors):
     """Assign palette slots and UVs to every `LP_` part; returns the face count per part and slot. `colors` gives each
-    slot's base color, the color the turnaround is matched against. `undersides` (`{part: {"slot", "facing"}}`) gives
-    faces turned down past `facing` a slot outright, since no view of the turnaround shows a belly from below."""
+    slot's base color, the color the turnaround is matched against; `shades` (value multipliers, default `[1]`) also
+    matches each slot's lit and shadowed tones, so a palette of albedo colors matches the shaded sheet. `undersides`
+    (`{part: {"slot", "facing"}}`) gives faces turned down past `facing` a slot outright, since no view of the
+    turnaround shows a belly from below. `min_island` absorbs same-slot islands of fewer faces into their
+    surroundings, as speckle the sheet's shading and registration leave on broad plates."""
     images, boxes = _load_views(views_folder)
     dense = [o for o in bpy.data.objects if o.name.startswith("REF_")]
     reg = _register(images, boxes, np.vstack([vertex_array(o.data) for o in dense]))
     low = [o for o in bpy.data.objects if o.name.startswith("LP_")]
     regions = {slot: _region_test(spec) for slot, spec in config.get("regions", {}).items()}
-    lab_of = {slot: srgb_to_lab(rgb) for slot, rgb in colors.items()}
+    shades = np.asarray(config.get("shades", [1.0]), float)
+    lab_of = {slot: srgb_to_lab(np.clip(np.outer(shades, rgb), 0, 255)) for slot, rgb in colors.items()}
     sample = functools.partial(_sample, images=images, reg=reg, tree=_occluders(low))
     mat = _material(config, atlas_png)
     report = {}
@@ -209,10 +254,9 @@ def paint(config, views_folder, atlas_png, atlas, colors):
         part = o.name[3:]
         slots = config["slots"][part]
         labels, seen = _label_faces(o.data, slots, lab_of, regions, config.get("undersides", {}).get(part), sample)
-        labels = _settle(o.data, labels, seen, slots, regions)
+        neighbours = _neighbours(o.data)
+        labels = _settle(neighbours, labels, seen, slots, regions)
+        labels = _absorb_islands(neighbours, labels, slots, regions, config.get("min_island", 1))
         report[part] = {slots[i]: int(c) for i, c in enumerate(np.bincount(labels, minlength=len(slots)))}
-        _shade(o.data, config.get("smooth_angle", 35))
-        _write_uvs(o.data, [atlas[s] for s in slots], labels)
-        o.data.materials.clear()
-        o.data.materials.append(mat)
+        map_palette(o.data, [atlas[s] for s in slots], labels, mat, config.get("smooth_angle", 35))
     return report

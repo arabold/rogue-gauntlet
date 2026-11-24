@@ -1,16 +1,16 @@
 {
-  "triangles": 27380,
-  "joints": 25,
+  "triangles": 13559,
+  "joints": 23,
   "bounds": [
     [
-      -7.3267201330574006,
-      -1.0529316137572058,
-      -4.364828592461478
+      -7.424738538209143,
+      -0.2928023267599147,
+      -4.075596352080867
     ],
     [
-      3.9052382055763846,
-      6.172368830700817,
-      6.65653442659961
+      3.857100991216044,
+      6.627548523710065,
+      6.803472816907527
     ]
   ],
   "clips": [
@@ -18,50 +18,58 @@
     "Death_A_Pose",
     "Hit_A",
     "Idle_A",
-    "Idle_B",
     "Melee_1H_Slash",
-    "Melee_1H_Stab",
     "Melee_2H_Attack",
-    "Melee_2H_Idle",
     "Melee_2H_Slam",
-    "Melee_Block",
     "Melee_Block_Attack",
     "Melee_Block_Hit",
     "Melee_Blocking",
-    "Melee_Dualwield_Slash",
-    "Melee_Dualwield_SlashCombo",
-    "Melee_Unarmed_Idle",
-    "Melee_Unarmed_Kick",
-    "Melee_Unarmed_Punch",
-    "Melee_Unarmed_Smash",
-    "Running_A",
-    "T-Pose",
-    "Walking_A"
+    "Running_A"
   ],
   "key": "bosses/forsaken_warden",
   "rig": "large",
   "roles": {
     "Idle": "Idle_A",
-    "Walk": "Walking_A",
-    "Run": "Running_A",
-    "Attack": "Melee_1H_Slash",
-    "Block": "Melee_Block",
-    "Hit": "Hit_A",
-    "Death": "Death_A"
+    "Walk": "Running_A",
+    "Slash": "Melee_1H_Slash",
+    "Overhead": "Melee_2H_Attack",
+    "Slam": "Melee_2H_Slam",
+    "Block": "Melee_Blocking"
   },
   "loops": [
     "Idle_A",
-    "Idle_B",
-    "Walking_A",
     "Running_A",
-    "Melee_2H_Idle",
-    "Melee_Unarmed_Idle",
     "Melee_Blocking"
   ],
   "scale": 1.15,
-  "source_inputs": "0e8c0bd207c742c4a51e1437292a52e708e52130ff47aee5b780ded339ded107",
+  "source_inputs": "6c18bdc2ff363578990581f82b7a7f65c59b31c721eb5feb646af53d26663674",
   "gameplay": false,
   "provenance": {
-    "kind": "procedural_geometry"
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt",
+      "generator": "gpt-image-2 image edit, 1536 x 1024, quality high; inputs: renders of the KayKit Orc Brute (proportion reference), the earlier Warden concept and the approved Orc Warrior concept"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "forsaken_warden_rigged.blend: built by `studio.py reconstruct build bosses/forsaken_warden` from reconstruction.json on KayKit's large rig, with the executioner sword and sun shield built procedurally on the rig's verified hand-slot frames."
   }
 }

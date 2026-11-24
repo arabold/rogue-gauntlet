@@ -37,7 +37,8 @@ class ConfigCheckTest(unittest.TestCase):
         self.config = json.loads((STUDIO / "characters/nymph/nymph/reconstruction.json").read_text())
 
     def test_the_authored_configs_are_complete(self):
-        for key in ("nymph/nymph", "slime/acid_blob", "bat/giant_bat", "mimic/chest_mimic", "snake/snake"):
+        for key in ("nymph/nymph", "slime/acid_blob", "bat/giant_bat", "mimic/chest_mimic", "snake/snake",
+                    "bosses/forsaken_warden"):
             config = json.loads((STUDIO / "characters" / key / "reconstruction.json").read_text())
             self.assertEqual(reconstruction.check_config(config), [], key)
 
@@ -46,10 +47,45 @@ class ConfigCheckTest(unittest.TestCase):
         del broken["budgets"]["Hair"]
         broken["slots"]["Head"].append("freckles")
         broken["parts"]["Clasp"].append(0)
+        broken["props"] = {"Club": {"prefab": "club", "frame": "staff", "slots": {"wood": "oak"}}}
         problems = " | ".join(reconstruction.check_config(broken))
         self.assertIn("budgets", problems)
         self.assertIn("freckles", problems)
         self.assertIn("two parts", problems)
+        for gap in ("unknown prefab club", "unknown frame staff", "oak, missing"):
+            self.assertIn(gap, problems)
+
+
+class PropTest(unittest.TestCase):
+    def test_props_mount_on_the_verified_hand_slot_frames(self):
+        from core.rig import Rig
+        from items import executioner
+        config = {"props": {
+            "Sword": {"prefab": "executioner_sword", "frame": "sword",
+                      "slots": {s: "steel" for s in ("brass", "edge", "iron", "leather", "steel")}},
+            "Shield": {"prefab": "warden_shield", "frame": "shield",
+                       "slots": {s: "steel" for s in ("crimson", "gem", "gold", "iron", "leather")}}}}
+        placed = reconstruction.props(config, "large")
+        rest = Rig.load("large").rest
+        # Independent canonical mounts: the blade turned about the slot's Y, the shield on the slot's own axes.
+        expected = {"Sword": ("handslot.r", np.diag([-1., 1., -1.]), [0, .03330930517626057, 0], executioner.executioner_sword()),
+                    "Shield": ("handslot.l", np.eye(3), [0, .01701178596925984, .15588533878326416], executioner.warden_shield())}
+        for name, (bone, rotation, offset, piece) in expected.items():
+            self.assertEqual(placed[name]["bone"], bone)
+            world = np.asarray(placed[name]["verts"]) @ reconstruction.GLTF_TO_BLENDER  # back to glTF Y-up
+            inverse = np.linalg.inv(rest[bone])
+            np.testing.assert_allclose(world @ inverse[:3, :3].T + inverse[:3, 3], piece.verts @ rotation.T + offset, atol=1e-5)
+            self.assertEqual(len(placed[name]["slots"]), len(placed[name]["faces"]))
+
+    def test_executioner_has_a_broad_squared_blade_and_closed_fittings(self):
+        from items import executioner, solid
+        sword = executioner.executioner_sword()
+        self.assertGreater(np.ptp(sword.verts[sword.verts[:, 1] > 1][:, 0]), .55)
+        tip = sword.verts[np.isclose(sword.verts[:, 1], sword.verts[:, 1].max())]
+        self.assertGreater(np.ptp(tip[:, 0]), .4)
+        report = solid.inspect(sword.verts, sword.faces)
+        for key in ("boundary_edges", "nonmanifold_edges", "inconsistent_edges", "duplicate_faces"):
+            self.assertEqual(report[key], 0)
 
 
 if __name__ == "__main__":

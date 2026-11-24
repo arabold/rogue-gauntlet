@@ -1,60 +1,24 @@
 # The Forsaken Warden
 
-Realm 1's Depth 3 gatekeeper, modeled from the selected `reference.png`. The exact
-master-composed image prompt is retained as `reference.prompt.txt`. Native proportions
-keep the closed helmet, amber eyes, broad sword and sun shields. The helmet is reduced
-to 80% of the initial study. Nine-section limb underlayers keep their full volume
-inside the cuffs, and an actual neck connects the helmet to the body. No animation
-joints were moved.
-Recipe scale `1.15` gives a standing body about 4.6 engine units tall, roughly twice
-the current knight model. This preserves the design document's boss-to-hero ratio;
-its nominal metre scale differs from the existing imported game models.
+Realm 1's gatekeeper, rebuilt with the [character workflow](../../../character-workflow.md) on brute proportions. Heroes carry a head a third of their height; the Warden follows KayKit's large brutes instead: a greathelm about a quarter of his height sunk between huge pauldrons, a barrel chest, long heavy arms whose fists reach his thighs, and short legs set wide.
 
-## Authoring
+| Source | Content |
+| --- | --- |
+| [Approved concept](reference.png) and [prompt](reference.prompt.txt) | Design, drawn from renders of KayKit's Orc Brute for proportions, the earlier Warden design and the Orc Warrior for finish |
+| [Turnaround](turnaround.png), [prompt](turnaround.prompt.txt), and [four views](turnaround/) | Aligned, empty-handed front, left, back, and right image-to-3D inputs |
+| [Editable rigged Blender source](forsaken_warden_rigged.blend) | 12 armor parts, the sword and shield, palette UVs and the 11 clips he plays |
+| [Godot GLB](../../../../assets/custom-monsters/forsaken_warden/forsaken_warden.glb) and [monster scene](../../../../scenes/enemies/forsaken_warden/forsaken_warden.tscn) | Imported model and the boss actor |
 
-`prefabs/creatures/wardens.py` is the procedural geometry source, on the Studio-local
-large rig. It reuses the approved plate costume, belt, shoulder hinges, cuffs, joint
-guards, fist/boot forms, crown points, sunburst detail and shield construction. The
-executioner blade (`items/executioner.py`) has a genuinely broad squared tip.
-Armor is rigidly attached; shoulder caps use baked half-arm hinges at their actual
-mounts. The neck blends between chest and head, keeping both ends seated through turns
-and nods. Visor and breathing slots are real openings with dark backing; eyes have their
-own emissive palette slot. The horn has an open flared bell.
+The turnaround was reconstructed with Tripo H3.1 (`v3.1-20260211`, seed 1) using untextured, separate parts; [`provenance.json`](provenance.json) records the inputs. The source is built by the [scripted reconstruction](../../../character-workflow.md#scripted-reconstruction) from [`reconstruction.json`](reconstruction.json): each Tripo part is decimated to its own budget, and each face takes the nearest shade of its part's palette slots from the turnaround, with specks under six faces absorbed. The armored limbs keep their reconstructed plates rather than ring loops. The body has 10,939 triangles; the sword adds 1,332 and the shield 1,288.
 
-Weapon and shield frames are verified numeric data in `rigs/large/attachment_frames.json`.
-The sword uses the original 180-degree local Y turn and source hand-slot offset; the
-shield retains the original local axes and offset. No posing-specific axis swaps are applied. The authored shield has an explicit
-12-degree grip fit, gentler V-fold and extended rear metal brackets; its leather hand
-grip stays fixed while the board clears the large forearm armor. This does not alter
-the original hand-slot frame. The source model hash is retained as provenance; its
-appearance file is not loaded during a Studio build. The hand slots and all animation
-joints remain the original local large-rig transforms.
+The rig is KayKit's large rig, the brute skeleton, with its bone directions and rolls unchanged and its joints moved to the reconstruction, so the large clips play without retargeting. The breastplate and helmet are rigid; each pauldron keeps 40 percent on the chest and follows the arm for the rest, so it rides the shoulder without swinging into the helmet. The executioner sword and sun shield are the Studio's procedural props (`items/executioner.py`), mounted on the large rig's verified hand-slot frames and exported as separate `ExecutionerSword` and `WardenShield` meshes. The war horn is part of the reconstructed belt. He keeps the idle, run, one-handed slash, two-handed overhead and slam, hit, deaths, and the guard's hold, parry and block-hit clips. The recipe exports him at scale 1.15, about 4.6 m tall.
 
-`character.json` owns the named palette/materials, head size, extra world scale and role mapping.
-`source.blend` is a clean editable checkpoint of the generated bound art, with packed
-palette and all actions; the procedural builder does not read Blender changes back.
-For a manual art fork, adopt an exported bound GLB through `skinned_source` with surface
-metadata rather than expecting bidirectional synchronization.
+The monster scene mounts `TrailBase` and `TrailTip` markers on the sword hand (`SwordHand`), the `AttackController`'s `BakedWeapon`, so the slash swoosh traces the blade. In the stock combat harness choose **Monsters → Spawn → The Forsaken Warden**.
+
+Rebuild the source after editing `reconstruction.json` (the Tripo result must be in temporary storage; `reconstruct tripo` recreates it for 40 credits), then review and export it.
 
 ```bash
+./.venv/bin/python asset-studio/studio.py reconstruct build bosses/forsaken_warden
 ./.venv/bin/python asset-studio/studio.py lineup bosses/forsaken_warden
 ./.venv/bin/python asset-studio/studio.py export bosses/forsaken_warden
 ```
-
-The single GLB retains separate `Body`, `ExecutionerSword`, `WardenShield` and `WarHorn`
-meshes, all on one skeleton. The shield can be hidden or removed without changing the
-body; `shield: false` builds that art variant. All 23 original large-rig clips remain,
-including walking/running, one-handed attacks, blocking, two-handed attacks/slams, hit
-and death. The reviewed role map selects seven shielded clips. Two-handed clips require removing
-the shield, as in the boss's final phase; `shieldless_roles` records the intended slam
-and attack clips. These are art
-animations, not an implemented multi-phase boss encounter or a gameplay timing contract.
-
-Export writes `assets/custom-monsters/forsaken_warden/forsaken_warden.glb` plus import options and
-art metadata. It creates no actor scene, AI, stats, collisions or scripted eye effects.
-The source rig's acquisition and CC0 license are retained in `rigs/large/`.
-
-Fit regressions measure solid shield/cuff intersection at 189 shielded animation
-samples, ray-check body fullness inside the cuffs, and check neck/chest/helmet contact
-through moving poses. They also verify the blended neck weights in the exported GLB.
-These checks cover the sampled shielded motion, not arbitrary animation combinations.
