@@ -48,7 +48,7 @@ class TileGeometryTest(unittest.TestCase):
                     report = solid.inspect(mesh.verts, mesh.faces)
                     # Dressed walls keep KayKit's open panels (a carving may remove some open accent
                     # bricks, never add defects); everything else is closed.
-                    source = kaykit.load(piece)[0] if recipe["style"] in workflow.DERIVED else None
+                    source = workflow.kaykit_source(recipe.get("design", {}), piece) if recipe["style"] in workflow.DERIVED else None
                     allowed = solid.inspect(source.verts, source.faces) if source is not None else {}
                     for defect, count in getattr(mesh, "authored", {}).items():
                         allowed[defect] = allowed.get(defect, 0) + count  # KayKit decor keeps its own topology.
