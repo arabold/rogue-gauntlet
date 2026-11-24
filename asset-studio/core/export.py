@@ -29,6 +29,7 @@ import numpy as np
 
 from core.rig import body_skin, transfer_weights
 from core import mesh as mm
+from core.color_math import ramp_coordinates
 
 STUDIO_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 REPO = os.path.normpath(os.path.join(STUDIO_DIR, ".."))
@@ -229,18 +230,12 @@ def resolve_palette(used, colors, looks=None):
 
 
 def gradient_coordinates(triangles, normals, height_range=None):
-    """Shared character/item ramp coordinates from vertex height and surface slope.
+    """Shared character/item ramp coordinates (`color_math.ramp_coordinates`) of triangle corners, y up.
 
     Modular tiles pass a fixed `height_range` so neighbors shade alike whatever their own extent.
     """
-    tri = np.asarray(triangles)
-    y_min, y_max = height_range or (tri[:, :, 1].min(), tri[:, :, 1].max())
-    y_span = max(y_max - y_min, 1e-4)
-    h_weight = float(np.clip(y_span / 0.08, 0.25, 0.85))
-    t_h = 1.0 - (tri[:, :, 1] - y_min) / y_span
-    t_h_centered = 0.5 + (t_h - 0.5) * h_weight
-    t_slope = np.clip(-np.asarray(normals).reshape(-1, 3, 3)[:, :, 1] * 0.35, -0.25, 0.25)
-    return np.clip(t_h_centered + t_slope, 0.06, 0.94)
+    up = np.asarray(normals).reshape(-1, 3, 3)[:, :, 1]
+    return ramp_coordinates(np.asarray(triangles)[:, :, 1], up, height_range)
 
 
 def surface_material(base, name, spec):

@@ -15,7 +15,9 @@ from pathlib import Path
 import bpy
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# The scripts' own package, and the Studio's numpy-only `core.color_math` (its other `core` modules need the Studio's
+# dependencies and are never imported here).
+sys.path[:0] = [str(Path(__file__).resolve().parents[1]), str(Path(__file__).resolve().parents[2])]
 
 from reconstruction import chains, color, parts, rig  # noqa: E402
 

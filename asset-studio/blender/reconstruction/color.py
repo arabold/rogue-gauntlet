@@ -1,8 +1,8 @@
 """Color every low-poly face from the approved turnaround and map it into the palette atlas.
 
 Each face samples the orthographic view that faces it best and sees it unoccluded, snaps that color to the nearest of
-its part's palette slots and gets palette UVs. The ramp position follows part-relative height and slope like the
-Studio's character export (`core.export.gradient_coordinates`), per vertex so the faces of a slot share UVs.
+its part's palette slots and gets palette UVs. The ramp position follows part-relative height and slope with the
+Studio's ramp (`core.color_math.ramp_coordinates`), per vertex so the faces of a slot share UVs.
 """
 
 import math
@@ -13,18 +13,16 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
+from core.color_math import ramp_coordinates, srgb_to_lab
+
+from .parts import vertex_array
+
 # Camera directions (object to camera) of the turnaround views in the rig frame: the front looks at -Y.
 VIEWS = {"front": Vector((0, -1, 0)), "left": Vector((1, 0, 0)), "back": Vector((0, 1, 0)), "right": Vector((-1, 0, 0))}
 BACKGROUND = 232  # a pixel with every channel at or above this is the white sheet
-
-
-def _lab(c):
-    c = np.asarray(c, float) / 255.0
-    c = np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
-    m = np.array([[0.4124, 0.3576, 0.1805], [0.2126, 0.7152, 0.0722], [0.0193, 0.1192, 0.9505]])
-    xyz = c @ m.T / np.array([0.9505, 1.0, 1.089])
-    f = np.where(xyz > 0.008856, np.cbrt(xyz), 7.787 * xyz + 16 / 116)
-    return np.stack([116 * f[..., 1] - 16, 500 * (f[..., 0] - f[..., 1]), 200 * (f[..., 1] - f[..., 2])], -1)
+# A part's height ramp reaches full contrast over twice the Studio's span: the approved sources were built so, which
+# shades parts under 0.14 m (fangs, eyes, hinges, clasps) flatter than a Studio export would.
+RAMP_SPAN = 0.16
 
 
 def _horizontal(view, p):
@@ -67,6 +65,16 @@ def _register(images, boxes, points):
     return reg
 
 
+def _occluders(objects):
+    """One BVH tree over every low-poly part, which hides faces from the views."""
+    verts, polys, base = [], [], 0
+    for o in objects:
+        verts.append(vertex_array(o.data))
+        polys += [[base + i for i in p.vertices] for p in o.data.polygons]
+        base += len(verts[-1])
+    return BVHTree.FromPolygons(np.vstack(verts), polys)
+
+
 def _material(config, atlas_png):
     img = bpy.data.images.load(str(atlas_png))
     img.name = config["name"].lower() + "_palette"
@@ -94,93 +102,122 @@ def _region_test(spec):
                          and n.dot(front) > spec["facing"])
 
 
+def _sample(c, nrm, images, reg, tree):
+    """The sheet's median color around face center `c` in the view that faces it best and sees it unoccluded, or None
+    when no view shows it."""
+    for n in sorted(VIEWS, key=lambda n: -nrm.dot(VIEWS[n])):
+        if nrm.dot(VIEWS[n]) < 0.05:
+            return None
+        if tree.ray_cast(c + nrm * 0.004, VIEWS[n], 10.0)[0] is not None:
+            continue
+        s, off, y0, zmax = reg[n]
+        ix = int(round(float(off + s * _horizontal(n, np.array(c[:])))))
+        iy = int(round(float(y0 + (zmax - c.z) * s)))
+        patch = images[n][max(iy - 1, 0):iy + 2, max(ix - 1, 0):ix + 2].reshape(-1, 3)
+        patch = patch[(patch < BACKGROUND).any(axis=1)]
+        if len(patch):
+            return np.median(patch, axis=0)
+    return None
+
+
+def _label_faces(me, slot_labs, regions, under, sample):
+    """Each face's slot (an index into `slot_labs`, the slots' Lab colors) and whether the turnaround showed it.
+
+    A face takes the slot nearest its sampled color among those its `regions` allow; `under` gives faces turned down
+    past its `facing` its slot outright.
+    """
+    labels = np.zeros(len(me.polygons), int)
+    seen = np.zeros(len(me.polygons), bool)
+    for p in me.polygons:
+        c, nrm = p.center, p.normal
+        if under and nrm.z < -under["facing"]:
+            labels[p.index], seen[p.index] = under["slot"], True
+            continue
+        color = sample(c, nrm)
+        if color is None:
+            continue
+        dist = ((slot_labs - srgb_to_lab(color)) ** 2).sum(-1)
+        for i, allowed in regions.items():
+            if not allowed(c, nrm):
+                dist[i] = np.inf
+        labels[p.index], seen[p.index] = int(np.argmin(dist)), True
+    return labels, seen
+
+
+def _settle(me, labels, seen, n_slots, details):
+    """Unseen faces and lone specks take their neighbours' majority slot over three passes; face-detail slots
+    (`details`) may stand alone."""
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.faces.ensure_lookup_table()
+    seen = seen.copy()
+    for _ in range(3):
+        new = labels.copy()
+        for f in bm.faces:
+            nb = [g.index for e in f.edges for g in e.link_faces if g is not f]
+            if not nb:
+                continue
+            cnt = np.bincount(labels[nb], minlength=n_slots)
+            if not seen[f.index] or (cnt[labels[f.index]] == 0 and labels[f.index] not in details):
+                new[f.index] = int(np.argmax(cnt))
+        labels = new
+        seen[:] = True
+    bm.free()
+    return labels
+
+
+def _shade(me, smooth_angle):
+    """Smooth shading with hard edges past `smooth_angle` degrees replaces the reconstruction's custom normals."""
+    if "custom_normal" in me.attributes:
+        me.attributes.remove(me.attributes["custom_normal"])
+    for p in me.polygons:
+        p.use_smooth = True
+    me.set_sharp_from_angle(angle=math.radians(smooth_angle))
+
+
+def _write_uvs(me, cells, labels):
+    """The `Palette` UV layer, alone: each face's slot cell (`cells`, by slot index) at its vertices' ramp positions."""
+    if "Palette" not in me.uv_layers:
+        me.uv_layers.new(name="Palette")
+    for layer in [layer for layer in me.uv_layers if layer.name != "Palette"]:
+        me.uv_layers.remove(layer)
+    t = ramp_coordinates(vertex_array(me)[:, 2], vertex_array(me, "normal")[:, 2], full_span=RAMP_SPAN)
+    vertex = np.empty(len(me.loops), int)
+    me.loops.foreach_get("vertex_index", vertex)
+    totals = np.empty(len(me.polygons), int)
+    me.polygons.foreach_get("loop_total", totals)
+    cell = np.repeat(labels, totals)  # loops are stored face by face
+    u, top, bottom = (np.array([c[key] for c in cells])[cell] for key in ("u", "v_top", "v_bot"))
+    v = top + t[vertex] * (bottom - top)
+    me.uv_layers["Palette"].data.foreach_set("uv", np.column_stack([u, 1.0 - v]).ravel())
+
+
 def paint(config, views_folder, atlas_png, atlas, colors):
     """Assign palette slots and UVs to every `LP_` part; returns the face count per part and slot. `colors` gives each
     slot's base color, the color the turnaround is matched against. `undersides` (`{part: {"slot", "facing"}}`) gives
     faces turned down past `facing` a slot outright, since no view of the turnaround shows a belly from below."""
     images, boxes = _load_views(views_folder)
     dense = [o for o in bpy.data.objects if o.name.startswith("REF_")]
-    reg = _register(images, boxes, np.vstack([np.array([v.co[:] for v in o.data.vertices]) for o in dense]))
+    reg = _register(images, boxes, np.vstack([vertex_array(o.data) for o in dense]))
     low = [o for o in bpy.data.objects if o.name.startswith("LP_")]
-    verts, polys = [], []
-    for o in low:
-        base = len(verts)
-        verts += [v.co.copy() for v in o.data.vertices]
-        polys += [[base + i for i in p.vertices] for p in o.data.polygons]
-    tree = BVHTree.FromPolygons(verts, polys)
+    tree = _occluders(low)
     regions = {slot: _region_test(spec) for slot, spec in config.get("regions", {}).items()}
-    lab_of = {slot: _lab(rgb) for slot, rgb in colors.items()}
+    lab_of = {slot: srgb_to_lab(rgb) for slot, rgb in colors.items()}
     mat = _material(config, atlas_png)
     report = {}
     for o in low:
         part = o.name[3:]
         slots = config["slots"][part]
-        lab = np.array([lab_of[s] for s in slots])
-        me = o.data
-        labels = np.zeros(len(me.polygons), int)
-        seen = np.zeros(len(me.polygons), bool)
         under = config.get("undersides", {}).get(part)
-        for p in me.polygons:
-            c, nrm = p.center, p.normal
-            if under and nrm.z < -under["facing"]:
-                labels[p.index], seen[p.index] = slots.index(under["slot"]), True
-                continue
-            for n in sorted(VIEWS, key=lambda n: -nrm.dot(VIEWS[n])):
-                if nrm.dot(VIEWS[n]) < 0.05:
-                    break
-                if tree.ray_cast(c + nrm * 0.004, VIEWS[n], 10.0)[0] is not None:
-                    continue
-                s, off, y0, zmax = reg[n]
-                ix = int(round(float(off + s * _horizontal(n, np.array(c[:])))))
-                iy = int(round(float(y0 + (zmax - c.z) * s)))
-                patch = images[n][max(iy - 1, 0):iy + 2, max(ix - 1, 0):ix + 2].reshape(-1, 3)
-                patch = patch[(patch < BACKGROUND).any(axis=1)]
-                if len(patch) == 0:
-                    continue
-                dist = ((lab - _lab(np.median(patch, axis=0))) ** 2).sum(-1)
-                for i, slot in enumerate(slots):
-                    if slot in regions and not regions[slot](c, nrm):
-                        dist[i] = np.inf
-                labels[p.index] = int(np.argmin(dist))
-                seen[p.index] = True
-                break
-        # Unseen faces and lone specks take their neighbours' majority; face details may stand alone.
-        bm = bmesh.new()
-        bm.from_mesh(me)
-        bm.faces.ensure_lookup_table()
-        for _ in range(3):
-            new = labels.copy()
-            for f in bm.faces:
-                nb = [g.index for e in f.edges for g in e.link_faces if g is not f]
-                if not nb:
-                    continue
-                cnt = np.bincount(labels[nb], minlength=len(slots))
-                if not seen[f.index] or (cnt[labels[f.index]] == 0 and slots[labels[f.index]] not in regions):
-                    new[f.index] = int(np.argmax(cnt))
-            labels = new
-            seen[:] = True
-        bm.free()
+        labels, seen = _label_faces(
+            o.data, np.array([lab_of[s] for s in slots]),
+            {i: regions[s] for i, s in enumerate(slots) if s in regions},
+            under and {**under, "slot": slots.index(under["slot"])},
+            lambda c, nrm: _sample(c, nrm, images, reg, tree))
+        labels = _settle(o.data, labels, seen, len(slots), {i for i, s in enumerate(slots) if s in regions})
         report[part] = {slots[i]: int(c) for i, c in enumerate(np.bincount(labels, minlength=len(slots)))}
-
-        # Smooth shading with hard edges past the authored angle replaces the reconstruction's custom normals.
-        if "custom_normal" in me.attributes:
-            me.attributes.remove(me.attributes["custom_normal"])
-        for p in me.polygons:
-            p.use_smooth = True
-        me.set_sharp_from_angle(angle=math.radians(config.get("smooth_angle", 35)))
-        uv = me.uv_layers.get("Palette") or me.uv_layers.new(name="Palette")
-        for layer in [layer for layer in me.uv_layers if layer.name != "Palette"]:
-            me.uv_layers.remove(layer)
-        zs = np.array([v.co.z for v in me.vertices])
-        span = max(zs.max() - zs.min(), 1e-4)
-        weight = float(np.clip(span / 0.08 * 0.5, 0.25, 0.85))
-        normal_z = np.array([v.normal.z for v in me.vertices])
-        t = np.clip(0.5 + ((1 - (zs - zs.min()) / span) - 0.5) * weight + np.clip(-normal_z * 0.35, -0.25, 0.25), 0.06, 0.94)
-        for p in me.polygons:
-            cell = atlas[slots[labels[p.index]]]
-            for li in p.loop_indices:
-                v = cell["v_top"] + float(t[me.loops[li].vertex_index]) * (cell["v_bot"] - cell["v_top"])
-                uv.data[li].uv = (cell["u"], 1.0 - v)
-        me.materials.clear()
-        me.materials.append(mat)
+        _shade(o.data, config.get("smooth_angle", 35))
+        _write_uvs(o.data, [atlas[s] for s in slots], labels)
+        o.data.materials.clear()
+        o.data.materials.append(mat)
     return report

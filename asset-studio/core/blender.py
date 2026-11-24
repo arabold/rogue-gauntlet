@@ -93,22 +93,10 @@ def checked_binary():
 def export_character(source, target, options, scale=1):
     """Export a saved character scene in a fresh Blender process, without saving edits to the source, at the recipe's
     `scale` (see `finish_export`)."""
-    executable, _ = checked_binary()
     target = Path(target)
     with tempfile.TemporaryDirectory(dir=target.parent) as staging:
-        staging = Path(staging)
-        output = staging / "model.glb"
-        job = staging / "job.json"
-        job.write_text(json.dumps({**options, "glb": str(output)}))
-        result = subprocess.run(
-            [executable, "-b", "--factory-startup", str(source), "--python-exit-code", "1",
-             "--python", str(BLENDER / "export_character.py"), "--", str(job)],
-            capture_output=True, text=True, timeout=900,
-        )
-        log = target.parent / "blender.log"
-        log.write_text(result.stdout + result.stderr)
-        if result.returncode or not output.is_file():
-            raise ValueError(f"Blender character export failed (log: {log}):\n{result.stderr.strip()}")
+        output = Path(staging) / "model.glb"
+        run({**options, "glb": str(output)}, target.parent, BLENDER / "export_character.py", source, outputs=("glb",))
         finish_export(output, scale)
         output.replace(target)
 
@@ -191,24 +179,31 @@ def _first_use(indices, count):
     return order, {old: new for new, old in enumerate(order)}
 
 
-def run(job, workdir, timeout=900):
-    """Run one job (see `blender/runner.py`) in a fresh headless Blender and return its report.
+def run(job, workdir, script=RUNNER, source=None, outputs=("glb", "report"), timeout=900):
+    """Run one job `script` in a fresh headless Blender, opening the saved `source` scene first when given, and return
+    the job's JSON report (`job["report"]`, plus the Blender version that wrote it), or None when it names none.
 
-    Fails with Blender's own error output when the script raises, Blender is not the pinned release, or the job
-    writes nothing.
+    The default script runs a Studio model script (`blender/runner.py`). The job and Blender's output stay in `workdir`
+    as `<script>.job.json` and `<script>.log`. Fails with the log's last lines when the script raises, Blender is not
+    the pinned release, or a file the job names under one of the `outputs` keys was not written.
     """
     executable, found = checked_binary()
     workdir = Path(workdir)
     workdir.mkdir(parents=True, exist_ok=True)
-    job_path = workdir / "job.json"
+    name = Path(script).stem
+    job_path = workdir / f"{name}.job.json"
     job_path.write_text(json.dumps(job, indent=1))
-    result = subprocess.run([executable, "-b", "--factory-startup", "--python-exit-code", "1", "--python", str(RUNNER),
-                             "--", str(job_path)], capture_output=True, text=True, timeout=timeout,
-                            env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
-    (workdir / "blender.log").write_text(result.stdout + result.stderr)
-    if result.returncode != 0 or not Path(job["glb"]).is_file() or not Path(job["report"]).is_file():
+    scene = [str(source)] if source else []
+    result = subprocess.run([executable, "-b", "--factory-startup", *scene, "--python-exit-code", "1",
+                             "--python", str(script), "--", str(job_path)], capture_output=True, text=True,
+                            timeout=timeout, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+    log = workdir / f"{name}.log"
+    log.write_text(result.stdout + result.stderr)
+    if result.returncode != 0 or not all(Path(job[key]).is_file() for key in outputs):
         tail = "\n".join((result.stdout + result.stderr).strip().splitlines()[-25:])
-        raise ValueError(f"Blender model job failed (log: {workdir / 'blender.log'}):\n{tail}")
+        raise ValueError(f"Blender {name} failed (log: {log}):\n{tail}")
+    if not job.get("report"):
+        return None
     report = json.loads(Path(job["report"]).read_text())
     report["blender"] = found
     return report
