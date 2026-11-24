@@ -1,15 +1,14 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=19 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
-[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterChargeAction.cs" id="charge_action"]
 [ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/HealthPhaseCondition.cs" id="phase"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterActionWeightModifier.cs" id="modifier"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
 [ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/minotaur_punch.tres" id="punch_contact"]
-[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/minotaur_smash.tres" id="smash_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/large_unarmed_punch.tres" id="punch_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/large_unarmed_smash.tres" id="smash_contact"]
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/minotaur_charge.tres" id="charge_contact"]
 [ext_resource type="Resource" path="res://scenes/magic/earth/tremor_shake.tres" id="impact_shake"]
 
@@ -62,8 +61,11 @@ HyperArmorEnd = 0.9
 Interruptible = false
 HitStopDuration = 0.06
 FacingLockLead = 0.25
-WindUpTurnRate = 120.0
+WindUpTurnRate = 90.0
 Commit = 0.5
+TravelDistance = 11.6
+WallImpactStagger = 1.8
+WallImpactShake = ExtResource("impact_shake")
 
 [sub_resource type="Resource" id="frenzy_rush"]
 script = ExtResource("attack_definition")
@@ -76,8 +78,11 @@ HyperArmorEnd = 0.9
 Interruptible = false
 HitStopDuration = 0.06
 FacingLockLead = 0.2
-WindUpTurnRate = 160.0
+WindUpTurnRate = 140.0
 Commit = 0.5
+TravelDistance = 11.2
+WallImpactStagger = 1.4
+WallImpactShake = ExtResource("impact_shake")
 
 [sub_resource type="Resource" id="punch"]
 resource_name = "punch"
@@ -109,7 +114,7 @@ MaxDamage = 16.5
 
 [sub_resource type="Resource" id="charge"]
 resource_name = "charge"
-script = ExtResource("charge_action")
+script = ExtResource("attack_action")
 Weight = 0.8
 Cooldown = 6.0
 MinimumRange = 5.0
@@ -122,13 +127,10 @@ Style = &"charge"
 Duration = 2.2
 MinDamage = 12.0
 MaxDamage = 18.0
-Speed = 11.0
-ImpactStagger = 1.8
-ImpactShake = ExtResource("impact_shake")
 
 [sub_resource type="Resource" id="frenzy_charge"]
 resource_name = "frenzy_charge"
-script = ExtResource("charge_action")
+script = ExtResource("attack_action")
 Weight = 1.4
 Cooldown = 3.5
 MinimumRange = 4.0
@@ -141,9 +143,6 @@ Style = &"charge"
 Duration = 1.8
 MinDamage = 12.0
 MaxDamage = 18.0
-Speed = 13.0
-ImpactStagger = 1.4
-ImpactShake = ExtResource("impact_shake")
 
 [resource]
 script = ExtResource("profile")

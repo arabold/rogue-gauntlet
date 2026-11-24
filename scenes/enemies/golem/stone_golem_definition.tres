@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/enemies/golem/stone_golem_behavior.tres" id="behavior"]
+
+[resource]
+script = ExtResource("script")
+Id = "stone_golem"
+DisplayName = "Stone Golem"
+Archetype = 4
+BalanceDepth = 18.0
+SpeedScale = 0.8
+MaxHealth = 59.0
+MoveSpeed = 3.2
+Behavior = ExtResource("behavior")
+Armor = 3.0
+ThreatLevel = 21.37

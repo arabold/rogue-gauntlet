@@ -190,16 +190,35 @@ public partial class AttackDefinition : Resource
 	/// <summary>Maximum degrees per second an AI attacker turns toward its target before facing commits. Zero is unlimited.</summary>
 	[Export(PropertyHint.Range, "0,1440,1")] public float WindUpTurnRate { get; set; }
 
+	/// <summary>
+	/// Melee only: metres the attacker runs along its committed facing through the contact window, carrying its contact
+	/// with it, as the minotaur's charge does. The warning shows the whole run. Zero keeps the attacker in place; an
+	/// attack that travels needs the controller's <see cref="AttackController.Movement"/>.
+	/// </summary>
+	[ExportGroup("Travel")]
+	[Export(PropertyHint.Range, "0,30,0.1,suffix:m")] public float TravelDistance { get; set; }
+	/// <summary>A run that meets a wall or solid prop head-on ends there; it staggers the attacker this long.</summary>
+	[Export(PropertyHint.Range, "0,5,0.05,suffix:s")] public float WallImpactStagger { get; set; }
+	/// <summary>Optional camera shake where a run meets a wall.</summary>
+	[Export] public CameraShakeProfile WallImpactShake { get; set; }
+
+	public bool Travels => TravelDistance > 0;
+
 	/// <summary>Whether the normalized execution progress lies inside the authored hyper-armor interval.</summary>
 	public bool IsHyperArmoredAt(float progress) => HyperArmorEnd > HyperArmorStart && progress >= HyperArmorStart && progress < HyperArmorEnd;
 
-	/// <summary>Poise damage, knockback, hit-stop and wind-up turn rate are nonnegative and finite; the commit share lies in [0, 1].</summary>
+	/// <summary>
+	/// Poise damage, knockback, hit-stop, wind-up turn rate, travel and wall stagger are nonnegative and finite, only melee
+	/// travels, and the commit share lies in [0, 1].
+	/// </summary>
 	public bool HasValidImpactValues =>
 		float.IsFinite(PoiseDamage) && PoiseDamage >= 0
 		&& float.IsFinite(Commit) && Commit >= 0 && Commit <= 1
 		&& float.IsFinite(Knockback) && Knockback >= 0
 		&& float.IsFinite(HitStopDuration) && HitStopDuration >= 0
-		&& float.IsFinite(WindUpTurnRate) && WindUpTurnRate >= 0;
+		&& float.IsFinite(WindUpTurnRate) && WindUpTurnRate >= 0
+		&& float.IsFinite(TravelDistance) && TravelDistance >= 0 && (!Travels || !IsRanged)
+		&& float.IsFinite(WallImpactStagger) && WallImpactStagger >= 0;
 
 	public bool HasValidArmorWindow => HyperArmorStart >= 0 && HyperArmorStart <= HyperArmorEnd && HyperArmorEnd <= 1;
 

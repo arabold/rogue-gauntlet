@@ -57,7 +57,7 @@ Nest: a slime vat that releases acid blobs.
 | Gnome | NetHack gnome | Fodder | Small; comes in mobs and flees when hurt |
 | Gnome lord | NetHack gnome lord | Shooter | Carries a small crossbow |
 | Gnome king | NetHack gnome king | Caster | Leads a mob and empowers gnomes near it |
-| Stone golem | NetHack stone golem | Brute | Slow, heavy fists; **revives**: collapses into rubble and pulls itself back together unless the hero strikes the rubble while it lies there |
+| Stone golem | NetHack stone golem | Brute | Twice the hero's height, so it guards its room. Slow, heavy fists and a guard-breaking smash; **revives** once: the first lethal blow collapses it into rubble that nothing can harm, and it pulls itself back together; the next lethal blow is final |
 | Soldier ant | NetHack soldier ant | Swarmer | Very fast zigzag charge, in pairs |
 | Piercer | NetHack piercer | Standard | **Ambush**: clings to the ceiling and drops on whoever walks beneath, then crawls slowly |
 | Living roots | Grasper family | Standard | Burst from the earth like a trap; **grasp** and crush the hero until the hero fights free; tougher and slower to break than tentacles |
@@ -95,8 +95,8 @@ Each capability is a reusable component, action or strategy, authored on the mon
 | Chest mimic | Any realm from the Prison on | Chest placement, ambush |
 | Contact corrosion | Acid blob | Hurtbox events, `BuffController` |
 | Armor rust and strength sap | Aquator, rattlesnake | Buff modifiers on armor and attributes |
-| Charge (landed) | Minotaur | `MonsterAttackAction`, the attack warning, `HealthPhaseComponent` |
-| Revive | Stone golem | `HealthComponent`, `HealthPhaseComponent` |
+| Charge (landed) | Minotaur | `AttackDefinition` travel on the `AttackController` clock, the attack warning, `HealthPhaseComponent` |
+| Revive (landed) | Stone golem | `HealthComponent`, action gate status lock, `CombatAnimationComponent` |
 | Ambush | Piercer, gargoyle, graspers, chest mimic | `InvisibilityComponent`, attack indicator |
 | Burrow | Umber hulk | Ground navigation, `InvisibilityComponent` |
 | Gaze | Umber hulk, medusa | `MonsterTimedAction`, attack indicator, confusion status, petrify |
@@ -162,24 +162,26 @@ Rogue's Xeroc, as a chest. From the Prison on, a placed chest may be a mimic.
 
 ### Charge
 
-Landed for the minotaur; [monster authoring](../monster-authoring-design.md) describes `MonsterChargeAction`.
+Landed for the minotaur; [monster authoring](../monster-authoring-design.md) describes travelling attacks.
 
-- **Action (landed):** `MonsterChargeAction : MonsterAttackAction`, the minotaur's rush: a melee attack whose contact window is a run at `Speed` along the facing it locks before contact, so its ordinary melee contact travels with it. `MonsterDashAction` stays the damage-free hop.
-- **Telegraph (landed):** a head-down wind-up clip (`ChargeWindup`) while the attack warning stretches into the charge lane, cut short at the first wall.
-- **Wall impact (landed):** a charge that meets a wall or solid prop head-on ends there and staggers the minotaur for `ImpactStagger`, with a camera shake: the hero's opening. Bodies never stop it, and one that ends in the open recovers normally.
+- **Travel (landed):** any melee `AttackDefinition` may travel: `TravelDistance` metres along the facing it locks before contact, run through its contact window by the `AttackController` on its own clock (it holds still through hit-stop), so its ordinary melee contact travels with it. The minotaur's charges are plain `MonsterAttackAction`s with such an attack; `MonsterDashAction` stays the damage-free hop.
+- **Telegraph (landed):** a head-down wind-up clip (`ChargeWindup`) while the attack warning shows the contact swept along the run, cut short at the first wall.
+- **Wall impact (landed):** a run that meets a wall or solid prop head-on ends there and staggers the attacker for `WallImpactStagger`, with an optional `WallImpactShake`: the hero's opening. Bodies never stop it, and one that ends in the open recovers normally.
 - **Breaking its chains (landed):** a `HealthPhaseComponent` phase at half health swaps the charge for a faster, more frequent one (shorter wind-up, higher speed and weight) and raises the smash's weight.
 
 ### Revive
 
-- **Component (proposed):** `ReviveComponent` on the stone golem. When health reaches zero, the golem collapses into rubble for `DownedDuration` instead of dying. Any hit on the rubble destroys it for good. Otherwise it reassembles at `ReviveHealthShare` of its maximum.
-- **Rewards and persistence:** experience, drops and the cleared ID come only with the final death, so walking away from the rubble is not a kill.
+Landed for the stone golem; [monster authoring](../monster-authoring-design.md) describes `ReviveComponent`.
+
+- **Component (landed):** `ReviveComponent` on the stone golem, an `IDeathGuard` that `HealthComponent` asks before a blow kills. The golem collapses through its death clip instead of dying and lies there for `DownedDuration` with a sliver of health, status-locked so it neither acts nor turns, and its hurtbox turns every blow away: a hero who keeps swinging cannot skip the revive. Then it plays the clip backwards and stands with `ReviveHealthShare` (40%) of its maximum. It gets up `Revives` times (once); the next lethal blow kills it. A revive that the rubble's hits could cancel was dropped: the blow after the collapse came too quickly for the revive to matter.
+- **Rewards and persistence (landed):** experience, drops and the cleared ID come only with the final death, through the ordinary death path, so walking away from the rubble is not a kill.
 
 ```text
-HealthComponent: health reaches 0
-└─ ReviveComponent intercepts (until finished)
-   ├─ downed: action gate disabled, collapse clip, hurtbox stays live
-   ├─ hit while downed → HealthComponent dies → Died → rewards, drops, cleared ID
-   └─ timer ends → health restored to ReviveHealthShare → reassemble clip, resume behavior
+HealthComponent: a blow would take health to 0
+└─ ReviveComponent catches it while revives remain
+   ├─ down: sliver of health, action gate status-locked, death clip held, hurtbox invulnerable
+   ├─ timer ends → death clip played backwards → health restored to ReviveHealthShare → resume behavior
+   └─ revives spent → HealthComponent dies → Died → rewards, drops, cleared ID
 ```
 
 ### Ambush, burrow, gaze and invisibility
@@ -236,7 +238,7 @@ HealthComponent: health reaches 0
 ~ scenes/attacks/Projectile.cs (+ its definition)     arc trajectory, impact field
 ~ scenes/magic/shared/LingeringAreaDefinition.cs      PoisonPool kind
 + scenes/components/ReviveComponent.cs, AmbushComponent.cs, ContactRetaliationComponent.cs
-+ scenes/enemies/actions/MonsterChargeAction.cs, MonsterBurrowAction.cs, MonsterGazeAction.cs, MonsterSummonAction.cs,
++ scenes/enemies/actions/MonsterBurrowAction.cs, MonsterGazeAction.cs, MonsterSummonAction.cs,
   MonsterBlinkAction.cs, MonsterGraspAction.cs, MonsterStealAction.cs
 + scenes/buffs/conditions/goo_bound.tres, petrified.tres, grasped.tres
 + scenes/components/GraspedStatusComponent.cs           no movement or dodge while grasped
@@ -260,7 +262,8 @@ Each slice lands playable: its realm's floors spawn the new roster, and the harn
 3. **Sewer.** Arcing lob and poison pools (spitting slime), contact corrosion (acid blob), armor rust (aquator), the snake, ambush and grasp (sewer tentacles), goo bind and the gelatinous cube, and the slime vat.
    - Verify: a lob lands behind cover; standing in a pool poisons, leaving it stops it; goo binds for its duration and poisons; striking an acid blob corrodes, shooting it does not; a grasped hero can attack but not move, and breaking the tentacles' poise frees them.
 4. **Mines and thieves.** Gnome family, the stone golem with revive, soldier ant, piercer, living roots (the grasper's second look), rattlesnake, leprechaun (theft and escape), umber hulk (burrow and gaze), and the ant hill. Theft also brings the Prison's nymph, and the chest mimic joins every realm from the Prison on.
-   - Verify: a golem struck while down stays dead and pays out, while one left alone reassembles; a piercer stays hidden until triggered and its drop is telegraphed; burrowing never crosses walls; facing away avoids the gaze; a thief that escapes keeps its loot and one killed first drops it; a mimic keeps its chest's loot and stays cleared after a reload.
+   - Landed early: the [Mines factory](../../scenes/levels/encounters/mines_encounters.tres), chained from the Sewer, with the stone golem as the brute (the Studio's procedural golem at full size, held in its room) and giant bats and snakes standing in for the cave dwellers; the bat roost serves as its nest until the ant hill exists. No gatekeeper yet.
+   - Verify: a golem rises once whatever the hero does while it is down, and the next lethal blow kills it and pays out; a piercer stays hidden until triggered and its drop is telegraphed; burrowing never crosses walls; facing away avoids the gaze; a thief that escapes keeps its loot and one killed first drops it; a mimic keeps its chest's loot and stays cleared after a reload.
 5. **Cathedral.** Gargoyle (ambush and flight), wraith (flight and drain), ghost (door phasing), vampire bat, phantom (permanent invisibility), medusa (petrifying gaze), lich (summon and blink), and the reliquary.
    - Verify: a ghost passes a closed door a walker cannot; drain heals by its share; the phantom never becomes visible; a hero facing medusa inside her cone when the gaze lands is petrified and takes no damage from it, while one turned around or behind cover is untouched; her snakes poison; summons are capped, unrewarded and collapse with the lich.
 

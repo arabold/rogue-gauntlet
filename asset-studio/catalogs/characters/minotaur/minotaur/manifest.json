@@ -1,11 +1,11 @@
 {
   "key": "minotaur/minotaur",
-  "inputs": "5eeb4d58ad27fe6a908ccc652052fbdfd8338a30e81efa8f5f0b6668a143ae04",
+  "inputs": "b7664beffc57beb30ab8616811f36b5e8dcf1a18e8aa6876e84ddece1d241df9",
   "files": {
-    "model.glb": "b323ca01a7be58a72536b8acf8f497007d52d7ed4467faeea3ca5456d8879fb9",
-    "lineup.png": "4c1809ad5297ab2a3c265f6d8ff229d668f1028fc3cb98b822188c645985848b",
-    "lineup.gif": "dba6546544c4030d65106d9c0032b783e127b3f20e1357757d5814b787c31f42",
-    "asset.json": "a2cb32ddf2b15ba8d0bde8ca65aa33b73cdabea7695afd0f97fe4b85f97d7ebd"
+    "model.glb": "6299590fac0112c5e0d67f92a38f966ee1fb60374ae1771cc6d030b46cf3b1a2",
+    "lineup.png": "4fc4d4df9aeaf76874545af042074d479354e47d4183a9e2863ee3982d55a327",
+    "lineup.gif": "fa921702b942d48b1fc28e0a07b7d7e26332dfdc700e02c1626ce3cf6949b9bb",
+    "asset.json": "0626f2e71c45269e8ec286b16c13c4e0f788c2e28529819443a090a330eb5ed3"
   },
   "metadata": {
     "engine_import_verified": true

@@ -57,6 +57,8 @@ public class RealmEncounterTest
 			"res://scenes/levels/encounters/bat_roost.tscn", "res://scenes/enemies/minotaur/minotaur.tscn"),
 		("The Sewer", ["res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/snake/snake.tscn"],
 			"res://scenes/levels/encounters/slime_vat.tscn", null),
+		("The Mines", ["res://scenes/enemies/golem/stone_golem.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/snake/snake.tscn"],
+			"res://scenes/levels/encounters/bat_roost.tscn", null),
 	];
 
 	[TestCase]
@@ -91,7 +93,7 @@ public class RealmEncounterTest
 	{
 		// Each realm's nest floor and last floor: their nests release the realm's own monsters, and the last floor seals
 		// its descent behind the realm's gatekeeper, or stays open while the realm has none yet.
-		(uint Depth, int Realm, int Nests)[] floors = [(7, 0, 2), (10, 0, 0), (12, 1, 2), (15, 1, 0)];
+		(uint Depth, int Realm, int Nests)[] floors = [(7, 0, 2), (10, 0, 0), (12, 1, 2), (15, 1, 0), (17, 2, 2)];
 		var (runner, level) = await TestFactories.GenerateLevel(23, floors[0].Depth);
 		using var cleanup = runner;
 		foreach (var (depth, realm, nests) in floors)

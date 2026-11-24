@@ -34,6 +34,10 @@ public partial class HealthComponent : Node
 	public bool IsDead => CurrentHealth <= 0;
 	/// <summary>Current health as a share of the maximum; 1 without a positive maximum.</summary>
 	public float Fraction => MaxHealth > 0 ? CurrentHealth / MaxHealth : 1;
+	/// <summary>An optional capability asked before damage kills, which may leave the actor alive instead.</summary>
+	public IDeathGuard DeathGuard { get; set; }
+	/// <summary>Health a blow the <see cref="DeathGuard"/> caught leaves: the actor is alive, but only just.</summary>
+	public const float CaughtHealth = 0.01f;
 
 	public HealthComponent()
 	{
@@ -55,12 +59,17 @@ public partial class HealthComponent : Node
 		}
 	}
 
-	public void TakeDamage(float amount)
+	/// <summary>Take <paramref name="amount"/> damage; true when the blow was lethal, even when the death guard caught it.</summary>
+	public bool TakeDamage(float amount)
 	{
+		bool lethal = false;
 		if (CurrentHealth > 0)
 		{
 			GD.Print($"{GetOwner()?.Name ?? Name} took {amount} damage.");
-			CurrentHealth -= amount;
+			float remaining = CurrentHealth - amount;
+			lethal = remaining <= 0;
+			if (lethal && DeathGuard?.TryCatchLethalBlow() == true) remaining = CaughtHealth;
+			CurrentHealth = remaining;
 			if (!IsNodeReady())
 			{
 				EmitSignalHealthChanged(CurrentHealth, MaxHealth);
@@ -71,6 +80,7 @@ public partial class HealthComponent : Node
 				Die();
 			}
 		}
+		return lethal;
 	}
 
 	/// <summary>

@@ -13,7 +13,7 @@ The turnaround was reconstructed with Tripo H3.1 (`v3.1-20260211`, seed 1) using
 
 The rig is the large rig with its joints moved to the minotaur's short legs and big head. It plays the rig's idle, run, unarmed punch and two-fist smash, hit and death. The charge clips are authored over the rig's own: `ChargeWindup` is the unarmed idle with the spine, chest and head pitched down, and `Charge` is the run, twice over, pitched the same way so the horns lead (`rig.actions` with `base`). The recipe exports it at scale 1, about 3.9 m to the horn tips.
 
-In the stock combat harness choose **Monsters → Spawn → The Minotaur**. Its stats come from the balance model as the gatekeeper at depth 10, the Prison's last floor. It punches and smashes up close, and from 5–14 m it charges along a warned lane; a charge the hero sidesteps runs on into the next wall and leaves it staggered (`MonsterChargeAction`). Below half health it charges faster and more often.
+In the stock combat harness choose **Monsters → Spawn → The Minotaur**. Its stats come from the balance model as the gatekeeper at depth 10, the Prison's last floor. It punches and smashes up close, and from 5–14 m it charges along a warned lane; a charge the hero sidesteps runs on into the next wall and leaves it staggered (`AttackDefinition.TravelDistance`). Below half health it charges faster and more often.
 
 Rebuild the source after editing `reconstruction.json` (the Tripo result must be in temporary storage; `reconstruct tripo` recreates it for 40 credits), then review and export it.
 

@@ -30,10 +30,10 @@ public partial class MinotaurChargeTest
 		combat.Actions = [.. combat.Actions.Where(action => action.ResourceName == "charge")];
 		minotaur.Definition.Behavior.InitialAction = EnemyAction.None;
 		minotaur.EnemyBehaviorComponent.AIEnabled = false;
-		// Behind the hero, so the minotaur's spawn facing (-Z) already looks at it: a large actor turns slowly.
 		minotaur.Position = player.Position + Vector3.Back * distance;
 		runner.Scene().AddChild(minotaur);
 		minotaur.DeathComponent.RewardsEnabled = false;
+		// Snap the facing: a large actor would take two seconds to turn round.
 		minotaur.MovementComponent.SetLookAtDirection(player.GlobalPosition - minotaur.GlobalPosition);
 		minotaur.EnemyBehaviorComponent.SetTarget(player);
 		await runner.SimulateFrames(2, 20);
@@ -74,8 +74,8 @@ public partial class MinotaurChargeTest
 		await TestFactories.AwaitPhysicsUntil(runner, () => minotaur.AttackController.Phase == ActorActionPhase.Active, 3);
 		player.GlobalPosition += Vector3.Right * 5;
 		player.ResetPhysicsInterpolation();
+		// A charge into a wall staggers the minotaur.
 		await TestFactories.AwaitPhysicsUntil(runner, () => minotaur.ActionGate.IsStaggered, 3);
-		AssertBool(minotaur.ActionGate.IsStaggered).OverrideFailureMessage("a charge into a wall staggers the minotaur").IsTrue();
 		AssertBool(minotaur.AttackController.IsAttacking).IsFalse();
 		AssertFloat(player.HealthComponent.CurrentHealth).IsEqual(health);
 		AssertFloat(minotaur.GlobalPosition.Z - wall.GlobalPosition.Z).IsLess(2);

@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/mimic/chest_mimic.tscn" id="mimic"]
 [ext_resource type="PackedScene" path="res://scenes/levels/encounters/slime_vat.tscn" id="nest"]
-[ext_resource type="Resource" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="fallback"]
+[ext_resource type="Resource" path="res://scenes/levels/encounters/mines_encounters.tres" id="fallback"]
 
 [sub_resource type="Resource" id="rat_pack"]
 script = ExtResource("entry")

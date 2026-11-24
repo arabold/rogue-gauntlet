@@ -10,7 +10,7 @@
 [ext_resource type="Resource" path="res://scenes/enemies/minotaur/minotaur_definition.tres" id="definition"]
 [ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
 [ext_resource type="Script" path="res://scenes/enemies/HealthPhaseComponent.cs" id="phase_script"]
-[ext_resource type="Resource" path="res://scenes/enemies/minotaur/minotaur_defense_animation.tres" id="defense_animation"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/large_defense_animation.tres" id="defense_animation"]
 
 [ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
 [ext_resource type="Resource" path="res://scenes/enemies/minotaur/minotaur_poise.tres" id="poise_definition"]
@@ -170,8 +170,9 @@ script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
 
-[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate", "Movement")]
 ActionGate = NodePath("../ActorActionGateComponent")
+Movement = NodePath("../MovementComponent")
 
 [node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
 ActionGate = NodePath("../ActorActionGateComponent")
