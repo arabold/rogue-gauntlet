@@ -29,10 +29,10 @@ public partial class FireballSpell : Node3D
 		if (count < 1 || DamageByLevel[level - 1] < 0 || ImpactScaleByLevel[level - 1] <= 0) return 0;
 		_targetRandom.Seed = seed;
 		_visualRandom.Seed = seed ^ 0xB33F17UL;
-		var targets = candidates.Where(t => GodotObject.IsInstanceValid(t) && t.IsInsideTree()
-			&& t.IsInGroup("enemy") && (t.GetNodeOrNull<HealthComponent>("HealthComponent") is not { IsDead: true })
+		var targets = candidates.Where(t => GodotObject.IsInstanceValid(t) && t.IsInGroup("enemy")
+			&& (t.GetNodeOrNull<HealthComponent>("HealthComponent") is not { IsDead: true })
 			&& Caster.GlobalPosition.DistanceTo(t.GlobalPosition) <= Radius
-			&& WorldSight.IsClear(Caster.GetWorld3D(), Caster.GlobalPosition + Vector3.Up, t.GlobalPosition + Vector3.Up))
+			&& AreaSpellTargets.IsEligible(t, Caster.GetWorld3D(), Caster.GlobalPosition))
 			.Distinct().OrderBy(t => t.GetPath().ToString(), System.StringComparer.Ordinal).ToList();
 		var captured = new List<(Node3D Owner, Vector3 Position)>();
 		while (targets.Count > 0 && captured.Count < count)

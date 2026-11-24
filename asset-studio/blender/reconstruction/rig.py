@@ -13,14 +13,21 @@ onto it before weighting (`pose_creature`), unposed like the humanoid's.
 keys every clip from `rig.actions`.
 """
 
+import math
+
 import bpy
 import numpy as np
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Quaternion, Vector
 
 from .chains import joints, polyline
 
 HELPER_ANCHORS = {"elbowIK": "lowerarm", "handIK": "hand", "kneeIK": "lowerleg"}  # other IK/control bones: the foot
 
+
+def _reset_pose(arm):
+    """Return every pose bone to its rest transform."""
+    for p in arm.pose.bones:
+        p.matrix_basis = Matrix.Identity(4)
 
 def import_template(path, config):
     before = set(bpy.data.objects)
@@ -304,8 +311,7 @@ def bind(arm, config):
         o.parent = arm
         o.matrix_parent_inverse = arm.matrix_world.inverted()  # parts stay where they are under a transformed armature
         o.modifiers.new("Armature", "ARMATURE").object = arm
-    for p in arm.pose.bones:
-        p.matrix_basis = Matrix.Identity(4)
+    _reset_pose(arm)
 
 
 def author_actions(arm, config):
@@ -319,8 +325,6 @@ def author_actions(arm, config):
     "envelope": [[frame, factor], ...]}]`. Bone i turns by `rotation * taper_i * sin(360 * cycles * f / end - i * lag)`;
     whole cycles over the clip loop seamlessly, and the envelope (linear, default 1) fades a wave in or out.
     """
-    from mathutils import Euler
-    import math
     for name, spec in config["rig"].get("actions", {}).items():
         action = bpy.data.actions.new(name)
         action.use_fake_user = True
@@ -344,14 +348,11 @@ def author_actions(arm, config):
         for wave in spec.get("waves", []):
             _add_wave(curves, wave, end)
     arm.animation_data.action = None
-    for p in arm.pose.bones:
-        p.matrix_basis = Matrix.Identity(4)
+    _reset_pose(arm)
 
 
 def _add_wave(curves, wave, end):
     """Compose one `waves` entry onto the baked per-frame rotation keys of its bones."""
-    from mathutils import Euler, Quaternion
-    import math
     bones, n = wave["bones"], len(wave["bones"])
     first, last = wave.get("taper", (1, 1))
     envelope = wave.get("envelope", [[0, 1], [end, 1]])
@@ -389,8 +390,7 @@ def hold_poses(arm, config):
                 key.interpolation = "LINEAR"
     arm.animation_data.action = None
     bpy.context.scene.frame_set(0)
-    for p in arm.pose.bones:
-        p.matrix_basis = Matrix.Identity(4)
+    _reset_pose(arm)
 
 
 def complete_clip_channels(arm):

@@ -40,10 +40,6 @@ def _request(method, path, body=None, headers=None):
     return out["data"]
 
 
-def balance():
-    return _request("GET", "/user/balance")
-
-
 def _upload(path):
     boundary = uuid.uuid4().hex
     body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{Path(path).name}"\r\n'

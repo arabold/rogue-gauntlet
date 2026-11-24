@@ -2,10 +2,13 @@ using System.Linq;
 using Godot;
 
 /// <summary>
-/// Keeps a monster lying in wait until the hero gives it away. While dormant it stays out of the hero's targeting, hides
-/// its nameplate and does not think or move (<see cref="EnemyBehaviorComponent"/>). It either shows a
-/// <see cref="Disguise"/> (a real chest, gold outline and all) in place of its <see cref="Model"/> and offers the
-/// disguise's "Open Chest", or rests in its <see cref="DormantClip"/>. Opening the disguise, coming within
+/// Keeps a monster lying in wait until the hero gives it away. While dormant it is concealed
+/// (<see cref="EnemyBase.IsConcealed"/>): aim-assist and seeking spells pass it over, its nameplate (name and health bar)
+/// and monster x-ray stay off, and it does not think or move (<see cref="EnemyBehaviorComponent"/>). Blasts and blows
+/// still hit it, which wakes it. It either shows a <see cref="Disguise"/> prop in place of its <see cref="Model"/> (a
+/// real chest, gold outline and all, whose "Open Chest" springs the trap), or rests in its <see cref="DormantClip"/>:
+/// a coil, or a pose sunk below the floor or into a wall that its <see cref="WakeClip"/> emerges from. Using the
+/// disguise, coming within
 /// <see cref="WakeRadius"/> in its sight for <see cref="WakeDelay"/>, or hitting it wakes it: it drops any disguise,
 /// plays its <see cref="WakeClip"/> and goes for the hero. The chest mimic waits disguised; the snake lies coiled and
 /// strikes at a hero who comes close.
@@ -13,13 +16,14 @@ using Godot;
 [GlobalClass]
 public partial class AmbushComponent : Node
 {
-	private static readonly StringName EnemyGroup = "enemy";
 	private static readonly StringName PlayerGroup = "player";
+	// How often a waiting monster looks for the hero; well under any wake delay, and cheaper than every tick.
+	private const float ScanInterval = .15f;
 
 	[Export] public EnemyBase Actor { get; set; }
 	/// <summary>The monster's own model, hidden while a disguise stands in for it.</summary>
 	[Export] public Node3D Model { get; set; }
-	/// <summary>Optional chest scene shown in the monster's place; its interaction becomes the trap.</summary>
+	/// <summary>Optional prop scene shown in the monster's place, such as a chest; using its interaction springs the trap.</summary>
 	[Export] public PackedScene Disguise { get; set; }
 	[Export] public AnimationPlayer AnimationPlayer { get; set; }
 	[Export] public AnimationTree AnimationTree { get; set; }
@@ -32,28 +36,30 @@ public partial class AmbushComponent : Node
 	/// <summary>Seconds the hero may stay that close before it wakes; 0 wakes it the moment the hero arrives.</summary>
 	[Export(PropertyHint.Range, "0,10,0.1,suffix:s")] public float WakeDelay { get; set; } = 2.5f;
 
-	/// <summary>Lying in wait: from spawn until it wakes, including its wake clip.</summary>
-	public bool IsDormant { get; private set; } = true;
+	public AmbushState State { get; private set; } = AmbushState.Waiting;
+	/// <summary>Waiting or waking: the monster's own behavior has not taken over yet.</summary>
+	public bool IsDormant => State != AmbushState.Hunting;
 	/// <summary>Whether something gave it away; its wake clip may still be playing.</summary>
-	public bool IsAwake { get; private set; }
+	public bool IsAwake => State != AmbushState.Waiting;
 
 	[Signal] public delegate void WokeEventHandler();
 
-	private Chest _disguise;
+	private Node3D _disguise;
 	private float _near;
+	private float _scan;
 
 	public override void _Ready()
 	{
 		if (Actor == null || (Disguise != null && Model == null))
 		{
 			GD.PushError($"{GetParent()?.Name}/{Name}: assign Actor, and a Model for the Disguise; the monster does not wait.");
-			IsDormant = false;
+			State = AmbushState.Hunting;
 			return;
 		}
-		Actor.RemoveFromGroup(EnemyGroup);
 		if (Actor.Nameplate != null) Actor.Nameplate.Enabled = false;
 		Actor.HurtBoxComponent.DamageTaken += OnDamageTaken;
-		if (Disguise != null) PutOnDisguise();
+		// Deferred: the actor is still readying its children, and the disguise must not join the monster's x-ray.
+		if (Disguise != null) Callable.From(PutOnDisguise).CallDeferred();
 		else if (!string.IsNullOrEmpty(DormantClip) && AnimationPlayer?.HasAnimation(DormantClip) == true)
 		{
 			if (AnimationTree != null) AnimationTree.Active = false;
@@ -63,46 +69,57 @@ public partial class AmbushComponent : Node
 
 	private void PutOnDisguise()
 	{
-		_disguise = Disguise.Instantiate<Chest>();
-		// Beside the model, so it stands and faces exactly where the monster does.
-		Model.GetParent().AddChild(_disguise);
+		if (State != AmbushState.Waiting || !GodotObject.IsInstanceValid(Actor)) return;
+		_disguise = Disguise.Instantiate<Node3D>();
+		// Beside the model's pivot, so it stands and faces exactly where the monster does, yet outside the pivot whose
+		// meshes the monster's x-ray outlines: the prop shows only its own.
+		_disguise.Transform = Model.GetParent<Node3D>().Transform;
+		Actor.AddChild(_disguise);
 		Model.Visible = false;
 		foreach (var body in _disguise.FindChildren("*", "PhysicsBody3D", true, false).OfType<PhysicsBody3D>())
 			Actor.AddCollisionExceptionWith(body);
-		// The chest wires its own interaction when it is ready; take it over after that.
+		// The prop wires its own interaction when it is ready; take it over after that.
 		if (_disguise.IsNodeReady()) ArmTrap();
 		else _disguise.Ready += ArmTrap;
 	}
 
-	/// <summary>Opening the chest springs the trap instead of the lid.</summary>
-	private void ArmTrap() => _disguise.Interactive.CommitHandler = (reservation, actor) =>
+	/// <summary>Using the prop (opening the chest) springs the trap instead; a prop without an interaction has none.</summary>
+	private void ArmTrap()
 	{
-		Wake(reservation.Actor);
-		return InteractionCommitResult.Success;
-	};
+		var interaction = _disguise.FindChildren("*", "", true, false).OfType<InteractiveComponent>().FirstOrDefault();
+		if (interaction == null) return;
+		interaction.CommitHandler = (reservation, actor) =>
+		{
+			Wake(reservation.Actor);
+			return InteractionCommitResult.Success;
+		};
+	}
 
 	private void OnDamageTaken(float amount, Vector3 attackDirection) => Wake(ClosestPlayer());
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (IsAwake || !IsDormant) return;
+		if (State != AmbushState.Waiting) return;
+		_scan -= (float)delta;
+		if (_scan > 0) return;
+		_scan = ScanInterval;
 		var player = ClosestPlayer();
 		bool near = player != null && player.GlobalPosition.HorizontalDistanceTo(Actor.GlobalPosition) <= WakeRadius
 			&& WorldSight.IsClear(Actor.GetWorld3D(), Actor.GlobalPosition + Vector3.Up, player.GlobalPosition + Vector3.Up);
-		_near = near ? _near + (float)delta : 0;
+		_near = near ? _near + ScanInterval : 0;
 		if (near && _near >= WakeDelay) Wake(player);
 	}
 
 	/// <summary>Gives the monster away: it drops any disguise, plays its wake clip, then hunts <paramref name="target"/>.</summary>
 	public void Wake(Node3D target)
 	{
-		if (IsAwake || !IsDormant) return;
-		IsAwake = true;
+		if (State != AmbushState.Waiting) return;
+		State = AmbushState.Waking;
 		SetPhysicsProcess(false);
 		if (GodotObject.IsInstanceValid(_disguise)) _disguise.QueueFree();
 		if (Model != null) Model.Visible = true;
-		Actor.AddToGroup(EnemyGroup);
 		if (Actor.Nameplate != null) Actor.Nameplate.Enabled = true;
+		if (Actor.Xray != null) Actor.Xray.IsEnabled = true;
 		if (CombatTrace.Enabled) CombatTrace.Write(Actor, "ambush.woke", ("target", CombatTrace.Identity(target)));
 		EmitSignalWoke();
 		double duration = AnimationPlayer?.HasAnimation(WakeClip) == true ? AnimationPlayer.GetAnimation(WakeClip).Length : 0;
@@ -121,7 +138,7 @@ public partial class AmbushComponent : Node
 	{
 		if (!GodotObject.IsInstanceValid(Actor) || Actor.IsDead) return;
 		if (AnimationTree != null) AnimationTree.Active = true;
-		IsDormant = false;
+		State = AmbushState.Hunting;
 		var behavior = Actor.EnemyBehaviorComponent;
 		if (GodotObject.IsInstanceValid(target) && target.IsInsideTree())
 		{
@@ -130,7 +147,24 @@ public partial class AmbushComponent : Node
 		}
 	}
 
-	private Player ClosestPlayer() => GetTree().GetNodesInGroup(PlayerGroup).OfType<Player>()
-		.Where(player => !player.IsDead)
-		.OrderBy(player => player.GlobalPosition.DistanceSquaredTo(Actor.GlobalPosition)).FirstOrDefault();
+	private Player ClosestPlayer()
+	{
+		Player closest = null;
+		float best = float.PositiveInfinity;
+		foreach (Node node in GetTree().GetNodesInGroup(PlayerGroup))
+		{
+			if (node is not Player { IsDead: false } player) continue;
+			float distance = player.GlobalPosition.DistanceSquaredTo(Actor.GlobalPosition);
+			if (distance < best) (best, closest) = (distance, player);
+		}
+		return closest;
+	}
+}
+
+/// <summary>Where a monster lying in wait is: still waiting, playing its wake clip, or hunting with its own behavior.</summary>
+public enum AmbushState
+{
+	Waiting,
+	Waking,
+	Hunting,
 }

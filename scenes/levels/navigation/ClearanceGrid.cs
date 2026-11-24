@@ -83,6 +83,32 @@ public sealed class ClearanceGrid
 		return new ClearanceGrid(this);
 	}
 
+	/// <summary>
+	/// Finishes the walkers' and flyers' grids (<see cref="NavigationLayer"/>) from <paramref name="shared"/>, which holds
+	/// what blocks both: floor, void and gates. <paramref name="solids"/> taller than <see cref="AirClearanceHeight"/> join
+	/// it before flyers get a copy with <paramref name="flyersOnlyFloor"/> (pits and water) opened; walkers then add the
+	/// lower solids, <paramref name="walkersOnlyAreas"/> (pits beside their floor) and <paramref name="walkersOnlySolids"/>
+	/// (water's walking barriers). Both come back frozen; the shared work is done once.
+	/// </summary>
+	public static (ClearanceGrid Ground, ClearanceGrid Air) BuildLayers(ClearanceGrid shared, IEnumerable<SolidOutline> solids,
+		IEnumerable<Rect2> flyersOnlyFloor, IEnumerable<Rect2> walkersOnlyAreas, IEnumerable<SolidOutline> walkersOnlySolids)
+	{
+		var low = new List<SolidOutline>();
+		foreach (var solid in solids)
+		{
+			if (solid.Top > AirClearanceHeight) shared.AddObstacle(solid);
+			else low.Add(solid);
+		}
+		var air = shared.Copy();
+		foreach (var area in flyersOnlyFloor) air.AddFloor(area);
+		air.Freeze();
+		foreach (var area in walkersOnlyAreas) shared.AddObstacle(area);
+		foreach (var solid in low) shared.AddObstacle(solid);
+		foreach (var solid in walkersOnlySolids) shared.AddObstacle(solid);
+		shared.Freeze();
+		return (shared, air);
+	}
+
 	public float CellSize => DefaultCellSize;
 	public float MaxClearance { get; }
 	public Vector2I Size { get; }

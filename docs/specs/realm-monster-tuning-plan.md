@@ -39,7 +39,7 @@ A Sewer swarmer, alone or in pairs at water and drains, among rats. It teaches t
 - **Lies in wait:** `RoamRadius` 0 keeps it at its spawn, and `DetectionRange` 7 makes it notice the hero late.
 - **Movement:** it faces its travel (`FacesTravel`, below) and turns at `MaxTurnRate` 270°/s, so it never slides backward. It slithers at 4.5 m/s.
 - **Attack pattern:** the lunge (a 3 m dash after a 0.25 s coil) opens every exchange, with a higher weight. The bite follows only while the hero stays beside it. After a bite it slithers away head first (`bite_and_dart`, 3.5 m), coils in its idle, and lunges again. Venom stays at 60%.
-- **Coiled ambush (landed):** it lies in a tight coil, out of the hero's targeting and without a nameplate, until the hero comes within 3.5 m in its sight or hits it; then it uncoils and lunges (`AmbushComponent` with `DormantClip` `Coiled`).
+- **Coiled ambush (landed):** it lies in a tight coil, concealed (no nameplate, monster x-ray or aim-assist), until the hero comes within 3.5 m in its sight or hits it; then it uncoils and lunges (`AmbushComponent` with `DormantClip` `Coiled`).
 
 ### Giant bat
 

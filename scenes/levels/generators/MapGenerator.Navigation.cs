@@ -11,9 +11,8 @@ using Godot;
 public partial class MapGenerator
 {
 	/// <summary>
-	/// Builds and freezes both grids; runs after loot so chests and fountains count as solids. Void, walls, doors and tall
-	/// solids block both, so they go into one grid that is then copied: flyers add the pits as floor, walkers add pits,
-	/// low solids and water's walking barriers as obstacles.
+	/// Builds and freezes both grids (<see cref="ClearanceGrid.BuildLayers"/>); runs after loot so chests and fountains
+	/// count as solids. Void, walls, doors and tall solids are added once for both grids.
 	/// </summary>
 	private void BuildNavigation()
 	{
@@ -33,29 +32,16 @@ public partial class MapGenerator
 			// Void beside a pit alone lies a whole tile from any walkable cell, beyond the clearance walkers measure.
 			else if (BordersOpen(x, z, flying: true)) shared.AddObstacle(area);
 		}
-		var low = new List<SolidOutline>();
-		foreach (var outline in SolidOutlines(CollisionOutlines.BlockingLayers & ~CollisionOutlines.WalkingTerrainLayer))
-		{
-			if (outline.Top > ClearanceGrid.AirClearanceHeight) shared.AddObstacle(outline);
-			else low.Add(outline);
-		}
 		// Gate i is door i in both grids: FloorNavigation reads the same list to open and close the gates.
 		var toLocal = GlobalTransform.AffineInverse();
-		var gates = LiveNodes<Door>().ToArray();
+		var live = LiveNodes<Node3D>().ToList();
+		var gates = live.OfType<Door>().ToArray();
 		foreach (var door in gates)
 			shared.AddGate(door.Collision?.Shape != null ? door.LeafOutline(open: false, toLocal * door.GlobalTransform).Polygon : []);
-
-		var air = shared.Copy();
-		foreach (var pit in pits) air.AddFloor(pit);
-		air.Freeze();
-
-		var ground = shared;
-		foreach (var pit in walkersOnly) ground.AddObstacle(pit);
-		foreach (var outline in low) ground.AddObstacle(outline);
-		foreach (var barrier in LiveNodes<StaticBody3D>().Where(body => body.CollisionLayer == CollisionOutlines.WalkingTerrainLayer))
-		foreach (var outline in CollisionOutlines.FromStaticBodies(barrier, toLocal * barrier.GlobalTransform, CollisionOutlines.WalkingTerrainLayer))
-			ground.AddObstacle(outline);
-		ground.Freeze();
+		const uint walking = CollisionOutlines.WalkingTerrainLayer;
+		var barriers = live.OfType<StaticBody3D>().Where(body => body.CollisionLayer == walking)
+			.SelectMany(barrier => CollisionOutlines.FromStaticBodies(barrier, toLocal * barrier.GlobalTransform, walking));
+		var (ground, air) = ClearanceGrid.BuildLayers(shared, SolidOutlines(CollisionOutlines.BlockingLayers & ~walking), pits, walkersOnly, barriers);
 		Floor.SetNavigation(ground, air, gates);
 	}
 }

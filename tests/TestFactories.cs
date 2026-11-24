@@ -104,6 +104,21 @@ public static partial class TestFactories
 		return monster;
 	}
 
+	/// <summary>
+	/// The combat harness with the hero standing still (input off) and one monster <paramref name="distance"/> ahead
+	/// (<see cref="SpawnHarnessMonster"/>), deciding for itself.
+	/// </summary>
+	public static async Task<(ISceneRunner Runner, CombatHarness Harness, EnemyBase Monster)> StageHarnessMonster(string scenePath, float distance)
+	{
+		var runner = LoadCombatHarness();
+		var harness = await SettleCombatHarness(runner, 4);
+		harness.Player.InputController.SetPhysicsProcess(false);
+		var monster = SpawnHarnessMonster(harness, scenePath, distance);
+		harness.ExecuteCommand("automation", value: 1);
+		await runner.SimulateFrames(2, 20);
+		return (runner, harness, monster);
+	}
+
 	/// <summary>The hero's own instance of a spell in the arena's pool, found by its authored name; the debug menu casts the same one.</summary>
 	public static T GetSpell<T>(CombatHarness harness, string name) where T : class, ICombatSpell
 	{
@@ -304,13 +319,15 @@ public static partial class TestFactories
 
 	/// <summary>
 	/// The authored level generated like a real floor for <paramref name="seed"/> and <paramref name="depth"/>, without
-	/// the floor's own monsters, which would wander into whatever the test stages.
+	/// the floor's own monsters, which would wander into whatever the test stages. <paramref name="configure"/> may adjust
+	/// the level, such as its mob factory, before it generates.
 	/// </summary>
-	public static async Task<(ISceneRunner Runner, Level Level)> GenerateLevel(ulong seed, uint depth)
+	public static async Task<(ISceneRunner Runner, Level Level)> GenerateLevel(ulong seed, uint depth, Action<Level> configure = null)
 	{
 		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
 		await runner.SimulateFrames(2);
 		var level = (Level)runner.Scene();
+		configure?.Invoke(level);
 		GameSession.Instance.ResetLevelDebugState(depth);
 		level.ConfigureGeneration(new RunState(seed), depth, null, null);
 		level.Generate();

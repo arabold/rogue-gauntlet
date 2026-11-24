@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
@@ -81,24 +82,14 @@ public partial class DebugArena : Node3D, IDebugWorld
 			return;
 		}
 
-		var ground = new ClearanceGrid(Bounds);
-		var air = new ClearanceGrid(Bounds);
-		ground.AddFloor(Bounds);
-		air.AddFloor(Bounds);
+		var shared = new ClearanceGrid(Bounds);
+		shared.AddFloor(Bounds);
 		// Only the floor, the boundaries and the stage are solid: actors, the HUD and spawns never are.
-		foreach (Node3D solid in GetChildren().OfType<Node3D>().Where(child => child is StaticBody3D || child == Stage))
-		{
-			foreach (SolidOutline outline in CollisionOutlines.FromStaticBodies(solid, solid.GlobalTransform))
-			{
-				ground.AddObstacle(outline);
-				if (outline.Top > ClearanceGrid.AirClearanceHeight)
-				{
-					air.AddObstacle(outline);
-				}
-			}
-		}
-		ground.Freeze();
-		air.Freeze();
+		var solids = GetChildren().OfType<Node3D>().Where(child => child is StaticBody3D || child == Stage).ToList();
+		IEnumerable<SolidOutline> Outlines(uint layers) =>
+			solids.SelectMany(solid => CollisionOutlines.FromStaticBodies(solid, solid.GlobalTransform, layers));
+		const uint walking = CollisionOutlines.WalkingTerrainLayer;
+		var (ground, air) = ClearanceGrid.BuildLayers(shared, Outlines(CollisionOutlines.BlockingLayers & ~walking), [], [], Outlines(walking));
 		Navigation = new FloorNavigation(ground, NavigationProfile);
 		AirNavigation = new FloorNavigation(air, NavigationProfile);
 	}

@@ -3,7 +3,8 @@ using Godot;
 /// <summary>
 /// A flyer's flutter around its <see cref="Pattern"/>: wherever the pattern would hold, the monster hovers instead,
 /// darting to a fresh point around the target every <see cref="BurstInterval"/>; and a pattern's approach within
-/// <see cref="ErraticRange"/> and sight closes in darts of <see cref="BurstLength"/>, swung off the straight line. It
+/// <see cref="ErraticRange"/> and sight closes in darts of <see cref="BurstLength"/>, swung off the straight line, down to
+/// its striking distance. It
 /// holds at its striking distance while it may attack and at its current distance while it may not. Retreats, and
 /// approaches from farther away, follow the pattern unchanged. The giant bat flies this way around bite and dart.
 /// </summary>
@@ -35,7 +36,8 @@ public partial class ErraticFlightStrategy : EnemyMovementStrategy
 		float reach = context.CombatProfile.PrimaryOffense.EffectiveMaximumRange;
 		if (intent.Goal == EnemyMovementGoal.Hold)
 			return Hover(intent.AllowAttack, intent.AllowAttack ? Mathf.Clamp(distance, reach * .6f, reach * .85f) : Mathf.Max(distance, reach));
-		if (intent.Goal == EnemyMovementGoal.Approach && distance > reach && distance <= ErraticRange && context.HasLineOfSightToTarget())
+		// Within reach too: an approach there would stop the body while its attack readies.
+		if (intent.Goal == EnemyMovementGoal.Approach && distance <= ErraticRange && context.HasLineOfSightToTarget())
 			return Hover(intent.AllowAttack, Mathf.Max(reach * .85f, distance - BurstLength));
 		return intent;
 	}

@@ -12,15 +12,6 @@ using System.Linq;
 public static class MonsterSceneValidator
 {
 
-	/// <summary>Height of a capsule, cylinder or sphere body's lowest point above its actor's origin.</summary>
-	private static float BodyBottom(CollisionShape3D body) => body == null ? 0 : body.Position.Y - body.Shape switch
-	{
-		CapsuleShape3D capsule => capsule.Height / 2,
-		CylinderShape3D cylinder => cylinder.Height / 2,
-		SphereShape3D sphere => sphere.Radius,
-		_ => 0,
-	};
-
 	public static string[] Validate(Node actor)
 	{
 		var definition = Object<MonsterDefinition>(actor, "Definition");
@@ -116,12 +107,12 @@ public static class MonsterSceneValidator
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health
 				&& Object<Node>(behavior, "MovementComponent") == movement, "EnemyBehaviorComponent: bind this actor's health and movement.");
-			Check(behavior.GetNodeOrNull<NavigationComponent>("Navigation") != null
-				&& behavior.GetNodeOrNull<Node>("Perception") != null && behavior.GetNodeOrNull<RayCast3D>("SightRay") != null,
+			var navigation = behavior.GetNodeOrNull<NavigationComponent>("Navigation");
+			Check(navigation != null && behavior.GetNodeOrNull<Node>("Perception") != null && behavior.GetNodeOrNull<RayCast3D>("SightRay") != null,
 				"EnemyBehaviorComponent: retain navigation, perception and sight ray children.");
-			if (behavior.GetNodeOrNull<NavigationComponent>("Navigation")?.Layer == NavigationLayer.Air && actor is CollisionObject3D flyer)
+			if (navigation?.Layer == NavigationLayer.Air && actor is CollisionObject3D flyer)
 				Check(movement is MovementComponent { Gravity: <= 0 } && (flyer.CollisionMask & CollisionOutlines.WalkingTerrainLayer) == 0
-					&& BodyBottom(body) > ClearanceGrid.AirClearanceHeight,
+					&& body?.Shape != null && CollisionOutlines.FromShape(body.Shape, body.Transform).Bottom > ClearanceGrid.AirClearanceHeight,
 					"Navigation.Layer: a flyer hovers: no gravity on its movement, no walking terrain in its collision mask, and its BodyShape above ClearanceGrid.AirClearanceHeight.");
 		}
 		var profile = definition.Behavior;

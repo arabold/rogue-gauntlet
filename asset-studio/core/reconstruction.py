@@ -98,11 +98,9 @@ def check_config(config):
     pieces = [i for indices in config["parts"].values() for i in indices]
     if len(pieces) != len(set(pieces)):
         problems.append("a reconstruction piece is listed under two parts")
-    for section in ("budgets", "slots"):
-        if set(config[section]) != parts:
-            problems.append(f"{section} must name exactly the parts: {sorted(parts ^ set(config[section]))}")
-    if set(config["rig"]["weights"]) != parts:
-        problems.append(f"rig.weights must name exactly the parts: {sorted(parts ^ set(config['rig']['weights']))}")
+    for label, mapping in (("budgets", config["budgets"]), ("slots", config["slots"]), ("rig.weights", config["rig"]["weights"])):
+        if set(mapping) != parts:
+            problems.append(f"{label} must name exactly the parts: {sorted(parts ^ set(mapping))}")
     unknown = {s for slots in config["slots"].values() for s in slots} - set(config["palette"])
     if unknown:
         problems.append(f"slots missing from the palette: {sorted(unknown)}")

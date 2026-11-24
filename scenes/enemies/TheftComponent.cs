@@ -58,19 +58,21 @@ public partial class TheftComponent : Node
 		if (IsCarrying || _vanished || Health.IsDead) return;
 		var player = target as Player ?? target.GetAncestorOrNull<Player>();
 		var inventory = player?.Inventory;
-		if (inventory == null) return;
+		if (inventory == null || player.InventoryController == null) return;
 		// Only what the hero carries loose: never worn gear or quest items.
 		var candidates = inventory.Items.Where(entry => entry?.Item is { ShowInInventory: true, IsQuestItem: false }
 			&& !inventory.IsEquipped(entry) && inventory.CanRemove(entry, entry.Quantity).Success).ToList();
 		if (candidates.Count == 0) return;
 		var stolen = candidates[random.RandiRange(0, candidates.Count - 1)];
-		_loot = stolen.Item;
-		_quantity = stolen.Quantity;
+		Item item = stolen.Item;
+		int quantity = stolen.Quantity;
+		// The stack changes hands inside one inventory commit, as a sale does.
+		if (!player.InventoryController.TryHandOver(stolen, quantity, () => item.OnDropped(player, quantity)).Success) return;
+		_loot = item;
+		_quantity = quantity;
 		_victim = player;
 		_unseen = 0;
 		CarriedSeconds = 0;
-		inventory.RemoveItem(stolen, _quantity);
-		_loot.OnDropped(player, _quantity);
 		SignalBus.EmitItemStolen(player, _loot, _quantity, ThiefName);
 		if (CombatTrace.Enabled) CombatTrace.Write(Actor, "theft.stole", ("item", _loot.DefinitionPath), ("quantity", _quantity));
 		SetPhysicsProcess(true);
@@ -78,7 +80,7 @@ public partial class TheftComponent : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (!IsCarrying || _vanished) return;
+		if (!IsCarrying) return;
 		CarriedSeconds += (float)delta;
 		bool inReach = GodotObject.IsInstanceValid(_victim) && !_victim.IsDead
 			&& Actor.GlobalPosition.DistanceTo(_victim.GlobalPosition) < EscapeDistance - ReachMargin
@@ -119,7 +121,7 @@ public partial class TheftComponent : Node
 	/// <summary>A thief killed before it escapes drops its loot at its feet, saved with the floor like any dropped item.</summary>
 	private void OnDied()
 	{
-		if (!IsCarrying || _vanished) return;
+		if (!IsCarrying) return;
 		SetPhysicsProcess(false);
 		var pickup = LootableItemScene.Instantiate<LootableItem>();
 		pickup.Item = _loot;

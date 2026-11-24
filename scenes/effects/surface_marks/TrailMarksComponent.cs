@@ -88,16 +88,21 @@ public partial class TrailMarksComponent : Node3D
 		if (_exploration.IsRevealed(position)) Place(position, step);
 	}
 
+	/// <summary>Ages the live marks and fades them out; runs only while one is live (<see cref="Place"/> starts it).</summary>
 	public override void _Process(double delta)
 	{
+		bool live = false;
 		for (int i = 0; i < _marks.Length; i++)
 		{
 			if (_ages[i] < 0) continue;
 			_ages[i] += (float)delta;
+			live = true;
+			if (_ages[i] <= Lifetime) continue;
 			float fade = 1 - Mathf.SmoothStep(Lifetime, Lifetime + FadeDuration, _ages[i]);
 			Show(i, fade);
 			if (fade <= 0) _ages[i] = -1;
 		}
+		if (!live) SetProcess(false);
 	}
 
 	/// <summary>Removes every mark at once, for an actor that leaves or turns its trail off.</summary>
@@ -109,6 +114,7 @@ public partial class TrailMarksComponent : Node3D
 			Show(i, 0);
 		}
 		_travelled = 0;
+		SetProcess(false);
 	}
 
 	private void Place(Vector3 position, Vector3 heading)
@@ -122,6 +128,7 @@ public partial class TrailMarksComponent : Node3D
 		mark.ResetPhysicsInterpolation();
 		Show(_next, 1);
 		_next = (_next + 1) % _marks.Length;
+		SetProcess(true);
 	}
 
 	private void Show(int index, float opacity)

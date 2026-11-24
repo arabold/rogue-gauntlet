@@ -47,22 +47,22 @@ public class BatFlightTest
 	[TestCase]
 	public async Task ItNeverHoldsStillAroundTheHero()
 	{
-		var runner = TestFactories.LoadCombatHarness();
+		var (runner, harness, bat) = await TestFactories.StageHarnessMonster(Bat, 5);
 		using var scope = runner;
-		var harness = await TestFactories.SettleCombatHarness(runner, 4);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		var bat = TestFactories.SpawnHarnessMonster(harness, Bat, 5);
-		harness.ExecuteCommand("automation", value: 1);
 		float health = harness.Player.HealthComponent.CurrentHealth;
-		// Sampled every quarter second over four seconds: outside its own attacks, the bat keeps moving.
+		// Over six seconds in 0.15 s windows, shorter than any hold: in every window free of its own attacks it darts
+		// at least half a metre. A bat that waits between bites lingers well under that.
 		var stills = new List<string>();
-		Vector3 last = bat.GlobalPosition;
-		for (int sample = 0; sample < 16; sample++)
+		for (int window = 0; window < 40; window++)
 		{
-			await runner.SimulateFrames(15, 16);
-			bool attacking = bat.ActionGate.IsBusy;
-			if (!attacking && bat.GlobalPosition.HorizontalDistanceTo(last) < .15f) stills.Add($"{sample * .25f:0.00}s");
-			last = bat.GlobalPosition;
+			Vector3 start = bat.GlobalPosition;
+			bool attacked = false;
+			for (int frame = 0; frame < 9; frame++)
+			{
+				await runner.SimulateFrames(1, 16);
+				attacked |= bat.ActionGate.IsBusy;
+			}
+			if (!attacked && bat.GlobalPosition.HorizontalDistanceTo(start) < .5f) stills.Add($"{window * .15f:0.00}s");
 		}
 		AssertArray(stills).OverrideFailureMessage($"Held still at {string.Join(", ", stills)}").HasSize(0);
 		AssertFloat(harness.Player.HealthComponent.CurrentHealth).IsLess(health);
@@ -114,20 +114,29 @@ public class BatFlightTest
 		return "";
 	}
 
+	/// <summary>The first seed whose Sewer floor has a pool to fly across, kept for the suite's other tests.</summary>
+	private static ulong _poolSeed = 1;
+
 	/// <summary>
 	/// A Sewer floor with a pool a flyer can cross in a straight line but a walker cannot: two dry banks on either side
-	/// of at most three water tiles. Returns the banks.
+	/// of at most three water tiles. Returns the banks. Seeds are tried on one level, regenerated in place.
 	/// </summary>
 	private static async Task<(ISceneRunner Runner, Level Level, Vector3 From, Vector3 To)> FloorWithPool()
 	{
-		for (ulong seed = 1; seed <= 12; seed++)
+		var (runner, level) = await TestFactories.GenerateLevel(_poolSeed, SewerDepth);
+		for (bool generated = true; _poolSeed <= 12; _poolSeed++, generated = false)
 		{
-			var (runner, level) = await TestFactories.GenerateLevel(seed, SewerDepth);
+			if (!generated)
+			{
+				level.ConfigureGeneration(new RunState(_poolSeed), SewerDepth, null, null);
+				level.Generate();
+				foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()) enemy.QueueFree();
+			}
 			foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 			await runner.SimulateFrames(1, 16);
 			if (FindCrossing(level) is var (from, to)) return (runner, level, from, to);
-			runner.Dispose();
 		}
+		runner.Dispose();
 		throw new System.InvalidOperationException("No Sewer floor among the seeds has a pool to fly across.");
 	}
 

@@ -23,6 +23,8 @@ public sealed class EnemyContext
 	private const float TargetReachabilityCheckInterval = 0.35f;
 	// How often a monster on a ring goal (waiting for an attack slot, flanking) recomputes its ring point.
 	private const float RingRefreshInterval = 0.3f;
+	/// <summary>Shortest dart a hovering flyer makes around its target: twice the distance a route counts as arrived.</summary>
+	private const float HoverMinimumDart = 1f;
 
 	private static readonly StringName EnemyGroup = "enemy";
 
@@ -299,20 +301,18 @@ public sealed class EnemyContext
 	public EnemyMovementIntent EvaluateMovement()
 	{
 		// A thief carrying loot runs out of the hero's reach instead of fighting, and waits there to vanish.
-		if (Actor.TheftComponent is { IsCarrying: true } theft)
-			return HorizontalTargetDistance < theft.EscapeDistance
-				? new(EnemyMovementGoal.Retreat, false, theft.EscapeDistance) : new(EnemyMovementGoal.Hold, false);
+		if (Actor.TheftComponent is { IsCarrying: true } theft) return RetreatOrHold(theft.EscapeDistance);
 		var retreat = CombatProfile.RetreatCondition;
-		if (retreat != null)
-		{
-			if (Tactics.EvaluateLowHealth(Delta, Actor.HealthComponent.Fraction, Target != null, retreat.EnterHealthFraction,
-				retreat.ExitHealthFraction, retreat.MaximumDuration))
-				return HorizontalTargetDistance < retreat.DesiredDistance
-					? new(EnemyMovementGoal.Retreat, false, retreat.DesiredDistance) : new(EnemyMovementGoal.Hold, false);
-		}
+		if (retreat != null && Tactics.EvaluateLowHealth(Delta, Actor.HealthComponent.Fraction, Target != null,
+			retreat.EnterHealthFraction, retreat.ExitHealthFraction, retreat.MaximumDuration))
+			return RetreatOrHold(retreat.DesiredDistance);
 		var intent = CombatProfile.MovementStrategy.Evaluate(this);
 		return Flanking?.Apply(this, intent) ?? intent;
 	}
+
+	/// <summary>Back away from the target until <paramref name="distance"/> lies between them, then hold there; never attack.</summary>
+	private EnemyMovementIntent RetreatOrHold(float distance) => HorizontalTargetDistance < distance
+		? new(EnemyMovementGoal.Retreat, false, distance) : new(EnemyMovementGoal.Hold, false);
 
 	/// <summary>
 	/// Resolve tactical priorities and navigation, then request an action. Offensive actions are requested only when the
@@ -405,23 +405,28 @@ public sealed class EnemyContext
 	/// <summary>
 	/// Dart to a fresh point <paramref name="intent"/>'s distance from the target, swung up to its orbit step either way,
 	/// after about its burst or on arrival, facing the target throughout: a flyer never holds still long enough to be
-	/// pinned. Shares the ring's point and refresh; without a spot the body fits it holds and tries again next frame.
+	/// pinned. Shares the ring's point and refresh; without a spot it can reach it holds until the ring's refresh interval
+	/// passes, so an unreachable pick does not search a new route every frame.
 	/// </summary>
 	private void FollowHover(EnemyMovementIntent intent)
 	{
 		if (Target == null) { Navigation.Stop(); return; }
-		if (_ringRefresh.IsReady || !_hasRingPoint || _ringGoal != intent.Goal || Navigation.HasArrived)
+		if (_ringRefresh.IsReady || _ringGoal != intent.Goal || (_hasRingPoint && Navigation.HasArrived))
 		{
 			_ringRefresh.Start(intent.Burst * RandomRange(.7f, 1.3f));
 			_ringGoal = intent.Goal;
 			Vector3 center = Target.GlobalPosition;
 			Vector3 from = (Actor.GlobalPosition - center).TryNormalizeHorizontal(out var bearing) ? bearing : Vector3.Forward;
+			// Each dart swings at least HoverMinimumDart around the target, so it never lands where the body already is.
 			float swing = Mathf.DegToRad(intent.OrbitStep);
-			Vector3 point = center + from.Rotated(Vector3.Up, RandomRange(-swing, swing)) * intent.DesiredDistance;
+			float least = Mathf.Min(swing, HoverMinimumDart / Mathf.Max(intent.DesiredDistance, HoverMinimumDart));
+			float turn = RandomRange(least, swing) * (RandomRange(0, 1) < .5f ? -1 : 1);
+			Vector3 point = center + from.Rotated(Vector3.Up, turn) * intent.DesiredDistance;
 			_hasRingPoint = Navigation.TryFindTraversable(point, intent.DesiredDistance, out _ringPoint);
 		}
 		if (_hasRingPoint && Navigation.MoveTo(_ringPoint) && !Navigation.IsStuck) return;
 		Navigation.Stop();
+		if (_hasRingPoint) _ringRefresh.Start(RingRefreshInterval);
 		_hasRingPoint = false;
 	}
 

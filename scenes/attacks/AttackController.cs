@@ -843,7 +843,7 @@ public partial class AttackController : Node, IParryInterruptible
 		return node == _actor || _actor.IsAncestorOf(node) || node.IsAncestorOf(_actor);
 	}
 
-	private bool IsValidAimTarget(Node node) => !IsOwnedByActor(node) && IsLivingTarget(node);
+	private bool IsValidAimTarget(Node node) => !IsOwnedByActor(node) && IsTargetable(node);
 
 	/// <summary>
 	/// A target that still exists in the scene and, when it is an actor or an actor's part, is not dead. Shared with
@@ -858,6 +858,14 @@ public partial class AttackController : Node, IParryInterruptible
 		if (node.GetParent() is Player parentPlayer) return !parentPlayer.IsDead;
 		return true;
 	}
+
+	/// <summary>
+	/// A living target that aim-assist and seeking spells may pick out: an enemy lying in wait
+	/// (<see cref="EnemyBase.IsConcealed"/>), or a part of one, is not given away. Blasts that hit everyone in range still
+	/// reach it.
+	/// </summary>
+	public static bool IsTargetable(Node node) =>
+		IsLivingTarget(node) && (node as EnemyBase ?? node.GetParent() as EnemyBase) is not { IsConcealed: true };
 
 	/// <summary>
 	/// Returns the best target to auto-face for a melee swing: the opponent nearest to the actor's
