@@ -112,6 +112,18 @@ HealthPhases = NodePath("HealthPhaseComponent")
 [node name="WardenModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
+[node name="SwordHand" type="BoneAttachment3D" parent="Pivot/WardenModel/ForsakenWardenRig/Skeleton3D"]
+bone_name = "handslot.r"
+bone_idx = 14
+
+[node name="ExecutionerSwordTrail" type="Node3D" parent="Pivot/WardenModel/ForsakenWardenRig/Skeleton3D/SwordHand"]
+
+[node name="TrailBase" type="Marker3D" parent="Pivot/WardenModel/ForsakenWardenRig/Skeleton3D/SwordHand/ExecutionerSwordTrail"]
+position = Vector3(0, 0.6, 0)
+
+[node name="TrailTip" type="Marker3D" parent="Pivot/WardenModel/ForsakenWardenRig/Skeleton3D/SwordHand/ExecutionerSwordTrail"]
+position = Vector3(0, 2.5, 0)
+
 [node name="EnemyBehaviorComponent" parent="." index="1"]
 
 [node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
@@ -184,8 +196,9 @@ script = ExtResource("poise_script")
 Definition = ExtResource("poise_definition")
 ActionGate = NodePath("../ActorActionGateComponent")
 
-[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate", "BakedWeapon")]
 ActionGate = NodePath("../ActorActionGateComponent")
+BakedWeapon = NodePath("../Pivot/WardenModel/ForsakenWardenRig/Skeleton3D/SwordHand/ExecutionerSwordTrail")
 
 [node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
 ActionGate = NodePath("../ActorActionGateComponent")

@@ -36,6 +36,12 @@ public partial class AttackController : Node, IParryInterruptible
 
 	[Export] public MeleeHitDetector MeleeDetector { get; set; }
 	[Export] public MeleeAttackProfile DefaultMeleeContact { get; set; }
+	/// <summary>
+	/// A weapon baked into the actor's model, mounted on a <see cref="BoneAttachment3D"/> with <c>TrailBase</c> and
+	/// <c>TrailTip</c> markers, so melee swooshes trace the blade the clip actually swings. Equipment attached through a
+	/// <see cref="BoneAttachmentManager"/> takes precedence; unassigned, swooshes draw their profile's generic arc.
+	/// </summary>
+	[Export] public Node3D BakedWeapon { get; set; }
 	[Export] public bool EffectsEnabled { get; set; } = true;
 	[Signal] public delegate void AttackFeedbackEventHandler(string result, float damage);
 	/// <summary>Presentation hook (camera impulse, sound) when a contact pauses this execution.</summary>
@@ -713,7 +719,7 @@ public partial class AttackController : Node, IParryInterruptible
 		var attachmentManager = _actor.GetNodeOrNull<BoneAttachmentManager>("BoneAttachmentManager");
 		if (attachmentManager?.AttachmentNodes == null)
 		{
-			return null;
+			return BakedWeapon;
 		}
 
 		AttachmentType[] preferredTypes =
@@ -740,7 +746,7 @@ public partial class AttackController : Node, IParryInterruptible
 			}
 		}
 
-		return null;
+		return BakedWeapon;
 	}
 
 	private Node3D FindMuzzlePoint()
