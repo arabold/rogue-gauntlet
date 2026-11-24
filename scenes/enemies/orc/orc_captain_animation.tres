@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
+
+[sub_resource type="Resource" id="chop"]
+script = ExtResource("binding")
+Style = &"mace.1h.chop"
+Clip = &"1H_Melee_Attack_Chop"
+ContactStart = 0.5
+ContactEnd = 0.64
+
+[sub_resource type="Resource" id="sweep"]
+script = ExtResource("binding")
+Style = &"mace.1h.sweep"
+Clip = &"1H_Melee_Attack_Slice_Horizontal"
+ContactStart = 0.2
+ContactEnd = 0.34
+
+[sub_resource type="Resource" id="bash"]
+script = ExtResource("binding")
+Style = &"shield.bash"
+Clip = &"Block_Attack"
+ContactStart = 0.32
+ContactEnd = 0.44
+
+[sub_resource type="Resource" id="rally"]
+script = ExtResource("binding")
+Style = &"captain.rally"
+Clip = &"Taunt"
+ContactStart = 0.45
+ContactEnd = 0.52
+
+[resource]
+script = ExtResource("profile")
+Bindings = [SubResource("chop"), SubResource("sweep"), SubResource("bash"), SubResource("rally")]

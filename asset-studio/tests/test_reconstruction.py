@@ -38,7 +38,7 @@ class ConfigCheckTest(unittest.TestCase):
 
     def test_the_authored_configs_are_complete(self):
         for key in ("nymph/nymph", "slime/acid_blob", "bat/giant_bat", "mimic/chest_mimic", "snake/snake",
-                    "bosses/forsaken_warden"):
+                    "bosses/forsaken_warden", "orc/orc_spearman", "orc/orc_shaman", "orc/orc_captain"):
             config = json.loads((STUDIO / "characters" / key / "reconstruction.json").read_text())
             self.assertEqual(reconstruction.check_config(config), [], key)
 
@@ -54,6 +54,16 @@ class ConfigCheckTest(unittest.TestCase):
         self.assertIn("two parts", problems)
         for gap in ("unknown prefab club", "unknown frame staff", "oak, missing"):
             self.assertIn(gap, problems)
+
+
+    def test_a_match_tone_snaps_faces_while_the_game_keeps_the_albedo(self):
+        socket = {"base": [44, 38, 34], "match": [130, 118, 97]}
+        self.assertEqual(reconstruction.base_color(socket), [44, 38, 34])
+        self.assertEqual(reconstruction.match_color(socket), [130, 118, 97])
+        self.assertEqual(reconstruction.match_color([10, 20, 30]), [10, 20, 30])
+        broken = copy.deepcopy(self.config)
+        broken["palette"]["skin"] = {"base": [150, 178, 166], "light": [200, 210, 200]}
+        self.assertIn("palette skin", " | ".join(reconstruction.check_config(broken)))
 
 
 class PropTest(unittest.TestCase):

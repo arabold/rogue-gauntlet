@@ -1,0 +1,222 @@
+{
+  "name": "OrcShaman",
+  "height": 2.53,
+  "center_on": ["Foot_L", "Foot_R"],
+  "offset": [0, 0, 0],
+  "parts": {
+    "Torso": [0],
+    "Feathers": [1],
+    "Skirt": [2, 15],
+    "Arm_L": [3],
+    "Head": [4],
+    "Skull": [5],
+    "Arm_R": [6],
+    "Foot_L": [7],
+    "Foot_R": [8],
+    "Belt": [9, 11],
+    "Fist_R": [10],
+    "Horn_R": [12],
+    "Legs": [13],
+    "Necklace": [14],
+    "Horn_L": [16]
+  },
+  "budgets": {
+    "Head": 1600,
+    "Skull": 900,
+    "Feathers": 500,
+    "Horn_L": 120,
+    "Horn_R": 120,
+    "Torso": 1000,
+    "Necklace": 200,
+    "Arm_L": 500,
+    "Arm_R": 350,
+    "Fist_R": 160,
+    "Belt": 900,
+    "Skirt": 400,
+    "Legs": 150,
+    "Foot_L": 150,
+    "Foot_R": 150
+  },
+  "symmetric": ["Head", "Skull", "Feathers"],
+  "joints": {
+    "shoulder.l": [0.33, 0.1, 1.28],
+    "forearm.l": [0.502, 0.092, 0.77],
+    "fist_tip.l": [0.724, 0.057, 0.535],
+    "hip.l": [0.16, 0.04, 0.55],
+    "knee.l": [0.21, 0.06, 0.34],
+    "ankle.l": [0.25, 0.022, 0.164],
+    "foot_tip.l": [0.25, -0.113, 0.038],
+    "toe_tip.l": [0.25, -0.229, 0.038],
+    "hips": [0, 0.039, 0.46],
+    "spine": [0, 0.078, 0.757],
+    "chest": [0, 0.104, 1.053],
+    "neck": [0, 0.104, 1.307]
+  },
+  "smooth_angle": 35,
+  "shades": [0.5, 0.62, 0.75, 0.88, 1.0],
+  "min_island": 8,
+  "palette": {
+    "skin": {
+      "base": [116, 124, 90],
+      "match": [138, 129, 111]
+    },
+    "eye": [238, 214, 118],
+    "brow": {
+      "base": [64, 58, 50],
+      "match": [116, 105, 86]
+    },
+    "nose": {
+      "base": [98, 100, 76],
+      "match": [142, 131, 114]
+    },
+    "tusk": [238, 228, 200],
+    "bone": [236, 224, 194],
+    "socket": {
+      "base": [44, 38, 34],
+      "match": [130, 118, 97]
+    },
+    "socket_nose": {
+      "base": [44, 38, 34],
+      "match": [116, 102, 81]
+    },
+    "feather": [214, 204, 186],
+    "feather_band": [64, 56, 50],
+    "band_red": [170, 70, 66],
+    "fur": {
+      "base": [132, 112, 96],
+      "match": [152, 141, 132]
+    },
+    "hide": [100, 76, 62],
+    "rope": {
+      "base": [190, 166, 128],
+      "match": [170, 145, 114]
+    },
+    "charm": {
+      "base": [236, 224, 194],
+      "match": [244, 228, 188]
+    },
+    "pouch": {
+      "base": [150, 134, 116],
+      "match": [146, 130, 112]
+    },
+    "bead": [150, 108, 74],
+    "wrap": [180, 168, 152]
+  },
+  "slots": {
+    "Head": ["skin", "eye", "brow", "nose", "tusk"],
+    "Skull": ["bone", "band_red", "socket", "socket_nose"],
+    "Feathers": ["feather", "feather_band", "band_red"],
+    "Horn_L": ["bone"],
+    "Horn_R": ["bone"],
+    "Torso": ["skin", "fur"],
+    "Necklace": ["bone", "hide"],
+    "Arm_L": ["skin", "wrap", "bead"],
+    "Arm_R": ["skin", "wrap", "bead"],
+    "Fist_R": ["skin"],
+    "Belt": ["rope", "hide", "charm", "pouch"],
+    "Skirt": ["hide"],
+    "Legs": ["skin", "wrap"],
+    "Foot_L": ["skin", "wrap"],
+    "Foot_R": ["skin", "wrap"]
+  },
+  "regions": {
+    "eye": {
+      "z": [1.66, 1.73],
+      "half_width": [0.07, 0.19],
+      "facing": 0.3
+    },
+    "brow": {
+      "z": [1.722, 1.8],
+      "half_width": [0.03, 0.28],
+      "facing": 0.2
+    },
+    "nose": {
+      "z": [1.575, 1.7],
+      "half_width": 0.085,
+      "facing": 0.4
+    },
+    "tusk": {
+      "z": [1.51, 1.615],
+      "half_width": [0.14, 0.225],
+      "facing": 0.0
+    },
+    "socket": {
+      "z": [1.91, 2.04],
+      "half_width": [0.06, 0.24],
+      "facing": 0.0
+    },
+    "fur": {
+      "z": [1.15, 1.72],
+      "half_width": 1.0,
+      "facing": -1.0
+    },
+    "wrap": {
+      "z": [0.0, 0.92],
+      "half_width": 1.0,
+      "facing": -1.0
+    },
+    "bead": {
+      "z": [0.55, 0.85],
+      "half_width": 1.0,
+      "facing": -1.0
+    },
+    "socket_nose": {
+      "z": [1.87, 1.94],
+      "half_width": 0.05,
+      "facing": 0.0
+    },
+    "band_red": {
+      "z": [1.79, 1.95],
+      "half_width": 1.0,
+      "facing": -1.0
+    },
+    "charm": {
+      "z": [0.54, 0.87],
+      "half_width": 0.1,
+      "facing": 0.0
+    },
+    "pouch": {
+      "z": [0.54, 0.87],
+      "half_width": [0.28, 0.48],
+      "facing": -1.0
+    }
+  },
+  "rig": {
+    "clips": ["Idle_Combat", "Walking_A", "Spellcast_Raise", "Spellcast_Shoot", "Hit_A", "Death_A", "Death_A_Pose", "Idle", "Blocking", "Block_Attack", "Block_Hit", "Dodge_Backward", "Dodge_Forward", "Dodge_Left", "Dodge_Right"],
+    "idle": "Idle_Combat",
+    "arm_fractions": {
+      "elbow": 0.35,
+      "wrist": 0.73,
+      "hand": 0.84
+    },
+    "head_length": 0.6,
+    "weights": {
+      "Head": "head",
+      "Skull": "head",
+      "Feathers": "head",
+      "Horn_L": "head",
+      "Horn_R": "head",
+      "Necklace": "chest",
+      "Belt": "hips",
+      "Torso": {
+        "blend": ["hips", "spine", "chest"],
+        "caps": {
+          "upperarm.l": "shoulder.l",
+          "upperarm.r": "shoulder.r"
+        },
+        "cap_radius": [0.1, 0.25],
+        "cap_share": 0.5
+      },
+      "Arm_L": ["chest", "upperarm.l", "lowerarm.l", "wrist.l", "hand.l"],
+      "Arm_R": ["chest", "upperarm.r", "lowerarm.r", "wrist.r"],
+      "Fist_R": "hand.r",
+      "Skirt": {
+        "blend": ["hips", "upperleg.l", "upperleg.r"],
+        "anchor_share": 0.5
+      },
+      "Legs": ["upperleg.l", "lowerleg.l", "upperleg.r", "lowerleg.r"],
+      "Foot_L": ["lowerleg.l", "foot.l", "toes.l"],
+      "Foot_R": ["lowerleg.r", "foot.r", "toes.r"]
+    }
+  }
+}

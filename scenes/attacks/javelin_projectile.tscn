@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/custom-items/weapons/polearm/spear_steel.glb" id="2_spear"]
+
+[node name="JavelinProjectile" instance=ExtResource("1_base")]
+
+[node name="arrow" parent="Pivot" index="1"]
+visible = false
+
+[node name="Javelin" parent="Pivot" index="2" instance=ExtResource("2_spear")]
+transform = Transform3D(0.55, 0, 0, 0, 0, -0.55, 0, 0.55, 0, 0, 0, -0.385)
+
+[node name="Item" parent="Pivot/Javelin" index="0"]
+layers = 64
+
+[editable path="Pivot/Javelin"]
