@@ -90,7 +90,7 @@ public partial class DeathComponent : Node
 	/// once, then fades through <paramref name="effect"/> on its effect host and is removed when that ends, or at once
 	/// without one. A thief escaping with its loot leaves this way.
 	/// </summary>
-	public void Leave(WorldEffectDefinition effect = null)
+	public void Leave(WorldEffectDefinition effect)
 	{
 		var owner = GetOwner<EnemyBase>();
 		MarkCleared(owner);

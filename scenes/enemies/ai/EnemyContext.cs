@@ -388,15 +388,14 @@ public sealed class EnemyContext
 	private void FollowRing(EnemyMovementIntent intent)
 	{
 		if (!TryGetPrimarySlot(out var slots, out var kind)) { Navigation.Stop(); return; }
-		if (IsPointDue(intent.Goal) || !_hasRingPoint)
+		if (IsPointDue(intent) || !_hasRingPoint)
 		{
 			Vector3 center = Target.GlobalPosition;
 			Vector3 to = slots.GetRingBearing(Actor, kind, intent.Arc);
 			Vector3 from = (Actor.GlobalPosition - center).TryNormalizeHorizontal(out var bearing) ? bearing : to;
 			float limit = Mathf.DegToRad(intent.OrbitStep);
 			float step = Mathf.Clamp(from.SignedAngleTo(to, Vector3.Up), -limit, limit);
-			float distance = intent.DesiredDistance;
-			PickPoint(intent.Goal, RingRefreshInterval, center + from.Rotated(Vector3.Up, step) * distance, distance);
+			PickPoint(intent, RingRefreshInterval, center + from.Rotated(Vector3.Up, step) * intent.DesiredDistance);
 		}
 		if (!MoveToPoint()) Navigation.Stop();
 	}
@@ -410,7 +409,7 @@ public sealed class EnemyContext
 	private void FollowHover(EnemyMovementIntent intent)
 	{
 		if (Target == null) { Navigation.Stop(); return; }
-		if (IsPointDue(intent.Goal) || (_hasRingPoint && Navigation.HasArrived))
+		if (IsPointDue(intent) || (_hasRingPoint && Navigation.HasArrived))
 		{
 			float burst = intent.Burst * RandomRange(.7f, 1.3f);
 			Vector3 center = Target.GlobalPosition;
@@ -419,7 +418,7 @@ public sealed class EnemyContext
 			float swing = Mathf.DegToRad(intent.OrbitStep);
 			float least = Mathf.Min(swing, HoverMinimumDart / Mathf.Max(intent.DesiredDistance, HoverMinimumDart));
 			float turn = RandomRange(least, swing) * (RandomRange(0, 1) < .5f ? -1 : 1);
-			PickPoint(intent.Goal, burst, center + from.Rotated(Vector3.Up, turn) * intent.DesiredDistance, intent.DesiredDistance);
+			PickPoint(intent, burst, center + from.Rotated(Vector3.Up, turn) * intent.DesiredDistance);
 		}
 		if (MoveToPoint()) return;
 		Navigation.Stop();
@@ -428,17 +427,17 @@ public sealed class EnemyContext
 	}
 
 	/// <summary>Whether the point a ring or hover goal moves to is due a fresh pick: on its throttle, or for a new goal.</summary>
-	private bool IsPointDue(EnemyMovementGoal goal) => _ringRefresh.IsReady || _ringGoal != goal;
+	private bool IsPointDue(EnemyMovementIntent intent) => _ringRefresh.IsReady || _ringGoal != intent.Goal;
 
 	/// <summary>
-	/// Picks the nearest spot this body fits within <paramref name="radius"/> of <paramref name="point"/> as the point
-	/// <paramref name="goal"/> moves to, due again after <paramref name="interval"/>; without a spot there is no point.
+	/// Picks the nearest spot this body fits within the intent's distance of <paramref name="point"/> as the point its
+	/// goal moves to, due again after <paramref name="interval"/>; without a spot there is no point.
 	/// </summary>
-	private void PickPoint(EnemyMovementGoal goal, float interval, Vector3 point, float radius)
+	private void PickPoint(EnemyMovementIntent intent, float interval, Vector3 point)
 	{
 		_ringRefresh.Start(interval);
-		_ringGoal = goal;
-		_hasRingPoint = Navigation.TryFindTraversable(point, radius, out _ringPoint);
+		_ringGoal = intent.Goal;
+		_hasRingPoint = Navigation.TryFindTraversable(point, intent.DesiredDistance, out _ringPoint);
 	}
 
 	/// <summary>Moves toward the picked point; false without one, when no route reaches it, or once the body stalls.</summary>

@@ -25,6 +25,7 @@ public readonly record struct EnemyMovementIntent(EnemyMovementGoal Goal, bool A
 [GlobalClass]
 public abstract partial class EnemyMovementStrategy : Resource
 {
+	/// <summary>The positioning decision; the host asks it only when <see cref="Preempt"/> returned null.</summary>
 	public abstract EnemyMovementIntent Evaluate(EnemyContext context);
 
 	/// <summary>

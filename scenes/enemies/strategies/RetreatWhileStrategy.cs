@@ -25,7 +25,7 @@ public partial class RetreatWhileStrategy : EnemyMovementStrategy
 	public override EnemyMovementIntent? Preempt(EnemyContext context) =>
 		Condition.IsMet(context, context.Target) ? context.RetreatOrHold(Distance) : Pattern.Preempt(context);
 
-	public override EnemyMovementIntent Evaluate(EnemyContext context) => Preempt(context) ?? Pattern.Evaluate(context);
+	public override EnemyMovementIntent Evaluate(EnemyContext context) => Pattern.Evaluate(context);
 
 	public override void AttackAccepted(EnemyContext context, AttackIdentity identity) => Pattern.AttackAccepted(context, identity);
 
