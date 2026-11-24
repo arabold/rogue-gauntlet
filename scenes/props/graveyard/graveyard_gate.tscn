@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/graveyard/graveyard_gate.glb" id="1_model"]
+
+[sub_resource type="BoxShape3D" id="pillar"]
+size = Vector3(0.8, 2.1, 0.8)
+
+[sub_resource type="BoxShape3D" id="leaf"]
+size = Vector3(0.14, 1.9, 1.2)
+
+[node name="GraveyardGate" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="Body" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="LeftPillar" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1.05, 0)
+shape = SubResource("pillar")
+
+[node name="RightPillar" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1.05, 0)
+shape = SubResource("pillar")
+
+[node name="LeftLeaf" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 0.95, -0.6)
+shape = SubResource("leaf")
+
+[node name="RightLeaf" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, 0.95, -0.6)
+shape = SubResource("leaf")

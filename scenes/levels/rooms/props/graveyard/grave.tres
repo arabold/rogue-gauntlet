@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/graveyard/grave_round.glb" id="2_scene"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/graveyard/grave_cross.glb" id="3_scene"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/graveyard/grave_slab.glb" id="4_scene"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/graveyard/grave_wood.glb" id="5_scene"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/graveyard/grave_leaning.glb" id="6_scene"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "grave"
+Scenes = [ExtResource("2_scene"), ExtResource("3_scene"), ExtResource("4_scene"), ExtResource("5_scene"), ExtResource("6_scene")]
+BackToWall = true
+Gap = 0.3
+TurnJitter = 4.0
+ShiftJitter = 0.05
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

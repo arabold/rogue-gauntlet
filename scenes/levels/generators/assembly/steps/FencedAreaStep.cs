@@ -6,7 +6,7 @@ public enum FencedAreaMode { WallBay, CornerBay, Walkway, Divider }
 
 /// <summary>
 /// Low fences or partitions from modular pieces: a bay against a wall or in a corner with one entrance (filled with
-/// <see cref="FurnishingStep.Content"/> along its back wall), a walkway fenced along one or both sides of the room's
+/// <see cref="FurnishingStep.Content"/> along its back wall, optionally framed by a <see cref="Gate"/>), a walkway fenced along one or both sides of the room's
 /// axis, or a short divider off a wall. Counts are content pieces placed inside bays. When <see cref="RequireFence"/>
 /// is set and no fence fits, the attempt fails and the room retries with a new shape.
 /// </summary>
@@ -22,6 +22,9 @@ public partial class FencedAreaStep : FurnishingStep
 	[Export] public Prop Half { get; set; }
 	/// <summary>L piece with legs along -X and +Z from its origin; bays need it.</summary>
 	[Export] public Prop Corner { get; set; }
+	/// <summary>Optional gateway filling a bay's entrance: centered on its origin, as wide as <see cref="EntranceWidth"/>
+	/// along X, with its inside toward -Z.</summary>
+	[Export] public Prop Gate { get; set; }
 	/// <summary>Bay width along the wall (X) and depth into the room (Y).</summary>
 	[Export] public Vector2 BaySize { get; set; } = new(8, 6);
 	[Export(PropertyHint.Range, "2.5,8,0.1")] public float EntranceWidth { get; set; } = 4;
@@ -87,6 +90,7 @@ public partial class FencedAreaStep : FurnishingStep
 			if (!AddRun(plan, new(x1, 0, 0), new(x1, 0, depth - leg), rng)) return false;
 			plan.Add(Corner, 0, new Transform3D(new Basis(Vector3.Up, -Mathf.Pi / 2), new Vector3(x1, 0, depth)), optional: false);
 		}
+		if (Gate != null) plan.Add(Gate, 0, new Transform3D(Basis.Identity, new Vector3((entranceLeft + entranceRight) / 2, 0, depth)), optional: false);
 		return AddRun(plan, new(leftWall ? x0 : x0 + leg, 0, depth), new(entranceLeft, 0, depth), rng)
 			&& AddRun(plan, new(entranceRight, 0, depth), new(rightWall ? x1 : x1 - leg, 0, depth), rng);
 	}
@@ -167,7 +171,7 @@ public partial class FencedAreaStep : FurnishingStep
 		if (Segments.Length == 0 || Segments.Any(segment => segment == null)) errors.Add($"Step {Id}: assign fence segments.");
 		if (Mode is FencedAreaMode.WallBay or FencedAreaMode.CornerBay && Corner == null) errors.Add($"Step {Id}: bays need a corner piece.");
 		if (Mode is FencedAreaMode.WallBay or FencedAreaMode.CornerBay && Content.Any(entry => entry == null)) errors.Add($"Step {Id}: remove empty content entries.");
-		errors.AddRange(Segments.Append(Half).Append(Corner).Where(prop => prop != null).SelectMany(prop => prop.Validate()));
+		errors.AddRange(Segments.Append(Half).Append(Corner).Append(Gate).Where(prop => prop != null).SelectMany(prop => prop.Validate()));
 		errors.AddRange(Content.Where(entry => entry != null).SelectMany(entry => entry.Validate()));
 		return errors.ToArray();
 	}
