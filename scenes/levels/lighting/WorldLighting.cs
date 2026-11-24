@@ -54,8 +54,8 @@ public partial class WorldLighting : WorldEnvironment
 	}
 
 	/// <summary>
-	/// Multiplies the shared environment's ambient light for this world only, such as an open debug arena without the
-	/// wall fixtures that light a dungeon floor. Darkness still removes it.
+	/// Multiplies the shared environment's ambient light for this world only, such as a realm of darker walls and
+	/// floors. Darkness still removes it.
 	/// </summary>
 	[Export(PropertyHint.Range, "0,4,0.05")]
 	public float AmbientScale
@@ -70,9 +70,27 @@ public partial class WorldLighting : WorldEnvironment
 		}
 	} = 1f;
 
+	/// <summary>
+	/// Multiplies the shared environment's ambient color for this world only, such as a realm of earthen walls and
+	/// floors that the cool dungeon fill leaves murky.
+	/// </summary>
+	[Export]
+	public Color AmbientTint
+	{
+		get;
+		set
+		{
+			if (field == value) return;
+			field = value;
+			if (!IsNodeReady()) return;
+			ApplyLighting();
+		}
+	} = Colors.White;
+
 	public bool IsEffectEnabled(EnvironmentalEffect effect) => (DisabledEffects & effect) == 0;
 
 	private float _normalAmbient;
+	private Color _normalAmbientColor;
 	private Environment.ReflectionSource _normalReflections;
 	private bool _normalFog;
 	private bool _normalVolumetricFog;
@@ -85,6 +103,7 @@ public partial class WorldLighting : WorldEnvironment
 			// Own a runtime copy so darkness never mutates the shared environment resource.
 			Environment = (Environment)Environment.Duplicate();
 			_normalAmbient = Environment.AmbientLightEnergy;
+			_normalAmbientColor = Environment.AmbientLightColor;
 			_normalReflections = Environment.ReflectedLightSource;
 			_normalFog = Environment.FogEnabled;
 			_normalVolumetricFog = Environment.VolumetricFogEnabled;
@@ -98,6 +117,7 @@ public partial class WorldLighting : WorldEnvironment
 		if (Environment != null)
 		{
 			Environment.AmbientLightEnergy = IsDark ? 0f : _normalAmbient * AmbientScale;
+			Environment.AmbientLightColor = _normalAmbientColor * AmbientTint;
 			bool reflections = !IsDark && IsEffectEnabled(EnvironmentalEffect.Reflections);
 			bool fog = !IsDark && IsEffectEnabled(EnvironmentalEffect.Fog);
 			Environment.ReflectedLightSource = reflections ? _normalReflections : Environment.ReflectionSource.Disabled;

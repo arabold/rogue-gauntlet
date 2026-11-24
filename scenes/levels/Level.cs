@@ -231,6 +231,11 @@ public partial class Level : Node, IDebugWorld
 			Encounters.Initialize(this, Floor.Encounter);
 		}
 
+		if (Lighting != null)
+		{
+			Lighting.AmbientScale = MapGenerator.CurrentRealm?.AmbientScale ?? 1f;
+			Lighting.AmbientTint = MapGenerator.CurrentRealm?.AmbientTint ?? Colors.White;
+		}
 		Atmosphere?.Initialize(Floor, MapGenerator.CurrentRealm?.Atmosphere, Seed);
 		GD.Print("Level is ready");
 		SignalBus.EmitLevelLoaded(this);
