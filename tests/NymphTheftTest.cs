@@ -103,6 +103,30 @@ public class NymphTheftTest
 		AssertFloat(jump).IsLess(1f);
 	}
 
+	[TestCase]
+	public async Task LeavingDuringHerFadeEndsTheBlinkWhereSheStands()
+	{
+		var (runner, harness, nymph) = await Stage();
+		using var cleanup = runner;
+		nymph.TheftComponent.EscapeTime = 20;
+		await TestFactories.AwaitPhysicsUntil(runner, () => nymph.TheftComponent.IsCarrying, 10);
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
+		{
+			KeepUp(harness.Player, nymph);
+			return nymph.ActionGate.CurrentKind == ActorActionKind.Dash;
+		}, 5);
+		Vector3 start = nymph.GlobalPosition;
+		nymph.DeathComponent.Leave(nymph.TheftComponent.VanishEffect);
+		float drift = 0;
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
+		{
+			if (!GodotObject.IsInstanceValid(nymph)) return true;
+			drift = Mathf.Max(drift, nymph.GlobalPosition.HorizontalDistanceTo(start));
+			return false;
+		}, 5);
+		AssertFloat(drift).IsLess(1f);
+	}
+
 	/// <summary>Moves the hero to within 2 m of the nymph, as a hero chasing her would.</summary>
 	private static void KeepUp(Player hero, EnemyBase nymph)
 	{

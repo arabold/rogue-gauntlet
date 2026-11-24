@@ -130,6 +130,16 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	/// <summary>The see-through-wall silhouette added when the enemy becomes ready; off while it is hidden from the hero.</summary>
 	public OcclusionXrayComponent Xray { get; private set; }
 
+	/// <summary>
+	/// Ends whatever the monster is doing, even a blink mid-fade, and lets it start nothing more: when it dies, or when it
+	/// leaves without dying (<see cref="DeathComponent.Leave"/>).
+	/// </summary>
+	public void StopActing()
+	{
+		ActionGate.Disable();
+		SpellCaster?.CancelInnate();
+	}
+
 	public bool TryStagger(float duration)
 	{
 		return ActionGate?.TryStagger(duration) ?? false;
@@ -149,7 +159,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		if (Invisibility != null) Invisibility.Changed += () => HiddenChanged?.Invoke();
 		if (AmbushComponent != null) AmbushComponent.Woke += () => HiddenChanged?.Invoke();
 
-		HealthComponent.Died += () => { ActionGate.Disable(); SpellCaster?.CancelInnate(); };
+		HealthComponent.Died += StopActing;
 
 		// An enemy outside a level (previews, harnesses) plays the default run; each still gets its own combat streams.
 		ConfigureCombatRandom(_level?.Seed ?? RunState.DefaultSeed, GetMeta("persistent_id", GetPath().ToString()).AsString());

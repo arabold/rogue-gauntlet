@@ -86,14 +86,15 @@ public partial class DeathComponent : Node
 	}
 
 	/// <summary>
-	/// Removes the monster without killing it: no death, experience or loot. It stops thinking, moving and taking hits at
-	/// once, then fades through <paramref name="effect"/> on its effect host and is removed when that ends, or at once
+	/// Removes the monster without killing it: no death, experience or loot. It stops acting, thinking, moving and taking
+	/// hits at once, then fades through <paramref name="effect"/> on its effect host and is removed when that ends, or at once
 	/// without one. A thief escaping with its loot leaves this way.
 	/// </summary>
 	public void Leave(WorldEffectDefinition effect)
 	{
 		var owner = GetOwner<EnemyBase>();
 		MarkCleared(owner);
+		owner.StopActing();
 		owner.EnemyBehaviorComponent.AIEnabled = false;
 		owner.MovementComponent.Stop();
 		owner.CollisionLayer = 0;
