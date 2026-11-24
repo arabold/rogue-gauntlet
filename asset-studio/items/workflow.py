@@ -32,7 +32,7 @@ OBJECTS = STUDIO / "objects"
 PALETTE = STUDIO / "rigs/item_palette.png"
 BACKENDS = ["source", "prefab", "procedural", "image3d"]
 # Game art trees an export may write; world props such as fountains share the pipeline but are not inventory items.
-EXPORT_ROOTS = ("assets/custom-items", "assets/custom-props")
+EXPORT_ROOTS = ("assets/custom-items", "assets/custom-props", "assets/custom-monsters")
 PLACEMENT = {
     "type": "object", "additionalProperties": False,
     "properties": {

@@ -1,0 +1,108 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
+[ext_resource type="Script" path="res://scenes/attacks/OnHitStatusProfile.cs" id="on_hit"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/HealthPhaseCondition.cs" id="phase"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/large_unarmed_smash.tres" id="engulf_contact"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/gelatinous_cube/goo_glob.tscn" id="goo_glob"]
+[ext_resource type="Resource" path="res://scenes/buffs/goo_bound.tres" id="goo_bound"]
+[ext_resource type="Resource" path="res://scenes/buffs/cube_digest.tres" id="digest"]
+
+[sub_resource type="Resource" id="calm"]
+script = ExtResource("phase")
+MaximumPhase = 0
+
+[sub_resource type="Resource" id="frenzied"]
+script = ExtResource("phase")
+MinimumPhase = 1
+
+[sub_resource type="Resource" id="bind_on_hit"]
+script = ExtResource("on_hit")
+Effect = ExtResource("goo_bound")
+Chance = 1.0
+
+[sub_resource type="Resource" id="digest_on_hit"]
+script = ExtResource("on_hit")
+Effect = ExtResource("digest")
+Chance = 1.0
+
+[sub_resource type="Resource" id="engulf_surge"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("engulf_contact")
+PoiseDamage = 25.0
+Knockback = 4.0
+HyperArmorStart = 0.2
+HyperArmorEnd = 0.62
+Interruptible = false
+HitStopDuration = 0.06
+FacingLockLead = 0.2
+WindUpTurnRate = 120.0
+TravelDistance = 1.5
+Commit = 0.5
+
+[sub_resource type="Resource" id="engulf"]
+resource_name = "engulf"
+script = ExtResource("attack_action")
+Cooldown = 2.4
+MaximumRange = 3.2
+MaximumStartAngle = 60.0
+UsesAttackSlot = false
+Attack = SubResource("engulf_surge")
+Style = &"cube.engulf"
+Duration = 1.13
+MinDamage = 7.5
+MaxDamage = 15.5
+
+[sub_resource type="Resource" id="goo_shot"]
+script = ExtResource("attack_definition")
+IsRanged = true
+DefenseTraits = 3
+ProjectileScene = ExtResource("goo_glob")
+ProjectileSpeed = 9.0
+ProjectileArcHeight = 3.0
+ProjectileAimLockDuration = 0.3
+Range = 15.0
+HitWindowStart = 0.5
+OnHitStatuses = [SubResource("bind_on_hit"), SubResource("digest_on_hit")]
+PoiseDamage = 6.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="lob"]
+resource_name = "goo lob"
+script = ExtResource("attack_action")
+Cooldown = 6.0
+MinimumRange = 3.5
+MaximumRange = 13.0
+UsesAttackSlot = false
+Conditions = [SubResource("calm")]
+Attack = SubResource("goo_shot")
+Style = &"cube.lob"
+Duration = 1.4
+MinDamage = 4.5
+MaxDamage = 7.0
+
+[sub_resource type="Resource" id="frenzied_lob"]
+resource_name = "frenzied goo lob"
+script = ExtResource("attack_action")
+Weight = 1.3
+Cooldown = 3.5
+MinimumRange = 3.0
+MaximumRange = 13.0
+UsesAttackSlot = false
+Conditions = [SubResource("frenzied")]
+Attack = SubResource("goo_shot")
+Style = &"cube.lob"
+Duration = 1.4
+MinDamage = 4.5
+MaxDamage = 7.0
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("engulf"), SubResource("lob"), SubResource("frenzied_lob")]
+RepeatWeightMultiplier = 0.35

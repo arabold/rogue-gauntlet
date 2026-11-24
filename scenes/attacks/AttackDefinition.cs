@@ -45,7 +45,7 @@ public partial class AttackDefinition : Resource
 
 	public AttackImpact Impact => new(PoiseDamage, Knockback, ForcePushback);
 
-	public ProjectileFlight Flight => new(HomingTurnRate, HomingDelay, LaunchSpeedScale, LaunchRampDuration);
+	public ProjectileFlight Flight => new(HomingTurnRate, HomingDelay, LaunchSpeedScale, LaunchRampDuration, ProjectileArcHeight);
 
 	/// <summary>Elemental identity carried by this attack's projectile contacts; None keeps ordinary damage.</summary>
 	[Export] public DamageElement Element { get; set; }
@@ -136,6 +136,14 @@ public partial class AttackDefinition : Resource
 
 	/// <summary>Seconds to ramp from the launch speed to full speed; zero flies at full speed from release.</summary>
 	[Export(PropertyHint.Range, "0,0.5,0.01")] public float LaunchRampDuration { get; set; }
+
+	/// <summary>
+	/// Metres a lobbed projectile rises above its straight path at mid-flight. A lob flies over cover and allies to where
+	/// its target stood at release, marks that spot for the whole flight, and strikes everyone within its projectile's
+	/// impact radius there with the attack's on-hit statuses: stepping aside escapes it, ducking behind a crate does not.
+	/// Zero flies straight. Single, unhoming ranged shots only.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,10,0.1,suffix:m")] public float ProjectileArcHeight { get; set; }
 
 	/// <summary>Poise removed from a defender with a <see cref="PoiseComponent"/> by each unprotected contact.</summary>
 	[ExportGroup("Impact")]
@@ -234,7 +242,7 @@ public partial class AttackDefinition : Resource
 
 	/// <summary>
 	/// Flight values are finite and nonnegative, the launch speed is a fraction of full speed, staggered or homing
-	/// flight belongs to a ranged attack, and, when the prepared release time and duration are known,
+	/// flight belongs to a ranged attack, a lob is one unhoming shot, and, when the prepared release time and duration are known,
 	/// the last staggered projectile leaves before the attack ends. Shared with <see cref="MonsterSceneValidator"/>.
 	/// </summary>
 	public bool HasValidFlight(float? contactStart = null, double? duration = null)
@@ -243,7 +251,10 @@ public partial class AttackDefinition : Resource
 			|| !float.IsFinite(HomingTurnRate) || HomingTurnRate < 0
 			|| !float.IsFinite(HomingDelay) || HomingDelay < 0
 			|| !float.IsFinite(LaunchSpeedScale) || LaunchSpeedScale <= 0 || LaunchSpeedScale > 1
-			|| !float.IsFinite(LaunchRampDuration) || LaunchRampDuration < 0) return false;
+			|| !float.IsFinite(LaunchRampDuration) || LaunchRampDuration < 0
+			|| !float.IsFinite(ProjectileArcHeight) || ProjectileArcHeight < 0) return false;
+		if (ProjectileArcHeight > 0 && (!IsRanged || HomingTurnRate > 0 || ProjectileCount > 1
+			|| ProjectilePattern != ProjectilePattern.Single)) return false;
 		if (ProjectileStagger == 0 && HomingTurnRate == 0) return true;
 		if (!IsRanged) return false;
 		return contactStart == null || duration == null

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
+
+[sub_resource type="Resource" id="throw"]
+script = ExtResource("binding")
+Style = &"javelin.throw"
+Clip = &"Throw"
+ContactStart = 0.5
+ContactEnd = 0.5
+
+[sub_resource type="Resource" id="stab"]
+script = ExtResource("binding")
+Style = &"spear.stab"
+Clip = &"1H_Melee_Attack_Stab"
+ContactStart = 0.2
+ContactEnd = 0.34
+
+[resource]
+script = ExtResource("profile")
+Bindings = [SubResource("throw"), SubResource("stab")]

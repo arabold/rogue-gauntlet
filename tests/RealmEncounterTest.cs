@@ -53,10 +53,12 @@ public class RealmEncounterTest
 	/// </summary>
 	private static readonly (string Name, string[] Cast, string Nest, string Gatekeeper)[] LaterRealms =
 	[
-		("The Prison", ["res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/nymph/nymph.tscn"],
+		("The Prison", ["res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_spearman.tscn",
+			"res://scenes/enemies/orc/orc_shaman.tscn", "res://scenes/enemies/orc/orc_captain.tscn", "res://scenes/enemies/bat/giant_bat.tscn",
+			"res://scenes/enemies/nymph/nymph.tscn"],
 			"res://scenes/levels/encounters/bat_roost.tscn", "res://scenes/enemies/minotaur/minotaur.tscn"),
 		("The Sewer", ["res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/snake/snake.tscn"],
-			"res://scenes/levels/encounters/slime_vat.tscn", null),
+			"res://scenes/levels/encounters/slime_vat.tscn", "res://scenes/enemies/gelatinous_cube/gelatinous_cube.tscn"),
 		("The Mines", ["res://scenes/enemies/golem/stone_golem.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/snake/snake.tscn"],
 			"res://scenes/levels/encounters/bat_roost.tscn", null),
 	];

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "Gelatinous Cube Contents",
+  "backend": "procedural",
+  "builder": "creature",
+  "design": {
+    "kind": "gelatinous_cube_contents"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 4500,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {},
+  "export": {
+    "glb": "res://assets/custom-monsters/gelatinous_cube/gelatinous_cube_contents.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "The gelatinous cube's swallowed skull, bones, sword, coins and bubbles, which show through the shell, standing on y=0 facing +Z. The game animates both by transform; no rig."
+  }
+}

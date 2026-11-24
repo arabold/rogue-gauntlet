@@ -48,6 +48,8 @@
 [ext_resource type="Resource" path="res://scenes/buffs/conditions/frozen.tres" id="frozen_condition"]
 [ext_resource type="Script" uid="uid://ds3fw1lymp5kj" path="res://scenes/components/FrozenStatusComponent.cs" id="frozen_driver"]
 [ext_resource type="Resource" path="res://scenes/effects/world/frozen/frozen.tres" id="frozen_effect"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/goo_bound.tres" id="goo_bound_condition"]
+[ext_resource type="Resource" path="res://scenes/effects/world/goo_bound/goo_bound.tres" id="goo_bound_effect"]
 [ext_resource type="Resource" uid="uid://bceqight3yi5n" path="res://scenes/combat/definitions/shield_guard.tres" id="guard_def"]
 [ext_resource type="Script" uid="uid://bw2ttraept3oh" path="res://scenes/combat/GuardComponent.cs" id="guard_script"]
 [ext_resource type="Resource" uid="uid://c6impykd7marf" path="res://scenes/combat/definitions/weapon_guard.tres" id="innate_guard"]
@@ -647,6 +649,16 @@ ActionGate = NodePath("../ActorActionGateComponent")
 Animation = NodePath("../AnimationTree")
 Effects = NodePath("../WorldEffects")
 Appearance = ExtResource("frozen_effect")
+Health = NodePath("../HealthComponent")
+
+[node name="GooBoundStatus" type="Node" parent="." node_paths=PackedStringArray("Statuses", "ActionGate", "Animation", "Effects", "Health")]
+script = ExtResource("frozen_driver")
+Statuses = NodePath("../BuffController")
+Condition = ExtResource("goo_bound_condition")
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../AnimationTree")
+Effects = NodePath("../WorldEffects")
+Appearance = ExtResource("goo_bound_effect")
 Health = NodePath("../HealthComponent")
 
 [node name="IronSkinStatus" parent="." unique_id=1652896172 node_paths=PackedStringArray("Statuses", "Host") instance=ExtResource("iron_status")]

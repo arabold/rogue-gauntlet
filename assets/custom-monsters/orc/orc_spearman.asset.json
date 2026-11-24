@@ -1,0 +1,81 @@
+{
+  "triangles": 6475,
+  "joints": 41,
+  "bounds": [
+    [
+      -2.408355924046881,
+      -0.27828132071091705,
+      -2.837581961436791
+    ],
+    [
+      2.017235681887035,
+      2.7803046632290247,
+      1.5053634451600326
+    ]
+  ],
+  "clips": [
+    "1H_Melee_Attack_Stab",
+    "Block_Attack",
+    "Block_Hit",
+    "Blocking",
+    "Death_A",
+    "Death_A_Pose",
+    "Dodge_Backward",
+    "Dodge_Forward",
+    "Dodge_Left",
+    "Dodge_Right",
+    "Hit_A",
+    "Idle",
+    "Idle_Combat",
+    "Throw",
+    "Walking_A"
+  ],
+  "key": "orc/orc_spearman",
+  "rig": "skeleton",
+  "roles": {
+    "Idle": "Idle_Combat",
+    "Walk": "Walking_A",
+    "Throw": "Throw",
+    "Stab": "1H_Melee_Attack_Stab"
+  },
+  "loops": [
+    "Idle",
+    "Idle_Combat",
+    "Walking_A"
+  ],
+  "scale": [
+    1.25,
+    1.15,
+    1.25
+  ],
+  "source_inputs": "624fcea7266a89666f7c73dbb11142cebcd6a999eb4ed81328c939ec1efcf27e",
+  "gameplay": false,
+  "provenance": {
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt",
+      "generator": "gemini-3-pro-image via Asset Studio; inputs: the approved Orc Warrior concept and the Knight style reference"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "orc_spearman_rigged.blend: built by `studio.py reconstruct build orc/orc_spearman` from reconstruction.json on the KayKit skeleton rig."
+  }
+}

@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectInstance.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/effects/world/goo_bound/goo_bound_profile.tres" id="surface"]
+[sub_resource type="Curve" id="envelope"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+[node name="GooBound" type="Node3D"]
+script = ExtResource("script")
+Duration = 1.6
+EnterTime = 0.25
+ExitTime = 0.5
+Envelope = SubResource("envelope")
+Surface = ExtResource("surface")

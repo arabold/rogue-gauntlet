@@ -11,6 +11,7 @@ The table lists the Garrison's roster and the gatekeepers built so far. Gameplay
 | [Plague Rat](../../scenes/enemies/rat/rat_definition.tres) | Bite/retreat, bounded low-health override | Depths 1–5 and finite nests |
 | [Forsaken Warden](../../scenes/enemies/forsaken_warden/forsaken_warden_definition.tres) | Sword/guard gatekeeper with conditional riposte | Depth 5 |
 | [The Minotaur](../../scenes/enemies/minotaur/minotaur_definition.tres) | Prison gatekeeper: punches, a guard-breaking smash and a lane-warned charge that staggers it against walls; faster charges below half health | Depth 10 (Prison) |
+| [The Gelatinous Cube](../../scenes/enemies/gelatinous_cube/gelatinous_cube_definition.tres) | Sewer gatekeeper: slow; lobs goo over cover that holds the hero in place while poison digests them, engulfs up close and drags a slowing slime trail; lobs more often below half health | Depth 15 (Sewer) |
 
 Stats, rewards and policy tuning live in the linked definitions and Resources. They await [first-realm balance acceptance](../development-roadmap.md#first-three-floor-acceptance); no automatic depth-based stat scaling or monster-level field is used. Later depths use a development fallback until the [realm monster roster](../specs/realm-monster-roster-plan.md) lands.
 

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="definition"]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/enemies/orc/orc_captain_combat.tres" id="combat"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common_guaranteed.tres" id="loot"]
+
+[sub_resource type="Resource" id="behavior"]
+script = ExtResource("behavior")
+DetectionRange = 20.0
+DetectionAngle = 60.0
+RoamRadius = 6.0
+RoamPauseMax = 2.75
+HitActionDuration = 0.35
+Combat = ExtResource("combat")
+
+[resource]
+script = ExtResource("definition")
+Id = "orc_captain"
+DisplayName = "Orc Captain"
+Archetype = 4
+BalanceDepth = 8.0
+MaxHealth = 32.0
+MoveSpeed = 4.0
+Loot = ExtResource("loot")
+Behavior = SubResource("behavior")
+Armor = 1.5
+ThreatLevel = 12.5

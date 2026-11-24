@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="StatModifierBuff" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/buffs/StatModifierBuff.cs" id="buff"]
+[ext_resource type="Script" path="res://scenes/player/resources/StatModifier.cs" id="modifier"]
+
+[sub_resource type="Resource" id="haste_speed"]
+script = ExtResource("modifier")
+Stat = 5
+Op = 1
+Value = 0.3
+
+[resource]
+script = ExtResource("buff")
+Modifiers = [SubResource("haste_speed")]
+Name = "Haste"
+Duration = 12.0

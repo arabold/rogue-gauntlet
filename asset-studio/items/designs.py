@@ -316,6 +316,7 @@ def tool(design):
 from items import axes, blades, blunt, polearms, staves, ranged
 from items.shieldcraft import shieldcraft
 from items.furnishings import furnishing
+from items.creatures import creature
 from items.fountains import fountain
 from prefabs.outfits import helmets as _helmets
 
@@ -328,6 +329,6 @@ def kaykit_headgear(design):
 # KayKit-style weapon families: each module's builder shares the `items.forge` palette and construction.
 WEAPONS = {"axe": axes, "blade": blades, "blunt": blunt, "polearm": polearms, "staff": staves, "ranged": ranged}
 FAMILIES = {"shieldcraft": shieldcraft, **{name: getattr(module, name) for name, module in WEAPONS.items()},
-            "furnishing": furnishing, "potion": potion, "weapon": weapon, "shield": shield, "scroll": scroll,
+            "furnishing": furnishing, "creature": creature, "potion": potion, "weapon": weapon, "shield": shield, "scroll": scroll,
             "jewelry": jewelry, "key": key, "food": food, "lamp": lamp, "tool": tool,
             "fountain": fountain, "kaykit_headgear": kaykit_headgear}
