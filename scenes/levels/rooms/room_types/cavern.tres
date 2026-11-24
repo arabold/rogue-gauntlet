@@ -15,7 +15,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="14_bone_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="15_floor_debris"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="16_bucket"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/straw_pile.tres" id="17_straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/hay_bale.tres" id="17_hay_bale"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="20_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/fern.tres" id="p_fern"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
@@ -81,7 +81,7 @@ metadata/_custom_type_script = ExtResource("13_scatterstep")
 [sub_resource type="Resource" id="ScatterStep_8"]
 script = ExtResource("13_scatterstep")
 Id = "remains"
-Content = [ExtResource("14_bone_pile"), ExtResource("15_floor_debris"), ExtResource("16_bucket"), ExtResource("17_straw_pile")]
+Content = [ExtResource("14_bone_pile"), ExtResource("15_floor_debris"), ExtResource("16_bucket"), ExtResource("17_hay_bale")]
 MaximumCount = 3
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("13_scatterstep")
