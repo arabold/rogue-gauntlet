@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 /// <summary>Captures a conservative radial visibility boundary for one visual-only area cast.</summary>
 public sealed class AreaVisibility
@@ -7,9 +8,12 @@ public sealed class AreaVisibility
 	private const int Samples = 1024;
 	private const float Padding = .12f;
 	private readonly float[] _distances = new float[Samples];
+	private readonly List<(Vector3 Foot, Vector3 Normal)> _walls = [];
 	public Vector3 Origin { get; }
 	public float Extent { get; }
 	public ImageTexture Texture { get; }
+	/// <summary>Where the boundary meets a wall's face, at the origin's height, with the face's outward normal.</summary>
+	public IReadOnlyList<(Vector3 Foot, Vector3 Normal)> Walls => _walls;
 
 	private AreaVisibility(World3D world, Vector3 origin, float extent)
 	{
@@ -24,7 +28,15 @@ public sealed class AreaVisibility
 			Vector3 direction = new(Mathf.Cos(angle), 0, Mathf.Sin(angle));
 			ray.To = start + direction * extent;
 			var hit = world.DirectSpaceState.IntersectRay(ray);
-			_distances[i] = hit.Count == 0 ? extent : Mathf.Max(0, start.DistanceTo(hit["position"].AsVector3()) - Padding);
+			_distances[i] = extent;
+			if (hit.Count > 0)
+			{
+				Vector3 position = hit["position"].AsVector3(), normal = hit["normal"].AsVector3();
+				_distances[i] = Mathf.Max(0, start.DistanceTo(position) - Padding);
+				// An upright face of the structure (not a prop) is a wall.
+				if (Mathf.Abs(normal.Y) < .5f && (PhysicsServer3D.BodyGetCollisionLayer(hit["rid"].AsRid()) & WorldSight.Structure) != 0)
+					_walls.Add((position with { Y = origin.Y }, normal));
+			}
 			image.SetPixel(i, 0, new Color(_distances[i] / extent, 0, 0));
 		}
 		Texture = ImageTexture.CreateFromImage(image);

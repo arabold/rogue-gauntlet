@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>Self-contained visual studies for earth spells; no combat or equipment behavior.</summary>
 public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
@@ -20,6 +21,11 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 	[Export] public Shader AreaStoneShader { get; set; }
 	[Export] public Shader AreaRingShader { get; set; }
 	[Export] public Shader AreaDustShader { get; set; }
+	/// <summary>Tremor shakes this <see cref="WallDust"/> down the walls its wave reaches; unassigned, the walls stay still.</summary>
+	[Export] public PackedScene WallDustBurst { get; set; }
+	/// <summary>Bursts along one wall stand at least this far apart, each covering its own stretch.</summary>
+	private const float WallDustSpacing = 2.2f;
+	private readonly List<(float Time, Vector3 Foot, Vector3 Normal)> _wallDust = [];
 	private readonly List<Node3D> _rocks = [];
 	private readonly List<MeshInstance3D> _rings = [];
 	private Node3D _falling;
@@ -100,6 +106,37 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 		Visibility = visibility;
 		foreach (var material in new[] { _waveMaterial, _crackMaterial, _areaStoneMaterial, _areaRingMaterial, _areaDustMaterial })
 			if (material != null) visibility.Apply(material);
+		PlanWallDust(visibility);
+	}
+
+	/// <summary>
+	/// Plans Tremor's dust down the walls inside its area: the nearest walls first, one burst per stretch of wall,
+	/// each loosed as the seismic wave reaches it and finished before the visual ends.
+	/// </summary>
+	private void PlanWallDust(AreaVisibility visibility)
+	{
+		_wallDust.Clear();
+		if (Kind != EarthKind.Tremor || WallDustBurst == null) return;
+		int budget = 3 + _level;
+		foreach (var (foot, normal) in visibility.Walls.OrderBy(wall => wall.Foot.HorizontalDistanceTo(visibility.Origin)))
+		{
+			if (_wallDust.Count >= budget) break;
+			if (_wallDust.Any(planned => planned.Foot.HorizontalDistanceTo(foot) < WallDustSpacing)) continue;
+			float arrival = Front.Arrival(foot.HorizontalDistanceTo(visibility.Origin) / PreviewRadius);
+			_wallDust.Add((Mathf.Min(arrival, Timeline.Duration * .9f), foot, normal));
+		}
+	}
+
+	/// <summary>Looses the planned wall dust the wave has reached, beside this visual so it outlasts it.</summary>
+	private void LooseWallDust(float time)
+	{
+		for (int i = _wallDust.Count - 1; i >= 0; i--)
+		{
+			if (time < _wallDust[i].Time) continue;
+			var (_, foot, normal) = _wallDust[i];
+			_wallDust.RemoveAt(i);
+			ScenePool.Spawn<WallDust>(WallDustBurst, GetParent()).Play(foot, normal);
+		}
 	}
 
 	private void AddSpike(Material material, Vector3 position, Vector3 size, float angle)
@@ -160,6 +197,7 @@ public partial class EarthSpellVisual : Node3D, IAreaSpellVisual, IGuardVisual
 		if (!Timeline.Started) return;
 		if (!_started) { _started = true; Visible = true; }
 		Pose(Timeline.Elapsed, Timeline.Progress);
+		LooseWallDust(Timeline.Elapsed);
 	}
 	/// <summary>Applies the animated state at a moment of the effect.</summary>
 	private void Pose(float time, float progress)

@@ -26,6 +26,9 @@ public sealed class AtmosphereContext : IDisposable
 		}
 		public void Dispose() { _points?.Dispose(); _points = null; }
 	}
+	/// <summary>The foot of a wall beside walkable floor: the middle of its tile edge at floor level, and the direction it faces into the floor.</summary>
+	public readonly record struct WallFace(Vector3 Position, Vector3 Normal);
+
 	public Rect2 Bounds => _map.WorldBounds;
 	public ulong Seed { get; }
 	public float Phase { get; }
@@ -38,6 +41,7 @@ public sealed class AtmosphereContext : IDisposable
 	private readonly Dictionary<(float, float, int, float, bool), Emission> _emissions = [];
 	private HashSet<Vector2I> _secretConnectors;
 	private ImageTexture _floorMask;
+	private WallFace[] _wallFaces;
 
 	public AtmosphereContext(GeneratedFloor floor, ulong seed) : this(floor.Map, seed) => _floor = floor;
 
@@ -99,6 +103,26 @@ public sealed class AtmosphereContext : IDisposable
 			foreach (var tile in _tiles) mask.SetPixel(tile.X, tile.Y, Colors.White);
 			return _floorMask = ImageTexture.CreateFromImage(mask);
 		}
+	}
+
+	/// <summary>Every wall edge of walkable floor, one face per tile edge, built once per floor.</summary>
+	public IReadOnlyList<WallFace> WallFaces => _wallFaces ??= FindWallFaces();
+
+	private WallFace[] FindWallFaces()
+	{
+		var faces = new List<WallFace>();
+		foreach (var tile in _tiles)
+		{
+			if (!_map.IsWalkable(tile.X, tile.Y)) continue;
+			Vector3 center = _map.TileToWorld(tile);
+			foreach (var direction in MapData.CardinalOffsets)
+			{
+				if (!_map.HasWallToward(tile.X, tile.Y, direction)) continue;
+				var outward = new Vector3(direction.X, 0, direction.Y);
+				faces.Add(new(center + outward * (Room.TileSize / 2f), -outward));
+			}
+		}
+		return [.. faces];
 	}
 
 	/// <summary>Shares a deterministic spatial field by placement settings, independent of effect ordering or population.</summary>

@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using GdUnit4;
@@ -109,6 +110,34 @@ public partial class AreaDamageSpellTest
 
 		AssertFloat(first.HealthComponent.CurrentHealth).IsEqual(50 - TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]));
 		AssertFloat(second.HealthComponent.CurrentHealth).IsEqual(50);
+	}
+
+	[TestCase]
+	public async Task TremorShakesDustDownTheWallsItsWaveReachesButNotProps()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await SettleAtOrigin(runner);
+		var root = runner.Scene();
+		AddWall(root, new Vector3(3, 1, 0));
+		var crate = new StaticBody3D { Position = new Vector3(-3, 1, 0), CollisionLayer = 16 };
+		crate.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(.8f, 2, .8f) } });
+		root.AddChild(crate);
+		await runner.SimulateFrames(2, 20);
+		var spell = TestFactories.GetSpell<AreaDamageSpell>(harness, "Tremor");
+
+		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
+		AssertArray(Falling(root)).IsEmpty(); // The wave has not reached the wall yet.
+		await TestFactories.AwaitPhysicsUntil(runner, () => Falling(root).Length > 0);
+
+		foreach (var dust in Falling(root))
+		{
+			// In front of the wall's face (x = 2.9), facing away from it, never at the crate.
+			AssertFloat(dust.GlobalPosition.X).IsBetween(2.3f, 2.9f);
+			AssertFloat(dust.GlobalBasis.X.X).IsEqualApprox(-1, .01f);
+		}
+
+		static WallDust[] Falling(Node root) => root.FindChildren("*", "GPUParticles3D", true, false)
+			.OfType<WallDust>().Where(dust => dust.Emitting && dust.IsVisibleInTree()).ToArray();
 	}
 
 	private static async Task<CombatHarness> SettleAtOrigin(ISceneRunner runner)
