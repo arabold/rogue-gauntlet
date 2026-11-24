@@ -4,11 +4,9 @@
 /// </summary>
 public interface INavigableWorld
 {
-	/// <summary>The world's ground navigation; null while it has none, which holds walking monsters still.</summary>
-	FloorNavigation Navigation { get; }
-
-	/// <summary>The grid flyers navigate (<see cref="NavigationLayer.Air"/>); null while it has none, which holds them still.</summary>
-	FloorNavigation AirNavigation { get; }
-
-	FloorNavigation NavigationFor(NavigationLayer layer) => layer == NavigationLayer.Air ? AirNavigation : Navigation;
+	/// <summary>
+	/// The world's grid for <paramref name="layer"/>: the ground walkers keep to, or the air flyers cross. Null while it
+	/// has none, which holds that layer's monsters still.
+	/// </summary>
+	FloorNavigation NavigationFor(NavigationLayer layer);
 }

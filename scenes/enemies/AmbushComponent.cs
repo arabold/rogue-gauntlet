@@ -3,8 +3,9 @@ using Godot;
 
 /// <summary>
 /// Keeps a monster lying in wait until the hero gives it away. While dormant it is concealed
-/// (<see cref="EnemyBase.IsConcealed"/>): aim-assist and seeking spells pass it over, its nameplate (name and health bar)
-/// and monster x-ray stay off, and it does not think or move (<see cref="EnemyBehaviorComponent"/>). Blasts and blows
+/// (<see cref="EnemyBase.IsConcealed"/>): aim-assist and seeking spells pass it over, it is hidden from the hero so its
+/// nameplate (name and health bar) and monster x-ray stay off (<see cref="IHideable"/>), and it does not think or move
+/// (<see cref="EnemyBehaviorComponent"/>). Blasts and blows
 /// still hit it, which wakes it. It either shows a <see cref="Disguise"/> prop in place of its <see cref="Model"/> (a
 /// real chest, gold outline and all, whose "Open Chest" springs the trap), or rests in its <see cref="DormantClip"/>:
 /// a coil, or a pose sunk below the floor or into a wall that its <see cref="WakeClip"/> emerges from. Using the
@@ -56,7 +57,6 @@ public partial class AmbushComponent : Node
 			State = AmbushState.Hunting;
 			return;
 		}
-		if (Actor.Nameplate != null) Actor.Nameplate.Enabled = false;
 		Actor.HurtBoxComponent.DamageTaken += OnDamageTaken;
 		// Deferred: the actor is still readying its children, and the disguise must not join the monster's x-ray.
 		if (Disguise != null) Callable.From(PutOnDisguise).CallDeferred();
@@ -110,7 +110,10 @@ public partial class AmbushComponent : Node
 		if (near && _near >= WakeDelay) Wake(player);
 	}
 
-	/// <summary>Gives the monster away: it drops any disguise, plays its wake clip, then hunts <paramref name="target"/>.</summary>
+	/// <summary>
+	/// Gives the monster away: it drops any disguise, plays its wake clip, then hunts <paramref name="target"/>. It stops
+	/// being concealed at once, so <see cref="Woke"/> also tells its actor it may show again.
+	/// </summary>
 	public void Wake(Node3D target)
 	{
 		if (State != AmbushState.Waiting) return;
@@ -118,8 +121,6 @@ public partial class AmbushComponent : Node
 		SetPhysicsProcess(false);
 		if (GodotObject.IsInstanceValid(_disguise)) _disguise.QueueFree();
 		if (Model != null) Model.Visible = true;
-		if (Actor.Nameplate != null) Actor.Nameplate.Enabled = true;
-		if (Actor.Xray != null) Actor.Xray.IsEnabled = true;
 		if (CombatTrace.Enabled) CombatTrace.Write(Actor, "ambush.woke", ("target", CombatTrace.Identity(target)));
 		EmitSignalWoke();
 		double duration = AnimationPlayer?.HasAnimation(WakeClip) == true ? AnimationPlayer.GetAnimation(WakeClip).Length : 0;

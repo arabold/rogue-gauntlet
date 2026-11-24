@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=17 format=3]
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
@@ -9,6 +9,7 @@
 [ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/unarmed.tres" id="unarmed_contact"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/MonsterBlinkAction.cs" id="blink_action"]
 [ext_resource type="Script" path="res://scenes/enemies/actions/CarryingLootCondition.cs" id="carrying"]
+[ext_resource type="Script" path="res://scenes/enemies/strategies/RetreatWhileStrategy.cs" id="retreat_while"]
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_departure/teleport_departure.tres" id="departure"]
 [ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="arrival"]
 
@@ -67,9 +68,17 @@ Conditions = [SubResource("carrying_loot")]
 Departure = ExtResource("departure")
 Arrival = ExtResource("arrival")
 
+[sub_resource type="Resource" id="carrying"]
+script = ExtResource("carrying")
+
+[sub_resource type="Resource" id="escape"]
+script = ExtResource("retreat_while")
+Condition = SubResource("carrying")
+Pattern = ExtResource("movement")
+
 [resource]
 script = ExtResource("profile")
 TacticalStrategy = ExtResource("tactics")
-MovementStrategy = ExtResource("movement")
+MovementStrategy = SubResource("escape")
 Flank = ExtResource("flank")
 Actions = [SubResource("jab"), SubResource("kick"), SubResource("blink")]

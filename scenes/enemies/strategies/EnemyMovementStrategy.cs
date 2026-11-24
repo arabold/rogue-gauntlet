@@ -25,7 +25,16 @@ public readonly record struct EnemyMovementIntent(EnemyMovementGoal Goal, bool A
 [GlobalClass]
 public abstract partial class EnemyMovementStrategy : Resource
 {
+	/// <summary>The positioning decision; the host asks it only when <see cref="Preempt"/> returned null.</summary>
 	public abstract EnemyMovementIntent Evaluate(EnemyContext context);
+
+	/// <summary>
+	/// A movement that outranks the profile's low-health retreat and flank, such as a thief running off with its loot
+	/// (<see cref="RetreatWhileStrategy"/>); null leaves the decision to them and <see cref="Evaluate"/>. The host asks
+	/// this first, and a strategy that wraps a pattern passes the pattern's through.
+	/// </summary>
+	public virtual EnemyMovementIntent? Preempt(EnemyContext context) => null;
+
 	/// <summary>Lets stateful tactics react to a committed attack without coupling the host to a strategy type.</summary>
 	public virtual void AttackAccepted(EnemyContext context, AttackIdentity identity) { }
 

@@ -28,13 +28,13 @@ public partial class Level : Node, IDebugWorld
 	/// level is its only owner. Unassigned, monsters pay no experience and a realm floor cannot be generated.
 	/// </summary>
 	[Export] public ThreatProfile ThreatProfile { get; set; }
-	/// <summary>Monster navigation on the generated floor; null until generation succeeds or without a profile.</summary>
-	public FloorNavigation Navigation { get; private set; }
-	/// <summary>Flyers' navigation on the generated floor; null alongside <see cref="Navigation"/>.</summary>
-	public FloorNavigation AirNavigation { get; private set; }
+	// Monster navigation on the generated floor per layer; empty until generation succeeds or without a profile.
+	private readonly Dictionary<NavigationLayer, FloorNavigation> _navigation = [];
 	private Node _runtimeWorldRoot;
 	public RealmEncounterController Encounters { get; private set; }
 	public bool CanDescend => Encounters?.DescentUnlocked != false;
+
+	public FloorNavigation NavigationFor(NavigationLayer layer) => _navigation.GetValueOrDefault(layer);
 
 	public void AddWorldNode(Node node)
 	{
@@ -185,8 +185,7 @@ public partial class Level : Node, IDebugWorld
 		// level is regenerated in place rather than replaced by a full scene reload.
 		ClearWorldNodes();
 		Floor = null;
-		Navigation = null;
-		AirNavigation = null;
+		_navigation.Clear();
 		Atmosphere?.Clear();
 		Discovery?.Clear();
 		// The previous floor was just freed, and generation reloads many of its resources by path.
@@ -200,9 +199,9 @@ public partial class Level : Node, IDebugWorld
 		}
 		Floor = MapGenerator.Floor;
 		Airflow?.Bind(MapGenerator);
-		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
-		AirNavigation = Floor.AirClearance != null && NavigationProfile != null
-			? new FloorNavigation(Floor, NavigationProfile, NavigationLayer.Air) : null;
+		if (NavigationProfile != null)
+			foreach (var layer in System.Enum.GetValues<NavigationLayer>())
+				if (Floor.ClearanceFor(layer) != null) _navigation[layer] = new FloorNavigation(Floor, NavigationProfile, layer);
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
 		// Shelves are seeded content, like untouched loot; the run's cleared entities say which offers are sold.

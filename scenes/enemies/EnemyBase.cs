@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// Represents an enemy character in the game.
 /// </summary>
-public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IStatusActor, IShieldOwner, ISlowActor, IBurningActor, IBuffTarget
+public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IStatusActor, IShieldOwner, ISlowActor, IBurningActor, IBuffTarget, IHideable
 {
 	HealthComponent IBuffTarget.Health => HealthComponent;
 	BuffController IBuffTarget.Buffs => BuffController;
@@ -106,19 +106,39 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		DeathComponent.Xp = _level?.ThreatProfile?.Xp(Definition) ?? 0;
 		LootTableComponent.Profile = Definition.Loot;
 		EnemyBehaviorComponent.Profile = Definition.Behavior;
-		if (Nameplate != null) Nameplate.NameLabel.Text = Definition.DisplayName;
+		if (Nameplate != null)
+		{
+			Nameplate.NameLabel.Text = Definition.DisplayName;
+			Nameplate.Subject = this;
+		}
 	}
 
 	public bool IsDead => EnemyBehaviorComponent?.IsDead ?? HealthComponent?.IsDead ?? false;
 
 	/// <summary>
 	/// Lying in wait (<see cref="AmbushComponent"/>): nothing gives it away. The hero's aim-assist and seeking spells pass
-	/// it over and its nameplate and x-ray stay off, but it is still an enemy that blasts and blows hit, which wakes it.
+	/// it over (<see cref="AttackController.IsTargetable"/>) and it is hidden from the hero, but it is still an enemy that
+	/// blasts and blows hit, which wakes it.
 	/// </summary>
 	public bool IsConcealed => AmbushComponent is { State: AmbushState.Waiting };
 
-	/// <summary>The see-through-wall silhouette added when the enemy becomes ready; off while it is concealed.</summary>
+	/// <summary>Invisible or concealed: its nameplate and x-ray stay off.</summary>
+	public bool IsHiddenFromHero => Invisibility?.IsInvisible == true || IsConcealed;
+
+	public event System.Action HiddenChanged;
+
+	/// <summary>The see-through-wall silhouette added when the enemy becomes ready; off while it is hidden from the hero.</summary>
 	public OcclusionXrayComponent Xray { get; private set; }
+
+	/// <summary>
+	/// Ends whatever the monster is doing, even a blink mid-fade, and lets it start nothing more: when it dies, or when it
+	/// leaves without dying (<see cref="DeathComponent.Leave"/>).
+	/// </summary>
+	public void StopActing()
+	{
+		ActionGate.Disable();
+		SpellCaster?.CancelInnate();
+	}
 
 	public bool TryStagger(float duration)
 	{
@@ -136,8 +156,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 		if (_initialIronSkin) IronSkinStatus?.SetActive(true);
 		if (_initialStoneSkin) StoneSkinStatus?.SetActive(true);
 		Pivot = GetNode<Node3D>("Pivot");
+		if (Invisibility != null) Invisibility.Changed += () => HiddenChanged?.Invoke();
+		if (AmbushComponent != null) AmbushComponent.Woke += () => HiddenChanged?.Invoke();
 
-		HealthComponent.Died += () => { ActionGate.Disable(); SpellCaster?.CancelInnate(); };
+		HealthComponent.Died += StopActing;
 
 		// An enemy outside a level (previews, harnesses) plays the default run; each still gets its own combat streams.
 		ConfigureCombatRandom(_level?.Seed ?? RunState.DefaultSeed, GetMeta("persistent_id", GetPath().ToString()).AsString());
@@ -164,9 +186,8 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 			Category = XrayCategory.Monster,
 			XrayColor = new Color(1f, 0.32f, 0.32f, 0.85f),
 			TargetRoot = "../Pivot",
-			Invisibility = Invisibility,
+			Subject = this,
 			GroundAnchor = this,
-			IsEnabled = !IsConcealed,
 		};
 		AddChild(Xray);
 	}

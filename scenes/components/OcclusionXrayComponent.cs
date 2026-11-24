@@ -21,7 +21,7 @@ public enum XrayCategory
 ///
 /// Silhouettes are shown only when the category's global toggle is on (<see cref="GameDebug"/>)
 /// AND the actor stands on a discovered tile (<see cref="ExplorationVisibility"/>), matching how
-/// the door indicator is gated to revealed areas.
+/// the door indicator is gated to revealed areas, and while its <see cref="Subject"/> is not hidden from the hero.
 /// </summary>
 [GlobalClass]
 public partial class OcclusionXrayComponent : Node
@@ -35,7 +35,8 @@ public partial class OcclusionXrayComponent : Node
 
 	/// <summary>Root whose <see cref="MeshInstance3D"/> descendants get silhouettes.</summary>
 	[Export] public NodePath TargetRoot { get; set; }
-	[Export] public InvisibilityComponent Invisibility { get; set; }
+	/// <summary>Optional actor whose silhouette hides while it is hidden from the hero; its owner assigns it.</summary>
+	public IHideable Subject { get; set; }
 	/// <summary>Optional ground plane anchor. Buried actor parts stay hidden while emerging; unassigned disables this clip.</summary>
 	[Export]
 	public Node3D GroundAnchor
@@ -60,6 +61,9 @@ public partial class OcclusionXrayComponent : Node
 			if (IsNodeReady()) Evaluate();
 		}
 	} = true;
+
+	/// <summary>Whether the silhouettes are on; they still draw only where the actor is occluded.</summary>
+	public bool IsShown { get; private set; }
 
 	/// <summary>Optional authored occlusion material. Unassigned uses the shared actor stencil pair.</summary>
 	[Export] public ShaderMaterial OcclusionMaterial { get; set; }
@@ -133,7 +137,7 @@ public partial class OcclusionXrayComponent : Node
 			bus => bus.XraySettingsChanged += OnXraySettingsChanged,
 			bus => bus.XraySettingsChanged -= OnXraySettingsChanged);
 
-		if (Invisibility != null) this.SubscribeUntilExit(Invisibility, c => c.Changed += Evaluate, c => c.Changed -= Evaluate);
+		if (Subject != null) this.SubscribeUntilExit(Subject, s => s.HiddenChanged += Evaluate, s => s.HiddenChanged -= Evaluate);
 		Evaluate();
 	}
 
@@ -229,7 +233,8 @@ public partial class OcclusionXrayComponent : Node
 
 		_revealed = _exploration.IsRevealed(_targetRoot.GlobalPosition);
 		bool alive = _health == null || !_health.IsDead;
-		bool visible = IsEnabled && GlobalFlagEnabled() && _revealed && alive && Invisibility?.IsInvisible != true;
+		bool visible = IsEnabled && GlobalFlagEnabled() && _revealed && alive && Subject?.IsHiddenFromHero != true;
+		IsShown = visible;
 
 		foreach (MeshInstance3D silhouette in _silhouettes)
 		{

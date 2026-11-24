@@ -56,7 +56,7 @@ public class PlayerTraversalTest
 
 		var route = new List<Vector2>();
 		float radius = EnemyBase.HorizontalRadius(body.GetNode<CollisionShape3D>("CollisionShape3D"));
-		AssertBool(level.Navigation.TryFindPath(start, exit, radius, route, FloorRouteExpansions))
+		AssertBool(level.NavigationFor(NavigationLayer.Ground).TryFindPath(start, exit, radius, route, FloorRouteExpansions))
 			.OverrideFailureMessage("No route fits the player's body.").IsTrue();
 		float length = GridPath.Length(start.Xz(), route);
 		int budget = Mathf.CeilToInt(length / Speed * 1000 / FrameMilliseconds * 1.6f) + 60;

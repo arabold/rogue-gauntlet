@@ -27,7 +27,7 @@ public partial class LevelTool : DebugTool
 		set
 		{
 			if (IsInstanceValid(_navigationOverlay)) { _navigationOverlay.QueueFree(); }
-			_navigationOverlay = value ? NavigationDebugOverlay.Build(Menu?.DebugWorld?.Navigation) : null;
+			_navigationOverlay = value ? NavigationDebugOverlay.Build(Menu?.DebugWorld?.NavigationFor(NavigationLayer.Ground)) : null;
 			if (_navigationOverlay != null) { Menu.DebugWorld.AddWorldNode(_navigationOverlay, Vector3.Zero); }
 		}
 	}

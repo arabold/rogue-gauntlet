@@ -296,22 +296,23 @@ public sealed class EnemyContext
 
 	/// <summary>
 	/// The movement strategy's decision, reshaped by the profile's flank; low-health movement temporarily overrides both
-	/// after action commitment permits it.
+	/// after action commitment permits it, and a strategy's preemption (<see cref="EnemyMovementStrategy.Preempt"/>)
+	/// overrides all three.
 	/// </summary>
 	public EnemyMovementIntent EvaluateMovement()
 	{
-		// A thief carrying loot runs out of the hero's reach instead of fighting, and waits there to vanish.
-		if (Actor.TheftComponent is { IsCarrying: true } theft) return RetreatOrHold(theft.EscapeDistance);
+		var strategy = CombatProfile.MovementStrategy;
+		if (strategy.Preempt(this) is { } preempted) return preempted;
 		var retreat = CombatProfile.RetreatCondition;
 		if (retreat != null && Tactics.EvaluateLowHealth(Delta, Actor.HealthComponent.Fraction, Target != null,
 			retreat.EnterHealthFraction, retreat.ExitHealthFraction, retreat.MaximumDuration))
 			return RetreatOrHold(retreat.DesiredDistance);
-		var intent = CombatProfile.MovementStrategy.Evaluate(this);
+		var intent = strategy.Evaluate(this);
 		return Flanking?.Apply(this, intent) ?? intent;
 	}
 
 	/// <summary>Back away from the target until <paramref name="distance"/> lies between them, then hold there; never attack.</summary>
-	private EnemyMovementIntent RetreatOrHold(float distance) => HorizontalTargetDistance < distance
+	public EnemyMovementIntent RetreatOrHold(float distance) => HorizontalTargetDistance < distance
 		? new(EnemyMovementGoal.Retreat, false, distance) : new(EnemyMovementGoal.Hold, false);
 
 	/// <summary>
@@ -387,19 +388,16 @@ public sealed class EnemyContext
 	private void FollowRing(EnemyMovementIntent intent)
 	{
 		if (!TryGetPrimarySlot(out var slots, out var kind)) { Navigation.Stop(); return; }
-		if (_ringRefresh.IsReady || !_hasRingPoint || _ringGoal != intent.Goal)
+		if (IsPointDue(intent) || !_hasRingPoint)
 		{
-			_ringRefresh.Start(RingRefreshInterval);
-			_ringGoal = intent.Goal;
 			Vector3 center = Target.GlobalPosition;
 			Vector3 to = slots.GetRingBearing(Actor, kind, intent.Arc);
 			Vector3 from = (Actor.GlobalPosition - center).TryNormalizeHorizontal(out var bearing) ? bearing : to;
 			float limit = Mathf.DegToRad(intent.OrbitStep);
 			float step = Mathf.Clamp(from.SignedAngleTo(to, Vector3.Up), -limit, limit);
-			float distance = intent.DesiredDistance;
-			_hasRingPoint = Navigation.TryFindTraversable(center + from.Rotated(Vector3.Up, step) * distance, distance, out _ringPoint);
+			PickPoint(intent, RingRefreshInterval, center + from.Rotated(Vector3.Up, step) * intent.DesiredDistance);
 		}
-		if (!_hasRingPoint || !Navigation.MoveTo(_ringPoint) || Navigation.IsStuck) Navigation.Stop();
+		if (!MoveToPoint()) Navigation.Stop();
 	}
 
 	/// <summary>
@@ -411,24 +409,39 @@ public sealed class EnemyContext
 	private void FollowHover(EnemyMovementIntent intent)
 	{
 		if (Target == null) { Navigation.Stop(); return; }
-		if (_ringRefresh.IsReady || _ringGoal != intent.Goal || (_hasRingPoint && Navigation.HasArrived))
+		if (IsPointDue(intent) || (_hasRingPoint && Navigation.HasArrived))
 		{
-			_ringRefresh.Start(intent.Burst * RandomRange(.7f, 1.3f));
-			_ringGoal = intent.Goal;
+			float burst = intent.Burst * RandomRange(.7f, 1.3f);
 			Vector3 center = Target.GlobalPosition;
 			Vector3 from = (Actor.GlobalPosition - center).TryNormalizeHorizontal(out var bearing) ? bearing : Vector3.Forward;
 			// Each dart swings at least HoverMinimumDart around the target, so it never lands where the body already is.
 			float swing = Mathf.DegToRad(intent.OrbitStep);
 			float least = Mathf.Min(swing, HoverMinimumDart / Mathf.Max(intent.DesiredDistance, HoverMinimumDart));
 			float turn = RandomRange(least, swing) * (RandomRange(0, 1) < .5f ? -1 : 1);
-			Vector3 point = center + from.Rotated(Vector3.Up, turn) * intent.DesiredDistance;
-			_hasRingPoint = Navigation.TryFindTraversable(point, intent.DesiredDistance, out _ringPoint);
+			PickPoint(intent, burst, center + from.Rotated(Vector3.Up, turn) * intent.DesiredDistance);
 		}
-		if (_hasRingPoint && Navigation.MoveTo(_ringPoint) && !Navigation.IsStuck) return;
+		if (MoveToPoint()) return;
 		Navigation.Stop();
 		if (_hasRingPoint) _ringRefresh.Start(RingRefreshInterval);
 		_hasRingPoint = false;
 	}
+
+	/// <summary>Whether the point a ring or hover goal moves to is due a fresh pick: on its throttle, or for a new goal.</summary>
+	private bool IsPointDue(EnemyMovementIntent intent) => _ringRefresh.IsReady || _ringGoal != intent.Goal;
+
+	/// <summary>
+	/// Picks the nearest spot this body fits within the intent's distance of <paramref name="point"/> as the point its
+	/// goal moves to, due again after <paramref name="interval"/>; without a spot there is no point.
+	/// </summary>
+	private void PickPoint(EnemyMovementIntent intent, float interval, Vector3 point)
+	{
+		_ringRefresh.Start(interval);
+		_ringGoal = intent.Goal;
+		_hasRingPoint = Navigation.TryFindTraversable(point, intent.DesiredDistance, out _ringPoint);
+	}
+
+	/// <summary>Moves toward the picked point; false without one, when no route reaches it, or once the body stalls.</summary>
+	private bool MoveToPoint() => _hasRingPoint && Navigation.MoveTo(_ringPoint) && !Navigation.IsStuck;
 
 	/// <summary>Flee the target down its shared field. False when cornered or stalled, which permits an eligible attack.</summary>
 	private bool FollowRetreat()

@@ -6,7 +6,8 @@ using Godot;
 /// constant on screen at any zoom. The name fades in only while the player is near, so passing something shows what
 /// it is without flooding the screen. Text grows upward from the label (bottom-aligned and wrapped). Everything on the
 /// plate draws over the black fog caps that conceal ordinary actors by depth, so the plate hides itself while the tile
-/// under it is undiscovered. Standalone previews have no fog. The owner assigns the label's text.
+/// under it is undiscovered. Standalone previews have no fog. The owner assigns the label's text, and an actor that
+/// can hide assigns itself as <see cref="Subject"/>.
 /// </summary>
 [GlobalClass]
 public partial class Nameplate : Node3D
@@ -27,8 +28,8 @@ public partial class Nameplate : Node3D
 	[Export(PropertyHint.Range, "0,2,0.01")] public float FadeDuration { get; set; } = 0.15f;
 	/// <summary>Optional: hides the name once the actor dies.</summary>
 	[Export] public HealthComponent Health { get; set; }
-	/// <summary>Optional actor cloak that hides the name while invisible.</summary>
-	[Export] public InvisibilityComponent Invisibility { get; set; }
+	/// <summary>Optional actor whose name hides while it is hidden from the hero (invisible, or lying in wait); its owner assigns it.</summary>
+	public IHideable Subject { get; set; }
 	/// <summary>Lets the owner hold the name back, e.g. while a thrown drop is still in the air.</summary>
 	[Export] public bool Enabled { get; set; } = true;
 
@@ -57,7 +58,7 @@ public partial class Nameplate : Node3D
 
 	public override void _Process(double delta)
 	{
-		bool allowed = RefreshFog() && Enabled && Health?.IsDead != true && Invisibility?.IsInvisible != true;
+		bool allowed = RefreshFog() && Enabled && Health?.IsDead != true && Subject?.IsHiddenFromHero != true;
 		Node3D player = allowed ? FindPlayer(delta) : null;
 		bool shown = player != null
 			&& player.GlobalPosition.HorizontalDistanceTo(GlobalPosition) <= ShowDistance + (IsShown ? HideMargin : 0f);

@@ -3,10 +3,10 @@ using Godot;
 
 /// <summary>
 /// Lets a monster steal from the hero. Its first melee hit that damages the hero takes one random item stack the hero is
-/// not wearing from the pack. While it carries loot the monster runs out of the hero's reach instead of fighting
-/// (<see cref="EnemyContext.EvaluateMovement"/>); once it has stayed out of the hero's sight or reach for
-/// <see cref="EscapeTime"/>, it vanishes with the loot for good. Killing it first drops the loot at its feet. The nymph
-/// steals this way.
+/// not wearing from the pack. While it carries loot its combat profile runs it out of the hero's reach instead of
+/// fighting (a <see cref="RetreatWhileStrategy"/> on <see cref="CarryingLootCondition"/>); once it has stayed out of the
+/// hero's sight or reach for <see cref="EscapeTime"/>, it leaves with the loot for good
+/// (<see cref="DeathComponent.Leave"/>). Killing it first drops the loot at its feet. The nymph steals this way.
 /// </summary>
 [GlobalClass]
 public partial class TheftComponent : Node
@@ -16,11 +16,14 @@ public partial class TheftComponent : Node
 	[Export] public HealthComponent Health { get; set; }
 	/// <summary>The world pickup the loot drops as when the thief dies.</summary>
 	[Export] public PackedScene LootableItemScene { get; set; }
-	/// <summary>How far from the hero the thief runs while it carries loot; farther counts as out of reach.</summary>
+	/// <summary>
+	/// Farther from the hero than this counts as out of reach. The thief's retreat decides how far it runs
+	/// (<see cref="RetreatWhileStrategy.Distance"/>); keep that at least this far, or it waits in the hero's reach.
+	/// </summary>
 	[Export(PropertyHint.Range, "2,40,0.5,suffix:m")] public float EscapeDistance { get; set; } = 12;
 	/// <summary>Seconds out of the hero's sight or reach before the thief vanishes with its loot.</summary>
 	[Export(PropertyHint.Range, "0.5,20,0.1,suffix:s")] public float EscapeTime { get; set; } = 3;
-	/// <summary>Optional effect the thief vanishes in; it is removed once the effect ends, or at once without one.</summary>
+	/// <summary>Optional effect the thief vanishes in (<see cref="DeathComponent.Leave"/>).</summary>
 	[Export] public WorldEffectDefinition VanishEffect { get; set; }
 
 	/// <summary>Within this margin of <see cref="EscapeDistance"/> the hero still counts as in reach, so a thief waiting at the edge does not flicker.</summary>
@@ -97,25 +100,7 @@ public partial class TheftComponent : Node
 		SignalBus.EmitThiefEscaped(_loot, _quantity, ThiefName);
 		if (CombatTrace.Enabled) CombatTrace.Write(Actor, "theft.escaped", ("item", _loot.DefinitionPath), ("quantity", _quantity));
 		_loot = null;
-		if (Actor.HasMeta("persistent_id") && _world is Level level) level.Run.MarkCleared(Actor.GetMeta("persistent_id").AsString());
-		Actor.EnemyBehaviorComponent.AIEnabled = false;
-		Actor.MovementComponent.Stop();
-		Actor.CollisionLayer = 0;
-		Actor.HurtBoxComponent.Invulnerable = true;
-		var host = Actor.WorldEffects;
-		var result = VanishEffect != null && host != null
-			? host.PlayBurstConfigured(VanishEffect, (uint)Actor.GetInstanceId(), instance =>
-			{
-				instance.Finished += Remove;
-				return true;
-			})
-			: WorldEffectResult.Rejected;
-		if (result != WorldEffectResult.Started) Remove();
-	}
-
-	private void Remove()
-	{
-		if (GodotObject.IsInstanceValid(Actor)) Actor.QueueFree();
+		Actor.DeathComponent.Leave(VanishEffect);
 	}
 
 	/// <summary>A thief killed before it escapes drops its loot at its feet, saved with the floor like any dropped item.</summary>

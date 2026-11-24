@@ -143,6 +143,8 @@ public class BatFlightTest
 	private static (Vector3 From, Vector3 To)? FindCrossing(Level level)
 	{
 		var map = level.Floor.Map;
+		var ground = level.NavigationFor(NavigationLayer.Ground);
+		var air = level.NavigationFor(NavigationLayer.Air);
 		const float radius = .5f;
 		for (int x = 0; x < map.Width; x++)
 		for (int z = 0; z < map.Height; z++)
@@ -155,8 +157,8 @@ public class BatFlightTest
 			while (map.IsWithinBounds(end.X, end.Y) && map.IsChasm(end.X, end.Y) && water < 4) { water++; end += step; }
 			if (water == 0 || water > 3 || !map.IsWithinBounds(end.X, end.Y) || !map.IsWalkable(end.X, end.Y)) continue;
 			Vector3 from = map.TileToWorld(start), to = map.TileToWorld(end);
-			if (level.Navigation.IsTraversable(from, radius) && level.Navigation.IsTraversable(to, radius)
-				&& level.AirNavigation.HasClearLine(from, to, radius) && !level.Navigation.HasClearLine(from, to, radius))
+			if (ground.IsTraversable(from, radius) && ground.IsTraversable(to, radius)
+				&& air.HasClearLine(from, to, radius) && !ground.HasClearLine(from, to, radius))
 				return (from, to);
 		}
 		return null;
