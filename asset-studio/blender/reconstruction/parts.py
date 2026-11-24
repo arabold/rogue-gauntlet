@@ -66,6 +66,18 @@ def import_parts(path, config):
         dense.objects.link(o)
         bm = bmesh.new()
         bm.from_mesh(o.data)
+        if (box := config.get("drop_islands", {}).get(part)) is not None:
+            # Loose shells a part should not keep, such as the chain links hanging from the minotaur's shackles, which
+            # would swing stiffly with the forearm: every island whose center lies inside the box goes. Islands are
+            # found before welding, which joins shells that merely touch.
+            low, high = Vector(box["min"]), Vector(box["max"])
+            drop = []
+            for island in _islands(bm):
+                verts = {v for f in island for v in f.verts}
+                center = sum((v.co for v in verts), Vector()) / len(verts)
+                if all(low[k] <= center[k] <= high[k] for k in range(3)):
+                    drop += island
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
         bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
         bm.to_mesh(o.data)
         bm.free()

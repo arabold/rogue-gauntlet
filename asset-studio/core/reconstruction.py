@@ -109,6 +109,7 @@ def check_config(config):
     problems += [f"center_on names unknown part {p}" for p in config["center_on"] if p not in parts]
     problems += [f"rings name unknown part {p}" for p in config.get("rings", {}) if p not in parts]
     problems += [f"by_island names unknown part {p}" for p in config.get("by_island", ()) if p not in parts]
+    problems += [f"drop_islands names unknown part {p}" for p in config.get("drop_islands", {}) if p not in parts]
     problems += [f"undersides gives {p} slot {u['slot']} outside its slots" for p, u in config.get("undersides", {}).items()
                  if u["slot"] not in config["slots"].get(p, ())]
     kind = config["rig"].get("kind", "humanoid")

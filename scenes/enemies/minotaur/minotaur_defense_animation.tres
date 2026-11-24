@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DefenseAnimationProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/combat/DefenseAnimationProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+RecoveryClip = &"Idle_A"
+StaggerClip = &"Hit_A"

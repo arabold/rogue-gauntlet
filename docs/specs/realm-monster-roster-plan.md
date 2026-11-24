@@ -30,7 +30,7 @@ Skeleton minion, warrior, crossbowman and mage, the plague rat, and the Forsaken
 | Orc captain | NetHack Uruk-hai | Brute | Shield guard and bash; empowers grunts near it |
 | Giant bat | Rogue `B`, NetHack giant bat | Swarmer | **Flight**: fast, erratic swoops over water, chasms and low obstacles |
 | Nymph | Rogue `N` | Fodder | Slips close, **steals** an item from the hero's pack and **escapes**; killing her before she gets away drops it |
-| **Minotaur** (gatekeeper) | NetHack minotaur | Boss | The Prison's chained prisoner. Fists and a horn gore up close; lowers its head and **charges** across the arena, and a charge the hero sidesteps ends against a wall, leaving it staggered. At half health it breaks its chains and charges more often |
+| **Minotaur** (gatekeeper) | NetHack minotaur | Boss | The Prison's escaped prisoner, iron shackles on its wrists. Punches and a guard-breaking two-fist smash up close; lowers its head and **charges** across the arena, and a charge the hero sidesteps ends against a wall, leaving it staggered. At half health it charges faster and more often |
 
 Nest: a bat roost that releases giant bats.
 
@@ -95,7 +95,7 @@ Each capability is a reusable component, action or strategy, authored on the mon
 | Chest mimic | Any realm from the Prison on | Chest placement, ambush |
 | Contact corrosion | Acid blob | Hurtbox events, `BuffController` |
 | Armor rust and strength sap | Aquator, rattlesnake | Buff modifiers on armor and attributes |
-| Charge | Minotaur | `MonsterDashAction`, `DashComponent`, attack payloads, `AttackIndicatorComponent`, `HealthPhaseComponent` |
+| Charge (landed) | Minotaur | `MonsterAttackAction`, the attack warning, `HealthPhaseComponent` |
 | Revive | Stone golem | `HealthComponent`, `HealthPhaseComponent` |
 | Ambush | Piercer, gargoyle, graspers, chest mimic | `InvisibilityComponent`, attack indicator |
 | Burrow | Umber hulk | Ground navigation, `InvisibilityComponent` |
@@ -162,10 +162,12 @@ Rogue's Xeroc, as a chest. From the Prison on, a placed chest may be a mimic.
 
 ### Charge
 
-- **Action (proposed):** `MonsterChargeAction : MonsterAction`, the minotaur's rush. `MonsterDashAction` only takes a clear corridor and deals no damage; a charge locks onto where the hero stands when its wind-up ends, carries a hit with knockback for its whole run, and keeps going until it reaches its `MaximumDistance` or meets a wall or tall solid.
-- **Telegraph:** a head-down wind-up while `AttackIndicatorComponent` draws the charge lane.
-- **Wall impact:** a charge that ends against a wall staggers the minotaur for `ImpactStagger`, the hero's opening. One that ends in the open recovers normally.
-- **Breaking its chains:** a `HealthPhaseComponent` phase at half health unlocks a second charge with a shorter wind-up and a higher weight, and swaps the chained shackles for broken ones.
+Landed for the minotaur; [monster authoring](../monster-authoring-design.md) describes `MonsterChargeAction`.
+
+- **Action (landed):** `MonsterChargeAction : MonsterAttackAction`, the minotaur's rush: a melee attack whose contact window is a run at `Speed` along the facing it locks before contact, so its ordinary melee contact travels with it. `MonsterDashAction` stays the damage-free hop.
+- **Telegraph (landed):** a head-down wind-up clip (`ChargeWindup`) while the attack warning stretches into the charge lane, cut short at the first wall.
+- **Wall impact (landed):** a charge that meets a wall or solid prop head-on ends there and staggers the minotaur for `ImpactStagger`, with a camera shake: the hero's opening. Bodies never stop it, and one that ends in the open recovers normally.
+- **Breaking its chains (landed):** a `HealthPhaseComponent` phase at half health swaps the charge for a faster, more frequent one (shorter wind-up, higher speed and weight) and raises the smash's weight.
 
 ### Revive
 
@@ -208,7 +210,7 @@ HealthComponent: health reaches 0
 ## Art
 
 - Built with the [Asset Studio](../../asset-studio/README.md) monster pipeline in the KayKit style. Humanoids use KayKit rigs: medium for orcs and gnomes, large for the minotaur and umber hulk. They share the rig's clips where possible, and missing clips (cast, throw, hover) are authored per rig.
-- The minotaur's turnaround turns the concept's wrist bands into iron shackles with chain links, and its second phase shows them broken.
+- The minotaur's turnaround turns the concept's wrist bands into iron shackles with broken chain links. Rigid links swung stiffly with the forearm, so the build drops them until they get bones of their own; it is built on the large rig with its charge clips authored over the rig's idle and run ([source](../../asset-studio/characters/minotaur/minotaur/README.md)).
 - The stone golem is the Studio's existing procedural build (`golem/stone_golem`): rigid rocks on the large rig, already exported to `assets/custom-monsters/golem/`. Each rock follows one bone, so its collapse and reassemble clips need no new art.
 - Families share one base body per rig: tiers change gear, size, palette and one silhouette mark (the captain's shield, the king's crown).
 - The grasper's tentacles and roots share one simple chain rig and clip set (erupt, grab, squeeze, sink); only the mesh and materials differ.
@@ -250,7 +252,7 @@ HealthComponent: health reaches 0
 Each slice lands playable: its realm's floors spawn the new roster, and the harness can stage each monster.
 
 1. **Prison on the ground.** Orc family, the minotaur with its charge, and the prison factory chained from the Garrison. No nest yet.
-   - Landed early, with the Sewer's [factory](../../scenes/levels/encounters/sewer_encounters.tres) (sewer rats, acid blobs and snakes, and the slime vat, a goo barrel that releases acid blobs, as its nest; no aquator, tentacles or gatekeeper yet): the [prison factory](../../scenes/levels/encounters/prison_encounters.tres), chained from the Garrison, with the Orc Warrior as the grunt, the giant bat with its roost and the nymph with theft. The spearman, shaman, captain and minotaur remain, so its last floor has no gatekeeper (`RealmEncounterFactory.HasGatekeeper`).
+   - Landed early, with the Sewer's [factory](../../scenes/levels/encounters/sewer_encounters.tres) (sewer rats, acid blobs and snakes, and the slime vat, a goo barrel that releases acid blobs, as its nest; no aquator, tentacles or gatekeeper yet): the [prison factory](../../scenes/levels/encounters/prison_encounters.tres), chained from the Garrison, with the Orc Warrior as the grunt, the giant bat with its roost and the nymph with theft. The minotaur followed as its gatekeeper on depth 10 ([`minotaur.tscn`](../../scenes/enemies/minotaur/minotaur.tscn)). The spearman, shaman and captain remain.
    - Verify: realm encounter tests over the prison band (packs inside it, gatekeeper seals the descent and lifts only on its death), harness scenarios for each orc and the minotaur's charge: one that connects knocks the hero back, one the hero sidesteps staggers the minotaur against the wall.
 2. **Flight.** The giant bat and its roost nest. This is the riskiest engine work, so it comes early and unblocks the Cathedral.
    - Landed: the air grid and the bat's flight, tested on a generated Sewer floor (it crosses a pool walkers must go around, and loot from over water lands on dry floor) and in the harness (it never holds still, and swords and bolts hit its hovering body). The bat roost (ruins rubble on straw with perched bats) releases up to three bats at a time, six in all, on Prison floor 2.

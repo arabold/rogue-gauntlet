@@ -1,8 +1,8 @@
 # Active monster catalog
 
-The playable roster contains six monsters. Gameplay definitions and policies in Godot Resources are authoritative; this is a reference summary, not a second stat database. See [Monster authoring](../monster-authoring-design.md) for composition and [Level design](../level-design.md#first-realm-encounter-prototype) for encounter budgets and persistence.
+The table lists the Garrison's roster and the gatekeepers built so far. Gameplay definitions and policies in Godot Resources are authoritative; this is a reference summary, not a second stat database. See [Monster authoring](../monster-authoring-design.md) for composition and [Level design](../level-design.md#first-realm-encounter-prototype) for encounter budgets and persistence.
 
-| Monster definition | Role | First-realm availability |
+| Monster definition | Role | Availability |
 | --- | --- | --- |
 | [Skeleton Minion](../../scenes/enemies/skeleton/skeleton_minion_definition.tres) | Direct melee | Depths 1–5 |
 | [Skeleton Warrior](../../scenes/enemies/skeleton/skeleton_warrior_definition.tres) | Melee with guard, dodge and conditional riposte | Depths 1–5 |
@@ -10,6 +10,7 @@ The playable roster contains six monsters. Gameplay definitions and policies in 
 | [Skeleton Mage](../../scenes/enemies/skeleton/skeleton_mage_definition.tres) | Missile volleys, fireballs, ally healing, self healing and empowerment | Depths 3–5 |
 | [Plague Rat](../../scenes/enemies/rat/rat_definition.tres) | Bite/retreat, bounded low-health override | Depths 1–5 and finite nests |
 | [Forsaken Warden](../../scenes/enemies/forsaken_warden/forsaken_warden_definition.tres) | Sword/guard gatekeeper with conditional riposte | Depth 5 |
+| [The Minotaur](../../scenes/enemies/minotaur/minotaur_definition.tres) | Prison gatekeeper: punches, a guard-breaking smash and a lane-warned charge that staggers it against walls; faster charges below half health | Depth 10 (Prison) |
 
 Stats, rewards and policy tuning live in the linked definitions and Resources. They await [first-realm balance acceptance](../development-roadmap.md#first-three-floor-acceptance); no automatic depth-based stat scaling or monster-level field is used. Later depths use a development fallback until the [realm monster roster](../specs/realm-monster-roster-plan.md) lands.
 

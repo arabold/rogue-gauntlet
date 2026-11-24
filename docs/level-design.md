@@ -11,7 +11,7 @@ Every room is assembled; there are no hand-authored rooms. All rooms come from o
 | Depths | Realm | Theme | Floor plans, most common first | Boss floor |
 | --- | --- | --- | --- | --- |
 | 1–5 | Garrison | garrison | cluster, hallway | depth 5: the Forsaken Warden |
-| 6–10 | Prison | garrison | prison, cluster, hallway | — |
+| 6–10 | Prison | garrison | prison, cluster, hallway | depth 10: the Minotaur |
 | 11–15 | Sewer | sewer | large cluster, cluster | — |
 | 16–20 | Mines | jungle | mines, large cluster | — |
 | 21–25 | Cathedral | garrison | cathedral and cloister, cluster | — |
@@ -22,7 +22,7 @@ Every room is assembled; there are no hand-authored rooms. All rooms come from o
 | sewer | cistern hall, sewer vault, drain tunnel, junction, rat warren | prison, storage, partitioned storage, ruins, entrance, exit | studio bricks, slimy/gated walls, stone/scaffold passageways, torches & shackles |
 | jungle | timbered mine, ore chamber, foreman's hut, cavern, root passage, temple hall, ruined shrine | ruins, entrance, exit | studio earth, cave rock walls & doorways, rail tracks, parked carts, timber/cave passageways, mine lanterns, tool racks & ore veins |
 
-Every realm's last floor is its boss floor, built from the realm's `BossProfile` ([boss.tres](../scenes/levels/generators/floor_profiles/boss.tres)) when its encounter plan holds a gatekeeper; only the Garrison has one so far, so the other realms' last floors build from their ordinary plans. Every other floor draws one of the realm's floor plans by weight, the same plan on every attempt of that floor. The generator's `UniqueFloorPlans` add plans a run meets exactly once: the run seed places the [labyrinth](../scenes/levels/generators/floor_profiles/labyrinth.tres) on one ordinary floor (no gatekeeper, no shop) between depths 7 and 19. A generator `Profile`, when assigned, pins every floor to one plan for tests, the room harness and previews.
+Every realm's last floor is its boss floor, built from the realm's `BossProfile` ([boss.tres](../scenes/levels/generators/floor_profiles/boss.tres)) when its encounter plan holds a gatekeeper; only the Garrison and the Prison have one so far, so the other realms' last floors build from their ordinary plans. Every other floor draws one of the realm's floor plans by weight, the same plan on every attempt of that floor. The generator's `UniqueFloorPlans` add plans a run meets exactly once: the run seed places the [labyrinth](../scenes/levels/generators/floor_profiles/labyrinth.tres) on one ordinary floor (no gatekeeper, no shop) between depths 7 and 19. A generator `Profile`, when assigned, pins every floor to one plan for tests, the room harness and previews.
 
 Landmark rooms are rare. A room definition's `FloorChance` is the chance a floor offers it at all, rolled once per floor from the level seed, and `MaxPerFloor` caps its copies. A definition that loses its roll leaves the floor's pool, so layouts and room groups never draw it. The great hall, treasury, chapel, crypt, alchemist, library, cistern hall and temple hall are rare this way, so each floor shows only some of them, once each.
 

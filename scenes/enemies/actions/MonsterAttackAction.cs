@@ -32,9 +32,13 @@ public partial class MonsterAttackAction : MonsterTimedAction
 			return ActorActionRequestResult.InvalidDefinition;
 		}
 		context.NotifyAttackAccepted(controller.CurrentExecutionId);
-		run = new MonsterTimedRun(this, target, slots, controller, controller.CurrentExecutionId);
+		run = CreateRun(target, slots, controller);
 		return ActorActionRequestResult.Success;
 	}
+
+	/// <summary>The run that follows the started execution; an attack that also moves the actor steers it from its own run.</summary>
+	protected virtual MonsterActionRun CreateRun(Node3D target, AttackSlotsComponent slots, AttackController controller) =>
+		new MonsterTimedRun(this, target, slots, controller, controller.CurrentExecutionId);
 
 	public override void Validate(MonsterValidationContext context)
 	{

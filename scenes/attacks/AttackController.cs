@@ -27,6 +27,8 @@ public partial class AttackController : Node, IParryInterruptible
 	public bool IsRanged => _currentAttack?.IsRanged ?? false;
 	private PreparedAttack _preparedAttack;
 	private Vector2[] _indicatorFootprint = [];
+	/// <summary>The lane the warning shows until contact opens (<see cref="ShowWarningLane"/>); null shows the contact footprint.</summary>
+	private Vector2[] _warningLane;
 	/// <summary>The actor's action gate. Unassigned runs attacks without action ownership, phases or hyper-armor.</summary>
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
 	private ActorActionLease _actionLease;
@@ -203,6 +205,7 @@ public partial class AttackController : Node, IParryInterruptible
 		_preparedAttack = attack;
 		_currentAttack = def;
 		_indicatorFootprint = def.IsRanged || attack.Spell != null ? [] : def.MeleeContact.FootprintOutline();
+		_warningLane = null;
 		_currentHit = hit;
 		_targetMask = targetMask;
 
@@ -430,6 +433,21 @@ public partial class AttackController : Node, IParryInterruptible
 		_swoosh = null;
 	}
 
+	/// <summary>
+	/// Warn of the running melee execution as a lane <paramref name="length"/> metres long, at its contact's width, until
+	/// its contact opens: an attack that travels, such as a charge, lands farther away than its contact reaches from where
+	/// it starts. Its owner updates the length while the actor turns; contact shows the ordinary footprint again.
+	/// </summary>
+	public void ShowWarningLane(AttackIdentity execution, float length)
+	{
+		if (!IsAttacking || execution != CurrentExecutionId || _currentAttack.IsRanged || !float.IsFinite(length)) return;
+		if (length <= 0) { _warningLane = null; return; }
+		// A straight lane in the footprint's actor-local frame: full width from the actor's center, forward is -Y.
+		float half = _currentAttack.MeleeContact.Width / 2;
+		if (_warningLane != null && Mathf.IsEqualApprox(_warningLane[1].Y, -length)) return;
+		_warningLane = [new(-half, 0), new(-half, -length), new(half, -length), new(half, 0)];
+	}
+
 	/// <summary>Build the warning from this execution's current tracking or already captured release data.</summary>
 	private void UpdateIndicator(AttackIndicatorStage stage)
 	{
@@ -439,7 +457,8 @@ public partial class AttackController : Node, IParryInterruptible
 		Vector3 direction = HasCommittedFacing ? CommittedFacing : GetActorForward();
 		float length = _currentAttack.Range;
 		Vector3[] directions = null;
-		Vector2[] footprint = _indicatorFootprint;
+		Vector2[] footprint = _warningLane != null && stage is AttackIndicatorStage.Aiming or AttackIndicatorStage.Committed
+			? _warningLane : _indicatorFootprint;
 		if (_currentAttack.IsRanged)
 		{
 			Node3D warningTarget;
