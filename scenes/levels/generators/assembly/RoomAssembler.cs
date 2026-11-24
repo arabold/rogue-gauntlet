@@ -17,6 +17,8 @@ public sealed record RoomAssemblyOptions
 	public bool Furnish { get; init; } = true;
 	/// <summary>The realm whose wall styles, floor styles and steps apply; null takes them all. Style indices count within it.</summary>
 	public string Realm { get; init; }
+	/// <summary>The motifs of the floor the room stands on, which decide its motif steps; null runs every step (previews).</summary>
+	public IReadOnlySet<string> Motifs { get; init; }
 	/// <summary>When false, suppresses secret doors even on room types with non-zero <see cref="RoomType.SecretDoorChance"/>.</summary>
 	public bool? AllowSecretDoors { get; init; }
 	public float? DoorChance { get; init; }
@@ -113,6 +115,7 @@ public static partial class RoomAssembler
 				{
 					var step = steps[index];
 					if (step.WallStyles.Length > 0 && !step.WallStyles.Contains(walls.Id)) continue;
+					if (!step.SuitsMotifs(options.Motifs)) continue;
 					using var chanceRng = blueprint.Random($"step:{index}:{step.Id}:chance");
 					if (chanceRng.Randf() >= step.Chance) continue;
 					using var stepRng = blueprint.Random($"step:{index}:{step.Id}");

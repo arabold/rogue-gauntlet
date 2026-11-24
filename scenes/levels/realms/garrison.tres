@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Realm" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="Realm" load_steps=55 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="realm"]
 [ext_resource type="Script" path="res://scenes/levels/generators/FloorPlanChoice.cs" id="choice"]
@@ -7,17 +7,192 @@
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/boss.tres" id="boss"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster.tres" id="cluster"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/hallway.tres" id="hallway"]
-[ext_resource type="Resource" path="res://scenes/shops/quartermaster_placement.tres" id="quartermaster"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmRoom.cs" id="realm_room"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/passage.tres" id="room_passage"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/storage.tres" id="room_storage"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/barracks.tres" id="room_barracks"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/kitchen.tres" id="room_kitchen"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/dining.tres" id="room_dining"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/root_cellar.tres" id="room_root_cellar"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/fenced_walkway.tres" id="room_fenced_walkway"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/partitioned_store.tres" id="room_partitioned_store"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/partitioned_depot.tres" id="room_partitioned_depot"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/guardroom.tres" id="room_guardroom"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/crypt.tres" id="room_crypt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/ruins.tres" id="room_ruins"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/prison.tres" id="room_prison"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/hall.tres" id="room_hall"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/library.tres" id="room_library"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/alchemist.tres" id="room_alchemist"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/chapel.tres" id="room_chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/graveyard.tres" id="room_graveyard"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/treasury.tres" id="room_treasury"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmMotif.cs" id="motif_RealmMotif"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/training_yard.tres" id="room_training_yard"]
+
+[sub_resource type="Resource" id="schedule_passage"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_passage")
+FirstFloor = 1
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_storage"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_storage")
+FirstFloor = 1
+LastFloor = 4
+
+[sub_resource type="Resource" id="schedule_barracks"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_barracks")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_kitchen"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_kitchen")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_dining"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_dining")
+FirstFloor = 1
+LastFloor = 2
+
+[sub_resource type="Resource" id="schedule_root_cellar"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_root_cellar")
+FirstFloor = 1
+LastFloor = 2
+
+[sub_resource type="Resource" id="schedule_fenced_walkway"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_fenced_walkway")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_partitioned_store"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_partitioned_store")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_partitioned_depot"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_partitioned_depot")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_guardroom"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_guardroom")
+FirstFloor = 2
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_crypt"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_crypt")
+FirstFloor = 3
+LastFloor = 5
+Motif = "undead"
+
+[sub_resource type="Resource" id="schedule_ruins"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_ruins")
+FirstFloor = 3
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_prison"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_prison")
+FirstFloor = 4
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_hall"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_hall")
+FirstFloor = 1
+LastFloor = 2
+Headline = true
+
+[sub_resource type="Resource" id="schedule_library"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_library")
+FirstFloor = 2
+LastFloor = 3
+Headline = true
+
+[sub_resource type="Resource" id="schedule_alchemist"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_alchemist")
+FirstFloor = 2
+LastFloor = 3
+Headline = true
+
+[sub_resource type="Resource" id="schedule_chapel"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_chapel")
+FirstFloor = 2
+LastFloor = 4
+Headline = true
+
+[sub_resource type="Resource" id="schedule_graveyard"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_graveyard")
+FirstFloor = 3
+LastFloor = 4
+Headline = true
+Weight = 3.0
+Motif = "undead"
+
+[sub_resource type="Resource" id="schedule_treasury"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_treasury")
+FirstFloor = 4
+LastFloor = 4
+Headline = true
 
 [sub_resource type="Resource" id="plan_cluster"]
 script = ExtResource("choice")
 Profile = ExtResource("cluster")
 Weight = 3.0
+FirstFloor = 1
+LastFloor = 5
 
 [sub_resource type="Resource" id="plan_hallway"]
 script = ExtResource("choice")
 Profile = ExtResource("hallway")
 Weight = 2.0
+FirstFloor = 1
+LastFloor = 4
+
+[sub_resource type="Resource" id="motif_undead_0"]
+script = ExtResource("motif_RealmMotif")
+Id = "undead"
+FirstFloor = 3
+LastFloor = 4
+MinimumFloors = 1
+MaximumFloors = 2
+
+[sub_resource type="Resource" id="motif_undead_1"]
+script = ExtResource("motif_RealmMotif")
+Id = "undead"
+FirstFloor = 5
+LastFloor = 5
+
+[sub_resource type="Resource" id="motif_decay_2"]
+script = ExtResource("motif_RealmMotif")
+Id = "decay"
+FirstFloor = 4
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_training_yard"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_training_yard")
+FirstFloor = 1
+LastFloor = 2
+Headline = true
 
 [resource]
 script = ExtResource("realm")
@@ -26,6 +201,7 @@ Theme = "garrison"
 LastDepth = 5
 Corridors = ExtResource("corridors")
 Atmosphere = ExtResource("atmosphere")
-Shops = [ExtResource("quartermaster")]
+Rooms = [SubResource("schedule_passage"), SubResource("schedule_storage"), SubResource("schedule_barracks"), SubResource("schedule_kitchen"), SubResource("schedule_dining"), SubResource("schedule_root_cellar"), SubResource("schedule_fenced_walkway"), SubResource("schedule_partitioned_store"), SubResource("schedule_partitioned_depot"), SubResource("schedule_guardroom"), SubResource("schedule_crypt"), SubResource("schedule_ruins"), SubResource("schedule_prison"), SubResource("schedule_hall"), SubResource("schedule_library"), SubResource("schedule_alchemist"), SubResource("schedule_chapel"), SubResource("schedule_graveyard"), SubResource("schedule_treasury"), SubResource("schedule_training_yard")]
+Motifs = [SubResource("motif_undead_0"), SubResource("motif_undead_1"), SubResource("motif_decay_2")]
 FloorPlans = [SubResource("plan_cluster"), SubResource("plan_hallway")]
 BossProfile = ExtResource("boss")

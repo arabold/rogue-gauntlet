@@ -28,15 +28,11 @@ Each existing plan works today, but one or two signature props would make it unm
 
 | Prop | Mount | Rough size | Used by | Notes |
 | --- | --- | --- | --- | --- |
-| Baptismal font | Floor | 1.2 m | Baptistry, nave | Stone basin on a pedestal; can reuse the water shader |
-| Church bell | Floor | 1.5 m | Bell chamber, nave corners | Fallen or resting bell; a hanging variant for tall rooms |
 | Prayer kneeler | Floor | 1 m | Side chapel, nave | Small and repeatable in front of altars |
-| Reliquary shelf | Wall | 1.5 m wide | Ossuary, side chapel | Skulls and reliquaries in niches |
 | Well | Floor | 1.5 m | Cloister courtyard, herb garden | Low wall, winch and bucket |
 | Garden bed | Floor | 2 × 1 m | Herb garden, courtyard | Raised planter with herbs; walkable around |
-| Throne | Floor, back to wall | 1.5 × 1.5 m | Throne room, great hall dais | High carved back and armrests with gilded trim; a toppled or broken variant for ruined halls |
 
-The throne makes a throne room possible: a rare landmark like the great hall and treasury, which set `FloorChance` and `MaxPerFloor` on their room type so most floors never offer them (see [level design](../level-design.md)).
+The church bell, reliquary cabinet and bishop's throne are built (`scenes/levels/rooms/props/cathedral/`) for the Cathedral's bell tower, reliquary hall and throne room (see the [content pacing plan](realm-content-pacing-plan.md#new-rooms)). The baptistry centres on a dry fountain, the fountains' own models with their liquid hidden (`props/decor/fountain_dry.tres`), since a filled basin would read as a usable fountain.
 
 ## Priority 3: chasm and lake plan
 

@@ -76,13 +76,14 @@ public abstract partial class HallRoomLayout : RoomLayoutStrategy
 			throw new InvalidOperationException(string.Join("\n", errors));
 		for (int placed = 0, failures = 0; placed < context.MaxRooms && failures < Retries;)
 		{
-			// The floor's rarities and per-floor limits decide which rooms are still on offer.
+			// The floor's headline comes first; then its realm schedule and per-floor limits decide which rooms are on offer.
+			var headline = context.Headline?.Take(uses);
 			var available = context.Pool.Available(candidates, def => uses.GetValueOrDefault(def));
-			if (available.Count == 0) break;
+			if (headline == null && available.Count == 0) break;
 			RoomCluster room;
 			try
 			{
-				room = context.Pool.CreateFrom(Weighted.PickBalanced(available, def => def.Weight, def => uses.GetValueOrDefault(def), rng), rng, options);
+				room = context.Pool.CreateFrom(headline ?? Weighted.PickBalanced(available, context.Pool.WeightOf, def => uses.GetValueOrDefault(def), rng), rng, options);
 			}
 			catch (InvalidOperationException)
 			{

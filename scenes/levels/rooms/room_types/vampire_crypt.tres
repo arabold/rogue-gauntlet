@@ -1,0 +1,103 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="3_CenterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/cathedral/coffin.tres" id="4_coffin"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="5_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/sarcophagus.tres" id="6_sarcophagus"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="7_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candelabra.tres" id="8_candelabra"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="9_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_red.tres" id="10_tapestry_red"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_red.tres" id="11_banner_red"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="12_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="13_candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="14_web_corner_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="15_web_corner_large"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="16_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="17_crypt_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker_floor.tres" id="18_checker_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/decorated_floor.tres" id="19_decorated_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="20_flagstones_floor"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 4)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_coffin"]
+script = ExtResource("3_CenterStep")
+Id = "coffin"
+Content = [ExtResource("4_coffin")]
+MinimumCount = 1
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("3_CenterStep")
+
+[sub_resource type="Resource" id="step_coffins"]
+script = ExtResource("5_AlongWallsStep")
+Id = "coffins"
+Content = [ExtResource("4_coffin"), ExtResource("6_sarcophagus")]
+MinimumCount = 1
+MaximumCount = 3
+Spacing = 1.0
+metadata/_custom_type_script = ExtResource("5_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_candelabras"]
+script = ExtResource("7_CornersStep")
+Id = "candelabras"
+Content = [ExtResource("8_candelabra")]
+MinimumCount = 2
+MaximumCount = 4
+metadata/_custom_type_script = ExtResource("7_CornersStep")
+
+[sub_resource type="Resource" id="step_hangings"]
+script = ExtResource("9_WallDecorStep")
+Id = "hangings"
+Content = [ExtResource("10_tapestry_red"), ExtResource("11_banner_red")]
+MaximumCount = 3
+Uniform = true
+Spacing = 3.0
+metadata/_custom_type_script = ExtResource("9_WallDecorStep")
+
+[sub_resource type="Resource" id="step_candles"]
+script = ExtResource("12_ScatterStep")
+Id = "candles"
+Content = [ExtResource("13_candle_stubs")]
+MaximumCount = 3
+WallChance = 0.7
+metadata/_custom_type_script = ExtResource("12_ScatterStep")
+
+[sub_resource type="Resource" id="step_webs"]
+script = ExtResource("7_CornersStep")
+Id = "webs"
+Content = [ExtResource("14_web_corner_small"), ExtResource("15_web_corner_large")]
+Clearance = 0.2
+Diagonal = true
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("7_CornersStep")
+
+[sub_resource type="Resource" id="step_door_torches"]
+script = ExtResource("9_WallDecorStep")
+Id = "door_torches"
+Content = [ExtResource("16_torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("9_WallDecorStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "vampire_crypt"
+MaxPerFloor = 1
+Realms = PackedStringArray("garrison")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 1
+DoorChance = 0.9
+Walls = [ExtResource("17_crypt_walls")]
+Floors = [ExtResource("18_checker_floor"), ExtResource("19_decorated_floor"), ExtResource("20_flagstones_floor")]
+Steps = [SubResource("step_coffin"), SubResource("step_coffins"), SubResource("step_candelabras"), SubResource("step_hangings"), SubResource("step_candles"), SubResource("step_webs"), SubResource("step_door_torches")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

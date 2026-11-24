@@ -39,12 +39,26 @@ public abstract partial class RoomLayoutStrategy : Resource
 			? context.Pool.CreateFrom(context.Profile.GoalOverride, context.Rng, options)
 			: context.Pool.CreateExit(context.Rng, options);
 
-	/// <summary>Creates a standard room or group biased against repeating definitions already recorded in <paramref name="uses"/>.</summary>
-	protected static RoomCluster CreateBalancedRoom(FloorBuildContext context, Dictionary<RoomDefinition, int> uses, RoomAssemblyOptions options = null) =>
-		context.Pool.CreateStandardRoom(
-			context.Rng,
-			def => uses.GetValueOrDefault(def),
-			options ?? context.Profile?.CreateRoomOptions(context.Pool.RealmId));
+	/// <summary>
+	/// Creates the floor's headline while it is owed (<see cref="FloorBuildContext.Headline"/>), otherwise a standard
+	/// room or group biased against repeating definitions already recorded in <paramref name="uses"/>.
+	/// </summary>
+	protected static RoomCluster CreateBalancedRoom(FloorBuildContext context, Dictionary<RoomDefinition, int> uses, RoomAssemblyOptions options = null)
+	{
+		options ??= context.Profile?.CreateRoomOptions(context.Pool.RealmId);
+		if (context.Headline?.Take(uses) is { } headline)
+		{
+			try
+			{
+				return context.Pool.CreateFrom(headline, context.Rng, options);
+			}
+			catch (InvalidOperationException)
+			{
+				// A headline that cannot be assembled with these options gives way to an ordinary room.
+			}
+		}
+		return context.Pool.CreateStandardRoom(context.Rng, def => uses.GetValueOrDefault(def), options);
+	}
 
 	/// <summary>Records a placed cluster's definition in <paramref name="uses"/> for balanced room selection.</summary>
 	protected static void RecordRoomUse(Dictionary<RoomDefinition, int> uses, RoomCluster cluster)

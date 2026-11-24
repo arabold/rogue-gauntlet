@@ -312,7 +312,7 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 
 		for (int attempt = 0; attempt < 4; attempt++)
 		{
-			var def = Weighted.PickBalanced(validDefs, d => d.Weight, d => uses.GetValueOrDefault(d), rng);
+			var def = Weighted.PickBalanced(validDefs, context.Pool.WeightOf, d => uses.GetValueOrDefault(d), rng);
 			RoomCluster sidearm = null;
 			try
 			{

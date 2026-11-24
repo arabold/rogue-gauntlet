@@ -109,7 +109,6 @@ metadata/_custom_type_script = ExtResource("37_CornersStep")
 [resource]
 script = ExtResource("1_RoomType")
 Id = "hall"
-FloorChance = 0.3
 MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Shapes = [SubResource("RectangleShape_1")]

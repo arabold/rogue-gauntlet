@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=31 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/PoolStep.cs" id="3_PoolStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence.tres" id="4_fence"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/fence_corner.tres" id="5_fence_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_center.tres" id="6_pool_center"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_edge.tres" id="7_pool_edge"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_corner.tres" id="8_pool_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner.tres" id="9_pool_runner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner_end.tres" id="10_pool_runner_end"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="11_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/pipe_outlet.tres" id="12_pipe_outlet"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/sluice_gate.tres" id="13_sluice_gate"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="14_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/valve.tres" id="15_valve"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="16_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/goo_barrel.tres" id="17_goo_barrel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="18_floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="19_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="20_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="21_slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/arched_walls.tres" id="22_arched_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/channel_flagstones.tres" id="23_channel_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/drained_flagstones.tres" id="24_drained_flagstones"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 4)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_outfall"]
+script = ExtResource("3_PoolStep")
+Id = "outfall"
+Layout = 2
+MinimumCount = 1
+MaximumCount = 1
+Fence = ExtResource("4_fence")
+FenceCorner = ExtResource("5_fence_corner")
+FenceChance = 0.4
+Center = ExtResource("6_pool_center")
+Edge = ExtResource("7_pool_edge")
+Corner = ExtResource("8_pool_corner")
+Runner = ExtResource("9_pool_runner")
+RunnerEnd = ExtResource("10_pool_runner_end")
+metadata/_custom_type_script = ExtResource("3_PoolStep")
+
+[sub_resource type="Resource" id="step_outfalls"]
+script = ExtResource("11_AlongWallsStep")
+Id = "outfalls"
+Content = [ExtResource("12_pipe_outlet"), ExtResource("13_sluice_gate")]
+MinimumCount = 1
+MaximumCount = 3
+Spacing = 1.0
+metadata/_custom_type_script = ExtResource("11_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_valves"]
+script = ExtResource("14_WallDecorStep")
+Id = "valves"
+Content = [ExtResource("15_valve")]
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("14_WallDecorStep")
+
+[sub_resource type="Resource" id="step_flotsam"]
+script = ExtResource("16_ScatterStep")
+Id = "flotsam"
+Content = [ExtResource("17_goo_barrel"), ExtResource("18_floor_debris"), ExtResource("19_bucket")]
+MaximumCount = 3
+WallChance = 0.6
+metadata/_custom_type_script = ExtResource("16_ScatterStep")
+
+[sub_resource type="Resource" id="step_door_torches"]
+script = ExtResource("14_WallDecorStep")
+Id = "door_torches"
+Content = [ExtResource("20_torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("14_WallDecorStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "outfall_chamber"
+MaxPerFloor = 1
+Realms = PackedStringArray("sewer")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.4
+Walls = [ExtResource("21_slimy_walls"), ExtResource("22_arched_walls")]
+Floors = [ExtResource("23_channel_flagstones"), ExtResource("24_drained_flagstones")]
+Steps = [SubResource("step_outfall"), SubResource("step_outfalls"), SubResource("step_valves"), SubResource("step_flotsam"), SubResource("step_door_torches")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

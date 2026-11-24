@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="3_crossshape"]
@@ -18,6 +18,12 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/valve.tres" id="p_valve"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/fixtures/pipe_run.tres" id="p_pipe_run"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/goo_puddle.tres" id="p_goo_puddle"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/PoolStep.cs" id="motif_PoolStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_center.tres" id="motif_pool_center"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_edge.tres" id="motif_pool_edge"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_corner.tres" id="motif_pool_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner.tres" id="motif_pool_runner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner_end.tres" id="motif_pool_runner_end"]
 
 [sub_resource type="Resource" id="CrossShape_1"]
 script = ExtResource("3_crossshape")
@@ -58,6 +64,22 @@ MaximumCount = 2
 Spacing = 0.8
 metadata/_custom_type_script = ExtResource("p_AlongWallsStep")
 
+[sub_resource type="Resource" id="PoolStep_flooding"]
+script = ExtResource("motif_PoolStep")
+Id = "flooding"
+Layout = 0
+MinimumCount = 0
+MaximumCount = 2
+Center = ExtResource("motif_pool_center")
+Edge = ExtResource("motif_pool_edge")
+Corner = ExtResource("motif_pool_corner")
+Runner = ExtResource("motif_pool_runner")
+RunnerEnd = ExtResource("motif_pool_runner_end")
+MinimumSize = Vector2i(1, 2)
+MaximumSize = Vector2i(2, 2)
+Motifs = PackedStringArray("flooded")
+metadata/_custom_type_script = ExtResource("motif_PoolStep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "junction"
@@ -70,5 +92,5 @@ MaxDoorways = 4
 Circulation = 0
 Walls = [ExtResource("5_slimy_walls"), ExtResource("6_arched_walls")]
 Floors = [ExtResource("7_grated_flagstone"), ExtResource("8_drained_flagston")]
-Steps = [SubResource("AlongWallsStep_pipework"), SubResource("ScatterStep_3"), SubResource("WallDecorStep_4")]
+Steps = [SubResource("PoolStep_flooding"), SubResource("AlongWallsStep_pipework"), SubResource("ScatterStep_3"), SubResource("WallDecorStep_4")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

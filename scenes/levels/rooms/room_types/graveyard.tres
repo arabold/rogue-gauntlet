@@ -124,7 +124,6 @@ metadata/_custom_type_script = ExtResource("decor")
 [resource]
 script = ExtResource("room_type")
 Id = "graveyard"
-FloorChance = 0.5
 MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Weight = 0.5

@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=27 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="3_CenterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/sewer/rat_king_heap.tres" id="4_rat_king_heap"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="5_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/hay_bale.tres" id="6_hay_bale"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="7_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/goo_puddle.tres" id="8_goo_puddle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/sack.tres" id="9_sack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="10_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="11_web_corner_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="12_web_corner_large"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="13_floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="14_rubble_scatter"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="15_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="16_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/ruined_walls.tres" id="17_ruined_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="18_slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silt_floor.tres" id="19_silt_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="20_flagstones_ruined_flo"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_heap"]
+script = ExtResource("3_CenterStep")
+Id = "heap"
+Content = [ExtResource("4_rat_king_heap")]
+MinimumCount = 1
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("3_CenterStep")
+
+[sub_resource type="Resource" id="step_nests"]
+script = ExtResource("5_ScatterStep")
+Id = "nests"
+Content = [ExtResource("6_hay_bale"), ExtResource("7_bone_pile"), ExtResource("8_goo_puddle"), ExtResource("9_sack")]
+MinimumCount = 2
+MaximumCount = 6
+WallChance = 0.4
+metadata/_custom_type_script = ExtResource("5_ScatterStep")
+
+[sub_resource type="Resource" id="step_webs"]
+script = ExtResource("10_CornersStep")
+Id = "webs"
+Content = [ExtResource("11_web_corner_small"), ExtResource("12_web_corner_large")]
+Clearance = 0.2
+Diagonal = true
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("10_CornersStep")
+
+[sub_resource type="Resource" id="step_gnawed"]
+script = ExtResource("5_ScatterStep")
+Id = "gnawed"
+Content = [ExtResource("13_floor_debris"), ExtResource("14_rubble_scatter")]
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("5_ScatterStep")
+
+[sub_resource type="Resource" id="step_door_torches"]
+script = ExtResource("15_WallDecorStep")
+Id = "door_torches"
+Content = [ExtResource("16_torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("15_WallDecorStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "rat_king_nest"
+MaxPerFloor = 1
+Realms = PackedStringArray("sewer")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.3
+Walls = [ExtResource("17_ruined_walls"), ExtResource("18_slimy_walls")]
+Floors = [ExtResource("19_silt_floor"), ExtResource("20_flagstones_ruined_flo")]
+Steps = [SubResource("step_heap"), SubResource("step_nests"), SubResource("step_webs"), SubResource("step_gnawed"), SubResource("step_door_torches")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

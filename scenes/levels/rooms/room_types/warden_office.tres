@@ -1,0 +1,98 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=33 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="3_CenterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/desk_station.tres" id="4_desk_station"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="5_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bookcase.tres" id="6_bookcase"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/scroll_rack.tres" id="7_scroll_rack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/trunk_large.tres" id="8_trunk_large"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/chest_treasury.tres" id="9_chest_treasury"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="10_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/armor_stand.tres" id="11_armor_stand"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candelabra.tres" id="12_candelabra"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="13_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/heraldic_shield.tres" id="14_heraldic_shield"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/keyring.tres" id="15_keyring"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_red.tres" id="16_banner_red"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sword_shield.tres" id="17_sword_shield"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="18_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/book_stack.tres" id="19_book_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/coin_piles.tres" id="20_coin_piles"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="21_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/prison_walls.tres" id="22_prison_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="23_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dark_wood_floor.tres" id="24_dark_wood_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planked_stone.tres" id="25_planked_stone"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(2, 2)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_desk"]
+script = ExtResource("3_CenterStep")
+Id = "desk"
+Content = [ExtResource("4_desk_station")]
+MinimumCount = 1
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("3_CenterStep")
+
+[sub_resource type="Resource" id="step_records"]
+script = ExtResource("5_AlongWallsStep")
+Id = "records"
+Content = [ExtResource("6_bookcase"), ExtResource("7_scroll_rack"), ExtResource("8_trunk_large"), ExtResource("9_chest_treasury")]
+MinimumCount = 1
+MaximumCount = 3
+Spacing = 1.0
+AvoidDoorwayWalls = true
+metadata/_custom_type_script = ExtResource("5_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_regalia"]
+script = ExtResource("10_CornersStep")
+Id = "regalia"
+Content = [ExtResource("11_armor_stand"), ExtResource("12_candelabra")]
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("10_CornersStep")
+
+[sub_resource type="Resource" id="step_trophies"]
+script = ExtResource("13_WallDecorStep")
+Id = "trophies"
+Content = [ExtResource("14_heraldic_shield"), ExtResource("15_keyring"), ExtResource("16_banner_red"), ExtResource("17_sword_shield")]
+MaximumCount = 3
+Spacing = 2.0
+metadata/_custom_type_script = ExtResource("13_WallDecorStep")
+
+[sub_resource type="Resource" id="step_papers"]
+script = ExtResource("18_ScatterStep")
+Id = "papers"
+Content = [ExtResource("19_book_stack"), ExtResource("20_coin_piles")]
+MaximumCount = 2
+WallChance = 0.7
+metadata/_custom_type_script = ExtResource("18_ScatterStep")
+
+[sub_resource type="Resource" id="step_door_torches"]
+script = ExtResource("13_WallDecorStep")
+Id = "door_torches"
+Content = [ExtResource("21_torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("13_WallDecorStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "warden_office"
+MaxPerFloor = 1
+Realms = PackedStringArray("garrison")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.7
+Walls = [ExtResource("22_prison_walls"), ExtResource("23_stone_walls")]
+Floors = [ExtResource("24_dark_wood_floor"), ExtResource("25_planked_stone")]
+Steps = [SubResource("step_desk"), SubResource("step_records"), SubResource("step_regalia"), SubResource("step_trophies"), SubResource("step_papers"), SubResource("step_door_torches")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

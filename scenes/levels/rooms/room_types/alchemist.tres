@@ -121,7 +121,6 @@ metadata/_custom_type_script = ExtResource("2_RectangleSha")
 [resource]
 script = ExtResource("1_RoomType")
 Id = "alchemist"
-FloorChance = 0.5
 MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Weight = 0.8

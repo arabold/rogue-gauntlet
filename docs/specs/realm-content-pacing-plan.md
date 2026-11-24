@@ -1,6 +1,6 @@
 # Realm content pacing
 
-Proposed. Each realm stages its rooms, floor plans and set dressing across its five floors instead of offering all of them on every floor. Content is introduced, peaks and retires. Every floor has one **headline**: a special room, the realm's shop or its gatekeeper. Themed floors (an undead floor, a crystal floor) bring their rooms, props and, later, monsters together. Realms that share a look still read differently: the Garrison is a keep sinking into its tombs, the Prison an orc warband's jail and the Cathedral an elegant, clerical house that a vampire has made its seat.
+Slices 1–3 landed (room windows, headlines, plan windows, shops after each gatekeeper, motifs and the new headline rooms); encounter motifs are proposed. Each realm stages its rooms, floor plans and set dressing across its five floors instead of offering all of them on every floor. Content is introduced, peaks and retires. Every floor has one **headline**: a special room, the realm's shop or its gatekeeper. Themed floors (an undead floor, a crystal floor) bring their rooms, props and, later, monsters together. Realms that share a look still read differently: the Garrison is a keep sinking into its tombs, the Prison an orc warband's jail and the Cathedral an elegant, clerical house that a vampire has made its seat.
 
 Current generation is described in [level design](../level-design.md#current-generation); the monster casts per realm are in the [realm monster roster](realm-monster-roster-plan.md); shops are in [shops](../shops.md).
 
@@ -13,7 +13,7 @@ Current generation is described in [level design](../level-design.md#current-gen
 - A shop greets the hero after each gatekeeper: on the first floor of every realm after the Garrison.
 - Every floor stays fillable: enough ordinary rooms, and the compact/medium size mix.
 
-## Today
+## Starting point
 
 - [`RoomPool`](../../scenes/levels/generators/assembly/RoomPool.cs) holds every room. `ForRealm(theme)` keeps the definitions tagged with the realm's theme (`RoomDefinition.Realms`), and `ForFloor(levelSeed)` rolls each `FloorChance` below 1 once per floor. The rolls are independent, so a landmark can appear on all five floors of a realm or on none.
 - Floor plans with their own room lists (prison, cathedral, cloister) draw through the same `Offers` check, so pool gating already reaches them.
@@ -40,7 +40,7 @@ The realm owns the schedule, the way an encounter factory owns its packs. A room
 
 ## Contracts
 
-Proposed names; none of this exists yet.
+Everything below exists except where marked proposed.
 
 ```csharp
 // Window shared by every realm schedule entry. One [GlobalClass] per file.
@@ -49,7 +49,7 @@ Proposed names; none of this exists yet.
 	[Export(PropertyHint.Range, "1,10")] public int FirstFloor { get; set; } = 1;
 	[Export(PropertyHint.Range, "1,10")] public int LastFloor { get; set; } = 5;
 	public bool Spans(int floor);
-	public virtual string[] Validate(Realm realm);
+	public bool FitsIn(int floorCount);
 }
 
 [Tool, GlobalClass] public partial class RealmRoom : RealmContent
@@ -81,17 +81,16 @@ public sealed class RealmFloor
 	public IReadOnlyList<RoomDefinition> Rooms { get; } // ordinary rooms on offer
 	public bool Offers(RoomDefinition definition);
 	public float WeightOf(RoomDefinition definition);
+	public bool IsScheduled { get; }                    // false for a realm without a schedule: every catalog room of its theme
 	/// `reserved`: floors whose headline is the shop or the gatekeeper (the generator knows the encounter plan).
 	public static RealmFloor Create(Realm realm, uint depth, ulong runSeed, Func<int, bool> reserved);
-	/// Previews and tests: every scheduled room of every realm, every motif on, no headline.
-	public static RealmFloor Everything(IEnumerable<Realm> realms);
 }
 ```
 
 Changes to existing types:
 
-- `Realm`:
-  - adds `RealmRoom[] Rooms`, `RealmMotif[] Motifs` and `int FloorCount => LastDepth - FirstDepth + 1`
+- `Realm` (landed):
+  - adds `RealmRoom[] Rooms`, `RealmMotif[] Motifs`, `int FloorCount`, `FloorOf(depth)` and `DepthOf(floor)`
   - `PickFloorPlan(rng)` becomes `PickFloorPlan(rng, int floor)`
   - `ShopsAt(depth)` uses the 1-based floor
   - `Validate` also checks:
@@ -99,26 +98,27 @@ Changes to existing types:
     - each scheduled room supports the realm's theme
     - room motifs name motifs the realm schedules
     - every floor has at least one floor plan
-    - every floor without a shop or gatekeeper has at least two headline candidates, so runs vary
-- `ShopPlacementProfile`: `FloorIndex` (0-based) becomes `Floor` (1-based), matching the schedule.
-- `FloorPlanChoice`: adds `FirstFloor` and `LastFloor`, so the cloister can hold the upper floors and the cathedral plan the lower ones.
-- `FloorBuildContext`: adds `RoomDefinition Headline`. Every layout places it before its other ordinary rooms:
+    - each room is scheduled once, and every floor offers ordinary rooms
+    - (slice 3) every floor without a shop or gatekeeper has at least two headline candidates, so runs vary
+- `ShopPlacementProfile` (landed): `FloorIndex` (0-based) becomes `Floor` (1-based), matching the schedule.
+- `FloorPlanChoice` (landed): adds `FirstFloor` and `LastFloor`, so the cloister can hold the upper floors and the cathedral plan the lower ones.
+- `FloorBuildContext` (landed): adds a `HeadlineSlot` for the attempt. Every layout places the headline before its other ordinary rooms:
   - packed, hallway and sparse layouts as their first ordinary room
   - the courtyard layout as its first side room
   - the boss layout never gets one
 
-  An attempt that cannot fit it fails like a missing exit and retries. After the generator's retry budget the floor builds without it and logs it, rather than failing the floor.
-- `RoomPool`:
-  - its `Rooms` list goes: ordinary rooms move into the realms, while entrances and exits stay, filtered by theme
-  - `ForRealm(theme)` and `ForFloor(levelSeed)` become `ForFloor(RealmFloor floor)`
+  Each attempt tries it first, up to `HeadlineSlot.Tries` times; one that never fits gives way to the attempt's ordinary rooms and is logged, rather than failing the floor.
+- `RoomPool` (landed):
+  - its `Rooms` list stays as the catalog of every room: a realm with a schedule draws only the rooms it schedules, and a realm without one (test fixtures, previews) keeps every catalog room of its theme
+  - `ForFloor(levelSeed)` becomes `ForFloor(RealmFloor floor)`; `ForRealm(theme)` stays
   - `Offers` asks the floor, and weights multiply `WeightOf`
-- `RoomDefinition`: `FloorChance` goes, replaced by headlines and windows. `Realms` stays, but it now means the themes a room can be built in, not where it appears. `MaxPerFloor` stays.
-- `FurnishingStep`: adds `string[] Motifs`. The step runs only on floors carrying one of them, and none means every floor. It is checked beside `Realms` and `WallStyles` in `RoomAssembler`.
-- `RoomAssemblyOptions`: adds `IReadOnlySet<string> Motifs`. Null takes every step, like `Realm = null`, for previews.
-- `FloorProfile.CreateRoomOptions(string realm, …)` becomes `CreateRoomOptions(RealmFloor floor, …)`, filling `Realm` (the theme) and `Motifs`.
+- `RoomDefinition` (landed): `FloorChance` goes, replaced by headlines and windows. `Realms` stays, but it now means the themes a room can be built in, not where it appears. `MaxPerFloor` stays.
+- `FurnishingStep` (landed): adds `string[] Motifs`. The step runs only on floors carrying one of them, and none means every floor. It is checked beside `Realms` and `WallStyles` in `RoomAssembler`.
+- `RoomAssemblyOptions` (landed): adds `IReadOnlySet<string> Motifs`. Null takes every step, like `Realm = null`, for previews.
+- `RoomPool.CreateFrom` (landed) fills `Motifs` from its floor when the caller gives none, so `FloorProfile.CreateRoomOptions` keeps its signature.
 - `GenerationRandom`: adds `const string RealmContent = "realm-content"`. Motifs draw per entry, keyed by realm and motif ID. Headlines draw per floor, keyed by realm and floor number, so adding an entry never reshuffles unrelated floors' motifs.
 
-No shims: `room_pool.tres` loses its room list in the same change that fills the realms, every `FloorChance` becomes a headline or a window, shops move to 1-based floors, and tests switch to `RealmFloor.Everything`.
+No shims: every `FloorChance` became a headline or a window and shops moved to 1-based floors in the same change that filled the realms.
 
 ## Call order
 
@@ -169,7 +169,7 @@ Monster rows restate the current encounter windows, so the rooms can be read aga
 | *Monsters* | rats, skeleton pairs and warriors | + patrols, sentries | + warbands | warbands | warbands, the Warden |
 | *Headline* | room | room | room | room | the Warden |
 | *Plans* | cluster, hallway | cluster, hallway | cluster, hallway | cluster, hallway | boss |
-| *Motifs* | | | `undead` on 1–2 of 3–4 | `decay` 4–5 | |
+| *Motifs* | | | `undead` on 1–2 of 3–4, and always on 5 | `decay` 4–5 | |
 | passage | ● | ● | ● | ● | ● |
 | storage | ● | ● | ● | ● | — |
 | barracks, kitchen | ● | ● | ● | — | — |
@@ -315,38 +315,36 @@ Furnishing steps with `Motifs` let one room type change with the floor:
 
 Wall and floor styles could take the same `Motifs` filter later, for example mossy walls on deep floors or red carpets in the vampire's halls. They are not in this plan.
 
-## New rooms
+## New rooms (landed)
 
-Headlines need at least two candidates per open floor, so runs vary. The existing rooms cover the Garrison and part of the Mines. The rest needs new room types, most of them built from existing props plus a few new ones. Each is a `RoomType` under `scenes/levels/rooms/room_types/`, with new props following the [furnishing workflow](../../asset-studio/README.md#room-furnishings).
+Headlines need at least two candidates per open floor, so runs vary. These room types under `scenes/levels/rooms/room_types/` supply them, built from existing props plus the new ones listed, made with the [furnishing workflow](../../asset-studio/README.md#room-furnishings).
 
 | Realm | Room | Built from | New props |
 | --- | --- | --- | --- |
-| Garrison | training yard | training dummies, weapon racks, fenced area, benches | archery target |
-| Prison | warden's office | desk, war map, bookcase, chest, banners | desk |
-| Prison | execution yard | stocks, chopping block, hanging cages, fenced area | gallows, headsman's block |
-| Prison | fighting pit | fenced pit, bones, weapon racks, braziers | sand pit floor, spectator benches |
-| Sewer | smugglers' den | crates, barrels, sacks, lanterns, table | — |
-| Sewer | outfall chamber | pipe outlet, sluice gate, pool | large outfall grate |
-| Sewer | rat king's nest | hay bales, bone piles, rubble | the rat king's heap |
-| Sewer | sunken shrine | statues, altar, pool, candles | — |
-| Mines | mine shaft | winch, rails, timber frames | shaft opening, lift cage |
-| Mines | smelter | ore piles, cart, anvil, workbench | furnace, crucible |
-| Cathedral | baptistry | baptismal font, candelabras, statues | baptismal font ([floor-plan props](floor-plan-props.md)) |
-| Cathedral | bell tower | church bell, ropes, stairs | church bell |
-| Cathedral | reliquary | reliquary shelves, altar, candles | reliquary shelf |
-| Cathedral | bishop's throne room | throne, banners, candelabras, carpet | throne, carpet runner |
-| Cathedral | banquet hall | long laden tables, chairs, candelabras, goblets | red hangings |
-| Cathedral | the vampire's crypt | coffins, sarcophagi, candles, red hangings | coffin |
-
-The Cathedral's props overlap the [floor-plan props](floor-plan-props.md) priority 2 list (font, bell, reliquary shelf, throne), which makes that list the Cathedral's next asset work.
+| Garrison | training yard | rows of training dummies and targets, weapon racks, armor stands, benches | archery target |
+| Prison | warden's office | desk station, bookcases, scroll racks, chests, armor stand, keyring, banners | desk |
+| Prison | execution yard | gallows, stocks, chopping block, iron maiden, hanging cages, braziers | gallows |
+| Prison | fighting pit | fighting ring, spectator benches, barrels, weapon racks, braziers | fighting ring (colliders on its stakes only) |
+| Sewer | smugglers' den | counting or guard table, crate and barrel stacks, sacks, kegs, coins | — |
+| Sewer | outfall chamber | water channel, pipe outlets, sluice gates, valves, flotsam | — |
+| Sewer | rat king's nest | the heap, hay bales, bone piles, goo, webs | the rat king's heap |
+| Sewer | sunken shrine | centred basin, altar, statues, candles | — |
+| Mines | mine shaft | the shaft, ore piles, winch, carts, lanterns, tools | mine shaft |
+| Mines | smelter | furnace, workbench, ore piles, tool racks | smelting furnace |
+| Cathedral | baptistry | dry fountain, statues, candelabras, pews, blue hangings | dry fountain (a filled one reads as usable) |
+| Cathedral | bell tower | bell, stores, benches, banners, webs | church bell |
+| Cathedral | reliquary hall | reliquary cabinets, altar, candles, offerings | reliquary cabinet |
+| Cathedral | throne room | throne, statues, candelabras, red hangings, rug floors | bishop's throne |
+| Cathedral | banquet hall | long laden tables, candelabras, kegs, red hangings | — |
+| Cathedral | vampire's crypt | coffins, sarcophagi, candelabras, red hangings, webs | coffin, open and closed |
 
 ## Slices
 
-1. **Schedule core.** This slice adds the following:
-   - `RealmContent`, `RealmRoom` with windows, `RealmFloor` and the `RoomPool` floor view
+1. **Schedule core (landed).** This slice adds the following:
+   - `RealmRoom` with windows, `RealmFloor` and the `RoomPool` floor view
    - headlines, with `FloorBuildContext.Headline` placed by every layout
    - shops moved to 1-based floors and onto floor 1 of realms 2–5
-   - `room_pool.tres` without its room list, and `FloorChance` dropped
+   - `FloorChance` dropped
 
    Each realm is migrated with the windows above for existing rooms, and its current `FloorChance` rooms become its headline candidates. Floors whose candidates are still missing (the new rooms) may go without a headline for now.
    - Verify:
@@ -354,13 +352,13 @@ The Cathedral's props overlap the [floor-plan props](floor-plan-props.md) priori
      - `ShopTest` updated to the new floors
      - `GeneratedFloorSweepTest` and the room-assembly suites pass
      - bump `SaveGame.CurrentVersion`
-2. **Motifs.** Add `RealmMotif`, `RealmRoom.Motif`, `FurnishingStep.Motifs` and `RoomAssemblyOptions.Motifs`. Author the motifs and their steps above, and give the room harness a realm-floor picker and motif toggles.
+2. **Motifs (landed).** Add `RealmMotif`, `RealmRoom.Motif`, `FurnishingStep.Motifs` and `RoomAssemblyOptions.Motifs`. Author the motifs and their steps above, and give the room harness a realm-floor picker and motif toggles.
    - Verify:
      - assembly tests show that a motif step runs only with its motif
      - the schedule test shows that motif rooms appear only on motif floors
      - captures of an undead and a crystal floor
      - bump the save version
-3. **Headline rooms, realm by realm.** Build the new rooms and their props in this order:
+3. **Headline rooms, realm by realm (landed).** Build the new rooms and their props in this order:
    - Prison: it shares the Garrison's look and needs separating most
    - Cathedral: together with the floor-plan props
    - Sewer
@@ -384,10 +382,9 @@ Slices 1 and 2 change generation, and so does each realm in slice 3; each bumps 
 ~ scenes/levels/generators/assembly/RoomPool.cs, RoomDefinition.cs, RoomAssembler.cs, steps/FurnishingStep.cs
 ~ scenes/shops/ShopPlacementProfile.cs, quartermaster_placement.tres (+ one placement per realm)
 ~ scenes/levels/realms/*.tres                          room and motif schedules, plan windows, shops
-~ scenes/levels/rooms/room_pool.tres                   entrances and exits only
 ~ scenes/levels/rooms/room_types/*.tres                FloorChance removed; motif steps; new headline rooms (slice 3)
 ~ scenes/debug/rooms/RoomGenerationHarness.cs          realm floor and motif preview
-~ tests/TestFactories*.cs, ShopTest.cs                 RealmFloor.Everything; shop floors
+~ tests/TestFactories*.cs, ShopTest.cs                 shop floors
 + tests/RealmScheduleTest.cs
 ~ scripts/saves/SaveGame.cs                            version bump per slice
 ~ docs/level-design.md, docs/shops.md, scenes/levels/generators/assembly/README.md

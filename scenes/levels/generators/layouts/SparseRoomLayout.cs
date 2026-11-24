@@ -79,7 +79,7 @@ public partial class SparseRoomLayout : RoomLayoutStrategy
 					fitCandidates.AddRange(context.Pool.Available(context.Pool.Rooms).Where(def => !failedFitDefs.Contains(def)));
 					if (fitCandidates.Count > 0)
 					{
-						var picked = Weighted.PickBalanced(fitCandidates, d => d.Weight, d => uses.GetValueOrDefault(d), rng);
+						var picked = Weighted.PickBalanced(fitCandidates, context.Pool.WeightOf, d => uses.GetValueOrDefault(d), rng);
 						try
 						{
 							room = context.Pool.CreateFrom(picked, rng, fitOptions);
