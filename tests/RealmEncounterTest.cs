@@ -47,11 +47,13 @@ public class RealmEncounterTest
 		}
 	}
 
-	/// <summary>The realms after the Garrison, down its fallback chain, with the monsters each fields.</summary>
-	private static readonly (string Name, string[] Cast)[] LaterRealms =
+	/// <summary>The realms after the Garrison, down its fallback chain, with the monsters each fields and its nest.</summary>
+	private static readonly (string Name, string[] Cast, string Nest)[] LaterRealms =
 	[
-		("The Prison", ["res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/nymph/nymph.tscn"]),
-		("The Sewer", ["res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/snake/snake.tscn"]),
+		("The Prison", ["res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/nymph/nymph.tscn"],
+			"res://scenes/levels/encounters/bat_roost.tscn"),
+		("The Sewer", ["res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/snake/snake.tscn"],
+			"res://scenes/levels/encounters/slime_vat.tscn"),
 	];
 
 	[TestCase]
@@ -59,7 +61,7 @@ public class RealmEncounterTest
 	{
 		var realm = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
-		foreach (var (name, cast) in LaterRealms)
+		foreach (var (name, cast, _) in LaterRealms)
 		{
 			uint previousLast = realm.FirstDepth + realm.FloorCount - 1;
 			realm = (RealmEncounterFactory)realm.Fallback;
@@ -79,26 +81,31 @@ public class RealmEncounterTest
 	}
 
 	[TestCase]
-	public async Task GeneratedLaterRealmFloorsSpawnTheirCastWithoutNestsOrASealedDescent()
+	public async Task GeneratedLaterRealmFloorsSpawnTheirCastAndNestsWithAnOpenDescent()
 	{
-		var (runner, level) = await TestFactories.GenerateLevel(23, 7);
+		// Each realm's nest floor and last floor: their nests release the realm's own monsters, and with no gatekeeper
+		// yet the last floor's descent stays open.
+		(uint Depth, int Realm, int Nests)[] floors = [(7, 0, 2), (10, 0, 0), (12, 1, 2), (15, 1, 0)];
+		var (runner, level) = await TestFactories.GenerateLevel(23, floors[0].Depth);
 		using var cleanup = runner;
-		// Each realm's nest floor and last floor: neither realm has a nest or a gatekeeper yet.
-		foreach (var (depth, cast) in new (uint, string[])[] { (7, LaterRealms[0].Cast), (10, LaterRealms[0].Cast), (12, LaterRealms[1].Cast), (15, LaterRealms[1].Cast) })
+		foreach (var (depth, realm, nests) in floors)
 		{
-			if (depth != 7)
+			var (_, cast, nest) = LaterRealms[realm];
+			if (depth != floors[0].Depth)
 			{
 				level.ConfigureGeneration(new RunState(23), depth, null, null);
 				level.Generate();
 			}
 			// From the Prison on, a placed chest may also be a mimic.
 			var spawns = level.MapGenerator.EnemySpawnPoints;
-			AssertBool(spawns.Count > 0 && spawns.All(spawn => spawn.Scenes.All(scene => cast.Contains(scene.ResourcePath)
+			AssertBool(spawns.Count > 0 && spawns.Where(spawn => !level.Floor.IsNest(spawn)).All(spawn => spawn.Scenes.All(scene => cast.Contains(scene.ResourcePath)
 				|| scene.ResourcePath == "res://scenes/enemies/mimic/chest_mimic.tscn" && spawn.PersistentId.Contains(":chest:"))))
 				.OverrideFailureMessage($"depth={depth}").IsTrue();
-			AssertInt(spawns.Count(level.Floor.IsNest)).IsEqual(0);
-			AssertBool(level.CanDescend).OverrideFailureMessage($"depth={depth}").IsTrue();
+			AssertInt(spawns.Count(spawn => level.Floor.IsNest(spawn) && spawn.Scenes[0].ResourcePath == nest)).OverrideFailureMessage($"depth={depth}").IsEqual(nests);
 			await runner.SimulateFrames(1, 20);
+			var placed = level.FindChildren("*", "", true, false).OfType<DestructibleNest>().ToList();
+			AssertBool(placed.Count == nests && placed.All(n => cast.Contains(n.MinionScene.ResourcePath))).OverrideFailureMessage($"depth={depth}").IsTrue();
+			AssertBool(level.CanDescend).OverrideFailureMessage($"depth={depth}").IsTrue();
 		}
 	}
 

@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
 [ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/mimic/chest_mimic.tscn" id="mimic"]
+[ext_resource type="PackedScene" path="res://scenes/levels/encounters/bat_roost.tscn" id="nest"]
 [ext_resource type="Resource" path="res://scenes/levels/encounters/sewer_encounters.tres" id="fallback"]
 
 [sub_resource type="Resource" id="bat_swarm"]
@@ -61,6 +62,7 @@ FirstDepth = 6
 FloorCount = 5
 Entries = [SubResource("bat_swarm"), SubResource("bat_flock"), SubResource("lone_nymph"), SubResource("lone_grunt"), SubResource("grunt_pair"), SubResource("raiders"), SubResource("warband")]
 Fallback = ExtResource("fallback")
+NestScene = ExtResource("nest")
 HasGatekeeper = false
 MimicScene = ExtResource("mimic")
 MimicChance = 0.15

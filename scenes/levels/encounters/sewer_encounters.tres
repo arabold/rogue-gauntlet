@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
 [ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/mimic/chest_mimic.tscn" id="mimic"]
+[ext_resource type="PackedScene" path="res://scenes/levels/encounters/slime_vat.tscn" id="nest"]
 [ext_resource type="Resource" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="fallback"]
 
 [sub_resource type="Resource" id="rat_pack"]
@@ -61,6 +62,7 @@ FirstDepth = 11
 FloorCount = 5
 Entries = [SubResource("rat_pack"), SubResource("rat_horde"), SubResource("lone_blob"), SubResource("blob_pair"), SubResource("blob_trio"), SubResource("lone_snake"), SubResource("snake_pair")]
 Fallback = ExtResource("fallback")
+NestScene = ExtResource("nest")
 HasGatekeeper = false
 MimicScene = ExtResource("mimic")
 MimicChance = 0.15
