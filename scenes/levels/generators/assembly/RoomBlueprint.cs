@@ -95,6 +95,13 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	}
 }
 
+/// <summary>
+/// The wall on one tile edge, as rooms and corridors stand and hang props against it: how far its face and its upper
+/// mounting band reach in from the wall line, and the stretches along it where wall decor may hang (from the edge's
+/// start; none where the wall's style takes no decor).
+/// </summary>
+public readonly record struct WallFace(float Depth, float MountDepth, MountSpan[] DecorMounts);
+
 /// <summary>A prop accepted into the room, in room-local space.</summary>
 public readonly record struct PlacedPiece(Prop Prop, int Variant, Transform3D Transform, Aabb Envelope);
 
@@ -110,9 +117,7 @@ public readonly record struct FloorPatch(Rect2 Area, FloorMaterial Material);
 public sealed class RoomBlueprint
 {
 	private const float Tolerance = .02f;
-	/// <summary>Mount spans of an edge whose wall was set without measuring its pieces.</summary>
-	private static readonly MountSpan[] WholeEdge = [new(0, Room.TileSize)];
-	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, float MountDepth, bool Decoratable, MountSpan[] Mounts)> _walls = [];
+	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), WallFace> _walls = [];
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _doorwayEdges;
 	private readonly List<Aabb> _wallBoxes = [];
 	private readonly List<PlacedPiece> _pieces = [];
@@ -178,17 +183,12 @@ public sealed class RoomBlueprint
 		_floorPatches.Add(new(area, material));
 	}
 
-	/// <summary>Records the wall piece on an edge: how far its face and upper mounting band reach into the room, whether
-	/// decor may hang on it, and where along it (<see cref="WallFootprints.WallEdge.Mounts"/>; the whole edge if unknown).</summary>
-	public void SetWall(Vector2I tile, Vector2I outward, float depth, bool decoratable, float mountDepth = -1f, MountSpan[] mounts = null) =>
-		_walls[(tile, outward)] = (depth, mountDepth < 0f ? depth : mountDepth, decoratable, mounts ?? WholeEdge);
+	/// <summary>Records the wall on an edge.</summary>
+	public void SetWall(Vector2I tile, Vector2I outward, WallFace wall) => _walls[(tile, outward)] = wall;
 
 	public float WallDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Depth : .5f;
 	public float WallMountDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.MountDepth : .5f;
-	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
-	/// <summary>Where along an edge its wall pieces leave room for decor, whether or not its style lets decor hang there.</summary>
-	public MountSpan[] EdgeMounts(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Mounts : [];
-	private MountSpan[] DecorMounts(Vector2I tile, Vector2I outward) => IsDecoratable(tile, outward) ? EdgeMounts(tile, outward) : [];
+	public MountSpan[] DecorMounts(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.DecorMounts : [];
 	public float RunDepth(WallRun run) => Enumerable.Range(0, run.Length).Max(index => WallDepth(run.TileAt(index), run.Outward));
 
 	/// <summary>Maximum wall depth over only the tiles spanned by [alongStart, alongEnd] along <paramref name="run"/>.</summary>
@@ -393,8 +393,8 @@ public sealed class RoomBlueprint
 	}
 
 	/// <summary>
-	/// Wall-mounted props only hang within one unbroken stretch of the spans <paramref name="decorMounts"/> gives for
-	/// plain, decoratable edges: never across a post, a frame or a wall that takes no decor.
+	/// Wall-mounted props only hang within one unbroken stretch of the spans <paramref name="decorMounts"/> gives the
+	/// edges behind them: never across a post, a frame or a wall that takes no decor.
 	/// </summary>
 	public static bool HasWallSupport(Aabb envelope, WallRun run, Func<Vector2I, Vector2I, MountSpan[]> decorMounts)
 	{
@@ -408,7 +408,7 @@ public sealed class RoomBlueprint
 		return run.MountSpans(decorMounts, first, last).Any(span => min >= span.From - Tolerance && max <= span.To + Tolerance);
 	}
 
-	/// <summary>Wall-mounted props only hang within one unbroken stretch of plain, decoratable wall.</summary>
+	/// <summary>Wall-mounted props only hang within one unbroken stretch of the room's <see cref="DecorMounts"/>.</summary>
 	public bool HasWallSupport(Aabb envelope, WallRun run) =>
 		HasWallSupport(envelope, run, DecorMounts);
 

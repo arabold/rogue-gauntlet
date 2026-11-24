@@ -110,7 +110,7 @@ public partial class WallStyle : Resource
 		foreach (var (cell, piece) in pieces)
 		{
 			var edge = WallFootprints.MeasureEdge(grid, cell, -piece.Outward, Room.TileSize, measureCache);
-			room.SetWall(piece.Tile, piece.Outward, edge.Depth, IsPlain(edge.Item), edge.MountDepth, edge.Mounts);
+			room.SetWall(piece.Tile, piece.Outward, edge.Face(IsPlain(edge.Item)));
 		}
 		return true;
 	}

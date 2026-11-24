@@ -20,7 +20,7 @@ public partial class CorridorHallwayStep : CorridorStep
 		{
 			for (int index = 0; index < run.Length; index++)
 			{
-				foreach (float center in run.MountCenters(index, corridors.EdgeMounts))
+				foreach (float center in run.MountCenters(index, corridors.DecorMounts))
 					candidates.Add((run, index, center));
 			}
 		}
@@ -34,7 +34,6 @@ public partial class CorridorHallwayStep : CorridorStep
 		{
 			if (count >= MaximumCount) break;
 			var tile = run.TileAt(index);
-			if (!corridors.IsDecoratable(tile, run.Outward)) continue;
 
 			var point = run.LineStart + run.Tangent * centerAlong;
 			var pointXZ = RoomBlueprint.XZ(point);

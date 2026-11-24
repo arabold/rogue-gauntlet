@@ -66,7 +66,7 @@ public partial class DividerWallStyle : WallStyle
 			grid.SetCellItem(end, tip, tipFacing);
 			room.Room.DividerCells.Add(edge);
 			room.Room.DividerCells.Add(end);
-			room.SetWall(tile, run.Outward, .5f, false);
+			room.SetWall(tile, run.Outward, new WallFace(.5f, .5f, []));
 			placedSides.Add(run.Outward);
 			if (placedSides.Count == Sides) return true;
 		}

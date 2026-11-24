@@ -62,7 +62,7 @@ public partial class WallDecorStep : FurnishingStep
 	private static List<(WallRun Run, float Center)> WallCandidates(RoomBlueprint room, RandomNumberGenerator rng)
 	{
 		var result = room.WallRuns.SelectMany(run => Enumerable.Range(0, run.Length)
-			.SelectMany(index => run.MountCenters(index, room.EdgeMounts).Select(center => (run, center)))).ToList();
+			.SelectMany(index => run.MountCenters(index, room.DecorMounts).Select(center => (run, center)))).ToList();
 		Shuffle(result, rng);
 		return result;
 	}

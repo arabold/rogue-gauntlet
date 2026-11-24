@@ -152,7 +152,11 @@ public static class WallFootprints
 	/// <summary>One tile edge as its wall pieces cover it. <see cref="Item"/> is the edge's own piece at
 	/// <see cref="Cell"/> (a straight, or a half beside a corner), -1 where corner arms alone cover it. <see cref="Mounts"/>
 	/// are the stretches of the edge, from its -X/-Z end, where wall decor may hang.</summary>
-	public readonly record struct WallEdge(bool Covered, float Depth, float MountDepth, int Item, Vector3I Cell, MountSpan[] Mounts);
+	public readonly record struct WallEdge(bool Covered, float Depth, float MountDepth, int Item, Vector3I Cell, MountSpan[] Mounts)
+	{
+		/// <summary>The edge as props meet it: decor hangs within its mounts only where <paramref name="decoratable"/>.</summary>
+		public WallFace Face(bool decoratable) => new(Depth, MountDepth, decoratable ? Mounts : []);
+	}
 
 	/// <summary>
 	/// Measures the tile edge centered on <paramref name="edgeCell"/> from the pieces running along it: whether they seal
