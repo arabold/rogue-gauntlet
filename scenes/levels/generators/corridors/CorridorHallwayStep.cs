@@ -14,12 +14,14 @@ public partial class CorridorHallwayStep : CorridorStep
 
 	public override void Decorate(CorridorBlueprint corridors, RandomNumberGenerator rng)
 	{
-		var candidates = new List<(WallRun Run, int TileIndex)>();
+		// One candidate per wall module, or per bay where the module's posts divide it.
+		var candidates = new List<(WallRun Run, int TileIndex, float CenterAlong)>();
 		foreach (var run in corridors.WallRuns.Where(run => run.Length >= MinimumRunTiles))
 		{
 			for (int index = 0; index < run.Length; index++)
 			{
-				candidates.Add((run, index));
+				foreach (float center in run.MountCenters(index, corridors.EdgeMounts))
+					candidates.Add((run, index, center));
 			}
 		}
 
@@ -28,13 +30,12 @@ public partial class CorridorHallwayStep : CorridorStep
 		float spacingSq = Spacing * Spacing;
 		int count = 0;
 
-		foreach (var (run, index) in candidates)
+		foreach (var (run, index, centerAlong) in candidates)
 		{
 			if (count >= MaximumCount) break;
 			var tile = run.TileAt(index);
 			if (!corridors.IsDecoratable(tile, run.Outward)) continue;
 
-			float centerAlong = run.TileCenterAlong(index);
 			var point = run.LineStart + run.Tangent * centerAlong;
 			var pointXZ = RoomBlueprint.XZ(point);
 			if (placed.Any(other => other.DistanceSquaredTo(pointXZ) < spacingSq)) continue;

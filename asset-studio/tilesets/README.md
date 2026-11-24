@@ -45,6 +45,8 @@ A wall is as thick as KayKit's: its trim, plinth and cap reach z = ±0.5, its pa
 
 `tile build` measures the outermost surface across that band against KayKit's own wall and fails otherwise. Exceed it only on purpose: set `design.face_relief` (the units a face may stray past these limits) and keep wall decor off the family's wall style in the game. Dressed walls are KayKit's own wall, so they pass by construction; their growth has its own allowance above.
 
+A family whose face carries structure that decor must not cover, such as cave posts, doorframes and lintels, exports its **mount spans**: segments `[x0, z0, x1, z1]` of each piece's wall line, in its local XZ, where decor may hang. They travel in the GLB as the mesh's glTF `extras.mount_spans`, which Godot imports as the mesh's `extras` metadata. The game hangs wall decor only inside them and centers it in each bay. A piece that exports none (KayKit's walls, masonry, dressed walls) takes decor along its whole length. Cave pieces export the stretches between their posts, and doorways export none.
+
 ## Families
 
 | Family | Kind / style | Use |

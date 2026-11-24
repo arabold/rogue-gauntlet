@@ -26,6 +26,9 @@ public partial class Room : Node3D
 	/// <summary>Placed bars, front walls and other structural props that form interior partitions, each with the
 	/// direction its run follows in the node's own frame.</summary>
 	internal List<(Node3D Node, string MeshItem, Vector3 Run)> StructuralProps { get; } = [];
+	/// <summary>Wall-hung props, each with its envelope and the direction into the room in the node's own frame, so the
+	/// floor can check them against its final walls after the room's later rotation.</summary>
+	internal List<(Node3D Node, Aabb Envelope, Vector3 Inward)> WallProps { get; } = [];
 	/// <summary>Edges occupied by doorway frames or concealed walls, in room-local grid coordinates.</summary>
 	internal HashSet<(Vector3I Center, bool Horizontal)> FramedEdges { get; private set; } = [];
 

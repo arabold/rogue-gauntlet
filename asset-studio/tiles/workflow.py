@@ -173,8 +173,10 @@ class Family:
             missing = set(str(s) for s in built.slots) - set(colors)
             if missing:
                 raise ValueError(f"{self.key}: no colors for slots {sorted(missing)}")
+            spans = getattr(built, "mount_spans", None)
             export_static(str(self.staged / f"{stem}.glb"), stem, built, colors, materials=self.looks(data, colors),
-                          crease=30.0, height_range=HEIGHT_RANGE[data["kind"]])
+                          crease=30.0, height_range=HEIGHT_RANGE[data["kind"]],
+                          extras={"mount_spans": spans} if spans is not None else None)
             pieces[stem] = (piece, built)
         report = self.validate(data, pieces)
         save(self.staged / "build.json", {"recipe_sha256": digest(self.path), "inputs": self.inputs(),

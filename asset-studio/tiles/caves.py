@@ -6,7 +6,8 @@ end plane splits one post between two pieces and every end shows the same cross-
 meet (corner, T-split, crossing) share a hub post. Boulders and cracked rubble fill stay between the
 posts and vary freely per variant; the top stays open rock. Doorways and gates frame KayKit's door
 opening in timber, a wall end slumps into rubble, and the pillar stands free. The gate leaf is its own
-model, hinged like KayKit's door, for the game's Door to swing. Rock is faceted.
+model, hinged like KayKit's door, for the game's Door to swing. Rock is faceted. Each wall piece
+exports its mount spans, the stretches between posts where the game may hang wall decor.
 """
 
 import numpy as np
@@ -239,7 +240,7 @@ def cave(design, piece, variant, family):
         parts = pillar(r, radius, design, family, tones, wood, iron)
         bounds = [beam(np.zeros(3), [0, HEIGHT, 0], [1.0, 0, 0], radius, radius, tones[0], chamfer=0.0)]
         return union(parts, within=bounds)
-    parts, cuts, bounds = [], [], []
+    parts, cuts, bounds, mounts = [], [], [], []
     if hub(piece):
         timber, splits = post(np.zeros(3), np.array([1.0, 0, 0]), depth, depth, design, family, wood, footing)
         parts += timber
@@ -273,6 +274,8 @@ def cave(design, piece, variant, family):
             clear = (opening[0] - 2 * width - .1, opening[1] + 2 * width + .1, opening[2] + .3)
         else:
             clear = None
+            # Wall decor hangs between the posts; a doorway's frame and lintel leave it none.
+            mounts.append([round(float(v), 4) for v in (*(origin + along * lo)[[0, 2]], *(origin + along * hi)[[0, 2]])])
 
         def skip(s, y, half=0.0):
             if y > top(s) + .1:
@@ -318,7 +321,10 @@ def cave(design, piece, variant, family):
                 center = origin + along * s_ + [0, rs * .25, 0] + across * r.uniform(-.14, .14)
                 parts.append(boulder(r, center, (rs, rs * .8, rs), along, tones[r.integers(2)]))
     # Cutting to the footprint trims everything to the wall's half-unit depth and halves the end posts.
-    return union(parts, cuts=cuts, within=bounds)
+    built = union(parts, cuts=cuts, within=bounds)
+    # Segments [x0, z0, x1, z1] on the wall line where decor may hang; exported with the model for the game to read.
+    built.mount_spans = mounts
+    return built
 
 
 def slab(origin, along, s0, s1, half, top, slot):

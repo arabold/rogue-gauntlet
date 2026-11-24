@@ -105,6 +105,28 @@ class TileGeometryTest(unittest.TestCase):
         dressed = {"wall": ("wall", dressing.dressed({"vines": 2}, "wall", "A", "test/moss"))}
         self.assertEqual(workflow.face_report({"kind": "wall", "style": "dressed"}, dressed)["errors"], [])
 
+    def test_cave_mount_spans_stay_clear_of_every_timber(self):
+        recipe = workflow.Family("dungeon/wall_cave").recipe()
+        timber = set(recipe.get("design", {}).get("wood_tones", ["wood", "wood_cut"]))
+        (_, (y0, y1)) = workflow.FACE_BAND["wall"]
+        for stem, (piece, mesh) in build("dungeon/wall_cave", recipe).items():
+            spans = getattr(mesh, "mount_spans", None)
+            if spans is None:
+                continue
+            with self.subTest(stem):
+                wood = mesh.faces_where(np.isin([str(s) for s in mesh.slots], list(timber))).verts
+                wood = wood[(wood[:, 1] > y0) & (wood[:, 1] < y1)][:, [0, 2]]
+                for x0, z0, x1, z1 in spans:
+                    start, direction = np.array([x0, z0]), np.array([x1 - x0, z1 - z0])
+                    length = np.linalg.norm(direction)
+                    direction /= length
+                    along = (wood - start) @ direction
+                    across = np.abs((wood - start) @ np.array([-direction[1], direction[0]]))
+                    inside = (across < .5) & (along > 0) & (along < length)
+                    self.assertFalse(inside.any(), f"span {[x0, z0, x1, z1]} covers timber at {wood[inside][:3]}")
+                if piece in ("wall", "wall_half"):
+                    self.assertTrue(spans, "Plain walls take decor between their end posts")
+
     def test_dressing_keeps_the_kaykit_wall_and_its_ends_untouched(self):
         design = {"patches": 2, "grass": 3, "vines": 2, "cap_moss": 2, "slime": 2, "pools": 2}
         pieces = {p: (p, dressing.dressed(design, p, "A", "test/moss")) for p in walls.PIECES}

@@ -264,13 +264,15 @@ def surface_material(base, name, spec):
     return mat
 
 
-def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=None, height_range=None):
+def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=None, height_range=None, extras=None):
     """Export an item through the character surface model, without a skeleton or template geometry.
 
     `parts` adds further named nodes, `{node name: piece}`, sharing this file's palette and materials. They stay
     separate scene nodes so the game can show or hide them on their own, such as a fountain's liquid.
     Modular tiles pass a fixed `height_range` so neighbors shade alike; a piece's authored `uv_t`
     (positions on a slot's ramp, such as a source texture's own gradient) wins over computed shading.
+    `extras` is data the game reads off the model, such as a wall piece's mount spans; it lands on the main mesh's
+    glTF extras, which Godot imports as the mesh's `extras` metadata.
     """
     w = _Writer()
     nodes = [("Item", name, piece)] + [(node, node, part) for node, part in (parts or {}).items()]
@@ -314,7 +316,7 @@ def export_static(path, name, piece, colors, materials=None, crease=50.0, parts=
         for i in sorted(set(groups)):
             index = w.add(f[np.array(groups) == i].ravel(), "SCALAR", 5125, 34963)
             primitives.append({"attributes": attrs, "indices": index, "material": i})
-        w.g["meshes"].append({"name": mesh_name, "primitives": primitives})
+        w.g["meshes"].append({"name": mesh_name, "primitives": primitives, **({"extras": extras} if extras and node == "Item" else {})})
         w.g["nodes"].append({"name": node, "mesh": len(w.g["meshes"]) - 1})
     w.g["scenes"] = [{"nodes": list(range(len(w.g["nodes"])))}]
     png = io.BytesIO()
