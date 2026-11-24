@@ -15,8 +15,19 @@ Run Studio commands with `./.venv/bin/python`. Keep selected references, exact p
 
 For new worn body armor, model a full replacement body on the compatible hero skeleton and provide a static torso-only inventory model. Fit helmets to the actual supported heads. The hero equips gear in Godot. Enemy armor and fixed weapons are baked into the enemy model. Review the worn or held item and each relevant gameplay clip after import.
 
-Use [Blender job tooling](../../../asset-studio/README.md#scripted-item-models) for existing scripted item sources. For room props, [compare models](scripts/compare_models.gd) renders side-by-side with the corresponding game assets. Review the world palette, proportions and readable construction in the actual renderer before publishing.
+Use [Blender job tooling](../../../asset-studio/README.md#scripted-item-models) for existing scripted item sources.
 
-Props follow the pack's exaggerated proportions rather than real ones: squat, wide bodies, timbers and fittings about twice their real thickness, and landmark props (gallows, bells, statues) standing well above the 4 m wall. Reworks start from a concept generated against a Godot render of the pack's own props (hero, barrel, chest, bed, wall) so the image model sees their scale and palette; keep the selected concept and its exact prompt beside the recipe. Colors come only from the swatches the pack's props use (`items/world_surface.py` `PACK`), shaded by the characters' ramp; never add a per-prop shade.
+Room props follow the [room furnishing workflow](../../../asset-studio/README.md#room-furnishings):
+- **Proportions:** exaggerate them the pack's way, never realistically. Measure against the hero, the pack's barrel, its chest and the 4 m wall.
+- **Concept first:** `item reference --provider gemini` draws a world recipe against the pack render. Keep the selected concept and its prompt beside the recipe.
+- **Colors:** use only the `PACK` swatches, never a per-prop shade.
+- **Review:** render the model side by side with related pack props in [compare models](scripts/compare_models.gd) before export:
+
+  ```bash
+  /Applications/Godot_mono.app/Contents/MacOS/Godot --path "$PWD" --script .agents/skills/assets/scripts/compare_models.gd -- <out.png> 30 res://assets/custom-heroes/knight.glb res://assets/kaykit-dungeon-remastered/barrel_large.gltf <your model.glb>
+  ```
+
+  Absolute `.glb` paths load a staged build directly.
+- **Pack render:** regenerate `asset-studio/prompts/world-props-reference.png` with the same script. Use the knight, `barrel_large`, `chest`, `bed_decorated`, `table_long`, `wall` and `crates_stacked` at yaw 30, cropped to the floor band.
 
 Keep gameplay properties in the Godot scenes and resources. Use project-native names in code and asset identifiers. An art reference or concept prompt can name KayKit for style matching.

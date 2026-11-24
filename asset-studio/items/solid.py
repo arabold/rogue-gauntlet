@@ -143,7 +143,11 @@ class Assembly:
         # surface. It is not an additional disconnected physical part.
         bodies = sum(component.volume() > 0 for component in components)
         if bodies != 1 and not (loose and bodies > 1):
-            raise ValueError(f"Assembly has {bodies} disconnected solids; model actual connecting geometry")
+            # Name where the stray bodies are (smallest first, the largest is the model itself) so they can be found.
+            parts = sorted((c for c in components if c.volume() > 0), key=lambda c: c.volume())[:-1]
+            where = "; ".join("min " + str(np.round(c.bounding_box()[:3], 2).tolist()) + " max "
+                              + str(np.round(c.bounding_box()[3:], 2).tolist()) for c in parts[:4])
+            raise ValueError(f"Assembly has {bodies} disconnected solids; model actual connecting geometry. Loose: {where}")
         if bodies < len(components):
             # A cavity sealed inside (a groove one part cut and another covered) can never be seen: drop it.
             result = mf.Manifold.compose([component for component in components if component.volume() > 0])
