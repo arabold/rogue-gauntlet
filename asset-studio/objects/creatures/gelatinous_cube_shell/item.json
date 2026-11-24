@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "Gelatinous Cube Shell",
+  "backend": "procedural",
+  "builder": "creature",
+  "design": {
+    "kind": "gelatinous_cube_shell"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 3000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {},
+  "export": {
+    "glb": "res://assets/custom-monsters/gelatinous_cube/gelatinous_cube_shell.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "The gelatinous cube's jelly shell, which the game draws with its translucent jelly shader, standing on y=0 facing +Z. The game animates both by transform; no rig."
+  }
+}

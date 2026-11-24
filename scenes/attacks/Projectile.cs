@@ -36,6 +36,11 @@ public partial class Projectile : Node3D, IPooledNode
 	[Export] public float GroundReach { get; set; } = 1.5f;
 	/// <summary>Half-width of the damage lane across the flight direction.</summary>
 	[Export] public float GroundReachRadius { get; set; } = 0.25f;
+	/// <summary>
+	/// Optional ground marker a lobbed flight places where it will land, for its whole flight; size it to
+	/// <see cref="ImpactRadius"/>. Straight flights leave it hidden.
+	/// </summary>
+	[Export] public Node3D LandingMarker { get; set; }
 
 	private HitBoxComponent _hitBoxComponent;
 	private float _distanceTravelled;
@@ -59,6 +64,10 @@ public partial class Projectile : Node3D, IPooledNode
 	private ProjectileFlight _flight = ProjectileFlight.Straight;
 	private Node3D _homingTarget;
 	private float _flightTime;
+	private bool _lobbing;
+	private Vector3 _lobOrigin;
+	private Vector3 _landing;
+	private float _lobDuration;
 
 	/// <summary>Whether this flight still steers toward its captured target.</summary>
 	public bool IsHoming => _homingTarget != null;
@@ -100,6 +109,8 @@ public partial class Projectile : Node3D, IPooledNode
 	/// <summary>Stop a source-owned projectile immediately without generating an impact.</summary>
 	public void Cancel()
 	{
+		_lobbing = false;
+		HideLandingMarker();
 		_hasResolvedHit = true;
 		SetPhysicsProcess(false);
 		SetHitBoxMonitoring(false, deferred: true);
@@ -126,6 +137,7 @@ public partial class Projectile : Node3D, IPooledNode
 	public void OnDespawnedToPool()
 	{
 		SetPhysicsProcess(false);
+		HideLandingMarker();
 		_attacker = null;
 		_homingTarget = null;
 		_assignedTarget = null;
@@ -192,6 +204,65 @@ public partial class Projectile : Node3D, IPooledNode
 	{
 		_flight = flight;
 		_homingTarget = flight.Homes ? homingTarget : null;
+		if (flight.Lobs) BeginLob(homingTarget);
+	}
+
+	/// <summary>
+	/// Aim a lob at the ground where <paramref name="target"/> stands now, or a full range ahead at the attacker's feet
+	/// without one; the flight takes as long as a straight shot at <see cref="Speed"/> would. Contact waits for the landing.
+	/// </summary>
+	private void BeginLob(Node3D target)
+	{
+		_lobOrigin = GlobalPosition;
+		float ground = GetValidAttacker() is Node3D attacker ? attacker.GlobalPosition.Y : GlobalPosition.Y - 1.2f;
+		Vector3 landing = AttackController.IsLivingTarget(target) ? target.GlobalPosition : GlobalPosition + Direction * Range;
+		Vector3 offset = (landing - _lobOrigin) with { Y = 0 };
+		if (offset.Length() > Range) offset = offset.Normalized() * Range;
+		_landing = new Vector3(_lobOrigin.X + offset.X, AttackController.IsLivingTarget(target) ? landing.Y : ground, _lobOrigin.Z + offset.Z);
+		_lobDuration = Mathf.Max(0.2f, offset.Length() / Mathf.Max(Speed, 0.01f));
+		_lobbing = true;
+		SetHitBoxMonitoring(false);
+		if (GodotObject.IsInstanceValid(LandingMarker))
+		{
+			LandingMarker.TopLevel = true;
+			LandingMarker.GlobalTransform = new Transform3D(Basis.Identity, _landing + Vector3.Up * 0.05f);
+			LandingMarker.Visible = true;
+			LandingMarker.ResetPhysicsInterpolation();
+		}
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.lobbed", ("execution", _executionId.Sequence),
+			("landing", CombatTrace.Vector(_landing)), ("duration", _lobDuration), ("arc", _flight.ArcHeight));
+	}
+
+	/// <summary>Follow the lob's parabola over everything between, turning along it, and land when it is done.</summary>
+	private void Lob()
+	{
+		float progress = Mathf.Min(1, _flightTime / _lobDuration);
+		Vector3 previous = GlobalPosition;
+		Vector3 position = _lobOrigin.Lerp(_landing, progress) + Vector3.Up * (4 * _flight.ArcHeight * progress * (1 - progress));
+		GlobalPosition = position;
+		Vector3 velocity = position - previous;
+		if (velocity.LengthSquared() > 1e-8f) LookAt(position + velocity, GetLookAtUpVector(velocity));
+		if (progress < 1) return;
+
+		_lobbing = false;
+		_hasResolvedHit = true;
+		SetPhysicsProcess(false);
+		HideLandingMarker();
+		if (CombatTrace.Enabled) CombatTrace.Write(this, "projectile.landed", ("execution", _executionId.Sequence),
+			("position", CombatTrace.Vector(_landing)), ("radius", ImpactRadius));
+		ApplyImpactRadiusDamage(landing: true);
+		// Upright along the level launch heading: a lob's mark lies flat on the floor it fell to.
+		Vector3 heading = (_landing - _lobOrigin) with { Y = 0 };
+		if (heading.LengthSquared() > 1e-4f) Direction = heading.Normalized();
+		SpawnEffect(ImpactEffectScene);
+		CallDeferred(MethodName.ReturnToPoolOrFree);
+	}
+
+	private void HideLandingMarker()
+	{
+		if (!GodotObject.IsInstanceValid(LandingMarker)) return;
+		LandingMarker.Visible = false;
+		LandingMarker.TopLevel = false;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -199,6 +270,11 @@ public partial class Projectile : Node3D, IPooledNode
 		if (_hasResolvedHit) return;
 
 		_flightTime += (float)delta;
+		if (_lobbing)
+		{
+			Lob();
+			return;
+		}
 		if (_homingTarget != null) Steer((float)delta);
 		Vector3 start = GlobalPosition;
 		Vector3 movement = Direction * Speed * LaunchSpeedFactor() * (float)delta;
@@ -270,6 +346,8 @@ public partial class Projectile : Node3D, IPooledNode
 
 	private void ResetFlight()
 	{
+		_lobbing = false;
+		HideLandingMarker();
 		_flight = ProjectileFlight.Straight;
 		_homingTarget = null;
 		_flightTime = 0;
@@ -409,7 +487,12 @@ public partial class Projectile : Node3D, IPooledNode
 		GetTree().CreateTimer(0.3f).Timeout += () => ReturnToPoolOrFree(returnVersion);
 	}
 
-	private void ApplyImpactRadiusDamage(Node excludedDamageOwner = null)
+	/// <summary>
+	/// Hit everyone within <see cref="ImpactRadius"/>, falling off with distance as a splash; a lob's
+	/// <paramref name="landing"/> is its one contact, so it hits everyone under it as the projectile itself: full damage,
+	/// the shot's own defense traits and its on-hit statuses.
+	/// </summary>
+	private void ApplyImpactRadiusDamage(Node excludedDamageOwner = null, bool landing = false)
 	{
 		if (ImpactRadius <= 0.0f)
 		{
@@ -449,7 +532,7 @@ public partial class Projectile : Node3D, IPooledNode
 					continue;
 				}
 
-				float damageScale = GetImpactRadiusDamageScale(damageOwner);
+				float damageScale = landing ? 1 : GetImpactRadiusDamageScale(damageOwner);
 				var (amount, critical) = Hit.Roll(_random);
 				float damage = amount * damageScale;
 				if (critical) GameDebug.Combat("Critical impact radius hit!");
@@ -472,12 +555,13 @@ public partial class Projectile : Node3D, IPooledNode
 					Amount = damage,
 				Random = _random,
 					IncomingDirection = pushDirection,
-					DefenseTraits = _areaDefenseTraits,
-					DeliveryKind = DamageDeliveryKind.AreaImpact,
+					DefenseTraits = landing ? _defenseTraits : _areaDefenseTraits,
+					DeliveryKind = landing ? DamageDeliveryKind.Projectile : DamageDeliveryKind.AreaImpact,
 					Element = Element,
 					Impact = Impact with { PoiseDamage = Impact.PoiseDamage * damageScale },
 						Critical = critical,
-						Feedback = _feedback
+						Feedback = _feedback,
+						OnHitStatuses = landing ? _onHitStatuses : null
 				};
 
 				if (damageable is ICombatDamageable areaCombatDamageable)

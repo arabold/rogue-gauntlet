@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WorldEffectDefinition" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/effects/world/WorldEffectDefinition.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/world/goo_bound/goo_bound.tscn" id="scene"]
+[resource]
+resource_name = "Goo-bound"
+script = ExtResource("script")
+Id = &"goo_bound"
+Scene = ExtResource("scene")
+Lifetime = 1

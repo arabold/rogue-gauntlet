@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Buff" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/buffs/Buff.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/buffs/conditions/goo_bound.tres" id="condition"]
+
+[resource]
+script = ExtResource("script")
+Condition = ExtResource("condition")
+Name = "Goo-bound"
+Duration = 1.6
+Stacking = 1

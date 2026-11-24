@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AttackAnimationProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackAnimationBinding.cs" id="binding"]
+
+[sub_resource type="Resource" id="engulf"]
+script = ExtResource("binding")
+Style = &"cube.engulf"
+Clip = &"Engulf"
+ContactStart = 0.45
+ContactEnd = 0.62
+
+[sub_resource type="Resource" id="lob"]
+script = ExtResource("binding")
+Style = &"cube.lob"
+Clip = &"Lob"
+ContactStart = 0.5
+ContactEnd = 0.5
+
+[resource]
+script = ExtResource("profile")
+Bindings = [SubResource("engulf"), SubResource("lob")]
