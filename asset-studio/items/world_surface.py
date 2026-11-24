@@ -2,11 +2,12 @@
 
 The pack's dungeon props are UV-mapped onto one 8x4 grid of vertical gradient swatches
 (`assets/kaykit-dungeon-remastered/dungeon_texture.png`, byte-identical to the Studio's
-`rigs/item_palette.png`) with a single plain material, matte as the project imports it (metallic 0, roughness 0.85). Every
-material is one swatch column, and the shade inside it follows height: measured on the pack's
-tables, barrels, crates and beds, v runs from about 0.1 at a model's top to 0.86 at its foot.
-`SWATCHES` names the cell used for each Studio material slot plus a shade offset; flames and
-glowing brews alone get an emissive copy of the material.
+`rigs/item_palette.png`) with a single plain material, matte as the project imports it (metallic 0, roughness 0.85). The
+pack paints all its props with a handful of those swatches (`PACK`), and every Studio material slot maps onto one of them
+(`SWATCHES`), so props never invent a shade of their own. The shade inside a swatch is the characters' ramp
+(`core.export.gradient_coordinates`: height, darker on faces turned down) over the v range measured on the pack's
+tables, barrels, crates and beds, from about 0.1 at a model's top to 0.86 at its foot. Flames and glowing brews alone get
+an emissive copy of the material.
 """
 
 import json
@@ -15,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
-from core.export import corner_normals
+from core.export import corner_normals, gradient_coordinates
 
 TEXTURE = Path(__file__).resolve().parents[2] / 'assets/kaykit-dungeon-remastered/dungeon_texture.png'
 _TEXTURE_BYTES = None
@@ -26,34 +27,47 @@ def get_texture_bytes():
     if _TEXTURE_BYTES is None:
         _TEXTURE_BYTES = TEXTURE.read_bytes()
     return _TEXTURE_BYTES
-# Slot -> ((row, column) of the 8x4 grid, u inside the cell, shade offset added to v: + darker, - lighter).
-SWATCHES = {
-    'wood': ((0, 4), .45, 0), 'wood_dark': ((0, 4), .45, .12), 'bark': ((0, 4), .45, .06),
-    'wood_light': ((0, 2), .45, -.12), 'endgrain': ((1, 1), .45, -.12),
-    # The pack's walls sit in the lower, darker half of the stone swatch; statues are a lighter cut of the same stone.
-    'stone': ((0, 1), .45, .18), 'stone_dark': ((0, 0), .45, .05), 'stone_light': ((0, 5), .45, 0),
-    'marble': ((0, 1), .45, -.06), 'marble_dark': ((0, 1), .45, .22), 'rock': ((0, 7), .45, 0), 'rock_dark': ((0, 7), .45, .15),
-    'iron': ((0, 0), .3, -.05), 'iron_dark': ((0, 0), .3, .15), 'steel': ((0, 1), .3, -.15), 'pot': ((0, 0), .3, 0),
-    'pot_inner': ((0, 3), .4, 0), 'copper': ((0, 2), .45, 0), 'gold': ((2, 5), .45, 0), 'trim': ((2, 5), .45, -.05),
-    'silver': ((1, 0), .45, 0),
-    'wax': ((3, 0), .5, .1), 'wick': ((0, 7), .45, .08), 'flame': ((2, 7), .45, -.35), 'coal': ((0, 3), .45, 0),
-    'cloth_red': ((2, 3), .45, 0), 'cloth_blue': ((2, 6), .45, 0), 'cloth_green': ((2, 1), .45, 0),
-    'cloth_purple': ((1, 3), .45, 0), 'cloth_yellow': ((2, 5), .45, -.05),
-    'sheet': ((3, 0), .45, -.2), 'linen': ((1, 1), .45, -.1), 'blanket_grey': ((0, 5), .45, 0), 'blanket_tan': ((1, 1), .45, 0),
-    'leather': ((0, 4), .45, .2), 'parchment': ((1, 1), .45, -.3), 'parchment_dark': ((1, 1), .45, 0), 'ink': ((0, 7), .45, .2),
-    'straw': ((2, 5), .45, -.1), 'straw_dark': ((2, 4), .45, .1), 'hay': ((2, 4), .45, -.08), 'soil': ((0, 7), .45, .12), 'rope': ((1, 1), .45, .1), 'bone': ((3, 0), .45, -.15),
-    'web': ((3, 0), .45, -.35),
-    'socket': ((0, 3), .45, 0),
-    'clay': ((0, 2), .45, 0), 'clay_worn': ((0, 2), .45, .1), 'clay_dark': ((0, 4), .45, .25), 'glaze': ((3, 2), .45, -.1), 'glaze_light': ((1, 1), .45, -.2),
-    'liquid': ((1, 6), .45, .3), 'ocean': ((2, 6), .45, 0), 'land': ((1, 1), .45, 0),
-    'crust': ((0, 2), .45, .05), 'crumb': ((1, 1), .45, -.2), 'cheese': ((2, 5), .45, -.1), 'rind': ((2, 7), .45, 0),
-    'meat': ((1, 7), .45, .1), 'herb': ((2, 1), .45, 0), 'lavender': ((1, 3), .45, -.2), 'leaf': ((1, 6), .45, 0),
-    # Sewer fixtures: the slimy wall's drain pipe is the rubble swatch's darker half, its slime the bright end of the green.
-    'pipe': ((0, 7), .45, .15), 'slime': ((2, 1), .45, -.36),
-    # Mines: pyrite, turquoise and blue crystal, and warm amber lantern core.
-    'ore_gold': ((2, 5), .45, -.15), 'ore_crystal': ((1, 5), .45, -.18),
-    'ore_crystal_blue': ((2, 6), .45, -.28), 'lantern_glow': ((2, 7), .45, -.28),
+# The swatches the pack's own dungeon models are painted with, measured from their UVs: (row, column) of the 8x4 grid,
+# and the u inside the cell. Props share these few colors and nothing else, so they sit in the world like the pack's own.
+PACK = {
+    'wood': ((0, 4), .45),        # planks, barrels, tables, chests
+    'wood_light': ((0, 2), .45),  # barrel heads
+    'wood_dark': ((0, 7), .45),   # the dark trunk, torch handles, wicks, rubble
+    'stone': ((0, 1), .5),        # stone blocks and iron straps alike
+    'stone_dark': ((0, 0), .45),  # pillar shafts, foundations
+    'stone_light': ((0, 5), .45), # grey bedding, plates, dirt floors
+    'black': ((0, 3), .5),        # grates
+    'rust': ((0, 6), .5),         # brown banners and blankets
+    'silver': ((1, 0), .45),      # blades
+    'tan': ((1, 1), .45),         # pillows, bread, bottle labels
+    'teal': ((2, 0), .45),        # weeds, green bottles
+    'green': ((2, 1), .55), 'pink': ((2, 2), .3), 'red': ((2, 3), .55), 'yellow': ((2, 4), .55), 'blue': ((2, 6), .55),
+    'gold': ((2, 7), .5),         # coins, gilt chests, candle flames
+    'cream': ((3, 0), .52),       # candles, sheets, white banners
+    # Glowing accents the pack has no counterpart for, from the same texture.
+    'crystal': ((1, 5), .45), 'lavender': ((1, 3), .45),
 }
+# Studio material slot -> pack swatch. Shading comes from the shared ramp alone, never from per-slot shade offsets.
+SWATCHES = {slot: PACK[swatch] for slot, swatch in {
+    'wood': 'wood', 'wood_dark': 'wood_dark', 'bark': 'wood_dark', 'wood_light': 'wood_light', 'endgrain': 'wood_light',
+    'stone': 'stone', 'stone_dark': 'stone_dark', 'stone_light': 'stone_light', 'marble': 'stone', 'marble_dark': 'stone_dark',
+    'rock': 'wood_dark', 'rock_dark': 'stone_dark',
+    'iron': 'stone', 'iron_dark': 'stone_dark', 'steel': 'silver', 'pot': 'stone_dark', 'pot_inner': 'black',
+    'copper': 'wood_light', 'gold': 'gold', 'trim': 'gold', 'silver': 'silver',
+    'wax': 'cream', 'wick': 'wood_dark', 'flame': 'gold', 'coal': 'black',
+    'cloth_red': 'red', 'cloth_blue': 'blue', 'cloth_green': 'green', 'linen': 'tan', 'leather': 'wood_dark',
+    'parchment': 'cream', 'parchment_dark': 'tan', 'ink': 'wood_dark',
+    'straw': 'yellow', 'straw_dark': 'rust', 'hay': 'yellow', 'soil': 'wood_dark', 'sand': 'tan', 'rope': 'tan',
+    'bone': 'cream', 'web': 'cream', 'socket': 'black',
+    'clay': 'wood_light', 'clay_worn': 'wood_light', 'clay_dark': 'wood', 'glaze': 'blue', 'glaze_light': 'tan',
+    'liquid': 'teal', 'ocean': 'blue', 'land': 'tan',
+    'crust': 'wood_light', 'crumb': 'tan', 'cheese': 'yellow', 'rind': 'gold', 'herb': 'green', 'lavender': 'lavender',
+    'leaf': 'green',
+    # Sewer fixtures: the slimy wall's drain pipe and slime.
+    'pipe': 'wood_dark', 'slime': 'green',
+    # Mines: pyrite, crystals and the lantern's warm core.
+    'ore_gold': 'gold', 'ore_crystal': 'crystal', 'ore_crystal_blue': 'blue', 'lantern_glow': 'gold',
+}.items()}
 EMISSIVE = {'flame', 'liquid', 'lantern_glow'}
 
 
@@ -65,15 +79,15 @@ def export(path, name, piece, crease=40.0, slot_crease=None):
         raise ValueError(f'No dungeon swatch for slots {missing}')
     tri = piece.verts[piece.faces]
     normals = corner_normals(piece.verts, piece.faces, crease=crease, slots=piece.slots, slot_crease=slot_crease or {})
-    height = tri[:, :, 1]
-    t = (height - height.min()) / max(float(np.ptp(height)), 1e-6)
-    unique_slots, inverse = np.unique(slots, return_inverse=True)
+    # The characters' ramp (height plus slope: faces turned down shade darker), spread over the pack's measured v range.
+    v = np.clip(.04 + .9 * gradient_coordinates(tri, normals), .03, .97)
     uv = np.empty(tri.shape[:2] + (2,), dtype=np.float32)
-    for u_idx, slot in enumerate(unique_slots):
-        mask = (inverse == u_idx)
-        (row, column), u, shade = SWATCHES[slot]
+    names = np.array(slots)
+    for slot in set(slots):
+        mask = names == slot
+        (row, column), u = SWATCHES[slot]
         uv[mask, :, 0] = (column + u) / 8
-        uv[mask, :, 1] = (row + np.clip(.86 - .72 * t[mask] + shade, .04, .96)) / 4
+        uv[mask, :, 1] = (row + v[mask]) / 4
     glowing = np.array([slot in EMISSIVE for slot in slots])
     order = np.r_[np.flatnonzero(~glowing), np.flatnonzero(glowing)]
     positions = tri[order].reshape(-1, 3).astype(np.float32)

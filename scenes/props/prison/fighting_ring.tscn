@@ -1,0 +1,70 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/prison/fighting_ring.glb" id="1_model"]
+
+[sub_resource type="BoxShape3D" id="stakes"]
+size = Vector3(1.251, 1.3, 0.35)
+
+[node name="FightingRing" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="Body" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Stakes0" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(0.8944, 0, -0.4473, 0, 1, 0, 0.4473, 0, 0.8944, 1.3419, 0.65, 2.6831)
+shape = SubResource("stakes")
+
+[node name="Stakes1" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(0.6728, 0, -0.7398, 0, 1, 0, 0.7398, 0, 0.6728, 2.2194, 0.65, 2.0185)
+shape = SubResource("stakes")
+
+[node name="Stakes2" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(0.3607, 0, -0.9327, 0, 1, 0, 0.9327, 0, 0.3607, 2.7981, 0.65, 1.0821)
+shape = SubResource("stakes")
+
+[node name="Stakes3" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(0.0000, 0, -1.0000, 0, 1, 0, 1.0000, 0, 0.0000, 3.0000, 0.65, 0.0000)
+shape = SubResource("stakes")
+
+[node name="Stakes4" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(-0.3607, 0, -0.9327, 0, 1, 0, 0.9327, 0, -0.3607, 2.7981, 0.65, -1.0821)
+shape = SubResource("stakes")
+
+[node name="Stakes5" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(-0.6728, 0, -0.7398, 0, 1, 0, 0.7398, 0, -0.6728, 2.2194, 0.65, -2.0185)
+shape = SubResource("stakes")
+
+[node name="Stakes6" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(-0.8944, 0, -0.4473, 0, 1, 0, 0.4473, 0, -0.8944, 1.3419, 0.65, -2.6831)
+shape = SubResource("stakes")
+
+[node name="Stakes7" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(-0.8944, 0, 0.4473, 0, 1, 0, -0.4473, 0, -0.8944, -1.3419, 0.65, -2.6831)
+shape = SubResource("stakes")
+
+[node name="Stakes8" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(-0.6728, 0, 0.7398, 0, 1, 0, -0.7398, 0, -0.6728, -2.2194, 0.65, -2.0185)
+shape = SubResource("stakes")
+
+[node name="Stakes9" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(-0.3607, 0, 0.9327, 0, 1, 0, -0.9327, 0, -0.3607, -2.7981, 0.65, -1.0821)
+shape = SubResource("stakes")
+
+[node name="Stakes10" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(-0.0000, 0, 1.0000, 0, 1, 0, -1.0000, 0, -0.0000, -3.0000, 0.65, -0.0000)
+shape = SubResource("stakes")
+
+[node name="Stakes11" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(0.3607, 0, 0.9327, 0, 1, 0, -0.9327, 0, 0.3607, -2.7981, 0.65, 1.0821)
+shape = SubResource("stakes")
+
+[node name="Stakes12" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(0.6728, 0, 0.7398, 0, 1, 0, -0.7398, 0, 0.6728, -2.2194, 0.65, 2.0185)
+shape = SubResource("stakes")
+
+[node name="Stakes13" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(0.8944, 0, 0.4473, 0, 1, 0, -0.4473, 0, 0.8944, -1.3419, 0.65, 2.6831)
+shape = SubResource("stakes")

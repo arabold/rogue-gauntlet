@@ -64,44 +64,39 @@ class Assembly:
         self.cuts.append((len(self.parts) - 1, self.parts.pop()))
         return self
 
-    def label(self, shape, slot):
-        """`shape` carrying `slot`, for booleans of its own before it joins: a chipped board, a notched beam."""
-        self.add(shape, slot)
-        return self.parts.pop()
-
     def join(self, labeled):
         """Add a solid built from `label`ed parts, keeping its own material regions."""
         self.parts.append(labeled)
         return self
 
+    def _painted(self, piece):
+        """A solid keeping a painted piece's own face slots, including flush painted details."""
+        for name in piece.slots:
+            if str(name) not in self.slots:
+                self.slots.append(str(name))
+        p = piece.verts[piece.faces].reshape(-1, 3)
+        labels = np.repeat([self.slots.index(str(s)) for s in piece.slots], 3)
+        properties = np.column_stack([p, labels]).astype(np.float32)
+        _, first, inverse = np.unique(np.round(p / 1e-7).astype(np.int64), axis=0, return_index=True, return_inverse=True)
+        indices = np.arange(len(p), dtype=np.uint32)
+        target = first[inverse].astype(np.uint32)
+        seams = indices != target
+        face_labels = labels.reshape(-1, 3)[:, 0]
+        order = np.argsort(face_labels, kind="stable")
+        unique, counts = np.unique(face_labels[order], return_counts=True)
+        runs = np.r_[0, np.cumsum(counts) * 3].astype(np.uint32)
+        first_id = mf.Manifold.reserve_ids(len(unique))
+        # Separate material provenance prevents coplanar simplification from
+        # interpolating an ink slot across the surrounding parchment.
+        ids = np.arange(first_id, first_id + len(unique), dtype=np.uint32)
+        shape = mf.Manifold(mf.Mesh(properties, indices.reshape(-1, 3)[order], indices[seams], target[seams],
+                                   run_index=runs, run_original_id=ids))
+        if shape.status() != mf.Error.NoError:
+            raise ValueError(f"Invalid colored solid: {shape.status()}")
+        return shape
+
     def add(self, shape, slot=None):
-        if isinstance(shape, kit.Piece):
-            if slot is None:
-                # Preserve face slots through solid unions, including flush painted details.
-                for name in shape.slots:
-                    if str(name) not in self.slots:
-                        self.slots.append(str(name))
-                p = shape.verts[shape.faces].reshape(-1, 3)
-                labels = np.repeat([self.slots.index(str(s)) for s in shape.slots], 3)
-                properties = np.column_stack([p, labels]).astype(np.float32)
-                _, first, inverse = np.unique(np.round(p / 1e-7).astype(np.int64), axis=0, return_index=True, return_inverse=True)
-                indices = np.arange(len(p), dtype=np.uint32)
-                target = first[inverse].astype(np.uint32)
-                seams = indices != target
-                face_labels = labels.reshape(-1, 3)[:, 0]
-                order = np.argsort(face_labels, kind="stable")
-                unique, counts = np.unique(face_labels[order], return_counts=True)
-                runs = np.r_[0, np.cumsum(counts) * 3].astype(np.uint32)
-                first_id = mf.Manifold.reserve_ids(len(unique))
-                # Separate material provenance prevents coplanar simplification from
-                # interpolating an ink slot across the surrounding parchment.
-                ids = np.arange(first_id, first_id + len(unique), dtype=np.uint32)
-                shape = mf.Manifold(mf.Mesh(properties, indices.reshape(-1, 3)[order], indices[seams], target[seams],
-                                           run_index=runs, run_original_id=ids))
-                if shape.status() != mf.Error.NoError:
-                    raise ValueError(f"Invalid colored solid: {shape.status()}")
-                self.parts.append(shape)
-                return self
+        """Join `shape` under `slot`; a painted piece without one keeps its own face slots."""
         self.parts.append(self.label(shape, slot))
         return self
 
@@ -110,6 +105,8 @@ class Assembly:
 
         Carve it first, then append it to `parts`: faces a boolean cut creates keep the cutter's own label.
         """
+        if slot is None and isinstance(shape, kit.Piece):
+            return self._painted(shape)
         if isinstance(shape, kit.Piece):
             p, f = welded(shape.verts, shape.faces)
             shape = mf.Manifold(mf.Mesh(np.asarray(p, np.float32), np.asarray(f, np.uint32)))

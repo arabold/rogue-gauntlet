@@ -1,0 +1,93 @@
+{
+  "key": "furnishings/throne",
+  "inputs": "32f23d61cda9c0b5ac4c5d064d0447b514e5faedc7e75fe15864f4bf7cd4433e",
+  "files": {
+    "throne.glb": "57bd4a56fb150bae9e5ae429eaafea7b8c88d9f1243fa5542e1884a08a4f9bb7",
+    "lineup.png": "b85e9351ff86635990f8eff646fef2bc60482ce1178d5170a16f5c1085b7e15b"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1480,
+      "bounds": [
+        [
+          -1.191579818725586,
+          0.0008089208859018981,
+          -1.899999976158142
+        ],
+        [
+          1.191579818725586,
+          3.200000047683716,
+          0.007221567444503307
+        ]
+      ],
+      "dimensions": [
+        2.383159637451172,
+        3.199191126797814,
+        1.9072215436026454
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 3.5191737401590557
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Bishop Throne",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "throne"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "gold": {
+          "crease": 40
+        },
+        "copper": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/cathedral/throne.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Cathedral furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z; back-to-wall props keep a flat back on -Z. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

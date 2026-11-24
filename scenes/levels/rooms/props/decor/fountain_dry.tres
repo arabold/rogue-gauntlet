@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_font_dry.tscn" id="2_font"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_chalice_dry.tscn" id="3_chalice"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_spring_dry.tscn" id="4_spring"]
+[ext_resource type="PackedScene" path="res://scenes/props/fountains/fountain_tiered_dry.tscn" id="5_tiered"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "fountain_dry"
+Scenes = [ExtResource("2_font"), ExtResource("3_chalice"), ExtResource("4_spring"), ExtResource("5_tiered")]
+Gap = 0.4
+TurnJitter = 10.0
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

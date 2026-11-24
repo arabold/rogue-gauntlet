@@ -17,4 +17,6 @@ For new worn body armor, model a full replacement body on the compatible hero sk
 
 Use [Blender job tooling](../../../asset-studio/README.md#scripted-item-models) for existing scripted item sources. For room props, [compare models](scripts/compare_models.gd) renders side-by-side with the corresponding game assets. Review the world palette, proportions and readable construction in the actual renderer before publishing.
 
+Props follow the pack's exaggerated proportions rather than real ones: squat, wide bodies, timbers and fittings about twice their real thickness, and landmark props (gallows, bells, statues) standing well above the 4 m wall. Reworks start from a concept generated against a Godot render of the pack's own props (hero, barrel, chest, bed, wall) so the image model sees their scale and palette; keep the selected concept and its exact prompt beside the recipe. Colors come only from the swatches the pack's props use (`items/world_surface.py` `PACK`), shaded by the characters' ramp; never add a per-prop shade.
+
 Keep gameplay properties in the Godot scenes and resources. Use project-native names in code and asset identifiers. An art reference or concept prompt can name KayKit for style matching.

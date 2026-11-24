@@ -1,0 +1,90 @@
+{
+  "key": "furnishings/rat_king_heap",
+  "inputs": "cc5fb0efdbfbc3ccddfbccce848f13262507ea41aaa69eefb385512428682372",
+  "files": {
+    "rat_king_heap.glb": "73482a7c5f5bd0431f212537f03bf9c62e8e22f30880eed612bf2acad75b08e5",
+    "lineup.png": "af98d90824fc7ba0cafa4e7e94c272dd37a7ae0a1872a114bf5741fa8b5ec5f5"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2808,
+      "bounds": [
+        [
+          -1.2999999523162842,
+          -0.014499999582767487,
+          -1.2495673894882202
+        ],
+        [
+          1.4390476942062378,
+          1.0049999952316284,
+          1.2000000476837158
+        ]
+      ],
+      "dimensions": [
+        2.739047646522522,
+        1.019499994814396,
+        2.449567437171936
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.1828624824172276
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Rat King's Heap",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "rat_king_heap"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "gold": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/sewer/rat_king_heap.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Room furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

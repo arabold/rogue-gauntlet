@@ -1,0 +1,91 @@
+{
+  "key": "furnishings/archery_target",
+  "inputs": "de885923976fb7885162c412bc80f78311411d83710ee958e47cd3a99c8ac19d",
+  "files": {
+    "archery_target.glb": "4d18422e7da679990cf4bdafac76fb0a72afb55d5015ca7a3aa4d0bac34a07c9",
+    "lineup.png": "c19192e21540cc9de361d4ddaf00e143e3ee57736224be02c0ea4c1fea537d60"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2248,
+      "bounds": [
+        [
+          -0.8999999761581421,
+          0.018871042877435684,
+          -1.06476628780365
+        ],
+        [
+          0.8999999761581421,
+          2.451962947845459,
+          1.1804161071777344
+        ]
+      ],
+      "dimensions": [
+        1.7999999523162842,
+        2.4330919049680233,
+        2.2451823949813843
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.1071867973866032
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Archery Target",
+      "reference": "res://asset-studio/objects/furnishings/archery_target/reference.png",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "archery_target"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "gold": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/barracks/archery_target.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Room furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

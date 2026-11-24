@@ -1,9 +1,9 @@
 {
   "key": "fountains/fountain_font_mana",
-  "inputs": "1ee5020e13fedbce49734cd73123147724eddee40ccb7f89ef26e805030e9004",
+  "inputs": "20ce00ab71a2aa8271a0b40885e4483ae50cc60adbd124f01546631b7a9bbe04",
   "files": {
-    "fountain_font_mana.glb": "e4f084eec8261d0f010f0b49fd09dddd0802c6437fd3503ca669866759b77716",
-    "lineup.png": "b1499dd63b440f61dcc782fa914e496cd10bb0757cc55acaf583d739b80bdad1"
+    "fountain_font_mana.glb": "d64232a70111bcd6fd758c559f76a57ed2409661b962db474298dfefc43b3d5a",
+    "lineup.png": "8aee4e07bd29c46ab1d7edeb4a4e3f5386d91cbe05c38f09f7aed31fb7991ebb"
   },
   "metadata": {
     "report": {
@@ -40,6 +40,7 @@
         "duplicate_faces": 0,
         "signed_volume": 0.9438234270786757
       },
+      "host_fit": null,
       "warnings": [
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],

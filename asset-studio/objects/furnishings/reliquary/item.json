@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "Reliquary",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "reliquary"
+  },
+  "color_mode": "world",
+  "topology": "closed_surface",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 4000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    },
+    "gold": {
+      "crease": 40
+    },
+    "copper": {
+      "crease": 40
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/cathedral/reliquary.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Cathedral furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z; back-to-wall props keep a flat back on -Z. Solid-unioned parts with material color regions. No gameplay data."
+  }
+}
