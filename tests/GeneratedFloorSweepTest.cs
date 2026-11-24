@@ -627,14 +627,13 @@ public class GeneratedFloorSweepTest
 				Vector3 facing = node.GlobalTransform.Basis.Z.Normalized();
 				if (Mathf.Max(Mathf.Abs(facing.X), Mathf.Abs(facing.Z)) < .999f || MeshBounds(node) is not Aabb box) continue;
 				// Models may sit off their origin and carry authored turns (banners hang in front of theirs, facing -Z), so the
-				// visible mesh picks the tile and its back is measured from the nearest of that tile's walls.
+				// visible mesh picks the tile and its back is measured from the nearer of that tile's two walls across the
+				// facing axis. The tile's edges along the wall are open corridor, which a wide prop's ends may come close to.
 				Vector3 center = generator.Map.TileToWorld(generator.Map.WorldToTile(box.GetCenter()));
 				float half = TileSize / 2f;
-				float offset = new[]
-				{
-					box.Position.X - (center.X - half), center.X + half - box.End.X,
-					box.Position.Z - (center.Z - half), center.Z + half - box.End.Z,
-				}.MinBy(Mathf.Abs);
+				float offset = (Mathf.Abs(facing.X) > Mathf.Abs(facing.Z)
+					? new[] { box.Position.X - (center.X - half), center.X + half - box.End.X }
+					: new[] { box.Position.Z - (center.Z - half), center.Z + half - box.End.Z }).MinBy(Mathf.Abs);
 				if (offset < .27f || offset > .36f)
 					yield return $"{node.GetMeta("prop_id")} at {node.GlobalPosition} has its back {offset:F3} from the wall line";
 			}

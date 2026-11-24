@@ -1,0 +1,97 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=26 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_rectangleshape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/CrossShape.cs" id="3_crossshape"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="4_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/cave_floor.tres" id="5_cave_floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="6_centerstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="7_cornersstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="8_alongwallsstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="9_walldecorstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="10_scatterstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_cluster_huge.tres" id="11_cluster_huge"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_cluster.tres" id="12_cluster"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_vein.tres" id="13_crystal_vein"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_outcrop.tres" id="17_outcrop"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="14_rubble_scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_boulders.tres" id="15_rubble_boulders"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="16_mushrooms"]
+
+[sub_resource type="Resource" id="RectangleShape_hall"]
+script = ExtResource("2_rectangleshape")
+MinimumSize = Vector2i(4, 4)
+MaximumSize = Vector2i(4, 5)
+metadata/_custom_type_script = ExtResource("2_rectangleshape")
+
+[sub_resource type="Resource" id="CrossShape_grotto"]
+script = ExtResource("3_crossshape")
+Weight = 0.5
+MinimumSize = Vector2i(5, 5)
+MaximumSize = Vector2i(5, 5)
+ArmWidth = 3
+metadata/_custom_type_script = ExtResource("3_crossshape")
+
+[sub_resource type="Resource" id="CenterStep_heart"]
+script = ExtResource("6_centerstep")
+Id = "heart"
+Content = [ExtResource("11_cluster_huge")]
+MinimumCount = 1
+metadata/_custom_type_script = ExtResource("6_centerstep")
+
+[sub_resource type="Resource" id="CornersStep_clusters"]
+script = ExtResource("7_cornersstep")
+Id = "corner_clusters"
+Content = [ExtResource("12_cluster")]
+MinimumCount = 3
+MaximumCount = 4
+metadata/_custom_type_script = ExtResource("7_cornersstep")
+
+[sub_resource type="Resource" id="AlongWallsStep_clusters"]
+script = ExtResource("8_alongwallsstep")
+Id = "wall_outcrops"
+Content = [ExtResource("17_outcrop")]
+MinimumCount = 2
+MaximumCount = 4
+Spacing = 0.6
+metadata/_custom_type_script = ExtResource("8_alongwallsstep")
+
+[sub_resource type="Resource" id="WallDecorStep_veins"]
+script = ExtResource("9_walldecorstep")
+Id = "veins"
+Content = [ExtResource("13_crystal_vein")]
+MaximumCount = 2
+Spacing = 5.0
+metadata/_custom_type_script = ExtResource("9_walldecorstep")
+
+[sub_resource type="Resource" id="ScatterStep_outcrops"]
+script = ExtResource("10_scatterstep")
+Id = "open_outcrops"
+Content = [ExtResource("17_outcrop")]
+MaximumCount = 4
+WallChance = 0.3
+metadata/_custom_type_script = ExtResource("10_scatterstep")
+
+[sub_resource type="Resource" id="ScatterStep_rubble"]
+script = ExtResource("10_scatterstep")
+Id = "rubble"
+Content = [ExtResource("14_rubble_scatter"), ExtResource("15_rubble_boulders"), ExtResource("16_mushrooms")]
+MaximumCount = 2
+WallChance = 0.6
+metadata/_custom_type_script = ExtResource("10_scatterstep")
+
+[resource]
+script = ExtResource("1_roomtype")
+Id = "crystal_cavern"
+Realms = PackedStringArray("jungle")
+Weight = 1.2
+Shapes = [SubResource("RectangleShape_hall"), SubResource("CrossShape_grotto")]
+MinimumFloorTiles = 16
+MinDoorways = 1
+MaxDoorways = 3
+DoorChance = 0.0
+Circulation = 0
+Walls = [ExtResource("4_cave_walls")]
+Floors = [ExtResource("5_cave_floor")]
+Steps = [SubResource("CenterStep_heart"), SubResource("CornersStep_clusters"), SubResource("AlongWallsStep_clusters"), SubResource("WallDecorStep_veins"), SubResource("ScatterStep_outcrops"), SubResource("ScatterStep_rubble")]
+metadata/_custom_type_script = ExtResource("1_roomtype")

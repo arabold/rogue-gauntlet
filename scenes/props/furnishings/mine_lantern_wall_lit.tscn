@@ -22,10 +22,10 @@ EnvironmentalLight = NodePath("EnvironmentalLightComponent")
 [node name="Glow" parent="Flame" instance=ExtResource("3_glow")]
 
 [node name="CandleFlame" parent="Flame" instance=ExtResource("5_flame")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.025, 0.36)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2.45, 0.72)
 
 [node name="FlickeringLight" parent="." instance=ExtResource("4_light")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.04, 0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.48, 0.8)
 light_color = Color(1, 0.72, 0.36, 1)
 light_energy = 0.9
 shadow_enabled = false

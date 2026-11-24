@@ -1,29 +1,29 @@
 {
   "key": "furnishings/mine_lantern_wall",
-  "inputs": "cc2f00719a2bf18f62130b5fab5430f5293a23b43ca2cc333aa1f648b93d5645",
+  "inputs": "aa8019c17c234d941324359564e62614d47cb0fe3f0ad89e177b55e89197e906",
   "files": {
-    "mine_lantern_wall.glb": "1f464af12e9f62c301e77a985076d3d3aba750f0cc23aa6365c8d97213e10635",
-    "lineup.png": "67ed93949e0bea78715cffb03540c48b6605bb464880764d1ec1d00a96709343"
+    "mine_lantern_wall.glb": "d8ca8967966ff59a3f67fb68d929c3a8ce2ce6d6444ac0853be1c34898e8fa3e",
+    "lineup.png": "6eba6d0801030b1e65f8a1ec7441b804696775547b57b55ae1c5f90ba7c173b1"
   },
   "metadata": {
     "report": {
       "triangles": 1482,
       "bounds": [
         [
-          -0.15000000596046448,
-          1.7999999523162842,
+          -0.30000001192092896,
+          1.9999998807907104,
           0.0
         ],
         [
-          0.15000000596046448,
-          2.5199999809265137,
-          0.5099999904632568
+          0.30000001192092896,
+          3.440000057220459,
+          1.0199999809265137
         ]
       ],
       "dimensions": [
-        0.30000001192092896,
-        0.7200000286102295,
-        0.5099999904632568
+        0.6000000238418579,
+        1.4400001764297485,
+        1.0199999809265137
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.01767749748928756
+        "signed_volume": 0.14141998107193396
       },
       "host_fit": null,
       "warnings": [],
@@ -80,7 +80,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Mines realm wall prop (flat back at z=0): forged iron wall bracket supporting a hanging ~0.5 m iron cage lantern housing. Emissive core exported separately. No gameplay data."
+        "quality_notes": "Mines realm wall prop (flat back at z=0): forged iron wall bracket supporting a hanging ~1 m iron cage lantern housing. Emissive core exported separately. No gameplay data."
       }
     }
   }

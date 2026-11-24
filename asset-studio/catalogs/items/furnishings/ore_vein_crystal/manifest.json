@@ -1,29 +1,29 @@
 {
   "key": "furnishings/ore_vein_crystal",
-  "inputs": "44f434971aab7b0382bc8d5212137e81035b4a0fb169c1c40b9f1c3a034f52dc",
+  "inputs": "6ca7d63257201a1941e950c63b7e2c9260f5773e80aa2a27c62c36142415d24b",
   "files": {
-    "ore_vein_crystal.glb": "dc077183ebe21a50dbf6663ca5ed055175bbfc90590dfa5c64f607b9c234c12f",
-    "lineup.png": "c49a655bd0c99411f8d0df96f88338b7d7ff8a38983acdbc1544018232bd3f57"
+    "ore_vein_crystal.glb": "ae442662a36ad2d601cc91874946604efe5f3de4527ff9b3025da81b64f8211a",
+    "lineup.png": "ba7456aa17ef427da847c5637f05a67b360b91f93d39fca31dd1f1aacbfd24a3"
   },
   "metadata": {
     "report": {
       "triangles": 998,
       "bounds": [
         [
-          -0.7741132974624634,
-          0.7950109839439392,
+          -1.5482265949249268,
+          0.8900219798088074,
           0.0
         ],
         [
-          0.7663040161132812,
-          2.063627243041992,
-          0.27159610390663147
+          1.5326080322265625,
+          3.4272544384002686,
+          0.5431922078132629
         ]
       ],
       "dimensions": [
-        1.5404173135757446,
-        1.268616259098053,
-        0.27159610390663147
+        3.0808346271514893,
+        2.537232458591461,
+        0.5431922078132629
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.17620144240565347
+        "signed_volume": 1.4096115292643125
       },
       "host_fit": null,
       "warnings": [],

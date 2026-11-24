@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://c7jefenbk3vi0" path="res://scenes/components/EnvironmentalLightComponent.cs" id="7_lighting"]
 
 [sub_resource type="BoxShape3D" id="post_collider"]
-size = Vector3(0.32, 1.84, 0.32)
+size = Vector3(0.64, 3.68, 0.64)
 
 [node name="MineLanternPostLit" type="Node3D" node_paths=PackedStringArray("Flame", "Light", "EnvironmentalLight")]
 script = ExtResource("1_fixture")
@@ -25,10 +25,10 @@ EnvironmentalLight = NodePath("EnvironmentalLightComponent")
 [node name="Glow" parent="Flame" instance=ExtResource("3_glow")]
 
 [node name="CandleFlame" parent="Flame" instance=ExtResource("5_flame")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.305, 0.36)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2.61, 0.72)
 
 [node name="FlickeringLight" parent="." instance=ExtResource("4_light")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.32, 0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.64, 0.8)
 light_color = Color(1, 0.72, 0.36, 1)
 light_energy = 0.9
 shadow_enabled = false
@@ -39,7 +39,7 @@ collision_layer = 16
 collision_mask = 0
 
 [node name="PostShape" type="CollisionShape3D" parent="Body"]
-position = Vector3(0, 0.92, 0)
+position = Vector3(0, 1.84, 0)
 shape = SubResource("post_collider")
 
 [node name="ExplorationGateComponent" type="Node3D" parent="." node_paths=PackedStringArray("Target")]

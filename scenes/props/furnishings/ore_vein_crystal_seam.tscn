@@ -8,5 +8,10 @@
 [node name="Model" parent="." instance=ExtResource("1_model")]
 
 [node name="CrystalLight" parent="." instance=ExtResource("2_light")]
-position = Vector3(0.14, 1.43, 0.32)
-rotation = Vector3(0, 0, 0.34)
+transform = Transform3D(0.94275, 0.3335, 0, -0.3335, 0.94275, 0, 0, 0, 1, 0.28, 2.16, 0.64)
+
+[node name="Light" parent="CrystalLight" index="0"]
+position = Vector3(0, 0.1, 0.56)
+
+[node name="Arc" parent="CrystalLight" index="1"]
+pixel_size = 0.015

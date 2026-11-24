@@ -6,7 +6,13 @@ All geometry uses the chunky, weathered construction vocabulary in `furnishing_k
 - Wall props keep a flat back on z = 0 at their natural hanging height above y = 0.
 - Rail tracks fit one 4 x 4 m tile at 1.0 m gauge and stay under 0.15 m tall (except buffer stop).
 - Timber frames span one 4 m tunnel tile (4 m wide x 4 m tall) with >= 2.7 m clear opening.
+
+Hand-scale props (tools, ore, crystals, lanterns) are modeled at real-world size, then grown to the dungeon pack's chunky
+scale beside the 2.2 m hero by `_grown`; sizes in their docstrings are the grown ones. Carts, rails, timber frames and
+the winch keep their modeled size, which the 1 m rail gauge and the 4 m tile fix.
 """
+
+import functools
 
 import numpy as np
 import manifold3d as mf
@@ -16,6 +22,31 @@ from items.furnishing_kit import (
     ball, bend, block, board, disc, facade, framed, grounded, jag,
     moved, outline, post, random, rect, rivet, ring, rod, solid, square_post, torus, turned,
 )
+
+
+# KayKit's large barrel stands 2 m beside the 2.2 m hero and its mounted torch is 0.55 m wide.
+TOOL_SCALE = 1.6
+ORE_SCALE = 1.5
+CRYSTAL_SCALE = 2.0
+LANTERN_SCALE = 2.0
+# Wall props grow about a point on the wall plane, so they keep hanging at a sensible height below the 4 m wall top.
+WALL_DECOR_PIVOT = (0.0, 0.7, 0.0)
+TOOL_RACK_PIVOT = (0.0, 1.0, 0.0)
+# The wall lantern's cage keeps hanging above head height.
+WALL_LANTERN_PIVOT = (0.0, 1.6, 0.0)
+
+
+def _grown(factor, pivot=(0.0, 0.0, 0.0)):
+    """Scales a recipe's finished piece uniformly about `pivot` (the floor origin for floor props)."""
+    origin = np.asarray(pivot, float)
+
+    def wrap(build):
+        @functools.wraps(build)
+        def grown(*args, **kwargs):
+            piece = build(*args, **kwargs)
+            return kit.Piece((piece.verts - origin) * factor + origin, piece.faces, piece.slots)
+        return grown
+    return wrap
 
 
 def _sub(parent):
@@ -155,16 +186,18 @@ def _add_shovel(a, frame=None):
     a.join(framed(a.label(block((0.050, 0.14, 0.045), (0, 0.19, 0.005), 0.010), 'iron_dark'), frame))
 
 
+@_grown(TOOL_SCALE)
 def pickaxe_loose():
-    """Loose weathered pickaxe lying flat on the floor (~1.0 m long, <= 0.14 m tall)."""
+    """Loose weathered pickaxe lying flat on the floor (~1.5 m long, ~0.22 m tall)."""
     a = Assembly()
     _add_pickaxe(a)
     p = turned(turned(a.build(), 90, 'x'), 18, 'y')
     return grounded(p, 0.0, 0.0)
 
 
+@_grown(TOOL_SCALE, TOOL_RACK_PIVOT)
 def tool_rack():
-    """Wall-mounted timber tool rack (~1.62 m wide) holding two pickaxes, two shovels, and one empty peg slot."""
+    """Wall-mounted timber tool rack (~2.7 m wide, ~1.3 to ~3 m up) holding two pickaxes, two shovels and an empty peg."""
     a, rng = Assembly(), random('tool_rack')
     # Backboard vertical cleats at z = 0..0.06
     for sx in (-0.64, 0.64):
@@ -492,8 +525,9 @@ def rail_track_end():
 
 # ---------------------------------------------------------------------------- ore veins (wall mounted, z in [0, 0.32])
 
+@_grown(ORE_SCALE, WALL_DECOR_PIVOT)
 def ore_vein_a():
-    """Diagonal rock outcrop wall vein (~1.25 m wide, z <= 0.28) with carved seam and gold ore."""
+    """Diagonal rock outcrop wall vein (~1.5 m wide, ~0.9 to ~3.1 m up) with carved seam and gold ore."""
     a, rng = Assembly(), random('ore_vein_a')
     # Layered rock outcrop overlapping behind z = 0 (trimmed cleanly at z = 0)
     rocks = [
@@ -524,8 +558,9 @@ def ore_vein_a():
     return _trim_wall_back(a)
 
 
+@_grown(ORE_SCALE, WALL_DECOR_PIVOT)
 def ore_vein_b():
-    """Wide horizontal tiered wall vein (~1.92 m wide, z <= 0.31) with carved pocket and gold nuggets."""
+    """Wide horizontal tiered wall vein (~2.7 m wide) with carved pocket and gold nuggets."""
     a, rng = Assembly(), random('ore_vein_b')
     rocks = [
         ((-0.56, 1.12, 0.05), (0.76, 0.60, 0.44), 'rock_dark', 8),
@@ -556,8 +591,9 @@ def ore_vein_b():
     return _trim_wall_back(a)
 
 
+@_grown(CRYSTAL_SCALE, WALL_DECOR_PIVOT)
 def ore_vein_crystal():
-    """Geode wall outcrop (~1.62 m wide, z <= 0.32) with carved hollow and protruding crystal cluster."""
+    """Geode wall outcrop (~3.1 m wide, ~0.9 to ~3.4 m up) with carved hollow and protruding crystal cluster."""
     a, rng = Assembly(), random('ore_vein_crystal')
     rocks = [
         ((-0.36, 1.28, 0.05), (0.78, 0.76, 0.44), 'rock_dark', 10),
@@ -593,8 +629,9 @@ def ore_vein_crystal():
     return _trim_wall_back(a)
 
 
+@_grown(CRYSTAL_SCALE, WALL_DECOR_PIVOT)
 def ore_vein_crystal_seam():
-    """A narrow split in the wall lined with short blue crystal blades."""
+    """A narrow split in the wall (~3.1 m wide) lined with blue crystal blades."""
     a, rng = Assembly(), random('ore_vein_crystal_seam')
     for pos, size, tilt in [
         ((-0.50, 1.06, 0.03), (0.64, 0.47, 0.40), -12),
@@ -617,10 +654,11 @@ def ore_vein_crystal_seam():
     return _trim_wall_back(a)
 
 
-# ---------------------------------------------------------------------------- ore piles (floor, 1.0 - 1.5 m across)
+# ---------------------------------------------------------------------------- ore piles (floor, 1.5 - 2.1 m across)
 
+@_grown(ORE_SCALE)
 def ore_pile_small():
-    """Low heap (~1.05 m across, ~0.48 m tall) of loose mined rock and gold ore chunks."""
+    """Low heap (~1.5 m across, ~0.7 m tall) of loose mined rock and gold ore chunks."""
     a, rng = Assembly(), random('ore_pile_small')
     chunks = [
         ((-0.04, 0.20, -0.02), (0.58, 0.38, 0.54), 'rock_dark', 8),
@@ -645,8 +683,9 @@ def ore_pile_small():
     return grounded(a.build(loose=True))
 
 
+@_grown(ORE_SCALE)
 def ore_pile_large():
-    """Larger asymmetric ore heap with a crown of blue crystal and scattered gold ore."""
+    """Larger asymmetric ore heap (~2.1 m across) with a crown of blue crystal and scattered gold ore."""
     a, rng = Assembly(), random('ore_pile_large')
     chunks = [
         ((-0.08, 0.30, -0.06), (0.82, 0.56, 0.76), 'rock_dark', 6),
@@ -679,17 +718,15 @@ def ore_pile_large():
     return grounded(a.build(loose=True))
 
 
+@_grown(CRYSTAL_SCALE)
 def ore_pile_crystal():
-    """Tall splayed crystals rooted in a low bed of excavated rock."""
-    a, rng = Assembly(), random('ore_pile_crystal')
-    for pos, size, slot, tilt in [
+    """Splayed crystals (~2.3 m tall) rooted in a low bed of excavated rock."""
+    return _crystal_cluster('ore_pile_crystal', [
         ((0.00, 0.17, 0.00), (0.78, 0.34, 0.73), 'rock_dark', 8),
         ((0.30, 0.14, -0.18), (0.55, 0.28, 0.47), 'rock', -13),
         ((-0.32, 0.12, -0.12), (0.53, 0.24, 0.46), 'rock', 10),
         ((0.07, 0.10, 0.35), (0.52, 0.22, 0.40), 'rock', -7),
-    ]:
-        a.add(_rock_chunk(pos, size, rng, tilt_deg=tilt), slot)
-    for radius, height, tilt, pos, slot in [
+    ], [
         (0.145, 0.98, (-12, 20, 7), (-0.05, 0.19, 0.03), 'ore_crystal_blue'),
         (0.109, 0.68, (19, 15, -29), (0.11, 0.16, -0.10), 'ore_crystal'),
         (0.120, 0.61, (24, -8, 36), (-0.15, 0.16, 0.09), 'ore_crystal_blue'),
@@ -697,12 +734,68 @@ def ore_pile_crystal():
         (0.078, 0.38, (-31, 10, -22), (0.19, 0.13, -0.21), 'ore_crystal'),
         (0.070, 0.34, (22, 35, 40), (-0.39, 0.11, -0.12), 'ore_crystal'),
         (0.069, 0.28, (47, -25, 6), (-0.04, 0.12, 0.23), 'ore_crystal'),
-    ]:
+    ])
+
+
+def _crystal_cluster(seed, bed, spires):
+    """Crystal spires rooted in a bed of rock chunks: bed rows are (center, size, slot, tilt), spire rows
+    (radius, height, tilt, base, slot)."""
+    a, rng = Assembly(), random(seed)
+    for pos, size, slot, tilt in bed:
+        a.add(_rock_chunk(pos, size, rng, tilt_deg=tilt, slot=slot), slot)
+    for radius, height, tilt, pos, slot in spires:
         a.add(_crystal_spire(radius, height, tilt, pos), slot)
     return grounded(a.build(loose=True))
 
 
-# ---------------------------------------------------------------------------- mine lanterns (hanging + post, ~0.5 m cage)
+# ---------------------------------------------------------------------------- crystal clusters (floor, taller than the hero)
+
+@_grown(CRYSTAL_SCALE)
+def crystal_cluster_tall():
+    """A great crystal (~3 m, taller than the hero) leaning out of a rock bed among smaller splayed blades (~1.8 m across)."""
+    return _crystal_cluster('crystal_cluster_tall', [
+        ((0.00, 0.15, 0.00), (0.70, 0.30, 0.66), 'rock_dark', 8),
+        ((0.28, 0.12, -0.16), (0.48, 0.24, 0.42), 'rock', -12),
+        ((-0.30, 0.11, 0.10), (0.46, 0.22, 0.40), 'rock', 10),
+        ((0.04, 0.09, 0.32), (0.42, 0.18, 0.36), 'rock_dark', -6),
+        ((-0.14, 0.09, -0.30), (0.40, 0.18, 0.34), 'rock', 14),
+    ], [
+        (0.190, 1.50, (-6, 15, 5), (0.00, 0.14, 0.00), 'ore_crystal_blue'),
+        (0.140, 1.02, (18, 30, -22), (0.16, 0.12, -0.08), 'ore_crystal'),
+        (0.150, 0.94, (-20, -15, 26), (-0.18, 0.12, 0.06), 'ore_crystal_blue'),
+        (0.110, 0.70, (30, 50, 18), (0.04, 0.10, 0.20), 'ore_crystal'),
+        (0.100, 0.60, (-28, 10, -38), (0.24, 0.09, 0.12), 'ore_crystal_blue'),
+        (0.090, 0.50, (40, -30, 32), (-0.27, 0.08, -0.14), 'ore_crystal'),
+        (0.080, 0.40, (-44, 20, -10), (-0.04, 0.08, -0.27), 'ore_crystal_blue'),
+    ])
+
+
+@_grown(CRYSTAL_SCALE)
+def crystal_cluster_huge():
+    """A cavern's centerpiece: a towering crystal (~3.8 m) in a crown of tall spires on a broad rock bed (~2.8 m across)."""
+    return _crystal_cluster('crystal_cluster_huge', [
+        ((0.00, 0.18, 0.00), (1.00, 0.36, 0.94), 'rock_dark', 6),
+        ((0.44, 0.14, -0.20), (0.64, 0.28, 0.56), 'rock', -12),
+        ((-0.44, 0.13, 0.16), (0.62, 0.26, 0.54), 'rock', 12),
+        ((0.10, 0.11, 0.48), (0.58, 0.22, 0.46), 'rock_dark', -8),
+        ((-0.18, 0.11, -0.46), (0.56, 0.22, 0.46), 'rock', 10),
+        ((0.46, 0.09, 0.34), (0.40, 0.18, 0.36), 'rock_dark', 16),
+        ((-0.50, 0.09, -0.30), (0.40, 0.18, 0.34), 'rock_dark', -14),
+    ], [
+        (0.280, 1.75, (-4, 10, 4), (0.00, 0.18, 0.00), 'ore_crystal_blue'),
+        (0.220, 1.45, (14, 40, -16), (0.22, 0.16, -0.12), 'ore_crystal'),
+        (0.210, 1.30, (-16, -20, 20), (-0.24, 0.16, 0.10), 'ore_crystal_blue'),
+        (0.180, 1.12, (22, -60, -10), (-0.10, 0.15, -0.26), 'ore_crystal'),
+        (0.170, 1.00, (-20, 70, 18), (0.14, 0.15, 0.28), 'ore_crystal_blue'),
+        (0.140, 0.78, (34, 20, -34), (0.42, 0.12, 0.04), 'ore_crystal_blue'),
+        (0.130, 0.70, (-30, -10, 36), (-0.44, 0.12, -0.04), 'ore_crystal'),
+        (0.110, 0.56, (42, 60, 20), (0.20, 0.10, 0.46), 'ore_crystal'),
+        (0.100, 0.50, (-40, -40, -24), (-0.26, 0.10, -0.44), 'ore_crystal_blue'),
+        (0.090, 0.42, (48, -20, -40), (0.50, 0.09, -0.30), 'ore_crystal'),
+    ])
+
+
+# ---------------------------------------------------------------------------- mine lanterns (hanging + post, ~1 m cage)
 
 def _add_lantern_cage(a, center, glow=False):
     """Hanging octagonal iron cage lantern (~0.50 m tall, ~0.28 m wide) centered at `center`."""
@@ -757,8 +850,9 @@ def _add_lantern_cage(a, center, glow=False):
         a.add(rod((cx + dx, cy - 0.13, cz + dz), (cx + dx * 1.04, cy + 0.11, cz + dz * 1.04), 0.016, 6), 'iron')
 
 
+@_grown(LANTERN_SCALE, WALL_LANTERN_PIVOT)
 def mine_lantern_wall(glow=False):
-    """Hanging iron cage mine lantern on a forged wall bracket (flat back at z = 0)."""
+    """Hanging iron cage mine lantern on a forged wall bracket (flat back at z = 0), hanging from ~2 to ~3.4 m."""
     a = Assembly()
     lantern_center = (0.0, 2.04, 0.36)
     _add_lantern_cage(a, lantern_center, glow=glow)
@@ -778,8 +872,9 @@ def mine_lantern_wall(glow=False):
     return _trim_wall_back(a)
 
 
+@_grown(LANTERN_SCALE)
 def mine_lantern_post(glow=False):
-    """Floor-standing weathered timber post (~1.82 m tall) with iron bracket and hanging cage lantern."""
+    """Floor-standing weathered timber post (~3.6 m tall) with iron bracket and hanging cage lantern."""
     a, rng = Assembly(), random('mine_lantern_post')
     lantern_center = (0.0, 1.32, 0.36)
     _add_lantern_cage(a, lantern_center, glow=glow)
@@ -1070,6 +1165,8 @@ KINDS = {
     'ore_pile_small': ore_pile_small,
     'ore_pile_large': ore_pile_large,
     'ore_pile_crystal': ore_pile_crystal,
+    'crystal_cluster_tall': crystal_cluster_tall,
+    'crystal_cluster_huge': crystal_cluster_huge,
     'tool_rack': tool_rack,
     'pickaxe_loose': pickaxe_loose,
     'mine_lantern_wall': mine_lantern_wall,

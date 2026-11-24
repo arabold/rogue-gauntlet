@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "Crystal Cluster Tall",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "crystal_cluster_tall"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1600,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "export": {
+    "glb": "res://assets/custom-props/mines/crystal_cluster_tall.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines floor prop: a ~3 m crystal, taller than the hero, among smaller splayed blades in a rock bed."
+  }
+}
