@@ -8,5 +8,7 @@ script = ExtResource("1_Prop")
 Id = "pillar_broken"
 Scenes = [ExtResource("2_pillar_broke")]
 Gap = 0.2
+TurnJitter = 8.0
+ShiftJitter = 0.05
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")

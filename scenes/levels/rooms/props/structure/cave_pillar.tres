@@ -9,4 +9,6 @@ script = ExtResource("2_prop")
 Id = "cave_pillar"
 Scenes = [ExtResource("3_wall_cave_pillar"), ExtResource("4_wall_cave_pillar")]
 Gap = 0.3
+TurnJitter = 45.0
+ShiftJitter = 0.1
 metadata/_custom_type_script = ExtResource("2_prop")

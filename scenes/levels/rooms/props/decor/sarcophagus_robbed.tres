@@ -8,5 +8,7 @@ script = ExtResource("1_Prop")
 Id = "sarcophagus_robbed"
 Scenes = [ExtResource("2_sarcophagus_")]
 Gap = 0.4
+TurnJitter = 4.0
+ShiftJitter = 0.05
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")
