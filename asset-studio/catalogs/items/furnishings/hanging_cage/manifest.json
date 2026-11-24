@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/hanging_cage",
+  "inputs": "7d856ca4e8067dba13fa6bfc41ca226e40c56b01ab3697e858ec91de66ef8c7b",
+  "files": {
+    "hanging_cage.glb": "3dfae16372c1b3fcbc465d2ddaf0cdf4edff20daac7ff50f25941ffc2fc0c7df",
+    "lineup.png": "4e82bb6461f91a3242d7ee60ec2f731251f43794403a9f578995e45b7dd378ff"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2972,
+      "bounds": [
+        [
+          -0.800000011920929,
+          0.3465000092983246,
+          0.0
+        ],
+        [
+          0.800000011920929,
+          3.940000057220459,
+          1.774999976158142
+        ]
+      ],
+      "dimensions": [
+        1.600000023841858,
+        3.5935000479221344,
+        1.774999976158142
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.8828910524627945
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Hanging Cage",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "hanging_cage"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 4000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/prison/hanging_cage.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Prison furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

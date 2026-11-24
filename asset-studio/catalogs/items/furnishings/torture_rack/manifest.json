@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/torture_rack",
+  "inputs": "e8ecd1a49f87ed44c0a1c1a181276f38a9cbd2c940e99aee8b7aab72fbd2a1d2",
+  "files": {
+    "torture_rack.glb": "f0d9466bc4635eb1b2f09ace4656f3e707822079c51d8f7853697c62ae3f4c02",
+    "lineup.png": "40db3bc44db44cc6f2a4f530308b3480009eed0316553ee8a1172514a7ba1de4"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 5840,
+      "bounds": [
+        [
+          -1.8569397926330566,
+          -0.03324766829609871,
+          -0.7475000023841858
+        ],
+        [
+          1.6299999952316284,
+          1.6569397449493408,
+          0.9399999976158142
+        ]
+      ],
+      "dimensions": [
+        3.486939787864685,
+        1.6901874132454395,
+        1.6875
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.2677861774064092
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Torture Rack",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "torture_rack"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/prison/torture_rack.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Prison furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

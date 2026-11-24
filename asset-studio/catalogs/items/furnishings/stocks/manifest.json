@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/stocks",
+  "inputs": "b7b2fac006cc455ce07183c0f1e3a68f14ea4a6f5efe0a9f1441f89060449bb4",
+  "files": {
+    "stocks.glb": "c23d5f4b1c7da777f1fb3a52d1894d89e7bc91bbe20e27628da241d8f5f38117",
+    "lineup.png": "857b5c6e1fb760491726b6c7ec03d7ab1f5b84c905d1811e9f63c2701a1248be"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 3228,
+      "bounds": [
+        [
+          -0.9457983374595642,
+          -0.005392351187765598,
+          -0.7050537467002869
+        ],
+        [
+          0.9492547512054443,
+          2.4951605796813965,
+          0.7015380859375
+        ]
+      ],
+      "dimensions": [
+        1.8950530886650085,
+        2.500552930869162,
+        1.4065918326377869
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.8798442202956425
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Stocks",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "stocks"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 4000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/prison/stocks.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Prison furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}
