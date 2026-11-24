@@ -123,7 +123,7 @@ public class RealmScheduleTest
 	[TestCase]
 	public async Task GeneratedFloorsHoldTheirHeadline()
 	{
-		foreach (uint depth in new uint[] { 1, 2, 3, 4, 7, 9, 13, 15, 18, 20, 22, 24 })
+		foreach (uint depth in new uint[] { 1, 2, 3, 4, 7, 9, 13, 14, 18, 20, 22, 24 })
 		{
 			var (runner, level) = await TestFactories.GenerateLevel(7, depth);
 			using (runner)
