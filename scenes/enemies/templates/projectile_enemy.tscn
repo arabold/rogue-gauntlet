@@ -303,10 +303,9 @@ Buffs = NodePath("../BuffController")
 HitEffect = ExtResource("b_9_d4q6w")
 ImpactSurface = ExtResource("impact_surface_profile")
 
-[node name="Nameplate" parent="." node_paths=PackedStringArray("Health", "Invisibility") instance=ExtResource("nameplate")]
+[node name="Nameplate" parent="." node_paths=PackedStringArray("Health") instance=ExtResource("nameplate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 Health = NodePath("../HealthComponent")
-Invisibility = NodePath("../InvisibilityComponent")
 
 [node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("HealthComponent", "Invisibility", "ShowWithName") instance=ExtResource("b_10_oansv")]
 HealthComponent = NodePath("../../HealthComponent")

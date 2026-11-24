@@ -99,7 +99,8 @@ public class WardenTest
 		AssertInt(navigation.HomeRoom).IsEqual(home);
 
 		// A destination in its own room, a real walk away, the body fits at.
-		var grid = level.Navigation.Grid;
+		var ground = level.NavigationFor(NavigationLayer.Ground);
+		var grid = ground.Grid;
 		var route = new List<Vector2>();
 		Vector3? destination = null;
 		for (int x = 0; x < grid.Size.X && destination == null; x++)
@@ -107,8 +108,8 @@ public class WardenTest
 		{
 			var center = grid.CellCenter(new Vector2I(x, z));
 			var point = new Vector3(center.X, boss.GlobalPosition.Y, center.Y);
-			if (level.Navigation.RoomAt(point) != home || !navigation.CanStandAt(point)) continue;
-			if (!level.Navigation.TryFindPath(boss.GlobalPosition, point, boss.BodyRadius, route)) continue;
+			if (ground.RoomAt(point) != home || !navigation.CanStandAt(point)) continue;
+			if (!ground.TryFindPath(boss.GlobalPosition, point, boss.BodyRadius, route)) continue;
 			float length = GridPath.Length(boss.GlobalPosition.Xz(), route);
 			if (length >= 6 && length <= 14) destination = point;
 		}
@@ -118,7 +119,7 @@ public class WardenTest
 		{
 			AssertBool(navigation.MoveTo(destination.Value)).IsTrue();
 			await runner.SimulateFrames(1, 16);
-			AssertInt(level.Navigation.RoomAt(boss.GlobalPosition)).IsEqual(home);
+			AssertInt(ground.RoomAt(boss.GlobalPosition)).IsEqual(home);
 		}
 		AssertBool(navigation.HasArrived).IsTrue();
 

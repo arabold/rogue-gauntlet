@@ -29,6 +29,8 @@ public partial class ErraticFlightStrategy : EnemyMovementStrategy
 
 	public override void AttackAccepted(EnemyContext context, AttackIdentity identity) => Pattern.AttackAccepted(context, identity);
 
+	public override EnemyMovementIntent? Preempt(EnemyContext context) => Pattern.Preempt(context);
+
 	public override EnemyMovementIntent Evaluate(EnemyContext context)
 	{
 		var intent = Pattern.Evaluate(context);

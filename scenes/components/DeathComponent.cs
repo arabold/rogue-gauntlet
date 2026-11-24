@@ -1,7 +1,8 @@
 using Godot;
 
 /// <summary>
-/// Component that handles the death of a character (enemies).
+/// Takes a monster out of the floor for good: it dies (<see cref="HealthComponent.Died"/>), paying its experience and
+/// loot, or it leaves without dying (<see cref="Leave"/>). Either way a reloaded floor does not bring it back.
 /// </summary>
 [GlobalClass]
 public partial class DeathComponent : Node
@@ -24,6 +25,7 @@ public partial class DeathComponent : Node
 	[Export] public PackedScene DeathEffect { get; set; }
 	/// <summary>Height above the actor's feet at which <see cref="DeathEffect"/> plays.</summary>
 	[Export] public float DeathEffectHeight { get; set; } = 0.5f;
+	private static readonly StringName PersistentIdMeta = "persistent_id";
 	private Level _level;
 
 	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
@@ -38,22 +40,14 @@ public partial class DeathComponent : Node
 
 	private void OnDied()
 	{
-		// Disable collision detection for character
 		var owner = GetOwner<CharacterBody3D>();
-
-		if (owner.HasMeta("persistent_id"))
-		{
-			string persistentId = owner.GetMeta("persistent_id").AsString();
-			if (!string.IsNullOrEmpty(persistentId))
-			{
-				_level?.Run.MarkCleared(persistentId);
-			}
-		}
+		MarkCleared(owner);
 
 		var definition = (owner as EnemyBase)?.Definition;
 		CombatTrace.Write(owner, "actor.died", ("monster", definition?.DisplayName ?? owner.Name.ToString()),
 			("threat", definition?.ThreatLevel), ("xp", RewardsEnabled ? Xp : 0));
 		GD.Print($"{owner.Name} died!");
+		// Disable collision detection for character
 		owner.CollisionLayer = 0;
 		owner.CollisionMask = 1; // only collide with the floor
 		owner.SetPhysicsProcess(false);
@@ -89,5 +83,41 @@ public partial class DeathComponent : Node
 				owner.QueueFree();
 			}
 		}));
+	}
+
+	/// <summary>
+	/// Removes the monster without killing it: no death, experience or loot. It stops thinking, moving and taking hits at
+	/// once, then fades through <paramref name="effect"/> on its effect host and is removed when that ends, or at once
+	/// without one. A thief escaping with its loot leaves this way.
+	/// </summary>
+	public void Leave(WorldEffectDefinition effect = null)
+	{
+		var owner = GetOwner<EnemyBase>();
+		MarkCleared(owner);
+		owner.EnemyBehaviorComponent.AIEnabled = false;
+		owner.MovementComponent.Stop();
+		owner.CollisionLayer = 0;
+		owner.HurtBoxComponent.Invulnerable = true;
+		var host = owner.WorldEffects;
+		var result = effect != null && host != null
+			? host.PlayBurstConfigured(effect, (uint)owner.GetInstanceId(), instance =>
+			{
+				instance.Finished += Remove;
+				return true;
+			})
+			: WorldEffectResult.Rejected;
+		if (result != WorldEffectResult.Started) Remove();
+
+		void Remove()
+		{
+			if (GodotObject.IsInstanceValid(owner)) owner.QueueFree();
+		}
+	}
+
+	/// <summary>Records the monster's spawn as cleared, so a reloaded floor does not respawn it; unsaved spawns have no id.</summary>
+	private void MarkCleared(Node owner)
+	{
+		string persistentId = owner.GetMeta(PersistentIdMeta, "").AsString();
+		if (!string.IsNullOrEmpty(persistentId)) _level?.Run.MarkCleared(persistentId);
 	}
 }

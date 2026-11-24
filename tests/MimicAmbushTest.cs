@@ -25,7 +25,7 @@ public class MimicAmbushTest
 		Vector3 start = mimic.GlobalPosition;
 		await runner.SimulateFrames(30, 20);
 		AssertBool(mimic.IsConcealed).IsTrue();
-		AssertBool(mimic.Nameplate.IsShown || mimic.Xray.IsEnabled).IsFalse();
+		AssertBool(mimic.Nameplate.IsShown || mimic.Xray.IsShown).IsFalse();
 		AssertFloat(mimic.GlobalPosition.HorizontalDistanceTo(start)).IsLess(0.05f);
 
 		var chest = mimic.FindChildren("*", "", true, false).OfType<Chest>().Single();
@@ -35,7 +35,7 @@ public class MimicAmbushTest
 		float health = player.HealthComponent.CurrentHealth;
 		await TestFactories.AwaitPhysicsUntil(runner, () => player.HealthComponent.CurrentHealth < health, 6);
 		AssertBool(mimic.IsConcealed).IsFalse();
-		AssertBool(mimic.Nameplate.IsShown && mimic.Xray.IsEnabled).IsTrue();
+		AssertBool(mimic.Nameplate.IsShown && mimic.Xray.IsShown).IsTrue();
 	}
 
 	[TestCase]

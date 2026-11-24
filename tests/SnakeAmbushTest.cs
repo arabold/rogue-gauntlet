@@ -23,7 +23,7 @@ public class SnakeAmbushTest
 		Vector3 start = snake.GlobalPosition;
 		await runner.SimulateFrames(50, 20);
 		AssertBool(snake.IsConcealed).IsTrue();
-		AssertBool(snake.Nameplate.IsShown || snake.Xray.IsEnabled).IsFalse();
+		AssertBool(snake.Nameplate.IsShown || snake.Xray.IsShown).IsFalse();
 		AssertFloat(snake.GlobalPosition.HorizontalDistanceTo(start)).IsLess(.05f);
 
 		var hero = harness.Player;
@@ -32,7 +32,7 @@ public class SnakeAmbushTest
 		await TestFactories.AwaitPhysicsUntil(runner, () => snake.AmbushComponent.IsAwake, 1);
 		float health = hero.HealthComponent.CurrentHealth;
 		await TestFactories.AwaitPhysicsUntil(runner, () => hero.HealthComponent.CurrentHealth < health, 4);
-		AssertBool(snake.Nameplate.IsShown && snake.Xray.IsEnabled).IsTrue();
+		AssertBool(snake.Nameplate.IsShown && snake.Xray.IsShown).IsTrue();
 	}
 
 	[TestCase]

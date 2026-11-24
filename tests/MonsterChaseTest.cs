@@ -81,16 +81,17 @@ public class MonsterChaseTest
 		// Either side of a door that is the only way between them once every door shuts.
 		var minion = Instantiate(TestFactories.Load<PackedScene>(Chasers[1]));
 		Vector3? start = null, goal = null;
+		var ground = level.NavigationFor(NavigationLayer.Ground);
 		foreach (var door in level.Floor.NavigationGates)
 		{
 			var across = door.GlobalBasis.Z.Normalized() * 3;
-			if (!level.Navigation.TryFindTraversable(door.GlobalPosition - across, minion.BodyRadius, 1.5f, out var a)
-				|| !level.Navigation.TryFindTraversable(door.GlobalPosition + across, minion.BodyRadius, 1.5f, out var b)
+			if (!ground.TryFindTraversable(door.GlobalPosition - across, minion.BodyRadius, 1.5f, out var a)
+				|| !ground.TryFindTraversable(door.GlobalPosition + across, minion.BodyRadius, 1.5f, out var b)
 				|| a.HorizontalDistanceTo(b) <= 4f
-				|| !level.Navigation.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>())) continue;
+				|| !ground.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>())) continue;
 			foreach (var gate in level.Floor.NavigationGates) gate.IsOpen = false;
 			await PhysicsTick(runner);
-			bool separated = !level.Navigation.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>());
+			bool separated = !ground.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>());
 			foreach (var gate in level.Floor.NavigationGates) gate.IsOpen = true;
 			await PhysicsTick(runner);
 			if (!separated) continue;
@@ -150,14 +151,15 @@ public class MonsterChaseTest
 	/// <summary>A monster at a random roomy cell; positioned before entering the tree, as spawn points do.</summary>
 	private static EnemyBase Spawn(Level level, PackedScene scene, RandomNumberGenerator rng)
 	{
-		var grid = level.Navigation.Grid;
+		var ground = level.NavigationFor(NavigationLayer.Ground);
+		var grid = ground.Grid;
 		for (int attempt = 0; attempt < 400; attempt++)
 		{
 			var cell = new Vector2I(rng.RandiRange(0, grid.Size.X - 1), rng.RandiRange(0, grid.Size.Y - 1));
 			if (grid.ClearanceAt(cell) < 1.2f) continue;
 			var center = grid.CellCenter(cell);
 			var point = new Vector3(center.X, .1f, center.Y);
-			if (level.Navigation.RoomAt(point) < 0) continue;
+			if (ground.RoomAt(point) < 0) continue;
 			var monster = Instantiate(scene);
 			monster.Position = point;
 			level.AddWorldNode(monster);
@@ -169,17 +171,18 @@ public class MonsterChaseTest
 	/// <summary>A point in another room that the monster's route reaches in 8-40 units.</summary>
 	private static Vector3? PickTarget(Level level, EnemyBase monster, RandomNumberGenerator rng)
 	{
-		var grid = level.Navigation.Grid;
+		var ground = level.NavigationFor(NavigationLayer.Ground);
+		var grid = ground.Grid;
 		var route = new List<Vector2>();
-		int home = level.Navigation.RoomAt(monster.Position);
+		int home = ground.RoomAt(monster.Position);
 		for (int attempt = 0; attempt < 2000; attempt++)
 		{
 			var cell = new Vector2I(rng.RandiRange(0, grid.Size.X - 1), rng.RandiRange(0, grid.Size.Y - 1));
 			if (grid.ClearanceAt(cell) < 1f) continue;
 			var center = grid.CellCenter(cell);
 			var point = new Vector3(center.X, .1f, center.Y);
-			int room = level.Navigation.RoomAt(point);
-			if (room < 0 || room == home || !level.Navigation.TryFindPath(monster.Position, point, monster.BodyRadius, route)) continue;
+			int room = ground.RoomAt(point);
+			if (room < 0 || room == home || !ground.TryFindPath(monster.Position, point, monster.BodyRadius, route)) continue;
 			float length = GridPath.Length(monster.Position.Xz(), route);
 			if (length >= 8 && length <= 40) return point;
 		}

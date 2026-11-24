@@ -32,8 +32,11 @@ public partial class DebugArena : Node3D, IDebugWorld
 	/// <summary>Seeds spawned monsters' combat streams; a harness sets it from its own seed so runs replay.</summary>
 	[Export] public ulong RunSeed { get; set; } = RunState.DefaultSeed;
 
-	public FloorNavigation Navigation { get; private set; }
-	public FloorNavigation AirNavigation { get; private set; }
+	private readonly Dictionary<NavigationLayer, FloorNavigation> _navigation = [];
+
+	public FloorNavigation NavigationFor(NavigationLayer layer) => _navigation.GetValueOrDefault(layer);
+
+	private FloorNavigation Ground => NavigationFor(NavigationLayer.Ground);
 
 	public override void _Ready()
 	{
@@ -58,7 +61,7 @@ public partial class DebugArena : Node3D, IDebugWorld
 
 	public Vector3 FindFreePositionNear(Vector3 origin) =>
 		IsFree(origin) ? origin
-		: Navigation.TryFindTraversable(origin, StandingRadius, FreeSearchRadius, out Vector3 spot) ? spot : origin;
+		: Ground.TryFindTraversable(origin, StandingRadius, FreeSearchRadius, out Vector3 spot) ? spot : origin;
 
 	public Vector3 FindDropLanding(Vector3 source, Vector3 direction, float distance)
 	{
@@ -90,10 +93,10 @@ public partial class DebugArena : Node3D, IDebugWorld
 			solids.SelectMany(solid => CollisionOutlines.FromStaticBodies(solid, solid.GlobalTransform, layers));
 		const uint walking = CollisionOutlines.WalkingTerrainLayer;
 		var (ground, air) = ClearanceGrid.BuildLayers(shared, Outlines(CollisionOutlines.BlockingLayers & ~walking), [], [], Outlines(walking));
-		Navigation = new FloorNavigation(ground, NavigationProfile);
-		AirNavigation = new FloorNavigation(air, NavigationProfile);
+		_navigation[NavigationLayer.Ground] = new FloorNavigation(ground, NavigationProfile);
+		_navigation[NavigationLayer.Air] = new FloorNavigation(air, NavigationProfile);
 	}
 
 	/// <summary>Whether a body can stand at <paramref name="point"/>; anywhere when the arena has no navigation.</summary>
-	private bool IsFree(Vector3 point) => Navigation == null || Navigation.IsTraversable(point, StandingRadius);
+	private bool IsFree(Vector3 point) => Ground == null || Ground.IsTraversable(point, StandingRadius);
 }
