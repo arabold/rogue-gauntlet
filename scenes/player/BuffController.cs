@@ -168,6 +168,29 @@ public partial class BuffController : Node
 		return true;
 	}
 
+	/// <summary>
+	/// Hold <paramref name="definition"/> on from <paramref name="source"/> until the source lets go, whatever the
+	/// definition's own duration: a pool's poison ticks for as long as the hero stands in it. Other sources and timed
+	/// applications of the same definition stay independent.
+	/// </summary>
+	public bool SetPersistentBuff(Buff definition, object source, bool enabled, bool narrate = true)
+	{
+		if (definition == null || source == null) return false;
+		if (!enabled)
+		{
+			if (RemoveWhere(a => ReferenceEquals(a.Source, source) && a.Buff == definition, "removed", narrate)) EmitSignalBuffsChanged();
+			return true;
+		}
+		if (Health?.IsDead == true || definition.IsValid != true || Target == null || !definition.CanApplyTo(Target)) return false;
+		if (ActiveBuffs.Any(a => ReferenceEquals(a.Source, source) && a.Buff == definition && !a.IsExpired)) return true;
+		bool hadCondition = definition.Condition != null && HasCondition(definition.Condition);
+		AddActivation(definition, source).Refresh(0);
+		UpdateProcessing();
+		if (ShouldNarratePlayer(narrate)) SignalBus.EmitPlayerBuffApplied(definition, hadCondition);
+		EmitSignalBuffsChanged();
+		return true;
+	}
+
 	/// <summary>Apply designer-authored initial conditions as independent persistent sources.</summary>
 	public void ApplyInitialConditions(Array<StatusCondition> conditions, object source)
 	{
@@ -205,7 +228,7 @@ public partial class BuffController : Node
 		}
 	}
 
-	private void AddActivation(Buff buff, object source = null, double? remaining = null, double tickProgress = 0)
+	private ActiveBuff AddActivation(Buff buff, object source = null, double? remaining = null, double tickProgress = 0)
 	{
 		var active = new ActiveBuff();
 		active.Initialize(Target, buff);
@@ -215,6 +238,7 @@ public partial class BuffController : Node
 		AddChild(active);
 		UpdateProcessing();
 		Trace(remaining.HasValue ? "buff.restored" : "buff.applied", active);
+		return active;
 	}
 
 	/// <summary>Logs a buff's start, refresh or end for playtest reports: its name, condition and remaining time.</summary>

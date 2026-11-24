@@ -1,11 +1,11 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scenes/enemies/gelatinous_cube/GooPatch.cs" id="1_patch"]
-[ext_resource type="Resource" path="res://scenes/buffs/conditions/slowed_2.tres" id="2_slow"]
+[ext_resource type="Script" path="res://scenes/components/GooPatch.cs" id="1_patch"]
+[ext_resource type="Resource" path="res://scenes/buffs/goo_slow.tres" id="2_slow"]
 
 [node name="SlimeTrailPatch" type="Node3D"]
 script = ExtResource("1_patch")
-SlowCondition = ExtResource("2_slow")
+Effect = ExtResource("2_slow")
 Radius = 1.3
 Lifetime = 6.5
 ShrinkTime = 0.0

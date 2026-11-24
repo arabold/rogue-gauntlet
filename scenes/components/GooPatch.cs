@@ -2,34 +2,35 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// A patch of slime on the floor that slows the hero while they stand in it, then dries up. The gelatinous cube leaves
-/// them behind it (<see cref="SlimeTrailComponent"/>) and its lobbed goo leaves one where it lands. Monsters wade through
-/// unhindered. Pooled: spawning restarts its life and its look.
+/// A patch of slime on the floor that holds its <see cref="Effect"/> on the hero while they stand in it, then dries up:
+/// the gelatinous cube's trail and lob slow the hero, the spitting slime's pools poison them. Monsters wade through
+/// unhindered. Its hold ends when the hero steps out, so saves leave it out (<see cref="IWorldStatusSource"/>).
+/// Pooled: spawning restarts its life and its look.
 /// </summary>
 [GlobalClass]
-public partial class GooPatch : Node3D, IPooledNode
+public partial class GooPatch : Node3D, IPooledNode, IWorldStatusSource
 {
 	private static readonly StringName PlayerGroup = "player";
 
-	/// <summary>The slow it holds on the hero while they stand in it; their slow component sets its speed.</summary>
-	[Export] public StatusCondition SlowCondition { get; set; }
+	/// <summary>The buff held on the hero for as long as they stand in the patch, whatever its own duration.</summary>
+	[Export] public Buff Effect { get; set; }
 	[Export(PropertyHint.Range, "0.2,5,0.05,suffix:m")] public float Radius { get; set; } = 1.1f;
 	[Export(PropertyHint.Range, "0.5,30,0.5,suffix:s")] public float Lifetime { get; set; } = 6f;
-	/// <summary>Seconds at the end of its life over which its visual shrinks away; it slows until it is gone.</summary>
+	/// <summary>Seconds at the end of its life over which its visual shrinks away; it holds its effect until it is gone.</summary>
 	[Export(PropertyHint.Range, "0,3,0.05,suffix:s")] public float ShrinkTime { get; set; } = 0.8f;
-	/// <summary>The puddle shown on the floor; shrinks as the patch dries up.</summary>
+	/// <summary>The puddle shown on the floor; shrinks as the patch dries up. A patch under a slime track needs none.</summary>
 	[Export] public Node3D Visual { get; set; }
 
-	private readonly HashSet<BuffController> _slowed = [];
+	private readonly HashSet<BuffController> _held = [];
 	private readonly List<BuffController> _released = [];
 	private double _age;
 	private Vector3 _visualScale = Vector3.One;
 
-	public bool IsSlowing(BuffController statuses) => _slowed.Contains(statuses);
+	public bool IsHolding(BuffController statuses) => _held.Contains(statuses);
 
 	public override void _Ready()
 	{
-		if (SlowCondition == null) GD.PushError($"{Name}: assign the slow condition the patch holds.");
+		if (Effect == null) GD.PushError($"{Name}: assign the buff the patch holds.");
 		if (Visual != null) _visualScale = Visual.Scale;
 		ProcessPhysicsPriority = CombatPhysics.Damage;
 		Restart();
@@ -52,7 +53,7 @@ public partial class GooPatch : Node3D, IPooledNode
 		if (Visual != null && ShrinkTime > 0)
 			Visual.Scale = _visualScale * (float)Mathf.Clamp((Lifetime - _age) / ShrinkTime, 0.05, 1);
 		_released.Clear();
-		_released.AddRange(_slowed);
+		_released.AddRange(_held);
 		foreach (Node node in GetTree().GetNodesInGroup(PlayerGroup))
 		{
 			if (node is not Node3D actor || node is not IBuffTarget { Buffs: { } statuses } target || target.Health?.IsDead == true) continue;
@@ -60,7 +61,7 @@ public partial class GooPatch : Node3D, IPooledNode
 			bool inside = Mathf.Abs(offset.Y) < 1.5f && (offset with { Y = 0 }).Length() <= Radius;
 			if (!inside) continue;
 			_released.Remove(statuses);
-			if (_slowed.Add(statuses)) statuses.SetPersistentStatus(SlowCondition, this, true, narrate: false);
+			if (!_held.Contains(statuses) && statuses.SetPersistentBuff(Effect, this, true, narrate: false)) _held.Add(statuses);
 		}
 		foreach (var statuses in _released) Release(statuses);
 	}
@@ -75,14 +76,14 @@ public partial class GooPatch : Node3D, IPooledNode
 
 	private void Release(BuffController statuses)
 	{
-		_slowed.Remove(statuses);
+		_held.Remove(statuses);
 		if (GodotObject.IsInstanceValid(statuses) && statuses.IsInsideTree())
-			statuses.SetPersistentStatus(SlowCondition, this, false, narrate: false);
+			statuses.SetPersistentBuff(Effect, this, false, narrate: false);
 	}
 
 	private void ReleaseAll()
 	{
-		foreach (var statuses in new List<BuffController>(_slowed)) Release(statuses);
-		_slowed.Clear();
+		foreach (var statuses in new List<BuffController>(_held)) Release(statuses);
+		_held.Clear();
 	}
 }

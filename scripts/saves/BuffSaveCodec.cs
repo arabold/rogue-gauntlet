@@ -15,7 +15,8 @@ public static class BuffSaveCodec
 		var saved = new List<ActiveBuffSaveData>();
 		foreach (var active in player.BuffController.ActiveBuffs)
 		{
-			if (active.IsExpired) continue;
+			// A pool or patch holds its status only while the hero stands in it; a restored hero is out of it.
+			if (active.IsExpired || active.Source is IWorldStatusSource) continue;
 			if (equipped.Contains(active.Buff))
 			{
 				if (!active.IsPermanent) throw new InvalidOperationException("Timed equipment buffs cannot yet be saved safely.");
