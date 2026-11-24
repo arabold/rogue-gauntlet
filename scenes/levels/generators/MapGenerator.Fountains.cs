@@ -21,39 +21,47 @@ public partial class MapGenerator
 	{
 		if (Fountains == null || FloorContent == null) return;
 		var tiles = GetSolidPropTiles(includeCorridors: false);
-		var freeTiles = tiles.Where(tile => tile.WallMask == 0).Select(tile => tile.Point).ToList();
-		var allTiles = freeTiles.Count > 0 ? freeTiles : tiles.Select(tile => tile.Point).ToList();
+		// Free-standing tiles first; wall-backed ones only when none of those fits.
+		var tiers = new[]
+		{
+			tiles.Where(tile => tile.WallMask == 0).Select(tile => tile.Point).ToList(),
+			tiles.Where(tile => tile.WallMask != 0).Select(tile => tile.Point).ToList(),
+		};
 
 		foreach (var kind in Fountains.KindsAt(RunSeed, DungeonDepth))
 		{
 			if (kind.Variants.Count == 0) continue;
 			using var rng = GenerationRandom.Create(Seed, GenerationRandom.Fountains, kind.Id);
 			var scene = kind.Variants[rng.RandiRange(0, kind.Variants.Count - 1)];
-			if (allTiles.Count == 0)
+			if (tiles.Count == 0)
 			{
 				GD.PrintErr($"Cannot place the {kind.Id} fountain: no free room tiles found.");
 				continue;
 			}
 
-			var remaining = new List<Vector3>(allTiles);
 			bool placed = false;
 			Node3D probe = null;
 			try
 			{
-				while (!placed && remaining.Count > 0)
+				foreach (var tier in tiers)
 				{
-					int index = rng.RandiRange(0, remaining.Count - 1);
-					var point = remaining[index];
-					remaining.RemoveAt(index);
-					if (IsBlockedLootPoint(point, placedPoints, LootSpawnSpacing)) continue;
-					probe ??= scene.Instantiate<Node3D>();
-					if (!TryPlaceSolidProp(probe, point, 90 * rng.RandiRange(0, 3), $"depth:{DungeonDepth}:fountain:{kind.Id}", doorClearances))
+					var remaining = new List<Vector3>(tier);
+					while (!placed && remaining.Count > 0)
 					{
-						continue;
+						int index = rng.RandiRange(0, remaining.Count - 1);
+						var point = remaining[index];
+						remaining.RemoveAt(index);
+						if (IsBlockedLootPoint(point, placedPoints, LootSpawnSpacing)) continue;
+						probe ??= scene.Instantiate<Node3D>();
+						if (!TryPlaceSolidProp(probe, point, 90 * rng.RandiRange(0, 3), $"depth:{DungeonDepth}:fountain:{kind.Id}", doorClearances))
+						{
+							continue;
+						}
+						probe = null;
+						placedPoints.Add(point);
+						placed = true;
 					}
-					probe = null;
-					placedPoints.Add(point);
-					placed = true;
+					if (placed) break;
 				}
 			}
 			finally
