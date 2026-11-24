@@ -1,11 +1,11 @@
 {
   "key": "bat/giant_bat",
-  "inputs": "6ab94c6b7bbb45a68c0e66cdf0380563ed0e9070d56ab02eeef65e3b6612f473",
+  "inputs": "8f2d7a481ab6e6cf50b63c297691e78abde75f407aeffc7fbbb2f314d9f28cab",
   "files": {
-    "model.glb": "cd77af2c2f9b5939dba4f4f47b8f2f49a7e7cc64618acfb68dbf1c347e2eafe3",
-    "lineup.png": "9a44bc323fc40702cad6303b84f1942a2b47bf8168c072f7539734b08ec45b5e",
-    "lineup.gif": "ac716e49458e2f11acb6d2432503d23f73b9636d32565a4fabb4395f67822642",
-    "asset.json": "da93b0ddd0a5ae34aa5932c909f5122511c7ed4d58306706ec1bd361f5cd159c"
+    "model.glb": "b2074e0221b086989fbf71fb013ee1d044d571594d00f31d10a8136c5f818cb1",
+    "lineup.png": "8e7e3dcb126cf515bfdac60c2d92eb3e8c49326e7a1dbfdfc279599e547156d6",
+    "lineup.gif": "247ae9b7762df7ab9481a154861ad6868a45bc3bdf7513670228c75222632f05",
+    "asset.json": "a4a65fdbea83e036dc979468cd63a75d4eb4017cf5e9f71c04e97352be62ccaf"
   },
   "metadata": {
     "engine_import_verified": true
