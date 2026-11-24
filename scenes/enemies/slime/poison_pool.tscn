@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/components/GooPatch.cs" id="1_patch"]
+[ext_resource type="Resource" path="res://scenes/buffs/slime_pool_poison.tres" id="2_poison"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/sewer/goo_puddle_small.glb" id="3_puddle"]
+
+[node name="PoisonPool" type="Node3D" node_paths=PackedStringArray("Visual")]
+script = ExtResource("1_patch")
+Effect = ExtResource("2_poison")
+Radius = 1.0
+Lifetime = 5.0
+ShrinkTime = 0.8
+Visual = NodePath("Puddle")
+
+[node name="Puddle" parent="." instance=ExtResource("3_puddle")]
+transform = Transform3D(1.6, 0, 0, 0, 1, 0, 0, 0, 1.9, 0, 0, 0)

@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/shooter_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/maintain_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/slime/acid_blob_contact.tres" id="contact"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/slime/spit_glob.tscn" id="spit_glob"]
+
+[sub_resource type="Resource" id="spit_attack"]
+script = ExtResource("attack")
+IsRanged = true
+DefenseTraits = 3
+ProjectileScene = ExtResource("spit_glob")
+ProjectileSpeed = 8.0
+ProjectileArcHeight = 2.2
+ProjectileAimLockDuration = 0.25
+Range = 11.0
+HitWindowStart = 0.45
+PoiseDamage = 3.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="spit"]
+resource_name = "Spit"
+script = ExtResource("action")
+Cooldown = 3.2
+MinimumRange = 2.5
+MaximumRange = 10.0
+Attack = SubResource("spit_attack")
+Style = &"slime.spit"
+Duration = 1.4
+MinDamage = 6.5
+MaxDamage = 13.0
+
+[sub_resource type="Resource" id="slam_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("contact")
+PoiseDamage = 6.0
+HitStopDuration = 0.03
+FacingLockLead = 0.1
+WindUpTurnRate = 240.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="slam"]
+resource_name = "Slam"
+script = ExtResource("action")
+Cooldown = 2.0
+MaximumRange = 1.6
+Attack = SubResource("slam_attack")
+Style = &"melee"
+Duration = 0.83
+MinDamage = 4.5
+MaxDamage = 8.5
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("spit"), SubResource("slam")]
