@@ -15,12 +15,6 @@ def build_golem(character,target):
     return build_parts(character,target,rig,parts,specs,golems.COLORS)
 
 
-def build_warden(character,target):
-    from prefabs.creatures import wardens
-    rig=Rig.load("large");parts=wardens.build(rig,character.recipe())
-    return build_parts(character,target,rig,parts,hinges.specifications(parts),wardens.COLORS)
-
-
 def build_parts(character,target,rig,parts,specs,palette):
     """Export rigid parts and explicit soft joints, retaining separately removable props."""
     rig_path=Path(__file__).resolve().parents[1]/"rigs/large/rig.glb"

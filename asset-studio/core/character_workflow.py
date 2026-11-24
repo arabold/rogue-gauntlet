@@ -14,7 +14,7 @@ from core.paths import work_root
 
 STUDIO=Path(__file__).resolve().parents[1]
 FILES=('model.glb','lineup.png','lineup.gif','asset.json')
-BUILDERS={'blender_source','skinned_source','golem','warden'}
+BUILDERS={'blender_source','skinned_source','golem'}
 
 
 def local(folder,value):
@@ -26,9 +26,11 @@ def local(folder,value):
 
 
 def rig_template(name):
-    """A `blender_source` recipe's technical rig: a humanoid template, a creature rig such as the blob, or None for an
-    `authored` rig, which the source defines itself (its recipe lists the bones as `required_bones`)."""
+    """A `blender_source` recipe's technical rig: a humanoid template (`large` is KayKit's brute-sized humanoid rig), a
+    creature rig such as the blob, or None for an `authored` rig, which the source defines itself (its recipe lists the
+    bones as `required_bones`)."""
     if name=='authored':return None
+    if name=='large':return STUDIO/'rigs/large/rig.glb'
     humanoid=STUDIO/'rigs/templates'/(name+'.glb')
     return humanoid if humanoid.is_file() else local(cr.source(name).parent,'rig.glb')
 
@@ -70,10 +72,6 @@ def signature(character):
                   STUDIO/'core/blender.py',STUDIO/'blender/blender.json',STUDIO/'blender/export_character.py']
     elif r['builder']=='skinned_source':paths += [local(folder,r['source']),local(folder,r['surface'])]
     else:paths += [STUDIO/'prefabs/creatures/golems.py',STUDIO/'rigs/large/rig.glb',STUDIO/'core/hinges.py',STUDIO/'core/rigid_export.py']
-    if r['builder']=='warden':
-        paths += [STUDIO/'rigs/large/attachment_frames.json']
-        paths += sorted((STUDIO/'prefabs').rglob('*.py'))
-        paths += sorted((STUDIO/'items').glob('*.py'))
     if r['builder']!='blender_source':
         if r['rig']=='large':paths += [STUDIO/'rigs/large/profile.json']
         else:paths += [STUDIO/'rigs/creatures'/r['rig']/'profile.json',STUDIO/'rigs/creatures'/r['rig']/'rig.glb']
@@ -153,9 +151,9 @@ def build(character):
         if not provenance.is_file():raise ValueError(f'{character.key}: record the Blender source origin in provenance.json')
         from core.blender import export_character
         export_character(local(character.dir,r['source']),target,{**r['blender'],'idle':r['roles']['Idle'],'clips':r['clips']},r.get('scale',1))
-    elif r['builder'] in {'golem','warden'}:
-        from core.rigid_export import build_golem,build_warden
-        (build_warden if r['builder']=='warden' else build_golem)(character,target)
+    elif r['builder']=='golem':
+        from core.rigid_export import build_golem
+        build_golem(character,target)
     else:_bound(character,target)
     p=profile(character);info=validate(target,p)
     if info['triangles']>r.get('triangle_budget',float('inf')):

@@ -55,7 +55,6 @@ Registered recipes use `studio.py list`, `lineup`, and `export`.
 | `kit` | Local modular parts, recipes, mannequin weights and technical humanoid templates | Existing character exporter |
 | `skinned_source` | Selected bound GLB, semantic palette metadata and rig profile | `core/character_workflow.py` preserves geometry, skin and clips |
 | `golem` | Procedural rigid rocks, local large rig and shoulder helper definitions | `core/rigid_export.py` binds rigid parts and bakes helper motion |
-| `warden` | Reused plate construction, custom helmet and executioner blade, local large rig | Shared rigid exporter retains named removable gear and baked shoulder mounts |
 
 Wolf and rat are registered as `beasts/wolf` and `beasts/rat`. Their selected GLBs retain
 adapted skeletons and animation keys; export does not reshape them or transfer weights
@@ -77,11 +76,10 @@ studies are already baked into the sources, so their current recipe scale is `1.
 Additional recipe scale applies once to mesh, skeleton and motion. Rat ground correction
 is preserved in its selected source and scales with the whole creature.
 
-The Forsaken Warden (`bosses/forsaken_warden`) is the second authored large character.
-It reuses the plate vocabulary on the same large rig, with rigid armor and separately
-named sword, shield and horn meshes. Its recipe maps boss animation roles explicitly;
-all original clips remain in the GLB. The equipment is art geometry, without generated
-gameplay resources or phase logic.
+The Forsaken Warden (`bosses/forsaken_warden`) is a `blender_source` reconstruction on the
+large rig, whose skeleton has KayKit's brute proportions. Its sword and shield are
+procedural props mounted on the rig's verified hand-slot frames and exported as separate
+meshes.
 
 ## Technical rig ownership
 

@@ -1,0 +1,99 @@
+{
+  "name": "ForsakenWarden",
+  "height": 4.0,
+  "center_on": ["Leg_L", "Leg_R"],
+  "offset": [0, 0, 0],
+  "parts": {
+    "Belt": [0],
+    "Leg_L": [1],
+    "Leg_R": [2],
+    "Torso": [3],
+    "Arm_R": [4],
+    "Pauldron_L": [5],
+    "Pauldron_R": [6],
+    "Helmet": [7],
+    "Arm_L": [8],
+    "ClothFront": [9],
+    "Horn": [10],
+    "ClothBack": [11]
+  },
+  "budgets": {
+    "Helmet": 1600, "Torso": 1400, "Pauldron_L": 800, "Pauldron_R": 800, "Arm_L": 1300, "Arm_R": 1300,
+    "Belt": 1000, "Leg_L": 1100, "Leg_R": 1100, "ClothFront": 120, "ClothBack": 120, "Horn": 300
+  },
+  "symmetric": ["Helmet", "Torso"],
+  "joints": {
+    "shoulder.l": [0.78, 0.22, 3.04],
+    "forearm.l": [1.1, 0.25, 2.62],
+    "fist_tip.l": [1.76, -0.08, 1.25],
+    "hip.l": [0.5, 0.05, 1.4],
+    "knee.l": [0.7, 0.0, 0.88],
+    "ankle.l": [0.8, 0.08, 0.34],
+    "foot_tip.l": [0.82, -0.3, 0.12],
+    "toe_tip.l": [0.84, -0.56, 0.1],
+    "hips": [0, 0.05, 1.3],
+    "spine": [0, 0.05, 1.8],
+    "chest": [0, 0.05, 2.35],
+    "neck": [0, 0.08, 3.05]
+  },
+  "smooth_angle": 35,
+  "shades": [0.5, 0.62, 0.75, 0.88, 1.0],
+  "min_island": 6,
+  "palette": {
+    "steel": [120, 127, 143],
+    "brass": [196, 160, 110],
+    "leather": [112, 84, 66],
+    "cloth": [150, 66, 68],
+    "horn": [236, 224, 204],
+    "dark": [40, 38, 40],
+    "eye": [255, 176, 60],
+    "gem": [170, 48, 52],
+    "blade": [168, 176, 192],
+    "blade_edge": [214, 220, 230],
+    "grip": [88, 64, 50],
+    "iron": [94, 104, 122],
+    "shield_red": [160, 50, 52]
+  },
+  "slots": {
+    "Helmet": ["steel", "brass", "dark", "eye"],
+    "Torso": ["steel", "brass", "leather", "gem"],
+    "Pauldron_L": ["steel", "brass", "leather"], "Pauldron_R": ["steel", "brass", "leather"],
+    "Arm_L": ["steel", "brass", "leather"], "Arm_R": ["steel", "brass", "leather"],
+    "Belt": ["leather", "brass", "steel"],
+    "Leg_L": ["steel", "brass", "leather"], "Leg_R": ["steel", "brass", "leather"],
+    "ClothFront": ["cloth"], "ClothBack": ["cloth"],
+    "Horn": ["horn", "brass", "leather"]
+  },
+  "regions": {
+    "eye": {"z": [3.42, 3.55], "half_width": 0.25, "facing": 0.5},
+    "dark": {"z": [3.15, 3.58], "half_width": 0.4, "facing": 0.4},
+    "gem": {"z": [2.5, 2.85], "half_width": 0.16, "facing": 0.5}
+  },
+  "props": {
+    "Sword": {"prefab": "executioner_sword", "frame": "sword",
+              "slots": {"steel": "blade", "edge": "blade_edge", "brass": "brass", "leather": "grip", "iron": "iron"}},
+    "Shield": {"prefab": "warden_shield", "frame": "shield", "args": {"standoff": 0.27},
+               "slots": {"crimson": "shield_red", "gold": "brass", "iron": "steel", "leather": "leather", "gem": "gem"}}
+  },
+  "rig": {
+    "clips": [
+      "Idle_A", "Running_A", "Melee_1H_Slash", "Melee_2H_Attack", "Melee_2H_Slam", "Hit_A", "Death_A", "Death_A_Pose",
+      "Melee_Blocking", "Melee_Block_Attack", "Melee_Block_Hit"
+    ],
+    "idle": "Idle_A",
+    "arm_fractions": {"elbow": 0.245, "wrist": 0.67, "hand": 0.74},
+    "head_length": 0.8,
+    "weights": {
+      "Helmet": "head", "Torso": "chest", "Horn": "hips",
+      "Pauldron_L": {"blend": ["chest", "upperarm.l"], "anchor_share": 0.4},
+      "Pauldron_R": {"blend": ["chest", "upperarm.r"], "anchor_share": 0.4},
+      "Arm_L": ["chest", "upperarm.l", "lowerarm.l", "wrist.l", "hand.l"],
+      "Arm_R": ["chest", "upperarm.r", "lowerarm.r", "wrist.r", "hand.r"],
+      "Belt": {"blend": ["hips", "spine", "upperleg.l", "upperleg.r"], "anchor_share": 0.4},
+      "Leg_L": ["hips", "upperleg.l", "lowerleg.l", "foot.l", "toes.l"],
+      "Leg_R": ["hips", "upperleg.r", "lowerleg.r", "foot.r", "toes.r"],
+      "ClothFront": {"blend": ["hips", "upperleg.l", "upperleg.r"], "anchor_share": 0.5},
+      "ClothBack": {"blend": ["hips", "upperleg.l", "upperleg.r"], "anchor_share": 0.5}
+    }
+  }
+}

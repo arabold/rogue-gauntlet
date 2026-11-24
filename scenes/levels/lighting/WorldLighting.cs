@@ -53,6 +53,23 @@ public partial class WorldLighting : WorldEnvironment
 		}
 	}
 
+	/// <summary>
+	/// Multiplies the shared environment's ambient light for this world only, such as an open debug arena without the
+	/// wall fixtures that light a dungeon floor. Darkness still removes it.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,4,0.05")]
+	public float AmbientScale
+	{
+		get;
+		set
+		{
+			if (field == value) return;
+			field = value;
+			if (!IsNodeReady()) return;
+			ApplyLighting();
+		}
+	} = 1f;
+
 	public bool IsEffectEnabled(EnvironmentalEffect effect) => (DisabledEffects & effect) == 0;
 
 	private float _normalAmbient;
@@ -80,7 +97,7 @@ public partial class WorldLighting : WorldEnvironment
 	{
 		if (Environment != null)
 		{
-			Environment.AmbientLightEnergy = IsDark ? 0f : _normalAmbient;
+			Environment.AmbientLightEnergy = IsDark ? 0f : _normalAmbient * AmbientScale;
 			bool reflections = !IsDark && IsEffectEnabled(EnvironmentalEffect.Reflections);
 			bool fog = !IsDark && IsEffectEnabled(EnvironmentalEffect.Fog);
 			Environment.ReflectedLightSource = reflections ? _normalReflections : Environment.ReflectionSource.Disabled;

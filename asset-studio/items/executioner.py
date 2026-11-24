@@ -1,4 +1,4 @@
-"""The Forsaken Warden boss's executioner blade: continuous bevels and physically joined fittings.
+"""The Forsaken Warden boss's executioner blade and sun shield: continuous bevels and physically joined fittings.
 
 All dimensions use metres, +Y follows the weapon, and the origin is the hand grip.
 Color regions describe materials, not baked lighting or decorative mesh shells.
@@ -70,3 +70,32 @@ def executioner_sword():
     grip(a,-.36,.22,.075);pommel(a,-.43,.11,'brass');guard(a,.47,.28,.025,'brass')
     a.add(blade([(0,.25,.21,.065),(0,.44,.30,.070),(0,2.38,.30,.060),(0,2.50,.23,.045)]))
     return a.build()
+
+
+def fit_shield(piece, yaw=-12., standoff=.27):
+    """Stand the board off a large forearm at its real hand grip and lengthen its rear supports to reach it.
+
+    The leather grip vertices stay fixed while the existing metal posts extend to the board, so the shield still sits
+    on the hand slot's verified frame; `yaw` opens the board slightly away from the body.
+    """
+    v = piece.verts.copy()
+    blend = np.clip((v[:, 2]-.065)/.11, 0, 1)
+    blend = blend*blend*(3-2*blend)
+    board = (np.abs(v[:, 0]) > .42) | (np.abs(v[:, 1]) > .11)
+    blend[board] = 1
+    blend[np.unique(piece.faces[piece.slots == 'leather'])] = 0
+    v[:, 2] += standoff*blend
+    return kit.Piece(v@kit.rotation((0, 1, 0), yaw).T, piece.faces, piece.slots)
+
+
+def warden_shield(size=1.9, fold_degrees=12., yaw=-12., standoff=.27):
+    """The warden's red heater shield with its brass sun and center gem, fitted to stand off his forearm armor.
+
+    Same conventions as the blade: metres, +Y up the board, +Z out of its face, origin at the hand grip.
+    """
+    from items import shieldcraft
+    shield = shieldcraft.shieldcraft({'kind': 'heroic_sun', 'details': False, 'fold_degrees': fold_degrees})
+    gem = kit.gem(.16, 'gem', cut='oval', depth=.055)
+    gem.verts += [0, 0, .243]
+    shield = kit.Piece.merge(shield, gem)
+    return fit_shield(kit.Piece(shield.verts*size, shield.faces, shield.slots), yaw, standoff)

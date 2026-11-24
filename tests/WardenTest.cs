@@ -165,6 +165,34 @@ public class WardenTest
 		}
 	}
 
+	/// <summary>The Warden's sword is baked into its model; the slash swoosh still traces the blade the clip swings.</summary>
+	[TestCase]
+	public async Task SlashSwooshTracesTheBakedSword()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		harness.Player.InputController.SetPhysicsProcess(false);
+		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 4);
+		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
+		var attack = boss.AttackController;
+		attack.EffectsEnabled = true;
+		attack.SetPhysicsProcess(false);
+		var slash = (MonsterAttackAction)boss.EnemyBehaviorComponent.Profile.Combat.PrimaryOffense;
+		AssertBool(attack.TryPrepareAttack(slash.Attack, slash.Style, slash.Duration, out var swing)).IsTrue();
+		AssertBool(attack.StartAttack(swing, new AttackStats(1, 1, 0), 0)).IsTrue();
+		float start = swing.Definition.HitWindowStart, step = (swing.Definition.HitWindowEnd - start) * .35f;
+		attack._PhysicsProcess(start + step);
+		var swoosh = boss.GetParent().GetChildren().OfType<MeleeSwoosh>().Last();
+		var tip = (Marker3D)attack.BakedWeapon.FindChild("TrailTip", true, false);
+		AssertBool(swoosh.FollowsWeapon).IsTrue();
+		var firstTip = swoosh.LastBladeTip;
+		AssertBool(firstTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
+		attack._PhysicsProcess(step);
+		AssertFloat(firstTip.DistanceTo(swoosh.LastBladeTip)).IsGreater(.1f);
+		AssertBool(swoosh.LastBladeTip.IsEqualApprox(tip.GlobalPosition)).IsTrue();
+		attack.CancelAttack();
+	}
+
 	/// <summary>
 	/// A hero who keeps out of sword reach does not stall the Warden: from its second phase it slams with Tremor as soon
 	/// as the hero stands inside the wave, and the wave reaches them.

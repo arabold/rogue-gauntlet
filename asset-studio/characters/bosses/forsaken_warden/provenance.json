@@ -1,0 +1,28 @@
+{
+  "kind": "image_to_3d_retopology",
+  "concept": {
+    "image": "reference.png",
+    "prompt": "reference.prompt.txt",
+    "generator": "gpt-image-2 image edit, 1536 x 1024, quality high; inputs: renders of the KayKit Orc Brute (proportion reference), the earlier Warden concept and the approved Orc Warrior concept"
+  },
+  "turnaround": {
+    "image": "turnaround.png",
+    "prompt": "turnaround.prompt.txt",
+    "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+    "views": [
+      "turnaround/front.png",
+      "turnaround/left.png",
+      "turnaround/back.png",
+      "turnaround/right.png"
+    ]
+  },
+  "reconstruction": {
+    "service": "Tripo",
+    "model": "H3.1",
+    "model_version": "v3.1-20260211",
+    "seed": 1,
+    "textured": false,
+    "separate_parts": true
+  },
+  "authoring": "forsaken_warden_rigged.blend: built by `studio.py reconstruct build bosses/forsaken_warden` from reconstruction.json on KayKit's large rig, with the executioner sword and sun shield built procedurally on the rig's verified hand-slot frames."
+}

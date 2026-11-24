@@ -18,7 +18,7 @@ sys.dont_write_bytecode = True
 here = Path(__file__).resolve()
 sys.path[:0] = [str(here.parents[1]), str(here.parents[2])]  # the scripts' package and the Studio's `core.color_math`
 
-from reconstruction import chains, color, parts, rig  # noqa: E402
+from reconstruction import chains, color, parts, props, rig  # noqa: E402
 
 
 def build(job):
@@ -31,6 +31,7 @@ def build(job):
 
     kind = config["rig"].get("kind", "humanoid")
     arm = rig.create_armature(config) if kind == "authored" else rig.import_template(job["template"], config)
+    slots = props.template_frames(arm, job["props"])
     if kind == "humanoid":
         rig.fit_rest(arm, config)
         rig.pose_onto_mesh(arm, config)
@@ -38,6 +39,7 @@ def build(job):
         rig.fit_creature(arm, config)
         rig.pose_creature(arm, config)
     rig.bind(arm, config)
+    props.attach(arm, config, job["props"], slots, job["atlas"])
     rig.author_actions(arm, config)
     rig.hold_poses(arm, config)
     rig.complete_clip_channels(arm)

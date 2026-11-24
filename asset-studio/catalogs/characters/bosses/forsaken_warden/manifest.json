@@ -1,11 +1,11 @@
 {
   "key": "bosses/forsaken_warden",
-  "inputs": "0e8c0bd207c742c4a51e1437292a52e708e52130ff47aee5b780ded339ded107",
+  "inputs": "6c18bdc2ff363578990581f82b7a7f65c59b31c721eb5feb646af53d26663674",
   "files": {
-    "model.glb": "8f5c4f973b3453e5b790e6ded1ac022fc3654ecc94fbbd84fa91bc73e6bfc0a9",
-    "lineup.png": "c9cbf0a0ec91db635031a662de8dbe4a705556974c933020450e37e3966a9201",
-    "lineup.gif": "29165507172c2ad33e9dd0c36918ca3f9a0eec4cf34a236e6b4de3fec29840d3",
-    "asset.json": "163497524d63cb06cf6813717d445e4154231cff07e4f4b8cf5d13bd93a39a2c"
+    "model.glb": "ba6907fcd8a31cfa9b1b740018ac19447bee2387485e94a5624908b9acec2964",
+    "lineup.png": "e709aaeb5f43e928617ae1f872b2c2c51139a33dd4f925e693bbf781b6c06328",
+    "lineup.gif": "34884394143db5a59b510689b32b8483b99a34777038fa0522a56129c05b7877",
+    "asset.json": "aa90328ed1ef5112fcd43fe7a948af3c093ad3d921cb04c030763488379614e6"
   },
   "metadata": {
     "engine_import_verified": true

@@ -16,7 +16,7 @@ Use the named recipe for each operation. See the [Orc Warrior archive](orc-warri
 `lineup` stages reviews in temporary storage. The bound-source and rigid creature `export` handlers verify the Godot import, preserve the UID, and write art metadata and current catalog outputs. `--no-import` defers Godot verification. The [architecture](../ARCHITECTURE.md) describes the builders and [creature rig docs](../rigs/creatures/README.md) cover technical rig inputs.
 
 - The [wolf](../characters/beasts/wolf/README.md) and [rat](../characters/beasts/rat/README.md) export from already-bound sources. The [spider](../characters/beasts/spider/README.md) is a derivative review candidate on the same workflow.
-- The [stone golem](../characters/golem/stone_golem/README.md) binds rigid pieces and bakes shoulder helpers. The [Forsaken Warden](../characters/bosses/forsaken_warden/README.md) uses the same large-rig family with separate named gear.
+- The [stone golem](../characters/golem/stone_golem/README.md) binds rigid pieces and bakes shoulder helpers.
 - Existing kit character recipes can select whole outfits with `{"kind":"costume_ref","name":"knight"}`. Character colors take precedence over costume colors. Low-level `kind: costume` and `costume_set` remain supported by the older recipes. Explicit recipe export paths preserve game asset locations.
 
 ## Class heroes
