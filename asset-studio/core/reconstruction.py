@@ -162,8 +162,7 @@ def parts(src):
     frames = src.work / "parts"
     shutil.rmtree(frames, ignore_errors=True)
     frames.mkdir()
-    blender.run({"reconstruction": str(src.glb), "out": str(frames)}, src.work, JOBS / "part_sheet.py", outputs=(),
-               timeout=1800)
+    blender.run({"reconstruction": str(src.glb), "out": str(frames)}, src.work, JOBS / "part_sheet.py", timeout=1800)
     pieces = sorted({int(p.stem.split("_")[0]) for p in frames.glob("*.png")})
     tile, cols = 160, 4
     sheet = Image.new("RGB", (cols * tile * 3, ((len(pieces) + cols - 1) // cols) * (tile + 14)), "white")
@@ -198,7 +197,7 @@ def build(src):
            "colors": {n: base_color(v) for n, v in config["palette"].items()},
            "template": str(character_workflow.rig_template(recipe["rig"]) or ""),
            "blend": str(src.dir / recipe["source"])}
-    result = blender.run(job, src.work, JOBS / "build.py", outputs=("blend", "report"), timeout=1800)
+    result = blender.run(job, src.work, JOBS / "build.py", outputs=("blend",), timeout=1800)
     print(f"{src.key}: {src.dir.relative_to(STUDIO) / recipe['source']}, {sum(result['triangles'].values())} triangles")
     for part, slots in sorted(result["slots"].items()):
         print(f"  {part}: {slots}")

@@ -704,7 +704,8 @@ class ItemWorkflowTest(unittest.TestCase):
 
     def test_source_palette_conversion_preserves_geometry_and_tracks_inputs(self):
         studio = self.repo / "asset-studio"
-        for relative in ["rigs/item_palette.png", "items/source_surface.py", "items/model.py", "items/align.py", "core/export.py", "core/mesh.py"]:
+        for relative in ["rigs/item_palette.png", "items/source_surface.py", "items/model.py", "items/align.py", "core/export.py",
+                         "core/mesh.py", "core/color_math.py"]:
             target = studio / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(workflow.STUDIO / relative, target)

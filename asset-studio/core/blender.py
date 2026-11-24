@@ -179,31 +179,36 @@ def _first_use(indices, count):
     return order, {old: new for new, old in enumerate(order)}
 
 
-def run(job, workdir, script=RUNNER, source=None, outputs=("glb", "report"), timeout=900):
-    """Run one job `script` in a fresh headless Blender, opening the saved `source` scene first when given, and return
-    the job's JSON report (`job["report"]`, plus the Blender version that wrote it), or None when it names none.
+def run(job, workdir, script=RUNNER, source=None, outputs=(), timeout=900):
+    """Run one job `script` in a fresh headless Blender, opening the saved `source` scene first when given.
 
-    The default script runs a Studio model script (`blender/runner.py`). The job and Blender's output stay in `workdir`
-    as `<script>.job.json` and `<script>.log`. Fails with the log's last lines when the script raises, Blender is not
-    the pinned release, or a file the job names under one of the `outputs` keys was not written.
+    The default script runs a Studio model script (`blender/runner.py`). A job that names a `report` must write it
+    afresh; `run` returns that JSON plus the Blender version that wrote it, or None when the job names none. `outputs`
+    names the job's other path keys whose files must exist afterwards. The job and Blender's output stay in `workdir` as
+    `<script>.job.json` and `<script>.log`. Fails with the log's last lines when the script raises, Blender is not the
+    pinned release, or a required file is missing.
     """
     executable, found = checked_binary()
     workdir = Path(workdir)
     workdir.mkdir(parents=True, exist_ok=True)
+    report = Path(job["report"]) if job.get("report") else None
+    if report:
+        report.unlink(missing_ok=True)  # a report left by an earlier run must not pass for this one
     name = Path(script).stem
     job_path = workdir / f"{name}.job.json"
     job_path.write_text(json.dumps(job, indent=1))
     scene = [str(source)] if source else []
     result = subprocess.run([executable, "-b", "--factory-startup", *scene, "--python-exit-code", "1",
                              "--python", str(script), "--", str(job_path)], capture_output=True, text=True,
-                            timeout=timeout, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+                            timeout=timeout)
     log = workdir / f"{name}.log"
     log.write_text(result.stdout + result.stderr)
-    if result.returncode != 0 or not all(Path(job[key]).is_file() for key in outputs):
+    required = [Path(job[key]) for key in outputs] + ([report] if report else [])
+    if result.returncode != 0 or not all(path.is_file() for path in required):
         tail = "\n".join((result.stdout + result.stderr).strip().splitlines()[-25:])
         raise ValueError(f"Blender {name} failed (log: {log}):\n{tail}")
-    if not job.get("report"):
+    if not report:
         return None
-    report = json.loads(Path(job["report"]).read_text())
-    report["blender"] = found
-    return report
+    data = json.loads(report.read_text())
+    data["blender"] = found
+    return data
