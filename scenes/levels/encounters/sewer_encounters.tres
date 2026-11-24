@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
+[ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/mimic/chest_mimic.tscn" id="mimic"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="fallback"]
+
+[sub_resource type="Resource" id="rat_pack"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/rat/sewer_rat.tscn")
+Weight = 6
+MinimumDepth = 11
+MaximumDepth = 15
+
+[sub_resource type="Resource" id="rat_horde"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/rat/sewer_rat.tscn")
+Weight = 3
+MinimumDepth = 11
+MaximumDepth = 15
+
+[sub_resource type="Resource" id="lone_blob"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/slime/acid_blob.tscn")
+Weight = 2
+MinimumDepth = 11
+MaximumDepth = 15
+
+[sub_resource type="Resource" id="blob_pair"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/slime/acid_blob.tscn")
+Weight = 2
+MinimumDepth = 11
+MaximumDepth = 15
+
+[sub_resource type="Resource" id="blob_trio"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/slime/acid_blob.tscn")
+Weight = 2
+MinimumDepth = 12
+MaximumDepth = 15
+
+[sub_resource type="Resource" id="lone_snake"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/snake/snake.tscn")
+Weight = 2
+MinimumDepth = 11
+MaximumDepth = 15
+
+[sub_resource type="Resource" id="snake_pair"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/snake/snake.tscn", "res://scenes/enemies/snake/snake.tscn")
+Weight = 2
+MinimumDepth = 12
+MaximumDepth = 15
+
+[resource]
+script = ExtResource("factory")
+RealmName = "The Sewer"
+FirstDepth = 11
+FloorCount = 5
+Entries = [SubResource("rat_pack"), SubResource("rat_horde"), SubResource("lone_blob"), SubResource("blob_pair"), SubResource("blob_trio"), SubResource("lone_snake"), SubResource("snake_pair")]
+Fallback = ExtResource("fallback")
+HasGatekeeper = false
+MimicScene = ExtResource("mimic")
+MimicChance = 0.15

@@ -19,6 +19,11 @@ public partial class DeathComponent : Node
 	/// instead of popping. Set to 0 to despawn instantly.
 	/// </summary>
 	[Export] public float FadeDuration { get; set; } = 0.6f;
+
+	/// <summary>Optional one-shot effect played where the actor dies, such as a mimic's splinters and teeth.</summary>
+	[Export] public PackedScene DeathEffect { get; set; }
+	/// <summary>Height above the actor's feet at which <see cref="DeathEffect"/> plays.</summary>
+	[Export] public float DeathEffectHeight { get; set; } = 0.5f;
 	private Level _level;
 
 	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
@@ -52,6 +57,12 @@ public partial class DeathComponent : Node
 		owner.CollisionLayer = 0;
 		owner.CollisionMask = 1; // only collide with the floor
 		owner.SetPhysicsProcess(false);
+		if (DeathEffect != null && IsInsideTree())
+		{
+			var effect = ScenePool.Spawn<Node3D>(DeathEffect, GetTree().CurrentScene ?? GetTree().Root);
+			effect.GlobalPosition = owner.GlobalPosition + Vector3.Up * DeathEffectHeight;
+			effect.ResetPhysicsInterpolation();
+		}
 
 		// Drop loot and announce rewards without depending on a specific player lookup.
 		if (RewardsEnabled)

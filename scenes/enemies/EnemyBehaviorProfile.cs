@@ -48,6 +48,13 @@ public partial class EnemyBehaviorProfile : Resource
 	[Export] public bool StayInHomeRoom { get; set; }
 
 	/// <summary>
+	/// Turn the body toward its travel while it repositions (retreats, circles or flanks) instead of keeping its target in
+	/// front, for bodies that cannot move backward or sideways: a snake slithers away head first. Standing still and
+	/// attacking still face the target.
+	/// </summary>
+	[Export] public bool FacesTravel { get; set; }
+
+	/// <summary>
 	/// Maximum distance from its spawn point that the enemy can pick roam destinations.
 	/// </summary>
 	[Export] public float RoamRadius { get; set; } = 8.0f;

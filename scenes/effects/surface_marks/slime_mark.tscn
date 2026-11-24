@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/surface_mark.tscn" id="base"]
+[ext_resource type="Resource" path="res://scenes/effects/surface_marks/slime.tres" id="profile"]
+
+[node name="SlimeMark" instance=ExtResource("base")]
+size = Vector3(0.9, 0.4, 1.1)
+Profile = ExtResource("profile")

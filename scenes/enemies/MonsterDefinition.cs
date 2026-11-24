@@ -18,6 +18,12 @@ public partial class MonsterDefinition : Resource
 	/// </summary>
 	[Export(PropertyHint.Range, "1,30,0.5,or_greater")] public float BalanceDepth { get; set; } = 1;
 	/// <summary>
+	/// The monster's share of its <see cref="Archetype"/>'s pace, a balance input like <see cref="BalanceDepth"/>:
+	/// <c>simulate.py derive</c> writes <see cref="MoveSpeed"/> as the archetype's speed times this and counts that speed
+	/// in the threat level, so a slow blob costs less than a fodder skeleton sized for the same depth.
+	/// </summary>
+	[Export(PropertyHint.Range, "0.1,2,0.05")] public float SpeedScale { get; set; } = 1;
+	/// <summary>
 	/// The depth at which this monster is exactly one standard fight, computed by the balance model from the stats and
 	/// written by <c>simulate.py derive</c>; read-only in the Inspector. A brute sized for a depth is a harder fight
 	/// there, so its threat level is above its <see cref="BalanceDepth"/>; a lone swarmer is far easier, so its level
@@ -48,6 +54,7 @@ public partial class MonsterDefinition : Resource
 		context.Check(!string.IsNullOrWhiteSpace(Id), "Definition.Id: enter a stable monster ID.");
 		context.Check(!string.IsNullOrWhiteSpace(DisplayName), "Definition.DisplayName: enter a display name.");
 		context.Check(MonsterValidationContext.IsPositive(BalanceDepth), "Definition.BalanceDepth: must be positive and finite.");
+		context.Check(MonsterValidationContext.IsPositive(SpeedScale), "Definition.SpeedScale: must be positive and finite.");
 		context.Check(MonsterValidationContext.IsPositive(MaxHealth), "Definition.MaxHealth: must be positive and finite.");
 		context.Check(MonsterValidationContext.IsNonnegative(MoveSpeed), "Definition.MoveSpeed: must be nonnegative and finite.");
 		context.Check(MonsterValidationContext.IsNonnegative(Armor), "Definition.Armor: must be nonnegative and finite.");

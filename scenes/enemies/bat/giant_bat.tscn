@@ -1,0 +1,172 @@
+[gd_scene load_steps=31 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/custom-monsters/bat/giant_bat.glb" id="2_glb"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/bat/giant_bat_animation.tres" id="attack_animation_profile"]
+
+[ext_resource type="Resource" path="res://scenes/enemies/bat/giant_bat_definition.tres" id="definition"]
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
+[ext_resource type="Script" path="res://scenes/combat/DashComponent.cs" id="dash_script"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/flesh.tres" id="flesh"]
+[ext_resource type="Resource" path="res://scenes/enemies/bat/giant_bat_defense_animation.tres" id="defense_animation"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
+[ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/small.tres" id="movement_profile"]
+
+[sub_resource type="AnimationNodeAnimation" id="anim_idle"]
+animation = &"Fly"
+[sub_resource type="AnimationNodeAnimation" id="anim_walk_clip"]
+animation = &"Fly"
+
+[sub_resource type="AnimationNodeTimeScale" id="anim_walk_ts"]
+
+[sub_resource type="AnimationNodeBlendTree" id="anim_walk"]
+nodes/Animation/node = SubResource("anim_walk_clip")
+nodes/Animation/position = Vector2(0, 0)
+nodes/TimeScale/node = SubResource("anim_walk_ts")
+nodes/TimeScale/position = Vector2(160, 0)
+nodes/output/position = Vector2(320, 0)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+[sub_resource type="AnimationNodeAnimation" id="anim_hit"]
+animation = &"Hit"
+[sub_resource type="AnimationNodeAnimation" id="anim_dying"]
+animation = &"Death"
+[sub_resource type="AnimationNodeAnimation" id="anim_dead"]
+animation = &"Dead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_start_idle"]
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_walk"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_idle"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_hit"]
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_hit"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_idle"]
+advance_mode = 2
+advance_expression = "!IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_dying"]
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_dying_dead"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="sm"]
+states/Dead/node = SubResource("anim_dead")
+states/Dead/position = Vector2(820, 100)
+states/Dying/node = SubResource("anim_dying")
+states/Dying/position = Vector2(640, 100)
+states/Hit/node = SubResource("anim_hit")
+states/Hit/position = Vector2(440, 220)
+states/Idle/node = SubResource("anim_idle")
+states/Idle/position = Vector2(240, 100)
+states/Start/position = Vector2(60, 100)
+states/Walking/node = SubResource("anim_walk")
+states/Walking/position = Vector2(240, 320)
+transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Walking", "Hit", SubResource("t_walk_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Idle", "Dying", SubResource("t_idle_dying"), "Walking", "Dying", SubResource("t_walk_dying"), "Hit", "Dying", SubResource("t_hit_dying"), "Dying", "Dead", SubResource("t_dying_dead")]
+graph_offset = Vector2(0, 40)
+
+[sub_resource type="CapsuleShape3D" id="cap_hurt"]
+radius = 0.75
+height = 1.7
+[sub_resource type="SphereShape3D" id="sphere_body"]
+radius = 0.4
+
+[node name="GiantBat" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "BodyShape", "DashComponent")]
+collision_mask = 87
+BodyShape = NodePath("CollisionShape3D")
+Definition = ExtResource("definition")
+ActionGate = NodePath("ActorActionGateComponent")
+DashComponent = NodePath("DashComponent")
+
+[node name="GiantBatModel" parent="Pivot" index="0" instance=ExtResource("2_glb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+
+[node name="GiantBatBody" parent="Pivot/GiantBatModel/GiantBatRig/Skeleton3D" index="0"]
+layers = 8
+
+[node name="EnemyBehaviorComponent" parent="." index="1"]
+
+[node name="Navigation" parent="EnemyBehaviorComponent"]
+Layer = 1
+
+[node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
+root_node = NodePath("../../Pivot/GiantBatModel")
+tree_root = SubResource("sm")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../../Pivot/GiantBatModel/AnimationPlayer")
+
+[node name="HurtBoxComponent" parent="." index="6"]
+position = Vector3(0, 0.95, 0)
+ImpactSurface = ExtResource("flesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+shape = SubResource("cap_hurt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+shape = SubResource("sphere_body")
+
+[node name="CombatAnimationComponent" parent="." index="9"]
+AnimationPlayerPath = NodePath("../Pivot/GiantBatModel/AnimationPlayer")
+AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
+Profile = ExtResource("attack_animation_profile")
+
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("gate_script")
+AnimationProfile = ExtResource("defense_animation")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+Gravity = 0.0
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="Nameplate" parent="."]
+position = Vector3(0, 2.1, 0)
+
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
+
+[node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
+Movement = NodePath("../MovementComponent")
+AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
+NaturalLocomotionSpeed = 4.0
+
+[node name="CombatFeedbackController" parent="."]
+SurfaceProfile = ExtResource("flesh")
+
+[node name="MovementEffectsComponent" parent="."]
+Enabled = false
+Profile = ExtResource("movement_profile")
+
+[node name="DashComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "MovementComponent", "ActionGate", "AnimationComponent")]
+script = ExtResource("dash_script")
+Actor = NodePath("..")
+MovementComponent = NodePath("../MovementComponent")
+ActionGate = NodePath("../ActorActionGateComponent")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[editable path="Pivot/GiantBatModel"]

@@ -69,6 +69,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public ManaComponent ManaComponent { get; set; }
 	/// <summary>Optional: committed displacement for dash actions (rushes, hop-backs).</summary>
 	[Export] public DashComponent DashComponent { get; set; }
+	/// <summary>Optional: steals from the hero on a landed touch and flees with the loot (the nymph).</summary>
+	[Export] public TheftComponent TheftComponent { get; set; }
+	/// <summary>Optional: waits disguised until the hero gives it away (the chest mimic).</summary>
+	[Export] public AmbushComponent AmbushComponent { get; set; }
 	/// <summary>Optional: health phases that actions can be gated and weighted by.</summary>
 	[Export] public HealthPhaseComponent HealthPhases { get; set; }
 

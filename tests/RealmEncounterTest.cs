@@ -15,24 +15,10 @@ public class RealmEncounterTest
 	{
 		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
-		for (uint depth = factory.FirstDepth; factory.ContainsDepth(depth); depth++)
-		{
-			var costs = factory.Entries.Where(e => e.EligibleAt(depth)).ToDictionary(e => e, e => RealmEncounterFactory.Cost(e, depth, threat));
-			float cheapest = costs.Values.Min();
-			for (ulong seed = 1; seed <= 8; seed++)
-			{
-				using var a = GenerationRandom.Create(seed, GenerationRandom.Monsters);
-				using var b = GenerationRandom.Create(seed, GenerationRandom.Monsters);
-				var first = Members(factory.CreatePacks(depth, threat, a));
-				var second = Members(factory.CreatePacks(depth, threat, b));
-				AssertString(Fingerprint(first)).IsEqual(Fingerprint(second));
-				// The floor spends its budget on whole packs until no eligible pack still fits.
-				float spent = first.Sum(pack => costs[costs.Keys.Single(e => e.Members.SequenceEqual(pack))]);
-				AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth, threat) + 1e-4f).IsTrue();
-				AssertBool(first.Sum(pack => pack.Length) >= RealmEncounterFactory.MaximumMonsters
-					|| factory.FloorBudget(depth, threat) - spent < cheapest).IsTrue();
-			}
-		}
+		// Every realm down the fallback chain spends its floors' budgets the same way.
+		for (var realm = factory; realm != null; realm = realm.Fallback as RealmEncounterFactory)
+			for (uint depth = realm.FirstDepth; realm.ContainsDepth(depth); depth++)
+				AssertBudgetSpent(realm, depth, threat);
 		using var fallbackA = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		using var fallbackB = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		AssertString(Fingerprint(Members(factory.CreatePacks(TestFactories.GarrisonGatekeeperDepth + 1, threat, fallbackA))))
@@ -40,6 +26,80 @@ public class RealmEncounterTest
 		AssertBool(factory.ContainsDepth(0)).IsFalse();
 		AssertBool(factory.ContainsDepth(TestFactories.GarrisonGatekeeperDepth)).IsTrue();
 		AssertBool(factory.ContainsDepth(TestFactories.GarrisonGatekeeperDepth + 1)).IsFalse();
+	}
+
+	private static void AssertBudgetSpent(RealmEncounterFactory factory, uint depth, ThreatProfile threat)
+	{
+		var costs = factory.Entries.Where(e => e.EligibleAt(depth)).ToDictionary(e => e, e => RealmEncounterFactory.Cost(e, depth, threat));
+		float cheapest = costs.Values.Min();
+		for (ulong seed = 1; seed <= 8; seed++)
+		{
+			using var a = GenerationRandom.Create(seed, GenerationRandom.Monsters);
+			using var b = GenerationRandom.Create(seed, GenerationRandom.Monsters);
+			var first = Members(factory.CreatePacks(depth, threat, a));
+			var second = Members(factory.CreatePacks(depth, threat, b));
+			AssertString(Fingerprint(first)).IsEqual(Fingerprint(second));
+			// The floor spends its budget on whole packs until no eligible pack still fits.
+			float spent = first.Sum(pack => costs[costs.Keys.Single(e => e.Members.SequenceEqual(pack))]);
+			AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth, threat) + 1e-4f).IsTrue();
+			AssertBool(first.Sum(pack => pack.Length) >= RealmEncounterFactory.MaximumMonsters
+				|| factory.FloorBudget(depth, threat) - spent < cheapest).IsTrue();
+		}
+	}
+
+	/// <summary>The realms after the Garrison, down its fallback chain, with the monsters each fields.</summary>
+	private static readonly (string Name, string[] Cast)[] LaterRealms =
+	[
+		("The Prison", ["res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/nymph/nymph.tscn"]),
+		("The Sewer", ["res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/snake/snake.tscn"]),
+	];
+
+	[TestCase]
+	public void LaterRealmsFieldTheirOwnCastsAndEndWithoutAGatekeeper()
+	{
+		var realm = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
+		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
+		foreach (var (name, cast) in LaterRealms)
+		{
+			uint previousLast = realm.FirstDepth + realm.FloorCount - 1;
+			realm = (RealmEncounterFactory)realm.Fallback;
+			AssertString(realm.RealmName).IsEqual(name);
+			AssertInt((int)realm.FirstDepth).IsEqual((int)previousLast + 1);
+			uint last = realm.FirstDepth + realm.FloorCount - 1;
+			for (uint depth = realm.FirstDepth; depth <= last; depth++)
+			{
+				using var rng = GenerationRandom.Create(depth, GenerationRandom.Monsters);
+				AssertBool(Members(realm.CreatePacks(depth, threat, rng)).SelectMany(pack => pack).All(cast.Contains))
+					.OverrideFailureMessage($"{name} depth {depth}").IsTrue();
+			}
+			// Its last floor is an ordinary one: no gatekeeper seals the descent, and it spends a full floor's budget.
+			AssertString(realm.PlanEncounters(last).GatekeeperId).IsNull();
+			AssertFloat(realm.FloorBudget(last, threat)).IsEqual(threat.FloorBudget(last, false));
+		}
+	}
+
+	[TestCase]
+	public async Task GeneratedLaterRealmFloorsSpawnTheirCastWithoutNestsOrASealedDescent()
+	{
+		var (runner, level) = await TestFactories.GenerateLevel(23, 7);
+		using var cleanup = runner;
+		// Each realm's nest floor and last floor: neither realm has a nest or a gatekeeper yet.
+		foreach (var (depth, cast) in new (uint, string[])[] { (7, LaterRealms[0].Cast), (10, LaterRealms[0].Cast), (12, LaterRealms[1].Cast), (15, LaterRealms[1].Cast) })
+		{
+			if (depth != 7)
+			{
+				level.ConfigureGeneration(new RunState(23), depth, null, null);
+				level.Generate();
+			}
+			// From the Prison on, a placed chest may also be a mimic.
+			var spawns = level.MapGenerator.EnemySpawnPoints;
+			AssertBool(spawns.Count > 0 && spawns.All(spawn => spawn.Scenes.All(scene => cast.Contains(scene.ResourcePath)
+				|| scene.ResourcePath == "res://scenes/enemies/mimic/chest_mimic.tscn" && spawn.PersistentId.Contains(":chest:"))))
+				.OverrideFailureMessage($"depth={depth}").IsTrue();
+			AssertInt(spawns.Count(level.Floor.IsNest)).IsEqual(0);
+			AssertBool(level.CanDescend).OverrideFailureMessage($"depth={depth}").IsTrue();
+			await runner.SimulateFrames(1, 20);
+		}
 	}
 
 	private static string[][] Members(System.Collections.Generic.List<PackedScene[]> packs) =>

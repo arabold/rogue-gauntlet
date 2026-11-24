@@ -18,9 +18,18 @@ public partial class RealmEncounterFactory : MobFactory
 	[Export] public MobSpawnEntry[] Entries { get; set; } = [];
 	[Export] public MobFactory Fallback { get; set; }
 	[Export] public PackedScene NestScene { get; set; }
+	/// <summary>
+	/// Whether the realm ends on a gatekeeper. A realm without one builds its last floor like any other; one with a
+	/// gatekeeper whose scene is missing keeps that floor's descent sealed instead of opening it.
+	/// </summary>
+	[Export] public bool HasGatekeeper { get; set; } = true;
 	[Export] public PackedScene GatekeeperScene { get; set; }
 	[Export] public LargeActorFitProfile GatekeeperFit { get; set; }
 	[Export] public string GatekeeperName { get; set; } = "Gatekeeper";
+	/// <summary>The monster a placed chest may turn out to be; without one every chest is a chest.</summary>
+	[Export] public PackedScene MimicScene { get; set; }
+	/// <summary>Chance that each chest placed on the realm's floors is a mimic, rolled per chest on its own seeded stream.</summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float MimicChance { get; set; }
 
 	public bool ContainsDepth(uint depth) => depth >= FirstDepth && depth - FirstDepth < FloorCount;
 	public int FloorIndex(uint depth) => ContainsDepth(depth) ? (int)(depth - FirstDepth) : -1;
@@ -30,7 +39,10 @@ public partial class RealmEncounterFactory : MobFactory
 	public int GatekeeperFloorIndex => (int)FloorCount - 1;
 
 	/// <summary>Standard fights the ordinary monsters of the floor at <paramref name="depth"/> add up to.</summary>
-	public float FloorBudget(uint depth, ThreatProfile threat) => threat.FloorBudget(depth, FloorIndex(depth) == GatekeeperFloorIndex);
+	public float FloorBudget(uint depth, ThreatProfile threat) => threat.FloorBudget(depth, IsGatekeeperFloor(depth));
+
+	/// <summary>Whether the floor at <paramref name="depth"/> holds the realm's gatekeeper: its last, when it has one.</summary>
+	public bool IsGatekeeperFloor(uint depth) => HasGatekeeper && FloorIndex(depth) == GatekeeperFloorIndex;
 
 	/// <summary>What <paramref name="entry"/>'s pack spends of a floor budget at <paramref name="depth"/>.</summary>
 	public static float Cost(MobSpawnEntry entry, uint depth, ThreatProfile threat) => Cost(entry, depth, threat, []);
@@ -43,7 +55,7 @@ public partial class RealmEncounterFactory : MobFactory
 	{
 		int floor = FloorIndex(depth);
 		if (floor < 0) return Fallback?.PlanEncounters(depth);
-		bool gatekeeper = floor == GatekeeperFloorIndex;
+		bool gatekeeper = IsGatekeeperFloor(depth);
 		return new EncounterPlan(this, floor == NestFloorIndex ? NestScene : null, gatekeeper ? GatekeeperScene : null,
 			gatekeeper ? GatekeeperFit : null, gatekeeper ? $"depth:{depth}:gatekeeper" : null);
 	}

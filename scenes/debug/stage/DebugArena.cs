@@ -32,6 +32,7 @@ public partial class DebugArena : Node3D, IDebugWorld
 	[Export] public ulong RunSeed { get; set; } = RunState.DefaultSeed;
 
 	public FloorNavigation Navigation { get; private set; }
+	public FloorNavigation AirNavigation { get; private set; }
 
 	public override void _Ready()
 	{
@@ -69,8 +70,9 @@ public partial class DebugArena : Node3D, IDebugWorld
 	}
 
 	/// <summary>
-	/// Builds navigation from the arena's static bodies and its stage's walls. Monsters in the arena read it from the
-	/// arena, so a rebuilt grid reaches them without being handed over.
+	/// Builds navigation from the arena's static bodies and its stage's walls: a ground grid, and an air grid that
+	/// solids no taller than <see cref="ClearanceGrid.AirClearanceHeight"/> do not block. Monsters in the arena read them
+	/// from the arena, so rebuilt grids reach them without being handed over.
 	/// </summary>
 	private void RebuildNavigation()
 	{
@@ -79,18 +81,26 @@ public partial class DebugArena : Node3D, IDebugWorld
 			return;
 		}
 
-		var grid = new ClearanceGrid(Bounds);
-		grid.AddFloor(Bounds);
+		var ground = new ClearanceGrid(Bounds);
+		var air = new ClearanceGrid(Bounds);
+		ground.AddFloor(Bounds);
+		air.AddFloor(Bounds);
 		// Only the floor, the boundaries and the stage are solid: actors, the HUD and spawns never are.
 		foreach (Node3D solid in GetChildren().OfType<Node3D>().Where(child => child is StaticBody3D || child == Stage))
 		{
 			foreach (SolidOutline outline in CollisionOutlines.FromStaticBodies(solid, solid.GlobalTransform))
 			{
-				grid.AddObstacle(outline);
+				ground.AddObstacle(outline);
+				if (outline.Top > ClearanceGrid.AirClearanceHeight)
+				{
+					air.AddObstacle(outline);
+				}
 			}
 		}
-		grid.Freeze();
-		Navigation = new FloorNavigation(grid, NavigationProfile);
+		ground.Freeze();
+		air.Freeze();
+		Navigation = new FloorNavigation(ground, NavigationProfile);
+		AirNavigation = new FloorNavigation(air, NavigationProfile);
 	}
 
 	/// <summary>Whether a body can stand at <paramref name="point"/>; anywhere when the arena has no navigation.</summary>

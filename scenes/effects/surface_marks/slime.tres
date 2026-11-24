@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="SurfaceMarkProfile" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scenes/effects/surface_marks/SurfaceMarkProfile.cs" id="script"]
+[resource]
+script = ExtResource("script")
+Tint = Color(0.36, 0.68, 0.16, 0.7)
+Roughness = 0.05
+AlbedoMix = 0.65
+Seed = 31
+EdgeVariation = 0.26

@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/bite_and_dart.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/flank_rear.tres" id="flank"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/unarmed.tres" id="unarmed_contact"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterBlinkAction.cs" id="blink_action"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/CarryingLootCondition.cs" id="carrying"]
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_departure/teleport_departure.tres" id="departure"]
+[ext_resource type="Resource" path="res://scenes/effects/world/teleport_arrival/teleport_arrival.tres" id="arrival"]
+
+[sub_resource type="Resource" id="jab_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("unarmed_contact")
+PoiseDamage = 6.0
+HitStopDuration = 0.03
+FacingLockLead = 0.1
+WindUpTurnRate = 420.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="kick_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("unarmed_contact")
+PoiseDamage = 9.0
+Knockback = 4.0
+ForcePushback = true
+HitStopDuration = 0.04
+FacingLockLead = 0.12
+WindUpTurnRate = 420.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="jab"]
+resource_name = "Jab"
+script = ExtResource("action")
+Cooldown = 2.0
+MaximumRange = 1.9
+Attack = SubResource("jab_attack")
+Style = &"unarmed.punch"
+Duration = 1.3
+MinDamage = 1.5
+MaxDamage = 3.5
+
+[sub_resource type="Resource" id="kick"]
+resource_name = "Kick"
+script = ExtResource("action")
+Cooldown = 3.0
+MaximumRange = 1.9
+Attack = SubResource("kick_attack")
+Style = &"unarmed.kick"
+Duration = 1.25
+MinDamage = 2.0
+MaxDamage = 5.0
+
+[sub_resource type="Resource" id="carrying_loot"]
+script = ExtResource("carrying")
+MinimumSeconds = 1.0
+
+[sub_resource type="Resource" id="blink"]
+resource_name = "Blink"
+script = ExtResource("blink_action")
+Cooldown = 5.0
+MaximumRange = 5.0
+Conditions = [SubResource("carrying_loot")]
+Departure = ExtResource("departure")
+Arrival = ExtResource("arrival")
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Flank = ExtResource("flank")
+Actions = [SubResource("jab"), SubResource("kick"), SubResource("blink")]

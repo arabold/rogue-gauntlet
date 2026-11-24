@@ -123,18 +123,24 @@ public sealed class GeneratedFloor
 	/// <summary>Per-cell reachability for <see cref="Walkability"/>; null alongside it.</summary>
 	internal bool[] Reachable => _reachable;
 
-	/// <summary>The frozen clearance grid monsters navigate on; null in previews and layouts generated without gameplay.</summary>
+	/// <summary>The frozen clearance grid walking monsters navigate on; null in previews and layouts generated without gameplay.</summary>
 	public ClearanceGrid Clearance { get; private set; }
-	/// <summary>Every door, interior gates included, in gate order: gate i of <see cref="Clearance"/> is door i.</summary>
+	/// <summary>The frozen grid flyers navigate on (<see cref="NavigationLayer.Air"/>): pits are open and low solids pass under them.</summary>
+	public ClearanceGrid AirClearance { get; private set; }
+	/// <summary>Every door, interior gates included, in gate order: gate i of either grid is door i.</summary>
 	public IReadOnlyList<Door> NavigationGates { get; private set; } = [];
 
-	/// <summary>Records the navigation grid once every solid is placed.</summary>
-	internal void SetNavigation(ClearanceGrid grid, IReadOnlyList<Door> gates)
+	/// <summary>Records the navigation grids once every solid is placed.</summary>
+	internal void SetNavigation(ClearanceGrid ground, ClearanceGrid air, IReadOnlyList<Door> gates)
 	{
 		RequireLive();
-		Clearance = grid;
+		Clearance = ground;
+		AirClearance = air;
 		NavigationGates = gates;
 	}
+
+	/// <summary>The grid <paramref name="layer"/> navigates on.</summary>
+	public ClearanceGrid ClearanceFor(NavigationLayer layer) => layer == NavigationLayer.Air ? AirClearance : Clearance;
 
 	/// <summary>Records which cells can be reached from the arrival with every door open. Spawns, loot, traps, teleports
 	/// and drops only use reachable cells, so nothing lands in an inaccessible pocket behind furniture.</summary>
@@ -427,7 +433,10 @@ public sealed class GeneratedFloor
 	/// blockers, etc.). Returns <paramref name="origin"/> when nothing nearby is free, so the item still drops next to
 	/// the player rather than teleporting across the map.
 	/// </summary>
-	public Vector3 FindFreePositionNear(Vector3 origin, float maxRadius = 6f)
+	public Vector3 FindFreePositionNear(Vector3 origin, float maxRadius = 6f) => FindFreePositionNear(origin, maxRadius, null);
+
+	/// <summary>As <see cref="FindFreePositionNear(Vector3, float)"/>, taking only ring points <paramref name="accept"/> allows.</summary>
+	private Vector3 FindFreePositionNear(Vector3 origin, float maxRadius, System.Func<Vector3, bool> accept)
 	{
 		if (IsSpawnPositionFree(origin))
 		{
@@ -446,7 +455,7 @@ public sealed class GeneratedFloor
 					origin.Y,
 					origin.Z + Mathf.Sin(angle) * radius);
 
-				if (IsSpawnPositionFree(candidate))
+				if (IsSpawnPositionFree(candidate) && accept?.Invoke(candidate) != false)
 				{
 					return candidate;
 				}
@@ -466,8 +475,9 @@ public sealed class GeneratedFloor
 	/// <summary>
 	/// Where an item thrown from <paramref name="source"/> toward <paramref name="direction"/> lands: the first free item
 	/// spot in sight of the source, trying the full <paramref name="distance"/> first, then shorter throws, then headings
-	/// turned progressively further away. Returns the source itself when nothing nearby qualifies, so a drop falls in
-	/// place rather than through a wall or behind one, where the magnet could not reach it.
+	/// turned progressively further away, then the nearest free spot in sight (a source over water). Returns the source
+	/// itself when nothing nearby qualifies, so a drop falls in place rather than through a wall or behind one, where the
+	/// magnet could not reach it.
 	/// </summary>
 	public Vector3 FindDropLanding(Vector3 source, Vector3 direction, float distance)
 	{
@@ -492,7 +502,8 @@ public sealed class GeneratedFloor
 			}
 		}
 
-		return source;
+		// Nothing in throwing range: over water a flyer's drop lands on the nearest dry floor in sight instead.
+		return FindFreePositionNear(source, 6f, candidate => WorldSight.IsClear(world, source + sight, candidate + sight));
 	}
 
 	private bool IsSpawnPositionFree(Vector3 worldPosition)

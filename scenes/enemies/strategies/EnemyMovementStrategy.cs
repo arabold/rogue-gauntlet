@@ -3,19 +3,22 @@ using Godot;
 /// <summary>
 /// Encircle holds a spread ring position around a target whose attack slots are all taken. Flank moves to the monster's
 /// ring point before it closes in (<see cref="FlankStrategy"/>). Both are ring goals: the host moves the monster to its
-/// point on the target's ring.
+/// point on the target's ring. Hover never holds still: the monster darts to a fresh point around the target every
+/// burst (<see cref="ErraticFlightStrategy"/>).
 /// </summary>
-public enum EnemyMovementGoal { Hold, Approach, Retreat, Encircle, Flank }
+public enum EnemyMovementGoal { Hold, Approach, Retreat, Encircle, Flank, Hover }
 
 /// <summary>
 /// A decision, not a locomotion operation; the host applies navigation and action restrictions. Offensive actions start
 /// only while <see cref="AllowAttack"/> is set; support actions start either way. For the ring goals,
 /// <see cref="DesiredDistance"/> is the ring's radius, <see cref="Arc"/> the degrees behind the target that ring points
 /// spread over (<see cref="AttackSlotsComponent.GetRingBearing"/>) and <see cref="OrbitStep"/> the most degrees the
-/// monster swings around the target per ring point, so it circles the target instead of crossing it.
+/// monster swings around the target per ring point, so it circles the target instead of crossing it. A hover darts to a
+/// point <see cref="DesiredDistance"/> from the target, swung up to <see cref="OrbitStep"/> degrees either way, and
+/// picks the next after about <see cref="Burst"/> seconds or on arrival.
 /// </summary>
 public readonly record struct EnemyMovementIntent(EnemyMovementGoal Goal, bool AllowAttack, float DesiredDistance = 0,
-	float Arc = 360, float OrbitStep = 180);
+	float Arc = 360, float OrbitStep = 180, float Burst = 0);
 
 /// <summary>Shared positioning policy; no per-actor state belongs on a Resource.</summary>
 [Tool]

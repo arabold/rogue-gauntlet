@@ -42,11 +42,11 @@ public sealed class FloorNavigation
 		public bool NeedsFull;
 	}
 
-	/// <summary>Navigation over <paramref name="floor"/>'s clearance grid; gate i is open while door i is.</summary>
-	public FloorNavigation(GeneratedFloor floor, NavigationProfile profile)
+	/// <summary>Navigation over <paramref name="floor"/>'s grid for <paramref name="layer"/>; gate i is open while door i is.</summary>
+	public FloorNavigation(GeneratedFloor floor, NavigationProfile profile, NavigationLayer layer = NavigationLayer.Ground)
 	{
 		_floor = floor ?? throw new ArgumentNullException(nameof(floor));
-		Grid = floor.Clearance ?? throw new ArgumentException("The floor has no clearance grid.", nameof(floor));
+		Grid = floor.ClearanceFor(layer) ?? throw new ArgumentException($"The floor has no {layer} clearance grid.", nameof(floor));
 		Profile = profile ?? throw new ArgumentNullException(nameof(profile));
 		_openGates = new bool[Grid.GateCount];
 	}

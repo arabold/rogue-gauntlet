@@ -10,6 +10,11 @@ public partial class AttackController : Node, IParryInterruptible
 {
 	/// <summary>One completion notification per accepted execution, after releasing its action/pose ownership.</summary>
 	public event System.Action<AttackIdentity, bool> AttackFinished;
+	/// <summary>
+	/// A direct melee contact damaged its target, past every defense: the node it hit and this controller's random stream,
+	/// for actor capabilities that act on a landed touch, such as a thief's theft.
+	/// </summary>
+	public event System.Action<Node3D, RandomNumberGenerator> ContactDamaged;
 	/// <summary>Whether the attack that just finished ended before its contact window opened; read it in <see cref="AttackFinished"/>.</summary>
 	public bool FinishedBeforeContact { get; private set; }
 	[Export] public CombatAnimationComponent AnimationComponent { get; set; }
@@ -531,6 +536,7 @@ public partial class AttackController : Node, IParryInterruptible
 		{
 			var result = combatDamageable.ResolveDamage(in context);
 			ReportFeedback(result.Outcome.ToString(), result.Amount);
+			if (result.Outcome == DamageOutcome.Damaged) ContactDamaged?.Invoke(target, _random);
 			if (result.Outcome is DamageOutcome.Damaged or DamageOutcome.Blocked or DamageOutcome.GuardBroken)
 				StartHitStop(result.HitStopScale);
 		}

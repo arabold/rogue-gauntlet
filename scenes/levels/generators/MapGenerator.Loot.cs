@@ -129,12 +129,19 @@ public partial class MapGenerator
 				}
 
 				probe ??= ChestScene.Instantiate<Node3D>();
-				if (!TryPlaceSolidProp(probe, candidate.Point, candidate.RotationDegrees, $"depth:{DungeonDepth}:chest:{placed}", doorClearances))
+				string id = $"depth:{DungeonDepth}:chest:{placed}";
+				if (IsMimic(id))
 				{
-					continue;
+					// A mimic takes the chest's spot and identity: it waits there as a monster, and killing it persists.
+					if (!PreservesRoomPassage(probe, candidate.Point, candidate.RotationDegrees, doorClearances)) continue;
+					AddEnemySpawnPoint(Floor.Encounter.Definition.MimicScene, id,
+						new Transform3D(new Basis(Vector3.Up, Mathf.DegToRad(candidate.RotationDegrees)), candidate.Point));
 				}
-
-				probe = null;
+				else
+				{
+					if (!TryPlaceSolidProp(probe, candidate.Point, candidate.RotationDegrees, id, doorClearances)) continue;
+					probe = null;
+				}
 				placedLootPoints.Add(candidate.Point);
 				placed++;
 			}
@@ -148,6 +155,15 @@ public partial class MapGenerator
 		{
 			GD.PrintErr($"Placed only {placed}/{MinChests} minimum chests: ran out of valid spots.");
 		}
+	}
+
+	/// <summary>Whether the chest with <paramref name="persistentId"/> is a mimic: the realm's chance, on the chest's own stream.</summary>
+	private bool IsMimic(string persistentId)
+	{
+		var realm = Floor.Encounter?.Definition;
+		if (realm?.MimicScene == null || realm.MimicChance <= 0) return false;
+		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Monsters, persistentId + ":mimic");
+		return rng.Randf() < realm.MimicChance;
 	}
 
 	private void PlaceTraps(List<Vector3> placedLootPoints)

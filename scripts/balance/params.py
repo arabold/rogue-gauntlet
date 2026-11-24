@@ -196,9 +196,11 @@ POISE = dict(
 
 # Packs a floor spends its budget on. A pack spawns together in one room; it may appear from `first` to `last`
 # depth (0 = to the end). Rats lead: depth 1 opens with small rat groups, depth 2 brings hordes that can overwhelm a
-# careless hero with only occasional skeletons, and mixed groups take over from depth 3.
+# careless hero with only occasional skeletons, and mixed groups take over from depth 3. From the Prison (depth 6) on,
+# swarms are bats, a lone fodder is a thieving nymph, and orc grunts come in pairs and threes. In the Sewer (depth 11)
+# rats return in packs and hordes, acid blobs ooze in alone or in twos and threes, and snakes lie alone or in pairs.
 PACKS = [
-    dict(name="rat pack",      first=1, last=6, weight=6, members=["swarmer"] * 3),
+    dict(name="rat pack",      first=1, last=0, weight=6, members=["swarmer"] * 3),
     dict(name="rat horde",     first=2, last=0, weight=3, members=["swarmer"] * 5),
     dict(name="fodder pair",   first=1, last=0, weight=2, members=["fodder", "fodder"]),
     dict(name="lone standard", first=1, last=0, weight=2, members=["standard"]),
@@ -207,6 +209,12 @@ PACKS = [
     dict(name="warband",       first=3, last=0, weight=2, members=["standard", "standard", "caster"]),
     dict(name="guard post",    first=4, last=0, weight=2, members=["brute", "shooter"]),
     dict(name="vanguard",      first=4, last=0, weight=2, members=["brute", "standard", "shooter"]),
+    dict(name="lone fodder",   first=6, last=0, weight=2, members=["fodder"]),
+    dict(name="standard pair", first=6, last=0, weight=3, members=["standard"] * 2),
+    dict(name="standard trio", first=8, last=0, weight=2, members=["standard"] * 3),
+    dict(name="lone swarmer",  first=11, last=0, weight=2, members=["swarmer"]),
+    dict(name="swarmer pair",  first=12, last=0, weight=2, members=["swarmer"] * 2),
+    dict(name="fodder trio",   first=12, last=0, weight=2, members=["fodder"] * 3),
 ]
 
 # --- Floors, supplies and experience ------------------------------------------------------------

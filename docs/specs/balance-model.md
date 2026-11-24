@@ -181,7 +181,7 @@ Shooters, casters and the gatekeeper keep their longer, authored tells.
 
 Speeds come from archetypes too (`derive` writes `MoveSpeed`), against a hero who moves at 6.0 m/s
 (`ENGAGEMENT["hero_speed"]`, written to the stat sheet's `BaseSpeed`): rats 6.5 outrun the hero, minions 5.0, warriors 4.5, shooters
-and brutes 4.0, casters and gatekeepers 3.5. The hero can still back off from most monsters, but not freely.
+and brutes 4.0, casters and gatekeepers 3.5. The hero can still back off from most monsters, but not freely. A definition's `SpeedScale` sets a monster's share of its archetype's pace, and `derive` counts the scaled speed in its footwork and threat.
 
 ## Cost, threat level and XP
 
@@ -218,7 +218,7 @@ A floor spends a budget of 7.3 standard fights at depth 1, rising to 11.4 at dep
 single monsters, so roles appear together. Rats lead: rat packs of three from depth 1 and hordes of five from depth 2,
 with fodder pairs, lone standards, patrols (standard and fodder), sentries (a shooter) and, from depth 3, warbands (two
 standards and a caster who heals them); guard posts (brute and shooter) and vanguards (brute, standard and shooter)
-join from depth 4. Each pack has a depth range in `params.PACKS`. Gatekeeper floors spend 45% of the budget, then the
+join from depth 4. From the Prison (depth 6) a lone fodder, standard pairs and, from depth 8, standard trios join too; from the Sewer (depth 11) a lone swarmer, and from depth 12 swarmer pairs and fodder trios. Each pack has a depth range in `params.PACKS`. Gatekeeper floors spend 45% of the budget, then the
 gatekeeper. The simulator fills a floor as the game does: it draws by weight among the eligible packs the remaining
 budget affords, until none is affordable or the floor holds 32 monsters. A floor therefore ends less than its cheapest
 pack below its budget, 1–5% on average.

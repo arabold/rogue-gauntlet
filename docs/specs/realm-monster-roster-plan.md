@@ -108,19 +108,13 @@ Each capability is a reusable component, action or strategy, authored on the mon
 
 Flyers cross water, chasms and low solids (fences, rubble, crates, low furniture), never walls, closed doors or tall props.
 
-- **Air grid (proposed):** `MapGenerator.BuildNavigation` builds a second `ClearanceGrid`, `GeneratedFloor.AirClearance`, where pits, water and chasm tiles count as floor and solids lower than `AirClearanceHeight` (about 1.2 m) do not block. Door gates and walls match the ground grid.
-- **Layer choice (proposed):** `NavigationProfile.Layer` (`NavigationLayer { Ground, Air }`). `Level` builds one `FloorNavigation` per layer, and `INavigableWorld` gains `FloorNavigation NavigationFor(NavigationLayer layer)`. A world without an air grid returns null for `Air`, which holds flyers still like any monster without navigation.
-- **Body:** a flyer's collision shape hovers above `AirClearanceHeight` and its mask leaves out `CollisionOutlines.WalkingTerrainLayer`, so it passes physically where its grid says it can. Its hurtbox stays inside the hero's melee arcs and projectile height.
-- **Movement (proposed):** `ErraticFlightStrategy : EnemyMovementStrategy` moves in jittered bursts toward its engagement point, so a bat never holds still long enough to block or be pinned.
-- **Drops:** a flyer killed over water or a chasm drops its loot at the nearest reachable floor, through the floor's existing free-position search.
+Landed for the giant bat; [level design](../level-design.md#doors-and-enemy-navigation) and [monster authoring](../monster-authoring-design.md) describe it. The roost nest remains.
 
-```text
-Level.ConfigureNavigation (proposed name for the existing setup in Level.cs)
-├─ ground: new FloorNavigation(Floor, NavigationProfile)            // as today
-└─ air: Floor.AirClearance != null → new FloorNavigation(Floor.AirClearance, NavigationProfile)
-NavigationComponent, where it finds the world's navigation today
-└─ world.NavigationFor(Profile.Layer)                                // resolved once per world, like the ground lookup
-```
+- **Air grid (landed):** `GeneratedFloor.AirClearance`, where pits count as floor and solids no taller than `ClearanceGrid.AirClearanceHeight` (1.2 m) and water's walking barriers do not block. Walls, void, doors and tall solids are built once and copied for both grids.
+- **Layer choice (landed):** `NavigationComponent.Layer` on the monster, since the level's `NavigationProfile` is shared by every monster. `INavigableWorld.NavigationFor(layer)` returns the level's or the arena's `AirNavigation`.
+- **Body (landed):** the flyer's body hovers above `AirClearanceHeight`, its mask leaves out walking terrain and its movement has no gravity; validation reports a flyer missing any of these. Its hurtbox stays inside the hero's melee arcs and projectile height.
+- **Movement (landed):** `ErraticFlightStrategy` wraps another strategy (bite and dart) and replaces its holds and close approaches with a `Hover` goal: darts to fresh points around the target every burst, so the bat never holds still long enough to be pinned.
+- **Drops (landed):** a drop with no free spot in throwing range lands on the nearest free floor in sight.
 
 ### Arcing lob and ground pools
 
@@ -148,21 +142,21 @@ One monster type with two looks: **sewer tentacles** (slimy, poison) and **livin
 
 ### Theft and escape
 
-- **Steal (proposed):** `MonsterStealAction : MonsterAction` takes gold (leprechaun) or a random unequipped pack item (nymph) on a landed touch, and the thief carries it.
-- **Escape:** after a theft the thief flees with blinks (the lich's `MonsterBlinkAction`). If it stays out of the hero's sight for `EscapeTime`, it vanishes for good with its loot. Killing it first drops what it carries at its feet.
+- **Steal (landed for the nymph):** `TheftComponent` takes a random item stack the hero is not wearing on the thief's first damaging melee touch, and the thief carries it ([monster authoring](../monster-authoring-design.md)). Gold for the leprechaun remains.
+- **Escape:** after a theft the thief runs out of the hero's reach and vanishes for good with its loot once it has stayed out of the hero's sight or reach for `EscapeTime`; killing it first drops what it carries at its feet. Both landed, and so did fleeing with blinks: the nymph blinks away from a hero who keeps up (`MonsterBlinkAction`).
 - **Persistence:** the hero's loss is ordinary inventory and gold state. What an escaped thief took is gone; nothing tracks it across floors.
 
 ### Chest mimic
 
 Rogue's Xeroc, as a chest. From the Prison on, a placed chest may be a mimic.
 
-- **Placement (proposed):** chest placement rolls `MimicChance` per chest from the realm's encounter factory on its own seeded stream. A mimic takes the chest's place and keeps the chest's loot.
-- **Reveal:** an `AmbushComponent` shows the ordinary chest model and wakes it when the hero tries to open it or lingers beside it. It then hops and bites as a brute.
+- **Placement (landed):** chest placement rolls `MimicChance` per chest from the realm's encounter factory on its own seeded stream (15% in the Prison and the Sewer). A mimic takes the chest's place and persistent ID and drops the common chest's loot.
+- **Reveal (landed):** an `AmbushComponent` shows the ordinary chest and wakes it when the hero tries to open it, lingers beside it or hits it. It then plays its wake clip and hops and bites as a brute.
 - **Loot and persistence:** killing it drops the chest's loot. Its cleared ID persists like a monster's, so a reloaded floor never turns it back into a closed chest.
 
 ### Contact corrosion, armor rust and strength sap
 
-- **Contact corrosion (proposed):** `ContactRetaliationComponent` on the acid blob applies damage or a status to an attacker whose melee hit lands, read from the hurtbox's hit event. Ranged hits are safe.
+- **Contact corrosion (landed):** `ContactRetaliationComponent` on the acid blob burns an attacker whose melee hit lands with acid (a short poison, `acid_burn.tres`), read from the hurtbox's contact event. Ranged hits are safe.
 - **Armor rust and strength sap:** the aquator's attack payload applies a timed buff that lowers armor, and the rattlesnake's venom one that lowers Strength, both through the existing modifier system. No new component.
 
 ### Revive
@@ -180,7 +174,7 @@ HealthComponent: health reaches 0
 
 ### Ambush, burrow, gaze and invisibility
 
-- **Ambush (proposed):** `AmbushComponent` keeps its actor hidden through `InvisibilityComponent` and inactive until the hero comes within `TriggerRadius`. Then it runs a configured start action: the piercer's drop (a timed attack whose indicator marks the floor below), or the gargoyle's waking roar before it flies. While hidden, a gargoyle looks like a cathedral statue prop.
+- **Ambush (landed for the chest mimic and the snake):** `AmbushComponent` keeps its actor inactive and out of the hero's targeting, shown as a `Disguise` scene or resting in a `DormantClip`, until the hero opens the disguise, comes within `WakeRadius` in its sight for `WakeDelay`, or hits it; then it plays its `WakeClip` and hunts. Remaining: hiding through `InvisibilityComponent` and a configured start action for the piercer's drop (a timed attack whose indicator marks the floor below) and the gargoyle's waking roar before it flies. While dormant, a gargoyle can use a cathedral statue as its disguise.
 - **Burrow (proposed):** `MonsterBurrowAction : MonsterAction`. The actor submerges (untargetable and hidden, with a moving dirt trail), travels the ground grid to a point beside the target and surfaces with a knockback burst. It moves under floors, never through walls, so it needs no digging rules.
 - **Gaze (proposed):** `MonsterGazeAction : MonsterTimedAction`, a telegraphed attack that deals no damage and applies an authored status instead: petrify for medusa, confusion for the umber hulk.
   - **Cone:** `ConeAngle` (120° default; 160° or 180° for a harsher gaze) and `Range`, in front of the actor. `AttackIndicatorComponent` draws the cone through the whole wind-up.
@@ -194,7 +188,7 @@ HealthComponent: health reaches 0
 - **Door phasing (proposed):** `NavigationProfile.IgnoresDoors` makes the actor plan with every gate open, and its collision mask leaves out door bodies, so a ghost drifts through closed doors.
 - **Drain:** an attack payload share that heals the attacker by part of the damage it deals. Wraiths and vampire bats use it.
 - **Summon (proposed):** `MonsterSummonAction : MonsterAction` spawns from an authored scene list near the caster, capped by its living summons. Summons follow nest-summon rules: no rewards, never persisted, collapsing when their summoner dies.
-- **Blink (proposed):** `MonsterBlinkAction : MonsterAction` teleports to a reachable point at an authored distance band from the target, with a short fade out and in.
+- **Blink (landed for the nymph):** `MonsterBlinkAction : MonsterAction` teleports to a reachable point at an authored distance band from the target, on the actor's side of it, with the teleport fade out and in; a stagger during the fade cancels it. The lich will want a band around the target rather than away from it, a `Spread` of 180.
 
 ## Encounters
 
@@ -221,7 +215,7 @@ HealthComponent: health reaches 0
 + scenes/enemies/gargoyle/, wraith/, ghost/, vampire_bat/, phantom/, medusa/, lich/
 + scenes/levels/encounters/{prison,sewer,mines,cathedral}_encounters.tres
 ~ scenes/levels/encounters/sunken_garrison.tres     Fallback → prison_encounters
-~ scenes/levels/navigation/NavigationProfile.cs       Layer, IgnoresDoors
+~ scenes/levels/navigation/NavigationProfile.cs       IgnoresDoors
 ~ scenes/levels/navigation/INavigableWorld.cs         NavigationFor(layer)
 ~ scenes/levels/generators/MapGenerator.Navigation.cs, GeneratedFloor.cs   air grid
 ~ scenes/levels/Level.cs, scenes/debug/stage/DebugArena.cs   one FloorNavigation per layer
@@ -246,9 +240,11 @@ HealthComponent: health reaches 0
 Each slice lands playable: its realm's floors spawn the new roster, and the harness can stage each monster.
 
 1. **Prison on the ground.** Orc family, the troll with revive, and the prison factory chained from the Garrison. No nest yet.
+   - Landed early, with the Sewer's [factory](../../scenes/levels/encounters/sewer_encounters.tres) (sewer rats, acid blobs and snakes; no aquator, tentacles, nest or gatekeeper yet): the [prison factory](../../scenes/levels/encounters/prison_encounters.tres), chained from the Garrison, with the Orc Warrior as the grunt, the giant bat and the nymph with theft. The spearman, shaman, captain and troll remain, so its last floor has no gatekeeper (`RealmEncounterFactory.HasGatekeeper`).
    - Verify: realm encounter tests over the prison band (packs inside it, gatekeeper seals the descent and lifts only on the final death), harness scenarios for each orc and the troll's revive.
-   - Limitation: no flyer; Prison floor 2 has no nest; the nymph waits for theft in slice 4.
+   - Limitation: Prison floor 2 has no nest.
 2. **Flight.** The giant bat and its roost nest. This is the riskiest engine work, so it comes early and unblocks the Cathedral.
+   - Landed: the air grid and the bat's flight, tested on a generated Sewer floor (it crosses a pool walkers must go around, and loot from over water lands on dry floor) and in the harness (it never holds still, and swords and bolts hit its hovering body). The roost nest remains.
    - Verify: plain-C# tests that the air grid crosses water and chasms and keeps walls and closed doors; a harness scenario where a bat crosses a pool to reach the hero; melee and projectiles hit a hovering bat.
 3. **Sewer.** Arcing lob and poison pools (spitting slime), contact corrosion (acid blob), armor rust (aquator), the snake, ambush and grasp (sewer tentacles), goo bind and the gelatinous cube, and the slime vat.
    - Verify: a lob lands behind cover; standing in a pool poisons, leaving it stops it; goo binds for its duration and poisons; striking an acid blob corrodes, shooting it does not; a grasped hero can attack but not move, and breaking the tentacles' poise frees them.

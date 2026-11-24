@@ -298,6 +298,10 @@ public sealed class EnemyContext
 	/// </summary>
 	public EnemyMovementIntent EvaluateMovement()
 	{
+		// A thief carrying loot runs out of the hero's reach instead of fighting, and waits there to vanish.
+		if (Actor.TheftComponent is { IsCarrying: true } theft)
+			return HorizontalTargetDistance < theft.EscapeDistance
+				? new(EnemyMovementGoal.Retreat, false, theft.EscapeDistance) : new(EnemyMovementGoal.Hold, false);
 		var retreat = CombatProfile.RetreatCondition;
 		if (retreat != null)
 		{
@@ -331,9 +335,12 @@ public sealed class EnemyContext
 		else if (decision.Intent.Goal is EnemyMovementGoal.Hold or EnemyMovementGoal.Approach) Navigation.Stop();
 		bool ring = decision.Intent.Goal is EnemyMovementGoal.Encircle or EnemyMovementGoal.Flank;
 		if (ring) FollowRing(decision.Intent);
+		else if (decision.Intent.Goal == EnemyMovementGoal.Hover) FollowHover(decision.Intent);
 		else _hasRingPoint = false;
-		// Every goal but an approach faces the target, limited by the actor's movement turn rate; approaching faces its path.
-		if (!approaching && Target != null) Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
+		// Every goal but an approach faces the target, limited by the actor's movement turn rate; approaching faces its path,
+		// and so does a body that faces its travel while it moves to reposition.
+		bool facingTravel = Profile.FacesTravel && Movement.IsMoving && (ring || decision.Intent.Goal == EnemyMovementGoal.Retreat);
+		if (!approaching && !facingTravel && Target != null) Movement.FaceDirection(Target.GlobalPosition - Actor.GlobalPosition);
 		if (_lastDecision != decision)
 		{
 			_lastDecision = decision;
@@ -393,6 +400,29 @@ public sealed class EnemyContext
 			_hasRingPoint = Navigation.TryFindTraversable(center + from.Rotated(Vector3.Up, step) * distance, distance, out _ringPoint);
 		}
 		if (!_hasRingPoint || !Navigation.MoveTo(_ringPoint) || Navigation.IsStuck) Navigation.Stop();
+	}
+
+	/// <summary>
+	/// Dart to a fresh point <paramref name="intent"/>'s distance from the target, swung up to its orbit step either way,
+	/// after about its burst or on arrival, facing the target throughout: a flyer never holds still long enough to be
+	/// pinned. Shares the ring's point and refresh; without a spot the body fits it holds and tries again next frame.
+	/// </summary>
+	private void FollowHover(EnemyMovementIntent intent)
+	{
+		if (Target == null) { Navigation.Stop(); return; }
+		if (_ringRefresh.IsReady || !_hasRingPoint || _ringGoal != intent.Goal || Navigation.HasArrived)
+		{
+			_ringRefresh.Start(intent.Burst * RandomRange(.7f, 1.3f));
+			_ringGoal = intent.Goal;
+			Vector3 center = Target.GlobalPosition;
+			Vector3 from = (Actor.GlobalPosition - center).TryNormalizeHorizontal(out var bearing) ? bearing : Vector3.Forward;
+			float swing = Mathf.DegToRad(intent.OrbitStep);
+			Vector3 point = center + from.Rotated(Vector3.Up, RandomRange(-swing, swing)) * intent.DesiredDistance;
+			_hasRingPoint = Navigation.TryFindTraversable(point, intent.DesiredDistance, out _ringPoint);
+		}
+		if (_hasRingPoint && Navigation.MoveTo(_ringPoint) && !Navigation.IsStuck) return;
+		Navigation.Stop();
+		_hasRingPoint = false;
 	}
 
 	/// <summary>Flee the target down its shared field. False when cornered or stalled, which permits an eligible attack.</summary>

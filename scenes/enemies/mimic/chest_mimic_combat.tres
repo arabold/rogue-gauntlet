@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/mimic/chest_mimic_bite.tres" id="bite_contact"]
+[ext_resource type="Resource" path="res://scenes/enemies/mimic/chest_mimic_lash.tres" id="lash_contact"]
+
+[sub_resource type="Resource" id="bite_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("bite_contact")
+PoiseDamage = 16.0
+HitStopDuration = 0.05
+FacingLockLead = 0.12
+WindUpTurnRate = 240.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="lash_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("lash_contact")
+PoiseDamage = 10.0
+HitStopDuration = 0.04
+FacingLockLead = 0.12
+WindUpTurnRate = 240.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="bite"]
+resource_name = "Chomp"
+script = ExtResource("action")
+Cooldown = 2.5
+MaximumRange = 2.1
+Attack = SubResource("bite_attack")
+Style = &"bite"
+Duration = 1.18
+MinDamage = 6.5
+MaxDamage = 14.0
+
+[sub_resource type="Resource" id="lash"]
+resource_name = "Tongue lash"
+script = ExtResource("action")
+Cooldown = 3.5
+MaximumRange = 2.9
+Attack = SubResource("lash_attack")
+Style = &"lash"
+Duration = 1.1
+MinDamage = 4.5
+MaxDamage = 9.0
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("bite"), SubResource("lash")]

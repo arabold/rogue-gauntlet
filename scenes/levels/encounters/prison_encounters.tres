@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
+[ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/mimic/chest_mimic.tscn" id="mimic"]
+[ext_resource type="Resource" path="res://scenes/levels/encounters/sewer_encounters.tres" id="fallback"]
+
+[sub_resource type="Resource" id="bat_swarm"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn")
+Weight = 6
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="bat_flock"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn")
+Weight = 3
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="lone_nymph"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/nymph/nymph.tscn")
+Weight = 2
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="lone_grunt"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_warrior.tscn")
+Weight = 2
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="grunt_pair"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_warrior.tscn")
+Weight = 3
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="raiders"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/nymph/nymph.tscn")
+Weight = 2
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="warband"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_warrior.tscn")
+Weight = 2
+MinimumDepth = 8
+MaximumDepth = 10
+
+[resource]
+script = ExtResource("factory")
+RealmName = "The Prison"
+FirstDepth = 6
+FloorCount = 5
+Entries = [SubResource("bat_swarm"), SubResource("bat_flock"), SubResource("lone_nymph"), SubResource("lone_grunt"), SubResource("grunt_pair"), SubResource("raiders"), SubResource("warband")]
+Fallback = ExtResource("fallback")
+HasGatekeeper = false
+MimicScene = ExtResource("mimic")
+MimicChance = 0.15
