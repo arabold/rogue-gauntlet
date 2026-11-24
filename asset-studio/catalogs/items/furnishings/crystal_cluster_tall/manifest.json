@@ -1,8 +1,8 @@
 {
   "key": "furnishings/crystal_cluster_tall",
-  "inputs": "2492366fb93d356327d514cc1fe5f69f4664359d1f57603e9a2a677579a787d4",
+  "inputs": "a80bf0f5d2dc1024f95f15fd1c53f2dbf12e462867d8e1d524390b81808c767c",
   "files": {
-    "crystal_cluster_tall.glb": "653b0030b18345c2c1ed4dd6f16b66946709bfb82fba2d83c91cd2e1798b7ea3",
+    "crystal_cluster_tall.glb": "233f4ef233e031d973a2810463269b7f04225484959473477a68d8f4176ad344",
     "lineup.png": "254250c85fe6586bfe91d48ae36b2f678bd099bfab01dc78788c1daa09486dfa"
   },
   "metadata": {
@@ -10,7 +10,7 @@
       "triangles": 734,
       "bounds": [
         [
-          -1.2331876754760742,
+          -1.2331877946853638,
           0.0,
           -1.0773403644561768
         ],
@@ -21,7 +21,7 @@
         ]
       ],
       "dimensions": [
-        2.588287830352783,
+        2.5882879495620728,
         3.3093552589416504,
         2.054872214794159
       ],
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 2.149402895151057
+        "signed_volume": 2.1494028962792333
       },
       "host_fit": null,
       "warnings": [],

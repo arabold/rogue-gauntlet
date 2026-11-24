@@ -1,8 +1,8 @@
 {
   "key": "furnishings/crystal_cluster_huge",
-  "inputs": "3d13a5cd6bd0e81a091c92db5e38172c0341f36858bc64f4103723719353d14c",
+  "inputs": "8e04bb80758d55c7bcbe79f6620db1b5108c0e5a17b992e02cf2a7abba051184",
   "files": {
-    "crystal_cluster_huge.glb": "4a5e825fdd78abaf0b7fc56f67fbe18503b76d5c550b1c407d04f7743c569f33",
+    "crystal_cluster_huge.glb": "170ac79ebf31c9041c3aeb3c41606dab81961b8d3244af8a1283f489b11f0ffd",
     "lineup.png": "5ff92aa41aeaacce7435071cad57a4e19cc043dd77eaeb44a14e9c93bd6e8a8a"
   },
   "metadata": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 5.86533642908304
+        "signed_volume": 5.865336423698189
       },
       "host_fit": null,
       "warnings": [],

@@ -1,9 +1,9 @@
 {
   "key": "furnishings/mine_lantern_post_glow",
-  "inputs": "76ac51f22567e79f467b68977d7af0a6fe5ce8646b55650ab1d9e1cdf5f73a49",
+  "inputs": "75f475e2d715f3e56645521acace236a28185c4b148fa8690564a4ee52ad2b78",
   "files": {
-    "mine_lantern_post_glow.glb": "ffcbf39bf3be431134ae619d90b083205eb9eb4be7a1eac72dbe2c07e56b09ba",
-    "lineup.png": "5d2915bfb445fbd364dcc3a983876b18da0e21a28a628d9c793321344fb7b076"
+    "mine_lantern_post_glow.glb": "448036ceceabe154ce7ba3fd60c890e972485e2afe4d10d3858e2b87b042ece3",
+    "lineup.png": "ef2c9f02ddb527845d630341e40be2d9d8cc2dd6790eb09e7ddaadcb98fad414"
   },
   "metadata": {
     "report": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.02987164983083586
+        "signed_volume": 0.029871650059698596
       },
       "host_fit": null,
       "warnings": [],

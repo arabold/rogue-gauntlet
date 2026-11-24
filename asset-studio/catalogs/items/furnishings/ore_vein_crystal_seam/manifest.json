@@ -1,8 +1,8 @@
 {
   "key": "furnishings/ore_vein_crystal_seam",
-  "inputs": "cb0e8dac3d2c8095ceda6c645ca11a97cfc8aadf0cabe32187022b17933757df",
+  "inputs": "387a3c58ccbeae892e1b56b2b0158a71dc8f8f7c3464c56ba6a412b28ad1bc95",
   "files": {
-    "ore_vein_crystal_seam.glb": "02c61874f9a6e82703dc45d33e6d94595eb7e877b019dac148a627dd0af6f042",
+    "ore_vein_crystal_seam.glb": "e42d6a4d38da890262eec01c2c607b54fe36b02481ca08cd4f08aa58e6d71a02",
     "lineup.png": "a8ac3df4871f5a7b9a5194272443a5ab5e6ef09bc58466e0bbf9318f3e5faa12"
   },
   "metadata": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.7212309199037655
+        "signed_volume": 0.7212308979945591
       },
       "host_fit": null,
       "warnings": [],

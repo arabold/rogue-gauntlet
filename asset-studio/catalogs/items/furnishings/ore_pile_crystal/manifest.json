@@ -1,8 +1,8 @@
 {
   "key": "furnishings/ore_pile_crystal",
-  "inputs": "af6fdf40aa10eaa892afdc2ec1f4e434c986c317c734c2997e8374ae587f3c85",
+  "inputs": "c88d5df64e63caf22bb4343252e7a4726acc218d20a9e12c578c59e1ba81ca73",
   "files": {
-    "ore_pile_crystal.glb": "c4382949643e714bfbd20c9666bfede1dbbea80821edc2f3044af419a98a4789",
+    "ore_pile_crystal.glb": "8257539d1fb22de5c404dbcbf9fbcc84eda4ba6f85003bd0e5c503235a402672",
     "lineup.png": "b58e69a46e794d041a59b4873ddbb62b401819229d86d6a52718f4c831707472"
   },
   "metadata": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 1.2846725800792662
+        "signed_volume": 1.2846725986159322
       },
       "host_fit": null,
       "warnings": [],

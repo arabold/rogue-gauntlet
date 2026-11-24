@@ -1,13 +1,13 @@
 {
   "key": "furnishings/ore_pile_small",
-  "inputs": "73160290da2f6868364e8b10f2619b6d3d6f58684eb7657776ab072840649680",
+  "inputs": "1010a4589d1540e28ee904895b74f5cf1380246724e5a058c2a53fe052500071",
   "files": {
-    "ore_pile_small.glb": "63896f3607932ef5ccd229a14f94e79dea3205f6b3a268f2a1600bd29783d1ad",
-    "lineup.png": "f17eff624daa7a9bc019112484d1f061b645a6920fd1591650548274cd16dfb9"
+    "ore_pile_small.glb": "839cb0a0391c63c31baae0a3d03b5080e87e1f986d6d4059ed3845e2d5873497",
+    "lineup.png": "b3696b368e8fde90850627ff5053aa1a0e88e48a459cf01b717d06748fc74564"
   },
   "metadata": {
     "report": {
-      "triangles": 586,
+      "triangles": 584,
       "bounds": [
         [
           -0.7082650661468506,
@@ -16,13 +16,13 @@
         ],
         [
           0.7456498742103577,
-          0.7012656927108765,
+          0.7012656331062317,
           0.6791933178901672
         ]
       ],
       "dimensions": [
         1.4539149403572083,
-        0.7012656927108765,
+        0.7012656331062317,
         1.3991199731826782
       ],
       "materials": 1,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.2617532344683164
+        "signed_volume": 0.26168529231014087
       },
       "host_fit": null,
       "warnings": [

@@ -1,9 +1,9 @@
 {
   "key": "furnishings/mine_lantern_wall_glow",
-  "inputs": "6dd7f4fa1ad556e2520a2da66c68183b2d1eac8b51e8ade4724331114f0b62d5",
+  "inputs": "929edaad5b2403eac7aa7182e87c9754e4f92013cf812552b6c936e023062630",
   "files": {
-    "mine_lantern_wall_glow.glb": "8b2c82c0837727f1db5bf7691ffd6352bf8c237ce0ad0434213ace85add79daf",
-    "lineup.png": "ccb77d3501b503dd4f403f251aed1d1b328d950a21b2474b36bfaae6959accf6"
+    "mine_lantern_wall_glow.glb": "baf5d3d177f4ceedc0b66f65f809df914186eeed9b58cfb92def9065de1c2699",
+    "lineup.png": "2c0f5eb26844bf3454491615d9f04391b64cd3b06fc7960293b5fcbcace61777"
   },
   "metadata": {
     "report": {
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.029871648553168383
+        "signed_volume": 0.02987166738059123
       },
       "host_fit": null,
       "warnings": [],

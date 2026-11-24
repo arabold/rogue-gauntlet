@@ -1,9 +1,9 @@
 {
   "key": "furnishings/ore_vein_b",
-  "inputs": "8f39c72778bf2679eee6cd455981d8cc2f2429525255ed5f7d4bd57d58c019c8",
+  "inputs": "a9560700f14006574fec7bebf036f868bde9311d5092059bac8a56eb59712521",
   "files": {
-    "ore_vein_b.glb": "379ae4fcefa83734929af4d7403e5fc3a731221d6eb23566e67268fa2a17ef27",
-    "lineup.png": "d5f8e757c979d7040704b2ba746799efe03408ed3e13b5663ba7fdab90bd80e8"
+    "ore_vein_b.glb": "a64207aeb2ee65b64415a6ff4a8bcffb9f93a9cb13157f796e1fe112393517e3",
+    "lineup.png": "6535132c2332c9f44895b85516afcc66e315784655fa077e0c5b0e9b58942bf1"
   },
   "metadata": {
     "report": {
@@ -17,13 +17,13 @@
         [
           1.3453346490859985,
           2.330503225326538,
-          0.44338858127593994
+          0.44338861107826233
         ]
       ],
       "dimensions": [
         2.678719162940979,
         1.6149510741233826,
-        0.44338858127593994
+        0.44338861107826233
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.6039047271464208
+        "signed_volume": 0.6038787901742463
       },
       "host_fit": null,
       "warnings": [],

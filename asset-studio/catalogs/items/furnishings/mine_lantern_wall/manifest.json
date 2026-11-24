@@ -1,17 +1,17 @@
 {
   "key": "furnishings/mine_lantern_wall",
-  "inputs": "aa8019c17c234d941324359564e62614d47cb0fe3f0ad89e177b55e89197e906",
+  "inputs": "f1ca89de0462dde227252c42eb3a91d7552af6198dde98258f2c9e036dbdbe84",
   "files": {
-    "mine_lantern_wall.glb": "d8ca8967966ff59a3f67fb68d929c3a8ce2ce6d6444ac0853be1c34898e8fa3e",
-    "lineup.png": "6eba6d0801030b1e65f8a1ec7441b804696775547b57b55ae1c5f90ba7c173b1"
+    "mine_lantern_wall.glb": "fe8758f023d6fc6b7bf40105ed71da2e182aa63dc3c7615b52fdcc0aa6e6ad36",
+    "lineup.png": "823302d714548ba814c37e446dc4b83f7314aab66cd19c16a89ae9eab167afce"
   },
   "metadata": {
     "report": {
-      "triangles": 1482,
+      "triangles": 1484,
       "bounds": [
         [
           -0.30000001192092896,
-          1.9999998807907104,
+          2.0,
           0.0
         ],
         [
@@ -22,7 +22,7 @@
       ],
       "dimensions": [
         0.6000000238418579,
-        1.4400001764297485,
+        1.440000057220459,
         1.0199999809265137
       ],
       "materials": 1,
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.14141998107193396
+        "signed_volume": 0.14142004923633056
       },
       "host_fit": null,
       "warnings": [],

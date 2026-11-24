@@ -1,29 +1,29 @@
 {
   "key": "furnishings/tool_rack",
-  "inputs": "bc1922e81729803459c02e37ddc80550e6253f5ad03fcecd347c501b4f402dee",
+  "inputs": "b1bf329a62540a01c27d04fcb9adad00c7633ea8ccae36adb3e20b32cc0719cb",
   "files": {
-    "tool_rack.glb": "596427c693309f9766c4714066a18912aa5fc1e376fc31c5cce05b067c4b377b",
-    "lineup.png": "aee288f7ed425e11cb67d129c58101a663b5ee2de38687a980680e9cc332330f"
+    "tool_rack.glb": "ebc14d734abfa353c1e0018ba00d1781339e97432feb648332755a7adcdad7b9",
+    "lineup.png": "a00fec9b2be81a423cb64a65ed5b335d7f5dfc40c8b7397be3fc899933389824"
   },
   "metadata": {
     "report": {
-      "triangles": 4672,
+      "triangles": 4680,
       "bounds": [
         [
           -1.3919999599456787,
-          1.3129403591156006,
+          1.3129404783248901,
           0.0
         ],
         [
           1.320968747138977,
           2.968348264694214,
-          0.48000001907348633
+          0.47999998927116394
         ]
       ],
       "dimensions": [
         2.7129687070846558,
-        1.6554079055786133,
-        0.48000001907348633
+        1.6554077863693237,
+        0.47999998927116394
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.3149285662813959
+        "signed_volume": 0.3158311435871491
       },
       "host_fit": null,
       "warnings": [],
