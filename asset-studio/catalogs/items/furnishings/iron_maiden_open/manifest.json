@@ -1,0 +1,88 @@
+{
+  "key": "furnishings/iron_maiden_open",
+  "inputs": "246fd5b177e5f2fec923b4e55cead4915c0f386ef6fcb68804d3d23d200acbe1",
+  "files": {
+    "iron_maiden_open.glb": "af035ba9f25f842e9d5e09d9e497f56680db0adf2ef01a286d520071cf30ffdc",
+    "lineup.png": "011a03132588b44107fc888f15dbd7630bda6074ff2e830f3a1a0644de5cb10e"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2240,
+      "bounds": [
+        [
+          -0.800000011920929,
+          0.0,
+          -0.6200000047683716
+        ],
+        [
+          1.5858588218688965,
+          2.8399999141693115,
+          0.5799999833106995
+        ]
+      ],
+      "dimensions": [
+        2.3858588337898254,
+        2.8399999141693115,
+        1.199999988079071
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.389939829525464
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Iron Maiden Open",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "iron_maiden",
+        "open": true
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/prison/iron_maiden_open.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Prison furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

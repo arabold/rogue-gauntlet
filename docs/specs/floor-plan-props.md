@@ -34,9 +34,6 @@ Each existing plan works today, but one or two signature props would make it unm
 | Reliquary shelf | Wall | 1.5 m wide | Ossuary, side chapel | Skulls and reliquaries in niches |
 | Well | Floor | 1.5 m | Cloister courtyard, herb garden | Low wall, winch and bucket |
 | Garden bed | Floor | 2 × 1 m | Herb garden, courtyard | Raised planter with herbs; walkable around |
-| Torture rack | Floor | 2 × 1 m | Interrogation room | Wooden frame with rope |
-| Stocks | Floor | 1.5 m | Interrogation room, prison yard | Pillory or foot stocks |
-| Hanging cage | Wall | 1 m | Interrogation room, prison halls | Iron cage on a chain, empty or with bones |
 | Throne | Floor, back to wall | 1.5 × 1.5 m | Throne room, great hall dais | High carved back and armrests with gilded trim; a toppled or broken variant for ruined halls |
 
 The throne makes a throne room possible: a rare landmark like the great hall and treasury, which set `FloorChance` and `MaxPerFloor` on their room type so most floors never offer them (see [level design](../level-design.md)).
@@ -52,6 +49,8 @@ The chasm/lake plan waits on these. Chasm tiles and water rendering already exis
 | Chasm edge | Floor tile | One tile | Every chasm border | Broken stone lip, straight, outer and inner corner; the drop below fades to black |
 | Lake shore | Floor tile | One tile | Underground lake borders | Rough rock shore in the same three pieces as the chasm edge; the existing quay pieces suit built pools only |
 | Lava surface | Floor tile | One tile | Fire chasm variant | Emissive lava under the chasm edge pieces, for a cathedral-in-flames realm |
+
+The prison's props are built (`scenes/levels/rooms/props/prison/`): the interrogation room centers on a torture rack, lines a wall with stocks or an iron maiden (closed or open on its spikes) and may hang a cage, empty or with bones, which cell blocks hang too. They are sized chunky beside the 2.2 m hero, like the KayKit pack.
 
 ## Rooms already built from existing props
 

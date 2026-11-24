@@ -713,6 +713,221 @@ def bone_pile():
     return a.build(loose=True)
 
 
+def torture_rack():
+    """A stretching rack (~3 m long, ~1.4 m deep, ~1.5 m to the windlass top): a heavy timber bed on four capped legs, a
+    roller between the legs at each end, the head one turned by a spoked windlass, the foot one held by a ratchet, and
+    ropes from both rollers running out along the bed to wrist and ankle cuffs."""
+    a, rng = Assembly(), random('torture_rack')
+    top, roll = .9, 1.12  # bed top and roller axle height
+    for x in (-1.32, 1.32):
+        for z in (-.56, .56):
+            square_post(a, rng, .26, 0, roll + .2, x, z, cap=.06)
+        # A low stretcher ties each pair of legs, the roller turns between them above the bed.
+        board(a, rng, (.2, .18, 1.2), (x, .24, 0), 'wood_dark', chips=1)
+    for z in (-.56, .56):
+        board(a, rng, (3.0, .3, .2), (0, top - .12, z), 'wood_dark', chips=2)
+        board(a, rng, (2.5, .16, .16), (0, .3, z), 'wood_dark', chips=1)
+    planks(a, rng, 1.0, 2.3, .1, ((0, 90, 0), (0, 0, 0)), count=6, y=top - .04)
+    for x in (-1.32, 1.32):
+        # Iron straps bind each rail to its leg.
+        for z in (-.56, .56):
+            a.add(block((.34, .36, .05), (x, top - .12, z + np.sign(z) * .13), .015), 'iron_dark')
+            a.add(rivet((x, top - .06, z + np.sign(z) * .16), .05, (0, 0, np.sign(z))), 'steel')
+        # Roller: a turned drum with iron bands, its axle through both legs and out the front.
+        a.add(rod((x, roll, -.46), (x, roll, .46), .16, 10), 'wood_light')
+        a.add(rod((x, roll, -.74), (x, roll, .84), .06, 8), 'iron')
+        for z in (-.38, .38):
+            a.add(ring(.14, .19, -.04, .04, 10).rotate((90, 0, 0)).translate((x, roll, z)), 'iron')
+        # Rope wound on the roller, each strand running out to a cuff on the bed.
+        inward = -np.sign(x)
+        for z in (-.22, .22):
+            a.add(ring(.15, .21, -.07, .07, 10).rotate((90, 0, 0)).translate((x, roll, z)), 'rope')
+            cuff_x = x + inward * (.62 if x < 0 else .82)
+            a.add(rod((x + inward * .1, roll - .12, z), (cuff_x, top + .09, z * 1.1), .065, 6), 'rope')
+            a.add(loop((0, 0, 0), (.14, .14), .055, 10, .07).rotate((90, 0, 0)).translate((cuff_x + inward * .12, top + .06, z * 1.1)), 'iron')
+    # Head windlass: four spokes through a hub on the front axle end, each tipped with an iron knob.
+    hub = (-1.32, roll, .84)
+    a.add(rod((hub[0], hub[1], hub[2] - .1), (hub[0], hub[1], hub[2] + .1), .12, 8), 'iron_dark')
+    for turn in (22.5, 67.5, 112.5, 157.5):
+        t = np.radians(turn)
+        d = np.array([np.cos(t), np.sin(t), 0]) * .5
+        a.add(rod(tuple(np.add(hub, -d)), tuple(np.add(hub, d)), .05, 6), 'wood_dark')
+        for s in (-1, 1):
+            a.add(ball(tuple(np.add(hub, s * d)), (.075, .075, .075), 6), 'iron')
+    # Foot ratchet: a toothed iron wheel on the axle and a pawl pinned to the leg below it, its tip in the teeth.
+    teeth = 10
+    angles = np.arange(teeth * 2) * np.pi / teeth
+    wheel = outline(np.column_stack([np.cos(angles), np.sin(angles)]) * np.where(np.arange(teeth * 2) % 2, .24, .31)[:, None])
+    a.add(facade(wheel, .08, .72).translate((1.32, roll, 0)), 'iron_dark')
+    a.add(block((.3, .08, .08), (0, 0, 0), .015).rotate((0, 0, 52)).translate((1.37, roll - .36, .72)), 'iron')
+    a.add(rivet((1.32, roll - .42, .76), .05), 'steel')
+    return a.build()
+
+
+def stocks():
+    """A pillory (~2.5 m tall, ~1.9 m wide) on a low plank platform: two capped posts holding a split yoke with a head
+    hole and two wrist holes, an iron hinge on one end and a hasp with an oversized padlock on the other."""
+    a, rng = Assembly(), random('stocks')
+    for x in (-.78, .78):
+        board(a, rng, (.2, .12, 1.4), (x, .06, 0), 'wood_dark', chips=1)
+    planks(a, rng, 1.9, 1.4, .14, ((0, 0, 0), (0, 0, 0)), count=5, slot='wood_dark', y=.17)
+    seam, post_x = 1.52, .74
+    for x in (-post_x, post_x):
+        square_post(a, rng, .24, .24, 2.32, x, 0, cap=.07)
+        # Knee braces from the platform to each post.
+        for z in (-1, 1):
+            a.add(mf.Manifold.batch_hull([block((.14, .1, .14), (x, .28, z * .5), .02),
+                                          block((.14, .1, .12), (x, .92, z * .14), .02)]), 'wood')
+    board(a, rng, (1.84, .22, .3), (0, 2.38, 0), chips=2)
+    # Yoke: two thick boards meeting at the seam, holes cut through both.
+    board(a, rng, (1.3, .28, .18), (0, seam - .14, 0), 'wood', chips=1, wobble=0)
+    board(a, rng, (1.3, .28, .18), (0, seam + .14, 0), 'wood', chips=1, wobble=0)
+    for x, radius in ((0, .17), (-.4, .09), (.4, .09)):
+        a.cut(rod((x, seam, -.2), (x, seam, .2), radius, 12), 'wood_light')
+    # Iron hinge straps across the seam on the left and a hasp with a padlock on the right.
+    for y in (seam - .14, seam + .14):
+        a.add(block((.2, .1, .04), (-.56, y, .1), .012), 'iron_dark')
+    a.add(rod((-.66, seam - .2, .12), (-.66, seam + .2, .12), .035, 8), 'iron')
+    a.add(block((.12, .34, .04), (.56, seam + .04, .1), .012), 'iron_dark')
+    a.add(loop((0, 0, 0), (.07, .08), .03, 10).rotate((0, 90, 0)).translate((.56, seam - .12, .17)), 'iron')
+    a.add(block((.2, .2, .09), (.56, seam - .28, .17), .03), 'iron_dark')
+    a.cut(block((.04, .07, .06), (.56, seam - .3, .22), .01), 'socket')
+    for x in (-.5, .5):
+        a.add(rivet((x, 2.38, .15), .05), 'steel')
+    return a.build()
+
+
+def hanging_cage(bones=False):
+    """An iron gibbet cage (~1.6 m across, ~2.4 m tall, big enough for the hero) hanging on a chain from a forged wall
+    bracket, its floor ~0.4 m up: banded bars, a strapped dome and a padlocked door on the front. `bones` leaves a
+    prisoner's skull and bones."""
+    a = Assembly()
+    cz, r = .94, .72  # cage axis distance from the wall and bar radius
+    # Wall plate, arm and brace (flat back on z = 0).
+    a.add(facade(outline([(-.32, 3.1), (.32, 3.1), (.36, 3.68), (0, 3.94), (-.36, 3.68)]), .14, 0), 'iron_dark')
+    for y in (3.3, 3.7):
+        a.add(rivet((0, y, .14), .08), 'steel')
+    a.add(block((.17, .18, cz + .14), (0, 3.62, (cz + .14) / 2), .03), 'iron')
+    a.add(bend([(0, 3.2, .1), (0, 3.36, .38), (0, 3.5, .62), (0, 3.58, cz - .16)], [.055] * 4, 6), 'iron_dark')
+    end = chain(a, 0, 3.5, 3, cz, 1.45)
+    # Crown ring caught in the last link, the dome's straps meeting under it.
+    apex = end - .13 * 1.45 - .07
+    a.add(loop((0, 0, 0), (.14, .14), .055, 10).rotate((0, 90, 0)).translate((0, apex + .1, cz)), 'iron')
+    a.add(ball((0, apex, cz), (.13, .1, .13), 8), 'iron_dark')
+    y1 = apex - .46
+    y0 = y1 - 1.9
+    for turn in (0, 45, 90, 135):
+        t = np.radians(turn)
+        path = [(np.cos(t) * r * np.cos(s), y1 + .46 * np.sin(s), cz + np.sin(t) * r * np.cos(s)) for s in np.linspace(0, np.pi, 9)]
+        a.add(bend(path, [.06] * 9, 5), 'iron')
+    # Floor plate, hoops and bars.
+    a.add(lathe([(r + .08, y0 - .1), (r + .08, y0 + .05)], 16).translate((0, 0, cz)), 'iron_dark')
+    for y, slot in ((y0 + .07, 'iron'), ((y0 + y1) / 2, 'iron'), (y1, 'iron_dark')):
+        a.add(ring(r - .06, r + .07, y - .07, y + .07, 16).translate((0, 0, cz)), slot)
+    for k in range(14):
+        t = (k + .5) * 2 * np.pi / 14
+        a.add(rod((np.cos(t) * r, y0, cz + np.sin(t) * r), (np.cos(t) * r, y1, cz + np.sin(t) * r), .06, 6), 'iron')
+    # Door on the front: a heavier frame, hinge knuckles on one side and a padlocked hasp on the other.
+    front = cz + r
+    for x in (-.32, .32):
+        a.add(block((.12, y1 - y0, .07), (x, (y0 + y1) / 2, front - .08), .02), 'iron_dark')
+    for y in (y0 + .45, y1 - .45):
+        a.add(rod((-.37, y - .08, front - .04), (-.37, y + .08, front - .04), .065, 8), 'iron')
+    lock_y = (y0 + y1) / 2 - .16
+    a.add(loop((0, 0, 0), (.09, .1), .04, 10).rotate((0, 90, 0)).translate((.32, lock_y + .18, front)), 'iron')
+    a.add(block((.26, .26, .11), (.32, lock_y, front + .06), .04), 'iron_dark')
+    a.cut(block((.05, .09, .07), (.32, lock_y - .03, front + .12), .012), 'socket')
+    if bones:
+        skull(a, -.2, cz - .1, 35, y0 + .01)
+        bone(a, (.1, y0 + .12, cz - .44), (.39, y0 + .14, cz + .31), .065)
+        bone(a, (-.47, y0 + .12, cz + .13), (.13, y0 + .12, cz + .44), .065)
+        bone(a, (.31, y0 + .16, cz - .26), (.49, y0 + .62, cz + .03), .06)
+    return a.build()
+
+
+# The iron maiden's front silhouette, right half from the foot up: a narrow foot, broad shoulders and a rounded head.
+MAIDEN_HALF = [(.5, .14), (.62, .9), (.7, 1.6), (.66, 1.86), (.46, 2.02), (.44, 2.3), (.38, 2.56), (.24, 2.76), (0, 2.84)]
+
+
+def _maiden_outline():
+    return outline(MAIDEN_HALF + [(-x, y) for x, y in reversed(MAIDEN_HALF[:-1])])
+
+
+def _maiden_edge(y):
+    """Half-width of the iron maiden's body at height y, along its torso."""
+    return float(np.interp(y, [y for _, y in MAIDEN_HALF[:4]], [x for x, _ in MAIDEN_HALF[:4]]))
+
+
+def iron_maiden(open=False):
+    """An iron maiden (~2.9 m tall, ~1.4 m across the shoulders, a head taller than the hero) on a low plinth, its back
+    to the wall: a banded iron body with chamfered edges, a stern face on the head and two doors down its front, each
+    hung on two hinges. With `open` the right door stands wide, showing the spikes inside it and in the hollow body."""
+    a = Assembly()
+    depth, seam, door_top = .96, .1, 2.0  # body depth, door plane (z) and door height
+    shape = _maiden_outline()
+    front = depth / 2
+    axis, hinges = .74, (.75, 1.6)  # hinge axis distance from the middle and hinge heights
+    a.add(block((1.6, .16, 1.2), (0, .08, -.02), .04), 'stone_dark')
+    # The body: the full silhouette through the middle and an inset one out to both faces, so its edges read chamfered,
+    # then raised iron bands around it.
+    body = a.label(facade(shape, depth - .12, -front + .06) + facade(shape.offset(-.06, mf.JoinType.Round), depth, -front), 'iron_dark')
+    for y in (.62, 1.3, 1.9):
+        body = body + a.label(facade(shape.offset(.03, mf.JoinType.Round), depth + .06, -front - .03) ^ block((4, .14, 4), (0, y, 0), 0), 'iron')
+
+    def leaf(side, y, door):
+        """One hinge leaf from the body's edge out to the hinge axis: behind the door plane on the body, in front on the door."""
+        edge = _maiden_edge(y) - .06
+        z = seam + .03 if door else seam - .03
+        return a.label(block((axis - edge, .16, .06), (side * (edge + axis) / 2, y, z), .012), 'iron')
+    for side in (-1, 1):
+        for y in hinges:
+            body = body + leaf(side, y, door=False)
+            a.add(rod((side * axis, y - .13, seam), (side * axis, y + .13, seam), .06, 8), 'iron')
+    door = None
+    if open:
+        # Hollow the torso behind the doors (dark inside) and cut the right door free.
+        cavity = facade(shape.offset(-.14, mf.JoinType.Round), seam + .38, -.34) ^ block((4, door_top - .3, 4), (0, (door_top + .3) / 2, 0), 0)
+        door_box = a.label(block((1.6, door_top - .2, depth), (.8, (door_top + .2) / 2, seam + depth / 2), 0), 'iron_dark')
+        door = body ^ door_box
+        body = body - a.label(cavity, 'socket') - door_box
+    for y in hinges:
+        body = body + leaf(-1, y, door=True)
+        if door is None:
+            body = body + leaf(1, y, door=True)
+        else:
+            door = door + leaf(1, y, door=True)
+    a.join(body)
+    if open:
+        for x in (-.3, -.1, .1, .3):
+            for y in (.62, 1.02, 1.42, 1.82):
+                a.add(lathe([(.06, 0), (.006, .24)], 6).rotate((90, 0, 0)).translate((x, y, -.36)), 'steel')
+        spikes = [lathe([(.06, 0), (.006, .22)], 6).rotate((-90, 0, 0)).translate((x, y, seam + .02))
+                  for x in (.16, .34, .5) for y in (.62, 1.02, 1.42, 1.82)]
+        door = mf.Manifold.batch_boolean([door, *[a.label(spike, 'steel') for spike in spikes]], mf.OpType.Add)
+        # The right door swings wide on its hinges' axis, turning its spiked inside toward the room.
+        a.join(door.translate((-axis, 0, -seam)).rotate((0, 150, 0)).translate((axis, 0, seam)))
+    else:
+        a.cut(block((.045, door_top - .3, .1), (0, (door_top + .3) / 2, front), .01), 'socket')
+        # A hasp and padlock across the seam.
+        a.add(block((.3, .1, .05), (0, 1.12, front + .02), .015), 'iron')
+        a.add(loop((0, 0, 0), (.08, .09), .035, 10).rotate((0, 90, 0)).translate((0, 1.0, front + .06)), 'iron')
+        a.add(block((.24, .24, .1), (0, .86, front + .08), .035), 'iron_dark')
+        a.cut(block((.045, .08, .06), (0, .83, front + .13), .01), 'socket')
+    # Rivets along the bands' front and a stern face on the head.
+    for y in (.62, 1.3, 1.9):
+        for x in (-.42, .42):
+            if not (open and x > 0):
+                a.add(rivet((x, y, front + .03), .05), 'steel')
+    a.add(block((.62, .12, .14), (0, 2.5, front - .01), .04), 'iron')
+    for x in (-.15, .15):
+        a.cut(ball((x, 2.39, front + .02), (.09, .07, .09), 8), 'socket')
+    a.add(mf.Manifold.batch_hull([block((.08, .04, .08), (0, 2.44, front + .01), .01),
+                                  block((.16, .06, .12), (0, 2.28, front + .03), .02)]), 'iron')
+    a.cut(block((.32, .05, .1), (0, 2.16, front - .01), .015), 'socket')
+    a.add(block((.5, .07, .1), (0, 2.08, front - .015), .025), 'iron')
+    return a.build()
+
+
 def fallen_beam():
     """A collapsed ceiling beam, one end propped on fallen stones, the other splintered."""
     a, rng = Assembly(), random('fallen_beam')
@@ -1248,6 +1463,7 @@ KINDS = {
     'hearth': hearth, 'chopping_block': chopping_block, 'mortar': mortar, 'pot_rack': pot_rack, 'cheese_wheel': cheese_wheel,
     'ham': ham, 'bread': bread, 'weapon_rack': weapon_rack, 'training_dummy': training_dummy, 'bunk_bed': bunk_bed,
     'war_map': war_map, 'shackles': shackles, 'straw_pile': straw_pile, 'bucket': bucket, 'bone_pile': bone_pile,
+    'torture_rack': torture_rack, 'stocks': stocks, 'hanging_cage': hanging_cage, 'iron_maiden': iron_maiden,
     'fallen_beam': fallen_beam, 'tapestry': tapestry, 'heraldic_shield': heraldic_shield, 'sconce': sconce,
     'rubble_scatter': rubble_scatter, 'rubble_small': rubble_small, 'rubble_medium': rubble_medium,
     'rubble_large': rubble_large, 'rubble_boulders': rubble_boulders,
