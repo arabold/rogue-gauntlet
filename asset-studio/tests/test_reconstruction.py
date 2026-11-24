@@ -56,6 +56,16 @@ class ConfigCheckTest(unittest.TestCase):
             self.assertIn(gap, problems)
 
 
+    def test_a_match_tone_snaps_faces_while_the_game_keeps_the_albedo(self):
+        socket = {"base": [44, 38, 34], "match": [130, 118, 97]}
+        self.assertEqual(reconstruction.base_color(socket), [44, 38, 34])
+        self.assertEqual(reconstruction.match_color(socket), [130, 118, 97])
+        self.assertEqual(reconstruction.match_color([10, 20, 30]), [10, 20, 30])
+        broken = copy.deepcopy(self.config)
+        broken["palette"]["skin"] = {"base": [150, 178, 166], "light": [200, 210, 200]}
+        self.assertIn("palette skin", " | ".join(reconstruction.check_config(broken)))
+
+
 class PropTest(unittest.TestCase):
     def test_props_mount_on_the_verified_hand_slot_frames(self):
         from core.rig import Rig

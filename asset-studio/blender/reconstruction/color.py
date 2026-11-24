@@ -99,9 +99,11 @@ def _material(config, atlas_png):
 
 def _region_test(spec):
     """A face-detail slot (eye, brow, mouth) is only allowed on the front of the face, where the turnaround draws it;
-    elsewhere the sheet's darker skin shading would match it."""
+    elsewhere the sheet's darker skin shading would match it. `half_width` bounds `|x|`; as `[inner, outer]` it is a
+    band either side of the middle, for paired details such as tusks or cheek paint beside a face of the same tone."""
     front = VIEWS["front"]
-    return lambda c, n: (spec["z"][0] < c.z < spec["z"][1] and abs(c.x) < spec["half_width"]
+    inner, outer = spec["half_width"] if isinstance(spec["half_width"], (list, tuple)) else (0.0, spec["half_width"])
+    return lambda c, n: (spec["z"][0] < c.z < spec["z"][1] and inner <= abs(c.x) < outer
                          and n.dot(front) > spec["facing"])
 
 

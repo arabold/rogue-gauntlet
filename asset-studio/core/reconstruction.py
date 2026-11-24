@@ -87,9 +87,16 @@ def split_sheet(sheet, size=1024, height=880, margin=0.86):
 
 
 def base_color(entry):
-    """A palette entry is an RGB triple, shaded by the Studio's standard ramp, or `{"light", "base", "shadow"}` for a
-    ramp that also shifts hue, such as a slime's lime crown over its emerald base."""
+    """A palette entry is an RGB triple, shaded by the Studio's standard ramp, or a dict around its `base`: with `light`
+    and `shadow` for a ramp that also shifts hue, such as a slime's lime crown over its emerald base, and with `match`
+    for a slot the turnaround draws in another tone than the game should show (see `match_color`)."""
     return entry["base"] if isinstance(entry, dict) else entry
+
+
+def match_color(entry):
+    """The tone the turnaround is matched against: a dict entry's `match`, else its albedo. A concept that draws a
+    skull's eye sockets mid-grey matches them as such, while the game shades them dark."""
+    return entry.get("match", entry["base"]) if isinstance(entry, dict) else entry
 
 
 def check_config(config):
@@ -103,6 +110,8 @@ def check_config(config):
     for label, mapping in (("budgets", config["budgets"]), ("slots", config["slots"]), ("rig.weights", config["rig"]["weights"])):
         if set(mapping) != parts:
             problems.append(f"{label} must name exactly the parts: {sorted(parts ^ set(mapping))}")
+    problems += [f"palette {name} needs a base, and light only with shadow" for name, entry in config["palette"].items()
+                 if isinstance(entry, dict) and ("base" not in entry or ("light" in entry) != ("shadow" in entry))]
     unknown = {s for slots in config["slots"].values() for s in slots} - set(config["palette"])
     if unknown:
         problems.append(f"slots missing from the palette: {sorted(unknown)}")
@@ -230,7 +239,7 @@ def palette_atlas(src, config):
     names = list(config["palette"])
     atlas = mesh.Atlas([base_color(config["palette"][n]) for n in names], slot_names=names,
                        looks={n: {"ramp": (v["light"], v["shadow"], v["base"])} for n, v in config["palette"].items()
-                              if isinstance(v, dict)})
+                              if isinstance(v, dict) and "light" in v})
     atlas_png = src.work / "palette.png"
     atlas.image.save(atlas_png)
     return atlas_png, {n: {"u": float(atlas.u_coords[i]), "v_top": float(atlas.v_top[i]), "v_bot": float(atlas.v_bot[i])}
@@ -261,7 +270,7 @@ def build(src):
     atlas_png, cells = palette_atlas(src, config)
     job = {"config": config, "reconstruction": str(src.glb), "views": str(src.dir / "turnaround"),
            "atlas_png": str(atlas_png), "atlas": cells, "report": str(src.work / "build.json"),
-           "colors": {n: base_color(v) for n, v in config["palette"].items()},
+           "colors": {n: match_color(v) for n, v in config["palette"].items()},
            "template": str(character_workflow.rig_template(recipe["rig"]) or ""),
            "props": props(config, recipe["rig"]),
            "blend": str(src.dir / recipe["source"])}
