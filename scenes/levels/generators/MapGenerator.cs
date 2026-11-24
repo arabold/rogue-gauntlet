@@ -317,7 +317,31 @@ public partial class MapGenerator : Node3D
 		}
 
 		PlaceCorridors();
-		return PlaceWalls();
+		if (!PlaceWalls()) return false;
+		RemoveWallPropsOffMounts();
+		return true;
+	}
+
+	/// <summary>
+	/// Rooms hang their decor before the floor walls its corridors. Where a corridor wall then meets a room's wall, a
+	/// junction takes over half of the room's edge and may stand a post behind a prop; those props come down.
+	/// </summary>
+	private void RemoveWallPropsOffMounts()
+	{
+		var toGrid = WallGridMap.GlobalTransform.AffineInverse();
+		var itemCache = new System.Collections.Generic.Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)>();
+		MountSpan[] MountsAt(Vector2I tile, Vector2I outward) =>
+			WallFootprints.MeasureEdge(WallGridMap, WallStyle.EdgeCell(tile, outward), -outward, Room.TileSize, itemCache).Mounts;
+		foreach (var room in FloorContent.GetChildren().OfType<Room>())
+		{
+			foreach (var (node, envelope, inward) in room.WallProps)
+			{
+				var transform = toGrid * node.GlobalTransform;
+				var box = transform * envelope;
+				if (!RoomBlueprint.HasWallSupport(box, WallRun.Behind(box, transform.Basis * inward), MountsAt)) node.Free();
+			}
+			room.WallProps.Clear();
+		}
 	}
 
 	private bool AreAllWalkableTilesConnected()

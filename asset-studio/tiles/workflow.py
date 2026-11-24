@@ -173,8 +173,10 @@ class Family:
             missing = set(str(s) for s in built.slots) - set(colors)
             if missing:
                 raise ValueError(f"{self.key}: no colors for slots {sorted(missing)}")
+            spans = getattr(built, "mount_spans", None)
             export_static(str(self.staged / f"{stem}.glb"), stem, built, colors, materials=self.looks(data, colors),
-                          crease=30.0, height_range=HEIGHT_RANGE[data["kind"]])
+                          crease=30.0, height_range=HEIGHT_RANGE[data["kind"]],
+                          extras={"mount_spans": spans} if spans is not None else None)
             pieces[stem] = (piece, built)
         report = self.validate(data, pieces)
         save(self.staged / "build.json", {"recipe_sha256": digest(self.path), "inputs": self.inputs(),
@@ -199,7 +201,7 @@ class Family:
                 errors.append(f"{stem}: {len(f)} triangles exceeds budget {data['budget']['triangles']}")
             allowed = {}
             if data["style"] in DERIVED:
-                source = kaykit.load(data.get("design", {}).get("source", {}).get(piece, piece))[0]
+                source = kaykit_source(data.get("design", {}), piece)
                 allowed = solid.inspect(source.verts, source.faces)
                 row["source_open_edges"] = allowed["boundary_edges"]
             # A dressed wall may lose some of KayKit's open brick accents to a carving, never gain defects.
@@ -380,7 +382,7 @@ def seam_report(data, pieces):
     if data["kind"] == "pool":
         return overlay_seams(pieces, ys=np.arange(-2.9993, .05, .0041), walled=True)
     if data["style"] in DERIVED:
-        return source_seams(pieces, data.get("design", {}).get("source", {}))
+        return source_seams(pieces, data.get("design", {}))
     return {"floor": floor_seams, "wall": wall_seams, "overlay": overlay_seams}[data["kind"]](pieces)
 
 
@@ -395,13 +397,19 @@ WALL_ENDS = {"wall": [(0, 2.0, 2), (0, -2.0, 2)], "wall_half": [(0, 0.0, 2), (0,
              "wall_corner": [(0, -2.0, 2), (2, 2.0, 0)]}
 
 
-def source_seams(pieces, sources):
+def kaykit_source(design, piece):
+    """The KayKit tile a derived piece is cut from: the recipe's `design.source` entry (the water family's channel and
+    pool are KayKit grates), else the tile of the piece's own name."""
+    return kaykit.load(design.get("source", {}).get(piece, piece))[0]
+
+
+def source_seams(pieces, design):
     """Derived walls must leave every end exactly as the original KayKit piece has it."""
     ns = np.arange(-.5993, .6, .0087)
     ys = np.arange(.0031, 4.0, .0137)
     errors, worst = [], 0.0
     for stem, (piece, built) in pieces.items():
-        source = kaykit.load(sources.get(piece, piece))[0]
+        source = kaykit_source(design, piece)
         for axis, value, along in WALL_ENDS[piece]:
             mismatch = float(np.mean(boundary_profile(built, axis, value, along, ys, ns)
                                      != boundary_profile(source, axis, value, along, ys, ns)))

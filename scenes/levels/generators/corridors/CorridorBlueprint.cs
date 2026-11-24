@@ -45,7 +45,7 @@ public sealed class CorridorBlueprint
 	private const float Tolerance = .02f;
 	private static readonly Vector2I[] Cardinals = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];
 
-	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, float MountDepth, bool Decoratable)> _walls = [];
+	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), WallFace> _walls = [];
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _blockedEdges = [];
 	private readonly List<(Vector3 Position, Vector2I Tile)> _doors = [];
 	private readonly List<PlacedPiece> _pieces = [];
@@ -120,7 +120,8 @@ public sealed class CorridorBlueprint
 	public bool HasWall(Vector2I tile, Vector2I outward) => _walls.ContainsKey((tile, outward));
 	public float WallDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Depth : .5f;
 	public float WallMountDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.MountDepth : .5f;
-	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
+	/// <summary>Where along an edge wall decor may hang: none beside a door or where the wall's style takes no decor.</summary>
+	public MountSpan[] DecorMounts(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.DecorMounts : [];
 
 	/// <summary>Whether <paramref name="tile"/> is one of <see cref="DeadEnds"/>: a shaft end clear of doors and connectors.</summary>
 	public bool IsDeadEnd(Vector2I tile) => (_deadEndTiles ??= DeadEnds.Select(deadEnd => deadEnd.Tile).ToHashSet()).Contains(tile);
@@ -194,7 +195,7 @@ public sealed class CorridorBlueprint
 
 	/// <summary>
 	/// Attempts to hang a wall-mounted <paramref name="prop"/> centered on <paramref name="tile"/>'s
-	/// <paramref name="outward"/> wall edge.
+	/// <paramref name="outward"/> wall edge, or on the bay nearest its center where posts divide the edge.
 	/// </summary>
 	public bool TryPlaceOnTileWall(
 		Prop prop,
@@ -203,11 +204,13 @@ public sealed class CorridorBlueprint
 		RandomNumberGenerator rng,
 		float minLightSpacing = 0f)
 	{
-		if (!IsDecoratable(tile, outward)) return false;
 		var run = FindWallRun(tile, outward);
 		if (run.Length == 0) return false;
-		float centerAlong = RoomBlueprint.AlongRun(run, RoomFootprint.TileCenter(tile));
-		return TryPlaceAgainstWall(prop, run, centerAlong, rng, minLightSpacing);
+		float tileCenter = RoomBlueprint.AlongRun(run, RoomFootprint.TileCenter(tile));
+		int index = Mathf.FloorToInt(tileCenter / Room.TileSize);
+		foreach (float center in run.MountCenters(index, DecorMounts).OrderBy(center => Mathf.Abs(center - tileCenter)))
+			if (TryPlaceAgainstWall(prop, run, center, rng, minLightSpacing)) return true;
+		return false;
 	}
 
 	/// <summary>
@@ -242,7 +245,7 @@ public sealed class CorridorBlueprint
 		if (minLightSpacing > 0f && IsLightProp(prop) && HasNearbyWithSight(_lights, transform.Origin, pieceTile, minLightSpacing)) return false;
 
 		var envelope = transform * geometry.Envelope;
-		if (!RoomBlueprint.HasWallSupport(envelope, run, IsDecoratable)) return false;
+		if (!RoomBlueprint.HasWallSupport(envelope, run, DecorMounts)) return false;
 		if (!CanAcceptPiece(prop, envelope, pieceTile)) return false;
 
 		AcceptPiece(prop, variant, transform, envelope, pieceTile);
@@ -503,7 +506,7 @@ public sealed class CorridorBlueprint
 				var edge = WallFootprints.MeasureEdge(WallGridMap, worldCenter + new Vector3I(outward.X * half, 0, outward.Y * half), -outward, Room.TileSize, itemCache);
 				if (!edge.Covered) continue;
 				bool nearDoor = HasNearbyDoor(tile, localEdge, 2.2f);
-				_walls[(tile, outward)] = (edge.Depth, edge.MountDepth, !nearDoor && Walls?.IsPlain(edge.Item) == true);
+				_walls[(tile, outward)] = edge.Face(!nearDoor && Walls?.IsPlain(edge.Item) == true);
 			}
 		}
 	}

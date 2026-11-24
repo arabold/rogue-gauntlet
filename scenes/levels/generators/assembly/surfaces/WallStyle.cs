@@ -110,7 +110,7 @@ public partial class WallStyle : Resource
 		foreach (var (cell, piece) in pieces)
 		{
 			var edge = WallFootprints.MeasureEdge(grid, cell, -piece.Outward, Room.TileSize, measureCache);
-			room.SetWall(piece.Tile, piece.Outward, edge.Depth, IsPlain(edge.Item), edge.MountDepth);
+			room.SetWall(piece.Tile, piece.Outward, edge.Face(IsPlain(edge.Item)));
 		}
 		return true;
 	}
@@ -140,6 +140,7 @@ public partial class WallStyle : Resource
 		return ExteriorOnly != null && Array.IndexOf(ExteriorOnly, straight) >= 0 ? FallbackStraight : straight;
 	}
 
-	protected static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>
+	/// <summary>The wall cell centered on a tile's <paramref name="outward"/> edge.</summary>
+	internal static Vector3I EdgeCell(Vector2I tile, Vector2I outward) =>
 		(Vector3I)RoomFootprint.TileCenter(tile) + new Vector3I(outward.X, 0, outward.Y) * (Room.TileSize / 2);
 }

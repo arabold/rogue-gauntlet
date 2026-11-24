@@ -4,7 +4,7 @@ using Godot;
 
 /// <summary>
 /// Wall-mounted decoration: torches flanking doorways, or banners, shields and sconces spread along plain walls.
-/// Only hangs on decoratable wall pieces and never overlaps tall furniture.
+/// Only hangs on decoratable wall pieces, between any posts their models declare, and never overlaps tall furniture.
 /// </summary>
 [Tool, GlobalClass]
 public partial class WallDecorStep : FurnishingStep
@@ -58,10 +58,11 @@ public partial class WallDecorStep : FurnishingStep
 		return result;
 	}
 
-	/// <summary>The middle of every wall module, shuffled.</summary>
+	/// <summary>The middle of every wall module, or of each bay where the module's posts divide it, shuffled.</summary>
 	private static List<(WallRun Run, float Center)> WallCandidates(RoomBlueprint room, RandomNumberGenerator rng)
 	{
-		var result = room.WallRuns.SelectMany(run => Enumerable.Range(0, run.Length).Select(index => (run, run.TileCenterAlong(index)))).ToList();
+		var result = room.WallRuns.SelectMany(run => Enumerable.Range(0, run.Length)
+			.SelectMany(index => run.MountCenters(index, room.DecorMounts).Select(center => (run, center)))).ToList();
 		Shuffle(result, rng);
 		return result;
 	}

@@ -322,4 +322,48 @@ public class WallIntegrityTest
 
 		for (int omitted = -1; omitted < 4; omitted++) AssertJunction(library, omitted, walls.Pieces);
 	}
+
+	/// <summary>
+	/// Wall decor hangs only where the wall models leave room: cave walls declare the bays between their timber posts, so
+	/// each end module of a run, split at its center where a corner's arm meets the half wall, offers two bays and the
+	/// middle module one; plain walls declare nothing and offer each whole module.
+	/// </summary>
+	[TestCase]
+	public void MountSpansFollowTheWallModelsPosts()
+	{
+		var library = TestFactories.Load<MeshLibrary>("res://scenes/levels/dungeon/WallsMeshLibrary.tres");
+		float center = Room.TileSize / 2f;
+		var cave = NorthMounts(library, new("wall_cave_A", "wall_cave_half_A", "wall_cave_junction_short_A",
+			"wall_cave_corner_A", "wall_cave_Tsplit_A", "wall_cave_crossing_A"));
+		foreach (var end in new[] { cave[0], cave[2] })
+		{
+			AssertInt(end.Length).IsEqual(2);
+			AssertBool(end.Any(span => span.From < center && span.To > center)).IsFalse();
+		}
+		AssertInt(cave[1].Length).IsEqual(1);
+		AssertFloat(cave[1][0].Center).IsEqualApprox(center, .01f);
+		AssertBool(cave[1][0].From > 0 && cave[1][0].To < Room.TileSize).IsTrue();
+
+		foreach (var plain in NorthMounts(library, BoundaryWallBuilder.WallPieces.Default))
+		{
+			AssertInt(plain.Length).IsEqual(1);
+			AssertFloat(plain[0].From).IsEqualApprox(0, .01f);
+			AssertFloat(plain[0].To).IsEqualApprox(Room.TileSize, .01f);
+		}
+	}
+
+	/// <summary>Mount spans of the north edges of a closed three-tile row walled with <paramref name="pieces"/>.</summary>
+	private static MountSpan[][] NorthMounts(MeshLibrary library, BoundaryWallBuilder.WallPieces pieces)
+	{
+		var grid = new GridMap { MeshLibrary = library, CellSize = Vector3.One, CellCenterX = false, CellCenterY = false, CellCenterZ = false };
+		try
+		{
+			var tiles = Enumerable.Range(0, 3).Select(x => (Tile: new Vector2I(x, 0), Center: Vector3I.Right * Room.TileSize * x)).ToArray();
+			BoundaryWallBuilder.Build(grid, tiles.Select(t => (t.Tile, t.Center)),
+				(tile, dx, dz) => !tiles.Any(t => t.Tile == tile + new Vector2I(dx, dz)), structural: pieces);
+			return tiles.Select(t => WallFootprints.MeasureEdge(grid, t.Center + Vector3I.Forward * (Room.TileSize / 2), Vector2I.Down,
+				Room.TileSize).Mounts).ToArray();
+		}
+		finally { grid.Free(); }
+	}
 }

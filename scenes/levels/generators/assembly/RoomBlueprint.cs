@@ -56,7 +56,51 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 		}
 		return max > 0f ? max : .5f;
 	}
+
+	/// <summary>
+	/// Stretches along tiles <paramref name="first"/> to <paramref name="last"/> of this run, from its start, where wall
+	/// decor may hang: each edge's spans from <paramref name="mountsAt"/>, joined where they meet from one edge to the next.
+	/// </summary>
+	public MountSpan[] MountSpans(Func<Vector2I, Vector2I, MountSpan[]> mountsAt, int first, int last)
+	{
+		var spans = new List<MountSpan>();
+		for (int index = first; index <= last; index++)
+			foreach (var span in mountsAt(TileAt(index), Outward))
+				spans.Add(new(span.From + index * Room.TileSize, span.To + index * Room.TileSize));
+		return MountSpan.Join(spans);
+	}
+
+	/// <summary>
+	/// The run of tiles a box hangs in front of, facing <paramref name="inward"/>: the row its center stands in, from the
+	/// tile under its one end to the tile under the other. Tile centers sit on multiples of the tile size, as on every
+	/// room and floor grid.
+	/// </summary>
+	public static WallRun Behind(Aabb box, Vector3 inward)
+	{
+		var outward = Mathf.Abs(inward.X) > Mathf.Abs(inward.Z) ? new Vector2I(-Mathf.Sign(inward.X), 0) : new Vector2I(0, -Mathf.Sign(inward.Z));
+		var along = outward.X == 0 ? Vector2I.Right : Vector2I.Down;
+		static int TileOf(float coordinate) => Mathf.FloorToInt(coordinate / Room.TileSize + .5f);
+		var center = box.GetCenter();
+		var start = new Vector2I(TileOf(along.X != 0 ? box.Position.X : center.X), TileOf(along.Y != 0 ? box.Position.Z : center.Z));
+		var end = new Vector2I(TileOf(along.X != 0 ? box.End.X : center.X), TileOf(along.Y != 0 ? box.End.Z : center.Z));
+		return new(start, along, outward, (end - start).X + (end - start).Y + 1);
+	}
+
+	/// <summary>Where decor centers on tile <paramref name="index"/>'s edge, from the run's start: the middle of each of
+	/// its spans, so the whole module of a plain wall and each bay of a wall with posts.</summary>
+	public IEnumerable<float> MountCenters(int index, Func<Vector2I, Vector2I, MountSpan[]> mountsAt)
+	{
+		float start = index * Room.TileSize;
+		return mountsAt(TileAt(index), Outward).Select(span => start + span.Center);
+	}
 }
+
+/// <summary>
+/// The wall on one tile edge, as rooms and corridors stand and hang props against it: how far its face and its upper
+/// mounting band reach in from the wall line, and the stretches along it where wall decor may hang (from the edge's
+/// start; none where the wall's style takes no decor).
+/// </summary>
+public readonly record struct WallFace(float Depth, float MountDepth, MountSpan[] DecorMounts);
 
 /// <summary>A prop accepted into the room, in room-local space.</summary>
 public readonly record struct PlacedPiece(Prop Prop, int Variant, Transform3D Transform, Aabb Envelope);
@@ -73,7 +117,7 @@ public readonly record struct FloorPatch(Rect2 Area, FloorMaterial Material);
 public sealed class RoomBlueprint
 {
 	private const float Tolerance = .02f;
-	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), (float Depth, float MountDepth, bool Decoratable)> _walls = [];
+	private readonly Dictionary<(Vector2I Tile, Vector2I Outward), WallFace> _walls = [];
 	private readonly HashSet<(Vector2I Tile, Vector2I Outward)> _doorwayEdges;
 	private readonly List<Aabb> _wallBoxes = [];
 	private readonly List<PlacedPiece> _pieces = [];
@@ -139,13 +183,12 @@ public sealed class RoomBlueprint
 		_floorPatches.Add(new(area, material));
 	}
 
-	/// <summary>Records the wall piece on an edge: how far its face and upper mounting band reach into the room, and whether decor may hang on it.</summary>
-	public void SetWall(Vector2I tile, Vector2I outward, float depth, bool decoratable, float mountDepth = -1f) =>
-		_walls[(tile, outward)] = (depth, mountDepth < 0f ? depth : mountDepth, decoratable);
+	/// <summary>Records the wall on an edge.</summary>
+	public void SetWall(Vector2I tile, Vector2I outward, WallFace wall) => _walls[(tile, outward)] = wall;
 
 	public float WallDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.Depth : .5f;
 	public float WallMountDepth(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.MountDepth : .5f;
-	public bool IsDecoratable(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) && wall.Decoratable;
+	public MountSpan[] DecorMounts(Vector2I tile, Vector2I outward) => _walls.TryGetValue((tile, outward), out var wall) ? wall.DecorMounts : [];
 	public float RunDepth(WallRun run) => Enumerable.Range(0, run.Length).Max(index => WallDepth(run.TileAt(index), run.Outward));
 
 	/// <summary>Maximum wall depth over only the tiles spanned by [alongStart, alongEnd] along <paramref name="run"/>.</summary>
@@ -349,22 +392,25 @@ public sealed class RoomBlueprint
 		return max - min;
 	}
 
-	/// <summary>Wall-mounted props only hang where every edge behind them carries a plain, decoratable wall.</summary>
-	public static bool HasWallSupport(Aabb envelope, WallRun run, Func<Vector2I, Vector2I, bool> isDecoratable)
+	/// <summary>
+	/// Wall-mounted props only hang within one unbroken stretch of the spans <paramref name="decorMounts"/> gives the
+	/// edges behind them: never across a post, a frame or a wall that takes no decor.
+	/// </summary>
+	public static bool HasWallSupport(Aabb envelope, WallRun run, Func<Vector2I, Vector2I, MountSpan[]> decorMounts)
 	{
 		var (min, max) = Project(envelope, run.Tangent);
 		float start = run.LineStart.Dot(run.Tangent);
-		int first = Mathf.FloorToInt((min - start + Tolerance) / Room.TileSize);
-		int last = Mathf.FloorToInt((max - start - Tolerance) / Room.TileSize);
+		min -= start;
+		max -= start;
+		int first = Mathf.FloorToInt((min + Tolerance) / Room.TileSize);
+		int last = Mathf.FloorToInt((max - Tolerance) / Room.TileSize);
 		if (first < 0 || last >= run.Length) return false;
-		for (int index = first; index <= last; index++)
-			if (!isDecoratable(run.TileAt(index), run.Outward)) return false;
-		return true;
+		return run.MountSpans(decorMounts, first, last).Any(span => min >= span.From - Tolerance && max <= span.To + Tolerance);
 	}
 
-	/// <summary>Wall-mounted props only hang where every edge behind them carries a plain, decoratable wall.</summary>
+	/// <summary>Wall-mounted props only hang within one unbroken stretch of the room's <see cref="DecorMounts"/>.</summary>
 	public bool HasWallSupport(Aabb envelope, WallRun run) =>
-		HasWallSupport(envelope, run, IsDecoratable);
+		HasWallSupport(envelope, run, DecorMounts);
 
 	private bool TryAdd(PlannedPiece piece, Transform3D transform, bool checkConnectivity, bool allowPitOverhang = false)
 	{
@@ -457,6 +503,11 @@ public sealed class RoomBlueprint
 			node.SetMeta("prop_id", piece.Prop.Id);
 			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
 			root.AddChild(node);
+			// A wall prop's front faces +Z of its placement, into the room. Only those flat on one wall hang on its mounts;
+			// a corner piece turned across two walls keeps the corner it was placed by.
+			var inward = piece.Transform.Basis.Z.Normalized();
+			if (piece.Prop.Mount == PropMount.Wall && Mathf.Max(Mathf.Abs(inward.X), Mathf.Abs(inward.Z)) > .99f)
+				Room.WallProps.Add((node, node.Transform.AffineInverse() * piece.Envelope, node.Basis.Inverse() * inward));
 			if (piece.Prop.Structural)
 			{
 				string meshItem = piece.Prop.Scenes.Length == 0 ? piece.Prop.Items[piece.Variant] : null;

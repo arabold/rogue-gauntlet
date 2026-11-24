@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Godot;
 
@@ -27,6 +28,32 @@ public static class WallFootprints
 	private const float MountBandBottom = .7f;
 
 	private static readonly ConditionalWeakTable<MeshLibrary, ConcurrentDictionary<int, Aabb>> MountBandBounds = new();
+	private static readonly ConditionalWeakTable<MeshLibrary, ConcurrentDictionary<int, (Vector2 From, Vector2 To)[]>> DeclaredMounts = new();
+	private static readonly StringName Extras = "extras";
+	private const string MountSpansKey = "mount_spans";
+
+	/// <summary>
+	/// Where wall decor may hang on the item, as segments of its wall line in local XZ: the model's own
+	/// <c>mount_spans</c> extras (the Asset Studio exports them for walls whose face carries posts or frames). Null when the
+	/// model declares none, so decor may hang anywhere along it. Read once per library item.
+	/// </summary>
+	private static (Vector2 From, Vector2 To)[] MountSpans(MeshLibrary library, int item) =>
+		DeclaredMounts.GetOrCreateValue(library).GetOrAdd(item, static (id, lib) => ReadMountSpans(lib, id), library);
+
+	private static (Vector2 From, Vector2 To)[] ReadMountSpans(MeshLibrary library, int item)
+	{
+		Mesh mesh = library.GetItemMesh(item);
+		if (mesh == null || !mesh.HasMeta(Extras) || !mesh.GetMeta(Extras).AsGodotDictionary().TryGetValue(MountSpansKey, out var value))
+			return null;
+		var spans = value.AsGodotArray();
+		var result = new (Vector2 From, Vector2 To)[spans.Count];
+		for (int i = 0; i < spans.Count; i++)
+		{
+			var span = spans[i].AsGodotArray();
+			result[i] = (new Vector2(span[0].AsSingle(), span[1].AsSingle()), new Vector2(span[2].AsSingle(), span[3].AsSingle()));
+		}
+		return result;
+	}
 
 	/// <summary>
 	/// Bounds of the item's mesh vertices at or above <see cref="MountBandBottom"/>, where wall decor hangs. Scanning the
@@ -123,14 +150,21 @@ public static class WallFootprints
 	internal readonly record struct FootprintPair(Aabb First, Aabb Second, bool HasSecond);
 
 	/// <summary>One tile edge as its wall pieces cover it. <see cref="Item"/> is the edge's own piece at
-	/// <see cref="Cell"/> (a straight, or a half beside a corner), -1 where corner arms alone cover it.</summary>
-	public readonly record struct WallEdge(bool Covered, float Depth, float MountDepth, int Item, Vector3I Cell);
+	/// <see cref="Cell"/> (a straight, or a half beside a corner), -1 where corner arms alone cover it. <see cref="Mounts"/>
+	/// are the stretches of the edge, from its -X/-Z end, where wall decor may hang.</summary>
+	public readonly record struct WallEdge(bool Covered, float Depth, float MountDepth, int Item, Vector3I Cell, MountSpan[] Mounts)
+	{
+		/// <summary>The edge as props meet it: decor hangs within its mounts only where <paramref name="decoratable"/>.</summary>
+		public WallFace Face(bool decoratable) => new(Depth, MountDepth, decoratable ? Mounts : []);
+	}
 
 	/// <summary>
 	/// Measures the tile edge centered on <paramref name="edgeCell"/> from the pieces running along it: whether they seal
 	/// it, how far they reach from the wall line toward <paramref name="inward"/> (a corner by its arm, not its whole L),
-	/// how far their upper mounting band reaches, and the edge's own piece. Walls crossing the edge's ends share only
-	/// their thickness with it and do not count.
+	/// how far their upper mounting band reaches, the edge's own piece, and where along it decor may hang: each piece's
+	/// declared <see cref="MountSpans"/> on this line, and the stretch it covers when it declares none. An edge whose
+	/// pieces declare nothing is open end to end, like the plain walls it is built from. Walls crossing the edge's ends
+	/// share only their thickness with it and do not count.
 	/// </summary>
 	public static WallEdge MeasureEdge(GridMap wallGridMap, Vector3I edgeCell, Vector2I inward, int tileSize) =>
 		MeasureEdge(wallGridMap, edgeCell, inward, tileSize, null);
@@ -146,6 +180,8 @@ public static class WallFootprints
 		var (line, min, max) = EdgeSpan(edgeCell, horizontal, tileSize);
 		var step = horizontal ? Vector3I.Right : Vector3I.Back;
 		var covering = new List<Aabb>();
+		var mounts = new List<MountSpan>();
+		bool declaring = false;
 		float depth = 0;
 		float mountDepth = 0;
 		var own = (Item: -1, Cell: Vector3I.Zero);
@@ -160,17 +196,30 @@ public static class WallFootprints
 			if (name == null) continue;
 
 			int orientation = wallGridMap.GetCellItemOrientation(cell);
+			var declared = MountSpans(library, item);
 			var pair = PieceFootprintPair(meshBounds, orientation, cell, name);
 			var upperPair = PieceFootprintPair(upperBounds, orientation, cell, name);
-			CheckBox(pair.First, upperPair.First);
-			if (pair.HasSecond) CheckBox(pair.Second, upperPair.HasSecond ? upperPair.Second : upperPair.First);
+			bool counts = CheckBox(pair.First, upperPair.First);
+			if (pair.HasSecond) counts |= CheckBox(pair.Second, upperPair.HasSecond ? upperPair.Second : upperPair.First);
+			if (counts && declared != null)
+			{
+				declaring = true;
+				// A junction's arms across this edge are off its line and drop out.
+				foreach (var (from, to) in declared)
+				{
+					var span = FootprintWorld(new Aabb(new Vector3(from.X, 0, from.Y), Vector3.Zero).Expand(new Vector3(to.X, 0, to.Y)), orientation, cell);
+					var (near, far) = Across(span, horizontal);
+					var (start, end) = Along(span, horizontal);
+					if (Mathf.Abs(near - line) <= Eps && Mathf.Abs(far - line) <= Eps) AddMount(start, end);
+				}
+			}
 
-			void CheckBox(Aabb box, Aabb upperBox)
+			bool CheckBox(Aabb box, Aabb upperBox)
 			{
 				var (a, b) = Along(box, horizontal);
 				if (Mathf.Min(b, max) - Mathf.Max(a, min) <= tileSize / 4f)
 				{
-					return;
+					return false;
 				}
 
 				covering.Add(box);
@@ -183,16 +232,25 @@ public static class WallFootprints
 				{
 					own = (item, cell);
 				}
+				if (declared == null) AddMount(a, b);
+				return true;
 			}
+		}
+
+		void AddMount(float a, float b)
+		{
+			float from = Mathf.Max(Mathf.Min(a, b), min), to = Mathf.Min(Mathf.Max(a, b), max);
+			if (to - from > Eps) mounts.Add(new(from - min, to - min));
 		}
 
 		if (covering.Count == 0)
 		{
-			return new(false, .5f, .5f, -1, default);
+			return new(false, .5f, .5f, -1, default, []);
 		}
 
 		if (mountDepth <= 0f) mountDepth = depth;
-		return new(!TryGetUncoveredSpan(covering, horizontal, line, min, max, out _), depth, mountDepth, own.Item, own.Cell);
+		return new(!TryGetUncoveredSpan(covering, horizontal, line, min, max, out _), depth, mountDepth, own.Item, own.Cell,
+			declaring ? MountSpan.Join(mounts) : [new(0, tileSize)]);
 	}
 
 	public static bool EdgeFullyCovered(List<Aabb> wallBoxes, bool horizontal, float lineCoord, float spanMin, float spanMax)
@@ -435,5 +493,25 @@ public static class WallFootprints
 
 		intervals.Sort((p, q) => p.A.CompareTo(q.A));
 		return intervals;
+	}
+}
+
+/// <summary>A stretch along a wall, in units from a reference end, where wall decor may hang.</summary>
+public readonly record struct MountSpan(float From, float To)
+{
+	public float Center => (From + To) / 2;
+
+	/// <summary>The spans sorted, with any that meet or overlap joined.</summary>
+	public static MountSpan[] Join(IEnumerable<MountSpan> spans)
+	{
+		var joined = new List<MountSpan>();
+		foreach (var span in spans.OrderBy(span => span.From))
+		{
+			if (joined.Count > 0 && span.From <= joined[^1].To + WallFootprints.Eps)
+				joined[^1] = joined[^1] with { To = Mathf.Max(joined[^1].To, span.To) };
+			else
+				joined.Add(span);
+		}
+		return joined.ToArray();
 	}
 }
