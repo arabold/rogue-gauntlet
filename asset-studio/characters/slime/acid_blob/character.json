@@ -1,0 +1,37 @@
+{
+  "builder": "blender_source",
+  "source": "acid_blob_rigged.blend",
+  "rig": "blob",
+  "scale": 0.5,
+  "triangle_budget": 3500,
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Glide",
+    "Attack": "Attack",
+    "Hit": "Hit",
+    "Death": "Melt"
+  },
+  "animation_fps": 60,
+  "clips": [
+    "Idle",
+    "Glide",
+    "Attack",
+    "Hit",
+    "Melt",
+    "Melted"
+  ],
+  "loops": [
+    "Idle",
+    "Glide"
+  ],
+  "blender": {
+    "collection": "COL_AcidBlob",
+    "rig_object": "ARM_AcidBlob",
+    "rig_node": "AcidBlobRig",
+    "body_object": "SM_AcidBlob_Body",
+    "body_node": "AcidBlobBody"
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/slime/acid_blob.glb"
+  }
+}

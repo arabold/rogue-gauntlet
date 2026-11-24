@@ -1,0 +1,1384 @@
+{
+ "name": "ChestMimic",
+ "height": 1.0,
+ "center_on": [
+  "Wood"
+ ],
+ "parts": {
+  "Wood": [
+   0
+  ],
+  "Mouth": [
+   1
+  ],
+  "Strap_R": [
+   2
+  ],
+  "Tongue": [
+   3
+  ],
+  "Strap_L": [
+   4
+  ],
+  "Straps_Box": [
+   5,
+   8,
+   9
+  ],
+  "TeethUpper": [
+   6,
+   7,
+   18,
+   19,
+   21,
+   22
+  ],
+  "TeethLower": [
+   10,
+   16,
+   20,
+   24
+  ],
+  "Latch": [
+   11
+  ],
+  "Lock": [
+   12,
+   23
+  ],
+  "Hinges": [
+   13,
+   14,
+   25
+  ],
+  "Eye_R": [
+   15
+  ],
+  "Brow": [
+   17
+  ],
+  "Eye_L": [
+   26
+  ]
+ },
+ "budgets": {
+  "Wood": 1100,
+  "Mouth": 300,
+  "Strap_R": 220,
+  "Tongue": 300,
+  "Strap_L": 140,
+  "Straps_Box": 160,
+  "TeethUpper": 240,
+  "TeethLower": 160,
+  "Latch": 50,
+  "Lock": 120,
+  "Hinges": 80,
+  "Eye_R": 40,
+  "Brow": 100,
+  "Eye_L": 40
+ },
+ "smooth_angle": 35,
+ "palette": {
+  "wood": [
+   178,
+   98,
+   72
+  ],
+  "steel": [
+   172,
+   186,
+   196
+  ],
+  "mouth": [
+   66,
+   36,
+   54
+  ],
+  "tongue": [
+   196,
+   84,
+   120
+  ],
+  "tooth": [
+   238,
+   228,
+   200
+  ],
+  "eye": [
+   236,
+   150,
+   40
+  ],
+  "pupil": [
+   32,
+   24,
+   20
+  ],
+  "brow": [
+   98,
+   48,
+   66
+  ],
+  "keyhole": [
+   40,
+   34,
+   40
+  ]
+ },
+ "slots": {
+  "Wood": [
+   "wood"
+  ],
+  "Mouth": [
+   "mouth"
+  ],
+  "Strap_R": [
+   "steel"
+  ],
+  "Tongue": [
+   "tongue"
+  ],
+  "Strap_L": [
+   "steel"
+  ],
+  "Straps_Box": [
+   "steel"
+  ],
+  "TeethUpper": [
+   "tooth"
+  ],
+  "TeethLower": [
+   "tooth"
+  ],
+  "Latch": [
+   "steel"
+  ],
+  "Lock": [
+   "steel",
+   "keyhole"
+  ],
+  "Hinges": [
+   "steel"
+  ],
+  "Eye_R": [
+   "eye",
+   "pupil"
+  ],
+  "Brow": [
+   "brow"
+  ],
+  "Eye_L": [
+   "eye",
+   "pupil"
+  ]
+ },
+ "rig": {
+  "kind": "authored",
+  "bones": {
+   "Root": {
+    "head": [
+     0,
+     0,
+     0
+    ],
+    "tail": [
+     0,
+     0,
+     0.2
+    ]
+   },
+   "Body": {
+    "head": [
+     0,
+     0,
+     0.05
+    ],
+    "tail": [
+     0,
+     0,
+     0.45
+    ],
+    "parent": "Root"
+   },
+   "Lid": {
+    "head": [
+     0,
+     0.28,
+     0.47
+    ],
+    "tail": [
+     0,
+     -0.22,
+     0.75
+    ],
+    "parent": "Body"
+   },
+   "Tongue1": {
+    "head": [
+     0.05,
+     0.1,
+     0.38
+    ],
+    "tail": [
+     0.065,
+     -0.08,
+     0.425
+    ],
+    "parent": "Body"
+   },
+   "Tongue2": {
+    "head": [
+     0.065,
+     -0.08,
+     0.425
+    ],
+    "tail": [
+     0.09,
+     -0.24,
+     0.42
+    ],
+    "parent": "Tongue1"
+   },
+   "Tongue3": {
+    "head": [
+     0.09,
+     -0.24,
+     0.42
+    ],
+    "tail": [
+     0.15,
+     -0.35,
+     0.32
+    ],
+    "parent": "Tongue2"
+   },
+   "Tongue4": {
+    "head": [
+     0.15,
+     -0.35,
+     0.32
+    ],
+    "tail": [
+     0.21,
+     -0.44,
+     0.23
+    ],
+    "parent": "Tongue3"
+   },
+   "Eye.L": {
+    "head": [
+     0.119,
+     -0.2,
+     0.852
+    ],
+    "tail": [
+     0.119,
+     -0.3,
+     0.852
+    ],
+    "parent": "Lid"
+   },
+   "Eye.R": {
+    "head": [
+     -0.12,
+     -0.2,
+     0.853
+    ],
+    "tail": [
+     -0.12,
+     -0.3,
+     0.853
+    ],
+    "parent": "Lid"
+   }
+  },
+  "clips": [],
+  "idle": "Idle",
+  "weights": {
+   "Wood": {
+    "split": [
+     "Body",
+     "Lid"
+    ],
+    "z": 0.47,
+    "soft": 0.03
+   },
+   "Mouth": {
+    "split": [
+     "Body",
+     "Lid"
+    ],
+    "z": 0.47,
+    "soft": 0.03
+   },
+   "Strap_R": {
+    "split": [
+     "Body",
+     "Lid"
+    ],
+    "z": 0.47,
+    "soft": 0.03
+   },
+   "Strap_L": {
+    "split": [
+     "Body",
+     "Lid"
+    ],
+    "z": 0.47,
+    "soft": 0.03
+   },
+   "Straps_Box": "Body",
+   "Hinges": "Body",
+   "TeethLower": "Body",
+   "Latch": "Body",
+   "TeethUpper": "Lid",
+   "Lock": "Lid",
+   "Brow": "Lid",
+   "Eye_L": "Eye.L",
+   "Eye_R": "Eye.R",
+   "Tongue": {
+    "blend": [
+     "Tongue1",
+     "Tongue2",
+     "Tongue3",
+     "Tongue4"
+    ],
+    "power": 4
+   }
+  },
+  "actions": {
+   "Idle": {
+    "keys": [
+     [
+      0,
+      {}
+     ],
+     [
+      12,
+      {
+       "Lid": {
+        "rotation": [
+         -5,
+         0,
+         0
+        ]
+       },
+       "Body": {
+        "scale": [
+         1.02,
+         0.98,
+         1.02
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         8,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       },
+       "Tongue4": {
+        "rotation": [
+         8,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      24,
+      {
+       "Lid": {
+        "rotation": [
+         3,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         -4,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         -6,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      36,
+      {
+       "Lid": {
+        "rotation": [
+         -4,
+         0,
+         0
+        ]
+       },
+       "Body": {
+        "scale": [
+         1.02,
+         0.98,
+         1.02
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         8,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      48,
+      {}
+     ]
+    ]
+   },
+   "Hop": {
+    "keys": [
+     [
+      0,
+      {
+       "Body": {
+        "scale": [
+         1.08,
+         0.9,
+         1.08
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         20,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      4,
+      {
+       "Body": {
+        "location": [
+         0,
+         0.16,
+         0
+        ],
+        "scale": [
+         0.95,
+         1.08,
+         0.95
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         -12,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         -15,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         -20,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      8,
+      {
+       "Body": {
+        "location": [
+         0,
+         0.22,
+         0
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         -8,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         -10,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         -10,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      12,
+      {
+       "Body": {
+        "location": [
+         0,
+         0.06,
+         0
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         15,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      16,
+      {
+       "Body": {
+        "scale": [
+         1.08,
+         0.9,
+         1.08
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         20,
+         0,
+         0
+        ]
+       }
+      }
+     ]
+    ]
+   },
+   "Bite": {
+    "keys": [
+     [
+      0,
+      {}
+     ],
+     [
+      6,
+      {
+       "Lid": {
+        "rotation": [
+         -22,
+         0,
+         0
+        ]
+       },
+       "Body": {
+        "rotation": [
+         -8,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         -20,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      9,
+      {
+       "Lid": {
+        "rotation": [
+         40,
+         0,
+         0
+        ]
+       },
+       "Body": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      12,
+      {
+       "Lid": {
+        "rotation": [
+         38,
+         0,
+         0
+        ]
+       },
+       "Body": {
+        "rotation": [
+         6,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      20,
+      {}
+     ]
+    ]
+   },
+   "Lash": {
+    "keys": [
+     [
+      0,
+      {}
+     ],
+     [
+      6,
+      {
+       "Lid": {
+        "rotation": [
+         -15,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         -25,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         -35,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         -40,
+         0,
+         0
+        ]
+       },
+       "Tongue4": {
+        "rotation": [
+         -20,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      10,
+      {
+       "Lid": {
+        "rotation": [
+         -20,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         25,
+         0,
+         0
+        ],
+        "scale": [
+         1.25,
+         1.25,
+         1.25
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         20,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       },
+       "Tongue4": {
+        "rotation": [
+         5,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      14,
+      {
+       "Lid": {
+        "rotation": [
+         -10,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         15,
+         0,
+         0
+        ],
+        "scale": [
+         1.15,
+         1.15,
+         1.15
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         5,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      22,
+      {}
+     ]
+    ]
+   },
+   "Hit": {
+    "keys": [
+     [
+      0,
+      {}
+     ],
+     [
+      3,
+      {
+       "Body": {
+        "rotation": [
+         -12,
+         0,
+         0
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         -15,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      10,
+      {}
+     ]
+    ]
+   },
+   "Wake": {
+    "keys": [
+     [
+      0,
+      {
+       "Lid": {
+        "rotation": [
+         38,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "scale": [
+         0.2,
+         0.2,
+         0.2
+        ]
+       }
+      }
+     ],
+     [
+      6,
+      {
+       "Lid": {
+        "rotation": [
+         33,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "scale": [
+         0.2,
+         0.2,
+         0.2
+        ]
+       }
+      }
+     ],
+     [
+      9,
+      {
+       "Lid": {
+        "rotation": [
+         38,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "scale": [
+         0.2,
+         0.2,
+         0.2
+        ]
+       }
+      }
+     ],
+     [
+      13,
+      {
+       "Lid": {
+        "rotation": [
+         -12,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         1.3,
+         1.3,
+         1.3
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         1.3,
+         1.3,
+         1.3
+        ]
+       },
+       "Tongue1": {
+        "scale": [
+         1.0,
+         1.0,
+         1.0
+        ]
+       }
+      }
+     ],
+     [
+      18,
+      {
+       "Lid": {
+        "rotation": [
+         5,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         1.0,
+         1.0,
+         1.0
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         1.0,
+         1.0,
+         1.0
+        ]
+       }
+      }
+     ],
+     [
+      24,
+      {}
+     ]
+    ]
+   },
+   "Death": {
+    "keys": [
+     [
+      0,
+      {}
+     ],
+     [
+      3,
+      {
+       "Body": {
+        "rotation": [
+         0,
+         0,
+         6
+        ]
+       }
+      }
+     ],
+     [
+      6,
+      {
+       "Body": {
+        "rotation": [
+         0,
+         0,
+         -6
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         -25,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         1.25,
+         1.25,
+         1.25
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         1.25,
+         1.25,
+         1.25
+        ]
+       }
+      }
+     ],
+     [
+      10,
+      {
+       "Body": {
+        "rotation": [
+         0,
+         0,
+         4
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         -28,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         15,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         25,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         25,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0.6,
+         0.6,
+         0.6
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0.6,
+         0.6,
+         0.6
+        ]
+       }
+      }
+     ],
+     [
+      16,
+      {
+       "Root": {
+        "rotation": [
+         0,
+         0,
+         -35
+        ],
+        "location": [
+         -0.0796,
+         0.2524,
+         0
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         15,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         25,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         25,
+         0,
+         0
+        ]
+       },
+       "Tongue4": {
+        "rotation": [
+         10,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0.2,
+         0.2,
+         0.2
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0.2,
+         0.2,
+         0.2
+        ]
+       }
+      }
+     ],
+     [
+      22,
+      {
+       "Root": {
+        "rotation": [
+         0,
+         0,
+         -84
+        ],
+        "location": [
+         -0.394,
+         0.4376,
+         0
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         18,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         15,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         35,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         35,
+         0,
+         0
+        ]
+       },
+       "Tongue4": {
+        "rotation": [
+         20,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      26,
+      {
+       "Root": {
+        "rotation": [
+         0,
+         0,
+         -78
+        ],
+        "location": [
+         -0.3485,
+         0.4304,
+         0
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         16,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         15,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         35,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         35,
+         0,
+         0
+        ]
+       },
+       "Tongue4": {
+        "rotation": [
+         20,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       }
+      }
+     ],
+     [
+      30,
+      {
+       "Root": {
+        "rotation": [
+         0,
+         0,
+         -80
+        ],
+        "location": [
+         -0.3636,
+         0.4333,
+         0
+        ]
+       },
+       "Lid": {
+        "rotation": [
+         15,
+         0,
+         0
+        ]
+       },
+       "Tongue1": {
+        "rotation": [
+         15,
+         0,
+         0
+        ]
+       },
+       "Tongue2": {
+        "rotation": [
+         35,
+         0,
+         0
+        ]
+       },
+       "Tongue3": {
+        "rotation": [
+         35,
+         0,
+         0
+        ]
+       },
+       "Tongue4": {
+        "rotation": [
+         20,
+         0,
+         0
+        ]
+       },
+       "Eye.L": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       },
+       "Eye.R": {
+        "scale": [
+         0,
+         0,
+         0
+        ]
+       }
+      }
+     ]
+    ]
+   }
+  },
+  "holds": {
+   "Dead": "Death"
+  }
+ }
+}

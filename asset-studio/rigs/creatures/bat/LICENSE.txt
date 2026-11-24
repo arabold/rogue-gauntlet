@@ -1,0 +1,6 @@
+CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Author: Quaternius
+Source: res://assets/quaternius-monsters/bat.glb (Quaternius low-poly animated monsters via Poly Pizza, https://poly.pizza/u/Quaternius)
+Existing project CC0 acquisition (2026-06-28); the pack was removed from assets/ in 10384c93 and this rig was extracted from that file in Git history.

@@ -1,0 +1,67 @@
+{
+  "triangles": 3115,
+  "joints": 4,
+  "bounds": [
+    [
+      -0.9610371438035971,
+      -0.12897679103721663,
+      -0.9102013672857174
+    ],
+    [
+      0.9288822111288257,
+      1.252934320907993,
+      0.9301017064496404
+    ]
+  ],
+  "clips": [
+    "Attack",
+    "Glide",
+    "Hit",
+    "Idle",
+    "Melt",
+    "Melted"
+  ],
+  "key": "slime/acid_blob",
+  "rig": "blob",
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Glide",
+    "Attack": "Attack",
+    "Hit": "Hit",
+    "Death": "Melt"
+  },
+  "loops": [
+    "Idle",
+    "Glide"
+  ],
+  "scale": 0.5,
+  "source_inputs": "0866709f08c66ef2c830aad7012f4f2c7b5636982b47ee1cee25d3977a71b08d",
+  "gameplay": false,
+  "provenance": {
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "acid_blob_rigged.blend: built by `studio.py reconstruct build slime/acid_blob` from reconstruction.json: Tripo's parts registered at the blob rig's size, decimated per part (the overlapping flange lobes one by one), faces colored from the turnaround into a palette atlas with a lime-to-emerald ramp, and every part weighted over the unchanged Quaternius blob rig's four joints."
+  }
+}

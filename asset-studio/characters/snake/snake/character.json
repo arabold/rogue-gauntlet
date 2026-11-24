@@ -1,0 +1,53 @@
+{
+  "builder": "blender_source",
+  "source": "snake_rigged.blend",
+  "rig": "authored",
+  "required_bones": [
+    "Root",
+    "Body1",
+    "Body2",
+    "Body3",
+    "Body4",
+    "Body5",
+    "Body6",
+    "Neck1",
+    "Neck2",
+    "Neck3",
+    "Head"
+  ],
+  "scale": 1.3,
+  "triangle_budget": 3500,
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Slither",
+    "Attack": "Strike",
+    "Hit": "Hit",
+    "Death": "Death"
+  },
+  "animation_fps": 60,
+  "clips": [
+    "Idle",
+    "Slither",
+    "Strike",
+    "Hit",
+    "Death",
+    "Dead",
+    "Coiled",
+    "Uncoil"
+  ],
+  "loops": [
+    "Idle",
+    "Slither",
+    "Coiled"
+  ],
+  "blender": {
+    "collection": "COL_Snake",
+    "rig_object": "ARM_Snake",
+    "rig_node": "SnakeRig",
+    "body_object": "SM_Snake_Body",
+    "body_node": "SnakeBody"
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/snake/snake.glb"
+  }
+}

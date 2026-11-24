@@ -1,0 +1,27 @@
+{
+  "kind": "image_to_3d_retopology",
+  "concept": {
+    "image": "reference.png",
+    "prompt": "reference.prompt.txt"
+  },
+  "turnaround": {
+    "image": "turnaround.png",
+    "prompt": "turnaround.prompt.txt",
+    "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+    "views": [
+      "turnaround/front.png",
+      "turnaround/left.png",
+      "turnaround/back.png",
+      "turnaround/right.png"
+    ]
+  },
+  "reconstruction": {
+    "service": "Tripo",
+    "model": "H3.1",
+    "model_version": "v3.1-20260211",
+    "seed": 1,
+    "textured": false,
+    "separate_parts": true
+  },
+  "authoring": "nymph_rigged.blend: built by `studio.py reconstruct build nymph/nymph` from reconstruction.json: Tripo's parts registered at 2.1 m and decimated per part, arms and legs rebuilt as ring loops, faces colored from the turnaround into a palette atlas, and the KayKit skeleton fitted by moving its joints (bone directions and rolls kept) with the A-posed mesh weighted on the posed skeleton and unposed into the rest pose."
+}

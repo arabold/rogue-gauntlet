@@ -1,0 +1,1405 @@
+{
+  "name": "Snake",
+  "height": 1.05,
+  "center_on": [
+    "Throat"
+  ],
+  "offset": [
+    0,
+    -0.1,
+    0
+  ],
+  "parts": {
+    "Body": [
+      0
+    ],
+    "Throat": [
+      1
+    ],
+    "Lips": [
+      2
+    ],
+    "Eye_L": [
+      3
+    ]
+  },
+  "budgets": {
+    "Body": 2600,
+    "Throat": 260,
+    "Lips": 260,
+    "Eye_L": 60
+  },
+  "symmetric": [
+    "Body",
+    "Throat",
+    "Lips"
+  ],
+  "smooth_angle": 35,
+  "palette": {
+    "hide": [
+      156,
+      118,
+      40
+    ],
+    "marking": [
+      88,
+      60,
+      36
+    ],
+    "belly": [
+      226,
+      186,
+      128
+    ],
+    "eye": [
+      228,
+      140,
+      36
+    ],
+    "pupil": [
+      30,
+      22,
+      18
+    ],
+    "fang": [
+      236,
+      224,
+      190
+    ]
+  },
+  "slots": {
+    "Body": [
+      "hide",
+      "marking",
+      "belly",
+      "eye",
+      "pupil"
+    ],
+    "Throat": [
+      "belly"
+    ],
+    "Lips": [
+      "belly",
+      "fang"
+    ],
+    "Eye_L": [
+      "eye",
+      "pupil"
+    ]
+  },
+  "regions": {
+    "eye": {
+      "z": [
+        0.85,
+        0.98
+      ],
+      "half_width": 0.2,
+      "facing": -0.6
+    },
+    "pupil": {
+      "z": [
+        0.85,
+        0.98
+      ],
+      "half_width": 0.2,
+      "facing": -0.6
+    }
+  },
+  "undersides": {
+    "Body": {
+      "slot": "belly",
+      "facing": 0.5
+    }
+  },
+  "rig": {
+    "kind": "authored",
+    "bones": {
+      "Root": {
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "tail": [
+          0,
+          0,
+          0.15
+        ]
+      },
+      "Body1": {
+        "head": [
+          0,
+          0.06,
+          0.13
+        ],
+        "tail": [
+          0,
+          0.32,
+          0.12
+        ],
+        "parent": "Root"
+      },
+      "Body2": {
+        "head": [
+          0,
+          0.32,
+          0.12
+        ],
+        "tail": [
+          0,
+          0.58,
+          0.122
+        ],
+        "parent": "Body1"
+      },
+      "Body3": {
+        "head": [
+          0,
+          0.58,
+          0.122
+        ],
+        "tail": [
+          0,
+          0.84,
+          0.124
+        ],
+        "parent": "Body2"
+      },
+      "Body4": {
+        "head": [
+          0,
+          0.84,
+          0.124
+        ],
+        "tail": [
+          0,
+          1.1,
+          0.12
+        ],
+        "parent": "Body3"
+      },
+      "Body5": {
+        "head": [
+          0,
+          1.1,
+          0.12
+        ],
+        "tail": [
+          0,
+          1.36,
+          0.112
+        ],
+        "parent": "Body4"
+      },
+      "Body6": {
+        "head": [
+          0,
+          1.36,
+          0.112
+        ],
+        "tail": [
+          0,
+          1.615,
+          0.105
+        ],
+        "parent": "Body5"
+      },
+      "Neck1": {
+        "head": [
+          0,
+          0.06,
+          0.13
+        ],
+        "tail": [
+          0,
+          -0.035,
+          0.3
+        ],
+        "parent": "Root"
+      },
+      "Neck2": {
+        "head": [
+          0,
+          -0.035,
+          0.3
+        ],
+        "tail": [
+          0,
+          0.02,
+          0.47
+        ],
+        "parent": "Neck1"
+      },
+      "Neck3": {
+        "head": [
+          0,
+          0.02,
+          0.47
+        ],
+        "tail": [
+          0,
+          0.08,
+          0.72
+        ],
+        "parent": "Neck2"
+      },
+      "Head": {
+        "head": [
+          0,
+          0.08,
+          0.72
+        ],
+        "tail": [
+          0,
+          -0.36,
+          0.84
+        ],
+        "parent": "Neck3"
+      }
+    },
+    "clips": [],
+    "idle": "Idle",
+    "weights": {
+      "Body": {
+        "blend": [
+          "Body1",
+          "Body2",
+          "Body3",
+          "Body4",
+          "Body5",
+          "Body6",
+          "Neck1",
+          "Neck2",
+          "Neck3",
+          "Head"
+        ],
+        "power": 6
+      },
+      "Throat": {
+        "blend": [
+          "Body1",
+          "Neck1",
+          "Neck2",
+          "Neck3",
+          "Head"
+        ],
+        "power": 6
+      },
+      "Lips": {
+        "blend": [
+          "Neck1",
+          "Neck2",
+          "Neck3",
+          "Head"
+        ],
+        "power": 6
+      },
+      "Eye_L": "Head"
+    },
+    "actions": {
+      "Idle": {
+        "keys": [
+          [
+            0,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  18
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  -28
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  -26
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  28
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  0,
+                  0,
+                  30
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  0,
+                  0,
+                  12
+                ]
+              }
+            }
+          ],
+          [
+            36,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  18
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  -28
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  -26
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  28
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  0,
+                  0,
+                  30
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  0,
+                  0,
+                  12
+                ]
+              },
+              "Neck1": {
+                "rotation": [
+                  -3,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  4,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -3,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            72,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  18
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  -28
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  -26
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  28
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  0,
+                  0,
+                  30
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  0,
+                  0,
+                  12
+                ]
+              }
+            }
+          ]
+        ],
+        "waves": [
+          {
+            "bones": [
+              "Body1",
+              "Body2",
+              "Body3",
+              "Body4",
+              "Body5",
+              "Body6"
+            ],
+            "rotation": [
+              0,
+              0,
+              5
+            ],
+            "cycles": 1,
+            "lag": 60,
+            "taper": [
+              0.3,
+              1
+            ]
+          },
+          {
+            "bones": [
+              "Neck1",
+              "Neck2",
+              "Neck3"
+            ],
+            "rotation": [
+              0,
+              0,
+              3
+            ],
+            "cycles": 1,
+            "lag": 30
+          },
+          {
+            "bones": [
+              "Head"
+            ],
+            "rotation": [
+              0,
+              0,
+              8
+            ],
+            "cycles": 1,
+            "lag": 0
+          }
+        ]
+      },
+      "Slither": {
+        "keys": [
+          [
+            0,
+            {}
+          ],
+          [
+            24,
+            {}
+          ]
+        ],
+        "waves": [
+          {
+            "bones": [
+              "Body1",
+              "Body2",
+              "Body3",
+              "Body4",
+              "Body5",
+              "Body6"
+            ],
+            "rotation": [
+              0,
+              0,
+              24
+            ],
+            "cycles": 1,
+            "lag": 60,
+            "taper": [
+              0.5,
+              1
+            ]
+          },
+          {
+            "bones": [
+              "Neck1"
+            ],
+            "rotation": [
+              3,
+              0,
+              0
+            ],
+            "cycles": 2,
+            "lag": 0
+          }
+        ]
+      },
+      "Strike": {
+        "keys": [
+          [
+            0,
+            {}
+          ],
+          [
+            8,
+            {
+              "Neck1": {
+                "rotation": [
+                  -22,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  18,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  10,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -12,
+                  0,
+                  0
+                ]
+              },
+              "Root": {
+                "location": [
+                  0,
+                  0,
+                  -0.05
+                ]
+              }
+            }
+          ],
+          [
+            11,
+            {
+              "Neck1": {
+                "rotation": [
+                  -25,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  20,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  11,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -13,
+                  0,
+                  0
+                ]
+              },
+              "Root": {
+                "location": [
+                  0,
+                  0,
+                  -0.06
+                ]
+              }
+            }
+          ],
+          [
+            14,
+            {
+              "Root": {
+                "location": [
+                  0,
+                  0,
+                  0.12
+                ]
+              },
+              "Neck1": {
+                "rotation": [
+                  26,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  47,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  -25,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -33,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            18,
+            {
+              "Root": {
+                "location": [
+                  0,
+                  0,
+                  0.12
+                ]
+              },
+              "Neck1": {
+                "rotation": [
+                  26,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  47,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  -25,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -33,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            32,
+            {}
+          ]
+        ]
+      },
+      "Hit": {
+        "keys": [
+          [
+            0,
+            {}
+          ],
+          [
+            4,
+            {
+              "Neck1": {
+                "rotation": [
+                  -18,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  -8,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -15,
+                  0,
+                  0
+                ]
+              },
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  8
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  -10
+                ]
+              }
+            }
+          ],
+          [
+            14,
+            {}
+          ]
+        ]
+      },
+      "Death": {
+        "keys": [
+          [
+            0,
+            {}
+          ],
+          [
+            6,
+            {
+              "Neck1": {
+                "rotation": [
+                  -25,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  -10,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -20,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            14,
+            {
+              "Neck1": {
+                "rotation": [
+                  -10,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  0,
+                  0,
+                  20
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -10,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            24,
+            {
+              "Neck1": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  10,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            30,
+            {
+              "Neck1": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  10,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  15,
+                  -45.0,
+                  0
+                ]
+              },
+              "Root": {
+                "rotation": [
+                  0,
+                  0,
+                  45
+                ],
+                "location": [
+                  0,
+                  0.06,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            36,
+            {
+              "Neck1": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  10,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  15,
+                  -90,
+                  0
+                ]
+              },
+              "Root": {
+                "rotation": [
+                  0,
+                  0,
+                  90
+                ],
+                "location": [
+                  0,
+                  0.12,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            44,
+            {
+              "Neck1": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  10,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  15,
+                  -90,
+                  0
+                ]
+              },
+              "Root": {
+                "rotation": [
+                  0,
+                  0,
+                  90
+                ],
+                "location": [
+                  0,
+                  0.12,
+                  0
+                ]
+              }
+            }
+          ]
+        ],
+        "waves": [
+          {
+            "bones": [
+              "Body1",
+              "Body2",
+              "Body3",
+              "Body4",
+              "Body5",
+              "Body6"
+            ],
+            "rotation": [
+              0,
+              0,
+              30
+            ],
+            "cycles": 3,
+            "lag": 60,
+            "taper": [
+              0.6,
+              1
+            ],
+            "envelope": [
+              [
+                0,
+                0.3
+              ],
+              [
+                6,
+                1
+              ],
+              [
+                24,
+                0.6
+              ],
+              [
+                34,
+                0.15
+              ],
+              [
+                44,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "Coiled": {
+        "keys": [
+          [
+            0,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  40
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  58
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  4,
+                  0,
+                  60
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  6,
+                  0,
+                  55
+                ]
+              },
+              "Neck1": {
+                "rotation": [
+                  -30,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  25,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -15,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            36,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  40
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  58
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  4,
+                  0,
+                  60
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  6,
+                  0,
+                  55
+                ]
+              },
+              "Neck1": {
+                "rotation": [
+                  -33,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  27,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  16,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -16,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            72,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  40
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  58
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  4,
+                  0,
+                  60
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  6,
+                  0,
+                  55
+                ]
+              },
+              "Neck1": {
+                "rotation": [
+                  -30,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  25,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -15,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        ],
+        "waves": [
+          {
+            "bones": [
+              "Head"
+            ],
+            "rotation": [
+              0,
+              0,
+              4
+            ],
+            "cycles": 1,
+            "lag": 0
+          }
+        ]
+      },
+      "Uncoil": {
+        "keys": [
+          [
+            0,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  40
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  58
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  62
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  4,
+                  0,
+                  60
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  6,
+                  0,
+                  55
+                ]
+              },
+              "Neck1": {
+                "rotation": [
+                  -30,
+                  0,
+                  0
+                ]
+              },
+              "Neck2": {
+                "rotation": [
+                  25,
+                  0,
+                  0
+                ]
+              },
+              "Neck3": {
+                "rotation": [
+                  15,
+                  0,
+                  0
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  -15,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            8,
+            {
+              "Body1": {
+                "rotation": [
+                  0,
+                  0,
+                  18
+                ]
+              },
+              "Body2": {
+                "rotation": [
+                  0,
+                  0,
+                  -28
+                ]
+              },
+              "Body3": {
+                "rotation": [
+                  0,
+                  0,
+                  -26
+                ]
+              },
+              "Body4": {
+                "rotation": [
+                  0,
+                  0,
+                  28
+                ]
+              },
+              "Body5": {
+                "rotation": [
+                  0,
+                  0,
+                  30
+                ]
+              },
+              "Body6": {
+                "rotation": [
+                  0,
+                  0,
+                  12
+                ]
+              }
+            }
+          ]
+        ]
+      }
+    },
+    "holds": {
+      "Dead": "Death"
+    }
+  }
+}

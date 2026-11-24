@@ -137,8 +137,9 @@ class OpenAIProvider:
         return _retry(lambda: self._decode(
             self.client.images.generate(model=self.image_model, prompt=prompt, size=size, quality="high")))
 
-    def edit_image(self, prompt, refs, aspect="16:9"):
-        size = _OPENAI_SIZES.get(aspect, "1536x1024")
+    def edit_image(self, prompt, refs, aspect="16:9", size=None):
+        """`size` (e.g. "2048x2048") overrides the aspect's default resolution."""
+        size = size or _OPENAI_SIZES.get(aspect, "1536x1024")
 
         def call():
             files = [(f"ref{i}.png", _png_bytes(r), "image/png") for i, r in enumerate(refs)]

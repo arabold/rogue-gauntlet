@@ -1,0 +1,35 @@
+{
+  "builder": "blender_source",
+  "source": "giant_bat_rigged.blend",
+  "rig": "bat",
+  "scale": 0.4,
+  "triangle_budget": 4000,
+  "roles": {
+    "Idle": "Fly",
+    "Walk": "Fly",
+    "Attack": "Attack",
+    "Hit": "Hit",
+    "Death": "Death"
+  },
+  "animation_fps": 60,
+  "clips": [
+    "Fly",
+    "Attack",
+    "Hit",
+    "Death",
+    "Dead"
+  ],
+  "loops": [
+    "Fly"
+  ],
+  "blender": {
+    "collection": "COL_GiantBat",
+    "rig_object": "ARM_GiantBat",
+    "rig_node": "GiantBatRig",
+    "body_object": "SM_GiantBat_Body",
+    "body_node": "GiantBatBody"
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/bat/giant_bat.glb"
+  }
+}

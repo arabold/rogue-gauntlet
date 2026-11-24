@@ -25,12 +25,23 @@ def local(folder,value):
     return p
 
 
+def rig_template(name):
+    """A `blender_source` recipe's technical rig: a humanoid template, a creature rig such as the blob, or None for an
+    `authored` rig, which the source defines itself (its recipe lists the bones as `required_bones`)."""
+    if name=='authored':return None
+    humanoid=STUDIO/'rigs/templates'/(name+'.glb')
+    return humanoid if humanoid.is_file() else local(cr.source(name).parent,'rig.glb')
+
+
 def profile(character):
     recipe=character.recipe()
     name=recipe['rig']
     if recipe['builder']=='blender_source':
-        template,_,_=cr._doc(local(STUDIO/'rigs/templates',name+'.glb'))
-        bones={template['nodes'][i]['name'] for i in template['skins'][0]['joints']}
+        template=rig_template(name)
+        bones=set()
+        if template:
+            template,_,_=cr._doc(template)
+            bones={template['nodes'][i]['name'] for i in template['skins'][0]['joints']}
         bones.update(recipe.get('required_bones', []))
         return {
             'bones':{bone:bone for bone in sorted(bones)},
@@ -55,7 +66,7 @@ def signature(character):
            STUDIO/'core/export.py',STUDIO/'core/mesh.py',STUDIO/'core/rig.py',STUDIO/'core/kit.py',STUDIO/'godot/render_creature.gd',
            STUDIO/'godot/render_armor_fittings.gd',STUDIO/'godot/item_surface_colors.gd']
     if r['builder']=='blender_source':
-        paths += [local(folder,r['source']),local(STUDIO/'rigs/templates',r['rig']+'.glb'),
+        paths += [local(folder,r['source']),*filter(None,[rig_template(r['rig'])]),
                   STUDIO/'core/blender.py',STUDIO/'blender/blender.json',STUDIO/'blender/export_character.py']
     elif r['builder']=='skinned_source':paths += [local(folder,r['source']),local(folder,r['surface'])]
     else:paths += [STUDIO/'prefabs/creatures/golems.py',STUDIO/'rigs/large/rig.glb',STUDIO/'core/hinges.py',STUDIO/'core/rigid_export.py']

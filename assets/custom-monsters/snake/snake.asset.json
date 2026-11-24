@@ -1,0 +1,73 @@
+{
+  "triangles": 3179,
+  "joints": 11,
+  "bounds": [
+    [
+      -1.352735959346617,
+      -0.11650780702096633,
+      -2.2194952204468965
+    ],
+    [
+      0.6394030314501981,
+      1.427262539054058,
+      1.2962122761081223
+    ]
+  ],
+  "clips": [
+    "Coiled",
+    "Dead",
+    "Death",
+    "Hit",
+    "Idle",
+    "Slither",
+    "Strike",
+    "Uncoil"
+  ],
+  "key": "snake/snake",
+  "rig": "authored",
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Slither",
+    "Attack": "Strike",
+    "Hit": "Hit",
+    "Death": "Death"
+  },
+  "loops": [
+    "Idle",
+    "Slither",
+    "Coiled"
+  ],
+  "scale": 1.3,
+  "source_inputs": "44f7720223ebdc17e76907ced1952e520ceb4781c856e6126d3a8e378a1aeb94",
+  "gameplay": false,
+  "provenance": {
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high; the front panel's body, drawn as a crossbar behind the neck, cleared by hand so the body lies hidden behind the neck as in the other views; the back panel, drawn from a raised camera, is left out of the reconstruction",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true,
+      "omit_views": [
+        "back"
+      ]
+    },
+    "authoring": "snake_rigged.blend: built by `studio.py reconstruct build snake/snake` from reconstruction.json: Tripo's four pieces registered with the neck's base at the origin, decimated per part and colored from the turnaround, the unseen underside painted as belly; a spine rig authored in the config (root, six body bones to the tail, three neck bones and the head) with every clip keyed there, the slither and sways as waves along the spine."
+  }
+}
