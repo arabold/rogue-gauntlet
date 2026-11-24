@@ -45,7 +45,6 @@ Stage = NodePath("DebugStage")
 Lighting = NodePath("WorldLighting")
 
 [node name="WorldLighting" parent="." instance=ExtResource("lighting")]
-AmbientScale = 2.0
 
 [node name="GameCamera" parent="." instance=ExtResource("camera")]
 

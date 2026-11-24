@@ -26,5 +26,7 @@ FirstDepth = 16
 LastDepth = 20
 Corridors = ExtResource("corridors")
 Atmosphere = ExtResource("atmosphere")
+AmbientScale = 1.8
+AmbientTint = Color(1.35, 1.1, 0.85, 1)
 FloorPlans = [SubResource("plan_mines"), SubResource("plan_cluster_large")]
 BossProfile = ExtResource("boss")

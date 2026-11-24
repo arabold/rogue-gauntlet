@@ -20,6 +20,12 @@ public partial class Realm : Resource
 	[Export] public DungeonTileFactory Corridors { get; set; }
 	/// <summary>Optional scene-composed floor atmosphere; presentation only, independent of generation streams.</summary>
 	[Export] public AtmosphereProfile Atmosphere { get; set; }
+	/// <summary>Multiplies the shared ambient light on the realm's floors, so a realm built from darker walls and
+	/// floors reads as well as the others; presentation only.</summary>
+	[Export(PropertyHint.Range, "0,4,0.05")] public float AmbientScale { get; set; } = 1f;
+	/// <summary>Multiplies the shared ambient color on the realm's floors, warming the cool dungeon fill where it
+	/// would leave earthen surfaces murky; presentation only.</summary>
+	[Export] public Color AmbientTint { get; set; } = Colors.White;
 	/// <summary>Keepers the generator stands on the realm's floors, each on the floor its placement names.</summary>
 	[Export] public ShopPlacementProfile[] Shops { get; set; } = [];
 
