@@ -139,6 +139,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		bool unaware = false;
 		float hitStopScale = 1;
 		bool reactionSuppressed = false;
+		bool lethal = false;
 		DamageResolution Resolved(DamageOutcome outcome, float amount = 0)
 		{
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "damage.resolved", ("source", CombatTrace.Identity(snapshot.SourceNode)),
@@ -155,7 +156,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 					| (unaware ? DamageEmphasis.Sneak : 0);
 			EmitSignalDamageResolved((int)outcome, amount, (int)emphasis);
 			var feedback = new CombatContactFeedback(snapshot, this, outcome, amount, emphasis, reaction,
-				reactionSuppressed, HealthComponent?.IsDead == true, GlobalPosition, snapshot.IncomingDirection,
+				reactionSuppressed, lethal || HealthComponent?.IsDead == true, GlobalPosition, snapshot.IncomingDirection,
 				snapshot.Feedback ?? FeedbackProfile?.Capture() ?? default);
 			PublishContactResolved(in feedback);
 			return new DamageResolution(outcome, amount, hitStopScale);
@@ -233,14 +234,16 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 		// Death can clear a status during TakeDamage; preserve the contact's reaction rules.
 		bool statusLocked = MovementComponent?.ActionGate?.IsStatusLocked == true;
 		EmitSignalDamageTaken(finalDamage, contact.IncomingDirection);
-		HealthComponent?.TakeDamage(finalDamage);
+		// A lethal blow the death guard caught (a golem collapsing) lands like a kill: no reaction, push or statuses.
+		lethal = HealthComponent?.TakeDamage(finalDamage) == true;
 
-		reactionSuppressed = defenseEval.SuppressHitStun || statusLocked || contact.SuppressHitReaction;
+		bool caught = lethal && HealthComponent?.IsDead != true;
+		reactionSuppressed = defenseEval.SuppressHitStun || statusLocked || contact.SuppressHitReaction || caught;
 		if (!reactionSuppressed)
 			reaction = ReactToHit(contact, poiseDamage, finalDamage);
-		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && HealthComponent?.IsDead != true)
+		if (!isDefended && float.IsFinite(contact.ForcedPush) && contact.ForcedPush > 0 && !lethal)
 			MovementComponent?.PushForced(contact.IncomingDirection, contact.ForcedPush);
-		if (!isDefended && HealthComponent?.IsDead != true
+		if (!isDefended && !lethal
 			&& contact.DeliveryKind is DamageDeliveryKind.DirectMelee or DamageDeliveryKind.Projectile)
 			ApplyOnHitStatuses(contact, random);
 

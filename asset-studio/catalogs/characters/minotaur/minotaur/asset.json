@@ -1,0 +1,72 @@
+{
+  "triangles": 9077,
+  "joints": 23,
+  "bounds": [
+    [
+      -2.258971415069773,
+      -0.21188279417810485,
+      -3.474609535415405
+    ],
+    [
+      2.2699800200692786,
+      4.55742656642269,
+      3.497626454362941
+    ]
+  ],
+  "clips": [
+    "Charge",
+    "ChargeWindup",
+    "Death_A",
+    "Death_A_Pose",
+    "Hit_A",
+    "Idle_A",
+    "Melee_Unarmed_Punch",
+    "Melee_Unarmed_Smash",
+    "Running_A"
+  ],
+  "key": "minotaur/minotaur",
+  "rig": "large",
+  "roles": {
+    "Idle": "Idle_A",
+    "Walk": "Running_A",
+    "Punch": "Melee_Unarmed_Punch",
+    "Smash": "Melee_Unarmed_Smash",
+    "ChargeWindup": "ChargeWindup",
+    "Charge": "Charge"
+  },
+  "loops": [
+    "Idle_A",
+    "Running_A"
+  ],
+  "scale": 1.0,
+  "source_inputs": "b7664beffc57beb30ab8616811f36b5e8dcf1a18e8aa6876e84ddece1d241df9",
+  "gameplay": false,
+  "provenance": {
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt",
+      "generator": "gemini-3-pro-image via Asset Studio; inputs: the approved Orc Warrior concept and the Knight style reference"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high; first of two drafts",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "minotaur_rigged.blend: built by `studio.py reconstruct build minotaur/minotaur` from reconstruction.json on KayKit's large rig, with the charge wind-up and charge clips authored over the rig's idle and run."
+  }
+}

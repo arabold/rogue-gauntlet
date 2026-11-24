@@ -10,7 +10,7 @@ Status: proposed. The current roster, monster composition and action system are 
 - Every realm ends on a gatekeeper with a signature mechanic.
 - Some monsters break the rules the way Rogue's best-remembered ones did: thieves that steal and run, a chest that bites, an invisible stalker, a gaze that turns the hero to stone, and growths that grab from the floor.
 
-Non-goals: depth-scaled stats (every monster keeps the fixed strength the balance model derives for it), realms beyond the fifth, and reusing the existing Asset Studio monster catalog. Monsters are built new for this roster.
+Non-goals: depth-scaled stats (every monster keeps the fixed strength the balance model derives for it), realms beyond the fifth, and reusing the existing Asset Studio monster catalog. Monsters are built new for this roster, except the stone golem, whose procedural Studio build already fits the Mines.
 
 ## Roster
 
@@ -30,7 +30,7 @@ Skeleton minion, warrior, crossbowman and mage, the plague rat, and the Forsaken
 | Orc captain | NetHack Uruk-hai | Brute | Shield guard and bash; empowers grunts near it |
 | Giant bat | Rogue `B`, NetHack giant bat | Swarmer | **Flight**: fast, erratic swoops over water, chasms and low obstacles |
 | Nymph | Rogue `N` | Fodder | Slips close, **steals** an item from the hero's pack and **escapes**; killing her before she gets away drops it |
-| **Troll** (gatekeeper) | Rogue `T`, NetHack troll | Boss | Club swings and a ground slam; **revives** unless finished while down |
+| **Minotaur** (gatekeeper) | NetHack minotaur | Boss | The Prison's escaped prisoner, iron shackles on its wrists. Punches and a guard-breaking two-fist smash up close; lowers its head and **charges** across the arena, and a charge the hero sidesteps ends against a wall, leaving it staggered. At half health it charges faster and more often |
 
 Nest: a bat roost that releases giant bats.
 
@@ -57,7 +57,7 @@ Nest: a slime vat that releases acid blobs.
 | Gnome | NetHack gnome | Fodder | Small; comes in mobs and flees when hurt |
 | Gnome lord | NetHack gnome lord | Shooter | Carries a small crossbow |
 | Gnome king | NetHack gnome king | Caster | Leads a mob and empowers gnomes near it |
-| Dwarf | NetHack dwarf | Brute | Slow, heavily armored, hits hard with a mattock |
+| Stone golem | NetHack stone golem | Brute | Twice the hero's height, so it guards its room. Slow, heavy fists and a guard-breaking smash; **revives** once: the first lethal blow collapses it into rubble that nothing can harm, and it pulls itself back together; the next lethal blow is final |
 | Soldier ant | NetHack soldier ant | Swarmer | Very fast zigzag charge, in pairs |
 | Piercer | NetHack piercer | Standard | **Ambush**: clings to the ceiling and drops on whoever walks beneath, then crawls slowly |
 | Living roots | Grasper family | Standard | Burst from the earth like a trap; **grasp** and crush the hero until the hero fights free; tougher and slower to break than tentacles |
@@ -95,7 +95,8 @@ Each capability is a reusable component, action or strategy, authored on the mon
 | Chest mimic | Any realm from the Prison on | Chest placement, ambush |
 | Contact corrosion | Acid blob | Hurtbox events, `BuffController` |
 | Armor rust and strength sap | Aquator, rattlesnake | Buff modifiers on armor and attributes |
-| Revive | Troll | `HealthComponent`, `HealthPhaseComponent` |
+| Charge (landed) | Minotaur | `AttackDefinition` travel on the `AttackController` clock, the attack warning, `HealthPhaseComponent` |
+| Revive (landed) | Stone golem | `HealthComponent`, action gate status lock, `CombatAnimationComponent` |
 | Ambush | Piercer, gargoyle, graspers, chest mimic | `InvisibilityComponent`, attack indicator |
 | Burrow | Umber hulk | Ground navigation, `InvisibilityComponent` |
 | Gaze | Umber hulk, medusa | `MonsterTimedAction`, attack indicator, confusion status, petrify |
@@ -159,17 +160,28 @@ Rogue's Xeroc, as a chest. From the Prison on, a placed chest may be a mimic.
 - **Contact corrosion (landed):** `ContactRetaliationComponent` on the acid blob burns an attacker whose melee hit lands with acid (a short poison, `acid_burn.tres`), read from the hurtbox's contact event. Ranged hits are safe.
 - **Armor rust and strength sap:** the aquator's attack payload applies a timed buff that lowers armor, and the rattlesnake's venom one that lowers Strength, both through the existing modifier system. No new component.
 
+### Charge
+
+Landed for the minotaur; [monster authoring](../monster-authoring-design.md) describes travelling attacks.
+
+- **Travel (landed):** any melee `AttackDefinition` may travel: `TravelDistance` metres along the facing it locks before contact, run through its contact window by the `AttackController` on its own clock (it holds still through hit-stop), so its ordinary melee contact travels with it. The minotaur's charges are plain `MonsterAttackAction`s with such an attack; `MonsterDashAction` stays the damage-free hop.
+- **Telegraph (landed):** a head-down wind-up clip (`ChargeWindup`) while the attack warning shows the contact swept along the run, cut short at the first wall.
+- **Wall impact (landed):** a run that meets a wall or solid prop head-on ends there and staggers the attacker for `WallImpactStagger`, with an optional `WallImpactShake`: the hero's opening. Bodies never stop it, and one that ends in the open recovers normally.
+- **Breaking its chains (landed):** a `HealthPhaseComponent` phase at half health swaps the charge for a faster, more frequent one (shorter wind-up, higher speed and weight) and raises the smash's weight.
+
 ### Revive
 
-- **Component (proposed):** `ReviveComponent` on the troll. When health reaches zero, the troll falls into a downed state for `DownedDuration` instead of dying. Any hit while it is down kills it for good. Otherwise it stands up at `ReviveHealthShare` of its maximum.
-- **Persistence:** the gatekeeper's defeat and cleared ID are recorded only on the final death, so the descent stays sealed while the troll is down.
+Landed for the stone golem; [monster authoring](../monster-authoring-design.md) describes `ReviveComponent`.
+
+- **Component (landed):** `ReviveComponent` on the stone golem, an `IDeathGuard` that `HealthComponent` asks before a blow kills. The golem collapses through its death clip instead of dying and lies there for `DownedDuration` with a sliver of health, status-locked so it neither acts nor turns, and its hurtbox turns every blow away: a hero who keeps swinging cannot skip the revive. Then it plays the clip backwards and stands with `ReviveHealthShare` (40%) of its maximum. It gets up `Revives` times (once); the next lethal blow kills it. A revive that the rubble's hits could cancel was dropped: the blow after the collapse came too quickly for the revive to matter.
+- **Rewards and persistence (landed):** experience, drops and the cleared ID come only with the final death, through the ordinary death path, so walking away from the rubble is not a kill.
 
 ```text
-HealthComponent: health reaches 0
-└─ ReviveComponent intercepts (first time, or until finished)
-   ├─ downed: action gate disabled, downed clip, hurtbox stays live
-   ├─ hit while downed → HealthComponent dies → Died → gatekeeper cleared, seal lifts
-   └─ timer ends → health restored to ReviveHealthShare → resume behavior
+HealthComponent: a blow would take health to 0
+└─ ReviveComponent catches it while revives remain
+   ├─ down: sliver of health, action gate status-locked, death clip held, hurtbox invulnerable
+   ├─ timer ends → death clip played backwards → health restored to ReviveHealthShare → resume behavior
+   └─ revives spent → HealthComponent dies → Died → rewards, drops, cleared ID
 ```
 
 ### Ambush, burrow, gaze and invisibility
@@ -199,7 +211,9 @@ HealthComponent: health reaches 0
 
 ## Art
 
-- Built with the [Asset Studio](../../asset-studio/README.md) monster pipeline in the KayKit style. Humanoids use KayKit rigs: medium for orcs, gnomes and dwarves, large for the troll and umber hulk. They share the rig's clips where possible, and missing clips (cast, throw, hover) are authored per rig.
+- Built with the [Asset Studio](../../asset-studio/README.md) monster pipeline in the KayKit style. Humanoids use KayKit rigs: medium for orcs and gnomes, large for the minotaur and umber hulk. They share the rig's clips where possible, and missing clips (cast, throw, hover) are authored per rig.
+- The minotaur's turnaround turns the concept's wrist bands into iron shackles with broken chain links. Rigid links swung stiffly with the forearm, so the build drops them until they get bones of their own; it is built on the large rig with its charge clips authored over the rig's idle and run ([source](../../asset-studio/characters/minotaur/minotaur/README.md)).
+- The stone golem is the Studio's existing procedural build (`golem/stone_golem`): rigid rocks on the large rig, already exported to `assets/custom-monsters/golem/`. Each rock follows one bone, so its collapse and reassemble clips need no new art.
 - Families share one base body per rig: tiers change gear, size, palette and one silhouette mark (the captain's shield, the king's crown).
 - The grasper's tentacles and roots share one simple chain rig and clip set (erupt, grab, squeeze, sink); only the mesh and materials differ.
 - Blobs, the gelatinous cube and the piercer animate by transform and shader (squash and stretch, wobble) with no skeleton. The cube's transparency uses instance-local alpha materials, never `GeometryInstance3D.Transparency`.
@@ -208,9 +222,9 @@ HealthComponent: health reaches 0
 ## Affected files
 
 ```text
-+ scenes/enemies/orc/, troll/, giant_bat/, nymph/       slices 1, 2 and 4
++ scenes/enemies/orc/, minotaur/, giant_bat/, nymph/    slices 1, 2 and 4
 + scenes/enemies/slime/, aquator/, snake/, grasper/, gelatinous_cube/
-+ scenes/enemies/gnome/, dwarf/, soldier_ant/, piercer/, leprechaun/, umber_hulk/
++ scenes/enemies/gnome/, golem/, soldier_ant/, piercer/, leprechaun/, umber_hulk/
 + scenes/enemies/chest_mimic/
 + scenes/enemies/gargoyle/, wraith/, ghost/, vampire_bat/, phantom/, medusa/, lich/
 + scenes/levels/encounters/{prison,sewer,mines,cathedral}_encounters.tres
@@ -224,8 +238,8 @@ HealthComponent: health reaches 0
 ~ scenes/attacks/Projectile.cs (+ its definition)     arc trajectory, impact field
 ~ scenes/magic/shared/LingeringAreaDefinition.cs      PoisonPool kind
 + scenes/components/ReviveComponent.cs, AmbushComponent.cs, ContactRetaliationComponent.cs
-+ scenes/enemies/actions/MonsterBurrowAction.cs, MonsterGazeAction.cs, MonsterSummonAction.cs, MonsterBlinkAction.cs,
-  MonsterGraspAction.cs, MonsterStealAction.cs
++ scenes/enemies/actions/MonsterBurrowAction.cs, MonsterGazeAction.cs, MonsterSummonAction.cs,
+  MonsterBlinkAction.cs, MonsterGraspAction.cs, MonsterStealAction.cs
 + scenes/buffs/conditions/goo_bound.tres, petrified.tres, grasped.tres
 + scenes/components/GraspedStatusComponent.cs           no movement or dodge while grasped
 ~ scenes/player/player.tscn                           goo-bound, petrified and grasped status components
@@ -239,16 +253,17 @@ HealthComponent: health reaches 0
 
 Each slice lands playable: its realm's floors spawn the new roster, and the harness can stage each monster.
 
-1. **Prison on the ground.** Orc family, the troll with revive, and the prison factory chained from the Garrison. No nest yet.
-   - Landed early, with the Sewer's [factory](../../scenes/levels/encounters/sewer_encounters.tres) (sewer rats, acid blobs and snakes, and the slime vat, a goo barrel that releases acid blobs, as its nest; no aquator, tentacles or gatekeeper yet): the [prison factory](../../scenes/levels/encounters/prison_encounters.tres), chained from the Garrison, with the Orc Warrior as the grunt, the giant bat with its roost and the nymph with theft. The spearman, shaman, captain and troll remain, so its last floor has no gatekeeper (`RealmEncounterFactory.HasGatekeeper`).
-   - Verify: realm encounter tests over the prison band (packs inside it, gatekeeper seals the descent and lifts only on the final death), harness scenarios for each orc and the troll's revive.
+1. **Prison on the ground.** Orc family, the minotaur with its charge, and the prison factory chained from the Garrison. No nest yet.
+   - Landed early, with the Sewer's [factory](../../scenes/levels/encounters/sewer_encounters.tres) (sewer rats, acid blobs and snakes, and the slime vat, a goo barrel that releases acid blobs, as its nest; no aquator, tentacles or gatekeeper yet): the [prison factory](../../scenes/levels/encounters/prison_encounters.tres), chained from the Garrison, with the Orc Warrior as the grunt, the giant bat with its roost and the nymph with theft. The minotaur followed as its gatekeeper on depth 10 ([`minotaur.tscn`](../../scenes/enemies/minotaur/minotaur.tscn)). The spearman, shaman and captain remain.
+   - Verify: realm encounter tests over the prison band (packs inside it, gatekeeper seals the descent and lifts only on its death), harness scenarios for each orc and the minotaur's charge: one that connects knocks the hero back, one the hero sidesteps staggers the minotaur against the wall.
 2. **Flight.** The giant bat and its roost nest. This is the riskiest engine work, so it comes early and unblocks the Cathedral.
    - Landed: the air grid and the bat's flight, tested on a generated Sewer floor (it crosses a pool walkers must go around, and loot from over water lands on dry floor) and in the harness (it never holds still, and swords and bolts hit its hovering body). The bat roost (ruins rubble on straw with perched bats) releases up to three bats at a time, six in all, on Prison floor 2.
    - Verify: plain-C# tests that the air grid crosses water and chasms and keeps walls and closed doors; a harness scenario where a bat crosses a pool to reach the hero; melee and projectiles hit a hovering bat.
 3. **Sewer.** Arcing lob and poison pools (spitting slime), contact corrosion (acid blob), armor rust (aquator), the snake, ambush and grasp (sewer tentacles), goo bind and the gelatinous cube, and the slime vat.
    - Verify: a lob lands behind cover; standing in a pool poisons, leaving it stops it; goo binds for its duration and poisons; striking an acid blob corrodes, shooting it does not; a grasped hero can attack but not move, and breaking the tentacles' poise frees them.
-4. **Mines and thieves.** Gnome family, dwarf, soldier ant, piercer, living roots (the grasper's second look), rattlesnake, leprechaun (theft and escape), umber hulk (burrow and gaze), and the ant hill. Theft also brings the Prison's nymph, and the chest mimic joins every realm from the Prison on.
-   - Verify: a piercer stays hidden until triggered and its drop is telegraphed; burrowing never crosses walls; facing away avoids the gaze; a thief that escapes keeps its loot and one killed first drops it; a mimic keeps its chest's loot and stays cleared after a reload.
+4. **Mines and thieves.** Gnome family, the stone golem with revive, soldier ant, piercer, living roots (the grasper's second look), rattlesnake, leprechaun (theft and escape), umber hulk (burrow and gaze), and the ant hill. Theft also brings the Prison's nymph, and the chest mimic joins every realm from the Prison on.
+   - Landed early: the [Mines factory](../../scenes/levels/encounters/mines_encounters.tres), chained from the Sewer, with the stone golem as the brute (the Studio's procedural golem at full size, held in its room) and giant bats and snakes standing in for the cave dwellers; the bat roost serves as its nest until the ant hill exists. No gatekeeper yet.
+   - Verify: a golem rises once whatever the hero does while it is down, and the next lethal blow kills it and pays out; a piercer stays hidden until triggered and its drop is telegraphed; burrowing never crosses walls; facing away avoids the gaze; a thief that escapes keeps its loot and one killed first drops it; a mimic keeps its chest's loot and stays cleared after a reload.
 5. **Cathedral.** Gargoyle (ambush and flight), wraith (flight and drain), ghost (door phasing), vampire bat, phantom (permanent invisibility), medusa (petrifying gaze), lich (summon and blink), and the reliquary.
    - Verify: a ghost passes a closed door a walker cannot; drain heals by its share; the phantom never becomes visible; a hero facing medusa inside her cone when the gaze lands is petrified and takes no damage from it, while one turned around or behind cover is untouched; her snakes poison; summons are capped, unrewarded and collapse with the lich.
 
@@ -256,7 +271,7 @@ Every slice: `dotnet build "Rogue Gauntlet.sln"`, targeted GdUnit4 suites while 
 
 ## Open decisions
 
-1. **Gatekeeper choices.** Troll, gelatinous cube, umber hulk and lich are proposed. Alternatives: a human executioner for the Prison, the black pudding (splits when struck) for the Sewer, medusa for the Cathedral.
+1. **Gatekeeper choices.** Minotaur, gelatinous cube, umber hulk and lich are proposed. Alternatives: the troll for the Mines, whose approved concept (`asset-studio/characters/troll/`) is parked and which would spare the umber hulk's two new capabilities (burrow and gaze); the black pudding (splits when struck) for the Sewer; medusa for the Cathedral.
 2. **Hold ownership.** Frozen, goo-bound and petrified all stop the hero the same way. Reuse `FrozenStatusComponent` as is with one instance per condition, or rename it to a generic held-status component now that three conditions use it.
 3. **Drain flavor.** Rogue's wraith drains experience. Draining health is proposed instead, because experience pacing is derived by the balance model.
 4. **Medusa's cone.** 120° is proposed; 160° or 180° leaves less room to dodge sideways and makes turning around the only answer. Also open: whether a petrified hero takes reduced damage, as the stone look suggests, or full damage from her snakes.
@@ -265,3 +280,4 @@ Every slice: `dotnet build "Rogue Gauntlet.sln"`, targeted GdUnit4 suites while 
 7. **Thief targets.** The nymph is proposed to steal only unequipped pack items; stealing worn gear would hit much harder.
 8. **Grasper discovery.** Whether the trap discovery roll can reveal hidden graspers and mimics early, as it does traps.
 9. **Encounter resource names.** The Garrison's factory is `sunken_garrison.tres`. The new ones use `<realm>_encounters.tres`; renaming the Garrison's to match is optional.
+10. **Minotaur's tether.** Whether its first phase is chained to a post in the arena, with a reach the hero can stay outside, so breaking its chains at half health also frees it to roam.

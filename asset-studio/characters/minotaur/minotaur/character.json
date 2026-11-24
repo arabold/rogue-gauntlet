@@ -1,0 +1,38 @@
+{
+  "builder": "blender_source",
+  "source": "minotaur_rigged.blend",
+  "rig": "large",
+  "scale": 1.0,
+  "triangle_budget": 12000,
+  "roles": {
+    "Idle": "Idle_A",
+    "Walk": "Running_A",
+    "Punch": "Melee_Unarmed_Punch",
+    "Smash": "Melee_Unarmed_Smash",
+    "ChargeWindup": "ChargeWindup",
+    "Charge": "Charge"
+  },
+  "clips": [
+    "Idle_A",
+    "Running_A",
+    "Melee_Unarmed_Punch",
+    "Melee_Unarmed_Smash",
+    "ChargeWindup",
+    "Charge",
+    "Hit_A",
+    "Death_A",
+    "Death_A_Pose"
+  ],
+  "loops": ["Idle_A", "Running_A"],
+  "blender": {
+    "collection": "COL_Minotaur",
+    "rig_object": "ARM_Minotaur",
+    "rig_node": "MinotaurRig",
+    "body_object": "SM_Minotaur_Torso",
+    "body_node": "MinotaurBody",
+    "attachments": {}
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/minotaur/minotaur.glb"
+  }
+}

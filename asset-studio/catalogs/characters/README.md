@@ -12,6 +12,7 @@ Selected current previews; new review renders go to OS temporary storage.
 - [heroes/barbarian_base](heroes/barbarian_base/lineup.png)
 - [mage/dark_wizard](mage/dark_wizard/lineup.png)
 - [mimic/chest_mimic](mimic/chest_mimic/lineup.png) · [motion](mimic/chest_mimic/lineup.gif) · [GLB](mimic/chest_mimic/model.glb) · [source](../../characters/mimic/chest_mimic/README.md)
+- [minotaur/minotaur](minotaur/minotaur/lineup.png) · [motion](minotaur/minotaur/lineup.gif) · [GLB](minotaur/minotaur/model.glb) · [source](../../characters/minotaur/minotaur/README.md)
 - [nymph/nymph](nymph/nymph/lineup.png) · [motion](nymph/nymph/lineup.gif) · [GLB](nymph/nymph/model.glb) · [source](../../characters/nymph/nymph/README.md)
 - [orc/orc_shaman](orc/orc_shaman/lineup.png)
 - [orc/orc_warrior](orc/orc_warrior/lineup.png) · [motion](orc/orc_warrior/lineup.gif) · [GLB](orc/orc_warrior/model.glb) · [source](../../characters/orc/orc_warrior/README.md)

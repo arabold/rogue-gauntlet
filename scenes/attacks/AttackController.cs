@@ -27,6 +27,15 @@ public partial class AttackController : Node, IParryInterruptible
 	public bool IsRanged => _currentAttack?.IsRanged ?? false;
 	private PreparedAttack _preparedAttack;
 	private Vector2[] _indicatorFootprint = [];
+	/// <summary>The attacker's movement, which carries an attack that travels (<see cref="AttackDefinition.TravelDistance"/>).</summary>
+	[Export] public MovementComponent Movement { get; set; }
+	/// <summary>A run that meets a wall within about 60° of head-on ends there; a glancing wall slides it along.</summary>
+	private const float WallHeadOnShare = .5f;
+	/// <summary>The travel warning's length snaps to this step, so the lane is rebuilt only when it changes visibly.</summary>
+	private const float LaneStep = .25f;
+	private bool _travelling;
+	private Vector2[] _lane;
+	private float _laneLength;
 	/// <summary>The actor's action gate. Unassigned runs attacks without action ownership, phases or hyper-armor.</summary>
 	[Export] public ActorActionGateComponent ActionGate { get; set; }
 	private ActorActionLease _actionLease;
@@ -128,6 +137,7 @@ public partial class AttackController : Node, IParryInterruptible
 		if (duration == 0) duration = playback?.ClipLength ?? System.Math.Max(definition.HitWindowEnd, definition.HitWindowStart + 0.1f);
 		if (!double.IsFinite(duration) || duration <= 0) return false;
 		var copy = (AttackDefinition)definition.Duplicate();
+		if (copy.Travels && !GodotObject.IsInstanceValid(Movement)) return false;
 		if (!copy.IsRanged)
 		{
 			var contact = definition.MeleeContact ?? weaponContact ?? DefaultMeleeContact;
@@ -203,6 +213,7 @@ public partial class AttackController : Node, IParryInterruptible
 		_preparedAttack = attack;
 		_currentAttack = def;
 		_indicatorFootprint = def.IsRanged || attack.Spell != null ? [] : def.MeleeContact.FootprintOutline();
+		_lane = null;
 		_currentHit = hit;
 		_targetMask = targetMask;
 
@@ -273,6 +284,7 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		if (!_execution.IsRunning) return;
 		var identity = CurrentExecutionId;
+		StopTravel();
 		CloseContact();
 		MeleeDetector?.End();
 		if (interrupted) ReportFeedback("Interrupted");
@@ -307,6 +319,8 @@ public partial class AttackController : Node, IParryInterruptible
 		var step = _execution.Advance((float)delta);
 		if (step.ClockStopped)
 		{
+			// The run holds still with the rest of the execution.
+			if (_travelling) Movement.SetLocomotionOverride(this, CommittedFacing, 0);
 			return;
 		}
 		float previous = step.PreviousTime;
@@ -323,6 +337,7 @@ public partial class AttackController : Node, IParryInterruptible
 		// A positive lead commits melee facing before contact, so a defender can step out of the swing.
 		if (!_currentAttack.IsRanged && !HasCommittedFacing && _elapsedTime >= _currentAttack.HitWindowStart - _currentAttack.FacingLockLead)
 			CommitMeleeFacing();
+		if (_currentAttack.Travels && !Travel()) return;
 		if (_preparedAttack.Spell != null)
 		{
 			if (!_releaseStarted && _elapsedTime >= _currentAttack.HitWindowStart)
@@ -430,6 +445,81 @@ public partial class AttackController : Node, IParryInterruptible
 		_swoosh = null;
 	}
 
+	/// <summary>
+	/// Carry a travelling attack along its committed facing while its contact window is open, so its contact moves with
+	/// the attacker; outside the window it holds still. False when the run met a wall head-on: that ends the attack and
+	/// staggers the attacker for the definition's <see cref="AttackDefinition.WallImpactStagger"/>.
+	/// </summary>
+	private bool Travel()
+	{
+		var attack = _currentAttack;
+		if (_travelling && MetWallHeadOn())
+		{
+			if (CombatTrace.Enabled) CombatTrace.Write(this, "attack.wall_impact", ("execution", _executionSequence));
+			attack.WallImpactShake?.EmitAt(_actor.GlobalPosition);
+			CancelAttack();
+			if (attack.WallImpactStagger > 0)
+			{
+				if (_actor is IStaggerable staggerable) staggerable.TryStagger(attack.WallImpactStagger);
+				else ActionGate?.TryStagger(attack.WallImpactStagger);
+			}
+			return false;
+		}
+		if (_elapsedTime < attack.HitWindowStart || _elapsedTime >= attack.HitWindowEnd)
+		{
+			StopTravel();
+			return true;
+		}
+		_travelling = true;
+		float window = Mathf.Max(attack.HitWindowEnd - attack.HitWindowStart, .01f);
+		Movement.SetLocomotionOverride(this, CommittedFacing, attack.TravelDistance / window);
+		return true;
+	}
+
+	private void StopTravel()
+	{
+		if (!_travelling) return;
+		_travelling = false;
+		if (GodotObject.IsInstanceValid(Movement)) Movement.ClearLocomotionOverride(this);
+	}
+
+	/// <summary>Whether the last move met solid level geometry head-on; bodies (the hero, other monsters) never stop a run.</summary>
+	private bool MetWallHeadOn()
+	{
+		if (_actor is not CharacterBody3D body || !body.IsOnWall()) return false;
+		for (int i = 0, count = body.GetSlideCollisionCount(); i < count; i++)
+		{
+			var collision = body.GetSlideCollision(i);
+			if (collision.GetCollider() is not CharacterBody3D && collision.GetNormal().Dot(-CommittedFacing) > WallHeadOnShare) return true;
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// The contact footprint swept forward along the run, cut short at the first wall, so a travelling attack warns of
+	/// everywhere it can land rather than only where its contact starts. Rebuilt only when its length changes by a step.
+	/// </summary>
+	private Vector2[] TravelLane(Vector3 origin, Vector3 direction)
+	{
+		float reach = _currentAttack.MeleeContact.Reach;
+		float clear = WorldSight.ClearDistance(_actor.GetWorld3D(), origin + Vector3.Up * MeleeAttackProfile.BlockingHeight,
+			direction, reach + _currentAttack.TravelDistance);
+		float length = Mathf.Snapped(Mathf.Max(0, clear - reach), LaneStep);
+		if (_lane != null && Mathf.IsEqualApprox(length, _laneLength)) return _lane;
+		_laneLength = length;
+		int count = _indicatorFootprint.Length;
+		var points = new Vector2[count * 2];
+		for (int i = 0; i < count; i++)
+		{
+			points[i] = _indicatorFootprint[i];
+			points[count + i] = _indicatorFootprint[i] + new Vector2(0, -length);
+		}
+		// The hull comes back closed, its first point repeated at the end.
+		var hull = Geometry2D.ConvexHull(points);
+		_lane = hull[..^1];
+		return _lane;
+	}
+
 	/// <summary>Build the warning from this execution's current tracking or already captured release data.</summary>
 	private void UpdateIndicator(AttackIndicatorStage stage)
 	{
@@ -439,7 +529,8 @@ public partial class AttackController : Node, IParryInterruptible
 		Vector3 direction = HasCommittedFacing ? CommittedFacing : GetActorForward();
 		float length = _currentAttack.Range;
 		Vector3[] directions = null;
-		Vector2[] footprint = _indicatorFootprint;
+		Vector2[] footprint = _currentAttack.Travels && stage is AttackIndicatorStage.Aiming or AttackIndicatorStage.Committed
+			? TravelLane(origin, direction) : _indicatorFootprint;
 		if (_currentAttack.IsRanged)
 		{
 			Node3D warningTarget;

@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/large_unarmed_punch.tres" id="punch_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/large_unarmed_smash.tres" id="smash_contact"]
+
+[sub_resource type="Resource" id="punch_swing"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("punch_contact")
+PoiseDamage = 30.0
+Knockback = 5.0
+HitStopDuration = 0.05
+FacingLockLead = 0.25
+WindUpTurnRate = 90.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="smash_swing"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("smash_contact")
+DefenseTraits = 15
+PoiseDamage = 40.0
+Knockback = 7.0
+HyperArmorEnd = 0.4
+Interruptible = false
+HitStopDuration = 0.07
+FacingLockLead = 0.3
+WindUpTurnRate = 45.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="punch"]
+resource_name = "punch"
+script = ExtResource("attack_action")
+Cooldown = 2.5
+MaximumRange = 3.4
+MaximumStartAngle = 45.0
+Attack = SubResource("punch_swing")
+Style = &"melee"
+Duration = 1.22
+MinDamage = 11.0
+MaxDamage = 22.5
+
+[sub_resource type="Resource" id="smash"]
+resource_name = "smash"
+script = ExtResource("attack_action")
+Weight = 0.6
+Cooldown = 6.0
+MaximumRange = 3.8
+MaximumStartAngle = 50.0
+Attack = SubResource("smash_swing")
+Style = &"smash"
+Duration = 2.6
+MinDamage = 19.5
+MaxDamage = 30.5
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("punch"), SubResource("smash")]
+RepeatWeightMultiplier = 0.4

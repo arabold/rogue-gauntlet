@@ -324,8 +324,13 @@ def author_actions(arm, config):
     `[{"bones": [...], "rotation": [x, y, z], "cycles": n, "lag": degrees, "taper": [first, last],
     "envelope": [[frame, factor], ...]}]`. Bone i turns by `rotation * taper_i * sin(360 * cycles * f / end - i * lag)`;
     whole cycles over the clip loop seamlessly, and the envelope (linear, default 1) fades a wave in or out.
+
+    `base` names one of the rig's clips to build on instead of the rest pose, as the minotaur's charge leans over the
+    run: the keys become offsets on that clip (`repeat` times end to end), each bone turning by its key's rotation after
+    the clip's own, moving by its location and scaling by its scale, eased the same way.
     """
     for name, spec in config["rig"].get("actions", {}).items():
+        base = _sample_clip(arm, bpy.data.actions[spec["base"]]) if "base" in spec else None
         action = bpy.data.actions.new(name)
         action.use_fake_user = True
         arm.animation_data.action = action
@@ -339,16 +344,52 @@ def author_actions(arm, config):
                     p.keyframe_insert(path, frame=frame)
         # The Studio exports LINEAR samplers only: keep Blender's eased curves by baking them to one key per frame.
         end = int(spec["keys"][-1][0])
+        if base:
+            end = max(end, (len(base) - 1) * spec.get("repeat", 1))
         curves = action.layers[0].strips[0].channelbags[0].fcurves
         for curve in curves:
             values = [curve.evaluate(f) for f in range(end + 1)]
             curve.keyframe_points.clear()
             for f, value in enumerate(values):
                 curve.keyframe_points.insert(f, value).interpolation = "LINEAR"
+        if base:
+            _compose_on(curves, base, end)
         for wave in spec.get("waves", []):
             _add_wave(curves, wave, end)
     arm.animation_data.action = None
     _reset_pose(arm)
+
+
+def _sample_clip(arm, clip):
+    """Each bone's pose on every frame of `clip`, its last frame included."""
+    _reset_pose(arm)
+    arm.animation_data.action = clip
+    arm.animation_data.action_slot = clip.slots[0]
+    poses = []
+    for f in range(int(round(clip.frame_range[1])) + 1):
+        bpy.context.scene.frame_set(f)
+        poses.append({p.name: (p.location.copy(), p.rotation_quaternion.copy(), p.scale.copy()) for p in arm.pose.bones})
+    arm.animation_data.action = None
+    bpy.context.scene.frame_set(0)
+    return poses
+
+
+def _compose_on(curves, base, end):
+    """Turn the baked per-frame keys into offsets on the looping `base` poses (from `_sample_clip`)."""
+    span = len(base) - 1
+    for bone in base[0]:
+        location = [curves.find(f'pose.bones["{bone}"].location', index=k) for k in range(3)]
+        rotation = [curves.find(f'pose.bones["{bone}"].rotation_quaternion', index=k) for k in range(4)]
+        scale = [curves.find(f'pose.bones["{bone}"].scale', index=k) for k in range(3)]
+        for f in range(end + 1):
+            base_location, base_rotation, base_scale = base[span if f == end else f % span][bone]
+            turn = Quaternion([c.keyframe_points[f].co.y for c in rotation])
+            for c, value in zip(location, base_location + Vector([c.keyframe_points[f].co.y for c in location])):
+                c.keyframe_points[f].co.y = value
+            for c, value in zip(rotation, base_rotation @ turn):
+                c.keyframe_points[f].co.y = value
+            for c, value in zip(scale, base_scale):
+                c.keyframe_points[f].co.y *= value
 
 
 def _add_wave(curves, wave, end):

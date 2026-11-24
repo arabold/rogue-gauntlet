@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/enemies/minotaur/minotaur_behavior.tres" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/enemies/minotaur/minotaur_drop.tres" id="loot"]
+
+[resource]
+script = ExtResource("script")
+Id = "minotaur"
+DisplayName = "The Minotaur"
+Archetype = 7
+BalanceDepth = 10.0
+MaxHealth = 137.0
+MoveSpeed = 3.5
+Loot = ExtResource("loot")
+Behavior = ExtResource("behavior")
+Armor = 2.0
+ThreatLevel = 25.31

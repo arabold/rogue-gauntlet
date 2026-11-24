@@ -47,21 +47,26 @@ public class RealmEncounterTest
 		}
 	}
 
-	/// <summary>The realms after the Garrison, down its fallback chain, with the monsters each fields and its nest.</summary>
-	private static readonly (string Name, string[] Cast, string Nest)[] LaterRealms =
+	/// <summary>
+	/// The realms after the Garrison, down its fallback chain, with the monsters each fields, its nest and its gatekeeper
+	/// (null while the realm has none yet).
+	/// </summary>
+	private static readonly (string Name, string[] Cast, string Nest, string Gatekeeper)[] LaterRealms =
 	[
 		("The Prison", ["res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/nymph/nymph.tscn"],
-			"res://scenes/levels/encounters/bat_roost.tscn"),
+			"res://scenes/levels/encounters/bat_roost.tscn", "res://scenes/enemies/minotaur/minotaur.tscn"),
 		("The Sewer", ["res://scenes/enemies/rat/sewer_rat.tscn", "res://scenes/enemies/slime/acid_blob.tscn", "res://scenes/enemies/snake/snake.tscn"],
-			"res://scenes/levels/encounters/slime_vat.tscn"),
+			"res://scenes/levels/encounters/slime_vat.tscn", null),
+		("The Mines", ["res://scenes/enemies/golem/stone_golem.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/snake/snake.tscn"],
+			"res://scenes/levels/encounters/bat_roost.tscn", null),
 	];
 
 	[TestCase]
-	public void LaterRealmsFieldTheirOwnCastsAndEndWithoutAGatekeeper()
+	public void LaterRealmsFieldTheirOwnCastsAndEndOnTheirGatekeeper()
 	{
 		var realm = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
-		foreach (var (name, cast, _) in LaterRealms)
+		foreach (var (name, cast, _, gatekeeper) in LaterRealms)
 		{
 			uint previousLast = realm.FirstDepth + realm.FloorCount - 1;
 			realm = (RealmEncounterFactory)realm.Fallback;
@@ -74,23 +79,27 @@ public class RealmEncounterTest
 				AssertBool(Members(realm.CreatePacks(depth, threat, rng)).SelectMany(pack => pack).All(cast.Contains))
 					.OverrideFailureMessage($"{name} depth {depth}").IsTrue();
 			}
-			// Its last floor is an ordinary one: no gatekeeper seals the descent, and it spends a full floor's budget.
-			AssertString(realm.PlanEncounters(last).GatekeeperId).IsNull();
-			AssertFloat(realm.FloorBudget(last, threat)).IsEqual(threat.FloorBudget(last, false));
+			// Its last floor holds its gatekeeper and keeps the gatekeeper's share of the budget; a realm without one yet
+			// ends on an ordinary floor that spends a full floor's budget.
+			var plan = realm.PlanEncounters(last);
+			AssertString(plan.Gatekeeper?.ResourcePath).OverrideFailureMessage(name).IsEqual(gatekeeper);
+			AssertBool(plan.GatekeeperId != null).OverrideFailureMessage(name).IsEqual(gatekeeper != null);
+			AssertFloat(realm.FloorBudget(last, threat)).IsEqual(threat.FloorBudget(last, gatekeeper != null));
 		}
 	}
 
 	[TestCase]
-	public async Task GeneratedLaterRealmFloorsSpawnTheirCastAndNestsWithAnOpenDescent()
+	public async Task GeneratedLaterRealmFloorsSpawnTheirCastNestsAndGatekeeper()
 	{
-		// Each realm's nest floor and last floor: their nests release the realm's own monsters, and with no gatekeeper
-		// yet the last floor's descent stays open.
-		(uint Depth, int Realm, int Nests)[] floors = [(7, 0, 2), (10, 0, 0), (12, 1, 2), (15, 1, 0)];
+		// Each realm's nest floor and last floor: their nests release the realm's own monsters, and the last floor seals
+		// its descent behind the realm's gatekeeper, or stays open while the realm has none yet.
+		(uint Depth, int Realm, int Nests)[] floors = [(7, 0, 2), (10, 0, 0), (12, 1, 2), (15, 1, 0), (17, 2, 2)];
 		var (runner, level) = await TestFactories.GenerateLevel(23, floors[0].Depth);
 		using var cleanup = runner;
 		foreach (var (depth, realm, nests) in floors)
 		{
-			var (_, cast, nest) = LaterRealms[realm];
+			var (_, cast, nest, gatekeeper) = LaterRealms[realm];
+			bool sealedByGatekeeper = gatekeeper != null && depth == floors.Where(f => f.Realm == realm).Max(f => f.Depth);
 			if (depth != floors[0].Depth)
 			{
 				level.ConfigureGeneration(new RunState(23), depth, null, null);
@@ -99,13 +108,17 @@ public class RealmEncounterTest
 			// From the Prison on, a placed chest may also be a mimic.
 			var spawns = level.MapGenerator.EnemySpawnPoints;
 			AssertBool(spawns.Count > 0 && spawns.Where(spawn => !level.Floor.IsNest(spawn)).All(spawn => spawn.Scenes.All(scene => cast.Contains(scene.ResourcePath)
-				|| scene.ResourcePath == "res://scenes/enemies/mimic/chest_mimic.tscn" && spawn.PersistentId.Contains(":chest:"))))
+				|| scene.ResourcePath == "res://scenes/enemies/mimic/chest_mimic.tscn" && spawn.PersistentId.Contains(":chest:")
+				|| sealedByGatekeeper && scene.ResourcePath == gatekeeper && spawn.PersistentId == level.Encounters.GatekeeperId)))
 				.OverrideFailureMessage($"depth={depth}").IsTrue();
 			AssertInt(spawns.Count(spawn => level.Floor.IsNest(spawn) && spawn.Scenes[0].ResourcePath == nest)).OverrideFailureMessage($"depth={depth}").IsEqual(nests);
 			await runner.SimulateFrames(1, 20);
 			var placed = level.FindChildren("*", "", true, false).OfType<DestructibleNest>().ToList();
 			AssertBool(placed.Count == nests && placed.All(n => cast.Contains(n.MinionScene.ResourcePath))).OverrideFailureMessage($"depth={depth}").IsTrue();
-			AssertBool(level.CanDescend).OverrideFailureMessage($"depth={depth}").IsTrue();
+			AssertBool(level.CanDescend).OverrideFailureMessage($"depth={depth}").IsEqual(!sealedByGatekeeper);
+			if (sealedByGatekeeper)
+				AssertInt(spawns.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId && spawn.Scenes[0].ResourcePath == gatekeeper))
+					.OverrideFailureMessage($"depth={depth}").IsEqual(1);
 		}
 	}
 

@@ -13,6 +13,10 @@ The GLB and art metadata go to `assets/custom-monsters/golem/stone_golem.*`. Cur
 motion and the selected GLB live under `catalogs/characters/golem/stone_golem/`. Gameplay
 scenes, collision and attack timing are separate. See [Studio architecture](../../../ARCHITECTURE.md).
 
+The game fields it at full size as the Mines' brute: [`stone_golem.tscn`](../../../../scenes/enemies/golem/stone_golem.tscn)
+stands about 3.9 m, twice the hero, too wide for doors, so it guards its room. The first lethal blow collapses it
+through `Death_A` and it rises again once (`ReviveComponent`).
+
 ## Surface polish
 
 The current procedural source preserves the established silhouette, palette, rock

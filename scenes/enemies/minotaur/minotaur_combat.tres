@@ -1,0 +1,153 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=23 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="attack_action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack_definition"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/HealthPhaseCondition.cs" id="phase"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterActionWeightModifier.cs" id="modifier"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/large_unarmed_punch.tres" id="punch_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/large_unarmed_smash.tres" id="smash_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/minotaur_charge.tres" id="charge_contact"]
+[ext_resource type="Resource" path="res://scenes/magic/earth/tremor_shake.tres" id="impact_shake"]
+
+[sub_resource type="Resource" id="chained"]
+script = ExtResource("phase")
+MaximumPhase = 0
+
+[sub_resource type="Resource" id="unchained"]
+script = ExtResource("phase")
+MinimumPhase = 1
+
+[sub_resource type="Resource" id="smash_unchained"]
+script = ExtResource("modifier")
+Condition = SubResource("unchained")
+Multiplier = 1.6
+
+[sub_resource type="Resource" id="punch_swing"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("punch_contact")
+PoiseDamage = 30.0
+Knockback = 5.0
+HyperArmorEnd = 0.5
+Interruptible = false
+HitStopDuration = 0.05
+FacingLockLead = 0.3
+WindUpTurnRate = 90.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="smash_swing"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("smash_contact")
+DefenseTraits = 15
+PoiseDamage = 40.0
+Knockback = 8.0
+HyperArmorEnd = 0.4
+Interruptible = false
+HitStopDuration = 0.07
+FacingLockLead = 0.3
+WindUpTurnRate = 45.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="charge_rush"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("charge_contact")
+DefenseTraits = 11
+PoiseDamage = 45.0
+Knockback = 10.0
+ForcePushback = true
+HyperArmorEnd = 0.9
+Interruptible = false
+HitStopDuration = 0.06
+FacingLockLead = 0.25
+WindUpTurnRate = 90.0
+Commit = 0.5
+TravelDistance = 11.6
+WallImpactStagger = 1.8
+WallImpactShake = ExtResource("impact_shake")
+
+[sub_resource type="Resource" id="frenzy_rush"]
+script = ExtResource("attack_definition")
+MeleeContact = ExtResource("charge_contact")
+DefenseTraits = 11
+PoiseDamage = 45.0
+Knockback = 10.0
+ForcePushback = true
+HyperArmorEnd = 0.9
+Interruptible = false
+HitStopDuration = 0.06
+FacingLockLead = 0.2
+WindUpTurnRate = 140.0
+Commit = 0.5
+TravelDistance = 11.2
+WallImpactStagger = 1.4
+WallImpactShake = ExtResource("impact_shake")
+
+[sub_resource type="Resource" id="punch"]
+resource_name = "punch"
+script = ExtResource("attack_action")
+Cooldown = 2.4
+MaximumRange = 3.4
+MaximumStartAngle = 45.0
+UsesAttackSlot = false
+Attack = SubResource("punch_swing")
+Style = &"melee"
+Duration = 1.38
+MinDamage = 6.0
+MaxDamage = 12.0
+
+[sub_resource type="Resource" id="smash"]
+resource_name = "smash"
+script = ExtResource("attack_action")
+Weight = 0.5
+Cooldown = 5.0
+MaximumRange = 3.8
+MaximumStartAngle = 50.0
+UsesAttackSlot = false
+WeightModifiers = [SubResource("smash_unchained")]
+Attack = SubResource("smash_swing")
+Style = &"smash"
+Duration = 2.6
+MinDamage = 10.5
+MaxDamage = 16.5
+
+[sub_resource type="Resource" id="charge"]
+resource_name = "charge"
+script = ExtResource("attack_action")
+Weight = 0.8
+Cooldown = 6.0
+MinimumRange = 5.0
+MaximumRange = 14.0
+MaximumStartAngle = 60.0
+UsesAttackSlot = false
+Conditions = [SubResource("chained")]
+Attack = SubResource("charge_rush")
+Style = &"charge"
+Duration = 2.2
+MinDamage = 12.0
+MaxDamage = 18.0
+
+[sub_resource type="Resource" id="frenzy_charge"]
+resource_name = "frenzy_charge"
+script = ExtResource("attack_action")
+Weight = 1.4
+Cooldown = 3.5
+MinimumRange = 4.0
+MaximumRange = 16.0
+MaximumStartAngle = 70.0
+UsesAttackSlot = false
+Conditions = [SubResource("unchained")]
+Attack = SubResource("frenzy_rush")
+Style = &"charge"
+Duration = 1.8
+MinDamage = 12.0
+MaxDamage = 18.0
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("punch"), SubResource("smash"), SubResource("charge"), SubResource("frenzy_charge")]
+RepeatWeightMultiplier = 0.35
+TurnRateByPhase = PackedFloat32Array(1, 1.6)

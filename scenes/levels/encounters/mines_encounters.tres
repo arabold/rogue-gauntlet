@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="RealmEncounterFactory" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
+[ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/mimic/chest_mimic.tscn" id="mimic"]
+[ext_resource type="PackedScene" path="res://scenes/levels/encounters/bat_roost.tscn" id="nest"]
+[ext_resource type="Resource" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="fallback"]
+
+[sub_resource type="Resource" id="bat_swarm"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn")
+Weight = 6
+MinimumDepth = 16
+MaximumDepth = 20
+
+[sub_resource type="Resource" id="bat_flock"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn")
+Weight = 3
+MinimumDepth = 16
+MaximumDepth = 20
+
+[sub_resource type="Resource" id="lone_snake"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/snake/snake.tscn")
+Weight = 2
+MinimumDepth = 16
+MaximumDepth = 20
+
+[sub_resource type="Resource" id="snake_pair"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/snake/snake.tscn", "res://scenes/enemies/snake/snake.tscn")
+Weight = 2
+MinimumDepth = 16
+MaximumDepth = 20
+
+[sub_resource type="Resource" id="lone_golem"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/golem/stone_golem.tscn")
+Weight = 3
+MinimumDepth = 16
+MaximumDepth = 20
+
+[sub_resource type="Resource" id="golem_with_bats"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/golem/stone_golem.tscn", "res://scenes/enemies/bat/giant_bat.tscn", "res://scenes/enemies/bat/giant_bat.tscn")
+Weight = 2
+MinimumDepth = 16
+MaximumDepth = 20
+
+[sub_resource type="Resource" id="golem_pair"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/golem/stone_golem.tscn", "res://scenes/enemies/golem/stone_golem.tscn")
+Weight = 1
+MinimumDepth = 18
+MaximumDepth = 20
+
+[resource]
+script = ExtResource("factory")
+RealmName = "The Mines"
+FirstDepth = 16
+FloorCount = 5
+Entries = [SubResource("bat_swarm"), SubResource("bat_flock"), SubResource("lone_snake"), SubResource("snake_pair"), SubResource("lone_golem"), SubResource("golem_with_bats"), SubResource("golem_pair")]
+Fallback = ExtResource("fallback")
+NestScene = ExtResource("nest")
+HasGatekeeper = false
+MimicScene = ExtResource("mimic")
+MimicChance = 0.15

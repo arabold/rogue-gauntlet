@@ -12,9 +12,17 @@ public partial class MonsterAttackAction : MonsterTimedAction
 
 	protected override AttackDefinition Definition => Attack;
 
-	/// <summary>Projectile range, or the melee contact's engagement distance; an attack without one never caps range.</summary>
+	/// <summary>
+	/// Projectile range, or the melee contact's engagement distance plus any run it makes; an attack without one never caps
+	/// range.
+	/// </summary>
 	public override float Reach => Attack == null ? float.PositiveInfinity
-		: Attack.IsRanged ? Attack.Range : Attack.MeleeContact?.EngagementDistance ?? float.PositiveInfinity;
+		: Attack.IsRanged ? Attack.Range : Attack.MeleeContact?.EngagementDistance + Attack.TravelDistance ?? float.PositiveInfinity;
+
+	/// <summary>An attack that runs starts only along a body-wide clear line to its target, never into a wall or around a corner.</summary>
+	public override bool IsUsefulOn(EnemyContext context, Node3D target) => Attack?.Travels != true
+		|| context.Navigation?.HasClearDash(target.GlobalPosition - context.Actor.GlobalPosition,
+			context.Actor.GlobalPosition.HorizontalDistanceTo(target.GlobalPosition)) == true;
 
 	public override AttackSlotKind? SlotKind => Attack?.IsRanged == true ? AttackSlotKind.Ranged : AttackSlotKind.Melee;
 	public override bool CanRiposte => RiposteEligible;
@@ -56,6 +64,10 @@ public partial class MonsterAttackAction : MonsterTimedAction
 		if (!Attack.IsRanged)
 			context.CheckWiring(MonsterValidationContext.Object<Node>(context.AttackController, "MeleeDetector") != null,
 				"AttackController.MeleeDetector: assign a hit detector.");
+		if (Attack.Travels)
+			context.CheckWiring(MonsterValidationContext.Object<Node>(context.AttackController, "Movement")
+				== MonsterValidationContext.Object<Node>(context.Actor, "MovementComponent"),
+				"AttackController.Movement: an attack that travels needs this actor's movement.");
 		context.CheckWiring(context.Local(MonsterValidationContext.Object<Node>(context.AttackController, "Indicator")),
 			"AttackController.Indicator: assign this actor's shared attack warning.");
 	}
@@ -63,7 +75,8 @@ public partial class MonsterAttackAction : MonsterTimedAction
 	/// <summary>The attack definition's own rules, against the wind-up this action and its binding prepare.</summary>
 	private static void ValidateTiming(MonsterValidationContext context, AttackDefinition attack, float duration, float? windUp)
 	{
-		context.Check(attack.HasValidImpactValues, "Attack: poise damage, knockback, hit-stop and wind-up turn rate must be nonnegative and finite.");
+		context.Check(attack.HasValidImpactValues,
+			"Attack: poise damage, knockback, hit-stop, wind-up turn rate, travel and wall stagger must be nonnegative and finite, and only melee travels.");
 		context.Check(attack.HasValidArmorWindow, "Attack.HyperArmorStart/End: require 0 <= start <= end <= 1.");
 		context.Check(attack.HasValidFacingLock(windUp), "Attack.FacingLockLead: must be nonnegative, melee only and no longer than the prepared wind-up.");
 		context.Check(attack.HasValidFlight(windUp, windUp != null ? duration : null),

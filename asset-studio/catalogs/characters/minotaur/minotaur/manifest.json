@@ -1,0 +1,13 @@
+{
+  "key": "minotaur/minotaur",
+  "inputs": "b7664beffc57beb30ab8616811f36b5e8dcf1a18e8aa6876e84ddece1d241df9",
+  "files": {
+    "model.glb": "6299590fac0112c5e0d67f92a38f966ee1fb60374ae1771cc6d030b46cf3b1a2",
+    "lineup.png": "4fc4d4df9aeaf76874545af042074d479354e47d4183a9e2863ee3982d55a327",
+    "lineup.gif": "fa921702b942d48b1fc28e0a07b7d7e26332dfdc700e02c1626ce3cf6949b9bb",
+    "asset.json": "0626f2e71c45269e8ec286b16c13c4e0f788c2e28529819443a090a330eb5ed3"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

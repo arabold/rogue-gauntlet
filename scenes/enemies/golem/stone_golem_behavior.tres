@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyBehaviorProfile" load_steps=3 format=3]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="script"]
+[ext_resource type="Resource" path="res://scenes/enemies/golem/stone_golem_combat.tres" id="combat"]
+
+[resource]
+script = ExtResource("script")
+InitialAction = 0
+DetectionRange = 16.0
+DetectionAngle = 100.0
+StayInHomeRoom = true
+RoamRadius = 3.0
+RoamPauseMin = 1.5
+RoamPauseMax = 3.5
+HitActionDuration = 0.5
+DyingActionDuration = 1.667
+Combat = ExtResource("combat")
