@@ -63,7 +63,7 @@ def signature(character):
     """Bind review to the actual selected source, palette, profile and implementing code."""
     r=character.recipe();folder=Path(character.dir)
     paths=[Path(character.recipe_path),STUDIO/'core/character_workflow.py',STUDIO/'core/creature_rigs.py',
-           STUDIO/'core/export.py',STUDIO/'core/mesh.py',STUDIO/'core/rig.py',STUDIO/'core/kit.py',STUDIO/'godot/render_creature.gd',
+           STUDIO/'core/export.py',STUDIO/'core/mesh.py',STUDIO/'core/color_math.py',STUDIO/'core/rig.py',STUDIO/'core/kit.py',STUDIO/'godot/render_creature.gd',
            STUDIO/'godot/render_armor_fittings.gd',STUDIO/'godot/item_surface_colors.gd']
     if r['builder']=='blender_source':
         paths += [local(folder,r['source']),*filter(None,[rig_template(r['rig'])]),

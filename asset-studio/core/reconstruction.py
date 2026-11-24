@@ -14,15 +14,13 @@ See the character workflow guide for when to use it and how to write `reconstruc
 import argparse
 import json
 import shutil
-import subprocess
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage
 
-from core import ai, character_workflow, mesh, tripo
-from core.blender import checked_binary
+from core import ai, blender, character_workflow, mesh, tripo
 from core.paths import work_root
 
 STUDIO = Path(__file__).resolve().parents[1]
@@ -158,27 +156,13 @@ def reconstruct(src):
     (src.work / "reconstruction.task.json").write_text(json.dumps(record, indent=1))
 
 
-def _blender(script, job, workdir, timeout=1800):
-    executable, _ = checked_binary()
-    path = workdir / f"{script}.job.json"
-    path.write_text(json.dumps(job, indent=1))
-    result = subprocess.run([executable, "-b", "--factory-startup", "--python-exit-code", "1",
-                             "--python", str(JOBS / f"{script}.py"), "--", str(path)],
-                            capture_output=True, text=True, timeout=timeout)
-    log = workdir / f"{script}.log"
-    log.write_text(result.stdout + result.stderr)
-    if result.returncode:
-        tail = "\n".join((result.stdout + result.stderr).strip().splitlines()[-25:])
-        raise ValueError(f"Blender {script} failed (log: {log}):\n{tail}")
-
-
 def parts(src):
     if not src.glb.is_file():
         raise SystemExit(f"{src.key}: run `reconstruct tripo` first")
     frames = src.work / "parts"
     shutil.rmtree(frames, ignore_errors=True)
     frames.mkdir()
-    _blender("part_sheet", {"reconstruction": str(src.glb), "out": str(frames)}, src.work)
+    blender.run({"reconstruction": str(src.glb), "out": str(frames)}, src.work, JOBS / "part_sheet.py", timeout=1800)
     pieces = sorted({int(p.stem.split("_")[0]) for p in frames.glob("*.png")})
     tile, cols = 160, 4
     sheet = Image.new("RGB", (cols * tile * 3, ((len(pieces) + cols - 1) // cols) * (tile + 14)), "white")
@@ -208,13 +192,12 @@ def build(src):
     atlas.image.save(atlas_png)
     cells = {n: {"u": float(atlas.u_coords[i]), "v_top": float(atlas.v_top[i]), "v_bot": float(atlas.v_bot[i])}
              for i, n in enumerate(names)}
-    report = src.work / "build.json"
-    _blender("build", {"config": config, "reconstruction": str(src.glb), "views": str(src.dir / "turnaround"),
-                       "atlas_png": str(atlas_png), "atlas": cells, "report": str(report),
-                       "colors": {n: base_color(v) for n, v in config["palette"].items()},
-                       "template": str(character_workflow.rig_template(recipe["rig"]) or ""),
-                       "blend": str(src.dir / recipe["source"])}, src.work)
-    result = json.loads(report.read_text())
+    job = {"config": config, "reconstruction": str(src.glb), "views": str(src.dir / "turnaround"),
+           "atlas_png": str(atlas_png), "atlas": cells, "report": str(src.work / "build.json"),
+           "colors": {n: base_color(v) for n, v in config["palette"].items()},
+           "template": str(character_workflow.rig_template(recipe["rig"]) or ""),
+           "blend": str(src.dir / recipe["source"])}
+    result = blender.run(job, src.work, JOBS / "build.py", outputs=("blend",), timeout=1800)
     print(f"{src.key}: {src.dir.relative_to(STUDIO) / recipe['source']}, {sum(result['triangles'].values())} triangles")
     for part, slots in sorted(result["slots"].items()):
         print(f"  {part}: {slots}")

@@ -315,7 +315,7 @@ class Item:
         work.mkdir(parents=True)
         job = {"script": str(script), "host": str(host) if host else None, "palette": self.model_palette(data),
                "glb": str(work / "source.glb"), "report": str(work / "report.json")}
-        report = blender.run(job, work)
+        report = blender.run(job, work, outputs=("glb",))
         target = self.resolve(data["source"])
         shutil.copy2(work / "source.glb", target)
         save(self.folder / "source.json", {"blender": report["blender"], **blender.provenance(script, host, target),
@@ -530,10 +530,11 @@ class Item:
                     paths.append(hosts.path(data["host"]))
             if data.get("surface", {}).get("palette") == "materials":
                 paths.extend([STUDIO / "items/source_surface.py", STUDIO / "items/model.py", STUDIO / "core/export.py",
-                              STUDIO / "core/mesh.py"])
+                              STUDIO / "core/mesh.py", STUDIO / "core/color_math.py"])
             elif data.get("surface"):
                 paths.extend([PALETTE, STUDIO / "items/source_surface.py", STUDIO / "items/model.py",
-                              STUDIO / "items/align.py", STUDIO / "core/export.py", STUDIO / "core/mesh.py"])
+                              STUDIO / "items/align.py", STUDIO / "core/export.py", STUDIO / "core/mesh.py",
+                              STUDIO / "core/color_math.py"])
                 if data["surface"].get("repair"):
                     paths.append(STUDIO / "items/source_repair.py")
                 if data["surface"].get("paint") == "scroll_ink":
@@ -563,6 +564,7 @@ class Item:
                 paths.append(STUDIO / "items/world_surface.py")
             paths.append(STUDIO / "core/export.py")
             paths.append(STUDIO / "core/mesh.py")
+            paths.append(STUDIO / "core/color_math.py")
         return {str(path.relative_to(REPO)): digest(path) for path in paths}
 
     def colored_piece(self):

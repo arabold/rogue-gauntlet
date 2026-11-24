@@ -248,7 +248,7 @@ class Family:
                  *sorted(kaykit.SOURCE.glob("wall*.gltf")), *sorted(kaykit.SOURCE.glob("wall*.bin")),
                  STUDIO / "prefabs/decor.py", *sorted(decor.MESHES.glob("*.npz")),
                  kaykit.SOURCE / "dungeon_texture.png",
-                 STUDIO / "core/export.py", STUDIO / "core/mesh.py",
+                 STUDIO / "core/export.py", STUDIO / "core/mesh.py", STUDIO / "core/color_math.py",
                  STUDIO / "core/kit.py", STUDIO / "items/solid.py"]
         return {str(p.relative_to(REPO)): digest(p) for p in paths}
 

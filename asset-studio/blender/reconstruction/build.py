@@ -15,7 +15,8 @@ from pathlib import Path
 import bpy
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+here = Path(__file__).resolve()
+sys.path[:0] = [str(here.parents[1]), str(here.parents[2])]  # the scripts' package and the Studio's `core.color_math`
 
 from reconstruction import chains, color, parts, rig  # noqa: E402
 

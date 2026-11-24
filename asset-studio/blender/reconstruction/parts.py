@@ -9,10 +9,18 @@ import math
 
 import bmesh
 import bpy
+import numpy as np
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 
 from .chains import polyline
+
+
+def vertex_array(me, attribute="co"):
+    """Every vertex's `co` (or another vector such as `normal`) of mesh `me` as an (n, 3) float array."""
+    values = np.empty(len(me.vertices) * 3, np.float32)
+    me.vertices.foreach_get(attribute, values)
+    return values.reshape(-1, 3).astype(float)
 
 
 def import_parts(path, config):
@@ -31,11 +39,11 @@ def import_parts(path, config):
         raise ValueError(f"reconstruction.json parts must name every piece exactly once: pieces {sorted(by_index)}")
 
     # Rotate the +X front to -Y, scale to the authored height, feet at z = 0, centered on the reference parts.
-    zmin = min(min(v.co.z for v in o.data.vertices) for o in pieces)
-    zmax = max(max(v.co.z for v in o.data.vertices) for o in pieces)
+    points = {o: vertex_array(o.data) for o in pieces}
+    zmin = min(p[:, 2].min() for p in points.values())
+    zmax = max(p[:, 2].max() for p in points.values())
     anchors = [by_index[i] for part in config["center_on"] for i in config["parts"][part]]
-    centers = [sum((v.co for v in o.data.vertices), Vector()) / len(o.data.vertices) for o in anchors]
-    c = sum(centers, Vector()) / len(centers)
+    c = Vector(np.mean([points[o].mean(axis=0) for o in anchors], axis=0))
     xf = (Matrix.Translation(Vector(config.get("offset", (0, 0, 0)))) @ Matrix.Scale(config["height"] / (zmax - zmin), 4)
           @ Matrix.Rotation(math.radians(-90), 4, "Z") @ Matrix.Translation(Vector((-c.x, -c.y, -zmin))))
     for o in pieces:

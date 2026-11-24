@@ -20,6 +20,7 @@ import numpy as np
 from mathutils import Euler, Matrix, Quaternion, Vector
 
 from .chains import joints, polyline
+from .parts import vertex_array
 
 HELPER_ANCHORS = {"elbowIK": "lowerarm", "handIK": "hand", "kneeIK": "lowerleg"}  # other IK/control bones: the foot
 
@@ -297,12 +298,11 @@ def bind(arm, config):
         return np.array(arm.matrix_world @ arm.pose.bones[name].matrix @ arm.data.bones[name].matrix_local.inverted()
                         @ arm.matrix_world.inverted())
     for o in [o for o in bpy.data.objects if o.name.startswith("LP_")]:
-        points = np.array([v.co[:] for v in o.data.vertices])
+        points = vertex_array(o.data)
         names, w = weights(arm, config, o.name[3:], points)
         blended = np.einsum("vb,bij->vij", w, np.stack([skin_matrix(n) for n in names]))
         rest = np.einsum("vij,vj->vi", np.linalg.inv(blended), np.concatenate([points, np.ones((len(points), 1))], 1))
-        for v, co in zip(o.data.vertices, rest[:, :3]):
-            v.co = co
+        o.data.vertices.foreach_set("co", rest[:, :3].astype(np.float32).ravel())
         o.vertex_groups.clear()
         for k, name in enumerate(names):
             group = o.vertex_groups.new(name=name)
