@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/shooter_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/orc/orc_spearman_movement.tres" id="movement"]
+[ext_resource type="PackedScene" path="res://scenes/attacks/javelin_projectile.tscn" id="javelin"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/thrust.tres" id="thrust"]
+
+[sub_resource type="Resource" id="throw_attack"]
+script = ExtResource("attack")
+IsRanged = true
+DefenseTraits = 3
+ProjectileScene = ExtResource("javelin")
+ProjectileSpeed = 15.0
+ProjectileAimLockDuration = 0.3
+Range = 18.0
+HitWindowStart = 0.5
+PoiseDamage = 10.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="throw"]
+resource_name = "Javelin throw"
+script = ExtResource("action")
+Cooldown = 3.2
+MinimumRange = 3.0
+MaximumRange = 13.0
+RiposteEligible = true
+Attack = SubResource("throw_attack")
+Style = &"javelin.throw"
+Duration = 1.26
+MinDamage = 5.0
+MaxDamage = 10.0
+
+[sub_resource type="Resource" id="stab_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("thrust")
+PoiseDamage = 12.0
+HitStopDuration = 0.04
+FacingLockLead = 0.12
+WindUpTurnRate = 300.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="stab"]
+resource_name = "Spear stab"
+script = ExtResource("action")
+Cooldown = 2.4
+MaximumRange = 3.0
+Attack = SubResource("stab_attack")
+Style = &"spear.stab"
+Duration = 1.3
+MinDamage = 4.0
+MaxDamage = 7.5
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("throw"), SubResource("stab")]

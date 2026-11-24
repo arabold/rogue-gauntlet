@@ -412,6 +412,7 @@ public partial class GameNarrator : Node
 			"Confused" => "The world spins around you! You feel dizzy and confused.",
 			"Burning" => "You catch fire!",
 			"Frozen" => "Biting frost encases your limbs — you are frozen stiff!",
+			"Goo-bound" => "Sticky goo engulfs you — you cannot move!",
 			"Invisible" => "Your body fades from sight.",
 			"Iron Skin" => "Your skin hardens like iron.",
 			"Stone Skin" => "Your skin turns as hard as stone.",

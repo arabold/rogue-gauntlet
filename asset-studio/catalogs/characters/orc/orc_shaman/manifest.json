@@ -1,0 +1,13 @@
+{
+  "key": "orc/orc_shaman",
+  "inputs": "8cb9700b6227e0913022cd8f8778295c0b1fe78d633ee347862fbf0a92ac5ba8",
+  "files": {
+    "model.glb": "a7c891b337693cf84e0780cbcd4ee81d46f4b71676c80713b7678815021c444c",
+    "lineup.png": "360688caf1b70728f89af7145f98bfb2118630aa0b85f320b0f6ee1e7853d90b",
+    "lineup.gif": "8692e590d25d8416a9e0939dcad2fbdb75e3bffdd3a0cd450fba2f65a13c9d08",
+    "asset.json": "696f14785b4b9502419bc06c1e2570f280403c854bd980eeb91f56373c0a4137"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "key": "orc/orc_captain",
+  "inputs": "63b7ca2a9cc71f1745eb6aebade5fe2a60db3c53fdf42eec6a5dd0ad77bdd625",
+  "files": {
+    "model.glb": "73214d8bf7431fd3c9af025d81dfd2abd466de202e3e38584766a447f07ad216",
+    "lineup.png": "3164a08f335fd8f110da42dfc3d502f1d81b0426f3ad68043472a543182b2266",
+    "lineup.gif": "9e5f8afbbb7e7c209b8464ab4a7eabf81da2b6810946ab156f0884d560b97720",
+    "asset.json": "854de7e233c889b1abb6d5e475ca3731625651414e424008306633e63dadf364"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

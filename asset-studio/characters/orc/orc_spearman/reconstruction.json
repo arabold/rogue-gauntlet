@@ -1,0 +1,96 @@
+{
+  "name": "OrcSpearman",
+  "height": 2.26,
+  "center_on": ["Leg_L", "Leg_R"],
+  "offset": [0, 0, 0],
+  "parts": {
+    "Head": [0],
+    "Quiver": [1, 13],
+    "Torso": [2],
+    "Leg_L": [3],
+    "Leg_R": [4],
+    "Skirt": [5],
+    "Belt": [6],
+    "Arm_R": [7],
+    "Cuff_R": [8],
+    "Fist_R": [9],
+    "Cuff_L": [10],
+    "Strap": [11, 15],
+    "Arm_L": [12],
+    "Fist_L": [14]
+  },
+  "budgets": {
+    "Head": 1500, "Quiver": 700, "Torso": 1100, "Strap": 150, "Belt": 450, "Skirt": 400,
+    "Arm_L": 350, "Arm_R": 350, "Cuff_L": 160, "Cuff_R": 160, "Fist_L": 200, "Fist_R": 200,
+    "Leg_L": 380, "Leg_R": 380
+  },
+  "symmetric": ["Head", "Skirt"],
+  "joints": {
+    "shoulder.l": [0.355, 0.105, 1.34],
+    "forearm.l": [0.577, 0.1, 0.984],
+    "fist_tip.l": [0.759, 0.096, 0.692],
+    "hip.l": [0.163, 0.014, 0.575],
+    "knee.l": [0.259, 0.055, 0.361],
+    "ankle.l": [0.272, -0.036, 0.147],
+    "foot_tip.l": [0.272, -0.158, 0.034],
+    "toe_tip.l": [0.272, -0.261, 0.034],
+    "hips": [0, 0.015, 0.496],
+    "spine": [0, 0.029, 0.778],
+    "chest": [0, 0.039, 1.06],
+    "neck": [0, 0.039, 1.301]
+  },
+  "smooth_angle": 35,
+  "shades": [0.5, 0.62, 0.75, 0.88, 1.0],
+  "min_island": 6,
+  "palette": {
+    "skin": [150, 166, 104],
+    "eye": [32, 30, 32],
+    "brow": [128, 96, 60],
+    "mouth": [72, 64, 48],
+    "tusk": [238, 230, 208],
+    "leather_tan": [190, 144, 102],
+    "leather_mid": [150, 108, 76],
+    "boot": [112, 84, 64],
+    "cloth": [100, 116, 80],
+    "iron": [148, 150, 154],
+    "wood": [126, 90, 60]
+  },
+  "slots": {
+    "Head": ["skin", "eye", "brow", "mouth", "tusk", "leather_tan", "iron"],
+    "Quiver": ["leather_tan", "leather_mid", "wood", "iron"],
+    "Torso": ["leather_tan", "skin", "leather_mid"],
+    "Strap": ["leather_mid"],
+    "Belt": ["leather_mid", "leather_tan"],
+    "Skirt": ["cloth"],
+    "Arm_L": ["skin"], "Arm_R": ["skin"],
+    "Cuff_L": ["leather_mid"], "Cuff_R": ["leather_mid"],
+    "Fist_L": ["skin"], "Fist_R": ["skin"],
+    "Leg_L": ["skin", "boot", "leather_mid"], "Leg_R": ["skin", "boot", "leather_mid"]
+  },
+  "regions": {
+    "eye": {"z": [1.77, 1.9], "half_width": 0.26, "facing": 0.3},
+    "brow": {"z": [1.86, 1.98], "half_width": 0.3, "facing": 0.2},
+    "mouth": {"z": [1.46, 1.57], "half_width": 0.14, "facing": 0.5}
+  },
+  "rig": {
+    "clips": [
+      "Idle_Combat", "Walking_A", "Throw", "1H_Melee_Attack_Stab", "Hit_A", "Death_A", "Death_A_Pose", "Idle",
+      "Blocking", "Block_Attack", "Block_Hit", "Dodge_Backward", "Dodge_Forward", "Dodge_Left", "Dodge_Right"
+    ],
+    "idle": "Idle_Combat",
+    "arm_fractions": {"elbow": 0.35, "wrist": 0.73, "hand": 0.84},
+    "head_length": 0.6,
+    "weights": {
+      "Head": "head", "Quiver": "chest", "Belt": "hips",
+      "Torso": {"blend": ["hips", "spine", "chest"], "caps": {"upperarm.l": "shoulder.l", "upperarm.r": "shoulder.r"},
+                "cap_radius": [0.08, 0.2], "cap_share": 0.5},
+      "Strap": ["spine", "chest"],
+      "Skirt": {"blend": ["hips", "upperleg.l", "upperleg.r"], "anchor_share": 0.5},
+      "Arm_L": ["chest", "upperarm.l", "lowerarm.l"], "Arm_R": ["chest", "upperarm.r", "lowerarm.r"],
+      "Cuff_L": ["lowerarm.l", "wrist.l"], "Cuff_R": ["lowerarm.r", "wrist.r"],
+      "Fist_L": "hand.l", "Fist_R": "hand.r",
+      "Leg_L": ["hips", "upperleg.l", "lowerleg.l", "foot.l", "toes.l"],
+      "Leg_R": ["hips", "upperleg.r", "lowerleg.r", "foot.r", "toes.r"]
+    }
+  }
+}

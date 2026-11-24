@@ -188,7 +188,7 @@ public partial class AttackController : Node, IParryInterruptible
 	{
 		if (attack == null || _actor == null) return false;
 		var def = attack.Definition;
-		Node3D aimTarget = def.ProjectileAimLockDuration > 0 ? FindProjectileAimTarget(def.Range, def.AimingAngle) : null;
+		Node3D aimTarget = def.ProjectileAimLockDuration > 0 ? FindProjectileAimTarget(def.Range, def.AimingAngle, def.Flight.Lobs) : null;
 		if (def.ProjectileAimLockDuration > 0 && aimTarget == null) return false;
 
 		if (_actor is Player { IsDead: true } || _actor is EnemyBase { IsDead: true }) return false;
@@ -549,7 +549,7 @@ public partial class AttackController : Node, IParryInterruptible
 			}
 			else
 			{
-				warningTarget = FindReleaseTarget(_currentAttack.Range, _currentAttack.AimingAngle, out float fallbackHeight);
+				warningTarget = FindReleaseTarget(_currentAttack.Range, _currentAttack.AimingAngle, out float fallbackHeight, _currentAttack.Flight.Lobs);
 				origin = GetProjectileOrigin();
 				if (warningTarget != null) direction = GetDirectionToTarget(origin, warningTarget, fallbackHeight);
 			}
@@ -695,7 +695,7 @@ public partial class AttackController : Node, IParryInterruptible
 		}
 		else
 		{
-			_releaseTarget = FindReleaseTarget(_currentAttack.Range, _currentAttack.AimingAngle, out float fallbackHeight);
+			_releaseTarget = FindReleaseTarget(_currentAttack.Range, _currentAttack.AimingAngle, out float fallbackHeight, _currentAttack.Flight.Lobs);
 			aimedDirection = _releaseTarget != null ? GetDirectionToTarget(origin, _releaseTarget, fallbackHeight) : GetActorForward();
 		}
 		SpawnEffect(_currentAttack.CastEffectScene, _actor.GlobalPosition, GetActorForward());
@@ -853,16 +853,17 @@ public partial class AttackController : Node, IParryInterruptible
 
 	/// <summary>
 	/// The release-time aim target: the opponent nearest the actor's facing inside the aiming cone, range and line
-	/// of sight, else, for the player, the nearest such damageable object. Null aims along the actor's facing.
+	/// of sight (a lob aims <paramref name="overCover"/>), else, for the player, the nearest such damageable object.
+	/// Null aims along the actor's facing.
 	/// </summary>
-	private Node3D FindReleaseTarget(float range, float aimingAngle, out float fallbackHeight)
+	private Node3D FindReleaseTarget(float range, float aimingAngle, out float fallbackHeight, bool overCover = false)
 	{
 		bool isPlayer = _actor.IsInGroup("player");
 		string targetGroup = isPlayer ? "enemy" : "player";
 		fallbackHeight = 1.0f;
 
 		var target = GetTree().GetNodesInGroup(targetGroup).OfType<Node3D>()
-			.Where(candidate => IsValidAimTarget(candidate) && TestLineOfSight(candidate, range, aimingAngle))
+			.Where(candidate => IsValidAimTarget(candidate) && TestLineOfSight(candidate, range, aimingAngle, overCover))
 			.OrderBy(GetAimAngle)
 			.ThenBy(candidate => _actor.GlobalPosition.DistanceTo(candidate.GlobalPosition))
 			.FirstOrDefault();
@@ -872,24 +873,24 @@ public partial class AttackController : Node, IParryInterruptible
 		return GetTree().GetNodesInGroup("damageable").OfType<Node3D>()
 			.Where(node => node is IDamageable
 				&& !IsOwnedByActor(node)
-				&& TestLineOfSight(node, range, aimingAngle))
+				&& TestLineOfSight(node, range, aimingAngle, overCover))
 			.OrderBy(GetAimAngle)
 			.ThenBy(node => _actor.GlobalPosition.DistanceTo(node.GlobalPosition))
 			.FirstOrDefault();
 	}
 
 	/// <summary>Keep the AI's chosen target when available; never switch targets after accepting an aimed shot.</summary>
-	private Node3D FindProjectileAimTarget(float range, float aimingAngle)
+	private Node3D FindProjectileAimTarget(float range, float aimingAngle, bool overCover = false)
 	{
 		if (_actor is EnemyBase enemy && GodotObject.IsInstanceValid(enemy.EnemyBehaviorComponent?.Target))
 		{
 			var target = enemy.EnemyBehaviorComponent.Target;
 			// The strategy already chose this target; wind-up turns toward it even before the body has rotated.
-			return TestLineOfSight(target, range, 180) ? target : null;
+			return TestLineOfSight(target, range, 180, overCover) ? target : null;
 		}
 		string group = _actor.IsInGroup("player") ? "enemy" : "player";
 		return GetTree().GetNodesInGroup(group).OfType<Node3D>()
-			.Where(target => TestLineOfSight(target, range, aimingAngle))
+			.Where(target => TestLineOfSight(target, range, aimingAngle, overCover))
 			.OrderBy(GetAimAngle).ThenBy(target => _actor.GlobalPosition.DistanceSquaredTo(target.GlobalPosition))
 			.FirstOrDefault();
 	}
@@ -1006,7 +1007,11 @@ public partial class AttackController : Node, IParryInterruptible
 		return forward.LengthSquared() > 0 ? forward.Normalized() : Vector3.Forward;
 	}
 
-	private bool TestLineOfSight(Node3D target, float range, float aimingAngle)
+	/// <summary>
+	/// Whether <paramref name="target"/> is within range and the aiming cone with nothing solid between; a lob aims
+	/// <paramref name="overCover"/>, since it arcs over whatever stands in the way.
+	/// </summary>
+	private bool TestLineOfSight(Node3D target, float range, float aimingAngle, bool overCover = false)
 	{
 		if (!IsValidAimTarget(target)) return false;
 
@@ -1020,6 +1025,7 @@ public partial class AttackController : Node, IParryInterruptible
 
 		float angle = Mathf.RadToDeg(GetActorForward().AngleTo(directionToTarget));
 		if (angle > aimingAngle) return false;
+		if (overCover) return true;
 
 		return WorldSight.IsClear(_actor.GetWorld3D(), GetProjectileOrigin(), GetTargetCenter(target, 1),
 			(collider, _) => collider is Node node && (node == target || target.IsAncestorOf(node) || node.IsAncestorOf(target)));

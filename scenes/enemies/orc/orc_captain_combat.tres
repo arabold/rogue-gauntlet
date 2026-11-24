@@ -1,0 +1,108 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterSpellAction.cs" id="spell_action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/AllyTargetSelector.cs" id="ally"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_ring.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/orc/orc_captain_defense.tres" id="defense"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/chop_1h.tres" id="chop_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/slash_1h.tres" id="slash_contact"]
+[ext_resource type="Resource" path="res://scenes/attacks/melee_profiles/shield_bash.tres" id="bash_contact"]
+[ext_resource type="Resource" path="res://scenes/magic/rage_scroll.tres" id="rage_spell"]
+
+[sub_resource type="Resource" id="chop_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("chop_contact")
+PoiseDamage = 18.0
+HitStopDuration = 0.05
+FacingLockLead = 0.12
+WindUpTurnRate = 280.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="chop"]
+resource_name = "Morning star chop"
+script = ExtResource("action")
+Cooldown = 2.5
+MaximumRange = 2.9
+RiposteEligible = true
+Attack = SubResource("chop_attack")
+Style = &"mace.1h.chop"
+Duration = 0.9
+MinDamage = 6.5
+MaxDamage = 14.0
+
+[sub_resource type="Resource" id="sweep_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("slash_contact")
+PoiseDamage = 20.0
+HitStopDuration = 0.05
+FacingLockLead = 0.14
+WindUpTurnRate = 280.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="sweep"]
+resource_name = "Morning star sweep"
+script = ExtResource("action")
+Cooldown = 3.6
+MaximumRange = 2.9
+Attack = SubResource("sweep_attack")
+Style = &"mace.1h.sweep"
+Duration = 1.3
+MinDamage = 8.0
+MaxDamage = 15.0
+
+[sub_resource type="Resource" id="bash_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("bash_contact")
+PoiseDamage = 30.0
+Knockback = 6.0
+HitStopDuration = 0.06
+FacingLockLead = 0.1
+WindUpTurnRate = 280.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="bash"]
+resource_name = "Shield bash"
+script = ExtResource("action")
+Cooldown = 5.0
+MaximumRange = 2.4
+Attack = SubResource("bash_attack")
+Style = &"shield.bash"
+Duration = 1.07
+MinDamage = 3.5
+MaxDamage = 7.0
+
+[sub_resource type="Resource" id="allies"]
+script = ExtResource("ally")
+
+[sub_resource type="Resource" id="rally_cast"]
+script = ExtResource("attack")
+AttackStyle = &"captain.rally"
+HitWindowStart = 0.45
+HitWindowEnd = 0.52
+IsRanged = true
+
+[sub_resource type="Resource" id="rally"]
+resource_name = "rally"
+script = ExtResource("spell_action")
+Priority = 1
+Weight = 0.7
+Cooldown = 18.0
+MaximumRange = 9.0
+Target = SubResource("allies")
+Spell = ExtResource("rage_spell")
+Cast = SubResource("rally_cast")
+Style = &"captain.rally"
+Duration = 1.03
+MinDamage = 0.0
+MaxDamage = 0.0
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+DefenseStrategy = ExtResource("defense")
+Actions = [SubResource("chop"), SubResource("sweep"), SubResource("bash"), SubResource("rally")]

@@ -1,0 +1,81 @@
+{
+  "triangles": 7191,
+  "joints": 41,
+  "bounds": [
+    [
+      -2.122303680890791,
+      -0.2557663421042324,
+      -3.2036602175317315
+    ],
+    [
+      2.1193636479485645,
+      2.9071312981794697,
+      1.5933435275430745
+    ]
+  ],
+  "clips": [
+    "Block_Attack",
+    "Block_Hit",
+    "Blocking",
+    "Death_A",
+    "Death_A_Pose",
+    "Dodge_Backward",
+    "Dodge_Forward",
+    "Dodge_Left",
+    "Dodge_Right",
+    "Hit_A",
+    "Idle",
+    "Idle_Combat",
+    "Spellcast_Raise",
+    "Spellcast_Shoot",
+    "Walking_A"
+  ],
+  "key": "orc/orc_shaman",
+  "rig": "skeleton",
+  "roles": {
+    "Idle": "Idle_Combat",
+    "Walk": "Walking_A",
+    "Raise": "Spellcast_Raise",
+    "Cast": "Spellcast_Shoot"
+  },
+  "loops": [
+    "Idle",
+    "Idle_Combat",
+    "Walking_A"
+  ],
+  "scale": [
+    1.25,
+    1.15,
+    1.25
+  ],
+  "source_inputs": "8cb9700b6227e0913022cd8f8778295c0b1fe78d633ee347862fbf0a92ac5ba8",
+  "gameplay": false,
+  "provenance": {
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt",
+      "generator": "gemini-3-pro-image via Asset Studio; inputs: the approved Orc Warrior concept and the Knight style reference"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "orc_shaman_rigged.blend: built by `studio.py reconstruct build orc/orc_shaman` from reconstruction.json on the KayKit skeleton rig."
+  }
+}

@@ -50,11 +50,39 @@ Weight = 2
 MinimumDepth = 6
 MaximumDepth = 10
 
-[sub_resource type="Resource" id="warband"]
+[sub_resource type="Resource" id="grunt_trio"]
 script = ExtResource("entry")
 Members = PackedStringArray("res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_warrior.tscn")
 Weight = 2
 MinimumDepth = 8
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="sentry"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_spearman.tscn")
+Weight = 1
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="warband"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_shaman.tscn")
+Weight = 2
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="guard_post"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_captain.tscn", "res://scenes/enemies/orc/orc_spearman.tscn")
+Weight = 2
+MinimumDepth = 6
+MaximumDepth = 10
+
+[sub_resource type="Resource" id="vanguard"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/orc/orc_captain.tscn", "res://scenes/enemies/orc/orc_warrior.tscn", "res://scenes/enemies/orc/orc_spearman.tscn")
+Weight = 2
+MinimumDepth = 6
 MaximumDepth = 10
 
 [resource]
@@ -62,7 +90,7 @@ script = ExtResource("factory")
 RealmName = "The Prison"
 FirstDepth = 6
 FloorCount = 5
-Entries = [SubResource("bat_swarm"), SubResource("bat_flock"), SubResource("lone_nymph"), SubResource("lone_grunt"), SubResource("grunt_pair"), SubResource("raiders"), SubResource("warband")]
+Entries = [SubResource("bat_swarm"), SubResource("bat_flock"), SubResource("lone_nymph"), SubResource("lone_grunt"), SubResource("grunt_pair"), SubResource("raiders"), SubResource("grunt_trio"), SubResource("sentry"), SubResource("warband"), SubResource("guard_post"), SubResource("vanguard")]
 Fallback = ExtResource("fallback")
 NestScene = ExtResource("nest")
 GatekeeperScene = ExtResource("boss")
