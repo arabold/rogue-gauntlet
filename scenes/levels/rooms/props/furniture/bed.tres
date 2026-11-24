@@ -10,5 +10,7 @@ Library = ExtResource("2_DecorationMe")
 Items = ["bed_frame"]
 BackToWall = true
 Gap = 0.05
+TurnJitter = 2.0
+ShiftJitter = 0.03
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")
