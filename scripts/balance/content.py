@@ -220,9 +220,11 @@ def monsters(match=None) -> Group:
             g.add(f"{name}: {pf.get(primary, 'resource_name') or primary.id}", pf, primary, "Duration", duration)
         else:
             g.note(f"{name}: no attack animation binding for style {pf.get(primary, 'Style')!r}; wind-up not derived")
+        # A monster moves at its authored share of the archetype's pace, and that speed sets its footwork and threat.
+        speed = round(target.speed * float(d.get(s, "SpeedScale", 1.0)), 1)
         derived = replace(target, hp=float(max(1, round(target.hp))), armor=snap(target.armor, 0.5),
                           hit=(lo + hi) / 2 * dart_scale * darts, cycle=max(cooldown, duration),
-                          speed=round(target.speed, 1), darts=darts)
+                          speed=speed, darts=darts)
         old_lo, old_hi, old_cooldown = pf.get(primary, "MinDamage"), pf.get(primary, "MaxDamage"), pf.get(primary, "Cooldown")
         now = replace(target, hp=d.get(s, "MaxHealth"), armor=d.get(s, "Armor"),
                       hit=(old_lo + old_hi) / 2 * dart_scale * darts, cycle=max(old_cooldown, duration),

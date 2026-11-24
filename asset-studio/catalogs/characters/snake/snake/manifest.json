@@ -1,0 +1,13 @@
+{
+  "key": "snake/snake",
+  "inputs": "44f7720223ebdc17e76907ced1952e520ceb4781c856e6126d3a8e378a1aeb94",
+  "files": {
+    "model.glb": "51ec2a227578e528f46b0caf267f13fb07caf7e4805eab8335fca004daf5c069",
+    "lineup.png": "995b9391668ca0e48df40bae36d61f7f1997d66259b4a1c70afd1f028a53e77e",
+    "lineup.gif": "837a82c7cb8099549c9b855817e8f1084b40365cfc21b080daef39e6fdc4a362",
+    "asset.json": "e2f18886c6cf72bda0ff7da350d1f9f90f06a33a8b1f29219b77ddd302b78bf1"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

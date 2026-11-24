@@ -399,6 +399,11 @@ def main():
         from fittings import main as armor_main
         armor_main(sys.argv[2:])
         return
+    # Scripted concept-to-Blender reconstruction for new characters (character workflow).
+    if len(sys.argv) > 1 and sys.argv[1] == "reconstruct":
+        from core.reconstruction import main as reconstruct_main
+        reconstruct_main(sys.argv[2:])
+        return
     # Items have their own recipes and static-mesh lifecycle; retain character CLI compatibility.
     if len(sys.argv) > 1 and sys.argv[1] == "item":
         from items.workflow import main as item_main
@@ -410,7 +415,8 @@ def main():
         tile_main(sys.argv[2:])
         return
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
-                                 epilog="For item recipes: studio.py item --help; for creature rigs: studio.py creature --help")
+                                 epilog="For item recipes: studio.py item --help; for creature rigs: studio.py creature --help; "
+                                        "for concept reconstruction: studio.py reconstruct --help")
     ap.add_argument("command", choices=["list", "schema", "new", "reference", "preview", "export", "lineup", "catalog", "audit"])
     ap.add_argument("targets", nargs="*", help="family/name for character commands, or section for schema/catalog")
     ap.add_argument("--all", action="store_true", help="every character")

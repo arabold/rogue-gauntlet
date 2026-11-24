@@ -93,9 +93,10 @@ public static class CollisionOutlines
 
 	/// <summary>
 	/// Static collision under <paramref name="root"/> (bodies and GridMaps). A door counts with its frame and its leaf
-	/// standing open; the shut leaf is a navigation gate (<see cref="ClearanceGrid.AddGate"/>), not a solid.
+	/// standing open; the shut leaf is a navigation gate (<see cref="ClearanceGrid.AddGate"/>), not a solid. Bodies count
+	/// when they collide on one of <paramref name="layers"/>.
 	/// </summary>
-	public static IEnumerable<SolidOutline> FromStaticBodies(Node root, Transform3D toParent)
+	public static IEnumerable<SolidOutline> FromStaticBodies(Node root, Transform3D toParent, uint layers = BlockingLayers)
 	{
 		var result = new List<SolidOutline>();
 		var leaves = new HashSet<Node>();
@@ -117,7 +118,7 @@ public static class CollisionOutlines
 				return;
 			}
 			if (node is CollisionShape3D { Disabled: false, Shape: not null } collision
-				&& collision.GetParent() is StaticBody3D body && (body.CollisionLayer & BlockingLayers) != 0)
+				&& collision.GetParent() is StaticBody3D body && (body.CollisionLayer & layers) != 0)
 				result.Add(FromShape(collision.Shape, transform));
 			foreach (Node child in node.GetChildren())
 				Collect(child, child is Node3D spatial ? transform * spatial.Transform : transform);

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PoisonBuff" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/buffs/PoisonBuff.cs" id="script"]
+[ext_resource type="Resource" uid="uid://cstatuspoisoned" path="res://scenes/buffs/conditions/poisoned.tres" id="poisoned"]
+
+[resource]
+script = ExtResource("script")
+Condition = ExtResource("poisoned")
+Name = "Snake Venom"
+Duration = 5.0
+Stacking = 1
+TicksPerSecond = 1.0
+DamagePointsPerTick = 1

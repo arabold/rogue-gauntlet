@@ -1,0 +1,69 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/TimedEffect.cs" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="Wood"]
+albedo_color = Color(0.62, 0.36, 0.24, 1)
+roughness = 0.85
+
+[sub_resource type="ParticleProcessMaterial" id="ChipProcess"]
+direction = Vector3(0, 1, 0)
+spread = 75.0
+initial_velocity_min = 2.8
+initial_velocity_max = 5.2
+gravity = Vector3(0, -11, 0)
+angular_velocity_min = -540.0
+angular_velocity_max = 540.0
+scale_min = 0.7
+scale_max = 1.4
+particle_flag_rotate_y = true
+
+[sub_resource type="BoxMesh" id="Chip"]
+size = Vector3(0.07, 0.035, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="Tooth"]
+albedo_color = Color(0.93, 0.89, 0.78, 1)
+roughness = 0.85
+
+[sub_resource type="ParticleProcessMaterial" id="ToothProcess"]
+direction = Vector3(0, 1, 0)
+spread = 50.0
+initial_velocity_min = 2.4
+initial_velocity_max = 4.0
+gravity = Vector3(0, -11, 0)
+angular_velocity_min = -360.0
+angular_velocity_max = 360.0
+particle_flag_rotate_y = true
+
+[sub_resource type="CylinderMesh" id="ToothMesh"]
+top_radius = 0.0
+bottom_radius = 0.055
+height = 0.14
+radial_segments = 5
+rings = 1
+
+[node name="ChestMimicDeathBurst" type="Node3D"]
+script = ExtResource("1")
+Lifetime = 1.2
+
+[node name="Splinters" type="GPUParticles3D" parent="."]
+material_override = SubResource("Wood")
+emitting = false
+amount = 22
+lifetime = 1.0
+one_shot = true
+explosiveness = 1.0
+randomness = 0.6
+process_material = SubResource("ChipProcess")
+draw_pass_1 = SubResource("Chip")
+
+[node name="Teeth" type="GPUParticles3D" parent="."]
+material_override = SubResource("Tooth")
+emitting = false
+amount = 4
+lifetime = 1.0
+one_shot = true
+explosiveness = 1.0
+randomness = 0.5
+process_material = SubResource("ToothProcess")
+draw_pass_1 = SubResource("ToothMesh")

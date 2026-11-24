@@ -1,0 +1,43 @@
+{
+  "builder": "blender_source",
+  "source": "nymph_rigged.blend",
+  "rig": "skeleton",
+  "triangle_budget": 6500,
+  "roles": {
+    "Idle": "Unarmed_Idle",
+    "Walk": "Running_A",
+    "Punch": "Unarmed_Melee_Attack_Punch_A",
+    "Uppercut": "Unarmed_Melee_Attack_Punch_B",
+    "Kick": "Unarmed_Melee_Attack_Kick"
+  },
+  "animation_fps": 60,
+  "clips": [
+    "Unarmed_Idle",
+    "Running_A",
+    "Unarmed_Melee_Attack_Punch_A",
+    "Unarmed_Melee_Attack_Punch_B",
+    "Unarmed_Melee_Attack_Kick",
+    "Hit_A",
+    "Death_A",
+    "Death_A_Pose",
+    "Idle",
+    "Blocking",
+    "Block_Attack",
+    "Block_Hit",
+    "Dodge_Backward",
+    "Dodge_Forward",
+    "Dodge_Left",
+    "Dodge_Right"
+  ],
+  "loops": ["Idle", "Unarmed_Idle", "Running_A"],
+  "blender": {
+    "collection": "COL_Nymph",
+    "rig_object": "ARM_Nymph",
+    "rig_node": "NymphRig",
+    "body_object": "SM_Nymph_Torso",
+    "body_node": "NymphBody"
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/nymph/nymph.glb"
+  }
+}

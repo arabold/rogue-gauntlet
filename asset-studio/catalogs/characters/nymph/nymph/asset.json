@@ -1,0 +1,78 @@
+{
+  "triangles": 6039,
+  "joints": 41,
+  "bounds": [
+    [
+      -1.3138176341333412,
+      -0.011824812809837389,
+      -1.8943173720584556
+    ],
+    [
+      1.3181658510030456,
+      2.219256585507003,
+      1.1382924646360277
+    ]
+  ],
+  "clips": [
+    "Block_Attack",
+    "Block_Hit",
+    "Blocking",
+    "Death_A",
+    "Death_A_Pose",
+    "Dodge_Backward",
+    "Dodge_Forward",
+    "Dodge_Left",
+    "Dodge_Right",
+    "Hit_A",
+    "Idle",
+    "Running_A",
+    "Unarmed_Idle",
+    "Unarmed_Melee_Attack_Kick",
+    "Unarmed_Melee_Attack_Punch_A",
+    "Unarmed_Melee_Attack_Punch_B"
+  ],
+  "key": "nymph/nymph",
+  "rig": "skeleton",
+  "roles": {
+    "Idle": "Unarmed_Idle",
+    "Walk": "Running_A",
+    "Punch": "Unarmed_Melee_Attack_Punch_A",
+    "Uppercut": "Unarmed_Melee_Attack_Punch_B",
+    "Kick": "Unarmed_Melee_Attack_Kick"
+  },
+  "loops": [
+    "Idle",
+    "Unarmed_Idle",
+    "Running_A"
+  ],
+  "scale": 1,
+  "source_inputs": "a77f007f6d502f0f546f7380c78b99f6c026550b464570da4b16d3a2b433df21",
+  "gameplay": false,
+  "provenance": {
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "nymph_rigged.blend: built by `studio.py reconstruct build nymph/nymph` from reconstruction.json: Tripo's parts registered at 2.1 m and decimated per part, arms and legs rebuilt as ring loops, faces colored from the turnaround into a palette atlas, and the KayKit skeleton fitted by moving its joints (bone directions and rolls kept) with the A-posed mesh weighted on the posed skeleton and unposed into the rest pose."
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "family": "bat",
+  "scale": 0.4,
+  "clips": {
+    "Fly": "Fly",
+    "Attack": "Attack",
+    "Attack2": "Attack2",
+    "Hit": "Hit",
+    "Death": "Death"
+  },
+  "loops": [
+    "Fly"
+  ],
+  "bones": {
+    "body": "Body",
+    "head": "Head",
+    "wing_left": "Wing1.L",
+    "wing_right": "Wing1.R"
+  },
+  "source": "res://assets/quaternius-monsters/bat.glb",
+  "version": 1,
+  "license": "CC0-1.0",
+  "author": "Quaternius",
+  "acquired": "2026-06-28",
+  "status": "technical_rig",
+  "forward": "+Z",
+  "up": "+Y",
+  "source_clips": {
+    "Fly": "BatArmature|Bat_Flying",
+    "Attack": "BatArmature|Bat_Attack",
+    "Attack2": "BatArmature|Bat_Attack2",
+    "Hit": "BatArmature|Bat_Hit",
+    "Death": "BatArmature|Bat_Death"
+  },
+  "original_sha256": "ff20d0c0d68be4ed4ba3a402b8ceaeaf54de5d0c9dc3968117749214aee63c9b",
+  "rig_sha256": "fafa971c72cff77fb440ebd24127e2106a706a339340e3dae52de33e6676e979"
+}

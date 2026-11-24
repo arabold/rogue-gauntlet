@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="definition"]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/enemies/nymph/nymph_combat.tres" id="combat"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common.tres" id="loot"]
+
+[sub_resource type="Resource" id="behavior"]
+script = ExtResource("behavior")
+FacesTravel = true
+DetectionRange = 22.0
+DetectionAngle = 70.0
+RoamRadius = 9.0
+RoamPauseMax = 2.0
+HitActionDuration = 0.3
+Combat = ExtResource("combat")
+
+[resource]
+script = ExtResource("definition")
+Id = "nymph"
+DisplayName = "Nymph"
+Archetype = 1
+BalanceDepth = 8.0
+SpeedScale = 1.1
+MaxHealth = 16.0
+MoveSpeed = 5.5
+Loot = ExtResource("loot")
+Behavior = SubResource("behavior")
+ThreatLevel = -2.54

@@ -1,0 +1,27 @@
+{
+  "kind": "image_to_3d_retopology",
+  "concept": {
+    "image": "reference.png",
+    "prompt": "reference.prompt.txt"
+  },
+  "turnaround": {
+    "image": "turnaround.png",
+    "prompt": "turnaround.prompt.txt",
+    "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+    "views": [
+      "turnaround/front.png",
+      "turnaround/left.png",
+      "turnaround/back.png",
+      "turnaround/right.png"
+    ]
+  },
+  "reconstruction": {
+    "service": "Tripo",
+    "model": "H3.1",
+    "model_version": "v3.1-20260211",
+    "seed": 1,
+    "textured": false,
+    "separate_parts": true
+  },
+  "authoring": "giant_bat_rigged.blend: built by `studio.py reconstruct build bat/giant_bat` from reconstruction.json: Tripo's parts registered at the bat rig's size, decimated per part and colored from the turnaround; the rig's body, head and leg joints moved to the mesh and each wing chain refitted at the mesh's lengths, bent onto the spread wings, weighted there and unposed into the rig's raised-wing rest."
+}

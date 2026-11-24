@@ -210,7 +210,8 @@ public partial class EnemyBehaviorComponent : Node, ICombatAwareness
 			}
 			else if (_actionCooldown.Tick(delta)) SetAction(EnemyAction.None);
 		}
-		else if (AIEnabled)
+		// A monster waiting in disguise neither looks for targets nor moves until something wakes it.
+		else if (AIEnabled && Actor.AmbushComponent is not { IsDormant: true })
 		{
 			// Self and ally support stays available without a hostile target or a chase state, checked on a short cadence.
 			if (Target == null && _supportCheck.Tick(delta))

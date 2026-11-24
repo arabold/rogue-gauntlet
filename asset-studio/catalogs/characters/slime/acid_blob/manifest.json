@@ -1,0 +1,13 @@
+{
+  "key": "slime/acid_blob",
+  "inputs": "0866709f08c66ef2c830aad7012f4f2c7b5636982b47ee1cee25d3977a71b08d",
+  "files": {
+    "model.glb": "1d4900869c1f95ae2b4883ce3f0daec372c64835a7deb09740de4a66192d9085",
+    "lineup.png": "359bcc4fe71d2954e0815ac8249ab92106c65bc8e13cce518b9d8bc895e487bb",
+    "lineup.gif": "995759804f2abe3381c5f62aa54b26ad498280f2b9ffb7c5324eaef82851c8e6",
+    "asset.json": "9bcac5119f41610428df5a26542a8232c7c4da58862a4b5f22a9f3b72f4897a6"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

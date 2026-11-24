@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="definition"]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/enemies/snake/snake_combat.tres" id="combat"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/beast.tres" id="loot"]
+
+[sub_resource type="Resource" id="behavior"]
+script = ExtResource("behavior")
+FacesTravel = true
+DetectionRange = 7.0
+DetectionAngle = 100.0
+RoamRadius = 0.0
+RoamPauseMax = 2.5
+HitActionDuration = 0.3
+DyingActionDuration = 1.8
+Combat = ExtResource("combat")
+
+[resource]
+script = ExtResource("definition")
+Id = "snake"
+DisplayName = "Snake"
+Archetype = 2
+BalanceDepth = 13.0
+SpeedScale = 0.7
+MaxHealth = 14.0
+MoveSpeed = 4.5
+Loot = ExtResource("loot")
+Behavior = SubResource("behavior")
+ThreatLevel = 2.37

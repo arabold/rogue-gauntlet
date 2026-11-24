@@ -1,0 +1,481 @@
+{
+  "name": "AcidBlob",
+  "height": 2.3,
+  "center_on": [
+    "Body"
+  ],
+  "parts": {
+    "Body": [
+      0
+    ],
+    "Flange": [
+      1,
+      2,
+      3,
+      11,
+      16
+    ],
+    "Brow": [
+      6,
+      12,
+      13
+    ],
+    "Mouth": [
+      15
+    ],
+    "Eye_L": [
+      10
+    ],
+    "Eye_R": [
+      9
+    ],
+    "Bubbles": [
+      4,
+      14,
+      7,
+      8
+    ],
+    "Drip": [
+      5
+    ]
+  },
+  "by_island": [
+    "Flange"
+  ],
+  "budgets": {
+    "Body": 1300,
+    "Flange": 900,
+    "Brow": 220,
+    "Mouth": 80,
+    "Eye_L": 48,
+    "Eye_R": 48,
+    "Bubbles": 280,
+    "Drip": 240
+  },
+  "smooth_angle": 60,
+  "palette": {
+    "slime": {
+      "light": [
+        206,
+        246,
+        70
+      ],
+      "base": [
+        140,
+        210,
+        70
+      ],
+      "shadow": [
+        50,
+        165,
+        75
+      ]
+    },
+    "flange": {
+      "light": [
+        110,
+        222,
+        90
+      ],
+      "base": [
+        80,
+        196,
+        70
+      ],
+      "shadow": [
+        45,
+        150,
+        60
+      ]
+    },
+    "brow": [
+      180,
+      230,
+      50
+    ],
+    "mouth": [
+      150,
+      210,
+      50
+    ],
+    "eye": [
+      24,
+      24,
+      28
+    ],
+    "bubble": [
+      228,
+      240,
+      150
+    ],
+    "drip": [
+      175,
+      225,
+      60
+    ]
+  },
+  "slots": {
+    "Body": [
+      "slime"
+    ],
+    "Flange": [
+      "flange"
+    ],
+    "Brow": [
+      "brow"
+    ],
+    "Mouth": [
+      "mouth"
+    ],
+    "Eye_L": [
+      "eye"
+    ],
+    "Eye_R": [
+      "eye"
+    ],
+    "Bubbles": [
+      "bubble"
+    ],
+    "Drip": [
+      "drip"
+    ]
+  },
+  "rig": {
+    "kind": "creature",
+    "clips": [
+      "Idle",
+      "Attack",
+      "Hit"
+    ],
+    "idle": "Idle",
+    "weights": {
+      "Body": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      },
+      "Flange": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      },
+      "Brow": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      },
+      "Mouth": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      },
+      "Eye_L": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      },
+      "Eye_R": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      },
+      "Bubbles": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      },
+      "Drip": {
+        "blend": [
+          "Body",
+          "Head",
+          "Head2",
+          "Head3"
+        ],
+        "power": 3
+      }
+    },
+    "actions": {
+      "Glide": {
+        "keys": [
+          [
+            0,
+            {
+              "Body": {
+                "scale": [
+                  1.05,
+                  0.95,
+                  1.05
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  6,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            6,
+            {
+              "Head": {
+                "rotation": [
+                  6,
+                  0,
+                  4
+                ]
+              }
+            }
+          ],
+          [
+            12,
+            {
+              "Body": {
+                "scale": [
+                  1.05,
+                  0.95,
+                  1.05
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  6,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          [
+            18,
+            {
+              "Head": {
+                "rotation": [
+                  6,
+                  0,
+                  -4
+                ]
+              }
+            }
+          ],
+          [
+            24,
+            {
+              "Body": {
+                "scale": [
+                  1.05,
+                  0.95,
+                  1.05
+                ]
+              },
+              "Head": {
+                "rotation": [
+                  6,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        ]
+      },
+      "Melt": {
+        "keys": [
+          [
+            0,
+            {}
+          ],
+          [
+            4,
+            {
+              "Head": {
+                "scale": [
+                  0.93,
+                  1.1,
+                  0.93
+                ]
+              }
+            }
+          ],
+          [
+            9,
+            {
+              "Body": {
+                "scale": [
+                  1.08,
+                  0.9,
+                  1.08
+                ]
+              },
+              "Head": {
+                "location": [
+                  0,
+                  -0.08,
+                  0
+                ],
+                "scale": [
+                  1.06,
+                  0.92,
+                  1.06
+                ]
+              }
+            }
+          ],
+          [
+            16,
+            {
+              "Body": {
+                "scale": [
+                  1.25,
+                  0.55,
+                  1.25
+                ]
+              },
+              "Head": {
+                "location": [
+                  0,
+                  -0.32,
+                  0
+                ],
+                "scale": [
+                  1.2,
+                  0.6,
+                  1.2
+                ]
+              }
+            }
+          ],
+          [
+            23,
+            {
+              "Body": {
+                "scale": [
+                  1.38,
+                  0.22,
+                  1.38
+                ]
+              },
+              "Head": {
+                "location": [
+                  0,
+                  -0.55,
+                  0
+                ],
+                "scale": [
+                  1.33,
+                  0.26,
+                  1.33
+                ]
+              }
+            }
+          ],
+          [
+            29,
+            {
+              "Body": {
+                "scale": [
+                  1.44,
+                  0.1,
+                  1.44
+                ]
+              },
+              "Head": {
+                "location": [
+                  0,
+                  -0.66,
+                  0
+                ],
+                "scale": [
+                  1.4,
+                  0.1,
+                  1.4
+                ]
+              }
+            }
+          ],
+          [
+            34,
+            {
+              "Body": {
+                "scale": [
+                  1.41,
+                  0.11,
+                  1.41
+                ]
+              },
+              "Head": {
+                "location": [
+                  0,
+                  -0.65,
+                  0
+                ],
+                "scale": [
+                  1.38,
+                  0.11,
+                  1.38
+                ]
+              }
+            }
+          ]
+        ]
+      },
+      "Melted": {
+        "keys": [
+          [
+            0,
+            {
+              "Body": {
+                "scale": [
+                  1.41,
+                  0.11,
+                  1.41
+                ]
+              },
+              "Head": {
+                "location": [
+                  0,
+                  -0.65,
+                  0
+                ],
+                "scale": [
+                  1.38,
+                  0.11,
+                  1.38
+                ]
+              }
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

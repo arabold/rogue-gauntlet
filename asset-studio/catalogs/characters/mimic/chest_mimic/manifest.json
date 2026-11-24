@@ -1,0 +1,13 @@
+{
+  "key": "mimic/chest_mimic",
+  "inputs": "a8b3ea2e0ede2831761417669a27ee628d7eb1d15aa0408891d0c64dd2f69165",
+  "files": {
+    "model.glb": "99e174df848afb04dc2ec55554fbb5c7fd4f3bd43e69a2b28f24c3756e843955",
+    "lineup.png": "a45ee934dda33ecc9e8e408e2b8670c73662a172feeca842b1e3a0aa88046508",
+    "lineup.gif": "a7a09355376f39206ad8d42242969bca33c373b6914d573af6352d6b9ce8d23c",
+    "asset.json": "7b0d964b1f421df71e80e7d7c9ee46884e4bbbb7cca84ea05a23bd6d1e6fa12a"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

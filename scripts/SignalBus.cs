@@ -60,6 +60,10 @@ public partial class SignalBus : Node
     [Signal] public delegate void ItemDestroyedEventHandler(Player player, Item item, int quantity);
     [Signal] public delegate void ItemDroppedEventHandler(Player player, Item item, int quantity);
     [Signal] public delegate void ItemPickedUpEventHandler(Player player, Item item, int quantity);
+    /// <summary>A thief took an item stack from the hero's pack; <c>thief</c> is its display name.</summary>
+    [Signal] public delegate void ItemStolenEventHandler(Player player, Item item, int quantity, string thief);
+    /// <summary>A thief vanished with the item stack it stole, which is gone for good.</summary>
+    [Signal] public delegate void ThiefEscapedEventHandler(Item item, int quantity, string thief);
     /// <summary>Fired when an item type's hidden identity is newly discovered this run.</summary>
     [Signal] public delegate void ItemIdentifiedEventHandler(string typeId);
     /// <summary>
@@ -76,6 +80,9 @@ public partial class SignalBus : Node
     public static void EmitItemDestroyed(Player player, Item item, int quantity) => Instance?.EmitSignalItemDestroyed(player, item, quantity);
     public static void EmitItemDropped(Player player, Item item, int quantity) => Instance?.EmitSignalItemDropped(player, item, quantity);
     public static void EmitItemPickedUp(Player player, Item item, int quantity) => Instance?.EmitSignalItemPickedUp(player, item, quantity);
+    public static void EmitItemStolen(Player player, Item item, int quantity, string thief) =>
+        Instance?.EmitSignalItemStolen(player, item, quantity, thief);
+    public static void EmitThiefEscaped(Item item, int quantity, string thief) => Instance?.EmitSignalThiefEscaped(item, quantity, thief);
 
     [Signal] public delegate void LevelChangedEventHandler(int level);
     [Signal] public delegate void LevelLoadedEventHandler(Level level);

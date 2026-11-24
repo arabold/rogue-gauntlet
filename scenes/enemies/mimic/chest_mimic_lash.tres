@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MeleeAttackProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/attacks/MeleeAttackProfile.cs" id="script"]
+
+[resource]
+script = ExtResource("script")
+Reach = 2.9
+Width = 0.9
+CenterHeight = 0.7
+ArcDegrees = 40.0
+EngagementMargin = 0.3

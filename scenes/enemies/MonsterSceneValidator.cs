@@ -107,9 +107,13 @@ public static class MonsterSceneValidator
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health
 				&& Object<Node>(behavior, "MovementComponent") == movement, "EnemyBehaviorComponent: bind this actor's health and movement.");
-			Check(behavior.GetNodeOrNull<NavigationComponent>("Navigation") != null
-				&& behavior.GetNodeOrNull<Node>("Perception") != null && behavior.GetNodeOrNull<RayCast3D>("SightRay") != null,
+			var navigation = behavior.GetNodeOrNull<NavigationComponent>("Navigation");
+			Check(navigation != null && behavior.GetNodeOrNull<Node>("Perception") != null && behavior.GetNodeOrNull<RayCast3D>("SightRay") != null,
 				"EnemyBehaviorComponent: retain navigation, perception and sight ray children.");
+			if (navigation?.Layer == NavigationLayer.Air && actor is CollisionObject3D flyer)
+				Check(movement is MovementComponent { Gravity: <= 0 } && (flyer.CollisionMask & CollisionOutlines.WalkingTerrainLayer) == 0
+					&& body?.Shape != null && CollisionOutlines.FromShape(body.Shape, body.Transform).Bottom > ClearanceGrid.AirClearanceHeight,
+					"Navigation.Layer: a flyer hovers: no gravity on its movement, no walking terrain in its collision mask, and its BodyShape above ClearanceGrid.AirClearanceHeight.");
 		}
 		var profile = definition.Behavior;
 		Check(profile == null || profile.StayInHomeRoom || EnemyBase.HorizontalRadius(body) <= RoomAssembler.ActorRadius + .001f,

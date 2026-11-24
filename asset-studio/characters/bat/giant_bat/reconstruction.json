@@ -1,0 +1,394 @@
+{
+  "name": "GiantBat",
+  "height": 3.58,
+  "center_on": [
+    "Body"
+  ],
+  "offset": [
+    0,
+    0.1,
+    -1.64
+  ],
+  "parts": {
+    "Wing_R": [
+      0
+    ],
+    "Wing_L": [
+      1
+    ],
+    "Head": [
+      2
+    ],
+    "Body": [
+      3
+    ],
+    "Ear_L": [
+      4
+    ],
+    "Ruff": [
+      5
+    ],
+    "Ear_R": [
+      6
+    ],
+    "Foot_R": [
+      7
+    ],
+    "Foot_L": [
+      8
+    ],
+    "Nose": [
+      9
+    ],
+    "Mouth": [
+      10
+    ],
+    "Fang_R": [
+      11
+    ],
+    "Fang_L": [
+      12
+    ]
+  },
+  "budgets": {
+    "Wing_L": 700,
+    "Wing_R": 700,
+    "Head": 700,
+    "Body": 350,
+    "Ruff": 200,
+    "Ear_L": 200,
+    "Ear_R": 200,
+    "Foot_L": 90,
+    "Foot_R": 90,
+    "Nose": 60,
+    "Mouth": 80,
+    "Fang_L": 24,
+    "Fang_R": 24
+  },
+  "symmetric": [
+    "Head",
+    "Body"
+  ],
+  "smooth_angle": 35,
+  "palette": {
+    "fur": [
+      82,
+      66,
+      80
+    ],
+    "eye": [
+      22,
+      20,
+      24
+    ],
+    "mouth": [
+      52,
+      40,
+      50
+    ],
+    "ear_inner": [
+      176,
+      118,
+      126
+    ],
+    "nose": [
+      186,
+      124,
+      130
+    ],
+    "ruff": [
+      150,
+      136,
+      160
+    ],
+    "membrane": [
+      122,
+      72,
+      82
+    ],
+    "rib": [
+      72,
+      48,
+      60
+    ],
+    "claw": [
+      205,
+      200,
+      196
+    ],
+    "fang": [
+      238,
+      228,
+      200
+    ],
+    "foot": [
+      70,
+      62,
+      70
+    ]
+  },
+  "slots": {
+    "Head": [
+      "fur",
+      "eye"
+    ],
+    "Body": [
+      "fur"
+    ],
+    "Ruff": [
+      "ruff"
+    ],
+    "Ear_L": [
+      "fur",
+      "ear_inner"
+    ],
+    "Ear_R": [
+      "fur",
+      "ear_inner"
+    ],
+    "Wing_L": [
+      "membrane",
+      "rib",
+      "claw"
+    ],
+    "Wing_R": [
+      "membrane",
+      "rib",
+      "claw"
+    ],
+    "Foot_L": [
+      "foot",
+      "claw"
+    ],
+    "Foot_R": [
+      "foot",
+      "claw"
+    ],
+    "Nose": [
+      "nose"
+    ],
+    "Mouth": [
+      "fur",
+      "mouth"
+    ],
+    "Fang_L": [
+      "fang"
+    ],
+    "Fang_R": [
+      "fang"
+    ]
+  },
+  "regions": {
+    "eye": {
+      "z": [
+        0.25,
+        0.7
+      ],
+      "half_width": 0.55,
+      "facing": 0.3
+    }
+  },
+  "rig": {
+    "kind": "creature",
+    "clips": [
+      "Fly",
+      "Attack",
+      "Hit",
+      "Death"
+    ],
+    "idle": "Fly",
+    "fit": {
+      "Neck": [
+        0,
+        -0.05,
+        -0.15
+      ],
+      "Head": [
+        0,
+        -0.06,
+        0.2
+      ],
+      "Face": [
+        0,
+        -0.35,
+        0.36
+      ],
+      "Nose": [
+        0,
+        -0.7,
+        0.29
+      ],
+      "UpperLeg.L": [
+        0.28,
+        0.15,
+        -1.05
+      ],
+      "LowerLeg.L": [
+        0.28,
+        0.15,
+        -1.3
+      ],
+      "Feet.L": [
+        0.28,
+        0.1,
+        -1.55
+      ],
+      "UpperLeg.R": [
+        -0.28,
+        0.15,
+        -1.05
+      ],
+      "LowerLeg.R": [
+        -0.28,
+        0.15,
+        -1.3
+      ],
+      "Feet.R": [
+        -0.28,
+        0.1,
+        -1.55
+      ]
+    },
+    "chains": {
+      "wing.l": {
+        "bones": [
+          "Shoulder.L",
+          "Wing1.L",
+          "Wing2.L",
+          "Wing3.L",
+          "Wing4.L"
+        ],
+        "points": [
+          [
+            0.3,
+            0.2,
+            -0.42
+          ],
+          [
+            0.55,
+            0.21,
+            -0.2
+          ],
+          [
+            1.05,
+            0.25,
+            0.12
+          ],
+          [
+            1.6,
+            0.22,
+            0.47
+          ],
+          [
+            2.06,
+            0.42,
+            -0.4
+          ],
+          [
+            2.5,
+            0.72,
+            -1.38
+          ]
+        ]
+      },
+      "wing.r": {
+        "bones": [
+          "Shoulder.R",
+          "Wing1.R",
+          "Wing2.R",
+          "Wing3.R",
+          "Wing4.R"
+        ],
+        "points": [
+          [
+            -0.3,
+            0.2,
+            -0.42
+          ],
+          [
+            -0.55,
+            0.21,
+            -0.2
+          ],
+          [
+            -1.05,
+            0.25,
+            0.12
+          ],
+          [
+            -1.6,
+            0.22,
+            0.47
+          ],
+          [
+            -2.06,
+            0.42,
+            -0.4
+          ],
+          [
+            -2.5,
+            0.72,
+            -1.38
+          ]
+        ]
+      }
+    },
+    "weights": {
+      "Head": "Head",
+      "Ear_L": "Head",
+      "Ear_R": "Head",
+      "Nose": "Head",
+      "Mouth": "Head",
+      "Fang_L": "Head",
+      "Fang_R": "Head",
+      "Body": {
+        "blend": [
+          "BodyRoot",
+          "Body",
+          "Neck"
+        ],
+        "power": 4
+      },
+      "Ruff": {
+        "blend": [
+          "Body",
+          "Neck"
+        ],
+        "power": 4
+      },
+      "Foot_L": [
+        "LowerLeg.L",
+        "Feet.L"
+      ],
+      "Foot_R": [
+        "LowerLeg.R",
+        "Feet.R"
+      ],
+      "Wing_L": {
+        "blend": [
+          "Body",
+          "Shoulder.L",
+          "Wing1.L",
+          "Wing2.L",
+          "Wing3.L",
+          "Wing4.L"
+        ],
+        "power": 4
+      },
+      "Wing_R": {
+        "blend": [
+          "Body",
+          "Shoulder.R",
+          "Wing1.R",
+          "Wing2.R",
+          "Wing3.R",
+          "Wing4.R"
+        ],
+        "power": 4
+      }
+    },
+    "holds": {
+      "Dead": "Death"
+    }
+  }
+}

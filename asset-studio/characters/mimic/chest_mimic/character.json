@@ -1,0 +1,52 @@
+{
+  "builder": "blender_source",
+  "source": "chest_mimic_rigged.blend",
+  "rig": "authored",
+  "required_bones": [
+    "Root",
+    "Body",
+    "Lid",
+    "Tongue1",
+    "Tongue2",
+    "Tongue3",
+    "Tongue4",
+    "Eye.L",
+    "Eye.R"
+  ],
+  "scale": 1.9,
+  "triangle_budget": 3500,
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Hop",
+    "Attack": "Bite",
+    "Lash": "Lash",
+    "Hit": "Hit",
+    "Wake": "Wake",
+    "Death": "Death"
+  },
+  "animation_fps": 60,
+  "clips": [
+    "Idle",
+    "Hop",
+    "Bite",
+    "Lash",
+    "Hit",
+    "Wake",
+    "Death",
+    "Dead"
+  ],
+  "loops": [
+    "Idle",
+    "Hop"
+  ],
+  "blender": {
+    "collection": "COL_ChestMimic",
+    "rig_object": "ARM_ChestMimic",
+    "rig_node": "ChestMimicRig",
+    "body_object": "SM_ChestMimic_Wood",
+    "body_node": "ChestMimicBody"
+  },
+  "export": {
+    "glb": "res://assets/custom-monsters/mimic/chest_mimic.glb"
+  }
+}

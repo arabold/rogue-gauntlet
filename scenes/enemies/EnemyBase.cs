@@ -69,6 +69,10 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	[Export] public ManaComponent ManaComponent { get; set; }
 	/// <summary>Optional: committed displacement for dash actions (rushes, hop-backs).</summary>
 	[Export] public DashComponent DashComponent { get; set; }
+	/// <summary>Optional: steals from the hero on a landed touch and flees with the loot (the nymph).</summary>
+	[Export] public TheftComponent TheftComponent { get; set; }
+	/// <summary>Optional: waits disguised until the hero gives it away (the chest mimic).</summary>
+	[Export] public AmbushComponent AmbushComponent { get; set; }
 	/// <summary>Optional: health phases that actions can be gated and weighted by.</summary>
 	[Export] public HealthPhaseComponent HealthPhases { get; set; }
 
@@ -106,6 +110,15 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 	}
 
 	public bool IsDead => EnemyBehaviorComponent?.IsDead ?? HealthComponent?.IsDead ?? false;
+
+	/// <summary>
+	/// Lying in wait (<see cref="AmbushComponent"/>): nothing gives it away. The hero's aim-assist and seeking spells pass
+	/// it over and its nameplate and x-ray stay off, but it is still an enemy that blasts and blows hit, which wakes it.
+	/// </summary>
+	public bool IsConcealed => AmbushComponent is { State: AmbushState.Waiting };
+
+	/// <summary>The see-through-wall silhouette added when the enemy becomes ready; off while it is concealed.</summary>
+	public OcclusionXrayComponent Xray { get; private set; }
 
 	public bool TryStagger(float duration)
 	{
@@ -145,7 +158,7 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 
 		// See-through-wall silhouette so a hidden enemy reads from any camera angle. Properties
 		// are set before AddChild so the component builds its silhouettes with them in place.
-		var xray = new OcclusionXrayComponent
+		Xray = new OcclusionXrayComponent
 		{
 			Name = "OcclusionXrayComponent",
 			Category = XrayCategory.Monster,
@@ -153,8 +166,9 @@ public partial class EnemyBase : CharacterBody3D, IDamageable, ICombatDamageable
 			TargetRoot = "../Pivot",
 			Invisibility = Invisibility,
 			GroundAnchor = this,
+			IsEnabled = !IsConcealed,
 		};
-		AddChild(xray);
+		AddChild(Xray);
 	}
 
 	/// <summary>Independent combat streams keyed by the spawn's stable source identity.</summary>

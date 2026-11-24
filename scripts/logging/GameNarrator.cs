@@ -23,6 +23,8 @@ public partial class GameNarrator : Node
 				bus.ItemUnequipped += OnItemUnequipped;
 				bus.ItemDropped += OnItemDropped;
 				bus.ItemPickedUp += OnItemPickedUp;
+				bus.ItemStolen += OnItemStolen;
+				bus.ThiefEscaped += OnThiefEscaped;
 				bus.XpRewarded += OnXpRewarded;
 				bus.PlayerLeveledUp += OnPlayerLeveledUp;
 				bus.PlayerDeath += OnPlayerDeath;
@@ -40,6 +42,8 @@ public partial class GameNarrator : Node
 				bus.ItemUnequipped -= OnItemUnequipped;
 				bus.ItemDropped -= OnItemDropped;
 				bus.ItemPickedUp -= OnItemPickedUp;
+				bus.ItemStolen -= OnItemStolen;
+				bus.ThiefEscaped -= OnThiefEscaped;
 				bus.XpRewarded -= OnXpRewarded;
 				bus.PlayerLeveledUp -= OnPlayerLeveledUp;
 				bus.PlayerDeath -= OnPlayerDeath;
@@ -190,6 +194,24 @@ public partial class GameNarrator : Node
 		string name = ItemIdentity.ResolveDisplayName(item);
 		string text = quantity > 1 ? $"Dropped [b]{quantity} {name}[/b]" : $"Dropped [b]{name}[/b]";
 		GameLog.Player(text, LogSeverity.ItemPickup);
+	}
+
+	private void OnItemStolen(Player player, Item item, int quantity, string thief)
+	{
+		if (item == null || quantity <= 0) return;
+		GameLog.Player($"The {thief} stole your [b]{Stack(item, quantity)}[/b]!", LogSeverity.Warning);
+	}
+
+	private void OnThiefEscaped(Item item, int quantity, string thief)
+	{
+		if (item == null || quantity <= 0) return;
+		GameLog.Player($"The {thief} got away with your [b]{Stack(item, quantity)}[/b].", LogSeverity.Warning);
+	}
+
+	private static string Stack(Item item, int quantity)
+	{
+		string name = ItemIdentity.ResolveDisplayName(item);
+		return quantity > 1 ? $"{quantity} {name}" : name;
 	}
 
 	private void OnItemPickedUp(Player player, Item item, int quantity)

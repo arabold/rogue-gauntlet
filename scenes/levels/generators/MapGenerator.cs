@@ -553,7 +553,8 @@ public partial class MapGenerator : Node3D
 		var plan = Floor.Encounter;
 		GD.Print($"Generating {packs.Count} packs of {packs.Sum(pack => pack.Length)} monsters...");
 
-		var spawnPoints = new List<Vector3>();
+		// Monsters already waiting on the floor (chest mimics) keep packs at a distance like any other pack.
+		var spawnPoints = EnemySpawnPoints.Select(spawn => spawn.GlobalPosition).ToList();
 		int first = 0;
 		if (plan?.Gatekeeper != null && Floor.GatekeeperSite is Transform3D site)
 		{

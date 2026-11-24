@@ -6,6 +6,8 @@ behavior, combat timing, loot and spawning belong to game-side authoring.
 
 New enemies, helmets, body armor, and future heroes use the [Blender character workflow](character-workflow.md).
 The authoring source owns the geometry, UVs and skin. The Orc Warrior recipe exports its saved Blender source as a GLB.
+`studio.py reconstruct` (`core/reconstruction.py`, `core/tripo.py`, `blender/reconstruction/`) can script that source
+from a turnaround and a separate-parts reconstruction, driven by the character's `reconstruction.json`.
 The [standalone item workflow](README.md#standalone-item-workflow) continues to use the Studio recipe lifecycle.
 Godot scene and equipment authoring consumes the exported art and verifies it in the game.
 

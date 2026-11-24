@@ -46,8 +46,9 @@ public static class AreaSpellTargets
 		return result;
 	}
 
+	/// <summary>A targetable (<see cref="AttackController.IsTargetable"/>), visible target a seeking spell may pick.</summary>
 	public static bool IsEligible(Node3D target, World3D world, Vector3 origin) =>
-		AttackController.IsLivingTarget(target) && IsVisible(target, world, origin);
+		AttackController.IsTargetable(target) && IsVisible(target, world, origin);
 
 	public static bool IsVisible(Node3D target, World3D world, Vector3 origin) =>
 		GodotObject.IsInstanceValid(target) && target.IsInsideTree() && target.GetWorld3D() == world

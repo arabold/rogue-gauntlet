@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/rat/rat.tscn" id="rat"]
+[ext_resource type="Resource" path="res://scenes/enemies/rat/sewer_rat_definition.tres" id="definition"]
+
+[node name="SewerRat" instance=ExtResource("rat")]
+Definition = ExtResource("definition")

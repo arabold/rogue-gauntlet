@@ -22,6 +22,8 @@ public sealed class ClearanceGrid
 	/// <summary>Solid geometry only blocks a body inside this height band: rugs and wall mounts do not.</summary>
 	public const float MinimumBlockingHeight = .15f;
 	public const float MaximumBlockingHeight = 1.8f;
+	/// <summary>Flyers pass over solids no taller than this: their bodies hover above it (<see cref="NavigationLayer.Air"/>).</summary>
+	public const float AirClearanceHeight = 1.2f;
 	/// <summary>The eight neighbor offsets, orthogonal first.</summary>
 	public static readonly Vector2I[] Steps = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1), new(1, 1), new(1, -1), new(-1, 1), new(-1, -1)];
 	private const float Epsilon = .001f;
@@ -56,6 +58,55 @@ public sealed class ClearanceGrid
 		Array.Fill(_sample, maxClearance);
 		Array.Fill(_gate, -1);
 		Array.Fill(_bestSample, (byte)4);
+	}
+
+	private ClearanceGrid(ClearanceGrid source)
+	{
+		MaxClearance = source.MaxClearance;
+		_origin = source._origin;
+		Size = source.Size;
+		_samples = source._samples;
+		_floor = (bool[])source._floor.Clone();
+		_gate = (int[])source._gate.Clone();
+		_sample = (float[])source._sample.Clone();
+		_best = (float[])source._best.Clone();
+		_bestSample = (byte[])source._bestSample.Clone();
+		_staleMin = source._staleMin;
+		_staleMax = source._staleMax;
+		GateCount = source.GateCount;
+	}
+
+	/// <summary>A live copy to build on separately: grids that share most of their solids add those only once.</summary>
+	public ClearanceGrid Copy()
+	{
+		RequireLive();
+		return new ClearanceGrid(this);
+	}
+
+	/// <summary>
+	/// Finishes the walkers' and flyers' grids (<see cref="NavigationLayer"/>) from <paramref name="shared"/>, which holds
+	/// what blocks both: floor, void and gates. <paramref name="solids"/> taller than <see cref="AirClearanceHeight"/> join
+	/// it before flyers get a copy with <paramref name="flyersOnlyFloor"/> (pits and water) opened; walkers then add the
+	/// lower solids, <paramref name="walkersOnlyAreas"/> (pits beside their floor) and <paramref name="walkersOnlySolids"/>
+	/// (water's walking barriers). Both come back frozen; the shared work is done once.
+	/// </summary>
+	public static (ClearanceGrid Ground, ClearanceGrid Air) BuildLayers(ClearanceGrid shared, IEnumerable<SolidOutline> solids,
+		IEnumerable<Rect2> flyersOnlyFloor, IEnumerable<Rect2> walkersOnlyAreas, IEnumerable<SolidOutline> walkersOnlySolids)
+	{
+		var low = new List<SolidOutline>();
+		foreach (var solid in solids)
+		{
+			if (solid.Top > AirClearanceHeight) shared.AddObstacle(solid);
+			else low.Add(solid);
+		}
+		var air = shared.Copy();
+		foreach (var area in flyersOnlyFloor) air.AddFloor(area);
+		air.Freeze();
+		foreach (var area in walkersOnlyAreas) shared.AddObstacle(area);
+		foreach (var solid in low) shared.AddObstacle(solid);
+		foreach (var solid in walkersOnlySolids) shared.AddObstacle(solid);
+		shared.Freeze();
+		return (shared, air);
 	}
 
 	public float CellSize => DefaultCellSize;

@@ -46,16 +46,20 @@ public partial class MapGenerator
 		for (int z = 0; z < Map.Height; z++)
 		{
 			bool walkable = Map.IsWalkable(x, z);
-			if (!walkable && !BordersWalkable(x, z)) continue;
+			if (!walkable && !BordersOpen(x, z, flying: false)) continue;
 			yield return (RoomFootprint.TileArea(Map.TileToWorld(x, z)), walkable);
 		}
 	}
 
-	private bool BordersWalkable(int x, int z)
+	/// <summary>Walkable, or a pit a <paramref name="flying"/> body crosses.</summary>
+	private bool IsOpen(int x, int z, bool flying) => Map.IsWalkable(x, z) || flying && Map.IsChasm(x, z);
+
+	/// <summary>Whether any of the tile's eight neighbors is open (<see cref="IsOpen"/>).</summary>
+	private bool BordersOpen(int x, int z, bool flying)
 	{
 		for (int dx = -1; dx <= 1; dx++)
 		for (int dz = -1; dz <= 1; dz++)
-			if (Map.IsWithinBounds(x + dx, z + dz) && Map.IsWalkable(x + dx, z + dz)) return true;
+			if (Map.IsWithinBounds(x + dx, z + dz) && IsOpen(x + dx, z + dz, flying)) return true;
 		return false;
 	}
 
@@ -73,13 +77,13 @@ public partial class MapGenerator
 
 	/// <summary>
 	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
-	/// their frame and their leaf standing open.
+	/// their frame and their leaf standing open. Placed bodies count when they collide on one of <paramref name="layers"/>.
 	/// </summary>
-	private IEnumerable<SolidOutline> SolidOutlines()
+	private IEnumerable<SolidOutline> SolidOutlines(uint layers = CollisionOutlines.BlockingLayers)
 	{
 		var toLocal = GlobalTransform.AffineInverse();
 		foreach (var outline in StaticOutlines()) yield return outline;
-		foreach (var outline in CollisionOutlines.FromStaticBodies(FloorContent, toLocal * FloorContent.GlobalTransform)) yield return outline;
+		foreach (var outline in CollisionOutlines.FromStaticBodies(FloorContent, toLocal * FloorContent.GlobalTransform, layers)) yield return outline;
 	}
 
 	/// <summary>Physical reachability with inaccessible doorway tiles blocked, without changing the floor grid.</summary>

@@ -40,6 +40,9 @@ public partial class NavigationComponent : Node
 	private int _homeRoom = -1;
 
 	private readonly List<Vector2> _waypoints = [];
+	// Route probes (CanTravelTo) keep their own waypoints and a smaller search budget than pursuit.
+	private readonly List<Vector2> _probe = [];
+	private const int ProbeExpansions = 3000;
 	private int _waypointIndex;
 	private bool _hasRoute;
 	private Vector3 _destination;
@@ -51,6 +54,13 @@ public partial class NavigationComponent : Node
 	private Cooldown _recovery;
 	private bool _recovered;
 	private Vector3 _recoveryDirection;
+
+	/// <summary>
+	/// The world grid the body moves on. A flyer (<see cref="NavigationLayer.Air"/>) crosses pits, water and low solids;
+	/// its body must hover above <see cref="ClearanceGrid.AirClearanceHeight"/>, leave walking terrain out of its mask
+	/// and keep its altitude (no gravity) so it passes physically where its grid says it can.
+	/// </summary>
+	[Export] public NavigationLayer Layer { get; set; }
 
 	/// <summary>Horizontal radius of the body: which cells it fits through.</summary>
 	public float BodyRadius { get; private set; } = .5f;
@@ -109,7 +119,7 @@ public partial class NavigationComponent : Node
 	{
 		get
 		{
-			var navigation = _actor != null && IsInsideTree() ? _navigationOverride ?? _world?.Navigation : null;
+			var navigation = _actor != null && IsInsideTree() ? _navigationOverride ?? _world?.NavigationFor(Layer) : null;
 			if (navigation == _navigation) return navigation;
 			_navigation?.Unregister(this);
 			_navigation = navigation;
@@ -220,6 +230,16 @@ public partial class NavigationComponent : Node
 	{
 		var navigation = Navigation;
 		return navigation == null || (navigation.IsTraversable(point, BodyRadius) && (HomeRoom < 0 || navigation.RoomAt(point) == HomeRoom));
+	}
+
+	/// <summary>
+	/// Whether the body fits at <paramref name="point"/> and could walk there from where it stands, with the doors as they
+	/// are now, within a short search: somewhere a blink may land without stranding the body.
+	/// </summary>
+	public bool CanTravelTo(Vector3 point)
+	{
+		var navigation = Navigation;
+		return navigation != null && CanStandAt(point) && navigation.TryFindPath(Position, point, BodyRadius, _probe, ProbeExpansions);
 	}
 
 	/// <summary>The center of the traversable cell nearest <paramref name="point"/>, within <paramref name="searchRadius"/>.</summary>

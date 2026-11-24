@@ -1,6 +1,6 @@
 # Creature rigs
 
-Local technical rigs provide **blob (4 joints), spider (39), wolf (51) and rat (31)**
+Local technical rigs provide **bat (23 joints), blob (4), spider (39), wolf (51) and rat (31)**
 skeletons, bind data and normalized clips. `rig.glb` contains no original appearance mesh
 or texture payload. License, edition evidence and original/rig hashes stay beside it.
 The [Studio architecture](../../ARCHITECTURE.md) explains source and export ownership.
@@ -15,8 +15,11 @@ The [Studio architecture](../../ARCHITECTURE.md) explains source and export owne
 The selected wolf and rat are normal character recipes, with bound sources under
 `characters/beasts/`. `creature build wolf` and `creature lineup wolf` also resolve that
 selected art. The old `creature study` workflow is superseded. Spider now has a surface-polished `beasts/spider` review candidate using the same
-source workflow. Blob has no selected authored creature yet; use `extract` for its
-technical data.
+source workflow. Blob drives the [acid blob](../../characters/slime/acid_blob/README.md) and bat the
+[giant bat](../../characters/bat/giant_bat/README.md), `blender_source` recipes built by the scripted
+reconstruction. The bat rig was extracted from the CC0 Quaternius `bat.glb` that the retired monster pack
+kept in `assets/quaternius-monsters/` (removed in 10384c93); its clips are renamed to roles (Fly, Attack,
+Attack2, Hit, Death) and its profile records the original's hash.
 
 Original-art comparisons and starting weight transfer require an explicit external donor:
 

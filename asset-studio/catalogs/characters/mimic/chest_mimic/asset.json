@@ -1,0 +1,71 @@
+{
+  "triangles": 3195,
+  "joints": 9,
+  "bounds": [
+    [
+      -0.9540416274801118,
+      -0.10358530226463836,
+      -1.0030167325130326
+    ],
+    [
+      1.3837472908786586,
+      2.521131095382739,
+      1.1518411830847006
+    ]
+  ],
+  "clips": [
+    "Bite",
+    "Dead",
+    "Death",
+    "Hit",
+    "Hop",
+    "Idle",
+    "Lash",
+    "Wake"
+  ],
+  "key": "mimic/chest_mimic",
+  "rig": "authored",
+  "roles": {
+    "Idle": "Idle",
+    "Walk": "Hop",
+    "Attack": "Bite",
+    "Lash": "Lash",
+    "Hit": "Hit",
+    "Wake": "Wake",
+    "Death": "Death"
+  },
+  "loops": [
+    "Idle",
+    "Hop"
+  ],
+  "scale": 1.9,
+  "source_inputs": "a8b3ea2e0ede2831761417669a27ee628d7eb1d15aa0408891d0c64dd2f69165",
+  "gameplay": false,
+  "provenance": {
+    "kind": "image_to_3d_retopology",
+    "concept": {
+      "image": "reference.png",
+      "prompt": "reference.prompt.txt"
+    },
+    "turnaround": {
+      "image": "turnaround.png",
+      "prompt": "turnaround.prompt.txt",
+      "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+      "views": [
+        "turnaround/front.png",
+        "turnaround/left.png",
+        "turnaround/back.png",
+        "turnaround/right.png"
+      ]
+    },
+    "reconstruction": {
+      "service": "Tripo",
+      "model": "H3.1",
+      "model_version": "v3.1-20260211",
+      "seed": 1,
+      "textured": false,
+      "separate_parts": true
+    },
+    "authoring": "chest_mimic_rigged.blend: built by `studio.py reconstruct build mimic/chest_mimic` from reconstruction.json: Tripo's parts decimated per part and colored from the turnaround; a rig authored around them (root, body, lid hinge, four tongue bones, two eyes) with pieces fused across the hinge split by height, and every clip keyed in reconstruction.json."
+  }
+}

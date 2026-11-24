@@ -1,0 +1,111 @@
+{
+  "name": "Nymph",
+  "height": 2.1,
+  "center_on": ["Leg_L", "Leg_R"],
+  "offset": [-0.016, 0, 0],
+  "parts": {
+    "Hair": [0],
+    "Mantle": [1],
+    "Skirt": [2],
+    "Head": [3],
+    "Circlet": [19, 20, 23, 4],
+    "BeltSatchel": [5],
+    "Boot_R": [6],
+    "Boot_L": [7],
+    "Leg_L": [8],
+    "Braid": [13, 22, 9],
+    "Cuff_L": [10],
+    "Fist_R": [11],
+    "Leg_R": [12],
+    "Arm_L": [14],
+    "Arm_R": [15],
+    "Cuff_R": [16],
+    "Torso": [17],
+    "Fist_L": [18],
+    "Clasp": [21]
+  },
+  "budgets": {
+    "Hair": 1000, "Braid": 300, "Head": 1000, "Circlet": 520, "Mantle": 520, "Clasp": 48, "Torso": 300,
+    "Arm_L": 160, "Arm_R": 160, "Cuff_L": 110, "Cuff_R": 110, "Fist_L": 130, "Fist_R": 130, "BeltSatchel": 520,
+    "Skirt": 520, "Leg_L": 100, "Leg_R": 100, "Boot_L": 200, "Boot_R": 200
+  },
+  "symmetric": ["Head", "Torso"],
+  "joints": {
+    "shoulder.l": [0.225, -0.058, 1.17],
+    "forearm.l": [0.472, 0.03, 0.925],
+    "fist_tip.l": [0.613, 0.04, 0.727],
+    "hip.l": [0.15, 0.0, 0.70],
+    "knee.l": [0.152, -0.012, 0.40],
+    "ankle.l": [0.155, 0.0, 0.14],
+    "foot_tip.l": [0.155, -0.095, 0.03],
+    "toe_tip.l": [0.155, -0.24, 0.03],
+    "hips": [0, 0.0, 0.62],
+    "spine": [0, -0.03, 0.82],
+    "chest": [0, -0.05, 1.0],
+    "neck": [0, -0.05, 1.21]
+  },
+  "chains": {
+    "arm": ["shoulder", "forearm", "fist_tip"],
+    "leg": ["hip", "knee", "ankle"]
+  },
+  "rings": {
+    "Arm_L": {"chain": "arm.l", "fractions": [0.02, 0.11, 0.2, 0.28, 0.35, 0.42, 0.5]},
+    "Arm_R": {"chain": "arm.r", "fractions": [0.02, 0.11, 0.2, 0.28, 0.35, 0.42, 0.5]},
+    "Leg_L": {"chain": "leg.l", "heights": [0.63, 0.57, 0.5, 0.45, 0.4, 0.36, 0.32]},
+    "Leg_R": {"chain": "leg.r", "heights": [0.63, 0.57, 0.5, 0.45, 0.4, 0.36, 0.32]}
+  },
+  "smooth_angle": 35,
+  "palette": {
+    "skin": [150, 178, 166],
+    "eye": [38, 36, 40],
+    "brow": [24, 80, 72],
+    "mouth": [72, 86, 82],
+    "hair": [46, 122, 110],
+    "vine": [92, 64, 44],
+    "blossom": [234, 198, 142],
+    "blossom_center": [206, 158, 98],
+    "mantle": [102, 128, 110],
+    "bronze": [178, 132, 80],
+    "tunic": [106, 78, 80],
+    "skirt_green": [118, 136, 100],
+    "skirt_plum": [112, 84, 92],
+    "leather": [166, 110, 70],
+    "wrap": [160, 122, 90],
+    "leggings": [30, 66, 64],
+    "boot": [90, 68, 54],
+    "boot_cuff": [106, 80, 62]
+  },
+  "slots": {
+    "Head": ["skin", "eye", "brow", "mouth"], "Hair": ["hair"], "Braid": ["hair", "wrap"],
+    "Circlet": ["vine", "blossom", "blossom_center"], "Mantle": ["mantle"], "Clasp": ["bronze"],
+    "Torso": ["tunic", "skin"], "Arm_L": ["skin"], "Arm_R": ["skin"], "Fist_L": ["skin"], "Fist_R": ["skin"],
+    "Cuff_L": ["wrap"], "Cuff_R": ["wrap"], "BeltSatchel": ["leather", "bronze"], "Skirt": ["skirt_green", "skirt_plum"],
+    "Leg_L": ["leggings"], "Leg_R": ["leggings"], "Boot_L": ["boot", "boot_cuff"], "Boot_R": ["boot", "boot_cuff"]
+  },
+  "regions": {
+    "eye": {"z": [1.53, 1.67], "half_width": 0.2, "facing": 0.3},
+    "brow": {"z": [1.63, 1.78], "half_width": 0.22, "facing": 0.2},
+    "mouth": {"z": [1.40, 1.48], "half_width": 0.11, "facing": 0.5}
+  },
+  "rig": {
+    "clips": [
+      "Unarmed_Idle", "Running_A", "Unarmed_Melee_Attack_Punch_A", "Unarmed_Melee_Attack_Punch_B",
+      "Unarmed_Melee_Attack_Kick", "Hit_A", "Death_A", "Death_A_Pose", "Idle", "Blocking", "Block_Attack",
+      "Block_Hit", "Dodge_Backward", "Dodge_Forward", "Dodge_Left", "Dodge_Right"
+    ],
+    "idle": "Unarmed_Idle",
+    "arm_fractions": {"elbow": 0.35, "wrist": 0.73, "hand": 0.84},
+    "head_length": 0.28,
+    "weights": {
+      "Head": "head", "Hair": "head", "Circlet": "head", "Braid": "head", "Clasp": "chest", "BeltSatchel": "hips",
+      "Cuff_L": "lowerarm.l", "Cuff_R": "lowerarm.r", "Fist_L": "hand.l", "Fist_R": "hand.r",
+      "Torso": ["hips", "spine", "chest"],
+      "Arm_L": ["chest", "upperarm.l", "lowerarm.l"], "Arm_R": ["chest", "upperarm.r", "lowerarm.r"],
+      "Leg_L": ["hips", "upperleg.l", "lowerleg.l"], "Leg_R": ["hips", "upperleg.r", "lowerleg.r"],
+      "Boot_L": ["lowerleg.l", "foot.l", "toes.l"], "Boot_R": ["lowerleg.r", "foot.r", "toes.r"],
+      "Skirt": {"blend": ["hips", "upperleg.l", "upperleg.r"], "anchor_share": 0.5},
+      "Mantle": {"blend": ["spine", "chest"], "caps": {"upperarm.l": "shoulder.l", "upperarm.r": "shoulder.r"},
+                 "cap_radius": [0.07, 0.17], "cap_share": 0.5}
+    }
+  }
+}

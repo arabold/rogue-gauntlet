@@ -1,0 +1,13 @@
+{
+  "key": "nymph/nymph",
+  "inputs": "a77f007f6d502f0f546f7380c78b99f6c026550b464570da4b16d3a2b433df21",
+  "files": {
+    "model.glb": "5c48c78a6162ce94b5999bed3ba9b9d75b33f318fc026446bd578d42ccf894c7",
+    "lineup.png": "c8bb751370db73f2a6822f238aaa7355b4b130e4c97323af3ecf61e90057c1c5",
+    "lineup.gif": "14f63c3c2674e784c1d2b251e1a26373d67db242092c7159b61d050b38a1707d",
+    "asset.json": "5f4e129be38db1ae1cf055e5f0258c76f05bd1129f405032083c1f1bf5f6ab94"
+  },
+  "metadata": {
+    "engine_import_verified": true
+  }
+}

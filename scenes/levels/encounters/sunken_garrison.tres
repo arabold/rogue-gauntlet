@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/RealmEncounterFactory.cs" id="factory"]
 [ext_resource type="Script" path="res://scenes/levels/encounters/MobSpawnEntry.cs" id="entry"]
-[ext_resource type="Resource" path="res://scenes/levels/dungeon/dungeon_mob_factory.tres" id="fallback"]
+[ext_resource type="Resource" path="res://scenes/levels/encounters/prison_encounters.tres" id="fallback"]
 [ext_resource type="PackedScene" path="res://scenes/levels/encounters/bone_nest.tscn" id="nest"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/forsaken_warden/forsaken_warden.tscn" id="boss"]
 

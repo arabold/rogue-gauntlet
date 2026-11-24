@@ -30,6 +30,8 @@ public partial class Level : Node, IDebugWorld
 	[Export] public ThreatProfile ThreatProfile { get; set; }
 	/// <summary>Monster navigation on the generated floor; null until generation succeeds or without a profile.</summary>
 	public FloorNavigation Navigation { get; private set; }
+	/// <summary>Flyers' navigation on the generated floor; null alongside <see cref="Navigation"/>.</summary>
+	public FloorNavigation AirNavigation { get; private set; }
 	private Node _runtimeWorldRoot;
 	public RealmEncounterController Encounters { get; private set; }
 	public bool CanDescend => Encounters?.DescentUnlocked != false;
@@ -184,6 +186,7 @@ public partial class Level : Node, IDebugWorld
 		ClearWorldNodes();
 		Floor = null;
 		Navigation = null;
+		AirNavigation = null;
 		Atmosphere?.Clear();
 		Discovery?.Clear();
 		// The previous floor was just freed, and generation reloads many of its resources by path.
@@ -198,6 +201,8 @@ public partial class Level : Node, IDebugWorld
 		Floor = MapGenerator.Floor;
 		Airflow?.Bind(MapGenerator);
 		Navigation = Floor.Clearance != null && NavigationProfile != null ? new FloorNavigation(Floor, NavigationProfile) : null;
+		AirNavigation = Floor.AirClearance != null && NavigationProfile != null
+			? new FloorNavigation(Floor, NavigationProfile, NavigationLayer.Air) : null;
 		Discovery?.Initialize(Floor);
 		ItemPersistence.Initialize(this);
 		// Shelves are seeded content, like untouched loot; the run's cleared entities say which offers are sold.

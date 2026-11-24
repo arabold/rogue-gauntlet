@@ -1,0 +1,27 @@
+{
+  "kind": "image_to_3d_retopology",
+  "concept": {
+    "image": "reference.png",
+    "prompt": "reference.prompt.txt"
+  },
+  "turnaround": {
+    "image": "turnaround.png",
+    "prompt": "turnaround.prompt.txt",
+    "generator": "gpt-image-2 image edit of reference.png, 2048 x 2048, quality high",
+    "views": [
+      "turnaround/front.png",
+      "turnaround/left.png",
+      "turnaround/back.png",
+      "turnaround/right.png"
+    ]
+  },
+  "reconstruction": {
+    "service": "Tripo",
+    "model": "H3.1",
+    "model_version": "v3.1-20260211",
+    "seed": 1,
+    "textured": false,
+    "separate_parts": true
+  },
+  "authoring": "acid_blob_rigged.blend: built by `studio.py reconstruct build slime/acid_blob` from reconstruction.json: Tripo's parts registered at the blob rig's size, decimated per part (the overlapping flange lobes one by one), faces colored from the turnaround into a palette atlas with a lime-to-emerald ramp, and every part weighted over the unchanged Quaternius blob rig's four joints."
+}

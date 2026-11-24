@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="EnemyCombatProfile" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/EnemyCombatProfile.cs" id="profile"]
+[ext_resource type="Script" path="res://scenes/enemies/actions/MonsterAttackAction.cs" id="action"]
+[ext_resource type="Script" path="res://scenes/attacks/AttackDefinition.cs" id="attack"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/engagement_tactics.tres" id="tactics"]
+[ext_resource type="Resource" path="res://scenes/enemies/strategies/close_distance.tres" id="movement"]
+[ext_resource type="Resource" path="res://scenes/enemies/slime/acid_blob_contact.tres" id="contact"]
+
+[sub_resource type="Resource" id="slam_attack"]
+script = ExtResource("attack")
+MeleeContact = ExtResource("contact")
+PoiseDamage = 6.0
+HitStopDuration = 0.03
+FacingLockLead = 0.1
+WindUpTurnRate = 240.0
+Commit = 0.5
+
+[sub_resource type="Resource" id="slam"]
+resource_name = "Slam"
+script = ExtResource("action")
+Cooldown = 2.0
+MaximumRange = 1.6
+Attack = SubResource("slam_attack")
+Style = &"melee"
+Duration = 0.83
+MinDamage = 2.0
+MaxDamage = 4.5
+
+[resource]
+script = ExtResource("profile")
+TacticalStrategy = ExtResource("tactics")
+MovementStrategy = ExtResource("movement")
+Actions = [SubResource("slam")]
