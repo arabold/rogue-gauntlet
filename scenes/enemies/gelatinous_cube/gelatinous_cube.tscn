@@ -1,0 +1,408 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cvvu87irfmqm1" path="res://scenes/enemies/enemy_base.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/custom-monsters/gelatinous_cube/gelatinous_cube_shell.glb" id="shell"]
+[ext_resource type="PackedScene" path="res://assets/custom-monsters/gelatinous_cube/gelatinous_cube_contents.glb" id="contents"]
+[ext_resource type="Shader" path="res://scenes/enemies/gelatinous_cube/jelly.gdshader" id="jelly_shader"]
+[ext_resource type="Resource" path="res://scenes/enemies/gelatinous_cube/gelatinous_cube_animation.tres" id="attack_animation_profile"]
+[ext_resource type="Resource" path="res://scenes/enemies/gelatinous_cube/gelatinous_cube_definition.tres" id="definition"]
+[ext_resource type="Script" path="res://scenes/actions/ActorActionGateComponent.cs" id="gate_script"]
+[ext_resource type="Resource" path="res://scenes/effects/combat/impact_surface_profiles/goo.tres" id="goo"]
+[ext_resource type="Resource" path="res://scenes/combat/definitions/humanoid_defense_animation.tres" id="defense_animation"]
+[ext_resource type="PackedScene" path="res://scenes/components/locomotion_animation_component.tscn" id="locomotion_animation"]
+[ext_resource type="Resource" path="res://scenes/effects/movement/movement_effect_profiles/large.tres" id="movement_profile"]
+[ext_resource type="Script" uid="uid://cyys4uaobcl7w" path="res://scenes/combat/PoiseComponent.cs" id="poise_script"]
+[ext_resource type="Resource" path="res://scenes/enemies/gelatinous_cube/gelatinous_cube_poise.tres" id="poise_definition"]
+[ext_resource type="Script" path="res://scenes/enemies/HealthPhaseComponent.cs" id="phase_script"]
+[ext_resource type="Script" path="res://scenes/enemies/TallActorVisibilityComponent.cs" id="tall_visibility"]
+[ext_resource type="Script" path="res://scenes/components/SlimeTrailComponent.cs" id="trail_script"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/gelatinous_cube/goo_patch.tscn" id="goo_patch"]
+
+[sub_resource type="ShaderMaterial" id="jelly"]
+render_priority = 0
+shader = ExtResource("jelly_shader")
+
+[sub_resource type="Animation" id="clip_reset"]
+resource_name = "RESET"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Body:position")
+tracks/1/interp = 2
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Body/Contents:position")
+tracks/2/interp = 2
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="clip_idle"]
+resource_name = "Idle"
+length = 2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(1.03, 0.96, 1.03), Vector3(1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Body/Contents:position")
+tracks/1/interp = 2
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0.05, 0), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="clip_walk"]
+resource_name = "Walk"
+length = 1.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6, 0.9, 1.2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(1.06, 0.92, 1.06), Vector3(0.97, 1.05, 0.97), Vector3(1.04, 0.95, 1.04), Vector3(1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Body:position")
+tracks/1/interp = 2
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6, 0.9, 1.2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 0.08), Vector3(0, 0.04, 0), Vector3(0, 0, 0.06), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="clip_engulf"]
+resource_name = "Engulf"
+length = 1.6
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 0.72, 1, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(1.02, 1.12, 0.88), Vector3(0.94, 0.9, 1.35), Vector3(1.05, 0.92, 1.1), Vector3(1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Body:position")
+tracks/1/interp = 2
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.5, 0.72, 1, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, -0.25), Vector3(0, 0, 0.55), Vector3(0, 0, 0.3), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="clip_lob"]
+resource_name = "Lob"
+length = 1.4
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6, 0.7, 1, 1.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(0.9, 1.18, 0.9), Vector3(1.08, 0.86, 1.08), Vector3(0.97, 1.04, 0.97), Vector3(1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Body/Contents:position")
+tracks/1/interp = 2
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.6, 0.7, 1.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0.15, 0), Vector3(0, -0.05, 0), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="clip_hit_a"]
+resource_name = "Hit_A"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(1.08, 0.9, 1.08), Vector3(0.95, 1.06, 0.95), Vector3(1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="clip_death"]
+resource_name = "Death"
+length = 1.6
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(1.05, 0.9, 1.05), Vector3(1.45, 0.12, 1.45)]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Body/Contents:position")
+tracks/1/interp = 2
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, -0.9, 0)]
+}
+
+[sub_resource type="Animation" id="clip_dead"]
+resource_name = "Dead"
+length = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Body:scale")
+tracks/0/interp = 2
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(1.45, 0.12, 1.45)]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Body/Contents:position")
+tracks/1/interp = 2
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, -0.9, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="clips"]
+_data = {
+&"RESET": SubResource("clip_reset"),
+&"Idle": SubResource("clip_idle"),
+&"Walk": SubResource("clip_walk"),
+&"Engulf": SubResource("clip_engulf"),
+&"Lob": SubResource("clip_lob"),
+&"Hit_A": SubResource("clip_hit_a"),
+&"Death": SubResource("clip_death"),
+&"Dead": SubResource("clip_dead")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="anim_idle"]
+animation = &"Idle"
+[sub_resource type="AnimationNodeAnimation" id="anim_walk_clip"]
+animation = &"Walk"
+
+[sub_resource type="AnimationNodeTimeScale" id="anim_walk_ts"]
+
+[sub_resource type="AnimationNodeBlendTree" id="anim_walk"]
+nodes/Animation/node = SubResource("anim_walk_clip")
+nodes/Animation/position = Vector2(0, 0)
+nodes/TimeScale/node = SubResource("anim_walk_ts")
+nodes/TimeScale/position = Vector2(160, 0)
+nodes/output/position = Vector2(320, 0)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+[sub_resource type="AnimationNodeAnimation" id="anim_hit"]
+animation = &"Hit_A"
+[sub_resource type="AnimationNodeAnimation" id="anim_dying"]
+animation = &"Death"
+[sub_resource type="AnimationNodeAnimation" id="anim_dead"]
+animation = &"Dead"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_start_idle"]
+advance_mode = 2
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_walk"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_idle"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "!IsMoving"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_hit"]
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_hit"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_idle"]
+advance_mode = 2
+advance_expression = "!IsKnockedBack"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_idle_dying"]
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_walk_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_hit_dying"]
+xfade_time = 0.3
+advance_mode = 2
+advance_expression = "IsDead"
+[sub_resource type="AnimationNodeStateMachineTransition" id="t_dying_dead"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="sm"]
+states/Dead/node = SubResource("anim_dead")
+states/Dead/position = Vector2(820, 100)
+states/Dying/node = SubResource("anim_dying")
+states/Dying/position = Vector2(640, 100)
+states/Hit/node = SubResource("anim_hit")
+states/Hit/position = Vector2(440, 220)
+states/Idle/node = SubResource("anim_idle")
+states/Idle/position = Vector2(240, 100)
+states/Start/position = Vector2(60, 100)
+states/Walking/node = SubResource("anim_walk")
+states/Walking/position = Vector2(240, 320)
+transitions = ["Start", "Idle", SubResource("t_start_idle"), "Idle", "Walking", SubResource("t_idle_walk"), "Walking", "Idle", SubResource("t_walk_idle"), "Idle", "Hit", SubResource("t_idle_hit"), "Walking", "Hit", SubResource("t_walk_hit"), "Hit", "Idle", SubResource("t_hit_idle"), "Idle", "Dying", SubResource("t_idle_dying"), "Walking", "Dying", SubResource("t_walk_dying"), "Hit", "Dying", SubResource("t_hit_dying"), "Dying", "Dead", SubResource("t_dying_dead")]
+graph_offset = Vector2(0, 40)
+
+[sub_resource type="BoxShape3D" id="box_hurt"]
+size = Vector3(2.1, 2.3, 2.1)
+
+[sub_resource type="CylinderShape3D" id="cylinder_body"]
+height = 2.2
+radius = 1.05
+
+[node name="GelatinousCube" instance=ExtResource("1_base") node_paths=PackedStringArray("ActionGate", "BodyShape", "HealthPhases")]
+BodyShape = NodePath("CollisionShape3D")
+Definition = ExtResource("definition")
+ActionGate = NodePath("ActorActionGateComponent")
+HealthPhases = NodePath("HealthPhaseComponent")
+
+[node name="CubeModel" type="Node3D" parent="Pivot" index="0"]
+
+[node name="Body" type="Node3D" parent="Pivot/CubeModel"]
+
+[node name="Contents" parent="Pivot/CubeModel/Body" instance=ExtResource("contents")]
+
+[node name="gelatinous_cube_contents" parent="Pivot/CubeModel/Body/Contents" index="0"]
+layers = 8
+
+[node name="Shell" parent="Pivot/CubeModel/Body" instance=ExtResource("shell")]
+
+[node name="gelatinous_cube_shell" parent="Pivot/CubeModel/Body/Shell" index="0"]
+layers = 8
+cast_shadow = 0
+material_override = SubResource("jelly")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Pivot/CubeModel"]
+libraries = {
+&"": SubResource("clips")
+}
+
+[node name="EnemyBehaviorComponent" parent="." index="1"]
+
+[node name="AnimationTree" type="AnimationTree" parent="EnemyBehaviorComponent" index="2"]
+root_node = NodePath("../../Pivot/CubeModel")
+tree_root = SubResource("sm")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../../Pivot/CubeModel/AnimationPlayer")
+
+[node name="TallActorVisibilityComponent" type="Node" parent="." index="3" node_paths=PackedStringArray("Actor")]
+script = ExtResource("tall_visibility")
+Actor = NodePath("..")
+
+[node name="HurtBoxComponent" parent="." index="6" node_paths=PackedStringArray("Poise")]
+Poise = NodePath("../PoiseComponent")
+position = Vector3(0, 1.15, 0)
+ImpactSurface = ExtResource("goo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" index="0"]
+shape = SubResource("box_hurt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("cylinder_body")
+
+[node name="CombatAnimationComponent" parent="." index="9"]
+AnimationPlayerPath = NodePath("../Pivot/CubeModel/AnimationPlayer")
+AnimationTreePath = NodePath("../EnemyBehaviorComponent/AnimationTree")
+Profile = ExtResource("attack_animation_profile")
+
+[node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]
+script = ExtResource("gate_script")
+AnimationProfile = ExtResource("defense_animation")
+AnimationComponent = NodePath("../CombatAnimationComponent")
+
+[node name="WorldEffects" parent="."]
+scale = Vector3(2, 2, 2)
+
+[node name="PoiseComponent" type="Node" parent="." node_paths=PackedStringArray("ActionGate")]
+script = ExtResource("poise_script")
+Definition = ExtResource("poise_definition")
+ActionGate = NodePath("../ActorActionGateComponent")
+
+[node name="MovementComponent" parent="." node_paths=PackedStringArray("ActionGate")]
+ActionGate = NodePath("../ActorActionGateComponent")
+process_physics_priority = 1
+RotationSpeed = 4.0
+MaxTurnRate = 80.0
+ResistsKnockback = true
+
+[node name="Nameplate" parent="."]
+position = Vector3(0, 2.95, 0)
+
+[node name="FloatingHealthBar" parent="Nameplate" node_paths=PackedStringArray("Poise", "HealthPhases")]
+Poise = NodePath("../../PoiseComponent")
+HealthPhases = NodePath("../../HealthPhaseComponent")
+
+[node name="AttackController" parent="." node_paths=PackedStringArray("ActionGate", "Movement")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Movement = NodePath("../MovementComponent")
+
+[node name="FrozenStatusComponent" parent="." node_paths=PackedStringArray("ActionGate", "Animation")]
+ActionGate = NodePath("../ActorActionGateComponent")
+Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
+
+[node name="LocomotionAnimationComponent" parent="." node_paths=PackedStringArray("Movement", "AnimationTree") instance=ExtResource("locomotion_animation")]
+Movement = NodePath("../MovementComponent")
+AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
+NaturalLocomotionSpeed = 1.8
+
+[node name="CombatFeedbackController" parent="."]
+SurfaceProfile = ExtResource("goo")
+
+[node name="MovementEffectsComponent" parent="."]
+Profile = ExtResource("movement_profile")
+
+[node name="SlimeTrailComponent" type="Node" parent="." node_paths=PackedStringArray("Actor", "Health")]
+script = ExtResource("trail_script")
+Actor = NodePath("..")
+Health = NodePath("../HealthComponent")
+Patch = ExtResource("goo_patch")
+Spacing = 2.2
+
+[node name="HealthPhaseComponent" type="Node" parent="." node_paths=PackedStringArray("Health")]
+script = ExtResource("phase_script")
+Health = NodePath("../HealthComponent")
+EnterHealthFractions = PackedFloat32Array(0.5)
+
+[editable path="Pivot/CubeModel/Body/Contents"]
+[editable path="Pivot/CubeModel/Body/Shell"]
