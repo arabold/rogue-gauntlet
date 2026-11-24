@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/debug/stage/debug_stage.tscn" id="stage"]
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="lighting"]
 [ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="camera"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/brazier_lit.tscn" id="brazier"]
 [ext_resource type="Resource" path="res://scenes/items/weapons/sword_common.tres" id="starting_weapon"]
 
 [ext_resource type="Script" path="res://scenes/debug/combat/CombatTraceRecorder.cs" id="recorder"]
@@ -44,6 +45,7 @@ Stage = NodePath("DebugStage")
 Lighting = NodePath("WorldLighting")
 
 [node name="WorldLighting" parent="." instance=ExtResource("lighting")]
+AmbientScale = 2.0
 
 [node name="GameCamera" parent="." instance=ExtResource("camera")]
 
@@ -86,6 +88,20 @@ HalfExtent = 18
 
 [node name="Ground" parent="DebugStage" index="4"]
 visible = false
+
+[node name="Braziers" type="Node3D" parent="."]
+
+[node name="BrazierNorthWest" parent="Braziers" instance=ExtResource("brazier")]
+position = Vector3(-7, 0, -7)
+
+[node name="BrazierNorthEast" parent="Braziers" instance=ExtResource("brazier")]
+position = Vector3(7, 0, -7)
+
+[node name="BrazierSouthWest" parent="Braziers" instance=ExtResource("brazier")]
+position = Vector3(-7, 0, 7)
+
+[node name="BrazierSouthEast" parent="Braziers" instance=ExtResource("brazier")]
+position = Vector3(7, 0, 7)
 
 [node name="Player" parent="." instance=ExtResource("player")]
 
