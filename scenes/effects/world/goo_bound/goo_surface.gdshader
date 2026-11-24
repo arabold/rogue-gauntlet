@@ -14,12 +14,12 @@ void fragment() {
 	if (source_is_cutout(original.a)) discard;
 	float rim = pow(1.0 - abs(dot(normalize(NORMAL), normalize(VIEW))), 2.0);
 	float sheen = 0.5 + 0.5 * sin(local_position.y * 9.0 - TIME * 1.6 + local_position.x * 4.0);
-	vec3 goo = mix(vec3(0.24, 0.62, 0.42), vec3(0.62, 0.95, 0.72), 0.25 + rim * 0.45 + sheen * 0.15);
+	vec3 goo = mix(vec3(0.26, 0.56, 0.16), vec3(0.74, 0.94, 0.34), 0.25 + rim * 0.45 + sheen * 0.15);
 	float reveal = skin_transition(local_position, amount);
 	ALBEDO = mix(original.rgb, mix(original.rgb * 0.45, goo, 0.8), reveal);
 	ROUGHNESS = mix(source_roughness, 0.12, reveal);
 	METALLIC = mix(source_metallic, 0.0, reveal);
 	SPECULAR = mix(source_specular, 0.85, reveal);
 	if (source_normal_enabled) { NORMAL_MAP = source_normal_map(uv); NORMAL_MAP_DEPTH = source_normal_scale * (1.0 - reveal); }
-	EMISSION = vec3(0.04, 0.16, 0.08) * (rim + sheen * 0.3) * reveal;
+	EMISSION = vec3(0.08, 0.16, 0.03) * (rim + sheen * 0.3) * reveal;
 }

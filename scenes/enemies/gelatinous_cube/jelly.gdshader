@@ -1,10 +1,10 @@
 shader_type spatial;
-// The gelatinous cube's jelly: translucent teal with a brighter rim, drawn after the opaque bones and coins inside so
+// The gelatinous cube's jelly: translucent slime green like the acid blob, with a brighter rim, drawn after the opaque bones and coins inside so
 // they show through, and a slow wobble that ripples up its faces. Instance-local alpha; the Mobile renderer has no
 // per-instance transparency.
 render_mode blend_mix, depth_draw_never, cull_back, specular_schlick_ggx;
-uniform vec4 body_color : source_color = vec4(0.35, 0.78, 0.74, 0.42);
-uniform vec4 rim_color : source_color = vec4(0.72, 1.0, 0.95, 0.85);
+uniform vec4 body_color : source_color = vec4(0.45, 0.78, 0.22, 0.45);
+uniform vec4 rim_color : source_color = vec4(0.8, 0.96, 0.36, 0.85);
 uniform float rim_power : hint_range(0.5, 8.0) = 2.6;
 uniform float wobble_amount : hint_range(0.0, 0.2) = 0.045;
 uniform float wobble_speed : hint_range(0.0, 8.0) = 2.2;

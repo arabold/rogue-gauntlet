@@ -93,13 +93,14 @@ public class GelatinousCubeTest
 		await runner.SimulateFrames(3, 20);
 		AssertInt(Patches()).IsEqual(before);
 
-		// Creep 7.5 m back in small steps: a patch every 2.2 m travelled.
+		// Creep 7.5 m back in small steps: a patch every Spacing metres travelled.
+		float spacing = cube.GetNode<SlimeTrailComponent>("SlimeTrailComponent").Spacing;
 		for (int step = 0; step < 30; step++)
 		{
 			cube.GlobalPosition += Vector3.Right * 0.25f;
 			await runner.SimulateFrames(1, 20);
 		}
-		AssertInt(Patches() - before).IsEqual(3);
+		AssertInt(Patches() - before).IsEqual((int)(7.5f / spacing));
 	}
 
 	/// <summary>The arena with the hero standing still and the cube, its AI off, <paramref name="distance"/> ahead.</summary>
