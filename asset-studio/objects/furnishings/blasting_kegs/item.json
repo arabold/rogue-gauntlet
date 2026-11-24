@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "Blasting Kegs",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "blasting_kegs"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 6000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "gold": {
+      "crease": 40
+    },
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    },
+    "wood": {
+      "crease": 35
+    },
+    "wood_dark": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/blasting_kegs.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm floor prop (~1.0 m stack, standing on y=0 facing +Z): three small powder kegs with carved stave grooves, iron hoops, carved hazard emblems, and a coiled fuse on top. No gameplay data."
+  }
+}

@@ -193,7 +193,7 @@ public class CorridorDecorationTest
 				var cell = edge.Cell;
 				string name = library.GetItemName(item);
 				// The 1.5-unit seam piece can fit an integer origin in only one orientation.
-				if (name == "wall_junction_short") continue;
+				if (name.Contains("junction_short")) continue;
 
 				int expectedOrientation = WallFootprints.FacingInto(-outward);
 				int actualOrientation = wallGrid.GetCellItemOrientation(cell);

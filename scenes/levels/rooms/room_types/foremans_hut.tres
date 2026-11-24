@@ -1,0 +1,90 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=33 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_roomtype"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_rectangleshape"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="3_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="5_earth_floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="6_alongwallsstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="7_cornersstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="8_scatterstep"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="9_walldecorstep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/workbench.tres" id="10_workbench"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/mine_cart.tres" id="11_mine_cart"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/barrel_station.tres" id="12_barrel_station"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/blasting_kegs.tres" id="13_blasting_kegs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/supply_corner.tres" id="14_supply_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate_stack.tres" id="15_crate_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="16_barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/mine_lantern_post.tres" id="17_lantern_post"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/pickaxe_loose.tres" id="18_pickaxe_loose"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="19_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/sack.tres" id="20_sack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate.tres" id="21_crate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/keg.tres" id="22_keg"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="23_mushrooms"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tool_rack.tres" id="24_tool_rack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="25_lantern_wall"]
+
+[sub_resource type="Resource" id="RectangleShape_1"]
+script = ExtResource("2_rectangleshape")
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 4)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("2_rectangleshape")
+
+[sub_resource type="Resource" id="AlongWallsStep_bench"]
+script = ExtResource("6_alongwallsstep")
+Id = "work_bench"
+Content = [ExtResource("10_workbench"), ExtResource("11_mine_cart"), ExtResource("12_barrel_station")]
+MinimumCount = 1
+MaximumCount = 2
+Spacing = 0.5
+metadata/_custom_type_script = ExtResource("6_alongwallsstep")
+
+[sub_resource type="Resource" id="CornersStep_stores"]
+script = ExtResource("7_cornersstep")
+Id = "explosives_and_stores"
+Content = [ExtResource("13_blasting_kegs"), ExtResource("14_supply_corner"), ExtResource("15_crate_stack"), ExtResource("16_barrel_stack"), ExtResource("17_lantern_post")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("7_cornersstep")
+
+[sub_resource type="Resource" id="ScatterStep_gear"]
+script = ExtResource("8_scatterstep")
+Id = "gear"
+Content = [ExtResource("18_pickaxe_loose"), ExtResource("19_bucket"), ExtResource("20_sack"), ExtResource("21_crate"), ExtResource("22_keg"), ExtResource("17_lantern_post"), ExtResource("23_mushrooms")]
+MaximumCount = 4
+WallChance = 0.65
+metadata/_custom_type_script = ExtResource("8_scatterstep")
+
+[sub_resource type="Resource" id="WallDecorStep_tools"]
+script = ExtResource("9_walldecorstep")
+Id = "tools"
+Content = [ExtResource("24_tool_rack")]
+MaximumCount = 2
+Spacing = 4.0
+metadata/_custom_type_script = ExtResource("9_walldecorstep")
+
+[sub_resource type="Resource" id="WallDecorStep_lanterns"]
+script = ExtResource("9_walldecorstep")
+Id = "lanterns"
+Content = [ExtResource("25_lantern_wall")]
+MaximumCount = 3
+Spacing = 4.5
+metadata/_custom_type_script = ExtResource("9_walldecorstep")
+
+[resource]
+script = ExtResource("1_roomtype")
+Id = "foremans_hut"
+Realms = PackedStringArray("jungle")
+Weight = 2.8
+Shapes = [SubResource("RectangleShape_1")]
+MinimumFloorTiles = 6
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.75
+Circulation = 0
+Walls = [ExtResource("3_cave_walls")]
+Floors = [ExtResource("5_earth_floor")]
+Steps = [SubResource("AlongWallsStep_bench"), SubResource("CornersStep_stores"), SubResource("ScatterStep_gear"), SubResource("WallDecorStep_tools"), SubResource("WallDecorStep_lanterns")]
+metadata/_custom_type_script = ExtResource("1_roomtype")

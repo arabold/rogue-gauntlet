@@ -55,11 +55,12 @@ public partial class CornersStep : FurnishingStep
 		Basis facing = new(Vector3.Up, Mathf.Atan2(bisector.X, bisector.Z));
 
 		var anchor = plan.Pieces[0].Prop;
-		float inset = anchor.Mount == PropMount.Wall ? anchor.WallInset : 0f;
-		float face = room.RunDepth(run) - inset;
-		float side = room.EndDepth(run, atStart) - inset;
+		bool wallMount = anchor.Mount == PropMount.Wall;
+		float inset = wallMount ? anchor.WallInset : 0f;
+		float face = (wallMount ? room.WallMountDepth(cornerTile, run.Outward) : room.WallDepth(cornerTile, run.Outward)) - inset;
+		float side = (wallMount ? room.WallMountDepth(cornerTile, sideOutward) : room.WallDepth(cornerTile, sideOutward)) - inset;
 		Vector3 corner = run.LineStart + run.Inward * face + (atStart ? run.Tangent * side : run.Tangent * (run.LengthUnits - side));
-		if (anchor.Mount == PropMount.Wall) corner.Y = anchor.MountHeight;
+		if (wallMount) corner.Y = anchor.MountHeight;
 
 		Aabb bounds = plan.Bounds();
 		Vector3 pos = corner;

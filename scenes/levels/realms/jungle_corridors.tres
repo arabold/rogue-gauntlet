@@ -1,38 +1,66 @@
-[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=22 format=3]
+[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="2_dungeontilefacto"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth.tres" id="3_earth"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/jungle_corridor_walls.tres" id="4_jungle_corridor_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="4_cave_walls"]
 [ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorPassagewayStep.cs" id="5_passageway_step"]
 [ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorThresholdStep.cs" id="6_threshold_step"]
 [ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorCornerStep.cs" id="7_corner_step"]
 [ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorHallwayStep.cs" id="8_hallway_step"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/cave_passageway.tres" id="9_cave_passageway"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/scaffold_passageway.tres" id="10_scaffold_passageway"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/stone_passageway.tres" id="11_stone_passageway"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="12_torch"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_green.tres" id="13_banner_green"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_brown.tres" id="14_banner_brown"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/trophy.tres" id="15_trophy"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/herb_rack.tres" id="16_herb_rack"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sword_shield.tres" id="17_sword_shield"]
+[ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorRailStep.cs" id="18_rail_step"]
+[ext_resource type="Script" path="res://scenes/levels/generators/corridors/CorridorDeadEndStep.cs" id="19_dead_end_step"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/timber_frame.tres" id="20_timber_frame"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/rail_track_straight.tres" id="21_rail_straight"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/rail_track_curve.tres" id="22_rail_curve"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/rail_track_end.tres" id="23_rail_end"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/mine_cart.tres" id="24_mine_cart"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/mine_cart_tipped.tres" id="25_mine_cart_tipped"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_pile.tres" id="26_ore_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="27_lantern_wall"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_vein.tres" id="28_ore_vein"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tool_rack.tres" id="29_tool_rack"]
+
+[sub_resource type="Resource" id="Resource_rail_tracks"]
+script = ExtResource("18_rail_step")
+Straight = ExtResource("21_rail_straight")
+Curve = ExtResource("22_rail_curve")
+End = ExtResource("23_rail_end")
+Cart = ExtResource("24_mine_cart")
+CartChance = 0.65
+MinimumRunTiles = 2
+MaximumRunTiles = 12
+PerRunChance = 0.85
+Id = "rail_tracks"
+MaximumCount = 8
+Chance = 1.0
+Spacing = 0.0
 
 [sub_resource type="Resource" id="Resource_passageways"]
 script = ExtResource("5_passageway_step")
-MinimumSpanTiles = 3
-PerSpanChance = 0.65
+MinimumSpanTiles = 2
+PerSpanChance = 0.8
 Id = "passageways"
-Content = [ExtResource("9_cave_passageway"), ExtResource("10_scaffold_passageway"), ExtResource("11_stone_passageway")]
-MaximumCount = 6
+Content = [ExtResource("20_timber_frame"), ExtResource("9_cave_passageway")]
+MaximumCount = 12
 Chance = 1.0
-Spacing = 8.0
+Spacing = 6.0
+
+[sub_resource type="Resource" id="Resource_dead_end_props"]
+script = ExtResource("19_dead_end_step")
+PerDeadEndChance = 0.85
+Id = "dead_end_props"
+Content = [ExtResource("24_mine_cart"), ExtResource("25_mine_cart_tipped"), ExtResource("26_ore_pile")]
+MaximumCount = 8
+Chance = 1.0
+Spacing = 0.0
 
 [sub_resource type="Resource" id="Resource_doorway_torches"]
 script = ExtResource("6_threshold_step")
-PerThresholdChance = 0.55
-PairChance = 0.25
+PerThresholdChance = 0.6
+PairChance = 0.3
 Id = "doorway_torches"
-Content = [ExtResource("12_torch")]
+Content = [ExtResource("27_lantern_wall")]
 MaximumCount = 8
 Chance = 1.0
 Spacing = 8.0
@@ -43,34 +71,34 @@ IncludeCorners = true
 IncludeTJunctions = true
 PerJunctionChance = 0.5
 Id = "corner_torches"
-Content = [ExtResource("12_torch")]
+Content = [ExtResource("27_lantern_wall")]
 MaximumCount = 8
 Chance = 1.0
 Spacing = 8.0
 
 [sub_resource type="Resource" id="Resource_hallway_lights"]
 script = ExtResource("8_hallway_step")
-MinimumRunTiles = 4
+MinimumRunTiles = 3
 PairAcrossChance = 0.2
 Id = "hallway_lights"
-Content = [ExtResource("12_torch")]
-MaximumCount = 5
+Content = [ExtResource("27_lantern_wall")]
+MaximumCount = 6
 Chance = 1.0
 Spacing = 12.0
 
 [sub_resource type="Resource" id="Resource_hallway_decor"]
 script = ExtResource("8_hallway_step")
 MinimumRunTiles = 2
-PairAcrossChance = 0.25
+PairAcrossChance = 0.3
 Id = "hallway_decor"
-Content = [ExtResource("13_banner_green"), ExtResource("14_banner_brown"), ExtResource("15_trophy"), ExtResource("16_herb_rack"), ExtResource("17_sword_shield"), ExtResource("12_torch")]
-MaximumCount = 8
+Content = [ExtResource("28_ore_vein"), ExtResource("28_ore_vein"), ExtResource("29_tool_rack"), ExtResource("27_lantern_wall")]
+MaximumCount = 14
 Chance = 1.0
-Spacing = 6.0
+Spacing = 4.5
 
 [resource]
 script = ExtResource("2_dungeontilefacto")
 Floor = ExtResource("3_earth")
-Walls = ExtResource("4_jungle_corridor_walls")
-Steps = [SubResource("Resource_passageways"), SubResource("Resource_doorway_torches"), SubResource("Resource_corner_torches"), SubResource("Resource_hallway_lights"), SubResource("Resource_hallway_decor")]
+Walls = ExtResource("4_cave_walls")
+Steps = [SubResource("Resource_rail_tracks"), SubResource("Resource_passageways"), SubResource("Resource_dead_end_props"), SubResource("Resource_doorway_torches"), SubResource("Resource_corner_torches"), SubResource("Resource_hallway_lights"), SubResource("Resource_hallway_decor")]
 metadata/_custom_type_script = ExtResource("2_dungeontilefacto")

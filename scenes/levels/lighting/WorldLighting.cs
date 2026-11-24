@@ -14,8 +14,8 @@ public enum EnvironmentalEffect
 }
 
 /// <summary>
-/// A world's shared illumination. Darkness removes ambient light, reflections and haze; the hero's light dims and
-/// fixtures go out by following <see cref="DarknessChanged"/>. The game, arena and workbenches use the same environment.
+/// A world's shared illumination. Darkness removes ambient light, reflections and haze. The hero's lighting and
+/// fixtures respond to <see cref="DarknessChanged"/>.
 /// </summary>
 [GlobalClass]
 public partial class WorldLighting : WorldEnvironment

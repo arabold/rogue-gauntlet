@@ -16,6 +16,13 @@ public partial class SurfaceMark : Decal
 			if (IsNodeReady()) { Watch(); Apply(); }
 		}
 	}
+	/// <summary>Selects an authored mask without changing the shared profile's tint or textures.</summary>
+	[Export(PropertyHint.Range, "0,16,1,or_greater")]
+	public int MaskVariant
+	{
+		get;
+		set { field = Mathf.Max(0, value); if (IsNodeReady()) Apply(); }
+	}
 	private Action _unwatch;
 	private WorldLighting _lighting;
 	private bool _authoredVisible;

@@ -40,6 +40,7 @@ public class ScreenEffectWiringTest
 		curseDriver.FadeInTime = 0f;
 		curseDriver.HoldTime = 0.04f;
 		curseDriver.FadeOutTime = 0.04f;
+		layer.DarknessDriver.FadeOutTime = 0f;
 
 		ScreenEffect nearDeath = nearDeathDriver.Effect;
 		ScreenEffect poison = poisonDriver.Effect;
@@ -71,11 +72,24 @@ public class ScreenEffectWiringTest
 			player.ApplyBuff(PotionBuff("blindness"));
 			await runner.SimulateFrames(2, 20);
 			AssertFloat(blindness.Intensity).IsEqual(1f);
+			var lighting = runner.Scene().GetNode<Level>("Level").Lighting;
+			lighting.IsDark = true;
+			AssertFloat(layer.Darkness.Intensity).IsEqual(1f);
+			var lamp = ItemFactory.Create(TestFactories.Load<PortableLightItem>("res://scenes/items/tools/lamp/tool_lamp_oil.tres"));
+			AssertBool(player.Inventory.TryAdd(lamp).Success).IsTrue();
+			InventoryItemSlot lampSlot = player.Inventory.Items.Single(entry => entry.Item == lamp);
+			AssertBool(player.InventoryController.TryEquip(lampSlot, EquipmentSlot.ShieldHand).Success).IsTrue();
+			AssertBool(layer.Darkness.Visible).IsFalse();
+			AssertFloat(blindness.Intensity).IsEqual(1f);
+			AssertBool(player.InventoryController.TryUnequip(lampSlot).Success).IsTrue();
+			AssertFloat(layer.Darkness.Intensity).IsEqual(1f);
 			// The healing potion is a shared spell; drinking it applies the regeneration buff that cures blindness.
 			TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres").PerformAction(player);
 			await runner.SimulateFrames(2, 20);
 			AssertFloat(blindness.Intensity).IsEqual(0f);
+			AssertFloat(layer.Darkness.Intensity).IsEqual(1f);
 			AssertFloat(poison.Intensity).IsEqualApprox(0.35f, 0.001f);
+			lighting.IsDark = false;
 
 			// Rebinding a driver follows the new controller; binding the player again restores it.
 			poisonDriver.Buffs = AutoFree(new BuffController());

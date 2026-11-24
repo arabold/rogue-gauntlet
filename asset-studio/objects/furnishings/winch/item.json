@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "name": "Winch",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "winch"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 10000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "iron_dark": {
+      "crease": 40
+    },
+    "ore_gold": {
+      "crease": 35
+    },
+    "rock_dark": {
+      "crease": 35
+    },
+    "steel": {
+      "crease": 40
+    },
+    "wood": {
+      "crease": 35
+    },
+    "wood_dark": {
+      "crease": 35
+    },
+    "wood_light": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/winch.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm floor prop (~1.5 m, standing on y=0 facing +Z): timber A-frame trestle winch with iron ratchet wheel, coiled rope drum, crank handle, and suspended banded bucket with ore. No gameplay data."
+  }
+}

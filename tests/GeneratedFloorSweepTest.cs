@@ -11,8 +11,9 @@ using static GdUnit4.Assertions;
 /// Generated floors, swept across seeds because generation bugs are seed-dependent. Each floor is generated once and
 /// checked for every contract: every tile edge that must be sealed is covered by wall meshes (a missing segment is a
 /// see-through gap), wall pieces never interpenetrate, doorway frames and secret disguises keep clear of the floor's
-/// walls, every walkable tile is reachable and every doorway opens onto a corridor, and every room door stands in the
-/// gap of its doorway. A floor that fails to generate at all is a failure too. Coverage is measured from mesh
+/// walls, every walkable tile is reachable and every doorway opens onto a corridor, every room door stands in the
+/// gap of its doorway, no solid corridor prop stands in a doorway's approach, and corridor wall decor hangs on its wall's
+/// mounting face. A floor that fails to generate at all is a failure too. Coverage is measured from mesh
 /// footprints (<see cref="WallFootprints"/>), not the narrower colliders.
 /// </summary>
 [TestSuite, RequireGodotRuntime]
@@ -246,6 +247,27 @@ public class GeneratedFloorSweepTest
 		}
 	}
 
+	/// <summary>
+	/// Mines floors dig dead-end shafts that rails, carts and ore piles fill. With many secret doors, whose corridor side
+	/// reads as a dead end too, nothing solid may end up in front of a doorway.
+	/// </summary>
+	[TestCase]
+	public async Task SecretHeavyMinesFloorsKeepTheirDoorwaysClear()
+	{
+		var profile = (FloorProfile)TestFactories.Load<FloorProfile>("res://scenes/levels/generators/floor_profiles/mines.tres").Duplicate();
+		profile.SecretDoorChanceOverride = .6f;
+		profile.SecretDetectionOverride = TestFactories.Load<SecretDetectionProfile>("res://scenes/levels/access/proximity_detection.tres");
+		var (runner, generator) = await TestFactories.LoadGenerator(profile);
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			var contracts = new FloorContracts();
+			await Sweep(generator, contracts, 20, seed => 16 + (uint)(seed % 4), "mines");
+			contracts.AssertHeld();
+			AssertInt(contracts.Secrets).IsGreater(0);
+		}
+	}
+
 	/// <summary>Steps on the shortest walk from a tile into any of <paramref name="targets"/> that crosses no wall; -1 when none exists.</summary>
 	private static int WalkLength(MapData map, Vector2I from, IReadOnlySet<Vector2I> targets)
 	{
@@ -466,7 +488,8 @@ public class GeneratedFloorSweepTest
 		private readonly Dictionary<string, List<string>> _failures = new()
 		{
 			["generation"] = [], ["wall gaps"] = [], ["overlapping wall pieces"] = [], ["doorway frames overlapping walls"] = [],
-			["connectivity"] = [], ["doors outside their doorways"] = [],
+			["connectivity"] = [], ["doors outside their doorways"] = [], ["solid corridor props in doorways"] = [],
+			["corridor wall props off their wall"] = [],
 		};
 
 		public int Doors { get; private set; }
@@ -513,6 +536,13 @@ public class GeneratedFloorSweepTest
 			}
 			foreach (string failure in TestFactories.ConnectivityFailures(generator)) _failures["connectivity"].Add($"{label}: {failure}");
 			foreach (string failure in MisplacedDoors(generator)) _failures["doors outside their doorways"].Add($"{label}: {failure}");
+			if (generator.GetNodeOrNull<Node3D>("CorridorProps") is { } corridorProps)
+			{
+				foreach (string failure in PropsInDoorways(generator.Map, corridorProps))
+					_failures["solid corridor props in doorways"].Add($"{label}: {failure}");
+				foreach (string failure in WallPropsOffTheirWall(generator, corridorProps))
+					_failures["corridor wall props off their wall"].Add($"{label}: {failure}");
+			}
 		}
 
 		public void Fail(string contract, string failure) => _failures[contract].Add(failure);
@@ -546,6 +576,81 @@ public class GeneratedFloorSweepTest
 				if (door.GlobalPosition.DistanceTo(edge) > .01f || Mathf.Abs(turn) > .01f)
 					yield return $"door at {door.GlobalPosition} does not stand in its doorway's gap at {edge} facing {direction}";
 			}
+		}
+
+		/// <summary>
+		/// Corridor props whose collision stands in a doorway's approach: the strip a body crosses on the corridor side to
+		/// pass through, an opening wide and a body deep. Secret doors count: a found secret room must stay enterable.
+		/// </summary>
+		private static IEnumerable<string> PropsInDoorways(MapData map, Node3D corridorProps)
+		{
+			const float halfWidth = .9f, depth = 1.2f;
+			var approaches = new List<(Vector2I Connector, Rect2 Area)>();
+			for (int x = 0; x < map.Width; x++)
+			for (int z = 0; z < map.Height; z++)
+			{
+				if (!map.IsConnector(x, z)) continue;
+				var connector = new Vector2I(x, z);
+				foreach (var direction in map.GetConnectorDirections(x, z))
+				{
+					var outside = connector + direction;
+					if (!map.IsWithinBounds(outside.X, outside.Y) || !map.IsCorridor(outside.X, outside.Y)) continue;
+					Vector3 edge = map.TileToWorld(connector) + new Vector3(direction.X, 0, direction.Y) * (TileSize / 2f);
+					var near = new Vector2(edge.X, edge.Z);
+					var far = near + new Vector2(direction.X, direction.Y) * depth;
+					var across = new Vector2(Mathf.Abs(direction.Y), Mathf.Abs(direction.X)) * halfWidth;
+					approaches.Add((connector, new Rect2(near - across, Vector2.Zero).Expand(near + across).Expand(far - across).Expand(far + across)));
+				}
+			}
+			foreach (var prop in corridorProps.GetChildren().OfType<Node3D>())
+			foreach (var shape in prop.FindChildren("*", nameof(CollisionShape3D), true, false).OfType<CollisionShape3D>())
+			{
+				if (shape.Disabled || shape.Shape == null || shape.GetParent() is not StaticBody3D) continue;
+				var box = shape.GlobalTransform * shape.Shape.GetDebugMesh().GetAabb();
+				var area = new Rect2(box.Position.X, box.Position.Z, box.Size.X, box.Size.Z);
+				foreach (var (connector, approach) in approaches.Where(entry => entry.Area.Intersects(area)))
+					yield return $"{prop.GetMeta("prop_id", prop.Name)} at {prop.GlobalPosition} stands in the doorway at connector {connector}";
+			}
+		}
+
+		/// <summary>
+		/// Wall-mounted corridor props whose visible back is not on the wall's mounting face, 0.27 to 0.36 from the wall
+		/// line: pushed out by base rubble or a deeper neighbouring piece, or sunk into the wall.
+		/// </summary>
+		private static IEnumerable<string> WallPropsOffTheirWall(MapGenerator generator, Node3D corridorProps)
+		{
+			var wallProps = (generator.CurrentRealm?.Corridors?.Steps ?? []).Where(step => step != null)
+				.SelectMany(step => step.Content).Where(prop => prop?.Mount == PropMount.Wall).Select(prop => prop.Id).ToHashSet();
+			foreach (var node in corridorProps.GetChildren().OfType<Node3D>())
+			{
+				if (!wallProps.Contains(node.GetMeta("prop_id", "").AsString())) continue;
+				Vector3 facing = node.GlobalTransform.Basis.Z.Normalized();
+				if (Mathf.Max(Mathf.Abs(facing.X), Mathf.Abs(facing.Z)) < .999f || MeshBounds(node) is not Aabb box) continue;
+				// Models may sit off their origin and carry authored turns (banners hang in front of theirs, facing -Z), so the
+				// visible mesh picks the tile and its back is measured from the nearest of that tile's walls.
+				Vector3 center = generator.Map.TileToWorld(generator.Map.WorldToTile(box.GetCenter()));
+				float half = TileSize / 2f;
+				float offset = new[]
+				{
+					box.Position.X - (center.X - half), center.X + half - box.End.X,
+					box.Position.Z - (center.Z - half), center.Z + half - box.End.Z,
+				}.MinBy(Mathf.Abs);
+				if (offset < .27f || offset > .36f)
+					yield return $"{node.GetMeta("prop_id")} at {node.GlobalPosition} has its back {offset:F3} from the wall line";
+			}
+		}
+
+		/// <summary>The world bounds of every mesh under <paramref name="root"/>, null without meshes.</summary>
+		private static Aabb? MeshBounds(Node root)
+		{
+			Aabb? bounds = null;
+			foreach (var mesh in root.FindChildren("*", nameof(MeshInstance3D), true, false).OfType<MeshInstance3D>())
+			{
+				if (mesh.Mesh == null) continue;
+				var box = mesh.GlobalTransform * mesh.GetAabb();
+				bounds = bounds?.Merge(box) ?? box;
+			}
+			return bounds;
 		}
 
 		/// <summary>

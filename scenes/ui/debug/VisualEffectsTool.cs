@@ -21,7 +21,7 @@ public partial class VisualEffectsTool : DebugTool
 		_blurId = AddToggle(menu, "Focus blur", () => Menu?.FocusBlur?.Visible == true,
 			value => { if (Menu?.FocusBlur is { } blur) blur.Visible = value; });
 		menu.AddSeparator();
-		AddEffectToggle(menu, "Surface marks (wet spots, soot)", EnvironmentalEffect.SurfaceMarks);
+		AddEffectToggle(menu, "Surface marks", EnvironmentalEffect.SurfaceMarks);
 		AddEffectToggle(menu, "Drips and splashes", EnvironmentalEffect.Drips);
 		AddEffectToggle(menu, "Dust and glimmer", EnvironmentalEffect.Dust);
 		AddEffectToggle(menu, "Wind (banners and plants)", EnvironmentalEffect.Wind);

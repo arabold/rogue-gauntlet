@@ -7,6 +7,7 @@
 [resource]
 script = ExtResource("1_WallStyle")
 Id = "ruined_walls"
+Realms = PackedStringArray("garrison", "sewer")
 Weight = 1.0
 Library = ExtResource("2_WallsMeshLib")
 Straight = Dictionary[String, float]({"wall": 4.0, "wall_cracked": 3.0, "wall_broken": 2.0})

@@ -10,10 +10,17 @@ Placement frames: a `frame` is (turn degrees about x, y, z; origin) applied afte
 placed in its local coordinates, so whole panels and racks can be tilted or turned.
 """
 
+import zlib
+
 import numpy as np
 import manifold3d as mf
 from core import kit
 from items.solid import box, lathe, tube, welded
+
+
+def random(name):
+    """Each design's own reproducible generator."""
+    return np.random.default_rng(zlib.crc32(name.encode()))
 
 
 def solid(piece):

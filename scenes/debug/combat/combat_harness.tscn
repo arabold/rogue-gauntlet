@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scenes/debug/combat/CombatHarness.cs" id="harness"]
 [ext_resource type="Script" path="res://scenes/debug/stage/DebugArena.cs" id="arena"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="hud"]
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="screen_effects"]
 [ext_resource type="PackedScene" path="res://scenes/debug/stage/debug_stage.tscn" id="stage"]
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="lighting"]
 [ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="camera"]
@@ -88,6 +89,8 @@ visible = false
 
 [node name="Player" parent="." instance=ExtResource("player")]
 
+[node name="ScreenEffects" parent="." instance=ExtResource("screen_effects")]
+
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="HUD" parent="UI" instance=ExtResource("hud")]
@@ -105,10 +108,11 @@ RewardsEnabled = false
 ScatterSeparation = 6.0
 ScatterRadius = 10.0
 
-[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "Arena", "Items", "Monsters", "Hero", "Recorder")]
+[node name="Instructions" type="CanvasLayer" parent="." node_paths=PackedStringArray("Player", "ScreenEffects", "Arena", "Items", "Monsters", "Hero", "Recorder")]
 layer = 2
 script = ExtResource("harness")
 Player = NodePath("../Player")
+ScreenEffects = NodePath("../ScreenEffects")
 Arena = NodePath("..")
 Items = NodePath("../UI/HUD/DebugMenu/ItemSpawnTool")
 Monsters = NodePath("../UI/HUD/DebugMenu/MonsterTool")

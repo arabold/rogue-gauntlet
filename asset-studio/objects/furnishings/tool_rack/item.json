@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "Tool Rack",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "tool_rack"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 6000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 45,
+  "materials": {
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    },
+    "wood": {
+      "crease": 35
+    },
+    "wood_dark": {
+      "crease": 35
+    },
+    "wood_light": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/tool_rack.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm wall prop (~1.6 m wide, flat back at z=0): weathered timber rack with iron mounting straps holding two pickaxes, two shovels, and one empty peg slot. No gameplay data."
+  }
+}

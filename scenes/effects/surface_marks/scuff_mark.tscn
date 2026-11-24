@@ -1,0 +1,19 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/surface_mark.tscn" id="base"]
+[ext_resource type="Script" path="res://scenes/effects/surface_marks/SurfaceMarkProfile.cs" id="profile"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/scuff_mask.svg" id="mask"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/blood_drag_mask.svg" id="drag"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/drag_mask_split.svg" id="split"]
+[ext_resource type="Texture2D" path="res://scenes/effects/surface_marks/drag_mask_smear.svg" id="smear"]
+
+[sub_resource type="Resource" id="Scuff"]
+script = ExtResource("profile")
+AlbedoMasks = [ExtResource("mask"), ExtResource("split"), ExtResource("drag"), ExtResource("smear")]
+Tint = Color(0.065, 0.051, 0.038, 0.68)
+AffectRoughness = false
+AlbedoMix = 0.9
+
+[node name="ScuffMark" instance=ExtResource("base")]
+size = Vector3(1.35, 0.26, 2.65)
+Profile = SubResource("Scuff")

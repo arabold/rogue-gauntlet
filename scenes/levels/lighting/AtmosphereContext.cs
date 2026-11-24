@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using System.Linq;
 
 /// <summary>Floor-local spatial fields shared by selected effects. Lazy texture caches avoid rebuilding identical emission volumes.</summary>
 public sealed class AtmosphereContext : IDisposable
@@ -31,10 +32,14 @@ public sealed class AtmosphereContext : IDisposable
 	public int TileCount => _tiles.Count;
 
 	private readonly MapData _map;
+	private readonly GeneratedFloor _floor;
 	private readonly List<Vector2I> _tiles = [];
 	private readonly ulong _emissionState;
 	private readonly Dictionary<(float, float, int, float, bool), Emission> _emissions = [];
+	private HashSet<Vector2I> _secretConnectors;
 	private ImageTexture _floorMask;
+
+	public AtmosphereContext(GeneratedFloor floor, ulong seed) : this(floor.Map, seed) => _floor = floor;
 
 	public AtmosphereContext(MapData map, ulong seed)
 	{
@@ -47,6 +52,42 @@ public sealed class AtmosphereContext : IDisposable
 		Phase = random.RandfRange(0, 100);
 		_emissionState = random.State;
 	}
+
+	/// <summary>Returns the placed room containing the point, excluding corridor and connector tiles.</summary>
+	internal RoomRegion RoomAt(Vector3 point)
+	{
+		int id = _floor?.RoomIdAt(point) ?? -1;
+		return id >= 0 ? _floor.Rooms[id] : null;
+	}
+
+	/// <summary>Points an interior mark toward its doorway or aligns a corridor mark with the open route.</summary>
+	internal Vector2I PassageDirection(Vector3 point, RoomRegion room)
+	{
+		_secretConnectors ??= _floor?.Doors.Where(entry => entry.Door.Secret?.IsSecret == true)
+			.Select(entry => entry.Connector).ToHashSet() ?? [];
+		Vector2I tile = _map.WorldToTile(point);
+		if (room != null)
+		{
+			foreach (var direction in MapData.CardinalOffsets)
+			{
+				var doorway = tile + direction;
+				if (room.ConnectorTiles.Contains(doorway) && !_secretConnectors.Contains(doorway)
+					&& _map.IsConnectorOpenToward(doorway.X, doorway.Y, direction)) return direction;
+			}
+			return Vector2I.Zero;
+		}
+
+		if (!_map.IsCorridor(tile.X, tile.Y)) return Vector2I.Zero;
+		int horizontal = OpenPassages(tile, Vector2I.Right);
+		int vertical = OpenPassages(tile, Vector2I.Down);
+		if (horizontal == 0 && vertical == 0) return Vector2I.Zero;
+		return horizontal >= vertical ? Vector2I.Right : Vector2I.Down;
+	}
+
+	private int OpenPassages(Vector2I tile, Vector2I axis) =>
+		(OpenPassage(tile, tile + axis) ? 1 : 0) + (OpenPassage(tile, tile - axis) ? 1 : 0);
+
+	private bool OpenPassage(Vector2I from, Vector2I to) => !_secretConnectors.Contains(to) && _map.CanSeeAcross(from, to);
 
 	public ImageTexture FloorMask
 	{

@@ -14,6 +14,7 @@ uniform float sight_radius : hint_range(0.0, 2.0) = 0.075;
 uniform float edge_softness : hint_range(0.0, 1.0) = 0.6;
 uniform vec3 tint : source_color = vec3(0.62, 0.64, 0.7);
 uniform float brightness : hint_range(0.0, 2.0) = 1.1;
+uniform float color_grade : hint_range(0.0, 1.0) = 1.0;
 // Slow wobble of the sight edge so the darkness feels alive rather than a flat stencil.
 uniform float edge_wobble : hint_range(0.0, 0.2) = 0.04;
 
@@ -32,6 +33,6 @@ void fragment() {
 	float inner = radius * (1.0 - edge_softness);
 	float sight = 1.0 - smoothstep(inner, inner + max(radius * edge_softness, 0.001), length(offset));
 
-	vec3 blind = mix(scene, gray, intensity) * sight;
+	vec3 blind = mix(scene, gray, intensity * color_grade) * sight;
 	COLOR = vec4(blind, 1.0);
 }

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/lighting/AtmosphereSurfaceMarks.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/blood_splatter_mark.tscn" id="mark"]
+
+[node name="BloodSplatters" type="Node3D"]
+script = ExtResource("script")
+Category = 2
+ActiveInDarkness = true
+MarkScene = ExtResource("mark")
+MarksPerTile = 1.0
+MaximumCount = 14
+MaximumPerRoom = 1
+RoomTypeIds = PackedStringArray("cell", "prison", "interrogation")
+ScaleRange = Vector2(0.64, 1.04)
+SeedKey = "blood-splatters"
+SamplesPerTile = 1
+TileInset = 0.13

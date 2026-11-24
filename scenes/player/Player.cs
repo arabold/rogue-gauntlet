@@ -11,6 +11,7 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	HurtBoxComponent IShieldOwner.ShieldHurtBox => HurtBoxComponent;
 	[Export] public WorldEffectHost WorldEffects { get; set; }
 	[Export] public ItemUseWorldEffectDriver ItemUseEffects { get; set; }
+	[Export] public PlayerLight Lighting { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }
 	[Export] public FrozenStatusComponent FrozenStatus { get; set; }
 	[Export] public SlowStatusComponent SlowStatus { get; set; }

@@ -13,6 +13,7 @@ using System.IO;
 public partial class CombatHarness : CanvasLayer
 {
 	[Export] public Player Player { get; set; }
+	[Export] public ScreenEffectsLayer ScreenEffects { get; set; }
 	/// <summary>The world the arena's debug tools act in.</summary>
 	[Export] public DebugArena Arena { get; set; }
 	[Export] public ItemSpawnTool Items { get; set; }
@@ -60,6 +61,7 @@ public partial class CombatHarness : CanvasLayer
 	{
 		if (Player == null || Arena == null || Items == null || Monsters == null || Hero == null || Recorder == null)
 			throw new InvalidDataException("Assign the player, arena, debug tools and trace recorder.");
+		ScreenEffects?.Bind(Player);
 		ProcessPhysicsPriority = CombatPhysics.Input - 1;
 		DisableHarnessKeyboardFocus(GetNode<Control>("%Controls"));
 		_startFrame = Engine.GetPhysicsFrames();

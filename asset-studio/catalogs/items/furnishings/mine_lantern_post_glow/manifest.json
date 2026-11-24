@@ -1,0 +1,82 @@
+{
+  "key": "furnishings/mine_lantern_post_glow",
+  "inputs": "5e06c7997a14aa6d18ffa5d46196e1200ef8ddb5e6e3910223e5769bdf84b41b",
+  "files": {
+    "mine_lantern_post_glow.glb": "be317d2b7959ffaf76fb083c6ca759c966b43fc8ece178dc4561ac63e4eff452",
+    "lineup.png": "b02d0ab137d9ca0e315cb8dce01fc91743dcaab6d59595faa19d77f2d442893c"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 80,
+      "bounds": [
+        [
+          -0.08799999952316284,
+          1.2000000476837158,
+          0.2720000147819519
+        ],
+        [
+          0.08799999952316284,
+          1.4149999618530273,
+          0.4480000138282776
+        ]
+      ],
+      "dimensions": [
+        0.17599999904632568,
+        0.21499991416931152,
+        0.17599999904632568
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.0037339562288544823
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mine Lantern Post Glow",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mine_lantern_post",
+        "glow": true
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 300,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 60,
+      "materials": {
+        "lantern_glow": {
+          "crease": 60
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/mine_lantern_post_glow.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Emissive warm lantern core for mine_lantern_post.glb, toggled separately by LightFixture. No gameplay data."
+      }
+    }
+  }
+}

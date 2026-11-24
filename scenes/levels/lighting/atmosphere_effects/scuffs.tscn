@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/lighting/AtmosphereSurfaceMarks.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/surface_marks/scuff_mark.tscn" id="mark"]
+
+[node name="Scuffs" type="Node3D"]
+script = ExtResource("script")
+Category = 2
+ActiveInDarkness = true
+MarkScene = ExtResource("mark")
+MarksPerTile = 0.16
+MaximumCount = 32
+MaximumPerRoom = 2
+FollowPassages = true
+ScaleRange = Vector2(0.62, 1.05)
+SeedKey = "floor-scuffs"
+SamplesPerTile = 1
+TileInset = 0.13

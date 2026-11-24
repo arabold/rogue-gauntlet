@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/blindness_effect.tscn" id="1_blind"]
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/poison_effect.tscn" id="2_poison"]
@@ -14,16 +14,22 @@
 [ext_resource type="Script" path="res://scenes/effects/screen/CurseScreenEffectDriver.cs" id="12_curse_driver"]
 
 [ext_resource type="PackedScene" path="res://scenes/effects/screen/focus_blur_effect.tscn" id="13_focus_blur"]
+[ext_resource type="Script" uid="uid://c0ryj8vlrkb60" path="res://scenes/effects/screen/DarknessScreenEffectDriver.cs" id="14_darkness_driver"]
 
-[node name="ScreenEffects" type="CanvasLayer" node_paths=PackedStringArray("Blindness", "HealthDrivers", "StatusDrivers", "CurseDrivers")]
+[node name="ScreenEffects" type="CanvasLayer" node_paths=PackedStringArray("Blindness", "Darkness", "DarknessDriver", "HealthDrivers", "StatusDrivers", "CurseDrivers")]
 layer = -1
 script = ExtResource("5_layer")
 Blindness = NodePath("Blindness")
+Darkness = NodePath("Darkness")
+DarknessDriver = NodePath("DarknessDriver")
 HealthDrivers = [NodePath("NearDeathDriver")]
 StatusDrivers = [NodePath("BlindnessDriver"), NodePath("PoisonDriver")]
 CurseDrivers = [NodePath("CurseDriver")]
 
 [node name="FocusBlur" parent="." instance=ExtResource("13_focus_blur")]
+
+[node name="Darkness" parent="." instance=ExtResource("1_blind")]
+ColorGrade = 0.8
 
 [node name="Blindness" parent="." instance=ExtResource("1_blind")]
 
@@ -32,6 +38,10 @@ CurseDrivers = [NodePath("CurseDriver")]
 [node name="NearDeath" parent="." instance=ExtResource("3_near_death")]
 
 [node name="Curse" parent="." instance=ExtResource("11_curse")]
+
+[node name="DarknessDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
+script = ExtResource("14_darkness_driver")
+Effect = NodePath("../Darkness")
 
 [node name="NearDeathDriver" type="Node" parent="." node_paths=PackedStringArray("Effect")]
 script = ExtResource("4_driver")

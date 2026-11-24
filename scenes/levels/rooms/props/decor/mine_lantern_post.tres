@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/furnishings/mine_lantern_post_lit.tscn" id="2_post"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "mine_lantern_post"
+Scenes = [ExtResource("2_post")]
+Mount = 0
+EmitsLight = true
+Blocking = true
+Gap = 0.2
+TurnJitter = 15.0
+ShiftJitter = 0.05
+metadata/_custom_type_script = ExtResource("1_Prop")

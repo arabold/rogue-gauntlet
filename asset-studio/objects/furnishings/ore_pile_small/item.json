@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "name": "Ore Pile Small",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "ore_pile_small"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1600,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "ore_gold": {
+      "crease": 35
+    },
+    "rock": {
+      "crease": 35
+    },
+    "rock_dark": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/ore_pile_small.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm floor prop (~1.0 m across): low heap of faceted rock and gold ore chunks matching the wall ore veins. No gameplay data."
+  }
+}

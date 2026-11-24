@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "name": "Ore Vein A",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "ore_vein_a"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1600,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "ore_gold": {
+      "crease": 35
+    },
+    "rock": {
+      "crease": 35
+    },
+    "rock_dark": {
+      "crease": 35
+    }
+  },
+  "export": {
+    "glb": "res://assets/custom-props/mines/ore_vein_a.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines realm wall prop trimmed at z=0 and <= 0.32 m depth: diagonal rock outcrop with carved fissure seam and embedded gold ore chunks. No gameplay data."
+  }
+}

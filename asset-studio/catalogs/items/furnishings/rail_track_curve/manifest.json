@@ -1,0 +1,101 @@
+{
+  "key": "furnishings/rail_track_curve",
+  "inputs": "ccb4fa578aae008103ae9759b8d1994c564cd8a9c0afbc5400d8b88a63e7ea36",
+  "files": {
+    "rail_track_curve.glb": "a20783d499c0e3b152341a0486b3f270367067e0d8c77491e37934c68cd30e6d",
+    "lineup.png": "e4abd147576a37d6e5552d61057b0e0c3360dcdedd0eabad4bf65dfa28791cf6"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 5500,
+      "bounds": [
+        [
+          -0.7565979957580566,
+          0.0,
+          -0.7776705026626587
+        ],
+        [
+          2.0,
+          0.13722416758537292,
+          2.0
+        ]
+      ],
+      "dimensions": [
+        2.7565979957580566,
+        0.13722416758537292,
+        2.7776705026626587
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.19078333165340458
+      },
+      "host_fit": null,
+      "warnings": [
+        "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Rail Track Curve",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "rail_track_curve"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "endgrain": {
+          "crease": 35
+        },
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/rail_track_curve.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm 4x4 m walkable 90-degree curved rail track inlay at 1.0 m gauge (< 0.15 m tall) with weathered radial sleepers. No gameplay data."
+      }
+    }
+  }
+}

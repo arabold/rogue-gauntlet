@@ -1,0 +1,96 @@
+{
+  "key": "furnishings/timber_frame_cracked",
+  "inputs": "6909ae6198e65b8799fb79d32d27021f7aa8d9e70199b462ea2c14bbc85ecf75",
+  "files": {
+    "timber_frame_cracked.glb": "3773cc746ed0e7a85501d47e7e23bd9b9076ab506600eaa25d9f8839db2a35be",
+    "lineup.png": "9a8cb9c12fdacaab3cc38b33e4af45c703599df6a6ee74a367855cf1147e404d"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1802,
+      "bounds": [
+        [
+          -1.9800000190734863,
+          0.0,
+          -0.35554367303848267
+        ],
+        [
+          1.9824415445327759,
+          3.925135850906372,
+          0.35554367303848267
+        ]
+      ],
+      "dimensions": [
+        3.962441563606262,
+        3.925135850906372,
+        0.7110873460769653
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 3.056013931123576
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Timber Frame Cracked",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "timber_frame_cracked"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3500,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "endgrain": {
+          "crease": 35
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/timber_frame_cracked.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm 4x4 m damaged tunnel passageway frame: split post, sagging broken lintel with exposed endgrain, twisted strap, keeping >= 2.8 m clear opening. No gameplay data."
+      }
+    }
+  }
+}

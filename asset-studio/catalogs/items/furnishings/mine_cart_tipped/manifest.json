@@ -1,0 +1,107 @@
+{
+  "key": "furnishings/mine_cart_tipped",
+  "inputs": "3322e961e979e9af3dc2a2c6c449ef18550fe44dbf6dd7be46dfc54db80a84a7",
+  "files": {
+    "mine_cart_tipped.glb": "401d4c7e6a01761dc7e97d97637a9d7971537e66f9d505b7a8bd1c757711f56b",
+    "lineup.png": "ec63f27c1c07fb72fb7fde626f1b77d353be7854cc7a5375caf074262842fd97"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 4546,
+      "bounds": [
+        [
+          -1.0503023862838745,
+          0.0,
+          -1.0918558835983276
+        ],
+        [
+          1.0503023862838745,
+          1.3152350187301636,
+          1.0918558835983276
+        ]
+      ],
+      "dimensions": [
+        2.100604772567749,
+        1.3152350187301636,
+        2.1837117671966553
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 12,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.7974394491343686
+      },
+      "host_fit": null,
+      "warnings": [
+        "12 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
+      ],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mine Cart Tipped",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mine_cart_tipped"
+      },
+      "color_mode": "world",
+      "topology": "closed_assembly",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7500,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 45,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "ore_gold": {
+          "crease": 35
+        },
+        "rock": {
+          "crease": 35
+        },
+        "rock_dark": {
+          "crease": 35
+        },
+        "steel": {
+          "crease": 40
+        },
+        "wood": {
+          "crease": 35
+        },
+        "wood_dark": {
+          "crease": 35
+        },
+        "wood_light": {
+          "crease": 35
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/mine_cart_tipped.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Mines realm floor prop at dungeon pack scale: tipped mine cart rolled onto its side with spilled rock and ore chunks fanned across the floor. No gameplay data."
+      }
+    }
+  }
+}

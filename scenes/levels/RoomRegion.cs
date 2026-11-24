@@ -10,6 +10,7 @@ using Godot;
 public class RoomRegion
 {
 	public int Id { get; }
+	public string TypeId { get; init; } = "";
 
 	/// <summary>All tiles that reveal with the room: floor, connectors and chasm pits.</summary>
 	public List<Vector2I> Tiles { get; } = new();

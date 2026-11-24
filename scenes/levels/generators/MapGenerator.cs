@@ -208,6 +208,7 @@ public partial class MapGenerator : Node3D
 		var roomMap = room.Map;
 		var region = new RoomRegion(Floor.Rooms.Count)
 		{
+			TypeId = room.Type?.Id ?? "",
 			SlotId = member.SlotId,
 			MustTraverse = member.MustTraverse,
 			ReserveAccess = member.ReserveAccess,
@@ -404,7 +405,7 @@ public partial class MapGenerator : Node3D
 				}
 				return id;
 			},
-			dividerCells: _dividerCells, framedEdges: _framedEdges);
+			dividerCells: _dividerCells, framedEdges: _framedEdges, structural: Corridors.Walls.Pieces);
 	}
 
 	/// <summary>

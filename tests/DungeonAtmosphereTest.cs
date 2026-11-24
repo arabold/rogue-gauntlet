@@ -73,6 +73,7 @@ public class DungeonAtmosphereTest
 		layer.ParticlesPerTile = 1;
 		AssertBool(layer.Particles.Visible && layer.Particles.Emitting).IsTrue();
 		level.Lighting.IsDark = true;
+		layer.ParticlesPerTile = .25f;
 		AssertBool(layer.IsVisibleInTree() || layer.Particles.Emitting).IsFalse();
 		level.Lighting.IsDark = false;
 		AssertBool(air.Visible && layer.Particles.Emitting).IsTrue();
@@ -121,6 +122,71 @@ public class DungeonAtmosphereTest
 		AssertInt(air.GetChildCount()).IsEqual(0);
 		air.Initialize(floor, null, 23);
 		AssertBool(air.Visible).IsFalse();
+	}
+
+	[TestCase]
+	public void PrisonBloodStaysInEligibleRoomsAndReturnsAtTheSameSpots()
+	{
+		var (level, floor) = CreateFloor();
+		string[] types = ["prison", "interrogation", "guardroom", "cell"];
+		for (int id = 0; id < types.Length; id++)
+		{
+			var room = new RoomRegion(id) { TypeId = types[id] };
+			for (int z = 1; z <= 2; z++)
+			{
+				var tile = new Vector2I(id + 1, z);
+				floor.Map.SetTile(tile.X, tile.Y, MapTile.Room);
+				floor.AssignTile(tile, id);
+				room.Tiles.Add(tile);
+			}
+			var doorway = new Vector2I(id + 1, 3);
+			floor.Map.SetConnector(doorway.X, doorway.Y, [Vector2I.Down]);
+			floor.Map.SetTile(doorway.X, doorway.Y + 1, MapTile.Corridor);
+			room.ConnectorTiles.Add(doorway);
+			floor.AddRoom(room);
+		}
+		var corridor = new Vector2I(0, 4);
+		floor.Map.SetTile(corridor.X, corridor.Y, MapTile.Corridor);
+		floor.Map.SetTile(corridor.X, corridor.Y + 1, MapTile.Corridor);
+		floor.Map.SealCorridorEdge(corridor, Vector2I.Right);
+		var profile = TestFactories.Load<AtmosphereProfile>("res://scenes/levels/lighting/atmosphere_profiles/prison.tres");
+		var air = level.Atmosphere;
+		level.Lighting.IsDark = true;
+		air.Initialize(floor, profile, 23);
+		var splatters = BloodMarks("blood-splatters");
+		var drags = BloodMarks("blood-drags");
+		AssertArray(splatters.Select(mark => floor.RoomIdAt(mark.GlobalPosition)).Order().ToArray()).IsEqual(new[] { 0, 1, 3 });
+		AssertArray(drags.Select(mark => floor.RoomIdAt(mark.GlobalPosition)).Order().ToArray()).IsEqual(new[] { 0, 1 });
+		foreach (var mark in drags)
+		{
+			AssertInt(floor.Map.WorldToTile(mark.GlobalPosition).Y).IsEqual(2);
+			AssertFloat(mark.GlobalBasis.Z.Dot(Vector3.Back)).IsEqualApprox(1f, .001f);
+		}
+		var scuffs = air.GetChildren().OfType<AtmosphereSurfaceMarks>().Single(layer => layer.SeedKey == "floor-scuffs");
+		scuffs.MarksPerTile = 1f;
+		var scuffMarks = scuffs.GetChildren().OfType<SurfaceMark>().ToArray();
+		var corridorMark = scuffMarks.Single(mark => floor.Map.WorldToTile(mark.GlobalPosition) == corridor);
+		AssertFloat(corridorMark.GlobalBasis.Z.Dot(Vector3.Back)).IsEqualApprox(1f, .001f);
+		AssertInt(splatters.Select(mark => mark.TextureAlbedo.ResourcePath).Distinct().Count()).IsEqual(splatters.Length);
+		AssertInt(drags.Select(mark => mark.TextureAlbedo.ResourcePath).Distinct().Count()).IsEqual(drags.Length);
+		AssertBool(drags.All(drag => scuffMarks.Any(scuff => scuff.TextureAlbedo == drag.TextureAlbedo
+			&& scuff.Modulate != drag.Modulate))).IsTrue();
+		var blood = splatters.Concat(drags).ToArray();
+		var placements = blood.Select(mark => mark.GlobalTransform).ToArray();
+		var masks = blood.Select(mark => mark.TextureAlbedo.ResourcePath).ToArray();
+		level.Lighting.DisabledEffects = EnvironmentalEffect.SurfaceMarks;
+		AssertBool(blood.Any(mark => mark.IsVisibleInTree())).IsFalse();
+		scuffs.MaximumCount = 1;
+		level.Lighting.DisabledEffects = EnvironmentalEffect.None;
+		AssertInt(scuffs.GetChildren().OfType<SurfaceMark>().Count(mark => mark.IsVisibleInTree())).IsEqual(1);
+		air.Initialize(floor, profile, 23);
+		var restored = BloodMarks("blood-splatters").Concat(BloodMarks("blood-drags")).ToArray();
+		AssertArray(restored.Select(mark => mark.GlobalTransform).ToArray()).IsEqual(placements);
+		AssertArray(restored.Select(mark => mark.TextureAlbedo.ResourcePath).ToArray()).IsEqual(masks);
+
+		SurfaceMark[] BloodMarks(string seedKey) => air.GetChildren().OfType<AtmosphereSurfaceMarks>()
+			.Single(layer => layer.SeedKey == seedKey).GetChildren().OfType<SurfaceMark>()
+			.Where(mark => mark.IsVisibleInTree() && mark.TextureAlbedo != null).ToArray();
 	}
 
 	[TestCase]
