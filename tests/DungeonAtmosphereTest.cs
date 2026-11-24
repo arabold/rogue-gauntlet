@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using GdUnit4;
@@ -206,6 +207,37 @@ public class DungeonAtmosphereTest
 			AssertThat(new Vector3(pixel.R, pixel.G, pixel.B)).IsEqual(point);
 			AssertThat(map.WorldToTile(point)).IsEqual(new Vector2I(1, 1));
 		}
+	}
+
+	[TestCase]
+	public void WallDustFallsOnlyDownWallsTheCameraFaces()
+	{
+		var (level, floor) = CreateFloor();
+		var air = level.Atmosphere;
+		air.Initialize(floor, new AtmosphereProfile
+		{
+			Effects = [TestFactories.Load<PackedScene>("res://scenes/levels/lighting/atmosphere_effects/dust_walls.tscn")]
+		}, 23);
+		var settling = air.GetChildren().OfType<AtmosphereWallDust>().Single();
+		// The room tile is walled on all four sides; the camera looks at it from the south, as the game's camera does.
+		Vector3 room = floor.Map.TileToWorld(1, 1);
+		// Uninterpolated, so its view is where it stands without waiting for a frame.
+		var camera = TestFactories.AddToSceneTree(new Camera3D { Current = true, PhysicsInterpolationMode = Node.PhysicsInterpolationModeEnum.Off });
+		camera.LookAtFromPosition(room + new Vector3(0, 10, 7), room);
+
+		var walls = new HashSet<Vector2>();
+		for (int burst = 0; burst < 12; burst++)
+		{
+			settling._Process(settling.MaxInterval);
+			foreach (var dust in settling.GetChildren().OfType<WallDust>().Where(dust => dust.Emitting))
+			{
+				Vector2 offset = (dust.GlobalPosition - room).Xz();
+				AssertThat(floor.Map.WorldToTile(dust.GlobalPosition)).IsEqual(new Vector2I(1, 1));
+				AssertFloat(offset.Y).OverrideFailureMessage("Dust fell behind the south wall, out of the camera's sight.").IsLessEqual(.01f);
+				walls.Add(offset.Normalized().Round());
+			}
+		}
+		AssertInt(walls.Count).OverrideFailureMessage("Dust kept to a single wall.").IsGreater(1);
 	}
 
 	private static AtmosphereParticles[] Layers(DungeonAtmosphere air) => air.GetChildren().OfType<AtmosphereParticles>().ToArray();

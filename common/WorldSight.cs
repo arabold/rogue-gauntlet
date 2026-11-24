@@ -5,8 +5,10 @@ using System;
 /// blocks sight.</summary>
 public static class WorldSight
 {
-	/// <summary>World (1), walls (2) and props (5): solid geometry that blocks sight and spawn placement.</summary>
-	public const uint Blockers = 1u | 2u | 16u;
+	/// <summary>World (1) and walls (2): the dungeon's built structure, without the props standing in it.</summary>
+	public const uint Structure = 1u | 2u;
+	/// <summary>Structure and props (5): solid geometry that blocks sight and spawn placement.</summary>
+	public const uint Blockers = Structure | 16u;
 
 	/// <summary>True when nothing blocks the segment, or when <paramref name="acceptHit"/> recognizes the first hit
 	/// (collider, position) as the target itself.</summary>

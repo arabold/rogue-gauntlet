@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/crystal_cluster_tall.glb" id="2_tall"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/ore_pile_crystal.glb" id="3_pile"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "crystal_outcrop"
+Scenes = [ExtResource("2_tall"), ExtResource("3_pile")]
+Blocking = true
+Gap = 0.2
+TurnJitter = 60.0
+ShiftJitter = 0.15
+metadata/_custom_type_script = ExtResource("1_Prop")

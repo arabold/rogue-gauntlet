@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "Crystal Cluster Huge",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "design": {
+    "kind": "crystal_cluster_huge"
+  },
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2400,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "export": {
+    "glb": "res://assets/custom-props/mines/crystal_cluster_huge.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Mines centerpiece: a ~3.8 m crystal crowned by tall spires on a broad rock bed."
+  }
+}

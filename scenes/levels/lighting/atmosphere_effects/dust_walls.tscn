@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/lighting/AtmosphereWallDust.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/wall_dust.tscn" id="burst"]
+
+[node name="SettlingWallDust" type="Node3D"]
+script = ExtResource("script")
+Category = 4
+Burst = ExtResource("burst")

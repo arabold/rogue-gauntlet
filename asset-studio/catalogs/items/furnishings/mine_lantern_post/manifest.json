@@ -1,29 +1,29 @@
 {
   "key": "furnishings/mine_lantern_post",
-  "inputs": "a7d46a7928f2b12ce9231d2b225b2fd753dbcb5275de46d53d2c7dbe4423b17d",
+  "inputs": "5528dce0a9e1fc17dfdd52a1d141c1c87be47923c86333d00fa7fdd9a9ef0911",
   "files": {
-    "mine_lantern_post.glb": "2ecf644fad7e0c838f654ee7e9472c6ea7cad234c93977631f1d0b6cf44bdf52",
-    "lineup.png": "a21d02c4d5bf2aa33bf6f4d19610b8f072902e0acff70b059bf738ad43cb0785"
+    "mine_lantern_post.glb": "02d80c7a954deb69b8decaf9d2eeb46ba3d9d79d45d0f4ca8873460e55e8c2cf",
+    "lineup.png": "e0f424fab9ca30fe322af6450828cd01d09c45e10783eae4677730835b23ab30"
   },
   "metadata": {
     "report": {
-      "triangles": 2158,
+      "triangles": 2176,
       "bounds": [
         [
-          -0.32370468974113464,
+          -0.6474339962005615,
           0.0,
-          -0.3160502314567566
+          -0.6321523189544678
         ],
         [
-          0.32370468974113464,
-          1.8566420078277588,
-          0.5099999904632568
+          0.6474339962005615,
+          3.714176893234253,
+          1.0199999809265137
         ]
       ],
       "dimensions": [
-        0.6474093794822693,
-        1.8566420078277588,
-        0.8260502219200134
+        1.294867992401123,
+        3.714176893234253,
+        1.6521522998809814
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.10038944295632611
+        "signed_volume": 0.8631484363659313
       },
       "host_fit": null,
       "warnings": [
@@ -91,7 +91,7 @@
       },
       "provenance": {
         "kind": "studio_original",
-        "quality_notes": "Mines realm floor prop (~1.8 m tall, standing on y=0 facing +Z): weathered timber lantern post with cross-foot base, iron bracket, and hanging ~0.5 m iron cage lantern housing. No gameplay data."
+        "quality_notes": "Mines realm floor prop (~3.6 m tall, standing on y=0 facing +Z): weathered timber lantern post with cross-foot base, iron bracket, and hanging ~1 m iron cage lantern housing. No gameplay data."
       }
     }
   }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scenes/magic/earth/EarthSpellVisual.cs" id="script"]
 [ext_resource type="Script" path="res://scenes/magic/shared/VisualEffectTimeline.cs" id="timeline"]
@@ -7,6 +7,7 @@
 [ext_resource type="Shader" path="res://scenes/magic/earth/area_ring.gdshader" id="ring"]
 [ext_resource type="Shader" path="res://scenes/magic/earth/area_dust.gdshader" id="dust"]
 [ext_resource type="Script" path="res://scenes/magic/shared/WaveFront.cs" id="wave_front_script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/wall_dust.tscn" id="wall_dust"]
 
 [sub_resource type="Resource" id="wave_front"]
 script = ExtResource("wave_front_script")
@@ -23,6 +24,7 @@ WaveShader = ExtResource("wave")
 AreaStoneShader = ExtResource("stone")
 AreaRingShader = ExtResource("ring")
 AreaDustShader = ExtResource("dust")
+WallDustBurst = ExtResource("wall_dust")
 
 [node name="Timeline" type="Node" parent="."]
 script = ExtResource("timeline")

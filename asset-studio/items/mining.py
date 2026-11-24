@@ -6,6 +6,10 @@ All geometry uses the chunky, weathered construction vocabulary in `furnishing_k
 - Wall props keep a flat back on z = 0 at their natural hanging height above y = 0.
 - Rail tracks fit one 4 x 4 m tile at 1.0 m gauge and stay under 0.15 m tall (except buffer stop).
 - Timber frames span one 4 m tunnel tile (4 m wide x 4 m tall) with >= 2.7 m clear opening.
+
+Hand-scale props (tools, ore, crystals, lanterns) are chunkier than life, like the dungeon pack beside the 2.2 m hero:
+KayKit's large barrel stands 2 m tall and its mounted torch is 0.55 m wide. Carts, rails, timber frames and the winch
+keep life size, which the 1 m rail gauge and the 4 m tile fix.
 """
 
 import numpy as np
@@ -73,7 +77,7 @@ def _crystal_spire(radius, height, tilt=(0, 0, 0), pos=(0, 0, 0)):
         (radius, 0.0),
         (radius * 0.94, height * 0.66),
         (radius * 0.50, height * 0.88),
-        (0.01, height),
+        (0.02, height),
     ], sides=6)
     return spire.rotate(tuple(tilt)).translate(tuple(pos))
 
@@ -86,77 +90,77 @@ def _trim_wall_back(a):
 # ---------------------------------------------------------------------------- tools (shared by rack & loose pickaxe)
 
 def _add_pickaxe(a, frame=None):
-    """Chunky mining pickaxe: curved wooden haft (~0.98 m along Y), iron eye socket, steel pick + adze head."""
+    """Chunky mining pickaxe: curved wooden haft (~1.57 m along Y), iron eye socket, steel pick + adze head."""
     # Wooden haft with subtle grip curve and pommel swell
     haft_path = [
         (0.0, 0.00, 0.00),
-        (0.0, 0.25, 0.006),
-        (0.0, 0.55, 0.010),
-        (0.0, 0.82, 0.004),
-        (0.0, 0.94, 0.000),
+        (0.0, 0.40, 0.010),
+        (0.0, 0.88, 0.016),
+        (0.0, 1.312, 0.006),
+        (0.0, 1.504, 0.000),
     ]
     a.join(framed(a.label(
         mf.Manifold.batch_boolean([
-            solid(kit.sweep(haft_path, kit.ring_profile(1, 1, 8), 'wood', scale=[0.044, 0.036, 0.038, 0.042, 0.046])),
-            block((0.095, 0.075, 0.092), (0, 0.035, 0), 0.020),
-            block((0.105, 0.140, 0.115), (0, 0.86, 0), 0.024),
+            solid(kit.sweep(haft_path, kit.ring_profile(1, 1, 8), 'wood', scale=[0.070, 0.058, 0.061, 0.067, 0.074])),
+            block((0.152, 0.12, 0.147), (0, 0.056, 0), 0.032),
+            block((0.168, 0.224, 0.184), (0, 1.376, 0), 0.038),
         ], mf.OpType.Add),
         'wood',
     ), frame))
     # Iron eye collar
-    a.join(framed(a.label(block((0.125, 0.125, 0.135), (0, 0.84, 0), 0.022), 'iron_dark'), frame))
+    a.join(framed(a.label(block((0.20, 0.20, 0.216), (0, 1.344, 0), 0.035), 'iron_dark'), frame))
     # Steel pick spike (-X) and flared adze/chisel (-/+ X)
     pick_pts = [
-        (-0.29, 0.77), (-0.17, 0.81), (-0.04, 0.82), (0.04, 0.82), (0.21, 0.80), (0.28, 0.77),
-        (0.28, 0.84), (0.17, 0.88), (0.04, 0.90), (-0.04, 0.90), (-0.17, 0.88), (-0.29, 0.80),
+        (-0.464, 1.232), (-0.272, 1.296), (-0.064, 1.312), (0.064, 1.312), (0.336, 1.28), (0.448, 1.232),
+        (0.448, 1.344), (0.272, 1.408), (0.064, 1.44), (-0.064, 1.44), (-0.272, 1.408), (-0.464, 1.28),
     ]
-    head = facade(outline(pick_pts), 0.088, -0.044)
+    head = facade(outline(pick_pts), 0.141, -0.070)
     # Flare adze blade wider in Z while tapering pick point narrower in Z
     def _taper_head(verts):
         v = np.array(verts)
-        left = np.clip(-v[:, 0] / 0.29, 0.0, 1.0)
-        right = np.clip(v[:, 0] / 0.28, 0.0, 1.0)
+        left = np.clip(-v[:, 0] / 0.464, 0.0, 1.0)
+        right = np.clip(v[:, 0] / 0.448, 0.0, 1.0)
         scale_z = np.where(v[:, 0] < 0, 1.0 - 0.72 * left, 1.0 + 0.35 * right)
         v[:, 2] *= scale_z
         return v
     head = head.warp_batch(_taper_head)
     a.join(framed(a.label(head, 'steel'), frame))
     # Top haft wedge peaking through eye
-    a.join(framed(a.label(block((0.068, 0.045, 0.072), (0, 0.92, 0), 0.010), 'wood_light'), frame))
+    a.join(framed(a.label(block((0.109, 0.072, 0.115), (0, 1.472, 0), 0.016), 'wood_light'), frame))
 
 
 def _add_shovel(a, frame=None):
-    """Chunky mining shovel: D-grip, straight shaft, dished iron/steel spade blade (~0.96 m along Y)."""
+    """Chunky mining shovel: D-grip, straight shaft, dished iron/steel spade blade (~1.54 m along Y)."""
     # Shaft
-    a.join(framed(a.label(post(0.034, 0.24, 0.86, sides=8), 'wood'), frame))
+    a.join(framed(a.label(post(0.054, 0.384, 1.376, sides=8), 'wood'), frame))
     # D-grip top handle
-    a.join(framed(a.label(block((0.15, 0.048, 0.055), (0, 0.955, 0), 0.014), 'wood_dark'), frame))
-    for sx in (-0.058, 0.058):
-        a.join(framed(a.label(block((0.036, 0.115, 0.048), (sx, 0.90, 0), 0.010), 'wood_dark'), frame))
-    a.join(framed(a.label(block((0.15, 0.042, 0.064), (0, 0.845, 0), 0.012), 'iron_dark'), frame))
+    a.join(framed(a.label(block((0.24, 0.077, 0.088), (0, 1.528, 0), 0.022), 'wood_dark'), frame))
+    for sx in (-0.093, 0.093):
+        a.join(framed(a.label(block((0.058, 0.184, 0.077), (sx, 1.44, 0), 0.016), 'wood_dark'), frame))
+    a.join(framed(a.label(block((0.24, 0.067, 0.102), (0, 1.352, 0), 0.019), 'iron_dark'), frame))
     # Blade socket collar
-    a.join(framed(a.label(lathe([(0.052, 0.22), (0.046, 0.33)], 8), 'iron_dark'), frame))
+    a.join(framed(a.label(lathe([(0.083, 0.352), (0.074, 0.528)], 8), 'iron_dark'), frame))
     # Chunky spade blade (XY silhouette extruded in Z, slight concave dish)
     blade_pts = [
-        (-0.115, 0.26), (-0.110, 0.08), (0.0, 0.00), (0.110, 0.08), (0.115, 0.26),
-        (0.045, 0.275), (-0.045, 0.275),
+        (-0.184, 0.416), (-0.176, 0.128), (0.0, 0.00), (0.176, 0.128), (0.184, 0.416),
+        (0.072, 0.44), (-0.072, 0.44),
     ]
-    blade = facade(outline(blade_pts), 0.038, -0.019)
+    blade = facade(outline(blade_pts), 0.061, -0.030)
     def _dish(verts):
         v = np.array(verts)
         # Taper tip thickness and dish center gently back (-Z)
-        tip = np.clip((0.26 - v[:, 1]) / 0.26, 0.0, 1.0)
+        tip = np.clip((0.416 - v[:, 1]) / 0.416, 0.0, 1.0)
         v[:, 2] *= (1.0 - 0.55 * tip)
-        v[:, 2] -= 0.018 * (1.0 - (v[:, 0] / 0.115) ** 2) * (1.0 - 0.5 * tip)
+        v[:, 2] -= 0.029 * (1.0 - (v[:, 0] / 0.184) ** 2) * (1.0 - 0.5 * tip)
         return v
     blade = blade.warp_batch(_dish)
     a.join(framed(a.label(blade, 'steel'), frame))
     # Center iron rib down upper blade
-    a.join(framed(a.label(block((0.050, 0.14, 0.045), (0, 0.19, 0.005), 0.010), 'iron_dark'), frame))
+    a.join(framed(a.label(block((0.08, 0.224, 0.072), (0, 0.304, 0.008), 0.016), 'iron_dark'), frame))
 
 
 def pickaxe_loose():
-    """Loose weathered pickaxe lying flat on the floor (~1.0 m long, <= 0.14 m tall)."""
+    """Loose weathered pickaxe lying flat on the floor (~1.5 m long, ~0.22 m tall)."""
     a = Assembly()
     _add_pickaxe(a)
     p = turned(turned(a.build(), 90, 'x'), 18, 'y')
@@ -164,37 +168,37 @@ def pickaxe_loose():
 
 
 def tool_rack():
-    """Wall-mounted timber tool rack (~1.62 m wide) holding two pickaxes, two shovels, and one empty peg slot."""
+    """Wall-mounted timber tool rack (~2.7 m wide, ~1.3 to ~3 m up) holding two pickaxes, two shovels and an empty peg."""
     a, rng = Assembly(), random('tool_rack')
-    # Backboard vertical cleats at z = 0..0.06
-    for sx in (-0.64, 0.64):
-        board(a, rng, (0.14, 1.02, 0.06), (sx, 1.72, 0.03), 'wood_dark', chips=1, wobble=0.2)
+    # Backboard vertical cleats at z = 0..0.1
+    for sx in (-1.024, 1.024):
+        board(a, rng, (0.224, 1.632, 0.096), (sx, 2.152, 0.048), 'wood_dark', chips=1, wobble=0.2)
     # Two horizontal rails
-    for y in (1.42, 2.02):
-        board(a, rng, (1.60, 0.16, 0.07), (0, y, 0.08), 'wood', chips=2, wobble=0.2)
-        for sx in (-0.64, 0.64):
-            a.add(block((0.12, 0.19, 0.05), (sx, y, 0.11), 0.015), 'iron_dark')
-            a.add(rivet((sx, y, 0.135), 0.028), 'steel')
-    # Five tool slots along X; slot index 2 (+0.03) is deliberately empty!
+    for y in (1.672, 2.632):
+        board(a, rng, (2.56, 0.256, 0.112), (0, y, 0.128), 'wood', chips=2, wobble=0.2)
+        for sx in (-1.024, 1.024):
+            a.add(block((0.192, 0.304, 0.08), (sx, y, 0.176), 0.024), 'iron_dark')
+            a.add(rivet((sx, y, 0.216), 0.045), 'steel')
+    # Five tool slots along X; slot index 2 (+0.048) is deliberately empty!
     slots = [
-        (-0.58, 'pick', 0.0),
-        (-0.27, 'shovel', 0.0),
-        (+0.03, 'empty', 0.0),
-        (+0.31, 'shovel', -3.0),
-        (+0.60, 'pick', 4.0),
+        (-0.928, 'pick', 0.0),
+        (-0.432, 'shovel', 0.0),
+        (+0.048, 'empty', 0.0),
+        (+0.496, 'shovel', -3.0),
+        (+0.960, 'pick', 4.0),
     ]
     for x, kind, tilt in slots:
         # Pair of sturdy pegs at the upper rail
-        for dx in (-0.065, 0.065):
-            a.add(rod((x + dx, 2.02, 0.09), (x + dx, 2.05, 0.27), 0.024, 6), 'wood_dark')
-            a.add(ball((x + dx, 2.05, 0.27), (0.030, 0.030, 0.030), 6), 'iron_dark')
+        for dx in (-0.104, 0.104):
+            a.add(rod((x + dx, 2.632, 0.144), (x + dx, 2.68, 0.432), 0.038, 6), 'wood_dark')
+            a.add(ball((x + dx, 2.68, 0.432), (0.048, 0.048, 0.048), 6), 'iron_dark')
         # Lower rest peg
-        a.add(rod((x, 1.42, 0.09), (x, 1.44, 0.22), 0.022, 6), 'wood_dark')
+        a.add(rod((x, 1.672, 0.144), (x, 1.704, 0.352), 0.035, 6), 'wood_dark')
         if kind == 'pick':
-            frame = [((0, 0, tilt), (0, -0.84, 0)), ((0, 0, 0), (x, 2.04, 0.18))]
+            frame = [((0, 0, tilt), (0, -1.344, 0)), ((0, 0, 0), (x, 2.664, 0.288))]
             _add_pickaxe(a, frame=frame)
         elif kind == 'shovel':
-            frame = [((0, 0, tilt), (0, 0, 0)), ((0, 0, 0), (x, 1.24, 0.17))]
+            frame = [((0, 0, tilt), (0, 0, 0)), ((0, 0, 0), (x, 1.384, 0.272))]
             _add_shovel(a, frame=frame)
     return _trim_wall_back(a)
 
@@ -490,34 +494,34 @@ def rail_track_end():
     return a.build()
 
 
-# ---------------------------------------------------------------------------- ore veins (wall mounted, z in [0, 0.32])
+# ---------------------------------------------------------------------------- ore veins (wall mounted, flat back on z = 0)
 
 def ore_vein_a():
-    """Diagonal rock outcrop wall vein (~1.25 m wide, z <= 0.28) with carved seam and gold ore."""
+    """Diagonal rock outcrop wall vein (~1.5 m wide, ~0.9 to ~3.1 m up) with carved seam and gold ore."""
     a, rng = Assembly(), random('ore_vein_a')
     # Layered rock outcrop overlapping behind z = 0 (trimmed cleanly at z = 0)
     rocks = [
-        ((-0.24, 1.15, 0.04), (0.74, 0.66, 0.46), 'rock', 12),
-        ((0.02, 1.56, 0.05), (0.78, 0.72, 0.48), 'rock_dark', -10),
-        ((0.26, 1.96, 0.04), (0.70, 0.60, 0.44), 'rock', 14),
-        ((-0.32, 1.56, 0.03), (0.50, 0.52, 0.40), 'rock_dark', -8),
-        ((0.22, 1.34, 0.04), (0.56, 0.52, 0.42), 'rock', 9),
+        ((-0.36, 1.375, 0.06), (1.11, 0.99, 0.69), 'rock', 12),
+        ((0.03, 1.99, 0.075), (1.17, 1.08, 0.72), 'rock_dark', -10),
+        ((0.39, 2.59, 0.06), (1.05, 0.90, 0.66), 'rock', 14),
+        ((-0.48, 1.99, 0.045), (0.75, 0.78, 0.60), 'rock_dark', -8),
+        ((0.33, 1.66, 0.06), (0.84, 0.78, 0.63), 'rock', 9),
     ]
     for pos, size, slot, tilt in rocks:
         a.add(_rock_chunk(pos, size, rng, facets=6, tilt_deg=tilt, slot=slot), slot)
 
     # Real carved diagonal seam pocket into the front face of the rock bulge
-    seam = block((0.26, 0.96, 0.17), (0, 0, 0), 0.025).rotate((0, 0, -28)).translate((0.02, 1.56, 0.25))
+    seam = block((0.39, 1.44, 0.255), (0, 0, 0), 0.038).rotate((0, 0, -28)).translate((0.03, 1.99, 0.375))
     a.cut(seam, 'rock_dark')
 
-    # Angular gold ore chunks seated deep back to z = 0 and protruding crisply inside the seam (z_max <= 0.31)
+    # Angular gold ore chunks seated deep back to z = 0 and protruding crisply inside the seam (z_max <= 0.47)
     ores = [
-        ((-0.18, 1.24, 0.13), (0.25, 0.25, 0.30), 16),
-        ((-0.03, 1.47, 0.14), (0.29, 0.27, 0.31), -14),
-        ((0.09, 1.69, 0.13), (0.26, 0.25, 0.30), 22),
-        ((0.22, 1.91, 0.12), (0.23, 0.23, 0.28), -12),
-        ((-0.24, 1.62, 0.11), (0.19, 0.18, 0.26), 18),
-        ((0.18, 1.35, 0.11), (0.19, 0.18, 0.26), -18),
+        ((-0.27, 1.51, 0.195), (0.375, 0.375, 0.45), 16),
+        ((-0.045, 1.855, 0.21), (0.435, 0.405, 0.465), -14),
+        ((0.135, 2.185, 0.195), (0.39, 0.375, 0.45), 22),
+        ((0.33, 2.515, 0.18), (0.345, 0.345, 0.42), -12),
+        ((-0.36, 2.08, 0.165), (0.285, 0.27, 0.39), 18),
+        ((0.27, 1.675, 0.165), (0.285, 0.27, 0.39), -18),
     ]
     for pos, size, tilt in ores:
         a.add(_rock_chunk(pos, size, rng, facets=5, tilt_deg=tilt, slot='ore_gold'), 'ore_gold')
@@ -525,31 +529,31 @@ def ore_vein_a():
 
 
 def ore_vein_b():
-    """Wide horizontal tiered wall vein (~1.92 m wide, z <= 0.31) with carved pocket and gold nuggets."""
+    """Wide horizontal tiered wall vein (~2.7 m wide) with carved pocket and gold nuggets."""
     a, rng = Assembly(), random('ore_vein_b')
     rocks = [
-        ((-0.56, 1.12, 0.05), (0.76, 0.60, 0.44), 'rock_dark', 8),
-        ((-0.06, 1.24, 0.06), (0.88, 0.72, 0.48), 'rock', -9),
-        ((0.48, 1.16, 0.05), (0.82, 0.64, 0.44), 'rock_dark', 11),
-        ((-0.34, 1.56, 0.04), (0.64, 0.46, 0.36), 'rock', -12),
-        ((0.24, 1.52, 0.04), (0.66, 0.48, 0.38), 'rock_dark', 10),
-        ((0.68, 0.94, 0.03), (0.48, 0.42, 0.32), 'rock', -6),
-        ((-0.72, 0.92, 0.03), (0.46, 0.40, 0.30), 'rock', 12),
+        ((-0.84, 1.33, 0.075), (1.14, 0.90, 0.66), 'rock_dark', 8),
+        ((-0.09, 1.51, 0.09), (1.32, 1.08, 0.72), 'rock', -9),
+        ((0.72, 1.39, 0.075), (1.23, 0.96, 0.66), 'rock_dark', 11),
+        ((-0.51, 1.99, 0.06), (0.96, 0.69, 0.54), 'rock', -12),
+        ((0.36, 1.93, 0.06), (0.99, 0.72, 0.57), 'rock_dark', 10),
+        ((1.02, 1.06, 0.045), (0.72, 0.63, 0.48), 'rock', -6),
+        ((-1.08, 1.03, 0.045), (0.69, 0.60, 0.45), 'rock', 12),
     ]
     for pos, size, slot, tilt in rocks:
         a.add(_rock_chunk(pos, size, rng, facets=6, tilt_deg=tilt, slot=slot), slot)
 
     # Carved horizontal shelf seam across the vein
-    a.cut(block((1.35, 0.24, 0.26), (-0.02, 1.24, 0.24), 0.03).rotate((0, 0, 5)), 'rock_dark')
+    a.cut(block((2.025, 0.36, 0.39), (0, 0, 0), 0.045).rotate((0, 0, 5)).translate((-0.192, 1.50, 0.36)), 'rock_dark')
 
     ores = [
-        ((-0.58, 1.18, 0.15), (0.26, 0.22, 0.24), 14),
-        ((-0.32, 1.22, 0.17), (0.28, 0.24, 0.26), -16),
-        ((-0.04, 1.26, 0.18), (0.30, 0.25, 0.26), 12),
-        ((0.26, 1.24, 0.16), (0.26, 0.22, 0.24), -18),
-        ((0.56, 1.20, 0.15), (0.24, 0.21, 0.24), 20),
-        ((-0.18, 1.52, 0.13), (0.20, 0.18, 0.20), -10),
-        ((0.36, 0.98, 0.13), (0.20, 0.17, 0.20), 15),
+        ((-0.87, 1.42, 0.225), (0.39, 0.33, 0.36), 14),
+        ((-0.48, 1.48, 0.255), (0.42, 0.36, 0.39), -16),
+        ((-0.06, 1.54, 0.27), (0.45, 0.375, 0.39), 12),
+        ((0.39, 1.51, 0.24), (0.39, 0.33, 0.36), -18),
+        ((0.84, 1.45, 0.225), (0.36, 0.315, 0.36), 20),
+        ((-0.27, 1.93, 0.195), (0.30, 0.27, 0.30), -10),
+        ((0.54, 1.12, 0.195), (0.30, 0.255, 0.30), 15),
     ]
     for pos, size, tilt in ores:
         a.add(_rock_chunk(pos, size, rng, facets=5, tilt_deg=tilt, slot='ore_gold'), 'ore_gold')
@@ -557,253 +561,304 @@ def ore_vein_b():
 
 
 def ore_vein_crystal():
-    """Geode wall outcrop (~1.62 m wide, z <= 0.32) with carved hollow and protruding crystal cluster."""
+    """Geode wall outcrop (~3.1 m wide, ~0.9 to ~3.4 m up) with carved hollow and protruding crystal cluster."""
     a, rng = Assembly(), random('ore_vein_crystal')
     rocks = [
-        ((-0.36, 1.28, 0.05), (0.78, 0.76, 0.44), 'rock_dark', 10),
-        ((0.26, 1.36, 0.05), (0.82, 0.82, 0.46), 'rock', -12),
-        ((0.00, 1.72, 0.05), (0.76, 0.68, 0.42), 'rock_dark', 8),
-        ((-0.54, 1.02, 0.03), (0.52, 0.48, 0.34), 'rock', -8),
-        ((0.54, 1.12, 0.03), (0.50, 0.46, 0.32), 'rock_dark', 14),
+        ((-0.72, 1.86, 0.10), (1.56, 1.52, 0.88), 'rock_dark', 10),
+        ((0.52, 2.02, 0.10), (1.64, 1.64, 0.92), 'rock', -12),
+        ((0.00, 2.74, 0.10), (1.52, 1.36, 0.84), 'rock_dark', 8),
+        ((-1.08, 1.34, 0.06), (1.04, 0.96, 0.68), 'rock', -8),
+        ((1.08, 1.54, 0.06), (1.00, 0.92, 0.64), 'rock_dark', 14),
     ]
     for pos, size, slot, tilt in rocks:
         a.add(_rock_chunk(pos, size, rng, facets=6, tilt_deg=tilt, slot=slot), slot)
 
     # Carve deep geode hollow in center of rock mound
-    a.cut(ball((0.0, 1.42, 0.25), (0.44, 0.38, 0.22), 10), 'rock_dark')
+    a.cut(ball((0.00, 2.14, 0.50), (0.88, 0.76, 0.44), 10), 'rock_dark')
 
-    # Large angled hexagonal turquoise crystal spires fanning along wall face (z_max <= 0.31 m)
+    # Large angled hexagonal turquoise crystal spires fanning along wall face (z_max <= 0.62 m)
     crystals = [
-        (0.110, 0.48, (22, 10, -12), (0.02, 1.42, 0.04)),
-        (0.100, 0.44, (18, -18, 28), (-0.14, 1.38, 0.04)),
-        (0.095, 0.43, (20, 22, -34), (0.16, 1.44, 0.04)),
-        (0.085, 0.39, (12, 0, 46), (-0.24, 1.50, 0.03)),
-        (0.085, 0.40, (14, 14, -50), (0.26, 1.54, 0.03)),
-        (0.075, 0.32, (32, -8, 14), (-0.04, 1.24, 0.06)),
-        (0.070, 0.30, (28, 16, -18), (0.12, 1.24, 0.06)),
+        (0.220, 0.96, (22, 10, -12), (0.04, 2.14, 0.08)),
+        (0.200, 0.88, (18, -18, 28), (-0.28, 2.06, 0.08)),
+        (0.190, 0.86, (20, 22, -34), (0.32, 2.18, 0.08)),
+        (0.170, 0.78, (12, 0, 46), (-0.48, 2.30, 0.06)),
+        (0.170, 0.80, (14, 14, -50), (0.52, 2.38, 0.06)),
+        (0.150, 0.64, (32, -8, 14), (-0.08, 1.78, 0.12)),
+        (0.140, 0.60, (28, 16, -18), (0.24, 1.78, 0.12)),
     ]
     for r, h, tilt, pos in crystals:
         a.add(_crystal_spire(r, h, tilt, pos), 'ore_crystal')
     # Small gold flecks along side edge
     for pos, size, tilt in [
-        ((-0.44, 1.10, 0.13), (0.18, 0.16, 0.18), 16),
-        ((0.46, 1.18, 0.13), (0.17, 0.15, 0.18), -14),
+        ((-0.88, 1.50, 0.26), (0.36, 0.32, 0.36), 16),
+        ((0.92, 1.66, 0.26), (0.34, 0.30, 0.36), -14),
     ]:
         a.add(_rock_chunk(pos, size, rng, facets=5, tilt_deg=tilt, slot='ore_gold'), 'ore_gold')
     return _trim_wall_back(a)
 
 
 def ore_vein_crystal_seam():
-    """A narrow split in the wall lined with short blue crystal blades."""
+    """A narrow split in the wall (~3.1 m wide) lined with blue crystal blades."""
     a, rng = Assembly(), random('ore_vein_crystal_seam')
     for pos, size, tilt in [
-        ((-0.50, 1.06, 0.03), (0.64, 0.47, 0.40), -12),
-        ((-0.18, 1.22, 0.07), (0.74, 0.48, 0.42), -8),
-        ((0.25, 1.43, 0.02), (0.80, 0.48, 0.43), 14),
-        ((0.56, 1.54, 0.04), (0.49, 0.38, 0.37), 10),
+        ((-1.00, 1.42, 0.06), (1.28, 0.94, 0.80), -12),
+        ((-0.36, 1.74, 0.14), (1.48, 0.96, 0.84), -8),
+        ((0.50, 2.16, 0.04), (1.60, 0.96, 0.86), 14),
+        ((1.12, 2.38, 0.08), (0.98, 0.76, 0.74), 10),
     ]:
         a.add(_rock_chunk(pos, size, rng, tilt_deg=tilt), 'rock')
-    a.cut(ball((0, 0, 0), (0.69, 0.13, 0.20), 10).rotate((0, 0, 24))
-          .translate((0.0, 1.30, 0.19)), 'rock_dark')
+    a.cut(ball((0, 0, 0), (1.38, 0.26, 0.40), 10).rotate((0, 0, 24))
+          .translate((0.00, 1.90, 0.38)), 'rock_dark')
     for radius, height, tilt, pos, slot in [
-        (0.060, 0.25, (20, 5, -54), (-0.59, 1.06, 0.14), 'ore_crystal'),
-        (0.079, 0.34, (26, -10, -61), (-0.40, 1.14, 0.12), 'ore_crystal_blue'),
-        (0.045, 0.21, (20, 24, 45), (-0.14, 1.25, 0.16), 'ore_crystal'),
-        (0.092, 0.44, (25, 12, -65), (-0.06, 1.23, 0.12), 'ore_crystal_blue'),
-        (0.063, 0.29, (18, -20, -48), (0.27, 1.40, 0.11), 'ore_crystal'),
-        (0.080, 0.31, (24, -8, -69), (0.42, 1.48, 0.10), 'ore_crystal_blue'),
+        (0.120, 0.50, (20, 5, -54), (-1.18, 1.42, 0.28), 'ore_crystal'),
+        (0.158, 0.68, (26, -10, -61), (-0.80, 1.58, 0.24), 'ore_crystal_blue'),
+        (0.090, 0.42, (20, 24, 45), (-0.28, 1.80, 0.32), 'ore_crystal'),
+        (0.184, 0.88, (25, 12, -65), (-0.12, 1.76, 0.24), 'ore_crystal_blue'),
+        (0.126, 0.58, (18, -20, -48), (0.54, 2.10, 0.22), 'ore_crystal'),
+        (0.160, 0.62, (24, -8, -69), (0.84, 2.26, 0.20), 'ore_crystal_blue'),
     ]:
         a.add(_crystal_spire(radius, height, tilt, pos), slot)
     return _trim_wall_back(a)
 
 
-# ---------------------------------------------------------------------------- ore piles (floor, 1.0 - 1.5 m across)
+# ---------------------------------------------------------------------------- ore piles (floor, 1.5 - 2.1 m across)
 
 def ore_pile_small():
-    """Low heap (~1.05 m across, ~0.48 m tall) of loose mined rock and gold ore chunks."""
+    """Low heap (~1.5 m across, ~0.7 m tall) of loose mined rock and gold ore chunks."""
     a, rng = Assembly(), random('ore_pile_small')
     chunks = [
-        ((-0.04, 0.20, -0.02), (0.58, 0.38, 0.54), 'rock_dark', 8),
-        ((0.20, 0.15, 0.12), (0.44, 0.28, 0.40), 'rock', -12),
-        ((-0.24, 0.14, 0.14), (0.42, 0.26, 0.38), 'rock', 10),
-        ((0.06, 0.13, -0.24), (0.40, 0.24, 0.38), 'rock_dark', -8),
-        ((-0.22, 0.11, -0.20), (0.34, 0.20, 0.32), 'rock', 14),
+        ((-0.06, 0.30, -0.03), (0.87, 0.57, 0.81), 'rock_dark', 8),
+        ((0.30, 0.225, 0.18), (0.66, 0.42, 0.60), 'rock', -12),
+        ((-0.36, 0.21, 0.21), (0.63, 0.39, 0.57), 'rock', 10),
+        ((0.09, 0.195, -0.36), (0.60, 0.36, 0.57), 'rock_dark', -8),
+        ((-0.33, 0.165, -0.30), (0.51, 0.30, 0.48), 'rock', 14),
         # Ore chunks wedged prominently into heap
-        ((0.02, 0.34, 0.04), (0.26, 0.20, 0.24), 'ore_gold', 16),
-        ((-0.16, 0.22, 0.22), (0.22, 0.18, 0.22), 'ore_gold', -14),
-        ((0.24, 0.20, -0.10), (0.22, 0.17, 0.20), 'ore_gold', 20),
-        ((-0.30, 0.10, -0.02), (0.18, 0.14, 0.18), 'ore_gold', -18),
+        ((0.03, 0.51, 0.06), (0.39, 0.30, 0.36), 'ore_gold', 16),
+        ((-0.24, 0.33, 0.33), (0.33, 0.27, 0.33), 'ore_gold', -14),
+        ((0.36, 0.30, -0.15), (0.33, 0.255, 0.30), 'ore_gold', 20),
+        ((-0.45, 0.15, -0.03), (0.27, 0.21, 0.27), 'ore_gold', -18),
     ]
     for pos, size, slot, tilt in chunks:
         a.add(_rock_chunk(pos, size, rng, facets=6, tilt_deg=tilt, slot=slot), slot)
     for x, z, sz, slot in [
-        (0.42, 0.08, 0.16, 'rock'), (-0.42, 0.20, 0.15, 'rock_dark'),
-        (0.14, 0.40, 0.14, 'ore_gold'), (-0.12, -0.42, 0.15, 'rock'),
-        (0.34, -0.30, 0.14, 'rock_dark'),
+        (0.63, 0.12, 0.24, 'rock'), (-0.63, 0.30, 0.225, 'rock_dark'),
+        (0.21, 0.60, 0.21, 'ore_gold'), (-0.18, -0.63, 0.225, 'rock'),
+        (0.51, -0.45, 0.21, 'rock_dark'),
     ]:
         a.add(_rock_chip((x, sz * 0.24, z), (sz, sz * 0.48, sz * 0.85), rng, slot), slot)
     return grounded(a.build(loose=True))
 
 
 def ore_pile_large():
-    """Larger asymmetric ore heap with a crown of blue crystal and scattered gold ore."""
+    """Larger asymmetric ore heap (~2.1 m across) with a crown of blue crystal and scattered gold ore."""
     a, rng = Assembly(), random('ore_pile_large')
     chunks = [
-        ((-0.08, 0.30, -0.06), (0.82, 0.56, 0.76), 'rock_dark', 6),
-        ((0.32, 0.22, 0.14), (0.64, 0.42, 0.58), 'rock', -12),
-        ((-0.36, 0.20, 0.22), (0.58, 0.38, 0.54), 'rock', 14),
-        ((0.12, 0.20, -0.36), (0.56, 0.36, 0.50), 'rock_dark', -10),
-        ((-0.34, 0.17, -0.32), (0.48, 0.30, 0.44), 'rock', 12),
-        ((0.40, 0.15, -0.28), (0.42, 0.26, 0.40), 'rock_dark', -14),
-        ((0.02, 0.14, 0.42), (0.46, 0.28, 0.42), 'rock', 9),
+        ((-0.12, 0.45, -0.09), (1.23, 0.84, 1.14), 'rock_dark', 6),
+        ((0.48, 0.33, 0.21), (0.96, 0.63, 0.87), 'rock', -12),
+        ((-0.54, 0.30, 0.33), (0.87, 0.57, 0.81), 'rock', 14),
+        ((0.18, 0.30, -0.54), (0.84, 0.54, 0.75), 'rock_dark', -10),
+        ((-0.51, 0.255, -0.48), (0.72, 0.45, 0.66), 'rock', 12),
+        ((0.60, 0.225, -0.42), (0.63, 0.39, 0.60), 'rock_dark', -14),
+        ((0.03, 0.21, 0.63), (0.69, 0.42, 0.63), 'rock', 9),
         # Stepped crown and loose ore
-        ((-0.04, 0.56, -0.04), (0.42, 0.30, 0.38), 'rock', -8),
-        ((0.04, 0.62, 0.08), (0.28, 0.22, 0.26), 'ore_crystal_blue', 22),
-        ((-0.24, 0.42, 0.14), (0.28, 0.22, 0.26), 'ore_crystal', -18),
-        ((0.28, 0.38, -0.06), (0.26, 0.20, 0.24), 'ore_crystal_blue', 15),
-        ((-0.14, 0.30, -0.34), (0.24, 0.18, 0.22), 'ore_gold', -12),
-        ((0.46, 0.20, 0.26), (0.22, 0.17, 0.20), 'ore_gold', 20),
-        ((-0.44, 0.16, 0.02), (0.20, 0.16, 0.20), 'ore_gold', -24),
-        ((0.14, 0.26, 0.40), (0.22, 0.18, 0.22), 'ore_gold', 12),
+        ((-0.06, 0.84, -0.06), (0.63, 0.45, 0.57), 'rock', -8),
+        ((0.06, 0.93, 0.12), (0.42, 0.33, 0.39), 'ore_crystal_blue', 22),
+        ((-0.36, 0.63, 0.21), (0.42, 0.33, 0.39), 'ore_crystal', -18),
+        ((0.42, 0.57, -0.09), (0.39, 0.30, 0.36), 'ore_crystal_blue', 15),
+        ((-0.21, 0.45, -0.51), (0.36, 0.27, 0.33), 'ore_gold', -12),
+        ((0.69, 0.30, 0.39), (0.33, 0.255, 0.30), 'ore_gold', 20),
+        ((-0.66, 0.24, 0.03), (0.30, 0.24, 0.30), 'ore_gold', -24),
+        ((0.21, 0.39, 0.60), (0.33, 0.27, 0.33), 'ore_gold', 12),
     ]
     for pos, size, slot, tilt in chunks:
         a.add(_rock_chunk(pos, size, rng, facets=6, tilt_deg=tilt, slot=slot), slot)
-    a.add(_crystal_spire(0.090, 0.39, (24, 12, 28), (-0.15, 0.54, -0.12)), 'ore_crystal_blue')
-    a.add(_crystal_spire(0.065, 0.29, (38, -18, -22), (-0.18, 0.49, 0.02)), 'ore_crystal')
+    a.add(_crystal_spire(0.135, 0.585, (24, 12, 28), (-0.225, 0.81, -0.18)), 'ore_crystal_blue')
+    a.add(_crystal_spire(0.098, 0.435, (38, -18, -22), (-0.27, 0.735, 0.03)), 'ore_crystal')
     for x, z, sz, slot in [
-        (0.64, 0.12, 0.18, 'rock'), (-0.64, 0.22, 0.17, 'rock_dark'),
-        (0.24, 0.62, 0.16, 'ore_gold'), (-0.26, -0.60, 0.18, 'rock'),
-        (0.56, -0.44, 0.16, 'rock_dark'), (-0.54, -0.36, 0.15, 'ore_gold'),
+        (0.96, 0.18, 0.27, 'rock'), (-0.96, 0.33, 0.255, 'rock_dark'),
+        (0.36, 0.93, 0.24, 'ore_gold'), (-0.39, -0.90, 0.27, 'rock'),
+        (0.84, -0.66, 0.24, 'rock_dark'), (-0.81, -0.54, 0.225, 'ore_gold'),
     ]:
         a.add(_rock_chip((x, sz * 0.24, z), (sz, sz * 0.48, sz * 0.85), rng, slot), slot)
     return grounded(a.build(loose=True))
 
 
 def ore_pile_crystal():
-    """Tall splayed crystals rooted in a low bed of excavated rock."""
-    a, rng = Assembly(), random('ore_pile_crystal')
-    for pos, size, slot, tilt in [
-        ((0.00, 0.17, 0.00), (0.78, 0.34, 0.73), 'rock_dark', 8),
-        ((0.30, 0.14, -0.18), (0.55, 0.28, 0.47), 'rock', -13),
-        ((-0.32, 0.12, -0.12), (0.53, 0.24, 0.46), 'rock', 10),
-        ((0.07, 0.10, 0.35), (0.52, 0.22, 0.40), 'rock', -7),
-    ]:
-        a.add(_rock_chunk(pos, size, rng, tilt_deg=tilt), slot)
-    for radius, height, tilt, pos, slot in [
-        (0.145, 0.98, (-12, 20, 7), (-0.05, 0.19, 0.03), 'ore_crystal_blue'),
-        (0.109, 0.68, (19, 15, -29), (0.11, 0.16, -0.10), 'ore_crystal'),
-        (0.120, 0.61, (24, -8, 36), (-0.15, 0.16, 0.09), 'ore_crystal_blue'),
-        (0.091, 0.48, (39, 20, -16), (0.13, 0.13, 0.15), 'ore_crystal_blue'),
-        (0.078, 0.38, (-31, 10, -22), (0.19, 0.13, -0.21), 'ore_crystal'),
-        (0.070, 0.34, (22, 35, 40), (-0.39, 0.11, -0.12), 'ore_crystal'),
-        (0.069, 0.28, (47, -25, 6), (-0.04, 0.12, 0.23), 'ore_crystal'),
-    ]:
+    """Splayed crystals (~2.3 m tall) rooted in a low bed of excavated rock."""
+    return _crystal_cluster('ore_pile_crystal', [
+        ((0.00, 0.34, 0.00), (1.56, 0.68, 1.46), 'rock_dark', 8),
+        ((0.60, 0.28, -0.36), (1.10, 0.56, 0.94), 'rock', -13),
+        ((-0.64, 0.24, -0.24), (1.06, 0.48, 0.92), 'rock', 10),
+        ((0.14, 0.20, 0.70), (1.04, 0.44, 0.80), 'rock', -7),
+    ], [
+        (0.290, 1.96, (-12, 20, 7), (-0.10, 0.38, 0.06), 'ore_crystal_blue'),
+        (0.218, 1.36, (19, 15, -29), (0.22, 0.32, -0.20), 'ore_crystal'),
+        (0.240, 1.22, (24, -8, 36), (-0.30, 0.32, 0.18), 'ore_crystal_blue'),
+        (0.182, 0.96, (39, 20, -16), (0.26, 0.26, 0.30), 'ore_crystal_blue'),
+        (0.156, 0.76, (-31, 10, -22), (0.38, 0.26, -0.42), 'ore_crystal'),
+        (0.140, 0.68, (22, 35, 40), (-0.78, 0.22, -0.24), 'ore_crystal'),
+        (0.138, 0.56, (47, -25, 6), (-0.08, 0.24, 0.46), 'ore_crystal'),
+    ])
+
+
+def _crystal_cluster(seed, bed, spires):
+    """Crystal spires rooted in a bed of rock chunks: bed rows are (center, size, slot, tilt), spire rows
+    (radius, height, tilt, base, slot)."""
+    a, rng = Assembly(), random(seed)
+    for pos, size, slot, tilt in bed:
+        a.add(_rock_chunk(pos, size, rng, tilt_deg=tilt, slot=slot), slot)
+    for radius, height, tilt, pos, slot in spires:
         a.add(_crystal_spire(radius, height, tilt, pos), slot)
     return grounded(a.build(loose=True))
 
 
-# ---------------------------------------------------------------------------- mine lanterns (hanging + post, ~0.5 m cage)
+# ---------------------------------------------------------------------------- crystal clusters (floor, taller than the hero)
+
+def crystal_cluster_tall():
+    """A great crystal (~3 m, taller than the hero) leaning out of a rock bed among smaller splayed blades (~1.8 m across)."""
+    return _crystal_cluster('crystal_cluster_tall', [
+        ((0.00, 0.30, 0.00), (1.40, 0.60, 1.32), 'rock_dark', 8),
+        ((0.56, 0.24, -0.32), (0.96, 0.48, 0.84), 'rock', -12),
+        ((-0.60, 0.22, 0.20), (0.92, 0.44, 0.80), 'rock', 10),
+        ((0.08, 0.18, 0.64), (0.84, 0.36, 0.72), 'rock_dark', -6),
+        ((-0.28, 0.18, -0.60), (0.80, 0.36, 0.68), 'rock', 14),
+    ], [
+        (0.380, 3.00, (-6, 15, 5), (0.00, 0.28, 0.00), 'ore_crystal_blue'),
+        (0.280, 2.04, (18, 30, -22), (0.32, 0.24, -0.16), 'ore_crystal'),
+        (0.300, 1.88, (-20, -15, 26), (-0.36, 0.24, 0.12), 'ore_crystal_blue'),
+        (0.220, 1.40, (30, 50, 18), (0.08, 0.20, 0.40), 'ore_crystal'),
+        (0.200, 1.20, (-28, 10, -38), (0.48, 0.18, 0.24), 'ore_crystal_blue'),
+        (0.180, 1.00, (40, -30, 32), (-0.54, 0.16, -0.28), 'ore_crystal'),
+        (0.160, 0.80, (-44, 20, -10), (-0.08, 0.16, -0.54), 'ore_crystal_blue'),
+    ])
+
+
+def crystal_cluster_huge():
+    """A cavern's centerpiece: a towering crystal (~3.8 m) in a crown of tall spires on a broad rock bed (~2.8 m across)."""
+    return _crystal_cluster('crystal_cluster_huge', [
+        ((0.00, 0.36, 0.00), (2.00, 0.72, 1.88), 'rock_dark', 6),
+        ((0.88, 0.28, -0.40), (1.28, 0.56, 1.12), 'rock', -12),
+        ((-0.88, 0.26, 0.32), (1.24, 0.52, 1.08), 'rock', 12),
+        ((0.20, 0.22, 0.96), (1.16, 0.44, 0.92), 'rock_dark', -8),
+        ((-0.36, 0.22, -0.92), (1.12, 0.44, 0.92), 'rock', 10),
+        ((0.92, 0.18, 0.68), (0.80, 0.36, 0.72), 'rock_dark', 16),
+        ((-1.00, 0.18, -0.60), (0.80, 0.36, 0.68), 'rock_dark', -14),
+    ], [
+        (0.560, 3.50, (-4, 10, 4), (0.00, 0.36, 0.00), 'ore_crystal_blue'),
+        (0.440, 2.90, (14, 40, -16), (0.44, 0.32, -0.24), 'ore_crystal'),
+        (0.420, 2.60, (-16, -20, 20), (-0.48, 0.32, 0.20), 'ore_crystal_blue'),
+        (0.360, 2.24, (22, -60, -10), (-0.20, 0.30, -0.52), 'ore_crystal'),
+        (0.340, 2.00, (-20, 70, 18), (0.28, 0.30, 0.56), 'ore_crystal_blue'),
+        (0.280, 1.56, (34, 20, -34), (0.84, 0.24, 0.08), 'ore_crystal_blue'),
+        (0.260, 1.40, (-30, -10, 36), (-0.88, 0.24, -0.08), 'ore_crystal'),
+        (0.220, 1.12, (42, 60, 20), (0.40, 0.20, 0.92), 'ore_crystal'),
+        (0.200, 1.00, (-40, -40, -24), (-0.52, 0.20, -0.88), 'ore_crystal_blue'),
+        (0.180, 0.84, (48, -20, -40), (1.00, 0.18, -0.60), 'ore_crystal'),
+    ])
+
+
+# ---------------------------------------------------------------------------- mine lanterns (hanging + post, ~1 m cage)
 
 def _add_lantern_cage(a, center, glow=False):
-    """Hanging octagonal iron cage lantern (~0.50 m tall, ~0.28 m wide) centered at `center`."""
+    """Hanging octagonal iron cage lantern (~1 m tall, ~0.6 m wide) centered at `center`."""
     cx, cy, cz = center
     if glow:
         # Warm glowing inner lantern core centered cleanly inside the cage
         core = lathe([
-            (0.055, -0.11),
-            (0.082, -0.07),
-            (0.088, 0.02),
-            (0.072, 0.09),
-            (0.010, 0.105),
-        ], sides=8).translate((cx, cy - 0.01, cz))
+            (0.110, -0.22),
+            (0.164, -0.14),
+            (0.176, 0.04),
+            (0.144, 0.18),
+            (0.020, 0.21),
+        ], sides=8).translate((cx, cy - 0.02, cz))
         a.add(core, 'lantern_glow')
         return
 
     # Bottom oil pan + drop finial
     pan = lathe([
-        (0.010, -0.24),
-        (0.045, -0.20),
-        (0.115, -0.18),
-        (0.135, -0.14),
-        (0.125, -0.11),
-        (0.010, -0.11),
+        (0.020, -0.48),
+        (0.090, -0.40),
+        (0.230, -0.36),
+        (0.270, -0.28),
+        (0.250, -0.22),
+        (0.020, -0.22),
     ], sides=8).translate((cx, cy, cz))
     a.add(pan, 'iron_dark')
 
     # Domed top cap with chimney collar (recessed exterior vent pockets leaving inner core solid)
     cap = lathe([
-        (0.010, 0.09),
-        (0.138, 0.09),
-        (0.145, 0.12),
-        (0.105, 0.155),
-        (0.088, 0.19),
-        (0.094, 0.215),
-        (0.010, 0.22),
+        (0.020, 0.18),
+        (0.276, 0.18),
+        (0.290, 0.24),
+        (0.210, 0.31),
+        (0.176, 0.38),
+        (0.188, 0.43),
+        (0.020, 0.44),
     ], sides=8).translate((cx, cy, cz))
     # Carve four exterior vent recesses into chimney collar without cutting through center stem
     for angle in (0, 90, 180, 270):
-        slot_cut = block((0.038, 0.028, 0.040), (0, 0, 0.082), 0.004).rotate((0, angle, 0)).translate((cx, cy + 0.162, cz))
+        slot_cut = block((0.076, 0.056, 0.080), (0, 0, 0.164), 0.008).rotate((0, angle, 0)).translate((cx, cy + 0.324, cz))
         cap = cap - a.label(slot_cut, 'iron_dark')
     a.join(a.label(cap, 'iron_dark'))
 
     # Bail suspension ring at top
-    a.add(loop((cx, cy + 0.24, cz), (0.048, 0.045), 0.018, 10), 'iron')
+    a.add(loop((cx, cy + 0.48, cz), (0.096, 0.09), 0.036, 10), 'iron')
     # Middle guard ring around the cage
-    a.add(torus(0.132, 0.018, cy - 0.01, 12, 6).translate((cx, 0, cz)), 'iron')
+    a.add(torus(0.264, 0.036, cy - 0.02, 12, 6).translate((cx, 0, cz)), 'iron')
     # Four corner cage bars connecting bottom pan to top cap
     for k in range(4):
         ang = (k + 0.5) * np.pi / 2
-        dx, dz = np.cos(ang) * 0.122, np.sin(ang) * 0.122
-        a.add(rod((cx + dx, cy - 0.13, cz + dz), (cx + dx * 1.04, cy + 0.11, cz + dz * 1.04), 0.016, 6), 'iron')
+        dx, dz = np.cos(ang) * 0.244, np.sin(ang) * 0.244
+        a.add(rod((cx + dx, cy - 0.26, cz + dz), (cx + dx * 1.04, cy + 0.22, cz + dz * 1.04), 0.032, 6), 'iron')
 
 
 def mine_lantern_wall(glow=False):
-    """Hanging iron cage mine lantern on a forged wall bracket (flat back at z = 0)."""
+    """Hanging iron cage mine lantern on a forged wall bracket (flat back at z = 0), hanging from ~2 to ~3.4 m."""
     a = Assembly()
-    lantern_center = (0.0, 2.04, 0.36)
+    lantern_center = (0.0, 2.48, 0.72)
     _add_lantern_cage(a, lantern_center, glow=glow)
     if glow:
         return a.build()
 
-    # Forged wall backplate at z = 0..0.06
-    a.add(facade(outline([(-0.11, 2.52), (0.11, 2.52), (0.11, 2.12), (0.0, 1.98), (-0.11, 2.12)]), 0.06, 0.0), 'iron_dark')
-    for y_riv in (2.43, 2.11):
-        a.add(rivet((0.0, y_riv, 0.06), 0.028), 'steel')
-    # Horizontal top arm & curved scroll bracket out to hook at z = 0.36
-    a.add(block((0.065, 0.065, 0.38), (0.0, 2.40, 0.21), 0.014), 'iron')
-    a.add(bend([(0.0, 2.16, 0.05), (0.0, 2.22, 0.16), (0.0, 2.31, 0.26), (0.0, 2.38, 0.34)], [0.024] * 4, 6), 'iron_dark')
-    # Forged hook stem & eye solidly connecting arm (2.40) into top of lantern bail ring (2.325)
-    a.add(rod((0.0, 2.38, 0.36), (0.0, 2.31, 0.36), 0.022, 6), 'iron_dark')
-    a.add(loop((0, 0, 0), (0.036, 0.045), 0.018, 10).rotate((0, 90, 0)).translate((0.0, 2.33, 0.36)), 'iron')
+    # Forged wall backplate at z = 0..0.12
+    a.add(facade(outline([(-0.22, 3.44), (0.22, 3.44), (0.22, 2.64), (0.0, 2.36), (-0.22, 2.64)]), 0.12, 0.0), 'iron_dark')
+    for y_riv in (3.26, 2.62):
+        a.add(rivet((0.0, y_riv, 0.12), 0.056), 'steel')
+    # Horizontal top arm & curved scroll bracket out to hook at z = 0.72
+    a.add(block((0.13, 0.13, 0.76), (0.0, 3.20, 0.42), 0.028), 'iron')
+    a.add(bend([(0.0, 2.72, 0.10), (0.0, 2.84, 0.32), (0.0, 3.02, 0.52), (0.0, 3.16, 0.68)], [0.048] * 4, 6), 'iron_dark')
+    # Forged hook stem & eye solidly connecting arm (3.20) into top of lantern bail ring (3.05)
+    a.add(rod((0.0, 3.16, 0.72), (0.0, 3.02, 0.72), 0.044, 6), 'iron_dark')
+    a.add(loop((0, 0, 0), (0.072, 0.09), 0.036, 10).rotate((0, 90, 0)).translate((0.0, 3.06, 0.72)), 'iron')
     return _trim_wall_back(a)
 
 
 def mine_lantern_post(glow=False):
-    """Floor-standing weathered timber post (~1.82 m tall) with iron bracket and hanging cage lantern."""
+    """Floor-standing weathered timber post (~3.6 m tall) with iron bracket and hanging cage lantern."""
     a, rng = Assembly(), random('mine_lantern_post')
-    lantern_center = (0.0, 1.32, 0.36)
+    lantern_center = (0.0, 2.64, 0.72)
     _add_lantern_cage(a, lantern_center, glow=glow)
     if glow:
         return a.build()
 
     # Sturdy cross-foot base on y = 0
-    board(a, rng, (0.64, 0.11, 0.16), (0, 0.055, 0), 'wood_dark', chips=1, wobble=0.3)
-    board(a, rng, (0.16, 0.11, 0.64), (0, 0.065, 0), 'wood_dark', chips=1, wobble=0.3)
-    # Main timber post (~1.82 m tall)
-    square_post(a, rng, 0.20, 0.08, 1.82, 0.0, 0.0, slot='wood', cap=0.05)
-    # Overhanging timber arm toward +Z at y = 1.66
-    board(a, rng, (0.14, 0.14, 0.56), (0.0, 1.66, 0.22), 'wood_dark', chips=1, wobble=0.3)
+    board(a, rng, (1.28, 0.22, 0.32), (0, 0.11, 0), 'wood_dark', chips=1, wobble=0.3)
+    board(a, rng, (0.32, 0.22, 1.28), (0, 0.13, 0), 'wood_dark', chips=1, wobble=0.3)
+    # Main timber post (~3.6 m tall)
+    square_post(a, rng, 0.40, 0.16, 3.64, 0.0, 0.0, slot='wood', cap=0.10)
+    # Overhanging timber arm toward +Z at y = 3.32
+    board(a, rng, (0.28, 0.28, 1.12), (0.0, 3.32, 0.44), 'wood_dark', chips=1, wobble=0.3)
     # Diagonal knee brace from post to arm
     a.add(mf.Manifold.batch_hull([
-        block((0.11, 0.08, 0.09), (0.0, 1.28, 0.08), 0.016),
-        block((0.11, 0.08, 0.09), (0.0, 1.64, 0.32), 0.016),
+        block((0.22, 0.16, 0.18), (0.0, 2.56, 0.16), 0.032),
+        block((0.22, 0.16, 0.18), (0.0, 3.28, 0.64), 0.032),
     ]), 'wood')
-    # Iron collar & tip band on arm + hanging hook solidly connecting to lantern bail (1.56)
-    a.add(block((0.17, 0.17, 0.10), (0.0, 1.66, 0.36), 0.016), 'iron_dark')
-    a.add(rivet((0.085, 1.66, 0.36), 0.024, (1, 0, 0)), 'steel')
-    a.add(rivet((-0.085, 1.66, 0.36), 0.024, (-1, 0, 0)), 'steel')
-    a.add(rod((0.0, 1.63, 0.36), (0.0, 1.59, 0.36), 0.022, 6), 'iron_dark')
-    a.add(loop((0, 0, 0), (0.036, 0.042), 0.018, 10).rotate((0, 90, 0)).translate((0.0, 1.59, 0.36)), 'iron')
+    # Iron collar & tip band on arm + hanging hook solidly connecting to lantern bail (3.12)
+    a.add(block((0.34, 0.34, 0.20), (0.0, 3.32, 0.72), 0.032), 'iron_dark')
+    a.add(rivet((0.17, 3.32, 0.72), 0.048, (1, 0, 0)), 'steel')
+    a.add(rivet((-0.17, 3.32, 0.72), 0.048, (-1, 0, 0)), 'steel')
+    a.add(rod((0.0, 3.26, 0.72), (0.0, 3.18, 0.72), 0.044, 6), 'iron_dark')
+    a.add(loop((0, 0, 0), (0.072, 0.084), 0.036, 10).rotate((0, 90, 0)).translate((0.0, 3.18, 0.72)), 'iron')
     return grounded(a.build())
 
 
@@ -1070,6 +1125,8 @@ KINDS = {
     'ore_pile_small': ore_pile_small,
     'ore_pile_large': ore_pile_large,
     'ore_pile_crystal': ore_pile_crystal,
+    'crystal_cluster_tall': crystal_cluster_tall,
+    'crystal_cluster_huge': crystal_cluster_huge,
     'tool_rack': tool_rack,
     'pickaxe_loose': pickaxe_loose,
     'mine_lantern_wall': mine_lantern_wall,

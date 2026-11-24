@@ -1,29 +1,29 @@
 {
   "key": "furnishings/ore_pile_crystal",
-  "inputs": "da3c648fce7172e83e4f4557655ef8297d386ff1686ca512afdca0d67f591098",
+  "inputs": "c88d5df64e63caf22bb4343252e7a4726acc218d20a9e12c578c59e1ba81ca73",
   "files": {
-    "ore_pile_crystal.glb": "9a37716791792fab71d28f98e9d28d8761088b1e41fe9139adfdc7a014c36661",
-    "lineup.png": "158fdbc857904f12eb98d7f113b35032205502e96976c45079004bbf2500bf99"
+    "ore_pile_crystal.glb": "8257539d1fb22de5c404dbcbf9fbcc84eda4ba6f85003bd0e5c503235a402672",
+    "lineup.png": "b58e69a46e794d041a59b4873ddbb62b401819229d86d6a52718f4c831707472"
   },
   "metadata": {
     "report": {
       "triangles": 638,
       "bounds": [
         [
-          -0.550836980342865,
+          -1.10167396068573,
           0.0,
-          -0.41150930523872375
+          -0.8230186104774475
         ],
         [
-          0.488446444272995,
-          1.1559803485870361,
-          0.5123027563095093
+          0.97689288854599,
+          2.3119606971740723,
+          1.0246055126190186
         ]
       ],
       "dimensions": [
-        1.03928342461586,
-        1.1559803485870361,
-        0.923812061548233
+        2.07856684923172,
+        2.3119606971740723,
+        1.847624123096466
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.16058407250990828
+        "signed_volume": 1.2846725986159322
       },
       "host_fit": null,
       "warnings": [],

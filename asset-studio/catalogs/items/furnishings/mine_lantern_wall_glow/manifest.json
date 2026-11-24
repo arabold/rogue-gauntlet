@@ -1,29 +1,29 @@
 {
   "key": "furnishings/mine_lantern_wall_glow",
-  "inputs": "97051883b04e4de5260d5330f966d88e458c8526d7bed294c990b3129ad25f4d",
+  "inputs": "929edaad5b2403eac7aa7182e87c9754e4f92013cf812552b6c936e023062630",
   "files": {
-    "mine_lantern_wall_glow.glb": "16ff642b5b208ecb204576d70e7b9d50ce6dd4716765c4a2e446af3c0768d97d",
-    "lineup.png": "0e6123ebb533b170eb2a83092bd2ee77806560aca0707f990bd254204bd80748"
+    "mine_lantern_wall_glow.glb": "baf5d3d177f4ceedc0b66f65f809df914186eeed9b58cfb92def9065de1c2699",
+    "lineup.png": "2c0f5eb26844bf3454491615d9f04391b64cd3b06fc7960293b5fcbcace61777"
   },
   "metadata": {
     "report": {
       "triangles": 80,
       "bounds": [
         [
-          -0.08799999952316284,
-          1.9199999570846558,
-          0.2720000147819519
+          -0.17599999904632568,
+          2.240000009536743,
+          0.5440000295639038
         ],
         [
-          0.08799999952316284,
-          2.134999990463257,
-          0.4480000138282776
+          0.17599999904632568,
+          2.6700000762939453,
+          0.8960000276565552
         ]
       ],
       "dimensions": [
-        0.17599999904632568,
-        0.21500003337860107,
-        0.17599999904632568
+        0.35199999809265137,
+        0.43000006675720215,
+        0.35199999809265137
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.003733956069146048
+        "signed_volume": 0.02987166738059123
       },
       "host_fit": null,
       "warnings": [],

@@ -1,29 +1,29 @@
 {
   "key": "furnishings/pickaxe_loose",
-  "inputs": "97ea3fa369f9885bb43a89c0cbfd8d62064f0f877650470c12e80f723bedd371",
+  "inputs": "c41af085a9da96bad3e1373749f3fdcafa751de7cb6a1ce8f39edb17259140d0",
   "files": {
-    "pickaxe_loose.glb": "ae0d35bc044a4e6b09b3d99897f32980be956683e7d3c5b2911e6cada67e28a8",
-    "lineup.png": "5f3f92e16c65ef36fa03352c3a883454433e1cd4a2d41dfdb2c576e9f68268ec"
+    "pickaxe_loose.glb": "3fdb51e045ef880ac32729b290fd69802a75b40e15a5053f6dec09ba82b651a1",
+    "lineup.png": "b894f3b914ebec8456a970d976adaa639a77926d59a0878bf75ae6cff576b5cc"
   },
   "metadata": {
     "report": {
-      "triangles": 524,
+      "triangles": 528,
       "bounds": [
         [
-          -0.2838582992553711,
+          -0.4539830684661865,
           0.0,
-          -0.4609023332595825
+          -0.7374436855316162
         ],
         [
-          0.2838582992553711,
-          0.13500000536441803,
-          0.4609023332595825
+          0.4539830684661865,
+          0.2160000056028366,
+          0.7374436855316162
         ]
       ],
       "dimensions": [
-        0.5677165985107422,
-        0.13500000536441803,
-        0.921804666519165
+        0.907966136932373,
+        0.2160000056028366,
+        1.4748873710632324
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.007993067187839807
+        "signed_volume": 0.032833099587131744
       },
       "host_fit": null,
       "warnings": [],

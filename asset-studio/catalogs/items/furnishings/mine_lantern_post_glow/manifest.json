@@ -1,29 +1,29 @@
 {
   "key": "furnishings/mine_lantern_post_glow",
-  "inputs": "5e06c7997a14aa6d18ffa5d46196e1200ef8ddb5e6e3910223e5769bdf84b41b",
+  "inputs": "75f475e2d715f3e56645521acace236a28185c4b148fa8690564a4ee52ad2b78",
   "files": {
-    "mine_lantern_post_glow.glb": "be317d2b7959ffaf76fb083c6ca759c966b43fc8ece178dc4561ac63e4eff452",
-    "lineup.png": "b02d0ab137d9ca0e315cb8dce01fc91743dcaab6d59595faa19d77f2d442893c"
+    "mine_lantern_post_glow.glb": "448036ceceabe154ce7ba3fd60c890e972485e2afe4d10d3858e2b87b042ece3",
+    "lineup.png": "ef2c9f02ddb527845d630341e40be2d9d8cc2dd6790eb09e7ddaadcb98fad414"
   },
   "metadata": {
     "report": {
       "triangles": 80,
       "bounds": [
         [
-          -0.08799999952316284,
-          1.2000000476837158,
-          0.2720000147819519
+          -0.17599999904632568,
+          2.4000000953674316,
+          0.5440000295639038
         ],
         [
-          0.08799999952316284,
-          1.4149999618530273,
-          0.4480000138282776
+          0.17599999904632568,
+          2.8299999237060547,
+          0.8960000276565552
         ]
       ],
       "dimensions": [
-        0.17599999904632568,
-        0.21499991416931152,
-        0.17599999904632568
+        0.35199999809265137,
+        0.42999982833862305,
+        0.35199999809265137
       ],
       "materials": 2,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.0037339562288544823
+        "signed_volume": 0.029871650059698596
       },
       "host_fit": null,
       "warnings": [],

@@ -1,29 +1,29 @@
 {
   "key": "furnishings/tool_rack",
-  "inputs": "448810fa2fea4f8367456b5fc9b4ec7741a8a17e41e7eb9497793d098b4e1c70",
+  "inputs": "b1bf329a62540a01c27d04fcb9adad00c7633ea8ccae36adb3e20b32cc0719cb",
   "files": {
-    "tool_rack.glb": "ec382e4b6f728d8e8319c649867464ca0f04cb3f71adf606cfde5d174742bbb8",
-    "lineup.png": "4b33c91f2b087dc52ccb1cc8868e4085c2c997d54e91ba6783ac17c556165566"
+    "tool_rack.glb": "ebc14d734abfa353c1e0018ba00d1781339e97432feb648332755a7adcdad7b9",
+    "lineup.png": "a00fec9b2be81a423cb64a65ed5b335d7f5dfc40c8b7397be3fc899933389824"
   },
   "metadata": {
     "report": {
-      "triangles": 4672,
+      "triangles": 4680,
       "bounds": [
         [
-          -0.8700000047683716,
-          1.1955877542495728,
+          -1.3919999599456787,
+          1.3129404783248901,
           0.0
         ],
         [
-          0.8256054520606995,
-          2.230217695236206,
-          0.30000001192092896
+          1.320968747138977,
+          2.968348264694214,
+          0.47999998927116394
         ]
       ],
       "dimensions": [
-        1.695605456829071,
-        1.0346299409866333,
-        0.30000001192092896
+        2.7129687070846558,
+        1.6554077863693237,
+        0.47999998927116394
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.07688685395973559
+        "signed_volume": 0.3158311435871491
       },
       "host_fit": null,
       "warnings": [],

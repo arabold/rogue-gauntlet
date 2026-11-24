@@ -8,4 +8,10 @@
 [node name="Model" parent="." instance=ExtResource("1_model")]
 
 [node name="CrystalLight" parent="." instance=ExtResource("2_light")]
-position = Vector3(-0.05, 0.68, 0.21)
+position = Vector3(-0.1, 1.36, 0.42)
+
+[node name="Light" parent="CrystalLight" index="0"]
+position = Vector3(0, 0.1, 0.56)
+
+[node name="Arc" parent="CrystalLight" index="1"]
+pixel_size = 0.015

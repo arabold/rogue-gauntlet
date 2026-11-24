@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/custom-props/mines/crystal_cluster_tall.glb" id="1_model"]
+[ext_resource type="PackedScene" path="res://scenes/effects/crystal_light.tscn" id="2_light"]
+
+[node name="CrystalClusterTall" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="CrystalLight" parent="." instance=ExtResource("2_light")]
+position = Vector3(0, 1.5, 0.3)
+
+[node name="Light" parent="CrystalLight" index="0"]
+position = Vector3(0, 0.1, 0.56)
+light_energy = 1.6
+omni_range = 7.0
+
+[node name="Arc" parent="CrystalLight" index="1"]
+pixel_size = 0.015
