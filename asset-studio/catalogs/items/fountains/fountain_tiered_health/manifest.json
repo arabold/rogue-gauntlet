@@ -1,9 +1,9 @@
 {
   "key": "fountains/fountain_tiered_health",
-  "inputs": "0e3d37a821425b146af5c1c6e7a1d2de0035ebb67d4ef40362ab78092486453f",
+  "inputs": "dd5749138e28e78d92a4961dfb309e66a7c7ace3671bd910676df1b3d9ba430b",
   "files": {
-    "fountain_tiered_health.glb": "ea1070792b34aef3a97febcf4c77902d1e4434560586cdc4bbe5e699152c478a",
-    "lineup.png": "75e2c1fe5402dd038bcfbaeefe8901b9d31ced9a87cb13555fcc62559c6a8956"
+    "fountain_tiered_health.glb": "c135f4293f1d46765b0941551d7813c90c8c546811fa5bc978798b9717df9064",
+    "lineup.png": "43302186c412ee04fa3f347064edbd0cfdb38e9af49fa051da8b837303ece813"
   },
   "metadata": {
     "report": {
@@ -40,6 +40,7 @@
         "duplicate_faces": 0,
         "signed_volume": 1.343496522042839
       },
+      "host_fit": null,
       "warnings": [
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],

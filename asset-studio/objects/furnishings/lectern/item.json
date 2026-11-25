@@ -1,6 +1,7 @@
 {
   "version": 1,
   "name": "Lectern",
+  "reference": "res://asset-studio/objects/furnishings/lectern/reference.png",
   "backend": "procedural",
   "builder": "furnishing",
   "design": {
@@ -13,7 +14,7 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 2300,
+    "triangles": 3200,
     "materials": 2,
     "texture_size": 1024
   },

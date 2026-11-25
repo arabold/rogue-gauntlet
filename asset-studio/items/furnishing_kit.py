@@ -131,6 +131,16 @@ def planks(a, rng, length, width, thickness, frame, count=None, slot='wood', chi
               slot, frame, chips, .5)
 
 
+def strut(a, rng, start, end, width, slot='wood', chips=1):
+    """A square timber from `start` to `end`: braces, stringers, rafters."""
+    start, end = np.asarray(start, float), np.asarray(end, float)
+    d = end - start
+    pitch = np.degrees(np.arctan2(d[1], np.hypot(d[0], d[2])))
+    yaw = np.degrees(np.arctan2(-d[2], d[0]))
+    board(a, rng, (float(np.linalg.norm(d)), width, width), (0, 0, 0), slot,
+          [((0, 0, pitch), (0, 0, 0)), ((0, yaw, 0), tuple((start + end) / 2))], chips, .3)
+
+
 def square_post(a, rng, size, y0, y1, x=0, z=0, slot='wood', cap=None, frame=None):
     """A square timber post, optionally capped with a wider block."""
     # Posts sink a little into what they stand on so the joint stays one solid.

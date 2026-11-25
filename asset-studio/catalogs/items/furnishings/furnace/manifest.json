@@ -1,0 +1,90 @@
+{
+  "key": "furnishings/furnace",
+  "inputs": "a1299959830b78d8197457b890bbf4c5d925cfbc33443e26d691d5585512f557",
+  "files": {
+    "furnace.glb": "195213466475794a4e6e31bfc67a22d6dd416117b37e407806ee9e193dd4f388",
+    "lineup.png": "d22bdcaa605e4f9ac5b2a347a3fa2da4174f8a2ed7d9799560c6501176be0885"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 3076,
+      "bounds": [
+        [
+          -1.149999976158142,
+          -0.00980977900326252,
+          -0.8980997204780579
+        ],
+        [
+          1.082346796989441,
+          3.0,
+          1.2999999523162842
+        ]
+      ],
+      "dimensions": [
+        2.232346773147583,
+        3.0098097790032625,
+        2.198099672794342
+      ],
+      "materials": 2,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 5.352169590227618
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Smelting Furnace",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "furnace"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 5200,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "gold": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/furnace.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Room furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

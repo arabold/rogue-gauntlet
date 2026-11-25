@@ -18,10 +18,10 @@ from pathlib import Path
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items import foliage, graveyard, mining, webs
+from items import cathedral, foliage, graveyard, mining, webs
 from items.solid import Assembly, lathe, loop, welded
 from items.furnishing_kit import (block, cushion, post, rod, ball, bend, framed, board, planks, square_post, stones,
-                                  rivet, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands,
+                                  rivet, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands, strut,
                                   turned, moved, grounded, ring, chain, torus, log, random, bone, skull)
 
 # Colors come from the dungeon texture (`world_surface.SWATCHES`); slots only choose how hard their edges shade:
@@ -146,22 +146,28 @@ def candle_plate(flames=False):
 
 
 def lectern():
+    """A chunky church lectern (2.2 m): a cross-footed base, a fat turned pedestal and a thick slanted book rest with a
+    raised lip, holding a big open book with a red ribbon."""
     a, rng = Assembly(), random('lectern')
-    board(a, rng, (1.1, .16, .3), (0, .08, 0), 'wood_dark', chips=2)
-    board(a, rng, (.3, .16, .9), (0, .09, 0), 'wood_dark', chips=2)
-    square_post(a, rng, .28, .12, 1.12)
-    board(a, rng, (.46, .2, .46), (0, 1.17, 0), 'wood_dark')
-    desk = ((22, 0, 0), (0, 1.3, 0))
-    planks(a, rng, 1.16, .8, .11, desk, count=3)
-    board(a, rng, (1.2, .12, .1), (0, .08, .42), 'wood_dark', desk)
-    a.add(framed(block((1.0, .06, .66), (0, .08, -.02), .02), desk), 'leather')
+    for turn in (0, 90):
+        foot = ((0, turn, 0), (0, 0, 0))
+        board(a, rng, (1.5, .24, .34), (0, .2, 0), 'wood_dark', foot, chips=2)
+        for x in (-.62, .62):
+            board(a, rng, (.34, .14, .5), (x, .07, 0), 'wood_dark', foot, chips=1, wobble=0)
+    a.add(lathe([(.38, .3), (.3, .44), (.22, .6), (.27, .86), (.33, 1.0), (.25, 1.14), (.2, 1.36), (.28, 1.52),
+                 (.33, 1.6)], 10), 'wood')
+    a.cut(ring(.25, .4, .92, .96, 10), 'wood_dark')
+    board(a, rng, (.62, .2, .52), (0, 1.68, 0), 'wood_dark')
+    desk = ((24, 0, 0), (0, 1.86, 0))
+    planks(a, rng, 1.4, 1.0, .16, desk, count=4)
+    board(a, rng, (1.52, .16, .12), (0, .12, .52), 'wood_dark', desk)
+    a.add(framed(block((1.12, .07, .78), (0, .11, -.02), .02), desk), 'leather')
     for s in (-1, 1):
-        a.add(framed(block((.46, .11, .58), (0, 0, 0), .035).rotate((0, 0, s * 6)).translate((s * .235, .14, -.02)), desk),
+        a.add(framed(cushion((.54, .14, .72), (0, 0, 0), .35).rotate((0, 0, s * 5)).translate((s * .28, .19, -.02)), desk),
               'parchment')
-    for s in (-1, 1):
-        for z in (-.18, -.08, .02, .12):
-            a.cut(framed(block((.28, .05, .022), (s * .25, .2, z), .005), desk), 'ink')
-    a.add(framed(block((.07, .03, .36), (.03, .17, .28), .008), desk), 'cloth_red')
+        for z in (-.24, -.1, .04, .18):
+            a.cut(framed(block((.34, .06, .03), (s * .29, .26, z), .006), desk), 'ink')
+    a.add(framed(block((.1, .05, .62), (.22, .24, .26), .01), desk), 'cloth_red')
     return a.build()
 
 
@@ -215,23 +221,31 @@ def statue_broken():
 
 
 def brazier():
-    """A smooth cast fire bowl with a rolled rim on three square legs, full of dead coals; the lit scene adds the fire."""
+    """A big cast-iron fire brazier (2.4 m across, 1.6 m tall): a deep bowl with a rolled rim and a band of rivets, heaped
+    with dead coals, on three thick legs that curl out at the top and end in clawed feet, tied by a ring brace; the lit
+    scene adds the fire."""
     a, rng = Assembly(), random('brazier')
-    a.add(lathe([(.2, .7), (.46, .76), (.64, .88), (.72, 1.0), (.7, 1.06), (.01, 1.06)], 20), 'pot')
-    a.add(torus(.72, .075, 1.06, 24, 10), 'pot')
-    a.cut(lathe([(.66, 1.3), (.63, 1.02), (.5, .92), (.3, .88), (.01, .87)], 20), 'pot_inner')
-    a.add(ring(.62, .7, .82, .91, 20), 'iron_dark')
-    for d in around(8, 0):
-        a.add(ball(tuple(d * .695 + (0, .865, 0)), (.045, .045, .045), 6), 'steel')
+    a.add(lathe([(.3, .8), (.7, .88), (.92, 1.1), (1.0, 1.35), (.98, 1.5), (.001, 1.5)], 20), 'pot')
+    a.add(torus(.98, .09, 1.5, 24, 10), 'pot')
+    a.cut(lathe([(.95, 1.8), (.9, 1.48), (.72, 1.12), (.4, 1.0), (.001, .98)], 20), 'pot_inner')
+    for d in around(12, 0):
+        a.add(rivet(tuple(d * .985 + (0, 1.28, 0)), .06, tuple(d)), 'iron')
     for d in around(3):
-        a.add(bend([tuple(d * .4 + (0, .76, 0)), tuple(d * .5 + (0, .5, 0)), tuple(d * .56 + (0, .22, 0)),
-                    tuple(d * .62 + (0, .08, 0))], [.1, .095, .09, .085], 4), 'iron')
-        a.add(ball(tuple(d * .64 + (0, .07, 0)), (.14, .08, .14), 8), 'iron_dark')
-    a.add(torus(.53, .05, .3, 20, 8), 'iron')
-    for i in range(8):
-        t, r = rng.uniform(0, 2 * np.pi), rng.uniform(0, .38)
-        size = rng.uniform(.2, .28)
-        a.add(cushion((size, size * .55, size * .85), (np.cos(t) * r, .88 + .05 * (1 - r / .38), np.sin(t) * r), .6)
+        a.add(bend([tuple(d * .7 + (0, .95, 0)), tuple(d * 1.02 + (0, .82, 0)), tuple(d * 1.08 + (0, .5, 0)),
+                    tuple(d * 1.0 + (0, .25, 0)), tuple(d * 1.12 + (0, .08, 0))], [.16, .15, .14, .14, .13], 6), 'iron')
+        yaw = np.degrees(np.arctan2(-d[2], d[0]))
+        a.add(torus(.15, .065, 0, 12, 6).rotate((90, 0, 0)).rotate((0, yaw, 0)).translate(tuple(d * 1.1 + (0, .98, 0))), 'iron')
+        a.add(ball(tuple(d * 1.14 + (0, .08, 0)), (.26, .12, .26), 8), 'iron_dark')
+        for toe in (-30, 0, 30):
+            t = np.radians(toe)
+            out = np.array([d[0] * np.cos(t) - d[2] * np.sin(t), 0, d[0] * np.sin(t) + d[2] * np.cos(t)])
+            a.add(ball(tuple(d * 1.14 + out * .24 + (0, .05, 0)), (.09, .07, .09), 6), 'iron_dark')
+    a.add(torus(1.08, .07, .5, 24, 6), 'iron')
+    a.add(lathe([(.001, .96), (.8, 1.2), (.55, 1.38), (.001, 1.45)], 14), 'coal')
+    for i in range(10):
+        t, r = rng.uniform(0, 2 * np.pi), rng.uniform(0, .6)
+        size = rng.uniform(.24, .34)
+        a.add(cushion((size, size * .55, size * .85), (np.cos(t) * r, 1.44 - .3 * (r / .6) ** 2, np.sin(t) * r), .6)
               .rotate((0, rng.uniform(0, 180), 0)), 'coal')
     return a.build()
 
@@ -928,6 +942,230 @@ def iron_maiden(open=False):
     return a.build()
 
 
+def desk():
+    """A chunky warden's writing desk (2.5 x 1.3 m, 1.1 m high): a thick plank top overhanging two plank pedestals with
+    drawers and iron ring pulls around a kneehole, an open ledger, rolled and loose papers, an inkwell and quill, a
+    candle stub and a big ring of keys on it."""
+    a, rng = Assembly(), random('desk')
+    width, depth, height = 2.4, 1.16, 1.1
+    for s in (-1, 1):
+        x = s * (width / 2 - .37)
+        board(a, rng, (.72, height - .12, depth - .08), (x, (height - .12) / 2, 0), 'wood', chips=1)
+        for dx in (-.12, .12):
+            a.cut(block((.03, height - .3, .06), (x + dx, .5, depth / 2 - .04), .005), 'wood_dark')
+        for y in (.3, .7):
+            board(a, rng, (.6, .34, .1), (x, y, depth / 2 - .03), 'wood_dark', chips=1, wobble=.4)
+            a.add(block((.1, .08, .08), (x, y + .06, depth / 2 + .03), .02), 'iron_dark')
+            a.add(torus(.1, .028, 0, 10, 5).rotate((90, 0, 0)).translate((x, y - .02, depth / 2 + .06)), 'iron')
+    board(a, rng, (width - 1.4, .6, .1), (0, height - .42, -depth / 2 + .12), 'wood', chips=1)
+    planks(a, rng, width + .12, depth + .14, .18, ((0, 0, 0), (0, height - .09, 0)), count=4)
+    top = height
+
+    def on_top(shape, x, z, turn, slot):
+        a.add(shape.rotate((0, turn, 0)).translate((x, top, z)), slot)
+
+    # An open ledger: a leather cover with two pages bowed up from the spine.
+    on_top(block((.96, .06, .66), (0, .025, 0), .02), -.32, .1, 8, 'leather')
+    for s in (-1, 1):
+        on_top(cushion((.44, .09, .58), (s * .235, .08, 0), .4), -.32, .1, 8, 'parchment')
+        for z in (-.15, -.03, .09):
+            a.cut(block((.26, .04, .035), (s * .24, .125, z), .005).rotate((0, 8, 0)).translate((-.32, top, .1)), 'ink')
+    on_top(block((.03, .11, .6), (0, .07, 0), .006), -.32, .1, 8, 'ink')
+    for k, turn in enumerate((-14, 5, 21)):
+        on_top(block((.4, .024, .52), (0, .012 + k * .024, 0), .005), .58, -.18, turn, 'parchment')
+    on_top(rod((-.25, .07, 0), (.25, .07, 0), .07, 8), .55, .32, -20, 'parchment')
+    on_top(lathe([(.1, 0), (.12, .05), (.11, .13), (.05, .17), (.06, .21)], 8), .2, -.36, 0, 'pot')
+    on_top(bend([(0, .18, 0), (.08, .38, .04), (.17, .56, .09)], [.02, .04, .015], 5), .2, -.36, 0, 'linen')
+    candle(a, None, -.95, -.38, top, .26, .1, 2, 3)
+    on_top(torus(.14, .024, .015, 12, 5), .95, .36, 0, 'iron')
+    for turn in (20, 75, 140):
+        on_top(block((.26, .03, .05), (.22, .016, 0), .01).rotate((0, turn, 0)), .95, .36, 0, 'iron')
+    return a.build()
+
+
+def gallows():
+    """An execution scaffold towering over the walls (3.4 m deck, 6.6 m tall): a head-high plank deck on thick braced
+    legs with iron corner plates, chunky steps up its front, a massive upright braced at its foot and under its crossbeam,
+    and a fat noose wound round the beam end over a strapped trapdoor, with the drop lever beside it."""
+    a, rng = Assembly(), random('gallows')
+    half, deck, leg = 1.7, 1.8, .44
+    corner = half - leg / 2
+    for x in (-corner, corner):
+        for z in (-corner, corner):
+            square_post(a, rng, leg, 0, deck - .1, x, z)
+            board(a, rng, (leg + .16, .14, leg + .16), (x, .07, z), 'wood', chips=1, wobble=0)
+            # Iron plates bolted over the corner joint, one on each outer face.
+            for axis, side in ((0, np.sign(x)), (2, np.sign(z))):
+                center = np.array([x, deck - .34, z])
+                center[axis] = side * (half + .015)
+                size = np.array([.4, .4, .4])
+                size[axis] = .05
+                a.add(block(tuple(size), tuple(center), .015), 'iron')
+                for dy in (-.1, .1):
+                    bolt = center + np.array([0, dy, 0])
+                    bolt[axis] += side * .03
+                    bolt[2 - axis] += .1 * np.sign(dy) * (1 if axis == 0 else -1)
+                    a.add(rivet(tuple(bolt), .05, np.eye(3)[axis]), 'iron_dark')
+    for z in (-corner, corner):
+        board(a, rng, (2 * half, .3, .26), (0, deck - .3, z), 'wood', chips=1)
+    for x in (-corner, corner):
+        board(a, rng, (.26, .3, 2 * half), (x, deck - .3, 0), 'wood', chips=1)
+    # Cross braces leg to leg on the back and both sides.
+    low, high = .35, deck - .5
+    for z0, z1 in ((-corner, corner), (corner, -corner)):
+        for x in (-corner, corner):
+            strut(a, rng, (x, low, z0), (x, high, z1), .2)
+    for x0, x1 in ((-corner, corner), (corner, -corner)):
+        strut(a, rng, (x0, low, -corner), (x1, high, -corner), .2)
+    board(a, rng, (2 * half - .3, .2, .2), (0, .4, corner), 'wood', chips=1)
+    planks(a, rng, 2 * half + .12, 2 * half + .12, .2, ((0, 0, 0), (0, deck - .1, 0)), count=9)
+    # Steps up the front left, on two stringers.
+    stair_x, steps, tread = -.75, 5, .42
+    for k in range(steps):
+        y = (k + 1) * deck / (steps + 1)
+        board(a, rng, (1.5, .16, tread + .04), (stair_x, y - .08, half + .2 + (steps - 1 - k + .5) * tread), 'wood',
+              chips=1, wobble=.8)
+    for x in (stair_x - .62, stair_x + .62):
+        strut(a, rng, (x, .1, half + .2 + steps * tread), (x, deck - .1, half), .2)
+    # The upright on the left, braced at its foot, its crossbeam reaching right over the trap.
+    post_x, post_z, top = -corner + .1, -.35, deck + 4.8
+    square_post(a, rng, .56, deck - .15, top, post_x, post_z)
+    for dx, dz in ((1, 0), (0, 1), (0, -1)):
+        # Short, thick foot braces from the deck into the post's lower face.
+        strut(a, rng, (post_x + dx * .7, deck + .05, post_z + dz * .7), (post_x + dx * .2, deck + .7, post_z + dz * .2), .28)
+    beam_y, beam_end = top - .52, 1.4
+    board(a, rng, (beam_end - post_x + .6, .46, .46), ((beam_end + post_x - .6) / 2, beam_y, post_z), 'wood', chips=2)
+    strut(a, rng, (post_x + .27, beam_y - 1.25, post_z), (post_x + 1.4, beam_y - .2, post_z), .26)
+    for z in (-1, 1):
+        # A bolted iron plate over each face of the beam joint, and iron at the post's foot.
+        a.add(block((.62, .66, .07), (post_x, beam_y, post_z + z * .29), .015), 'iron')
+        a.add(block((.62, .44, .07), (post_x, deck + .24, post_z + z * .29), .015), 'iron')
+        for dx in (-.18, .18):
+            for dy in (-.2, .2):
+                a.add(rivet((post_x + dx, beam_y + dy, post_z + z * .33), .05, (0, 0, 1)), 'iron_dark')
+            a.add(rivet((post_x + dx, deck + .28, post_z + z * .33), .05, (0, 0, 1)), 'iron_dark')
+    # The rope: wound round the beam end, down to a fat coiled knot and the noose over the trap.
+    noose = beam_end - .55
+    for k, dx in enumerate((-.13, 0, .13)):
+        a.add(torus(.3, .07, 0, 10, 6).rotate((0, 0, 90)).rotate((rng.uniform(-6, 6), 0, 0))
+              .translate((noose + dx, beam_y, post_z)), 'rope')
+    knot = deck + 2.8
+    a.add(rod((noose, beam_y - .2, post_z), (noose, knot - .5, post_z), .07, 8), 'rope')
+    for k in range(5):
+        a.add(torus(.12, .065, knot - .08 - k * .11, 10, 6).translate((noose, 0, post_z)), 'rope')
+    a.add(torus(.34, .075, 0, 14, 7).rotate((90, 0, 0)).translate((noose, knot - .58 - .34 + .06, post_z)), 'rope')
+    # The trapdoor under it: a seam round it and two iron strap hinges with their knuckles along its back edge.
+    trap = np.array([noose, deck - .04, post_z + .25])
+    a.cut(block((1.36, .12, 1.36), tuple(trap), 0) - block((1.26, .3, 1.26), tuple(trap), 0), 'wood_dark')
+    for dx in (-.32, .32):
+        a.add(block((.16, .05, 1.0), (trap[0] + dx, deck + .02, trap[2] - .1), .015), 'iron')
+        a.add(rod((trap[0] + dx - .12, deck + .06, trap[2] - .62), (trap[0] + dx + .12, deck + .06, trap[2] - .62), .06, 8), 'iron_dark')
+        for dz in (-.55, -.2, .15):
+            a.add(rivet((trap[0] + dx, deck + .05, trap[2] + dz), .04, (0, 1, 0)), 'iron_dark')
+    # The drop lever on its plate.
+    lever = np.array([1.05, deck, 1.2])
+    a.add(block((.5, .07, .32), tuple(lever), .02), 'iron')
+    a.add(block((.16, .2, .2), tuple(lever + (0, .12, 0)), .03), 'iron_dark')
+    a.add(rod(tuple(lever + (0, .15, 0)), tuple(lever + (-.18, 1.0, -.2)), .055, 6), 'iron')
+    a.add(rod(tuple(lever + (-.17, .9, -.19)), tuple(lever + (-.21, 1.2, -.23)), .085, 6), 'wood_dark')
+    return a.build()
+
+
+RING_RADIUS = 3.0
+RING_GATES = (0.0, 180.0)
+
+
+def fighting_ring():
+    """An orc fighting ring (6.3 m across): a palisade of sharpened stakes, lashed rails round it, standing in the edge
+    of a heaped sand floor, open at two gates; an iron chain post in the middle and old bones in the sand."""
+    a, rng = Assembly(), random('fighting_ring')
+    r = RING_RADIUS
+    a.add(ball((0, 0, 0), (r + .2, .16, r + .2), 20).trim_by_plane((0, 1, 0), 0), 'sand')
+    stakes = [t for t in np.arange(0, 360, 10.0) if all(abs((t - g + 180) % 360 - 180) > 16 for g in RING_GATES)]
+    for t in stakes:
+        height = rng.uniform(1.05, 1.3)
+        stake = lathe([(.12, -.05), (.13, height - .25), (.02, height)], 5).rotate((0, rng.uniform(0, 72), 0))
+        stake = stake.rotate((rng.uniform(4, 9), 0, 0)).rotate((0, t, 0)).translate((np.sin(np.radians(t)) * r, 0, np.cos(np.radians(t)) * r))
+        a.add(stake, 'wood' if rng.random() < .7 else 'wood_dark')
+    # Rails between the gates, bound to the stakes.
+    for lo, hi in ((16, 164), (196, 344)):
+        for y in (.45, .85):
+            arc = [(np.sin(np.radians(t)) * (r - .06), y + rng.uniform(-.03, .03), np.cos(np.radians(t)) * (r - .06))
+                   for t in np.linspace(lo, hi, 15)]
+            a.add(bend(arc, [.055] * len(arc), 6), 'wood_dark')
+    square_post(a, rng, .28, 0, 1.5, 0, 0, cap=.05)
+    a.add(torus(.13, .035, 0, 10, 6).rotate((90, 0, 0)).translate((0, 1.05, .2)), 'iron')
+    chain(a, 0, 1.0, 5, .2)
+    for start, end in [((.9, .14, .6), (1.4, .1, .3)), ((-1.2, .14, -.4), (-.8, .15, -.9)), ((.3, .15, -1.5), (.8, .12, -1.2))]:
+        bone(a, start, end, .06)
+    skull(a, -1.1, 1.0, 40, .05, size=.6)
+    a.cut(block((8, 1, 8), (0, -.5, 0), 0), 'sand')
+    return a.build()
+
+
+def rat_king_heap():
+    """The rat king's heap (2.7 m across, 1.4 m tall): a mound of muck piled with broken boards, rags and bones, crowned
+    by a tarnished gold crown."""
+    a, rng = Assembly(), random('rat_king_heap')
+    a.add(ball((0, 0, 0), (1.3, .75, 1.2), 10).trim_by_plane((0, 1, 0), 0), 'soil')
+    for _ in range(3):
+        center = (rng.uniform(-.6, .6), 0, rng.uniform(-.6, .6))
+        a.add(ball(center, (rng.uniform(.45, .7), rng.uniform(.4, .6), rng.uniform(.45, .7)), 8).trim_by_plane((0, 1, 0), 0), 'soil')
+    for k in range(7):
+        t = rng.uniform(0, 2 * np.pi)
+        r = rng.uniform(.4, 1.0)
+        y = .75 * np.sqrt(max(0, 1 - (r / 1.25) ** 2)) - .08
+        frame = ((rng.uniform(-35, 35), np.degrees(t) + rng.uniform(-40, 40), rng.uniform(-30, 30)), (np.cos(t) * r, y, np.sin(t) * r))
+        board(a, rng, (rng.uniform(.7, 1.1), .08, .2), (0, 0, 0), 'wood' if k % 2 else 'wood_dark', frame, chips=1)
+    for k, (x, z) in enumerate(((.7, .5), (-.8, .2), (.2, -.85), (-.3, .8))):
+        a.add(cushion((.5, .12, .4), (0, 0, 0), .5).rotate((rng.uniform(-20, 20), rng.uniform(0, 180), 0))
+              .translate((x, .45 * np.sqrt(max(0, 1 - (np.hypot(x, z) / 1.3) ** 2)) + .05, z)), 'cloth_red' if k % 2 else 'linen')
+    for start, end in [((.9, .2, -.3), (1.3, .08, .1)), ((-1.1, .12, -.5), (-.7, .3, -.8)), ((.3, .55, .5), (.7, .3, .9))]:
+        bone(a, start, end, .07)
+    skull(a, -.5, .55, 30, .38, size=.7)
+    # The crown on top: a gold band with points.
+    top = .7
+    a.add(lathe([(.26, top - .04), (.26, top + .12), (.22, top + .12), (.22, top - .04)], 10), 'gold')
+    for k in range(5):
+        t = 2 * np.pi * k / 5
+        a.add(lathe([(.07, 0), (.001, .16)], 4).translate((np.cos(t) * .24, top + .1, np.sin(t) * .24)), 'gold')
+        a.add(ball((np.cos(t) * .24, top + .27, np.sin(t) * .24), (.035, .035, .035), 5), 'cloth_red')
+    return a.build()
+
+
+def archery_target():
+    """A fat straw archery butt on a three-legged easel, taller than a man (2.4 m): a cushion-thick round of straw bound
+    with rope bands, red and cream rings sunk into its face, leaning back on a rest bar, three arrows stuck in it."""
+    a, rng = Assembly(), random('archery_target')
+    for x in (-.72, .72):
+        strut(a, rng, (x, .04, .3), (x * .42, 2.25, -.3), .16)
+    strut(a, rng, (0, .04, -1.0), (0, 2.1, -.3), .16)
+    board(a, rng, (.86, .14, .14), (0, 2.2, -.3), 'wood_dark', chips=1)
+    board(a, rng, (1.6, .14, .2), (0, .62, .2), 'wood_dark', chips=1)
+    strut(a, rng, (0, .45, -.86), (0, .6, .2), .12)
+    # The butt, built face up along +Y, then stood on edge facing +Z and leant back.
+    butt = Assembly()
+    butt.slots = a.slots
+    r, d = .86, .44
+    butt.add(lathe([(.001, -d / 2), (r - .12, -d / 2), (r, -d / 2 + .1), (r, d / 2 - .1), (r - .12, d / 2), (.001, d / 2)], 18), 'hay')
+    for y in (-.11, .11):
+        butt.add(torus(r - .005, .045, y, 18, 6), 'rope')
+    for k, (inner, outer) in enumerate(((0, .14), (.14, .3), (.3, .46), (.46, .6), (.6, .72))):
+        cutter = post(outer, d / 2 - .03, d / 2 + .1, sides=18)
+        if inner:
+            cutter = cutter - post(inner, d / 2 - .05, d / 2 + .12, sides=18)
+        butt.cut(cutter, 'cloth_red' if k % 2 == 0 else 'parchment')
+    for x, z, lean in ((.1, -.12, 8), (-.34, .2, -12), (.36, .3, 14)):
+        arrow = rod((0, d / 2 - .25, 0), (0, d / 2 + .8, 0), .03, 5)
+        arrow = arrow.rotate((lean, 0, -lean * .7)).translate((x, 0, z))
+        butt.add(arrow, 'wood_light')
+        for fin in (0, 120, 240):
+            vane = block((.012, .2, .1), (0, d / 2 + .66, .05), .004).rotate((0, fin, 0))
+            butt.add(vane.rotate((lean, 0, -lean * .7)).translate((x, 0, z)), 'linen')
+    a.join(butt.build_solid().rotate((90, 0, 0)).rotate((-10, 0, 0)).translate((0, .7 + r, .12)))
+    return a.build()
+
+
 def fallen_beam():
     """A collapsed ceiling beam, one end propped on fallen stones, the other splintered."""
     a, rng = Assembly(), random('fallen_beam')
@@ -1441,13 +1679,16 @@ def heraldic_shield(division, first, second):
 
 
 def sconce(flames=False):
+    """A chunky wall sconce, as big as the pack's mounted torch: a pointed iron back plate (1 m) with big rivets, a fat
+    curled arm out to a wide drip pan and one fat candle with wax runs; the back is flat on z = 0."""
     a, tips = Assembly(), []
-    a.add(facade(outline([(-.16, 2.5), (.16, 2.5), (.16, 2.1), (0, 1.92), (-.16, 2.1)]), .07, 0), 'iron_dark')
-    for y in (2.4, 2.08):
-        a.add(rivet((0, y, .07), .04), 'steel')
-    a.add(bend([(0, 2.06, .04), (0, 2.03, .18), (0, 2.08, .32), (0, 2.2, .38)], [.045] * 4, 6), 'iron')
-    a.add(lathe([(.04, 2.17), (.17, 2.22), (.19, 2.27), (.08, 2.28)], 10).translate((0, 0, .38)), 'iron')
-    candle(a, tips, 0, .38, 2.26, .32, .11, 2, 1)
+    a.add(facade(outline([(-.26, 2.62), (0, 2.78), (.26, 2.62), (.26, 1.92), (0, 1.76), (-.26, 1.92)]), .1, 0), 'iron_dark')
+    for x, y in ((-.16, 2.5), (.16, 2.5), (-.16, 2.05), (.16, 2.05), (0, 2.66), (0, 1.88)):
+        a.add(rivet((x, y, .1), .055), 'iron')
+    a.add(bend([(0, 2.0, .08), (0, 1.95, .28), (0, 2.02, .5), (0, 2.16, .6)], [.07, .07, .065, .06], 8), 'iron')
+    a.add(torus(.1, .04, 0, 10, 5).rotate((0, 0, 90)).translate((0, 1.86, .3)), 'iron')
+    a.add(lathe([(.06, 2.12), (.3, 2.18), (.33, 2.25), (.24, 2.24), (.08, 2.2)], 12).translate((0, 0, .62)), 'iron')
+    candle(a, tips, 0, .62, 2.2, .42, .15, 3, 1)
     return lit(a, tips, flames)
 
 
@@ -1464,12 +1705,14 @@ KINDS = {
     'ham': ham, 'bread': bread, 'weapon_rack': weapon_rack, 'training_dummy': training_dummy, 'bunk_bed': bunk_bed,
     'war_map': war_map, 'shackles': shackles, 'hay_bale': hay_bale, 'hay_bales': hay_bales, 'bucket': bucket, 'bone_pile': bone_pile,
     'torture_rack': torture_rack, 'stocks': stocks, 'hanging_cage': hanging_cage, 'iron_maiden': iron_maiden,
+    'desk': desk, 'gallows': gallows, 'fighting_ring': fighting_ring, 'rat_king_heap': rat_king_heap,
+    'archery_target': archery_target,
     'fallen_beam': fallen_beam, 'tapestry': tapestry, 'heraldic_shield': heraldic_shield, 'sconce': sconce,
     'rubble_scatter': rubble_scatter, 'rubble_small': rubble_small, 'rubble_medium': rubble_medium,
     'rubble_large': rubble_large, 'rubble_boulders': rubble_boulders,
     'sarcophagus': sarcophagus, 'sarcophagus_open': sarcophagus_open, 'valve': valve, 'pipe_outlet': pipe_outlet,
     'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle, **foliage.KINDS,
-    **graveyard.KINDS, **mining.KINDS, **webs.KINDS,
+    **cathedral.KINDS, **graveyard.KINDS, **mining.KINDS, **webs.KINDS,
 }
 
 

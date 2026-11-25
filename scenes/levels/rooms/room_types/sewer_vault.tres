@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=41 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
@@ -27,6 +27,12 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/goo_barrel.tres" id="goo_barrel"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="bucket"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="torch"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/PoolStep.cs" id="motif_PoolStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_center.tres" id="motif_pool_center"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_edge.tres" id="motif_pool_edge"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_corner.tres" id="motif_pool_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner.tres" id="motif_pool_runner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/pool/pool_runner_end.tres" id="motif_pool_runner_end"]
 
 [sub_resource type="Resource" id="RectangleShape_vault"]
 script = ExtResource("rectangle")
@@ -68,6 +74,22 @@ Content = [ExtResource("torch")]
 MaximumCount = 4
 Spacing = 6.0
 
+[sub_resource type="Resource" id="PoolStep_flooding"]
+script = ExtResource("motif_PoolStep")
+Id = "flooding"
+Layout = 0
+MinimumCount = 0
+MaximumCount = 2
+Center = ExtResource("motif_pool_center")
+Edge = ExtResource("motif_pool_edge")
+Corner = ExtResource("motif_pool_corner")
+Runner = ExtResource("motif_pool_runner")
+RunnerEnd = ExtResource("motif_pool_runner_end")
+MinimumSize = Vector2i(1, 2)
+MaximumSize = Vector2i(2, 2)
+Motifs = PackedStringArray("flooded")
+metadata/_custom_type_script = ExtResource("motif_PoolStep")
+
 [resource]
 script = ExtResource("room_type")
 Id = "sewer_vault"
@@ -78,4 +100,4 @@ MinDoorways = 2
 MaxDoorways = 3
 Walls = [ExtResource("slimy_walls"), ExtResource("arched_walls")]
 Floors = [ExtResource("grated_flagstones"), ExtResource("drained_flagstones"), ExtResource("bricks_bordered_flagstones"), ExtResource("channel_flagstones")]
-Steps = [SubResource("ArcadeStep_bays"), SubResource("AlongWallsStep_pipework"), SubResource("CornersStep_debris"), SubResource("ScatterStep_flotsam"), SubResource("WallDecorStep_torches")]
+Steps = [SubResource("PoolStep_flooding"), SubResource("ArcadeStep_bays"), SubResource("AlongWallsStep_pipework"), SubResource("CornersStep_debris"), SubResource("ScatterStep_flotsam"), SubResource("WallDecorStep_torches")]

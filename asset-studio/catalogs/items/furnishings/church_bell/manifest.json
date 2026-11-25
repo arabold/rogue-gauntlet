@@ -1,0 +1,94 @@
+{
+  "key": "furnishings/church_bell",
+  "inputs": "137b7d58288731429cf437364b7703ee574d09a165c43f3256f81b8c5840585f",
+  "files": {
+    "church_bell.glb": "ea72ecdbfaf0eb516f6a6ab583615e9388c40bcda30e01468ad362592ab1f0c2",
+    "lineup.png": "48c388d192104b8b742d7f4e99717bb7e974793a63d9ca0a0444544fd086a503"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 4072,
+      "bounds": [
+        [
+          -1.9496901035308838,
+          -0.006065345834940672,
+          -1.059999942779541
+        ],
+        [
+          1.9419580698013306,
+          4.634801387786865,
+          1.059999942779541
+        ]
+      ],
+      "dimensions": [
+        3.8916481733322144,
+        4.640866733621806,
+        2.119999885559082
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 7.802239620097303
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Church Bell",
+      "reference": "res://asset-studio/objects/furnishings/church_bell/reference.png",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "church_bell"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "gold": {
+          "crease": 40
+        },
+        "copper": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/cathedral/church_bell.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Cathedral furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z; back-to-wall props keep a flat back on -Z. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

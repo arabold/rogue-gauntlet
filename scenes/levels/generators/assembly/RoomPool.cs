@@ -6,7 +6,8 @@ using Godot;
 /// <summary>
 /// Assembles every room or room-group from weighted <see cref="RoomDefinition"/>s: entrances and exits from their own
 /// pools (carrying stairs), every other slot from <see cref="Rooms"/>. Each definition gets its own seed from the
-/// layout stream. The authored pool holds every realm's definitions; <see cref="ForRealm"/> narrows it to one realm.
+/// layout stream. The authored pool is the catalog of every realm's definitions; <see cref="ForRealm"/> narrows it to
+/// one theme and <see cref="ForFloor"/> to the rooms one floor's realm schedule offers.
 /// </summary>
 [Tool]
 [GlobalClass]
@@ -16,14 +17,13 @@ public partial class RoomPool : Resource
 	[Export] public RoomDefinition[] Entrances { get; set; } = [];
 	/// <summary>Weighted room definitions for the level exit, each carrying down-stairs.</summary>
 	[Export] public RoomDefinition[] Exits { get; set; } = [];
-	/// <summary>Weighted room definitions for every other slot.</summary>
+	/// <summary>Weighted room definitions for every other slot: on the authored pool, every room that exists.</summary>
 	[Export] public RoomDefinition[] Rooms { get; set; } = [];
 
 	/// <summary>The realm theme this view assembles for; null on the authored pool.</summary>
 	public string RealmId { get; private init; }
-	/// <summary>The floor this view rolls rare definitions for; null on views that offer every definition.</summary>
-	private ulong? _floorSeed;
-	private readonly Dictionary<RoomDefinition, bool> _rolled = [];
+	/// <summary>The floor whose realm schedule this view follows; null on views that offer every definition.</summary>
+	public RealmFloor Floor { get; private init; }
 
 	/// <summary>Every definition the pool assembles: ordinary rooms, then entrances, then exits.</summary>
 	public RoomDefinition[] AllDefinitions => [.. Rooms, .. Entrances, .. Exits];
@@ -37,39 +37,21 @@ public partial class RoomPool : Resource
 		definitions.Where(def => def == null || def.SupportsRealm(realm)).ToArray();
 
 	/// <summary>
-	/// This view for one floor: each rare definition (<see cref="RoomDefinition.FloorChance"/> below 1) is offered or
-	/// withheld by its own roll from <paramref name="floorSeed"/>, independent of the order rooms are considered in, and
-	/// a withheld definition leaves the slot lists, so layouts and room groups never draw it. A slot whose every
-	/// definition lost its roll keeps them all: rarity never leaves a slot unfilled.
+	/// This view for one floor: the ordinary rooms its realm schedules there (all of this view's when the realm schedules
+	/// none), and the floor's say over which rooms a layout or room group may draw (<see cref="RealmFloor.Offers"/>).
 	/// </summary>
-	public RoomPool ForFloor(ulong floorSeed)
+	public RoomPool ForFloor(RealmFloor floor) => floor == null ? this : new()
 	{
-		var view = new RoomPool { RealmId = RealmId, _floorSeed = floorSeed };
-		view.Entrances = view.Offered(Entrances);
-		view.Exits = view.Offered(Exits);
-		view.Rooms = view.Offered(Rooms);
-		return view;
-	}
+		RealmId = RealmId, Floor = floor, Entrances = Entrances, Exits = Exits,
+		Rooms = floor.IsScheduled ? [.. floor.Rooms] : Rooms,
+	};
 
-	/// <summary>The definitions this floor offers, keeping empty entries so assembly still reports them.</summary>
-	private RoomDefinition[] Offered(RoomDefinition[] definitions)
-	{
-		var offered = definitions.Where(def => def == null || Offers(def)).ToArray();
-		return offered.Any(def => def != null) ? offered : definitions;
-	}
+	/// <summary>Whether this view offers <paramref name="definition"/>: it suits the theme and its floor offers it.</summary>
+	public bool Offers(RoomDefinition definition) =>
+		definition != null && definition.SupportsRealm(RealmId) && Floor?.Offers(definition) != false;
 
-	/// <summary>Whether this floor offers <paramref name="definition"/>: it suits the realm and, if rare, won its roll.</summary>
-	public bool Offers(RoomDefinition definition)
-	{
-		if (definition == null || !definition.SupportsRealm(RealmId)) return false;
-		if (definition.FloorChance >= 1f || _floorSeed is not ulong seed) return true;
-		if (!_rolled.TryGetValue(definition, out bool offered))
-		{
-			using var rng = GenerationRandom.Create(seed, GenerationRandom.Layout, $"rarity:{definition.Id}");
-			_rolled[definition] = offered = rng.Randf() < definition.FloorChance;
-		}
-		return offered;
-	}
+	/// <summary>The draw weight of <paramref name="definition"/> here: its own, scaled by the floor's realm schedule.</summary>
+	public float WeightOf(RoomDefinition definition) => definition.Weight * (Floor?.WeightOf(definition) ?? 1f);
 
 	/// <summary>
 	/// The definitions this floor offers that have not reached their <see cref="RoomDefinition.MaxPerFloor"/>, counting
@@ -92,11 +74,10 @@ public partial class RoomPool : Resource
 	{
 		ArgumentNullException.ThrowIfNull(definition);
 		ulong seed = ((ulong)rng.Randi() << 32) | rng.Randi();
-		var resolved = options == null
-			? new RoomAssemblyOptions { Realm = RealmId }
-			: options.Realm != null
-				? options
-				: options with { Realm = RealmId };
+		var resolved = options ?? new RoomAssemblyOptions();
+		// The pool's theme and its floor's motifs apply unless the caller names its own.
+		if (resolved.Realm == null) resolved = resolved with { Realm = RealmId };
+		if (resolved.Motifs == null && Floor != null) resolved = resolved with { Motifs = Floor.Motifs };
 		return RoomAssembler.AssembleCluster(definition, seed, resolved, this);
 	}
 
@@ -110,12 +91,12 @@ public partial class RoomPool : Resource
 	{
 		if (definitions.Length == 0 || definitions.Any(def => def == null))
 			throw new InvalidOperationException($"Room pool: assign every {slot} entry{(RealmId == null ? "" : $" for realm '{RealmId}'")}.");
-		// Rarities and per-floor limits narrow the choice; a slot never goes unfilled because of them.
+		// Per-floor limits narrow the choice; a slot never goes unfilled because of them.
 		var offered = Available(definitions, getUses);
 		if (offered.Count == 0) offered = [.. definitions];
 		var definition = getUses == null
-			? Weighted.Pick(offered, entry => entry.Weight, rng)
-			: Weighted.PickBalanced(offered, entry => entry.Weight, getUses, rng);
+			? Weighted.Pick(offered, WeightOf, rng)
+			: Weighted.PickBalanced(offered, WeightOf, getUses, rng);
 		return CreateFrom(definition, rng, options);
 	}
 }

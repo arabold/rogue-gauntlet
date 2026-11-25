@@ -1,0 +1,88 @@
+{
+  "key": "furnishings/gallows",
+  "inputs": "3178bcb28239e21a3ced22e9c256066a03da4d6b52666daafefae8210ed242ff",
+  "files": {
+    "gallows.glb": "1a675c59bba34c275618ca8a83c3553398fc28fba847e03d8070a6a1d9056da6",
+    "lineup.png": "93fee0af08e72d65f65d2568d509aea1f673054a24567b7e8dfc7f999946b4b7"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 10912,
+      "bounds": [
+        [
+          -1.974259614944458,
+          -0.02472691796720028,
+          -1.7859811782836914
+        ],
+        [
+          1.7800378799438477,
+          6.578990459442139,
+          4.048447608947754
+        ]
+      ],
+      "dimensions": [
+        3.7542974948883057,
+        6.603717377409339,
+        5.834428787231445
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 8.050565143839508
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Gallows",
+      "reference": "res://asset-studio/objects/furnishings/gallows/reference.png",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "gallows"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 11000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/prison/gallows.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Prison furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

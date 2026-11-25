@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="PropGroup" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroup.cs" id="1_PropGroup"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="2_PropGroupMember"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/chair.tres" id="3_chair"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/desk.tres" id="4_desk"]
+
+[sub_resource type="Resource" id="member_0"]
+script = ExtResource("2_PropGroupMember")
+Options = [ExtResource("3_chair")]
+Offset = Vector3(0, 0, 1.25)
+Chance = 1.0
+QuarterTurns = 2
+metadata/_custom_type_script = ExtResource("2_PropGroupMember")
+
+[resource]
+script = ExtResource("1_PropGroup")
+Id = "desk_station"
+Anchor = [ExtResource("4_desk")]
+Members = [SubResource("member_0")]
+metadata/_custom_type_script = ExtResource("1_PropGroup")

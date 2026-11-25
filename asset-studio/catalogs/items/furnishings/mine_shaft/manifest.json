@@ -1,0 +1,90 @@
+{
+  "key": "furnishings/mine_shaft",
+  "inputs": "45d586f25a26626cd46c186c676c3c1272074a54088281a1732e7f082c67bbc4",
+  "files": {
+    "mine_shaft.glb": "271e41b775a9a91217ccfd287b49472eae2b94fea39b15974ab2d83ff7d78f9b",
+    "lineup.png": "40a0829af9aa7df1f82cc14c9af3d408e4e5322a51ebc972fc057e6064b22a42"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2420,
+      "bounds": [
+        [
+          -1.4656428098678589,
+          -0.012925412505865097,
+          -1.3205937147140503
+        ],
+        [
+          1.4656428098678589,
+          3.490000009536743,
+          1.3290441036224365
+        ]
+      ],
+      "dimensions": [
+        2.9312856197357178,
+        3.5029254220426083,
+        2.649637818336487
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.5533324693212154
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Mine Shaft",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "mine_shaft"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3200,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "gold": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/mines/mine_shaft.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Room furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

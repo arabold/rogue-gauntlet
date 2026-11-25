@@ -255,8 +255,8 @@ and three pieces of local-tier gear. At most that adds one healing potion to the
 healing and less than a fountain's full heal, on the gatekeeper floor. The model therefore leaves gold out
 of the run. `supply` reports the gold a
 floor holds, so prices can be checked against it by hand: about 85 on depth 1, 80 on depth 2, 115 on depth 3, 80 on
-depth 4 and 50 on depth 5, with every source looted. A hero who clears the first four floors reaches the Quartermaster
-with up to about 360 gold, plus what selling spare loot (a fifth of its retail value) brings. The shelf costs about
+depth 4 and 50 on depth 5, with every source looted. A hero who clears the Garrison's five floors reaches the Quartermaster on
+depth 6 with up to about 410 gold, plus what selling spare loot (a fifth of its retail value) brings. The shelf costs about
 1,000, so that buys less than half of it: a weapon and a potion, or potions, a loaf and a lockpick, but never the whole
 shelf. Re-measure after changing gold drops, and
 model shops only if merchants ever restock or sell more than a shelf.

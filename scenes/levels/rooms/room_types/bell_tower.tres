@@ -1,0 +1,93 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="3_CenterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/cathedral/church_bell.tres" id="4_church_bell"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="5_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel.tres" id="6_barrel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate.tres" id="7_crate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candelabra.tres" id="8_candelabra"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="9_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bench.tres" id="10_bench"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/trunk.tres" id="11_trunk"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="12_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_white.tres" id="13_banner_white"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_red.tres" id="14_banner_red"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="15_web_corner_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="16_web_corner_large"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="17_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="18_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/arched_walls.tres" id="19_arched_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_floor.tres" id="20_planks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_floor.tres" id="21_stone_floor"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(2, 2)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_bell"]
+script = ExtResource("3_CenterStep")
+Id = "bell"
+Content = [ExtResource("4_church_bell")]
+MinimumCount = 1
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("3_CenterStep")
+
+[sub_resource type="Resource" id="step_stores"]
+script = ExtResource("5_CornersStep")
+Id = "stores"
+Content = [ExtResource("6_barrel"), ExtResource("7_crate"), ExtResource("8_candelabra")]
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("5_CornersStep")
+
+[sub_resource type="Resource" id="step_benches"]
+script = ExtResource("9_AlongWallsStep")
+Id = "benches"
+Content = [ExtResource("10_bench"), ExtResource("11_trunk")]
+MaximumCount = 2
+Spacing = 1.0
+metadata/_custom_type_script = ExtResource("9_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_banners"]
+script = ExtResource("12_WallDecorStep")
+Id = "banners"
+Content = [ExtResource("13_banner_white"), ExtResource("14_banner_red")]
+MaximumCount = 2
+Uniform = true
+metadata/_custom_type_script = ExtResource("12_WallDecorStep")
+
+[sub_resource type="Resource" id="step_webs"]
+script = ExtResource("5_CornersStep")
+Id = "webs"
+Content = [ExtResource("15_web_corner_small"), ExtResource("16_web_corner_large")]
+Clearance = 0.2
+Diagonal = true
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("5_CornersStep")
+
+[sub_resource type="Resource" id="step_door_torches"]
+script = ExtResource("12_WallDecorStep")
+Id = "door_torches"
+Content = [ExtResource("17_torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("12_WallDecorStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "bell_tower"
+MaxPerFloor = 1
+Realms = PackedStringArray("garrison")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.5
+Walls = [ExtResource("18_stone_walls"), ExtResource("19_arched_walls")]
+Floors = [ExtResource("20_planks_floor"), ExtResource("21_stone_floor")]
+Steps = [SubResource("step_bell"), SubResource("step_stores"), SubResource("step_benches"), SubResource("step_banners"), SubResource("step_webs"), SubResource("step_door_torches")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

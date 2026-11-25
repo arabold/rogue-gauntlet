@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/fighting_ring",
+  "inputs": "2b609c79c62ecec057cf0b7f03c1f7a48eccc37f637bd24e4234b23057981f14",
+  "files": {
+    "fighting_ring.glb": "09587cfd4e8024a44c8ce2c4c6b6e9c5df62f61d1089d9f9fdf0f4eb7c99babd",
+    "lineup.png": "0034cf6d6a0821de7b922cd3c829c4986867cd8c202bf0b95751fed9f57b2454"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 5600,
+      "bounds": [
+        [
+          -3.232717752456665,
+          0.0,
+          -3.200000047683716
+        ],
+        [
+          3.2206060886383057,
+          1.535932183265686,
+          3.200000047683716
+        ]
+      ],
+      "dimensions": [
+        6.453323841094971,
+        1.535932183265686,
+        6.400000095367432
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 4.7054575212267045
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Fighting Ring",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "fighting_ring"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 7000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/prison/fighting_ring.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Prison furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

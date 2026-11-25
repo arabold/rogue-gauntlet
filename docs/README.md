@@ -31,6 +31,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Gameplay item catalog](item-catalog.md) | All active definitions, effect families, source budgets, access keys/picks and deferred tools |
 | [Randomness and seeds](randomness-and-seeds.md) | Existing run/level seeds, generation RNG, loot RNG, identification, and saved world changes; isolation and current persistence limits |
 | [Door access](door-access.md) | Implemented locks, consumable keys/picks, colored door markers, room-owned secret doors, discovery and saved access state |
+| [Realm content](realm-content.md) | Each realm's arc across its five floors: room windows, headline candidates, motifs and the set dressing they switch on |
 | [Level design](level-design.md) | Procedural layouts, assembled rooms with room-owned doorways, realm tags, inward-facing corridor styling, sunken water pools and basins, reachability, monster navigation, fog of war, encounters, lighting, atmosphere and surface finishes |
 | [Stats and itemization](stats-and-itemization.md) | Actor-neutral buffs/statuses, venom/poison, attributes, modifiers, equipment tiers, loot rolls and enchantment |
 | [Shops](shops.md) | Realm-placed keepers, trade tabs in the run menu, merchant profiles, prices, finite stock and saved purchases |
@@ -56,7 +57,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Shop rooms and future merchants](specs/shop-design.md) | A dedicated shop room with a safe threshold, and later merchants |
 | [Realm monster roster](specs/realm-monster-roster-plan.md) | Proposed classic monsters for realms 2–5 (orcs, oozes, gnomes, the unholy, thieves, graspers and a chest mimic), their gatekeepers and nests, and the flight, lob, grasp, theft, gaze, revive and other capabilities they need, in five slices |
 | [Realm monster tuning](specs/realm-monster-tuning-plan.md) | Landed: pace, tactics and attack patterns for the giant bat, nymph, chest mimic, acid blob and snake, with a per-monster speed scale and travel facing |
-| [Realm content pacing](specs/realm-content-pacing-plan.md) | Proposed: realms schedule their rooms, floor plans and motifs (undead, crystals, warband) across their five floors; one headline per floor (a special room, the shop after each gatekeeper, or the gatekeeper); the Cathedral as the vampire's seat; new headline rooms per realm |
+| [Realm content pacing](specs/realm-content-pacing-plan.md) | Proposed: encounter packs follow floor motifs; open decisions on the Cathedral's gatekeeper, realm merchants and bridging rooms |
 | [Props for the new floor plans](specs/floor-plan-props.md) | Missing mine, cathedral, cloister and chasm/lake props by priority, with mount, size and the rooms they serve |
 | [Floor generators and room groups](specs/floor-generators-plan.md) | Proposed `FloorProfile` IoC architecture, composite `RoomGroup` definitions, taxonomy alignment (`RoomPool`, `FloorAccessProfile`, `prop_groups/`), corridor loot/locks, per-profile room count and map size, and the cluster, hallway, prison, cathedral, cloister, mines, labyrinth and boss floor plans |
 | [Elemental spells and effects](specs/elemental-spells-plan.md) | All 20 spells authored at 5 levels; targeting, guard rules, visual direction and playtest acceptance remain |

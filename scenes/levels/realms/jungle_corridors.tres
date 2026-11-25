@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=36 format=3]
+[gd_resource type="Resource" script_class="DungeonTileFactory" load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/dungeon/DungeonTileFactory.cs" id="2_dungeontilefacto"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth.tres" id="3_earth"]
@@ -19,6 +19,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_pile.tres" id="26_ore_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="27_lantern_wall"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_vein.tres" id="28_ore_vein"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_vein.tres" id="28_crystal_vein"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tool_rack.tres" id="29_tool_rack"]
 
 [sub_resource type="Resource" id="Resource_rail_tracks"]
@@ -91,7 +92,7 @@ script = ExtResource("8_hallway_step")
 MinimumRunTiles = 2
 PairAcrossChance = 0.3
 Id = "hallway_decor"
-Content = [ExtResource("28_ore_vein"), ExtResource("28_ore_vein"), ExtResource("29_tool_rack"), ExtResource("27_lantern_wall")]
+Content = [ExtResource("28_ore_vein"), ExtResource("28_crystal_vein"), ExtResource("29_tool_rack"), ExtResource("27_lantern_wall")]
 MaximumCount = 14
 Chance = 1.0
 Spacing = 4.5

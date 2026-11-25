@@ -1,0 +1,84 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="3_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/furnace.tres" id="4_furnace"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="5_CenterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/workbench.tres" id="6_workbench"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_pile.tres" id="7_ore_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel.tres" id="8_barrel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate.tres" id="9_crate"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="10_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tool_rack.tres" id="11_tool_rack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="12_mine_lantern_wall"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="13_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="14_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="15_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="16_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/cave_floor.tres" id="17_cave_floor"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(2, 3)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_furnace"]
+script = ExtResource("3_AlongWallsStep")
+Id = "furnace"
+Content = [ExtResource("4_furnace")]
+MinimumCount = 1
+MaximumCount = 1
+Sides = 2
+Centered = true
+AvoidDoorwayWalls = true
+metadata/_custom_type_script = ExtResource("3_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_bench"]
+script = ExtResource("5_CenterStep")
+Id = "bench"
+Content = [ExtResource("6_workbench")]
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("5_CenterStep")
+
+[sub_resource type="Resource" id="step_ore"]
+script = ExtResource("3_AlongWallsStep")
+Id = "ore"
+Content = [ExtResource("7_ore_pile"), ExtResource("8_barrel"), ExtResource("9_crate")]
+MinimumCount = 1
+MaximumCount = 3
+Spacing = 1.0
+metadata/_custom_type_script = ExtResource("3_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_tools"]
+script = ExtResource("10_WallDecorStep")
+Id = "tools"
+Content = [ExtResource("11_tool_rack"), ExtResource("12_mine_lantern_wall")]
+MaximumCount = 2
+Spacing = 3.0
+metadata/_custom_type_script = ExtResource("10_WallDecorStep")
+
+[sub_resource type="Resource" id="step_slag"]
+script = ExtResource("13_ScatterStep")
+Id = "slag"
+Content = [ExtResource("7_ore_pile"), ExtResource("14_bucket")]
+MaximumCount = 2
+WallChance = 0.5
+metadata/_custom_type_script = ExtResource("13_ScatterStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "smelter"
+MaxPerFloor = 1
+Realms = PackedStringArray("jungle")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.3
+Walls = [ExtResource("15_cave_walls")]
+Floors = [ExtResource("16_earth_floor"), ExtResource("17_cave_floor")]
+Steps = [SubResource("step_furnace"), SubResource("step_bench"), SubResource("step_ore"), SubResource("step_tools"), SubResource("step_slag")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

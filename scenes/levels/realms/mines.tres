@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Realm" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="Realm" load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="realm"]
 [ext_resource type="Script" path="res://scenes/levels/generators/FloorPlanChoice.cs" id="choice"]
@@ -7,16 +7,110 @@
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/boss.tres" id="boss"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/mines.tres" id="mines"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster_large.tres" id="cluster_large"]
+[ext_resource type="Resource" path="res://scenes/shops/quartermaster_placement.tres" id="quartermaster"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmRoom.cs" id="realm_room"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/timbered_mine.tres" id="room_timbered_mine"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/root_passage.tres" id="room_root_passage"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/ore_chamber.tres" id="room_ore_chamber"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/foremans_hut.tres" id="room_foremans_hut"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/cavern.tres" id="room_cavern"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/ruins.tres" id="room_ruins"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/ruined_shrine.tres" id="room_ruined_shrine"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/crystal_cavern.tres" id="room_crystal_cavern"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/temple_hall.tres" id="room_temple_hall"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmMotif.cs" id="motif_RealmMotif"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/mine_shaft.tres" id="room_mine_shaft"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/smelter.tres" id="room_smelter"]
+
+[sub_resource type="Resource" id="schedule_timbered_mine"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_timbered_mine")
+FirstFloor = 1
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_root_passage"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_root_passage")
+FirstFloor = 1
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_ore_chamber"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_ore_chamber")
+FirstFloor = 1
+LastFloor = 4
+
+[sub_resource type="Resource" id="schedule_foremans_hut"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_foremans_hut")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_cavern"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_cavern")
+FirstFloor = 2
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_ruins"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_ruins")
+FirstFloor = 4
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_ruined_shrine"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_ruined_shrine")
+FirstFloor = 4
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_crystal_cavern"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_crystal_cavern")
+FirstFloor = 3
+LastFloor = 5
+Headline = true
+
+[sub_resource type="Resource" id="schedule_temple_hall"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_temple_hall")
+FirstFloor = 4
+LastFloor = 5
+Headline = true
 
 [sub_resource type="Resource" id="plan_mines"]
 script = ExtResource("choice")
 Profile = ExtResource("mines")
 Weight = 3.0
+FirstFloor = 1
+LastFloor = 5
 
 [sub_resource type="Resource" id="plan_cluster_large"]
 script = ExtResource("choice")
 Profile = ExtResource("cluster_large")
 Weight = 1.0
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="motif_crystals_0"]
+script = ExtResource("motif_RealmMotif")
+Id = "crystals"
+FirstFloor = 3
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_mine_shaft"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_mine_shaft")
+FirstFloor = 2
+LastFloor = 3
+Headline = true
+
+[sub_resource type="Resource" id="schedule_smelter"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_smelter")
+FirstFloor = 2
+LastFloor = 3
+Headline = true
 
 [resource]
 script = ExtResource("realm")
@@ -26,7 +120,10 @@ FirstDepth = 16
 LastDepth = 20
 Corridors = ExtResource("corridors")
 Atmosphere = ExtResource("atmosphere")
+Shops = [ExtResource("quartermaster")]
 AmbientScale = 1.8
 AmbientTint = Color(1.35, 1.1, 0.85, 1)
+Rooms = [SubResource("schedule_timbered_mine"), SubResource("schedule_root_passage"), SubResource("schedule_ore_chamber"), SubResource("schedule_foremans_hut"), SubResource("schedule_cavern"), SubResource("schedule_ruins"), SubResource("schedule_ruined_shrine"), SubResource("schedule_crystal_cavern"), SubResource("schedule_temple_hall"), SubResource("schedule_mine_shaft"), SubResource("schedule_smelter")]
+Motifs = [SubResource("motif_crystals_0")]
 FloorPlans = [SubResource("plan_mines"), SubResource("plan_cluster_large")]
 BossProfile = ExtResource("boss")

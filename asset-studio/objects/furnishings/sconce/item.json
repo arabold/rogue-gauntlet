@@ -1,6 +1,7 @@
 {
   "version": 1,
   "name": "Sconce",
+  "reference": "res://asset-studio/objects/furnishings/sconce/reference.png",
   "backend": "procedural",
   "builder": "furnishing",
   "design": {
@@ -13,7 +14,7 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 600,
+    "triangles": 900,
     "materials": 2,
     "texture_size": 1024
   },

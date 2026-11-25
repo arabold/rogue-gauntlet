@@ -1,6 +1,7 @@
 {
   "version": 1,
   "name": "Sconce Flames",
+  "reference": "res://asset-studio/objects/furnishings/sconce/reference.png",
   "backend": "procedural",
   "builder": "furnishing",
   "design": {

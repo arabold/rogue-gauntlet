@@ -252,17 +252,18 @@ class Item:
         its host's reference head, which is passed as the first image.
         """
         data = self.recipe()
-        from core.prompts import item_prompt, style_images, turnaround_prompt, STYLE_REFERENCES
+        from core.prompts import item_prompt, style_images, style_references, turnaround_prompt
         worn = turnaround and bool(data.get("host"))
+        world = data.get("color_mode") == "world"
         prompt = (turnaround_prompt(brief or data.get("concept"), worn) if turnaround
-                  else item_prompt(brief or data.get("concept")))
+                  else item_prompt(brief or data.get("concept"), world))
         dummy = self.host_turnaround(data) if worn else None
         aspect = "16:9" if turnaround else "1:1"
         if prompt_only:
             if image:
                 raise ValueError("--prompt-only cannot be combined with --image")
             print(json.dumps({"prompt": prompt,
-                              "referenced_image_paths": [str(p) for p in ([dummy] if dummy else []) + list(STYLE_REFERENCES)],
+                              "referenced_image_paths": [str(p) for p in ([dummy] if dummy else []) + list(style_references(world))],
                               "aspect": aspect}, indent=2))
             return
         target = self.resolve(data.get("reference", "reference.png"))
@@ -273,7 +274,7 @@ class Item:
         else:
             from core.ai import get_provider
             brief = brief or data.get("concept")
-            references = style_images()
+            references = style_images(world)
             if dummy:
                 with Image.open(dummy) as im:
                     references.insert(0, im.copy())

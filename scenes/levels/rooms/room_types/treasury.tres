@@ -103,7 +103,6 @@ metadata/_custom_type_script = ExtResource("decor")
 [resource]
 script = ExtResource("type")
 Id = "treasury"
-FloorChance = 0.25
 MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Shapes = [SubResource("shape")]

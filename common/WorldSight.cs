@@ -10,11 +10,11 @@ public static class WorldSight
 	/// <summary>Structure and props (5): solid geometry that blocks sight and spawn placement.</summary>
 	public const uint Blockers = Structure | 16u;
 
-	/// <summary>True when nothing blocks the segment, or when <paramref name="acceptHit"/> recognizes the first hit
-	/// (collider, position) as the target itself.</summary>
-	public static bool IsClear(World3D world, Vector3 from, Vector3 to, Func<GodotObject, Vector3, bool> acceptHit = null)
+	/// <summary>True when nothing on <paramref name="mask"/> blocks the segment, or when <paramref name="acceptHit"/>
+	/// recognizes the first hit (collider, position) as the target itself.</summary>
+	public static bool IsClear(World3D world, Vector3 from, Vector3 to, Func<GodotObject, Vector3, bool> acceptHit = null, uint mask = Blockers)
 	{
-		var hit = world.DirectSpaceState.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, Blockers));
+		var hit = world.DirectSpaceState.IntersectRay(PhysicsRayQueryParameters3D.Create(from, to, mask));
 		return hit.Count == 0 || acceptHit?.Invoke(hit["collider"].AsGodotObject(), hit["position"].AsVector3()) == true;
 	}
 

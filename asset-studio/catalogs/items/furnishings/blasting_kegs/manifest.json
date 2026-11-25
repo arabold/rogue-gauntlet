@@ -1,29 +1,29 @@
 {
   "key": "furnishings/blasting_kegs",
-  "inputs": "24ba7f1beb81c9f7f854cd6da42f2f9d3536e9079fe8c009321aec685702a3c7",
+  "inputs": "775752167cd23e60c69150e23592ce164631aa6a4d4f7f33d2030f85519dd918",
   "files": {
-    "blasting_kegs.glb": "367287ee3c5e3cd53cc8bd80f051219ee7914913f3f8d4b1f35eaef9cfee8a40",
-    "lineup.png": "b484c3b6562b584b929da937050392facec30d82e4aaa58c6bea5d3f764870b0"
+    "blasting_kegs.glb": "f71265beb7d059db083514b334c58aea02e2ea775b60234220683ba0a53d73c2",
+    "lineup.png": "86aff746454af9f756b72f92e801241f4a33b8d28e7e7d40aca521b7e3b49a36"
   },
   "metadata": {
     "report": {
-      "triangles": 4436,
+      "triangles": 6924,
       "bounds": [
         [
-          -0.48674649000167847,
+          -1.0029523372650146,
           0.0,
-          -0.3358364999294281
+          -1.0622490644454956
         ],
         [
-          0.48847696185112,
-          1.1924721002578735,
-          0.3579975962638855
+          1.009958267211914,
+          2.328090190887451,
+          0.809958279132843
         ]
       ],
       "dimensions": [
-        0.9752234518527985,
-        1.1924721002578735,
-        0.6938340961933136
+        2.0129106044769287,
+        2.328090190887451,
+        1.8722073435783386
       ],
       "materials": 1,
       "textures": [
@@ -38,7 +38,7 @@
         "nonmanifold_edges": 0,
         "inconsistent_edges": 0,
         "duplicate_faces": 0,
-        "signed_volume": 0.27236388063973116
+        "signed_volume": 2.807384616027427
       },
       "host_fit": null,
       "warnings": [],
@@ -47,6 +47,7 @@
     "recipe": {
       "version": 1,
       "name": "Blasting Kegs",
+      "reference": "res://asset-studio/objects/furnishings/blasting_kegs/reference.png",
       "backend": "procedural",
       "builder": "furnishing",
       "design": {
@@ -59,7 +60,7 @@
         "scale": 1
       },
       "budget": {
-        "triangles": 6000,
+        "triangles": 8000,
         "materials": 2,
         "texture_size": 1024
       },

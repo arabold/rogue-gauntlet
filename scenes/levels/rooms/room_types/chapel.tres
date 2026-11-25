@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=57 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=58 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ArcadeStep.cs" id="arcade"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/structure/arcade_pier.tres" id="arcade_pier"]
@@ -142,10 +142,18 @@ MaximumCount = 4
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("sc_ScatterStep")
 
+[sub_resource type="Resource" id="WallDecorStep_vampire_hangings"]
+script = ExtResource("16_WallDecorSte")
+Id = "vampire_hangings"
+Content = [ExtResource("33_tapestry_red"), ExtResource("17_banner_red")]
+MaximumCount = 3
+Spacing = 2.5
+Motifs = PackedStringArray("vampire")
+metadata/_custom_type_script = ExtResource("16_WallDecorSte")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "chapel"
-FloorChance = 0.5
 MaxPerFloor = 1
 Realms = PackedStringArray("garrison")
 Weight = 0.6
@@ -158,5 +166,5 @@ Walls = [ExtResource("3_arched_walls"), ExtResource("4_windowed_wal"), ExtResour
 Floors = [ExtResource("6_stone_floor"), ExtResource("7_decorated_fl"), ExtResource("8_decorated_bo"), ExtResource("x_checker_runner"), ExtResource("x_checker_floor")]
 Columns = [SubResource("PerimeterColumns_2")]
 ColumnChance = 0.4
-Steps = [SubResource("ArcadeStep_aisles"), SubResource("AlongWallsStep_3"), SubResource("RowsStep_4"), SubResource("CornersStep_9"), SubResource("AlongWallsStep_10"), SubResource("ScatterStep_candles"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7")]
+Steps = [SubResource("ArcadeStep_aisles"), SubResource("AlongWallsStep_3"), SubResource("RowsStep_4"), SubResource("CornersStep_9"), SubResource("AlongWallsStep_10"), SubResource("ScatterStep_candles"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_vampire_hangings")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

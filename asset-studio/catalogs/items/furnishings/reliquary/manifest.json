@@ -1,0 +1,93 @@
+{
+  "key": "furnishings/reliquary",
+  "inputs": "3f230e74aaf65dff0962ddd227ae6dcef96879156b4a8a9275d708a5f5f2ce6c",
+  "files": {
+    "reliquary.glb": "d8c177f45e591d6b01a58e1f434a2b7d758b655b9b97a99b6e06e08ba9727e78",
+    "lineup.png": "80d13cfd7cd79a14ce1f511bf33f937015f05d31440ce3f0fd99a79b03aaf314"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1748,
+      "bounds": [
+        [
+          -0.9259818196296692,
+          0.0003344368888065219,
+          -0.6000000238418579
+        ],
+        [
+          0.9259818196296692,
+          2.640000104904175,
+          0.05000000074505806
+        ]
+      ],
+      "dimensions": [
+        1.8519636392593384,
+        2.6396656680153683,
+        0.650000024586916
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.906154843237083
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Reliquary",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "reliquary"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 4000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        },
+        "gold": {
+          "crease": 40
+        },
+        "copper": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/cathedral/reliquary.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Cathedral furnishing at KayKit dungeon scale beside the 2.2 m hero: floor props stand on y=0 facing +Z; back-to-wall props keep a flat back on -Z. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}
