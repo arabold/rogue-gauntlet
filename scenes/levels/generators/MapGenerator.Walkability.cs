@@ -77,7 +77,7 @@ public partial class MapGenerator
 
 	/// <summary>
 	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
-	/// their frame and their leaf standing open. Placed bodies count when they collide on one of <paramref name="layers"/>.
+	/// their frame only; an open leaf lets actors through. Placed bodies count when they collide on one of <paramref name="layers"/>.
 	/// The floor's walkability passes <paramref name="openSecrets"/>, so a secret room's own floor counts as reachable;
 	/// monster navigation does not, and its walls stay shut until the secret is found.
 	/// </summary>

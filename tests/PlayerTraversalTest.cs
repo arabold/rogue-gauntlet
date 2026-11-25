@@ -131,11 +131,12 @@ public class PlayerTraversalTest
 	}
 
 	/// <summary>
-	/// An open door stays solid around its opening: the player walks through the doorway beside the open leaf, but not
-	/// through a jamb or the leaf itself. Each approach to each door scene is staged on its own copy and walked at once.
+	/// An open door's frame stays solid while its leaf lets the player through: the player walks through the doorway and
+	/// through the open leaf, but not through a jamb. Each approach to each door scene is staged on its own copy and
+	/// walked at once.
 	/// </summary>
 	[TestCase]
-	public async Task OpenDoorsBlockTheirFrameAndLeafButNotTheOpening()
+	public async Task OpenDoorsBlockTheirFrameButNotTheirLeafOrOpening()
 	{
 		var playerScene = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn");
 		var stairsScene = TestFactories.Load<PackedScene>("res://scenes/player/stairs_trigger.tscn");
@@ -145,7 +146,7 @@ public class PlayerTraversalTest
 		{
 			(new(.25f, .06f, 3), Vector3.Forward, end => end.Z < -2, "Blocked in the opening"),
 			(new(1.6f, .06f, 3), Vector3.Forward, end => end.Z > .5f, "Walked through a jamb"),
-			(new(-3, .06f, -1.2f), Vector3.Right, end => end.X < -1, "Walked through the open leaf"),
+			(new(-3, .06f, -1.2f), Vector3.Right, end => end.X > 0, "Blocked by the open leaf"),
 		};
 		var root = TestFactories.AddToSceneTree(new Node3D());
 		int copies = scenes.Length * walks.Length;
