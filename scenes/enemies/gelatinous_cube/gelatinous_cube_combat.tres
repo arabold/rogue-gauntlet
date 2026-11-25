@@ -66,7 +66,6 @@ ProjectileSpeed = 9.0
 ProjectileArcHeight = 3.0
 ProjectileAimLockDuration = 0.3
 Range = 15.0
-HitWindowStart = 0.5
 OnHitStatuses = [SubResource("bind_on_hit"), SubResource("digest_on_hit")]
 PoiseDamage = 6.0
 Commit = 0.5

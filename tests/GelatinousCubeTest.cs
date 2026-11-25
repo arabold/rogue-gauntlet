@@ -24,7 +24,7 @@ public class GelatinousCubeTest
 	[TestCase]
 	public async Task GooLobArcsOverCoverAndBindsAndDigestsTheHeroWhereTheyStood()
 	{
-		var (runner, harness, cube) = await StageCube(9);
+		var (runner, harness, cube) = await TestFactories.StageHarnessMonster(Cube, 9, ai: false);
 		using var _ = runner;
 		var player = harness.Player;
 		var gooBound = TestFactories.Load<StatusCondition>(GooBound);
@@ -34,24 +34,16 @@ public class GelatinousCubeTest
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(6, 3, 0.4f) } });
 		player.GetParent().AddChild(wall);
 		wall.GlobalPosition = player.GlobalPosition.Lerp(cube.GlobalPosition, 0.5f) + Vector3.Up * 1.5f;
-		// Face the hero, so the lob locks onto them rather than landing a full range ahead.
-		cube.MovementComponent.SetLookAtDirection((player.GlobalPosition - cube.GlobalPosition) with { Y = 0 });
-		cube.LookAt(player.GlobalPosition with { Y = cube.GlobalPosition.Y });
-		await runner.SimulateFrames(2, 20);
 		Vector3 stood = player.GlobalPosition;
 		float health = player.HealthComponent.CurrentHealth;
 
-		var lob = cube.Definition.Behavior.Combat.Actions.OfType<MonsterAttackAction>().First(action => action.Attack.IsRanged);
-		var controller = cube.GetNode<AttackController>("AttackController");
-		AssertBool(controller.TryPrepareAttack(lob.Attack, lob.Style, lob.Duration, out var attack)).IsTrue();
-		AssertBool(controller.StartAttack(attack, new AttackStats(4, 6, 0), 4)).IsTrue();
+		AssertBool(await TestFactories.StartRangedAttack(runner, cube, player, new AttackStats(4, 6, 0))).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => player.BuffController.HasCondition(gooBound), 5);
 
 		AssertBool(player.BuffController.HasCondition(poisoned)).IsTrue();
 		AssertFloat(player.HealthComponent.CurrentHealth).IsLess(health);
 		// It splashed down at the hero's feet, leaving its patch there.
-		var patch = player.GetTree().Root.FindChildren("*", "", true, false).OfType<GooPatch>()
-			.Where(p => p.IsPhysicsProcessing()).OrderBy(p => p.GlobalPosition.DistanceTo(stood)).FirstOrDefault();
+		var patch = TestFactories.NearestPatch(player, stood);
 		AssertObject(patch).IsNotNull();
 		AssertFloat((patch.GlobalPosition - stood).Length()).IsLess(0.6f);
 		wall.QueueFree();
@@ -83,7 +75,7 @@ public class GelatinousCubeTest
 	[TestCase]
 	public async Task CubeDragsASlimeTrailButLeavesNoneAcrossATeleport()
 	{
-		var (runner, harness, cube) = await StageCube(6);
+		var (runner, harness, cube) = await TestFactories.StageHarnessMonster(Cube, 6, ai: false);
 		using var _ = runner;
 		Node world = cube.GetParent();
 		int Patches() => world.GetChildren().OfType<GooPatch>().Count(p => p.Visible && p.IsPhysicsProcessing());
@@ -101,17 +93,5 @@ public class GelatinousCubeTest
 			await runner.SimulateFrames(1, 20);
 		}
 		AssertInt(Patches() - before).IsEqual((int)(7.5f / spacing));
-	}
-
-	/// <summary>The arena with the hero standing still and the cube, its AI off, <paramref name="distance"/> ahead.</summary>
-	private static async Task<(ISceneRunner Runner, CombatHarness Harness, EnemyBase Cube)> StageCube(float distance)
-	{
-		var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 4);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		TestFactories.MovePracticeTargetAway(harness);
-		var cube = TestFactories.SpawnHarnessMonster(harness, Cube, distance);
-		await runner.SimulateFrames(2, 20);
-		return (runner, harness, cube);
 	}
 }

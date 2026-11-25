@@ -121,7 +121,7 @@ Landed for the giant bat, with its bat roost nest; [level design](../level-desig
 
 - **Trajectory (landed):** an attack's `ProjectileArcHeight` turns a single shot into a lob over cover and allies to where the target stood at release, so ducking behind a crate does not help; the hero must step aside ([weapon attack system](../weapon-attack-system.md)).
 - **Telegraph (landed):** the projectile's `LandingMarker` ring marks the landing point for the whole flight.
-- **Impact (landed):** the landing is the shot's one contact, and its impact effect is a [`GooPatch`](../../scenes/components/GooPatch.cs): a patch that holds a buff on the hero while they stand in it (`BuffController.SetPersistentBuff`), whatever the buff's own duration, and drops it when they step out or the patch dries up. Saves leave such holds out (`IWorldStatusSource`). The spitting slime's [poison pool](../../scenes/enemies/slime/poison_pool.tscn) holds a poison that ticks for as long as the hero stays; the gelatinous cube's patches hold a slow.
+- **Impact (landed):** the landing is the shot's one contact, and its impact effect is a [`GooPatch`](../../scenes/components/GooPatch.cs): a patch that holds a buff on the hero while they stand in it (`BuffController.SetPersistentBuff`), whatever the buff's own duration, and drops it when they step out or the patch dries up. Saves leave out every hold whose source is not part of the hero, since the restored hero stands elsewhere. The spitting slime's [poison pool](../../scenes/enemies/slime/poison_pool.tscn) holds a poison that ticks for as long as the hero stays; the gelatinous cube's patches hold a slow.
 
 ### Goo bind and petrify
 

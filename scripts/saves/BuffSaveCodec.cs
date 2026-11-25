@@ -15,8 +15,9 @@ public static class BuffSaveCodec
 		var saved = new List<ActiveBuffSaveData>();
 		foreach (var active in player.BuffController.ActiveBuffs)
 		{
-			// A pool or patch holds its status only while the hero stands in it; a restored hero is out of it.
-			if (active.IsExpired || active.Source is IWorldStatusSource) continue;
+			// A hold from the floor (a slime pool, an area spell) lasts only while the hero stands in it, and the restored
+			// hero stands elsewhere, so saves leave it out.
+			if (active.IsExpired || active.IsPermanent && active.Source != null && !IsRestorable(player, active.Source)) continue;
 			if (equipped.Contains(active.Buff))
 			{
 				if (!active.IsPermanent) throw new InvalidOperationException("Timed equipment buffs cannot yet be saved safely.");
@@ -30,9 +31,9 @@ public static class BuffSaveCodec
 				throw new InvalidOperationException("Cannot save a condition without an external resource identity.");
 			if (active.Source != null)
 			{
-				if (active.Source is not Node node || !GodotObject.IsInstanceValid(node) || !IsAuthoredSource(player, node))
+				if (!IsRestorable(player, active.Source))
 					throw new InvalidOperationException("Cannot save a status whose source cannot be restored with the player.");
-				record.HasSource = true; record.SourcePath = player.GetPathTo(node).ToString();
+				record.HasSource = true; record.SourcePath = player.GetPathTo((Node)active.Source).ToString();
 			}
 			switch (buff)
 			{
@@ -48,6 +49,10 @@ public static class BuffSaveCodec
 		Prepare(player, saved); // Never write a snapshot that this version would reject on load.
 		return saved;
 	}
+
+	/// <summary>Whether a status source is part of the player, so a restored player can reconnect the status to it.</summary>
+	private static bool IsRestorable(Player player, object source) =>
+		source is Node node && GodotObject.IsInstanceValid(node) && IsAuthoredSource(player, node);
 
 	private static bool IsAuthoredSource(Player player, Node source)
 	{

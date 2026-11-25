@@ -106,15 +106,16 @@ public static partial class TestFactories
 
 	/// <summary>
 	/// The combat harness with the hero standing still (input off) and one monster <paramref name="distance"/> ahead
-	/// (<see cref="SpawnHarnessMonster"/>), deciding for itself.
+	/// (<see cref="SpawnHarnessMonster"/>), deciding for itself unless <paramref name="ai"/> is off.
 	/// </summary>
-	public static async Task<(ISceneRunner Runner, CombatHarness Harness, EnemyBase Monster)> StageHarnessMonster(string scenePath, float distance)
+	public static async Task<(ISceneRunner Runner, CombatHarness Harness, EnemyBase Monster)> StageHarnessMonster(string scenePath,
+		float distance, bool ai = true)
 	{
 		var runner = LoadCombatHarness();
 		var harness = await SettleCombatHarness(runner, 4);
 		harness.Player.InputController.SetPhysicsProcess(false);
 		var monster = SpawnHarnessMonster(harness, scenePath, distance);
-		harness.ExecuteCommand("automation", value: 1);
+		if (ai) harness.ExecuteCommand("automation", value: 1);
 		await runner.SimulateFrames(2, 20);
 		return (runner, harness, monster);
 	}
