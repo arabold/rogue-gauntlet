@@ -49,8 +49,8 @@ public class GauntletPlacementTest
 	}
 
 	/// <summary>
-	/// On a Garrison and a Prison gauntlet floor, the scheduled gauntlet stands between the arrival and the descent and
-	/// holds no monsters, loot or traps.
+	/// On a gauntlet floor of each realm that has them, the scheduled gauntlet stands between the arrival and the descent
+	/// and holds no monsters, loot or traps.
 	/// </summary>
 	[TestCase]
 	public async Task AScheduledGauntletGuardsTheDescentAndHoldsNothingElse()
@@ -61,8 +61,9 @@ public class GauntletPlacementTest
 		var floors = new List<(ulong RunSeed, uint Depth, RoomDefinition Room)>();
 		var schedules = Enumerable.Range(1, 60).Select(seed => (ulong)seed)
 			.SelectMany(seed => { map.RunSeed = seed; return map.GauntletSchedule().Select(entry => (seed, entry.Depth, entry.Room)); }).ToList();
-		floors.Add(schedules.First(entry => entry.Depth <= 5));
-		floors.Add(schedules.First(entry => entry.Depth is > 5 and <= 10));
+		// One floor in each realm with gauntlets: the Garrison, the Prison, the Sewer and the Mines.
+		foreach (uint realmStart in new uint[] { 1, 6, 11, 16 })
+			floors.Add(schedules.First(entry => entry.Depth >= realmStart && entry.Depth < realmStart + 5));
 
 		var failures = new List<string>();
 		foreach (var (runSeed, depth, scheduled) in floors)

@@ -49,7 +49,7 @@ A gauntlet wakes when the hero stands within `ActivationRadius` (16 m) and any o
 
 Gauntlets are never secret: they stand on the route the hero must take, so crossing them is the challenge. A run meets two or three gauntlet rooms, never the same one twice, each guarding a floor's descent ([level design](../level-design.md#trap-gauntlets)).
 
-**Gauntlet rooms (landed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a hazard row step (`CrossFireStep` or `PendulumRowsStep`), lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. The pool keeps them in their own `Gauntlets` slot, which only the approach group draws, so no layout picks one as an ordinary room; the room harness previews them and **Traps → Rooms** stages one in the combat arena to play.
+**Gauntlet rooms (landed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a hazard row step (`CrossFireStep` or `PendulumRowsStep`), lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. Rows stop at the first that cannot be laid (a wall niche on both sides), so a gauntlet never has a gap twice its spacing; too few rows retry the room. Each room suits the garrison, sewer and jungle themes with that theme's walls and floors. The pool keeps them in their own `Gauntlets` slot, which only the approach group draws, so no layout picks one as an ordinary room; the room harness previews them and **Traps → Rooms** stages one in the combat arena to play.
 
 | Room | Shape | Rows | Beat | Look |
 | --- | --- | --- | --- | --- |
@@ -176,7 +176,7 @@ Placement (slice 3b, landed): `GauntletProfile` deals a run's gauntlets from the
 [GlobalClass] public partial class CorridorHazardStep : CorridorStep { /* Layout, Pattern, PeriodRange, MinimumSpan */ }
 ```
 
-- Corridor gauntlets on the required route; gauntlets themed for the Sewer and the Mines.
+- Corridor gauntlets on the required route.
 - `CorridorBlueprint` carries beats and emits gauntlets as rooms do.
 - Corridor gauntlets have no room, so they need their danger tiles recorded instead (`DangerBounds`, measured once physics knows the walls).
 - `MapGenerator.RemoveWallPropsOffMounts` drops wall props whose wall a corridor replaced; a removed spout leaves a row empty, so placement must keep spout walls or drop the whole row.

@@ -35,7 +35,13 @@ public abstract partial class HazardRowsStep : FurnishingStep
 		{
 			var columns = Enumerable.Range(0, footprint.Width).Where(column => footprint.IsFloor(column, row)).ToArray();
 			if (columns.Length == 0) continue;
-			if (!LayRow(room, rng, row, columns, placed, new HazardBeat(period, TrapGauntlet.PhaseFor(Pattern, placed)))) continue;
+			if (!LayRow(room, rng, row, columns, placed, new HazardBeat(period, TrapGauntlet.PhaseFor(Pattern, placed))))
+			{
+				// A skipped row would leave a gap twice the spacing, so the rows stop at the first that does not fit. Too few
+				// rows fail the step's minimum, and the room retries with another shape and walls.
+				if (placed > 0) break;
+				continue;
+			}
 			float z = RoomFootprint.TileCenter(new Vector2I(0, row)).Z;
 			room.Reserve(new Rect2(room.Interior.Position.X, z - RowBand / 2, room.Interior.Size.X, RowBand));
 			placed++;

@@ -18,9 +18,9 @@ public partial class GauntletRoomTest
 	private static IEnumerable<T> Find<T>(Node node) => node.FindChildren("*", "", true, false).OfType<T>();
 
 	/// <summary>
-	/// Every gauntlet room puts all its hazards under one gauntlet, in rows that span the room: spouts hang on the side
-	/// walls firing straight across, blades swing within the walls and never into each other, and no blocking furniture
-	/// stands in a row.
+	/// Every gauntlet room, in each theme it suits, puts all its hazards under one gauntlet, in rows one tile apart with
+	/// none missing that span the room: spouts hang on the side walls firing straight across, blades swing within the walls
+	/// and never into each other, and no blocking furniture stands in a row.
 	/// </summary>
 	[TestCase]
 	public void EveryGauntletRoomLaysRowsTheHeroMustCross()
@@ -28,10 +28,11 @@ public partial class GauntletRoomTest
 		var types = DebugCatalog.Resources<RoomType>(GauntletRooms).Select(entry => entry.Resource).ToArray();
 		AssertArray(types).IsNotEmpty();
 		foreach (var type in types)
+		foreach (string theme in type.Realms)
 		foreach (ulong seed in Seeds)
 		{
-			string at = $"{type.Id} seed {seed}";
-			var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Realm = type.Realms.First() });
+			string at = $"{type.Id} ({theme}) seed {seed}";
+			var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Realm = theme });
 			try
 			{
 				var gauntlets = Find<TrapGauntlet>(blueprint.Room).ToArray();
@@ -56,8 +57,10 @@ public partial class GauntletRoomTest
 						AssertBool(other.Position.X - other.Sweep - other.BladeHalfWidth >= blade.Position.X + reach - .01f)
 							.OverrideFailureMessage($"{at}: neighbouring blades collide").IsTrue();
 				}
-				var rows = hazards.Select(hazard => hazard.Position.Z).Distinct().ToArray();
+				var rows = hazards.Select(hazard => hazard.Position.Z).Distinct().Order().ToArray();
 				AssertInt(rows.Length).OverrideFailureMessage($"{at}: at least two rows").IsGreaterEqual(2);
+				AssertBool(rows.Zip(rows.Skip(1)).All(pair => Mathf.IsEqualApprox(pair.Second - pair.First, Room.TileSize, .05f)))
+					.OverrideFailureMessage($"{at}: rows one tile apart, none missing: {string.Join(", ", rows)}").IsTrue();
 				var blockers = blueprint.Pieces.Where(piece => piece.Prop.Blocking && piece.Prop.Mount == PropMount.Floor);
 				foreach (var piece in blockers)
 				foreach (float row in rows)
