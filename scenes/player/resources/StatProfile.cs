@@ -7,6 +7,7 @@ using Godot;
 /// derivation (the editor/test fallback), so secondary stats equal their base values. The values come from the
 /// balance model (<c>scripts/balance/params.py</c>) through <c>simulate.py derive</c>.
 /// </summary>
+[Tool] // Exported by the tool CharacterClass script: a tool script's exports must be tool types in the editor.
 [GlobalClass]
 public partial class StatProfile : Resource
 {

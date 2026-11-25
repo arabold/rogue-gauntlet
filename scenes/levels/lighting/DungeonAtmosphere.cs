@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>Owns the selected effects' floor lifetime and darkness gate, independently of their rendering implementation.</summary>
+[Tool] // Exported by the tool Level script: a tool script's exports must be tool types in the editor.
 [GlobalClass]
 public partial class DungeonAtmosphere : Node3D
 {
@@ -12,6 +13,7 @@ public partial class DungeonAtmosphere : Node3D
 
 	public override void _Ready()
 	{
+		if (Engine.IsEditorHint()) return;
 		Visible = false;
 		if (Lighting == null)
 		{
@@ -69,5 +71,8 @@ public partial class DungeonAtmosphere : Node3D
 			effect.SetActive(Visible && Lighting.IsEffectEnabled(effect.Category), Lighting.IsDark);
 	}
 
-	public override void _ExitTree() => Clear();
+	public override void _ExitTree()
+	{
+		if (!Engine.IsEditorHint()) Clear();
+	}
 }
