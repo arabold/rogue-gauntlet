@@ -25,6 +25,12 @@ copies once; `ItemSaveCodec` restores exact state without rolling. See [item own
 - Spear/halberd/scythe use the existing melee attack. Dedicated thrust/reach/cleave behavior is
   not implied by their names. Casting weapons use the existing ranged/elemental strategies.
 - Values, potency, and source weights are an initial playable tuning pass, not final balance.
+- A pickup shows its model at the size its wrapper scene sets. Weapons and shields lie at the size the hero holds
+  them, helmets and body armor at the size the hero wears them (their pickup models share the worn scale). Every
+  other pickup only ever shows on the floor and as an icon, so its wrapper sizes it to the pack's props beside the
+  2.2 m hero: KayKit's bottles and key are 0.9 m, so potions step 0.7, 0.88 and 1.06 m, keys and scrolls are about
+  0.9 m, and rings (0.6 m), apples and other small things never drop below what reads from the game camera.
+  `ItemCatalogTest` holds every pickup to at least 0.5 m and floor-only ones to at most 1.25 m.
 
 ## Effects
 

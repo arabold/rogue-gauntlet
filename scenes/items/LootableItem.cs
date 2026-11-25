@@ -317,7 +317,7 @@ public partial class LootableItem : Node3D
 			return;
 		}
 
-		if (dist <= MagnetRadius)
+		if (dist <= MagnetRadius && _player.InventoryController.AttractsLoot)
 		{
 			float nearness = 1f - Mathf.Clamp(dist / MagnetRadius, 0f, 1f);
 			float speed = Mathf.Lerp(MagnetMinSpeed, MagnetMaxSpeed, nearness);
