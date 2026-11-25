@@ -207,6 +207,10 @@ public partial class MovementComponent : Node
 	/// </summary>
 	[Export] public bool ResistsKnockback { get; set; }
 
+	/// <summary>The push strength that carries this body <paramref name="distance"/> metres: a push starts at its strength
+	/// and slows by <see cref="Speed"/> every second, so it travels strength² / (2 × Speed).</summary>
+	public float PushStrengthFor(float distance) => Mathf.Sqrt(2 * Speed * Mathf.Max(distance, 0));
+
 	public void Push(Vector3 direction, float strength)
 	{
 		SetPush(direction, strength, false);
