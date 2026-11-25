@@ -20,8 +20,11 @@ public partial class ItemSlotPanel : PanelContainer
 	/// <summary>Opacity of the <see cref="ItemQualityPalette"/> tint behind Magic and Rare equipment.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float QualityTintAlpha { get; set; } = 0.25f;
 	[Export] public Color DefaultColor { get; set; } = new(0.8f, 0.8f, 0.8f, 0.1f);
-	/// <summary>What an empty slot shows: the kit's icon for the kind of item it holds. Unset, an empty slot stays bare.</summary>
-	[Export] public Texture2D EmptyIcon { get; set { field = value; if (IsNodeReady()) { Update(); } } }
+	/// <summary>
+	/// What an empty slot shows: the kit's icon for the kind of item it holds. Unset, an empty slot stays bare. Applied at
+	/// runtime only: in the editor the slot's script-typed nodes are placeholders (see <see cref="_Ready"/>).
+	/// </summary>
+	[Export] public Texture2D EmptyIcon { get; set { field = value; if (IsNodeReady() && !Engine.IsEditorHint()) { Update(); } } }
 	/// <summary>Fades the slot back without disabling it, e.g. gear that does not fit the slot being filled.</summary>
 	public bool Dimmed { get; set { field = value; ApplyModulate(); } }
 
