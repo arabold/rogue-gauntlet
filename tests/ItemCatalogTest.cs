@@ -97,6 +97,48 @@ public class ItemCatalogTest
 		}
 	}
 
+	/// <summary>
+	/// Every pickup reads on the floor beside the 2.2 m hero: none is too small to spot from the game camera, and a model
+	/// that only ever shows as a pickup stays at the pack's prop scale (its bottles and key are 0.9 m) instead of rivaling
+	/// the hero. Weapons and armor lie at about the size the hero holds or wears them, so only the minimum binds them.
+	/// </summary>
+	[TestCase]
+	public void EveryPickupModelReadsOnTheFloorAtThePacksScale()
+	{
+		const float minimumSize = 0.5f, maximumPickupOnlySize = 1.25f;
+		var catalog = TestFactories.Load<IdentityCatalog>("res://scenes/items/identity/identity_catalog.tres");
+		var models = Definitions().Where(item => item.Scene != null)
+			.Select(item => (item.Scene, Held: item is Weapon or Armor))
+			.Concat(catalog.Categories.SelectMany(category => category.AppearancePool.Appearances)
+				.SelectMany(appearance => appearance.Models.Values).Select(scene => (Scene: scene, Held: false)))
+			.DistinctBy(model => model.Scene.ResourcePath);
+		foreach (var (scene, held) in models)
+		{
+			Node model = scene.Instantiate();
+			Aabb? bounds = LocalMeshBounds(model, Transform3D.Identity);
+			model.Free();
+			float size = bounds?.GetLongestAxisSize() ?? 0f;
+			AssertFloat(size).OverrideFailureMessage($"{scene.ResourcePath} is {size:F2} m, too small to read on the floor").IsGreaterEqual(minimumSize);
+			if (!held)
+			{
+				AssertFloat(size).OverrideFailureMessage($"{scene.ResourcePath} is {size:F2} m, oversized next to the hero").IsLessEqual(maximumPickupOnlySize);
+			}
+		}
+	}
+
+	/// <summary>The bounds of the visible meshes under <paramref name="node"/> in its root's space, outside the scene tree.</summary>
+	private static Aabb? LocalMeshBounds(Node node, Transform3D toRoot)
+	{
+		if (node is Node3D { Visible: false } || VisualHelper.IsHelper(node)) return null;
+		if (node is Node3D spatial) toRoot *= spatial.Transform;
+		Aabb? bounds = node is MeshInstance3D { Mesh: not null } mesh ? toRoot * mesh.GetAabb() : null;
+		foreach (Node child in node.GetChildren())
+		{
+			if (LocalMeshBounds(child, toRoot) is Aabb box) bounds = bounds?.Merge(box) ?? box;
+		}
+		return bounds;
+	}
+
 	[TestCase]
 	public void LootCoversEveryActiveDefinitionAndExcludesDeferredMechanics()
 	{

@@ -5,5 +5,4 @@
 [node name="ScrollGoldAlgiz" type="Node3D"]
 
 [node name="scroll_gold_algiz" parent="." instance=ExtResource("1_glb")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 layers = 32

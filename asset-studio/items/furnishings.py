@@ -1459,6 +1459,10 @@ def sarcophagus_open():
 # Pipes match the drain pipe run through the slimy sewer wall: a 0.4 radius body, flanges 0.48, bolted.
 
 PIPE = .4
+# Back-to-wall props stand with their back (z = -0.55 here) on the wall's plinth, whose front is 0.17 before the wall
+# face above it. Pipes entering the wall end at WALL_END, the game prop's WallReach (0.35) behind that back, which
+# measuring leaves out; flanges and brackets meet the plain wall's face at WALL_FACE.
+WALL_FACE, WALL_END = -.72, -.9
 
 
 def flange(a, center, axis, radius=PIPE + .08, depth=.12, bolts=6):
@@ -1504,8 +1508,8 @@ def valve():
     z = .1
     flange(a, (0, .04, z), (0, 1, 0), PIPE + .14, .08, 8)
     a.add(rod((0, 0, z), (0, 1.05, z), PIPE, 12), 'pipe')
-    elbow(a, (0, 1.0, z), (0, 1.62, z), (0, 1.62, -.55))
-    flange(a, (0, 1.62, -.5), (0, 0, 1), PIPE + .14, .1, 8)
+    elbow(a, (0, 1.0, z), (0, 1.62, z), (0, 1.62, WALL_END))
+    flange(a, (0, 1.62, WALL_FACE + .04), (0, 0, 1), PIPE + .14, .1, 8)
     a.add(lathe([(.44, .5), (.52, .58), (.54, .8), (.44, .9)], 12).translate((0, 0, z)), 'pipe')
     for y in (.5, .92):
         flange(a, (0, y, z), (0, 1, 0))
@@ -1520,7 +1524,7 @@ def pipe_outlet():
     a, rng = Assembly(), random('pipe_outlet')
     y, mouth = .66, .55
     stones(a, rng, -.6, .6, 0, .32, .9, -.05, 1, 'stone', span=(.55, .65))
-    a.add(rod((0, y, -.55), (0, y, mouth), .52, 14), 'pipe')
+    a.add(rod((0, y, WALL_END), (0, y, mouth), .52, 14), 'pipe')
     flange(a, (0, y, -.47), (0, 0, 1), .66, .14, 8)
     flange(a, (0, y, mouth - .06), (0, 0, 1), .62, .14, 8)
     a.cut(rod((0, y, -.3), (0, y, mouth + .1), .4, 14), 'socket')
@@ -1540,11 +1544,12 @@ def pipe_run():
     y, z, r = .9, -.05, .3
     flange(a, (-1.3, .04, z), (0, 1, 0), r + .14, .08, 6)
     elbow(a, (-1.3, 0, z), (-1.3, y, z), (.9, y, z), r)
-    elbow(a, (.6, y, z), (1.3, y, z), (1.3, y, -.48), r)
-    flange(a, (1.3, y, -.43), (0, 0, 1), r + .14, .1, 6)
+    elbow(a, (.6, y, z), (1.3, y, z), (1.3, y, WALL_END), r)
+    flange(a, (1.3, y, WALL_FACE + .04), (0, 0, 1), r + .14, .1, 6)
     flange(a, (-.1, y, z), (1, 0, 0), r + .08, .12, 6)
+    bracket = WALL_FACE - .04  # the brackets' back, a little into the wall face
     for x in (-.75, .55):
-        a.add(block((.16, .16, .3), (x, y, -.4), .03), 'iron_dark')
+        a.add(block((.16, .16, -.25 - bracket), (x, y, (bracket - .25) / 2), .03), 'iron_dark')
         a.add(torus(r + .03, .045, 0, 14, 6).rotate((0, 0, 90)).translate((x, y, z)), 'iron')
         a.add(rivet((x, y + .1, -.25), .045, (0, 0, 1)), 'steel')
     a.add(torus(r + .03, .045, 0, 14, 6).translate((-1.3, .45, z)), 'iron')

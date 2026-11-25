@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Actions on the player character: restoring or killing them, and applying a <see cref="HeroBuildProfile"/> from
-/// <see cref="BuildDirectory"/>, which replaces their attributes and inventory with an exact, seeded set of items.
+/// Actions on the player character: restoring or killing them, switching their loot magnet, and applying a
+/// <see cref="HeroBuildProfile"/> from <see cref="BuildDirectory"/>, which replaces their attributes and inventory with an
+/// exact, seeded set of items.
 /// </summary>
 [GlobalClass]
 public partial class HeroTool : DebugTool
@@ -14,6 +15,8 @@ public partial class HeroTool : DebugTool
 
 	/// <summary>Creates a build's items with its creation policy. Unassigned, builds are unavailable.</summary>
 	[Export] public ItemSpawnTool Items { get; set; }
+
+	private int _lootMagnetId;
 
 	protected override void BuildMenu(PopupMenu menu)
 	{
@@ -30,6 +33,15 @@ public partial class HeroTool : DebugTool
 		}
 		AddAction(menu, "Restore health", Reset);
 		AddAction(menu, "Kill player", Kill);
+		_lootMagnetId = AddToggle(menu, "Loot magnet", () => Menu?.Player?.InventoryController.AttractsLoot ?? false, SetLootMagnet);
+	}
+
+	protected override void OnRefresh() => SetDisabled(Popup, _lootMagnetId, Menu?.Player == null);
+
+	/// <summary>Lets the player pull nearby loot in, or leaves loot where it lies until they walk onto it.</summary>
+	public void SetLootMagnet(bool enabled)
+	{
+		if (Menu?.Player is { } player) player.InventoryController.AttractsLoot = enabled;
 	}
 
 	/// <summary>

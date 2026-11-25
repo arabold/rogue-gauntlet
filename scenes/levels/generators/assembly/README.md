@@ -21,7 +21,8 @@ Create `props/<category>/<name>.tres` with script `Prop`:
 | `Scenes` | Instead of items, for props that need nodes: lights, particles, interaction (torches, gates). Several scenes are variants; a bare `.glb` works too and blocks with a box over its mesh |
 | `QuarterTurns` | Turn the model so its front faces +Z |
 | `Mount` | `Floor` or `Wall`; wall props use `MountHeight` and `WallInset` (recess from wall trim to the flat face) |
-| `BackToWall` | Floor props that stand against a wall (beds, shelves, barrels) |
+| `BackToWall` | Floor props that stand against a wall (beds, shelves, barrels); their back meets the wall's foot, whose plinth reaches 0.17 past the face above it |
+| `WallReach` | Back-to-wall props: depth of the model behind its back that runs into the wall (sewer pipes reach 0.35 to meet the face above the plinth); measuring leaves it out |
 | `Blocking` | Off for things actors walk over or that rest on other props |
 | `TurnJitter`, `ShiftJitter` | Seeded random turn (degrees either way) and shift (units) so loose props never line up perfectly; placement measures the turned prop. Leave at 0 for anchors that carry members (tables), fitted pieces and wall props |
 | `Interactive` | Keeps the space in front clear |

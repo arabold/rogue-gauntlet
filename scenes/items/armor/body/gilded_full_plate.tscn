@@ -5,4 +5,3 @@
 [node name="GildedFullPlate" type="Node3D"]
 
 [node name="Model" parent="." instance=ExtResource("model")]
-transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0.0, 0)
