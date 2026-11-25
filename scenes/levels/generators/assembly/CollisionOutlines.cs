@@ -94,9 +94,11 @@ public static class CollisionOutlines
 	/// <summary>
 	/// Static collision under <paramref name="root"/> (bodies and GridMaps). A door counts with its frame and its leaf
 	/// standing open; the shut leaf is a navigation gate (<see cref="ClearanceGrid.AddGate"/>), not a solid. Bodies count
-	/// when they collide on one of <paramref name="layers"/>.
+	/// when they collide on one of <paramref name="layers"/>. With <paramref name="openSecrets"/>, a secret door's wall
+	/// disguise is left out too, so the door counts as found and open like every other.
 	/// </summary>
-	public static IEnumerable<SolidOutline> FromStaticBodies(Node root, Transform3D toParent, uint layers = BlockingLayers)
+	public static IEnumerable<SolidOutline> FromStaticBodies(Node root, Transform3D toParent, uint layers = BlockingLayers,
+		bool openSecrets = false)
 	{
 		var result = new List<SolidOutline>();
 		var leaves = new HashSet<Node>();
@@ -113,6 +115,7 @@ public static class CollisionOutlines
 			}
 			if (node is GridMap grid)
 			{
+				if (openSecrets && grid.GetParent() is Door { Secret.IsSecret: true }) return;
 				// GridMap.Transform is already part of transform here.
 				result.AddRange(FromGridMap(grid, transform * grid.Transform.AffineInverse()));
 				return;

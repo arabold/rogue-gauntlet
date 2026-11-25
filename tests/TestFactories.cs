@@ -309,8 +309,8 @@ public static partial class TestFactories
 		var level = (Level)runner.Scene();
 		var map = level.MapGenerator;
 		Configure(map, profile, pool);
-		map.ChestScene = map.TrapScene = map.LooseItemScene = null;
-		map.LooseItems = null;
+		map.ChestScene = map.TrapScene = map.LooseItemScene = map.LockedRewardScene = map.SecretRewardScene = null;
+		map.LooseItems = map.GoldPiles = null;
 		GameSession.Instance.ResetLevelDebugState(level.Depth);
 		return (runner, level);
 	}
@@ -360,6 +360,8 @@ public static partial class TestFactories
 		mapGenerator.TrapScene = Load<PackedScene>("res://scenes/props/floor_trap.tscn");
 		mapGenerator.LooseItemScene = Load<PackedScene>("res://scenes/items/lootable_item.tscn");
 		mapGenerator.LooseItems = Load<LootDropProfile>("res://scenes/items/loot/drops/loose_items.tres");
+		mapGenerator.LockedRewardScene = Load<PackedScene>("res://scenes/props/chest_gold.tscn");
+		mapGenerator.SecretRewardScene = Load<PackedScene>("res://scenes/props/chest_secret.tscn");
 	}
 
 	/// <summary>

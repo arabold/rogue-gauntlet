@@ -51,6 +51,8 @@ public class LootPlacementTest
 				{
 					for (int j = i + 1; j < loot.Length; j++)
 					{
+						// One source's pieces (a secret room's reward laid on its floor) lie together, as a chest's drops do.
+						if (loot[i].GetMeta("persistent_id", "").AsString() == loot[j].GetMeta("persistent_id", "").AsString()) continue;
 						float distance = loot[i].GlobalPosition.HorizontalDistanceTo(loot[j].GlobalPosition);
 						if (distance < MapGenerator.LootSpawnSpacing)
 						{

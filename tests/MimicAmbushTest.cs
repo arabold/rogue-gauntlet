@@ -60,7 +60,9 @@ public class MimicAmbushTest
 		using var cleanup = runner;
 		var mimics = level.MapGenerator.EnemySpawnPoints.Where(spawn => spawn.PersistentId.Contains(":chest:")).ToList();
 		AssertBool(mimics.Count > 0 && mimics.All(spawn => spawn.Scenes.Single().ResourcePath == Mimic)).IsTrue();
-		AssertInt(level.MapGenerator.FloorContent.FindChildren("*", "", true, false).OfType<Chest>().Count()).IsEqual(0);
+		// Locked and secret rooms' reward chests are never mimics: a key or a found secret always pays.
+		AssertInt(level.MapGenerator.FloorContent.FindChildren("*", "", true, false).OfType<Chest>()
+			.Count(chest => chest.SceneFilePath == "res://scenes/props/chest.tscn")).IsEqual(0);
 		await runner.SimulateFrames(1, 20);
 	}
 }

@@ -7,6 +7,6 @@
 [resource]
 script = ExtResource("profile")
 Table = ExtResource("table")
-Chance = 0.55
+Chance = 0.4
 CreationPolicy = ExtResource("policy")
 metadata/_custom_type_script = ExtResource("profile")

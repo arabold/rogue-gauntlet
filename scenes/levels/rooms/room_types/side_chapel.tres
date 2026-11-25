@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
@@ -27,6 +27,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_blue.tres" id="tapestry_blue"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_green.tres" id="tapestry_green"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_red.tres" id="motif_banner_red"]
+[ext_resource type="Resource" path="res://scenes/levels/access/proximity_detection.tres" id="secret_detection"]
 
 [sub_resource type="Resource" id="RectangleShape_chapel"]
 script = ExtResource("rectangle")
@@ -78,6 +79,8 @@ Shapes = [SubResource("RectangleShape_chapel")]
 MinimumFloorTiles = 9
 MinDoorways = 1
 MaxDoorways = 1
+SecretDoorChance = 0.4
+SecretDetection = ExtResource("secret_detection")
 DoorwayPlacement = 3
 Walls = [ExtResource("arched"), ExtResource("crypt"), ExtResource("pillared"), ExtResource("mossy")]
 Floors = [ExtResource("decorated_floor"), ExtResource("checker_floor"), ExtResource("flagstones_floor"), ExtResource("bricks_floor"), ExtResource("flagstones_ruined_floor")]

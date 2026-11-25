@@ -7,7 +7,13 @@ using System.Linq;
 public partial class MapGenerator
 {
 	private readonly List<Vector3> _accessPickupPoints = [];
-	private void ResetAccess() => _accessPickupPoints.Clear();
+	/// <summary>The rooms generated locks closed this attempt, except the exit's: each gets a reward chest.</summary>
+	private readonly List<RoomRegion> _lockedRewardRooms = [];
+	private void ResetAccess()
+	{
+		_accessPickupPoints.Clear();
+		_lockedRewardRooms.Clear();
+	}
 	/// <summary>
 	/// Locks optional rooms (and exit when enabled) whose every doorway has a door its room set there, as long as
 	/// every lock has reachable keys and required progression routes remain solvable.
@@ -90,6 +96,7 @@ public partial class MapGenerator
 		int sourceIndex = 0;
 		foreach (var target in targets)
 		{
+			if (target.Region.Id != exitRoomId) _lockedRewardRooms.Add(target.Region);
 			for (int i = 0; i < target.Entrances.Count; i++)
 			{
 				var door = doorByConnector[target.Entrances[i]];

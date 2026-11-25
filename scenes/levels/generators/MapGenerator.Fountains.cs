@@ -20,7 +20,9 @@ public partial class MapGenerator
 	private void PlaceFountains(List<Vector3> placedPoints, IReadOnlyList<Aabb> doorClearances)
 	{
 		if (Fountains == null || FloorContent == null) return;
-		var tiles = GetSolidPropTiles(includeCorridors: false);
+		// A scheduled heal stands where the hero can find it, never behind a secret door.
+		var hidden = TilesBehindSecrets();
+		var tiles = GetSolidPropTiles(includeCorridors: false).Where(tile => !hidden.Contains(tile.Tile)).ToList();
 		// Free-standing tiles first; wall-backed ones only when none of those fits.
 		var tiers = new[]
 		{

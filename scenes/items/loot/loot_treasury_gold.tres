@@ -7,7 +7,9 @@
 [sub_resource type="Resource" id="gold"]
 script = ExtResource("entry")
 Item = ExtResource("gold")
-Quantity = 240
+Quantity = 120
+QuantityPerDepth = 30.0
+QuantitySpread = 0.2
 metadata/_custom_type_script = ExtResource("entry")
 
 [resource]

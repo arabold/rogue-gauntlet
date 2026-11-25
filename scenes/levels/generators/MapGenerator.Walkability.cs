@@ -32,7 +32,7 @@ public partial class MapGenerator
 			if (walkable) grid.AddFloor(area);
 			else grid.AddObstacle(area);
 		}
-		foreach (var outline in SolidOutlines()) grid.AddObstacle(outline);
+		foreach (var outline in SolidOutlines(openSecrets: true)) grid.AddObstacle(outline);
 		return grid;
 	}
 
@@ -78,12 +78,29 @@ public partial class MapGenerator
 	/// <summary>
 	/// Real collision, not tile classes: doorway openings stay passable and wall depth varies per piece. Doors count with
 	/// their frame and their leaf standing open. Placed bodies count when they collide on one of <paramref name="layers"/>.
+	/// The floor's walkability passes <paramref name="openSecrets"/>, so a secret room's own floor counts as reachable;
+	/// monster navigation does not, and its walls stay shut until the secret is found.
 	/// </summary>
-	private IEnumerable<SolidOutline> SolidOutlines(uint layers = CollisionOutlines.BlockingLayers)
+	private IEnumerable<SolidOutline> SolidOutlines(uint layers = CollisionOutlines.BlockingLayers, bool openSecrets = false)
 	{
 		var toLocal = GlobalTransform.AffineInverse();
 		foreach (var outline in StaticOutlines()) yield return outline;
-		foreach (var outline in CollisionOutlines.FromStaticBodies(FloorContent, toLocal * FloorContent.GlobalTransform, layers)) yield return outline;
+		foreach (var outline in CollisionOutlines.FromStaticBodies(FloorContent, toLocal * FloorContent.GlobalTransform, layers, openSecrets)) yield return outline;
+	}
+
+	/// <summary>
+	/// Tiles reached only through undiscovered secret doors. Monsters and the scheduled fountains stay out of them; loot,
+	/// traps and the secret rooms' rewards may lie there.
+	/// </summary>
+	private HashSet<Vector2I> TilesBehindSecrets()
+	{
+		if (Floor.Arrival == null) return [];
+		var entry = Map.WorldToTile(Floor.Arrival.GlobalPosition);
+		var secrets = Floor.Doors.Where(d => d.Door.Secret?.IsSecret == true).Select(d => d.Connector).ToHashSet();
+		if (secrets.Count == 0) return [];
+		var open = AccessSolutionValidator.Reachable(Map, entry, new HashSet<Vector2I>());
+		open.ExceptWith(AccessSolutionValidator.Reachable(Map, entry, secrets));
+		return open;
 	}
 
 	/// <summary>Physical reachability with inaccessible doorway tiles blocked, without changing the floor grid.</summary>

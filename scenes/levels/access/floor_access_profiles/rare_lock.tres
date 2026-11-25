@@ -10,4 +10,4 @@ script = ExtResource("profile")
 Locks = [ExtResource("gold"), ExtResource("silver"), ExtResource("arcane")]
 MaximumLockedRooms = 1
 MaximumLockedDoors = 1
-LockedRoomChance = 0.2
+LockedRoomChance = 0.5

@@ -593,8 +593,9 @@ public partial class MapGenerator : Node3D
 		}
 
 		// Candidate selection uses map tiles and collision clearance, not navigation routes.
-		// Keep the initial encounter baseline reproducible even in headless validation.
-		var candidates = Floor.OpenTileCandidates();
+		// Keep the initial encounter baseline reproducible even in headless validation. Secret rooms hold no monsters.
+		var hidden = TilesBehindSecrets();
+		var candidates = Floor.OpenTileCandidates().Where(point => !hidden.Contains(Map.WorldToTile(point))).ToList();
 		if (candidates.Count == 0)
 		{
 			GD.PrintErr("Cannot generate enemy spawn points: no valid map tiles found.");
