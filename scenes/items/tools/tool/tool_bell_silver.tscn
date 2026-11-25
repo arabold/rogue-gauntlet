@@ -5,3 +5,4 @@
 [node name="ToolBellSilver" type="Node3D"]
 
 [node name="tool_bell_silver" parent="." instance=ExtResource("1_glb")]
+transform = Transform3D(0.75, 0, 0, 0, 0.75, 0, 0, 0, 0.75, 0, 0, 0)

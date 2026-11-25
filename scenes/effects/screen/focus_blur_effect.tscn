@@ -17,7 +17,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("script")
 Surface = NodePath("Surface")
-Intensity = 1.0
+Intensity = 0.5
 
 [node name="BackBufferCopy" type="BackBufferCopy" parent="."]
 copy_mode = 2

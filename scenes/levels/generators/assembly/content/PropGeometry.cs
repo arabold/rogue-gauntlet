@@ -13,6 +13,27 @@ public sealed class PropGeometry
 	/// <summary>Collision shapes of a mesh-library item, in prop-local space; empty for scenes.</summary>
 	public IReadOnlyList<(Shape3D Shape, Transform3D Transform)> Shapes { get; init; } = [];
 
+	/// <summary>
+	/// This shape without its rearmost <paramref name="depth"/>: the part a back-to-wall prop sinks into the wall
+	/// (<see cref="Prop.WallReach"/>), which neither spaces nor blocks anything since the wall already does.
+	/// </summary>
+	public PropGeometry WithoutBack(float depth)
+	{
+		if (depth <= 0) return this;
+		float back = Envelope.Position.Z + depth;
+		var solids = new List<Aabb>(Solids.Count);
+		foreach (var solid in Solids)
+			if (solid.End.Z > back) solids.Add(Clip(solid));
+		return new PropGeometry { Envelope = Clip(Envelope), Solids = solids, Shapes = Shapes };
+
+		Aabb Clip(Aabb box)
+		{
+			if (box.Position.Z >= back) return box;
+			var start = box.Position with { Z = back };
+			return new Aabb(start, box.End - start);
+		}
+	}
+
 	public static PropGeometry FromLibraryItem(MeshLibrary library, int item, Basis turn, bool blocking)
 	{
 		var mesh = library.GetItemMesh(item);

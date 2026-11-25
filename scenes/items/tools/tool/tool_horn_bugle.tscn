@@ -5,3 +5,4 @@
 [node name="ToolHornBugle" type="Node3D"]
 
 [node name="tool_horn_bugle" parent="." instance=ExtResource("1_glb")]
+transform = Transform3D(0.85, 0, 0, 0, 0.85, 0, 0, 0, 0.85, 0, 0, 0)

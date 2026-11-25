@@ -18,6 +18,7 @@ public partial class Prop : Placeable
 	private int _quarterTurns;
 	private bool _blocking = true;
 	private bool _emitsLight;
+	private float _wallReach;
 	private PropGeometry[] _geometry;
 
 	[ExportGroup("Model")]
@@ -35,6 +36,12 @@ public partial class Prop : Placeable
 	[Export] public PropMount Mount { get; set; }
 	/// <summary>Floor props whose back stands flush against a wall: beds, shelves, wall-side tables.</summary>
 	[Export] public bool BackToWall { get; set; }
+	/// <summary>
+	/// Back-to-wall props: how far the model runs on behind its back into the wall, as pipes do. Walls stand back from
+	/// their foot (the plinth reaches past the face above it), so a part that should meet the face must reach past the
+	/// back the prop stands on; measuring leaves it out, and placement lets it sink into the wall.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1,0.01")] public float WallReach { get => _wallReach; set { _wallReach = value; _geometry = null; } }
 	/// <summary>True for light-emitting fixtures (torches, sconces, braziers) that need inter-prop light spacing.</summary>
 	[Export]
 	public bool EmitsLight
@@ -72,9 +79,9 @@ public partial class Prop : Placeable
 	public PropGeometry Geometry(int variant)
 	{
 		_geometry ??= new PropGeometry[VariantCount];
-		return _geometry[variant] ??= Scenes.Length > 0
+		return _geometry[variant] ??= (Scenes.Length > 0
 			? PropGeometry.FromScene(Scenes[variant], Turn, Blocking)
-			: PropGeometry.FromLibraryItem(Library, Library.FindItemByName(Items[variant]), Turn, Blocking);
+			: PropGeometry.FromLibraryItem(Library, Library.FindItemByName(Items[variant]), Turn, Blocking)).WithoutBack(WallReach);
 	}
 
 	public override void Compose(RoomBlueprint room, RandomNumberGenerator rng, PlacementPlan plan, Transform3D at, bool optional)
@@ -103,6 +110,7 @@ public partial class Prop : Placeable
 			else errors.AddRange(Items.Where(item => Library.FindItemByName(item) < 0).Select(item => $"item '{item}' is not in {Library.ResourcePath}"));
 		}
 		if (Mount == PropMount.Wall && BackToWall) errors.Add("wall props are always mounted on a wall; clear BackToWall");
+		if (WallReach > 0 && !BackToWall) errors.Add("only back-to-wall props reach into a wall; clear WallReach");
 		if (Mount == PropMount.Wall && (TurnJitter > 0 || ShiftJitter > 0)) errors.Add("wall props hang flat on the wall; clear the jitter");
 		return errors.Select(error => $"Prop {Id}: {error}.").ToArray();
 	}
