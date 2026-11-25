@@ -18,6 +18,11 @@ public partial class PlayerInventoryController : Node
 	/// <summary>The level the player is in: runtime context, resolved from the tree on entry rather than authored.</summary>
 	public Level Level { get; private set; }
 	[Export] public PackedScene LootableItemScene { get; set; }
+	/// <summary>
+	/// Pulls loose loot within a pickup's magnet radius toward the player. Off, loot stays where it lies until the player
+	/// walks onto it; the debug menu's Hero tool switches it to stage pickups beside the hero.
+	/// </summary>
+	[Export] public bool AttractsLoot { get; set; } = true;
 
 	private readonly HashSet<InventoryItemSlot> _reservedSlots = new();
 	private ulong _itemUseGeneration = 0;

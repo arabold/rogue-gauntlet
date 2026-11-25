@@ -169,6 +169,29 @@ public class DebugToolkitTest
 	}
 
 	/// <summary>
+	/// With the Hero tool's loot magnet off, a pickup beside the hero stays where it lies, so loot can be staged and looked
+	/// at; switched back on, the hero pulls it in.
+	/// </summary>
+	[TestCase]
+	public async Task TheLootMagnetSwitchLeavesLootBesideTheHeroUntilSwitchedBackOn()
+	{
+		using var runner = TestFactories.LoadCombatHarness();
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		harness.Hero.SetLootMagnet(false);
+		var pickup = TestFactories.Pickup("res://scenes/items/potions/potion_healing_small.tres");
+		runner.Scene().AddChild(pickup);
+		pickup.GlobalPosition = harness.Player.GlobalPosition + Vector3.Right * 2;
+		Vector3 resting = pickup.GlobalPosition;
+
+		await runner.SimulateFrames(20, 20);
+		AssertBool(pickup.IsCollected).IsFalse();
+		AssertVector(pickup.GlobalPosition).IsEqual(resting);
+
+		harness.Hero.SetLootMagnet(true);
+		await TestFactories.AwaitPhysicsUntil(runner, () => pickup.IsCollected);
+	}
+
+	/// <summary>
 	/// The arena's spawn menu scatters monsters around the hero with room to move: each stands in view, within the tool's
 	/// radius, and at least its separation from the hero and from every other monster, copies of one spawn included.
 	/// </summary>
