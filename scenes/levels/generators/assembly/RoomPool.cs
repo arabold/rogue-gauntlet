@@ -4,8 +4,8 @@ using System.Linq;
 using Godot;
 
 /// <summary>
-/// Assembles every room or room-group from weighted <see cref="RoomDefinition"/>s: entrances and exits from their own
-/// pools (carrying stairs), every other slot from <see cref="Rooms"/>. Each definition gets its own seed from the
+/// Assembles every room or room-group from weighted <see cref="RoomDefinition"/>s: entrances, exits and trap gauntlets
+/// from their own pools, every other slot from <see cref="Rooms"/>. Each definition gets its own seed from the
 /// layout stream. The authored pool is the catalog of every realm's definitions; <see cref="ForRealm"/> narrows it to
 /// one theme and <see cref="ForFloor"/> to the rooms one floor's realm schedule offers.
 /// </summary>
@@ -19,18 +19,24 @@ public partial class RoomPool : Resource
 	[Export] public RoomDefinition[] Exits { get; set; } = [];
 	/// <summary>Weighted room definitions for every other slot: on the authored pool, every room that exists.</summary>
 	[Export] public RoomDefinition[] Rooms { get; set; } = [];
+	/// <summary>
+	/// Trap gauntlets, which only a group's gauntlet slot draws (<see cref="RoomPoolSlot.Gauntlet"/>), on the floors the
+	/// run schedules them (<see cref="GauntletProfile"/>). Kept apart from <see cref="Rooms"/>, which any layout may draw.
+	/// </summary>
+	[Export] public RoomDefinition[] Gauntlets { get; set; } = [];
 
 	/// <summary>The realm theme this view assembles for; null on the authored pool.</summary>
 	public string RealmId { get; private init; }
 	/// <summary>The floor whose realm schedule this view follows; null on views that offer every definition.</summary>
 	public RealmFloor Floor { get; private init; }
 
-	/// <summary>Every definition the pool assembles: ordinary rooms, then entrances, then exits.</summary>
-	public RoomDefinition[] AllDefinitions => [.. Rooms, .. Entrances, .. Exits];
+	/// <summary>Every definition the pool assembles: ordinary rooms, then entrances, exits and gauntlets.</summary>
+	public RoomDefinition[] AllDefinitions => [.. Rooms, .. Entrances, .. Exits, .. Gauntlets];
 
 	public RoomPool ForRealm(string realm) => new()
 	{
 		RealmId = realm, Entrances = In(Entrances, realm), Exits = In(Exits, realm), Rooms = In(Rooms, realm),
+		Gauntlets = In(Gauntlets, realm),
 	};
 
 	private static RoomDefinition[] In(RoomDefinition[] definitions, string realm) =>
@@ -38,12 +44,14 @@ public partial class RoomPool : Resource
 
 	/// <summary>
 	/// This view for one floor: the ordinary rooms its realm schedules there (all of this view's when the realm schedules
-	/// none), and the floor's say over which rooms a layout or room group may draw (<see cref="RealmFloor.Offers"/>).
+	/// none), the floor's say over which rooms a layout or room group may draw (<see cref="RealmFloor.Offers"/>), and
+	/// the one <paramref name="gauntlet"/> the run schedules there (none without).
 	/// </summary>
-	public RoomPool ForFloor(RealmFloor floor) => floor == null ? this : new()
+	public RoomPool ForFloor(RealmFloor floor, RoomDefinition gauntlet = null) => new()
 	{
 		RealmId = RealmId, Floor = floor, Entrances = Entrances, Exits = Exits,
-		Rooms = floor.IsScheduled ? [.. floor.Rooms] : Rooms,
+		Rooms = floor?.IsScheduled == true ? [.. floor.Rooms] : Rooms,
+		Gauntlets = gauntlet == null ? [] : [gauntlet],
 	};
 
 	/// <summary>Whether this view offers <paramref name="definition"/>: it suits the theme and its floor offers it.</summary>

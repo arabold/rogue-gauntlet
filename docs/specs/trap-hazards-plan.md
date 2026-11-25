@@ -1,6 +1,6 @@
 # Trap hazards and gauntlets
 
-Status: slices 1, 2 and 3a (wall spouts, pendulum blades, gauntlets and the gauntlet rooms) landed, described in [combat](../combat-system.md#trap-hazards); the rest is proposed. Adds visible, rhythmic hazards (wall spouts, pendulum blades, optionally timed spike strips) and arranges them into gauntlet rooms and corridor stretches the hero crosses with timing and dodges. The hidden spike plate ([`FloorTrap`](../../scenes/props/FloorTrap.cs), discovery in [dungeon exploration](../dungeon-exploration-design.md)) stays as it is.
+Status: slices 1 to 3b (wall spouts, pendulum blades, gauntlets, the gauntlet rooms and their placement before a few descents per run) landed, described in [combat](../combat-system.md#trap-hazards) and [level design](../level-design.md#trap-gauntlets); the rest is proposed. Adds visible, rhythmic hazards (wall spouts, pendulum blades, optionally timed spike strips) and arranges them into gauntlet rooms and corridor stretches the hero crosses with timing and dodges. The hidden spike plate ([`FloorTrap`](../../scenes/props/FloorTrap.cs), discovery in [dungeon exploration](../dungeon-exploration-design.md)) stays as it is.
 
 Current systems this builds on: [combat defense](../combat-system.md) (dodge immunity, guard, poise, threat tiers, attack indicators), [level design](../level-design.md) (room assembly, corridor styling, reachability, fog), [realm content](../realm-content.md) (room windows, headlines, motifs), [balance model](balance-model.md) (trap attrition), [room assembly authoring](../../scenes/levels/generators/assembly/README.md).
 
@@ -9,7 +9,7 @@ Current systems this builds on: [combat defense](../combat-system.md) (dodge imm
 ### Goals
 
 - **A puzzle you read, then execute.** Hazards are visible from the moment their tiles are explored and move on a fixed beat. The challenge is timing, not discovery; the spike plate remains the hidden threat.
-- **A perfect walk needs no dodge; a dodge buys back a mistake.** Every arrangement has a safe window at full walking speed (the hero's derived 6 m/s). Dodging (6 m in 0.15 s, two charges, 1.2 s recharge each) passes through blades and projectiles, so a misjudged entry can be rescued, but a gauntlet never demands more than two dodges inside one recharge.
+- **Patience crosses; a dodge buys back a mistake.** Every row has a safe window and the hero may stop between rows, so crossing never depends on walking speed, which bonuses and armor change. Dodging (6 m in 0.15 s, two charges, 1.2 s recharge each) passes through blades and projectiles, so a misjudged entry can be rescued, but a gauntlet never demands more than two dodges inside one recharge.
 - **Introduce, then combine.** Each realm teaches one hazard alone before mixing it with others or with monsters.
 - **Landmarks.** A pendulum hall or a row of gargoyle heads reads as a place, not as noise; hazards are rare set pieces, not floor clutter.
 
@@ -32,7 +32,7 @@ Every generated hazard belongs to a **gauntlet**, one arrangement with a shared 
 
 - **Unison:** all at once. The hero waits for one gap and crosses everything in it (introductory).
 - **Alternate:** odd and even rows half a period apart. The hero stops between rows.
-- **Wave:** each row lags the previous one by the time the hero needs to walk the row spacing at full speed: a green wave. Started at the right moment, a walk goes clean through; started wrong, it needs a dodge.
+- **Wave:** each row a quarter beat after the one before: a sweep rolls along the gauntlet, and the hero follows behind it row by row.
 
 Fairness rules the generator enforces, not just the author:
 
@@ -47,9 +47,9 @@ A gauntlet wakes when the hero stands within `ActivationRadius` (16 m) and any o
 
 ### Arrangements
 
-Gauntlets are never secret: they stand on the route the hero must take (choke points: the room or corridor between two parts of the floor), so crossing them is the challenge. Where generation puts them is its own task; slice 3 below names the seams, and the choke-point placement rule is settled in a later session.
+Gauntlets are never secret: they stand on the route the hero must take, so crossing them is the challenge. A run meets two or three gauntlet rooms, never the same one twice, each guarding a floor's descent ([level design](../level-design.md#trap-gauntlets)).
 
-**Gauntlet rooms (landed, not yet placed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a hazard row step (`CrossFireStep` or `PendulumRowsStep`), lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. They stay out of the room pool, so no floor places them yet; the room harness previews them and **Traps → Rooms** stages one in the combat arena to play.
+**Gauntlet rooms (landed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a hazard row step (`CrossFireStep` or `PendulumRowsStep`), lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. The pool keeps them in their own `Gauntlets` slot, which only the approach group draws, so no layout picks one as an ordinary room; the room harness previews them and **Traps → Rooms** stages one in the combat arena to play.
 
 | Room | Shape | Rows | Beat | Look |
 | --- | --- | --- | --- | --- |
@@ -166,21 +166,20 @@ public enum SpoutSides { Alternate, Both, Left, Right }
 
 - `PlacedPiece` carries an optional `HazardBeat`; the steps set it with `RoomBlueprint.AssignBeat`. A pendulum row is one placement plan, so it stands whole or not at all. `RoomBlueprint.EmitProps` puts beat pieces under one `TrapGauntlet` per room and tunes them before they enter the tree.
 - The step reserves each row's band (`RoomBlueprint.Reserve`), so later furniture never stands in a lane or under a blade. Hazards are non-blocking: walkability and navigation do not change.
-- Rooms time waves for the hero's derived walking speed (`TrapGauntlet.HeroWalkSpeed`); patterns share `TrapGauntlet.PhaseFor`.
+- Patterns stagger rows by fractions of the beat (`TrapGauntlet.PhaseFor`), never by a walking speed.
 - Periods come from the room step's stream; no new stream.
 
-Remaining for placement (slice 3b, a later session):
+Placement (slice 3b, landed): `GauntletProfile` deals a run's gauntlets from the pool's `Gauntlets` slot (`RoomPoolSlot.Gauntlet`); a gauntlet floor builds its descent from the `gauntlet_exit` group (`FloorBuildContext.Goal`) and draws only plans that `HoldsGauntlets`; `GeneratedFloor` collects gauntlets in `FreezeDecorations()` and counts their rooms' tiles as occupied. Remaining:
 
 ```csharp
 /// <summary>Corridor step: the same rows on straight spans.</summary>
 [GlobalClass] public partial class CorridorHazardStep : CorridorStep { /* Layout, Pattern, PeriodRange, MinimumSpan */ }
 ```
 
-- Gauntlet rooms and corridors placed at choke points on the required route; realm schedules and windows.
+- Corridor gauntlets on the required route; gauntlets themed for the Sewer and the Mines.
 - `CorridorBlueprint` carries beats and emits gauntlets as rooms do.
-- `GeneratedFloor` collects gauntlets in `FreezeDecorations()` and records the tiles their `DangerBounds` touch. `IsOccupiedNow` rejects them, which covers spawns, loose loot and floor traps through `OpenTileCandidates`; chest placement (`GetSolidPropTiles`) and teleport targets skip them too.
+- Corridor gauntlets have no room, so they need their danger tiles recorded instead (`DangerBounds`, measured once physics knows the walls).
 - `MapGenerator.RemoveWallPropsOffMounts` drops wall props whose wall a corridor replaced; a removed spout leaves a row empty, so placement must keep spout walls or drop the whole row.
-- Bump `SaveGame.CurrentVersion` once floors place gauntlets.
 
 ### Call order
 
@@ -237,16 +236,17 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
 
 - **`TrapTool`** (debug menu **Traps**, landed) lists the hazard scenes in `scenes/props/traps/` and stages 1, 3 or 5 rows ahead of the hero, two tiles apart, on a Unison, Alternate or Wave beat, in the arena or on a floor. A wall spout hangs on the first wall beside the path, or on a stand-in wall in open space. New hazard scenes show up without code changes.
 - **`TrapHazardTest`** (runtime, fixed delta, outcomes only): a hero standing in a spout lane takes one hit per shot; a dodge timed through the shot is `Dodged`; a raised shield blocks a dart; a pendulum hits a standing hero once per pass and pushes them along the swing; a hero outside the arc is never hit; an asleep gauntlet (hero far, tiles unexplored) fires nothing; monsters in a lane take no damage and stop darts.
-- **`GeneratedFloorSweepTest`:** on the sweep floors, no spawn, loot or floor trap stands on a hazard tile, every doorway stays reachable, no lane or arc covers a doorway or threshold, and pendulum blades stay inside their walls.
+- **`GauntletPlacementTest`** (landed): over 200 runs, two or three gauntlets on ordinary floors, never repeated, each suiting its realm; on generated Garrison and Prison gauntlet floors the gauntlet stands between the arrival and the descent and holds no spawns, loot or traps.
 - **`GauntletRoomTest`** (landed): every room in the gauntlet folder, over three seeds, puts its hazards under one gauntlet in at least two full-width rows; spouts hang on side walls firing straight across; blades never swing into a wall or a neighbour; no blocking furniture stands in a row. A room staged in the arena wakes its gauntlet for the hero at its entrance.
 - Visual checks: a GIF of each hazard in the arena (`record_gif.sh`), and `render_level_topdown.gd` for a floor with gauntlets.
 
 ## Slices
 
 1. **Wall spouts and gauntlets (landed).** `TrapGauntlet`, `TrapHazard`, `WallSpout`, `TrapDamage`, a dart spout (the crossbow bolt) and a fireball spout (the fireball spell's projectile) with primitive placeholder mounts, `TrapTool`, `TrapHazardTest`. Exercisable in the arena; nothing generates yet. Playtest note: at game zoom the dart is hard to see in flight, so its lane warning carries the read; the art slice should give it a bigger silhouette or a trail.
-2. **Pendulum blade (landed).** `PendulumBlade`, the rod fade shader, a crescent placeholder blade (CSG), tests for the cut, push and dodge-through. A hero walking a five-row wave one tile apart at full speed, started on the beat, crosses untouched. For slice 3: the crescent is 1.6 m wide, so a 4 m corridor cannot keep the middle safe at both extremes; corridors need a narrower swing (the blade fitted to the measured walls) or a narrower blade, and the hero passes on the side the blade is not.
+2. **Pendulum blade (landed).** `PendulumBlade`, the rod fade shader, a crescent placeholder blade (CSG), tests for the cut, push and dodge-through. For slice 3: the crescent is 1.6 m wide, so a 4 m corridor cannot keep the middle safe at both extremes; corridors need a narrower swing (the blade fitted to the measured walls) or a narrower blade, and the hero passes on the side the blade is not.
 3. **Gauntlet rooms (3a, landed).** `HazardBeat` on placed pieces, `CrossFireStep` and `PendulumRowsStep`, the four room types, the harness listing and **Traps → Rooms**, `GauntletRoomTest`. Playable in the arena; no floor places them.
-   **Placement (3b, later).** Choke-point placement of rooms and `CorridorHazardStep` spans, hazard tiles in `GeneratedFloor`, realm schedules, save version bump, sweep tests. First gauntlets in real floors.
+   **Placement (3b, landed).** The run's gauntlet schedule, the approach group before the descent, gauntlet rooms kept free of spawns and loot, save version bump, `GauntletPlacementTest`.
+   **Corridor gauntlets (3c, later).** `CorridorHazardStep` spans with recorded danger tiles.
 4. **Art** (Asset Studio, pipeline-only PRs per the asset skill): slit plate, gargoyle head, pendulum blade and rod, replacing the placeholders without touching gameplay data.
 5. **Balance.** `HAZARDS` in the model (damage shares, gauntlets per floor, expected hits), `derive` writes the scenes' `Damage`/`DamagePerDepth`, `simulate` counts gauntlet attrition, `content.py` audits it.
 6. **Optional:** spike strips; the reward seam for vault gauntlets; acid pipes for the Sewer.

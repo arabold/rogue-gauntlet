@@ -35,8 +35,8 @@ public abstract partial class RoomLayoutStrategy : Resource
 	}
 
 	protected static RoomCluster CreateGoal(FloorBuildContext context, RoomAssemblyOptions options) =>
-		context.Profile?.GoalOverride != null
-			? context.Pool.CreateFrom(context.Profile.GoalOverride, context.Rng, options)
+		context.Goal != null
+			? context.Pool.CreateFrom(context.Goal, context.Rng, options)
 			: context.Pool.CreateExit(context.Rng, options);
 
 	/// <summary>

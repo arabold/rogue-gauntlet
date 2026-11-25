@@ -5,6 +5,8 @@ public enum RoomPoolSlot
 	Standard,
 	Entrance,
 	Exit,
+	/// <summary>The trap gauntlet the run schedules on the floor (<see cref="RoomPool.Gauntlets"/>).</summary>
+	Gauntlet,
 }
 
 /// <summary>

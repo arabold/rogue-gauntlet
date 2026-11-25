@@ -8,7 +8,7 @@ public enum HazardPattern
 	Unison,
 	/// <summary>Every other row half a period later: the hero stops between rows.</summary>
 	Alternate,
-	/// <summary>Each row later by the walk from the first row: started right, one walk goes clean through.</summary>
+	/// <summary>Each row a quarter beat after the one before: a sweep rolls along the gauntlet for the hero to follow.</summary>
 	Wave
 }
 
@@ -21,9 +21,9 @@ public enum HazardPattern
 [GlobalClass]
 public partial class TrapGauntlet : Node3D
 {
-	/// <summary>The hero's walking speed, which waves are timed for when no hero is at hand (generation). It is derived
-	/// from the hero's stats, not tuned here.</summary>
-	public const float HeroWalkSpeed = 6f;
+	/// <summary>How far through the beat each row of a wave lags the row before it. Heroes walk at different speeds, and
+	/// a gauntlet is crossed row by row, pausing between them, so no pattern is timed for a walk.</summary>
+	private const float WaveLag = .25f;
 
 	/// <summary>Horizontal distance from the hero to the hazards' danger at which the gauntlet wakes; more than the
 	/// camera shows, so asleep hazards are out of view.</summary>
@@ -58,13 +58,13 @@ public partial class TrapGauntlet : Node3D
 	}
 
 	/// <summary>
-	/// The phase of the <paramref name="row"/>-th row met along a path, <paramref name="distance"/> metres past the first
-	/// row: Unison 0, Alternate half a period for every other row, Wave late by the walk there at <paramref name="walkSpeed"/>.
+	/// The phase of the <paramref name="row"/>-th row of a gauntlet: Unison 0, Alternate half a beat for every other row,
+	/// Wave a quarter beat later for each row.
 	/// </summary>
-	public static float PhaseFor(HazardPattern pattern, int row, float distance, float period, float walkSpeed) => pattern switch
+	public static float PhaseFor(HazardPattern pattern, int row) => pattern switch
 	{
 		HazardPattern.Alternate => row % 2 * .5f,
-		HazardPattern.Wave => Mathf.PosMod(-distance / walkSpeed / period, 1f),
+		HazardPattern.Wave => Mathf.PosMod(-row * WaveLag, 1f),
 		_ => 0f
 	};
 

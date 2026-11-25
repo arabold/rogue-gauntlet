@@ -55,10 +55,16 @@ public partial class Realm : Resource
 
 	/// <summary>
 	/// One of the <see cref="FloorPlans"/> open on realm floor <paramref name="floor"/>, by weight, drawing once from
-	/// <paramref name="rng"/>; null without plans.
+	/// <paramref name="rng"/>; only plans that hold a trap gauntlet when the floor has one; null without plans.
 	/// </summary>
-	public FloorProfile PickFloorPlan(RandomNumberGenerator rng, int floor) =>
-		Weighted.Pick(FloorPlans, plan => plan.Profile != null && plan.Spans(floor) ? plan.Weight : 0, rng)?.Profile;
+	public FloorProfile PickFloorPlan(RandomNumberGenerator rng, int floor, bool gauntlet = false) =>
+		Weighted.Pick(FloorPlans, plan => Opens(plan, floor, gauntlet) ? plan.Weight : 0, rng)?.Profile;
+
+	/// <summary>Whether a plan open on realm floor <paramref name="floor"/> holds a trap gauntlet.</summary>
+	public bool HoldsGauntletOn(int floor) => FloorPlans.Any(plan => Opens(plan, floor, gauntlet: true));
+
+	private static bool Opens(FloorPlanChoice plan, int floor, bool gauntlet) =>
+		plan.Profile != null && plan.Spans(floor) && (!gauntlet || plan.Profile.HoldsGauntlets);
 
 	/// <summary>The shops standing on <paramref name="depth"/>; none below the realm's band, where the deepest realm carries on.</summary>
 	public IEnumerable<ShopPlacementProfile> ShopsAt(uint depth) =>

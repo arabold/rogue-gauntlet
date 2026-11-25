@@ -78,7 +78,7 @@ public partial class TrapTool : DebugTool
 
 	/// <summary>
 	/// Stages one gauntlet of <paramref name="hazard"/>, a hazard prop, ahead of the hero and returns it; null without a
-	/// hero, a world or a hazard scene. Rows are timed for the hero's current walking speed.
+	/// hero, a world or a hazard scene.
 	/// </summary>
 	public TrapGauntlet Stage(Prop hazard)
 	{
@@ -94,7 +94,7 @@ public partial class TrapTool : DebugTool
 		{
 			Vector3 center = forward * (FirstRowDistance + row * RowSpacing);
 			var node = scene.Instantiate<TrapHazard>();
-			node.Tune(new HazardBeat(Period, TrapGauntlet.PhaseFor(Pattern, row, row * RowSpacing, Period, player.Stats.Speed)));
+			node.Tune(new HazardBeat(Period, TrapGauntlet.PhaseFor(Pattern, row)));
 			gauntlet.AddChild(node);
 			if (hazard.Mount == PropMount.Wall) HangBesidePath(gauntlet, node, center + Vector3.Up * hazard.MountHeight, right, space, origin);
 			else node.Transform = new Transform3D(Basis.LookingAt(forward), center);

@@ -1,14 +1,19 @@
 using System.Collections.Generic;
 using Godot;
 
-/// <summary>Inputs provided to a <see cref="RoomLayoutStrategy"/> for a single floor generation attempt.</summary>
+/// <summary>
+/// Inputs provided to a <see cref="RoomLayoutStrategy"/> for a single floor generation attempt. <see cref="Goal"/> is
+/// what the descent builds from instead of a plain exit: the plan's own goal or the approach through the floor's trap
+/// gauntlet; null for a plain exit.
+/// </summary>
 public sealed record FloorBuildContext(
 	RoomPool Pool,
 	FloorProfile Profile,
 	EncounterPlan Encounter,
 	uint MaxRooms,
 	RandomNumberGenerator Rng,
-	HeadlineSlot Headline = null);
+	HeadlineSlot Headline = null,
+	RoomDefinition Goal = null);
 
 /// <summary>
 /// The floor's headline room (<see cref="RealmFloor.Headline"/>) for one layout attempt: layouts draw it before their

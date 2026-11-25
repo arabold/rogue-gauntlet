@@ -26,6 +26,9 @@ public partial class FloorProfile : Resource
 	[Export(PropertyHint.Range, "-1,1,0.05")] public float DoorChanceOverride { get; set; } = -1f;
 	/// <summary>Optional goal definition (e.g. a boss+exit <see cref="RoomGroup"/>) replacing <see cref="RoomPool.Exits"/> on this floor.</summary>
 	[Export] public RoomDefinition GoalOverride { get; set; }
+	/// <summary>Whether the descent may stand behind a trap gauntlet (<see cref="GauntletProfile"/>); plans framed tightly
+	/// around a centerpiece have no room for the long approach.</summary>
+	[Export] public bool HoldsGauntlets { get; set; } = true;
 
 	[ExportGroup("Placement")]
 	/// <summary>Selection weight multiplier applied to dead-end corridor tiles for loose items, chests, and keys.</summary>

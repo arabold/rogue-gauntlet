@@ -23,7 +23,7 @@ The **Debug** button in the gameplay HUD (debug builds only) has one submenu per
 
 ## Room generation
 
-The scene instances the production level and lists its generator's realms; it keeps no catalog of its own. The **Realm** picker selects a realm: the room pool's types tagged for it, then the entrance and exit and the other rooms the realm schedules, then room groups and every other room type under `room_types/` (such as the trap gauntlet rooms, designed here before any floor places them), form the recipe list, and the style pickers list only that realm's styles; the floor view generates that realm's first depth, with its rooms and corridors.
+The scene instances the production level and lists its generator's realms; it keeps no catalog of its own. The **Realm** picker selects a realm: the room pool's types tagged for it, then the entrance and exit and the other rooms the realm schedules, then room groups and every other room type under `room_types/`, form the recipe list, and the style pickers list only that realm's styles; the floor view generates that realm's first depth, with its rooms and corridors.
 
 
 - **Single room:** select a recipe and seed, rotate in quarter-turns and toggle furnishings. The **Motifs** picker furnishes as a floor carrying every motif (the default), none, or one of the realm's motifs. Room types expose every axis as an override — Shape, Walls, Floor and Columns (type chance, off, or a specific pattern) — and run the production `RoomAssembler` with them. The **Walkability overlay** colours standable floor: green is reachable from the doorways, blue is reserved circulation or a stair landing, red is an inaccessible pocket. Overrides never change production Resources.

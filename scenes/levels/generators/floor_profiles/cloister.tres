@@ -27,5 +27,6 @@ script = ExtResource("profile")
 Layout = SubResource("CourtyardRoomLayout")
 Connector = SubResource("AStarCorridorConnector")
 Access = ExtResource("access")
+HoldsGauntlets = false
 RoomCount = 16
 MapSize = Vector2i(32, 32)

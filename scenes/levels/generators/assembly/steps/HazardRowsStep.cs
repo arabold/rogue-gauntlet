@@ -30,14 +30,12 @@ public abstract partial class HazardRowsStep : FurnishingStep
 	{
 		var footprint = room.Footprint;
 		float period = rng.RandfRange(PeriodRange.X, PeriodRange.Y);
-		int placed = 0, first = -1;
+		int placed = 0;
 		for (int row = EndMargin; row < footprint.Length - EndMargin && placed < MaximumCount; row += RowSpacing)
 		{
 			var columns = Enumerable.Range(0, footprint.Width).Where(column => footprint.IsFloor(column, row)).ToArray();
 			if (columns.Length == 0) continue;
-			if (first < 0) first = row;
-			float phase = TrapGauntlet.PhaseFor(Pattern, placed, (row - first) * Room.TileSize, period, TrapGauntlet.HeroWalkSpeed);
-			if (!LayRow(room, rng, row, columns, placed, new HazardBeat(period, phase))) continue;
+			if (!LayRow(room, rng, row, columns, placed, new HazardBeat(period, TrapGauntlet.PhaseFor(Pattern, placed)))) continue;
 			float z = RoomFootprint.TileCenter(new Vector2I(0, row)).Z;
 			room.Reserve(new Rect2(room.Interior.Position.X, z - RowBand / 2, room.Interior.Size.X, RowBand));
 			placed++;
