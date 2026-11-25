@@ -169,7 +169,7 @@ public enum SpoutSides { Alternate, Both, Left, Right }
 - Patterns stagger rows by fractions of the beat (`TrapGauntlet.PhaseFor`), never by a walking speed.
 - Periods come from the room step's stream; no new stream.
 
-Placement (slice 3b, landed): `GauntletProfile` deals a run's gauntlets from the pool's `Gauntlets` slot (`RoomPoolSlot.Gauntlet`); a gauntlet floor builds its descent from the `gauntlet_exit` group (`FloorBuildContext.Goal`) and draws only plans that `HoldsGauntlets`; `GeneratedFloor` collects gauntlets in `FreezeDecorations()` and counts their rooms' tiles as occupied. Remaining:
+Placement (slice 3b, landed): `GauntletProfile` deals a run's gauntlets from the pool's `Gauntlets` slot (`RoomPoolSlot.Gauntlet`); a gauntlet floor builds its descent from the `gauntlet_exit` group (`FloorBuildContext.Goal`) and draws only plans whose layout `HoldsGauntlets`; `GeneratedFloor` counts the tiles of the group's gauntlet slot as occupied. Remaining:
 
 ```csharp
 /// <summary>Corridor step: the same rows on straight spans.</summary>

@@ -31,8 +31,7 @@ public sealed class GeneratedFloor
 	private bool[] _reachable;
 	private readonly Dictionary<string, (Door Door, DoorAccessSaveData Baseline)> _doorBaselines = new();
 	private List<FloorTrap> _traps;
-	private List<TrapGauntlet> _gauntlets = [];
-	/// <summary>The tiles of every room holding a trap gauntlet, kept free of spawns and loot.</summary>
+	/// <summary>The tiles of every trap gauntlet room, kept free of spawns and loot.</summary>
 	private readonly HashSet<Vector2I> _gauntletTiles = [];
 	private HashSet<Vector2I> _decoratedTiles;
 	private readonly HashSet<Vector2I> _propTiles = new();
@@ -76,8 +75,8 @@ public sealed class GeneratedFloor
 	public IReadOnlyDictionary<string, (Door Door, DoorAccessSaveData Baseline)> DoorBaselines => _doorBaselines;
 	/// <summary>Authored and generated floor traps, collected when the floor freezes.</summary>
 	public IReadOnlyList<FloorTrap> Traps => _traps ?? [];
-	/// <summary>The floor's trap gauntlets, collected once rooms and corridors are decorated.</summary>
-	public IReadOnlyList<TrapGauntlet> Gauntlets => _gauntlets;
+	/// <summary>The slot of the trap gauntlet room in its approach group (<c>gauntlet_exit.tres</c>).</summary>
+	public const string GauntletSlot = "gauntlet";
 	/// <summary>World XZ outlines of the solid wall pieces, from their mesh footprints rather than collision hulls: a corner
 	/// counts as its two arms, so a room's inner corner stays open. Set once the walls are final.</summary>
 	public IReadOnlyList<Vector2[]> SolidWalls { get; internal set; } = [];
@@ -188,15 +187,13 @@ public sealed class GeneratedFloor
 	}
 
 	/// <summary>
-	/// Caches decorated tiles once rooms and corridors have finished adding GridMap decorations, and collects the trap
-	/// gauntlets with their rooms' tiles.
+	/// Caches decorated tiles once rooms and corridors have finished adding GridMap decorations, and the trap gauntlet
+	/// rooms' tiles.
 	/// </summary>
 	internal void FreezeDecorations()
 	{
 		if (_decoratedTiles != null) return;
-		_gauntlets = _world.FindChildren("*", "", true, false).OfType<TrapGauntlet>().ToList();
-		foreach (var gauntlet in _gauntlets)
-			if (gauntlet.GetAncestorOrNull<Room>()?.RegionId is int roomId and >= 0) _gauntletTiles.UnionWith(_rooms[roomId].Tiles);
+		foreach (var room in _rooms.Where(room => room.SlotId == GauntletSlot)) _gauntletTiles.UnionWith(room.Tiles);
 		var decorated = new HashSet<Vector2I>();
 		int half = Room.TileSize / 2;
 		foreach (Vector3I cell in _decoration.GetUsedCells())

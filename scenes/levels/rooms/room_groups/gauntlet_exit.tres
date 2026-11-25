@@ -31,7 +31,6 @@ metadata/_custom_type_script = ExtResource("2_RoomGroupMem")
 script = ExtResource("1_RoomGroup")
 Id = "gauntlet_exit"
 Weight = 1.0
-Realms = PackedStringArray("garrison", "sewer", "jungle")
 Members = [SubResource("RoomGroupMember_gauntlet"), SubResource("RoomGroupMember_exit")]
 Attempts = 8
 metadata/_custom_type_script = ExtResource("1_RoomGroup")

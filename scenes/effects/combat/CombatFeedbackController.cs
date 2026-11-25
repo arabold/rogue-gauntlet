@@ -8,11 +8,9 @@ public partial class CombatFeedbackController : Node
 	[Export] public Node3D Actor { get; set; }
 	[Export] public HurtBoxComponent HurtBox { get; set; }
 	[Export] public MovementComponent Movement { get; set; }
-	[Export] public ImpactSurfaceProfile SurfaceProfile { get; set; }
 	[Export] public SurfaceAppearanceController SurfaceAppearance { get; set; }
 	[Export] public CombatVisualMotionComponent VisualMotion { get; set; }
 	[Export] public InvisibilityComponent Invisibility { get; set; }
-	[Export] public CombatFeedbackProfile FallbackProfile { get; set; }
 	[Export]
 	public bool Enabled
 	{
@@ -27,8 +25,6 @@ public partial class CombatFeedbackController : Node
 			GD.PushError($"{Name}: assign Actor and HurtBox to enable combat feedback.");
 			return;
 		}
-		if (SurfaceProfile == null) SurfaceProfile = HurtBox.ImpactSurface;
-		if (FallbackProfile != null && HurtBox.FeedbackProfile == null) HurtBox.FeedbackProfile = FallbackProfile;
 		this.SubscribeUntilExit(HurtBox, h => h.ContactResolved += OnTargetContact, h => h.ContactResolved -= OnTargetContact);
 		this.SubscribeUntilExit(SignalBus.Instance,
 			_ => SignalBus.CombatContactResolved += OnWorldContact,
@@ -68,7 +64,7 @@ public partial class CombatFeedbackController : Node
 			if (CombatTrace.Enabled) CombatTrace.Write(this, "effect.hit_flash", ("outcome", feedback.Outcome.ToString()),
 				("amount", flashAmount), ("duration", settings.FlashDuration),
 				("triggered", flashTriggered));
-			PlayParticles(SurfaceProfile?.DamageParticles ?? HurtBox.HitEffect, feedback.Position,
+			PlayParticles(HurtBox.ImpactSurface?.DamageParticles ?? HurtBox.HitEffect, feedback.Position,
 				feedback.IncomingDirection, "damage", feedback.Outcome);
 			if (feedback.Reaction == HitReaction.Flinch)
 			{
@@ -82,9 +78,9 @@ public partial class CombatFeedbackController : Node
 
 		PackedScene particles = feedback.Outcome switch
 		{
-			DamageOutcome.Blocked or DamageOutcome.GuardBroken => SurfaceProfile?.GuardParticles,
-			DamageOutcome.Parried => SurfaceProfile?.ParryParticles,
-			DamageOutcome.Absorbed => SurfaceProfile?.GuardParticles,
+			DamageOutcome.Blocked or DamageOutcome.GuardBroken => HurtBox.ImpactSurface?.GuardParticles,
+			DamageOutcome.Parried => HurtBox.ImpactSurface?.ParryParticles,
+			DamageOutcome.Absorbed => HurtBox.ImpactSurface?.GuardParticles,
 			_ => null
 		};
 		PlayParticles(particles, feedback.Position, feedback.IncomingDirection,

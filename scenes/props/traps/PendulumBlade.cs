@@ -101,7 +101,7 @@ public partial class PendulumBlade : TrapHazard
 		{
 			if (Edge.GetCollider(index) is not HurtBoxComponent hurtBox || !_struck.Add(hurtBox.GetInstanceId())) continue;
 			var (away, offset) = OffPath(hurtBox.GlobalPosition);
-			float push = hurtBox.MovementComponent?.PushStrengthFor(Mathf.Max(Clearance - offset, 0)) ?? 0;
+			float push = hurtBox.MovementComponent?.PushStrengthFor(Clearance - offset) ?? 0;
 			var contact = new DamageContext
 			{
 				ExecutionId = new AttackIdentity(GetInstanceId(), unchecked((ulong)swing)),

@@ -165,9 +165,10 @@ public partial class TrapHazardTest
 		await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(blade.Arm.Rotation.Z) < Mathf.DegToRad(2), 2);
 		PlaceAt(hero, blade.GlobalPosition - across * .2f);
 		await TestFactories.AwaitPhysicsUntil(runner, () => outcomes.Count > 0, 1);
-		await TestFactories.AwaitPhysicsSeconds(runner, 2 * 1.6f);
+		await TestFactories.AwaitPhysicsUntil(runner, () => (hero.GlobalPosition - blade.GlobalPosition).Dot(across) < -blade.Clearance + .1f, 1.5f);
+		// The blade sweeps its path every half period: one more pass misses the hero it pushed out.
+		await TestFactories.AwaitPhysicsSeconds(runner, 1f);
 		AssertThat(outcomes).ContainsExactly(DamageOutcome.Damaged);
-		AssertFloat((hero.GlobalPosition - blade.GlobalPosition).Dot(across)).IsLess(-blade.Clearance + .1f);
 	}
 
 	[TestCase]

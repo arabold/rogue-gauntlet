@@ -64,7 +64,7 @@ public partial class Realm : Resource
 	public bool HoldsGauntletOn(int floor) => FloorPlans.Any(plan => Opens(plan, floor, gauntlet: true));
 
 	private static bool Opens(FloorPlanChoice plan, int floor, bool gauntlet) =>
-		plan.Profile != null && plan.Spans(floor) && (!gauntlet || plan.Profile.HoldsGauntlets);
+		plan.Profile != null && plan.Spans(floor) && (!gauntlet || plan.Profile.Layout?.HoldsGauntlets == true);
 
 	/// <summary>The shops standing on <paramref name="depth"/>; none below the realm's band, where the deepest realm carries on.</summary>
 	public IEnumerable<ShopPlacementProfile> ShopsAt(uint depth) =>

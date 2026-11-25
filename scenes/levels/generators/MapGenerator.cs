@@ -155,7 +155,7 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var headline = CurrentRealmFloor?.Headline;
-		var goal = GoalFor(GenerationAttempt);
+		var goal = AttemptGoal();
 		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, RoomBudget, _random.Layout, new HeadlineSlot(headline), goal);
 		var plan = CurrentProfile.Layout.GenerateLayout(Map, context);
 		if (headline != null && !plan.Placements.Any(placed => (placed.Cluster.Definition ?? placed.Cluster.PrimaryRoom?.Type) == headline))

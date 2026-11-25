@@ -389,9 +389,6 @@ Movement = NodePath("../MovementComponent")
 AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
 NaturalLocomotionSpeed = 1.8
 
-[node name="CombatFeedbackController" parent="."]
-SurfaceProfile = ExtResource("goo")
-
 [node name="MovementEffectsComponent" parent="."]
 Profile = ExtResource("movement_profile")
 

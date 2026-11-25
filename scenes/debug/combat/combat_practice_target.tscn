@@ -78,6 +78,7 @@ MovementComponent = NodePath("../MovementComponent")
 Poise = NodePath("../PoiseComponent")
 DamageFilter = 31
 ImpactSurface = ExtResource("surface_profile")
+FeedbackProfile = ExtResource("feedback_profile")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent"]
 shape = SubResource("shape")
@@ -116,4 +117,3 @@ Actor = NodePath("..")
 HurtBox = NodePath("../HurtBoxComponent")
 Movement = NodePath("../MovementComponent")
 VisualMotion = NodePath("../CombatVisualMotion")
-FallbackProfile = ExtResource("feedback_profile")

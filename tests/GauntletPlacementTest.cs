@@ -14,38 +14,50 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class GauntletPlacementTest
 {
-	[TestCase]
-	public async Task ARunMeetsAFewGauntletsWithoutRepeatsOnOrdinaryFloors()
-	{
-		var (runner, level) = await TestFactories.GenerateLevel(1, 1);
-		using var scope = runner;
-		var map = level.MapGenerator;
-		var failures = new List<string>();
-		var met = new HashSet<RoomDefinition>();
-		for (ulong runSeed = 1; runSeed <= 200; runSeed++)
-		{
-			map.RunSeed = runSeed;
-			var schedule = map.GauntletSchedule();
-			met.UnionWith(schedule.Select(entry => entry.Room));
-			if (schedule.Count < map.Gauntlets.MinPerRun || schedule.Count > map.Gauntlets.MaxPerRun)
-				failures.Add($"run {runSeed}: {schedule.Count} gauntlets");
-			if (schedule.Select(entry => entry.Room).Distinct().Count() != schedule.Count) failures.Add($"run {runSeed}: a gauntlet repeats");
-			if (schedule.Select(entry => entry.Depth).Distinct().Count() != schedule.Count) failures.Add($"run {runSeed}: two gauntlets share a floor");
-			foreach (var (depth, room) in schedule)
-			{
-				var realm = map.Realms.First(realm => realm.Covers(depth));
-				bool gatekeeper = map.MobFactory.PlanEncounters(depth)?.GatekeeperId != null;
-				bool ordinary = !gatekeeper && !realm.ShopsAt(depth).Any();
-				bool labyrinth = UniqueFloorPlan.At(map.UniqueFloorPlans, runSeed, depth,
-					floor => map.MobFactory.PlanEncounters(floor)?.GatekeeperId == null && !map.Realms.First(r => r.Covers(floor)).ShopsAt(floor).Any()) != null;
-				if (depth < 2 || !ordinary || labyrinth) failures.Add($"run {runSeed}: {room.Id} on special floor {depth}");
-				if (!room.SupportsRealm(realm.Theme)) failures.Add($"run {runSeed}: {room.Id} does not suit {realm.Id} at depth {depth}");
-			}
-			if (!map.GauntletSchedule().SequenceEqual(schedule)) failures.Add($"run {runSeed}: schedule is not repeatable");
-		}
+	private const string LevelScene = "res://scenes/levels/level.tscn";
 
-		AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures.Take(20))).IsEmpty();
-		AssertBool(met.SetEquals(map.Rooms.Gauntlets)).OverrideFailureMessage($"runs met only {string.Join(", ", met.Select(room => room.Id))}").IsTrue();
+	/// <summary>
+	/// The shipped level outside the tree, so nothing generates: the run schedules are plain computation over its
+	/// generator's resources.
+	/// </summary>
+	private static Level UnplacedLevel() => TestFactories.Load<PackedScene>(LevelScene).Instantiate<Level>();
+
+	[TestCase]
+	public void ARunMeetsAFewGauntletsWithoutRepeatsOnOrdinaryFloors()
+	{
+		var level = UnplacedLevel();
+		try
+		{
+			var map = level.MapGenerator;
+			Realm RealmAt(uint depth) => map.Realms.First(realm => realm.Covers(depth));
+			bool Ordinary(uint depth) => map.MobFactory.PlanEncounters(depth)?.GatekeeperId == null && !RealmAt(depth).ShopsAt(depth).Any();
+			var failures = new List<string>();
+			var met = new HashSet<RoomDefinition>();
+			for (ulong runSeed = 1; runSeed <= 200; runSeed++)
+			{
+				map.RunSeed = runSeed;
+				var schedule = map.GauntletSchedule();
+				met.UnionWith(schedule.Select(entry => entry.Room));
+				if (schedule.Count < map.Gauntlets.MinPerRun || schedule.Count > map.Gauntlets.MaxPerRun)
+					failures.Add($"run {runSeed}: {schedule.Count} gauntlets");
+				if (schedule.Select(entry => entry.Room).Distinct().Count() != schedule.Count) failures.Add($"run {runSeed}: a gauntlet repeats");
+				if (schedule.Select(entry => entry.Depth).Distinct().Count() != schedule.Count) failures.Add($"run {runSeed}: two gauntlets share a floor");
+				var unique = UniqueFloorPlan.Schedule(map.UniqueFloorPlans, runSeed, Ordinary);
+				foreach (var (depth, room) in schedule)
+				{
+					if (depth < 2 || !Ordinary(depth) || unique.ContainsKey(depth)) failures.Add($"run {runSeed}: {room.Id} on special floor {depth}");
+					if (!room.SupportsRealm(RealmAt(depth).Theme)) failures.Add($"run {runSeed}: {room.Id} does not suit depth {depth}");
+				}
+				if (!map.GauntletSchedule().SequenceEqual(schedule)) failures.Add($"run {runSeed}: schedule is not repeatable");
+			}
+
+			AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures.Take(20))).IsEmpty();
+			AssertBool(met.SetEquals(map.Rooms.Gauntlets)).OverrideFailureMessage($"runs met only {string.Join(", ", met.Select(room => room.Id))}").IsTrue();
+		}
+		finally
+		{
+			level.Free();
+		}
 	}
 
 	/// <summary>
@@ -55,41 +67,55 @@ public class GauntletPlacementTest
 	[TestCase]
 	public async Task AScheduledGauntletGuardsTheDescentAndHoldsNothingElse()
 	{
-		var (runner, level) = await TestFactories.GenerateLevel(1, 1);
+		var floors = new List<(ulong RunSeed, uint Depth, RoomDefinition Room)>();
+		var unplaced = UnplacedLevel();
+		try
+		{
+			var schedules = Enumerable.Range(1, 60).Select(seed => (ulong)seed).SelectMany(seed =>
+			{
+				unplaced.MapGenerator.RunSeed = seed;
+				return unplaced.MapGenerator.GauntletSchedule().Select(entry => (seed, entry.Depth, entry.Room));
+			}).ToList();
+			foreach (var realm in unplaced.MapGenerator.Realms)
+				if (schedules.FirstOrDefault(entry => realm.Covers(entry.Depth)) is { Room: not null } entry) floors.Add(entry);
+		}
+		finally
+		{
+			unplaced.Free();
+		}
+
+		AssertInt(floors.Count).OverrideFailureMessage("some realm schedules gauntlets").IsGreater(0);
+		var (runner, level) = await TestFactories.GenerateLevel(floors[0].RunSeed, floors[0].Depth);
 		using var scope = runner;
 		var map = level.MapGenerator;
-		var floors = new List<(ulong RunSeed, uint Depth, RoomDefinition Room)>();
-		var schedules = Enumerable.Range(1, 60).Select(seed => (ulong)seed)
-			.SelectMany(seed => { map.RunSeed = seed; return map.GauntletSchedule().Select(entry => (seed, entry.Depth, entry.Room)); }).ToList();
-		// One floor in each realm with gauntlets: the Garrison, the Prison, the Sewer and the Mines.
-		foreach (uint realmStart in new uint[] { 1, 6, 11, 16 })
-			floors.Add(schedules.First(entry => entry.Depth >= realmStart && entry.Depth < realmStart + 5));
-
 		var failures = new List<string>();
-		foreach (var (runSeed, depth, scheduled) in floors)
+		for (int index = 0; index < floors.Count; index++)
 		{
-			GameSession.Instance.ResetLevelDebugState(depth);
-			level.ConfigureGeneration(new RunState(runSeed), depth, null, null);
-			level.Generate();
-			await runner.SimulateFrames(2);
+			var (runSeed, depth, scheduled) = floors[index];
+			if (index > 0)
+			{
+				GameSession.Instance.ResetLevelDebugState(depth);
+				level.ConfigureGeneration(new RunState(runSeed), depth, null, null);
+				level.Generate();
+				await runner.SimulateFrames(2);
+			}
 			string at = $"run {runSeed} depth {depth}";
 			var floor = level.Floor;
-			var gauntlet = floor.Gauntlets.SingleOrDefault();
-			var room = gauntlet == null ? null : floor.Rooms[gauntlet.GetAncestorOrNull<Room>().RegionId];
+			var room = floor.Rooms.SingleOrDefault(room => room.SlotId == GeneratedFloor.GauntletSlot);
 			if (room?.TypeId != scheduled.Id)
 			{
 				failures.Add($"{at}: holds {room?.TypeId ?? "no gauntlet"}, not {scheduled.Id}");
 				continue;
 			}
 
-			var arrivalRoom = floor.Rooms[floor.Arrival.GetAncestorOrNull<Room>().RegionId];
+			var arrivalRoom = floor.Rooms[map.RoomRegionFor(floor.Arrival)];
 			var start = arrivalRoom.Tiles.First(tile => floor.Map.IsWalkable(tile.X, tile.Y));
 			var reached = AccessSolutionValidator.Reachable(floor.Map, start, room.Tiles.ToHashSet());
-			var exitRoom = floor.Rooms[floor.Descent.GetAncestorOrNull<Room>().RegionId];
-			if (exitRoom.Tiles.Any(reached.Contains)) failures.Add($"{at}: the descent can be reached around the gauntlet");
+			if (floor.Rooms[map.RoomRegionFor(floor.Descent)].Tiles.Any(reached.Contains))
+				failures.Add($"{at}: the descent can be reached around the gauntlet");
 
-			var occupants = map.EnemySpawnPoints.Cast<Node3D>()
-				.Concat(level.FindChildren("*", "", true, false).Where(node => node is Chest or LootableItem or FloorTrap or Fountain).Cast<Node3D>());
+			var occupants = map.EnemySpawnPoints.Cast<Node3D>().Concat(floor.Traps)
+				.Concat(level.FindChildren("*", "", true, false).Where(node => node is Chest or LootableItem or Fountain).Cast<Node3D>());
 			foreach (var occupant in occupants.Where(node => room.Tiles.Contains(floor.Map.WorldToTile(node.GlobalPosition))))
 				failures.Add($"{at}: {occupant.Name} stands in the gauntlet");
 		}

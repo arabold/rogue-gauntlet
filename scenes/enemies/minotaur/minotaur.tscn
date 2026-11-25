@@ -181,9 +181,6 @@ Animation = NodePath("../EnemyBehaviorComponent/AnimationTree")
 Movement = NodePath("../MovementComponent")
 AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
 
-[node name="CombatFeedbackController" parent="."]
-SurfaceProfile = ExtResource("flesh")
-
 [node name="MovementEffectsComponent" parent="."]
 Profile = ExtResource("movement_profile")
 

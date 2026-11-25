@@ -22,21 +22,20 @@ public partial class GauntletProfile : Resource
 	[Export(PropertyHint.Range, "1,100")] public uint LastDepth { get; set; } = 25;
 
 	/// <summary>
-	/// Every gauntlet of the run of <paramref name="runSeed"/>, shallowest first: dealt from <paramref name="rooms"/> to
-	/// depths that <paramref name="eligible"/> accepts, each suiting the theme <paramref name="themeAt"/> gives its depth.
+	/// Every gauntlet of the run of <paramref name="runSeed"/>, shallowest first: dealt from <paramref name="rooms"/>, each
+	/// suiting the theme <paramref name="themeAt"/> gives its depth (null where no gauntlet may stand).
 	/// </summary>
-	public List<(uint Depth, RoomDefinition Room)> Schedule(ulong runSeed, IEnumerable<RoomDefinition> rooms,
-		Func<uint, string> themeAt, Func<uint, bool> eligible)
+	public List<(uint Depth, RoomDefinition Room)> Schedule(ulong runSeed, IEnumerable<RoomDefinition> rooms, Func<uint, string> themeAt)
 	{
 		using var rng = GenerationRandom.Create(runSeed, GenerationRandom.Gauntlets);
 		var deck = rooms.Where(room => room != null).ToList();
 		GenerationRandom.Shuffle(deck, rng);
 		var themes = new Dictionary<uint, string>();
 		for (uint depth = FirstDepth; depth <= LastDepth; depth++)
-			if (eligible(depth)) themes[depth] = themeAt(depth);
+			if (themeAt(depth) is { } theme) themes[depth] = theme;
 		bool Dealable(uint depth) => deck.Any(room => room.SupportsRealm(themes[depth]));
 		var floors = themes.Keys.Where(Dealable).ToList();
-		int count = Math.Min(rng.RandiRange(MinPerRun, Math.Max(MinPerRun, MaxPerRun)), floors.Count);
+		int count = Math.Min(rng.RandiRange(MinPerRun, MaxPerRun), floors.Count);
 		var schedule = new List<(uint, RoomDefinition)>(count);
 		for (int band = 0; band < count; band++)
 		{
