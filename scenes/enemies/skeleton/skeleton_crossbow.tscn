@@ -461,7 +461,7 @@ anim_player = NodePath("../../Pivot/Skeleton_Minion/AnimationPlayer")
 shape = SubResource("m_CapsuleShape3D_fv4r8")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("m_CapsuleShape3D_m4sjw")
 
 [node name="ActorActionGateComponent" type="Node" parent="." node_paths=PackedStringArray("AnimationComponent")]

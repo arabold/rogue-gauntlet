@@ -5,7 +5,6 @@
 #define WALL_CLIP_GDSHADERINC
 #include "res://scenes/levels/floor_map.gdshaderinc"
 
-global uniform sampler2D floor_wall_mask;
 // Meshes without an anchor (actors without a WallClipComponent) never clip.
 instance uniform vec2 wall_clip_anchor = vec2(1e30);
 

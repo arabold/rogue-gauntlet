@@ -1,7 +1,8 @@
 shader_type spatial;
 // Draw on top of everything (depth test off), but only keep fragments that are
-// hidden: occluded by scene geometry (a wall or the black fog cap), or in plain
-// view on a surface that is still unexplored. The silhouette therefore appears
+// hidden: occluded by a wall, a closed door or fogged ground (xray_occlusion.gdshaderinc), or in
+// plain view on a surface that is still unexplored. A projectile, prop or actor in front is no
+// reason to see through. The silhouette therefore appears
 // only while the door cannot be seen, and stays invisible when it is in plain
 // explored view, even under the fog's soft fringe at the explored edge.
 // Alpha fades with distance so far doors stay quiet. Like the actor x-rays, it skips the
@@ -10,7 +11,7 @@ shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_never, depth_test_disabled;
 stencil_mode read, compare_not_equal, 1;
 
-#include "res://scenes/levels/fog_of_war.gdshaderinc"
+#include "res://scenes/levels/xray_occlusion.gdshaderinc"
 
 // Nearest filtering: mipmapped/linear sampling of depth returns averaged values
 // and breaks the comparison.
@@ -30,9 +31,10 @@ void fragment() {
 	// Test the surface the depth buffer holds rather than this fragment: with culling
 	// off, the leaf's far face of a closed door lies past its threshold in unexplored
 	// space, and the bias absorbs the leaf's thickness.
+	vec3 surface = fog_surface_position(SCREEN_UV, scene_depth, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX);
 	float hidden = scene_depth > FRAGCOORD.z + occlusion_bias
-		? 1.0
-		: fog_unexplored(fog_surface_position(SCREEN_UV, scene_depth, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX).xz);
+		? xray_occluder_hides(surface, CAMERA_POSITION_WORLD)
+		: fog_unexplored(surface.xz);
 
 	float fade = 1.0 - smoothstep(fade_near, fade_far, length(VERTEX));
 	if (hidden * fade <= 0.0) {
