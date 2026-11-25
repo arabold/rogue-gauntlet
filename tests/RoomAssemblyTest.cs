@@ -219,6 +219,33 @@ public class RoomAssemblyTest
 		}
 	}
 
+	/// <summary>
+	/// A step that names motifs runs only on a floor carrying one: an undead floor strews bones through the guardroom and
+	/// any other floor leaves it tidy. A preview without a floor (no motifs given) runs every step.
+	/// </summary>
+	[TestCase]
+	public void MotifStepsRunOnlyOnFloorsCarryingTheirMotif()
+	{
+		var type = Load("garrison/guardroom");
+		int undead = 0, plain = 0;
+		for (ulong seed = 1; seed <= 8; seed++)
+		{
+			foreach (var (motifs, count) in new[] { (new HashSet<string> { "undead" }, 1), (new HashSet<string>(), 0) })
+			{
+				var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Realm = "garrison", Motifs = motifs });
+				try
+				{
+					int bones = blueprint.Pieces.Count(piece => piece.Prop.Id == "bone_pile");
+					if (count == 1) undead += bones;
+					else plain += bones;
+				}
+				finally { blueprint.Room.Free(); }
+			}
+		}
+		AssertInt(undead).IsGreater(0);
+		AssertInt(plain).IsEqual(0);
+	}
+
 	/// <summary>Rugs fit whole on the floor, use fringed ends in narrow fields and skip fields too small for two pieces.</summary>
 	[TestCase]
 	public void RugsLieWholeOnTheFloor()

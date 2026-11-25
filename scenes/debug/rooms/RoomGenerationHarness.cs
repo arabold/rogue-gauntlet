@@ -35,6 +35,8 @@ public partial class RoomGenerationHarness : Node3D
 	[Export] public int FloorOverride { get; set; } = RoomAssemblyOptions.Seeded;
 	/// <summary>Column pattern index, <see cref="RoomAssemblyOptions.Seeded"/> (type's chance) or <see cref="RoomAssemblyOptions.Off"/>.</summary>
 	[Export] public int ColumnsOverride { get; set; } = RoomAssemblyOptions.Seeded;
+	/// <summary>The floor motifs a single room previews with: 0 every motif step, 1 none, then the realm's motifs one by one.</summary>
+	[Export] public int SelectedMotif { get; set; }
 
 	public Room PreviewRoom { get; private set; }
 	public RoomBlueprint PreviewBlueprint { get; private set; }
@@ -45,12 +47,22 @@ public partial class RoomGenerationHarness : Node3D
 	public IReadOnlyList<(FloorProfile Resource, string Path)> Profiles { get; private set; } = [];
 	/// <summary>The realm's ordinary rooms, entrances/exits, and matching room groups.</summary>
 	public IReadOnlyList<RoomDefinition> Recipes => _recipes;
+	/// <summary>The realm's motifs, in the order the motif picker lists them after "every" and "none".</summary>
+	public IReadOnlyList<string> MotifIds => _motifIds;
+	/// <summary>The motifs a single room assembles with: null runs every motif step (<see cref="SelectedMotif"/> 0).</summary>
+	public IReadOnlySet<string> PreviewMotifs => SelectedMotif switch
+	{
+		0 => null,
+		1 => new HashSet<string>(),
+		_ => new HashSet<string> { _motifIds[Mathf.Clamp(SelectedMotif - 2, 0, _motifIds.Count - 1)] },
+	};
 
 	private readonly List<RoomDefinition> _recipes = [];
+	private readonly List<string> _motifIds = [];
 	private Node3D _previewNode;
 	private int _quarterTurns;
-	private OptionButton _modePicker, _profilePicker, _realmPicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker;
-	private HBoxContainer _profileRow, _shapeRow, _wallsRow, _floorRow, _columnRow;
+	private OptionButton _modePicker, _profilePicker, _realmPicker, _recipePicker, _shapePicker, _wallsPicker, _floorPicker, _columnPicker, _motifPicker;
+	private HBoxContainer _profileRow, _shapeRow, _wallsRow, _floorRow, _columnRow, _motifRow;
 	private SpinBox _seedInput;
 	private CheckButton _furnishingsToggle, _walkabilityToggle;
 	private Button _rotateButton;
@@ -114,6 +126,7 @@ public partial class RoomGenerationHarness : Node3D
 		_floorPicker = Picker("Floor", out _floorRow, index => FloorOverride = index - 1);
 		_columnPicker = Picker("Columns", out _columnRow,
 			index => ColumnsOverride = index == 0 ? RoomAssemblyOptions.Seeded : index == 1 ? RoomAssemblyOptions.Off : index - 2);
+		_motifPicker = Picker("Motifs", out _motifRow, index => SelectedMotif = index);
 
 		_seedInput = new SpinBox { MinValue = 0, MaxValue = uint.MaxValue, Step = 1, CustomMinimumSize = new(180, 0) };
 		_seedInput.ValueChanged += value => { if (!_syncing) { Seed = (uint)value; RequestRegeneration(); } };
@@ -199,6 +212,11 @@ public partial class RoomGenerationHarness : Node3D
 		Pool = Generator.Rooms.ForRealm(Realm.Theme);
 		_recipes.Clear();
 		_recipes.AddRange(Pool.AllDefinitions);
+		// Rooms the realm schedules beyond the catalog, such as a floor plan's own rooms it turns into headlines.
+		_recipes.AddRange(Realm.Rooms.Select(entry => entry?.Room).Where(room => room != null && !_recipes.Contains(room)));
+		_motifIds.Clear();
+		_motifIds.AddRange(Realm.Motifs.Where(motif => motif != null).Select(motif => motif.Id).Distinct());
+		SelectedMotif = Mathf.Clamp(SelectedMotif, 0, _motifIds.Count + 1);
 		foreach (var (group, _) in DebugCatalog.Resources<RoomGroup>(RoomGroupsDir))
 		{
 			if (group != null && group.SupportsRealm(Realm.Theme) && !_recipes.Contains(group))
@@ -312,6 +330,8 @@ public partial class RoomGenerationHarness : Node3D
 		Fill(_columnRow, _columnPicker, type == null || type.Columns.Length == 0 ? null : type.Columns.Select(pattern => pattern.Id),
 			ColumnsOverride == RoomAssemblyOptions.Seeded ? 0 : ColumnsOverride == RoomAssemblyOptions.Off ? 1 : ColumnsOverride + 2,
 			$"Type chance ({type?.ColumnChance:P0})", "Off");
+		Fill(_motifRow, _motifPicker, _motifIds, SelectedMotif, "Every motif", "No motif");
+		_motifRow.Visible = room;
 		bool singleType = room && type != null;
 		foreach (var row in new[] { _shapeRow, _wallsRow, _floorRow, _columnRow }) row.Visible &= singleType;
 		_seedInput.SetValueNoSignal(Seed);
@@ -364,7 +384,7 @@ public partial class RoomGenerationHarness : Node3D
 
 	private void GenerateCluster(RoomGroup group)
 	{
-		var options = new RoomAssemblyOptions { Furnish = Furnishings, Realm = Realm.Theme };
+		var options = new RoomAssemblyOptions { Furnish = Furnishings, Realm = Realm.Theme, Motifs = PreviewMotifs };
 		var cluster = RoomAssembler.AssembleCluster(group, Seed, options, Pool);
 		Node3D container = null;
 		try
@@ -475,6 +495,7 @@ public partial class RoomGenerationHarness : Node3D
 		var options = new RoomAssemblyOptions
 		{
 			Shape = ShapeOverride, Walls = WallsOverride, Floor = FloorOverride, Columns = ColumnsOverride, Furnish = Furnishings, Realm = Realm.Theme,
+			Motifs = PreviewMotifs,
 		};
 		var blueprint = RoomAssembler.Build(type, Seed, options);
 		var (reachable, pockets) = AddWalkabilityOverlay(blueprint);

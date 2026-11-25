@@ -24,6 +24,11 @@ public abstract partial class FurnishingStep : Resource
 	[Export] public string[] Realms { get; set; } = [];
 	/// <summary>Optional wall-style IDs for furnishing that belongs to a particular structural layout.</summary>
 	[Export] public string[] WallStyles { get; set; } = [];
+	/// <summary>Floor motifs (<see cref="Realm.Motifs"/>) this step needs, any one of them; none means every floor.</summary>
+	[Export] public string[] Motifs { get; set; } = [];
+
+	/// <summary>Whether the step runs on a floor carrying <paramref name="motifs"/>; null (previews) runs every step.</summary>
+	public bool SuitsMotifs(IReadOnlySet<string> motifs) => motifs == null || Motifs.Length == 0 || Motifs.Any(motifs.Contains);
 
 	/// <summary>Places content and returns how many were placed; never throws on misfit.</summary>
 	public abstract int Furnish(RoomBlueprint room, RandomNumberGenerator rng);

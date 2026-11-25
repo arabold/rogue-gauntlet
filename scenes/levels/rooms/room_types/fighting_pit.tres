@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=31 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="3_CenterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/prison/fighting_ring.tres" id="4_fighting_ring"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="5_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bench.tres" id="6_bench"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel.tres" id="7_barrel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/keg.tres" id="8_keg"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="9_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/brazier.tres" id="10_brazier"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/weapon_rack.tres" id="11_weapon_rack"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="12_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_red.tres" id="13_banner_red"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_brown.tres" id="14_banner_brown"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="15_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="16_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="17_bucket"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="18_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/prison_walls.tres" id="19_prison_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="20_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dirt_floor.tres" id="21_dirt_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="22_earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_floor.tres" id="23_stone_floor"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_ring"]
+script = ExtResource("3_CenterStep")
+Id = "ring"
+Content = [ExtResource("4_fighting_ring")]
+MinimumCount = 1
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("3_CenterStep")
+
+[sub_resource type="Resource" id="step_spectators"]
+script = ExtResource("5_AlongWallsStep")
+Id = "spectators"
+Content = [ExtResource("6_bench"), ExtResource("7_barrel"), ExtResource("8_keg")]
+MinimumCount = 2
+MaximumCount = 5
+Spacing = 1.0
+metadata/_custom_type_script = ExtResource("5_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_arms"]
+script = ExtResource("9_CornersStep")
+Id = "arms"
+Content = [ExtResource("10_brazier"), ExtResource("11_weapon_rack")]
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("9_CornersStep")
+
+[sub_resource type="Resource" id="step_banners"]
+script = ExtResource("12_WallDecorStep")
+Id = "banners"
+Content = [ExtResource("13_banner_red"), ExtResource("14_banner_brown")]
+MaximumCount = 3
+Uniform = true
+Spacing = 3.0
+metadata/_custom_type_script = ExtResource("12_WallDecorStep")
+
+[sub_resource type="Resource" id="step_spoils"]
+script = ExtResource("15_ScatterStep")
+Id = "spoils"
+Content = [ExtResource("16_bone_pile"), ExtResource("17_bucket")]
+MaximumCount = 2
+WallChance = 0.8
+metadata/_custom_type_script = ExtResource("15_ScatterStep")
+
+[sub_resource type="Resource" id="step_door_torches"]
+script = ExtResource("12_WallDecorStep")
+Id = "door_torches"
+Content = [ExtResource("18_torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("12_WallDecorStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "fighting_pit"
+MaxPerFloor = 1
+Realms = PackedStringArray("garrison")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.4
+Walls = [ExtResource("19_prison_walls"), ExtResource("20_stone_walls")]
+Floors = [ExtResource("21_dirt_floor"), ExtResource("22_earth_floor"), ExtResource("23_stone_floor")]
+Steps = [SubResource("step_ring"), SubResource("step_spectators"), SubResource("step_arms"), SubResource("step_banners"), SubResource("step_spoils"), SubResource("step_door_torches")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

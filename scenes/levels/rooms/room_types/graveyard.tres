@@ -1,0 +1,138 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=43 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="crypt_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/mossy_walls.tres" id="mossy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/ruined_walls.tres" id="ruined_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/earth_floor.tres" id="earth_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/dirt_floor.tres" id="dirt_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="flagstones_ruined_floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/FencedAreaStep.cs" id="fenced_area"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/RowsStep.cs" id="rows"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="along"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="scatter"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="decor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/graveyard_fence.tres" id="fence"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/graveyard_fence_broken.tres" id="fence_broken"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/graveyard_fence_half.tres" id="fence_half"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/graveyard_fence_corner.tres" id="fence_corner"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/graveyard_gate.tres" id="gate"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/mausoleum.tres" id="mausoleum"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/grave.tres" id="grave"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/graveyard/grave_pedestal.tres" id="grave_pedestal"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/statue.tres" id="statue"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="rubble_scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/vase_broken.tres" id="vase_broken"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="web_corner_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="web_corner_large"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_small.tres" id="web_wall_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_wall_large.tres" id="web_wall_large"]
+
+[sub_resource type="Resource" id="RectangleShape_large"]
+script = ExtResource("rectangle")
+Weight = 2.0
+MinimumSize = Vector2i(3, 3)
+MaximumSize = Vector2i(4, 4)
+OddWidth = false
+metadata/_custom_type_script = ExtResource("rectangle")
+
+[sub_resource type="Resource" id="FencedAreaStep_plot"]
+script = ExtResource("fenced_area")
+Id = "family_plot"
+Mode = 0
+RequireFence = false
+Chance = 0.85
+Content = [ExtResource("mausoleum")]
+MaximumCount = 1
+Segments = [ExtResource("fence"), ExtResource("fence_broken")]
+Half = ExtResource("fence_half")
+Corner = ExtResource("fence_corner")
+Gate = ExtResource("gate")
+BaySize = Vector2(8, 8)
+metadata/_custom_type_script = ExtResource("fenced_area")
+
+[sub_resource type="Resource" id="RowsStep_graves"]
+script = ExtResource("rows")
+Id = "graves"
+Content = [ExtResource("grave")]
+MinimumCount = 2
+MaximumCount = 10
+RowGap = 1.2
+ColumnGap = 0.9
+Margin = 1.0
+metadata/_custom_type_script = ExtResource("rows")
+
+[sub_resource type="Resource" id="CornersStep_pedestals"]
+script = ExtResource("corners")
+Id = "pedestals"
+Content = [ExtResource("grave_pedestal"), ExtResource("statue"), ExtResource("candle_pile")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("corners")
+
+[sub_resource type="Resource" id="AlongWallsStep_graves"]
+script = ExtResource("along")
+Id = "wall_graves"
+Content = [ExtResource("grave"), ExtResource("grave_pedestal")]
+MaximumCount = 3
+Chance = 0.7
+Spacing = 1.0
+AvoidDoorwayWalls = true
+metadata/_custom_type_script = ExtResource("along")
+
+[sub_resource type="Resource" id="ScatterStep_remains"]
+script = ExtResource("scatter")
+Id = "remains"
+Content = [ExtResource("bone_pile"), ExtResource("candle_stubs"), ExtResource("rubble_scatter"), ExtResource("vase_broken")]
+MaximumCount = 4
+WallChance = 0.4
+metadata/_custom_type_script = ExtResource("scatter")
+
+[sub_resource type="Resource" id="WallDecorStep_torches"]
+script = ExtResource("decor")
+Id = "door_torches"
+Content = [ExtResource("torch")]
+MaximumCount = 2
+BesideDoorways = true
+metadata/_custom_type_script = ExtResource("decor")
+
+[sub_resource type="Resource" id="CornersStep_webs"]
+script = ExtResource("corners")
+Id = "corner_webs"
+Content = [ExtResource("web_corner_small"), ExtResource("web_corner_large"), ExtResource("web_wall_small"), ExtResource("web_wall_large")]
+Clearance = 0.2
+Diagonal = true
+MinimumCount = 0
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("corners")
+
+[sub_resource type="Resource" id="WallDecorStep_webs"]
+script = ExtResource("decor")
+Id = "wall_webs"
+Content = [ExtResource("web_wall_small"), ExtResource("web_wall_large")]
+MaximumCount = 2
+Chance = 0.6
+Spacing = 2.5
+metadata/_custom_type_script = ExtResource("decor")
+
+[resource]
+script = ExtResource("room_type")
+Id = "graveyard"
+MaxPerFloor = 1
+Realms = PackedStringArray("garrison")
+Weight = 0.5
+Shapes = [SubResource("RectangleShape_large")]
+MinimumFloorTiles = 9
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.4
+Walls = [ExtResource("crypt_walls"), ExtResource("mossy_walls"), ExtResource("ruined_walls")]
+Floors = [ExtResource("earth_floor"), ExtResource("dirt_floor"), ExtResource("flagstones_ruined_floor")]
+Steps = [SubResource("FencedAreaStep_plot"), SubResource("RowsStep_graves"), SubResource("CornersStep_pedestals"), SubResource("AlongWallsStep_graves"), SubResource("ScatterStep_remains"), SubResource("WallDecorStep_torches"), SubResource("CornersStep_webs"), SubResource("WallDecorStep_webs")]
+metadata/_custom_type_script = ExtResource("room_type")

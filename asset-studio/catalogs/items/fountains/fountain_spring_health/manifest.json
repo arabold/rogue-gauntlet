@@ -1,9 +1,9 @@
 {
   "key": "fountains/fountain_spring_health",
-  "inputs": "7007f1c695a2586f98d89ef38c81ed71764c17161f787b31272985ee82f9f76d",
+  "inputs": "bfe8e02888b4b75e56a43f2d28489ff71266ca2ddd5b16d84f86716361803879",
   "files": {
-    "fountain_spring_health.glb": "28adf52b7551d7819c96eac4dc269c48e3ff02fd8cd2bf6aaf3bb2de2e6bce93",
-    "lineup.png": "fb92f93d172453cb70635c3d2f924ed397ac3b8e36308befab3ae796d26cd3a1"
+    "fountain_spring_health.glb": "2803a3b3f96ae0f2d7388c223de58b434fc09f0afdc7a82cd9fa62ad24418808",
+    "lineup.png": "f9c228577cc6742cc74f191e6dd00db1fb6cac842698541ea07d7e413792cede"
   },
   "metadata": {
     "report": {
@@ -40,6 +40,7 @@
         "duplicate_faces": 0,
         "signed_volume": 2.008535400976514
       },
+      "host_fit": null,
       "warnings": [
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],

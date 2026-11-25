@@ -4,7 +4,7 @@ The Quartermaster stands near the arrival stairs on the Garrison's gatekeeper fl
 
 ## Placement
 
-A [realm](level-design.md#current-generation) lists the shops on its floors. Each `ShopPlacementProfile` names a realm floor index (0 is the realm's first depth), so a keeper moves with its realm's depth band. The Quartermaster stands on floor index 4, the gatekeeper's floor: the realm's last (`RealmEncounterFactory.GatekeeperFloorIndex`).
+A [realm](level-design.md#current-generation) lists the shops on its floors. Each `ShopPlacementProfile` names a realm floor (1 is the realm's first depth), so a keeper moves with its realm's depth band. Shops greet the hero right after a gatekeeper: the Quartermaster stands on the first floor of every realm after the Garrison (depths 6, 11, 16 and 21), and the shop is that floor's headline.
 
 Generation stands keepers after locks and keys and before fountains, chests, traps and loose loot. The keeper takes a free room tile that the hero reaches without keys, preferring the arrival's room and the spot about 7 m ahead of the arrival. It follows the loot rules for stair landings, keys and the gatekeeper's arena, and the loot placed after it keeps its usual spacing from the keeper. A keeper is a solid prop like a chest: it must keep door swings clear and leave no inaccessible pocket, and the navigation grid treats it as an obstacle. The hero, monsters and projectiles cannot pass through it. Dropped loot, teleports and summons do not land inside it, and no pack spawns beside the counter. A layout without a spot for a keeper is retried like one without stairs, so a seed never loses its shop. See [level design](level-design.md#shops).
 

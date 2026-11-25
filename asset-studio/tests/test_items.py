@@ -86,6 +86,19 @@ class ItemWorkflowTest(unittest.TestCase):
         self.assertEqual(kwargs["aspect"], specification["aspect"])
         self.assertEqual((item.folder / "reference.prompt.txt").read_text().strip(), args[0])
 
+    def test_world_prop_concepts_are_drawn_against_the_pack_props(self):
+        from core import prompts
+        item = self.item()
+        data = json.loads(item.path.read_text())
+        data["color_mode"] = "world"
+        item.path.write_text(json.dumps(data))
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            item.reference("A chunky iron brazier", prompt_only=True)
+        specification = json.loads(output.getvalue())
+        self.assertEqual(specification["referenced_image_paths"], [str(p) for p in prompts.PROP_REFERENCES])
+        self.assertIn(prompts.PROP_NOTE, specification["prompt"])
+
     def test_character_generation_retains_layout_with_shared_style(self):
         from core import match, prompts
         from unittest.mock import Mock

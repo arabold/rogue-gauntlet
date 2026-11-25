@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/grave_pedestal",
+  "inputs": "56f5e8616a4dc990bdce5d59cffc60fbca10509e2379e63cc5dcfffe9918d490",
+  "files": {
+    "grave_pedestal.glb": "637ff13d94db4c731e9bc4f793504493182dbdee2d90e70b3a05e9aba2038f1b",
+    "lineup.png": "395c0cb967fb2b7d9b679ed70ce56194382b9bd952c01d2ee3df5ea594bd9397"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1528,
+      "bounds": [
+        [
+          -0.565092146396637,
+          0.0,
+          -0.5588246583938599
+        ],
+        [
+          0.565092146396637,
+          2.359999895095825,
+          0.5588246583938599
+        ]
+      ],
+      "dimensions": [
+        1.130184292793274,
+        2.359999895095825,
+        1.1176493167877197
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.126826524397663
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Grave Pedestal",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "grave_pedestal"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2200,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/graveyard/grave_pedestal.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Burial-ground furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; graves keep their marker at -Z; fence modules run along X in exact 4 m and 2 m lengths. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

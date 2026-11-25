@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/graveyard_fence_half",
+  "inputs": "8b2dd41d1009c8009c859f3364a3699e15269704779687aa12843ec37a397cfb",
+  "files": {
+    "graveyard_fence_half.glb": "b5a3da2e38663b37cbebb646459eb5b88abdeea0c40eae227d883b1007eb6293",
+    "lineup.png": "309615904d221f7ab7ec20a0a259b047c6b25e932a1e37af01d7a357a6643651"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1776,
+      "bounds": [
+        [
+          -1.0,
+          0.0,
+          -0.20587120950222015
+        ],
+        [
+          1.0,
+          1.7799999713897705,
+          0.20655371248722076
+        ]
+      ],
+      "dimensions": [
+        2.0,
+        1.7799999713897705,
+        0.4124249219894409
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.30554910430048304
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Graveyard Fence Half",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "graveyard_fence_half"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2200,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/graveyard/graveyard_fence_half.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Burial-ground furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; graves keep their marker at -Z; fence modules run along X in exact 4 m and 2 m lengths. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

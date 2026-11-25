@@ -1,0 +1,89 @@
+{
+  "key": "furnishings/grave_wood",
+  "inputs": "a0ba1b80182c43e641661e85a948358b7655ab3ad11e4f2c7a074ced9e9ae531",
+  "files": {
+    "grave_wood.glb": "868a0a7cf3095bba1cdc31012821d567770d0e89d79a3a894f4b98463b949b1b",
+    "lineup.png": "e12360e05513a0193b2a954cefb3146d1da3f77f456a83f71a9c239593423851"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1282,
+      "bounds": [
+        [
+          -0.7810003161430359,
+          0.0,
+          -0.8752964735031128
+        ],
+        [
+          0.7158746719360352,
+          1.6279199123382568,
+          1.2699999809265137
+        ]
+      ],
+      "dimensions": [
+        1.496874988079071,
+        1.6279199123382568,
+        2.1452964544296265
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.6195604608378497
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Grave With Wooden Cross",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "grave",
+        "marker": "wood",
+        "bed": "mound"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 1800,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/graveyard/grave_wood.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Burial-ground furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; graves keep their marker at -Z; fence modules run along X in exact 4 m and 2 m lengths. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

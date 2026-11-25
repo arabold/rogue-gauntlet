@@ -5,6 +5,14 @@ from pathlib import Path
 STUDIO = Path(__file__).resolve().parents[1]
 MASTER = STUDIO / "prompts/stylized-fantasy.txt"
 STYLE_REFERENCES = (STUDIO / "characters/heroes/knight/reference.png",)
+# World props are drawn against the pack's own props as the game renders them (hero, barrel, chest, bed, table, wall,
+# crates), so the image model sees the chunky proportions, sizes and palette a new prop has to sit beside.
+# Regenerate it with `.agents/skills/assets/scripts/compare_models.gd` (see the assets skill).
+PROP_REFERENCES = (STUDIO / "prompts/world-props-reference.png",)
+PROP_NOTE = ("The supplied image shows the game's own props as the game renders them (hero, barrel, treasure chest, bed, "
+             "table, stone wall, crates): match their chunky, exaggerated proportions, thick bevelled planks, warm brown "
+             "wood, blue-grey iron and stone and soft vertical light-to-dark gradients, and size the subject against "
+             "them. ")
 
 
 def compose(task):
@@ -12,12 +20,13 @@ def compose(task):
     return MASTER.read_text().strip() + "\n\nTask-specific instructions:\n" + task.strip()
 
 
-def item_prompt(brief):
-    """Describe one item using the same style contract as character concepts."""
+def item_prompt(brief, world=False):
+    """Describe one item using the same style contract as character concepts; a `world` prop is sized and colored
+    against the pack's own props (`PROP_REFERENCES`)."""
     if not brief or not brief.strip():
         raise ValueError("Provide --brief or set recipe.concept")
     return compose(
-        f"Subject: {brief.strip()}\n"
+        f"Subject: {PROP_NOTE if world else ''}{brief.strip()}\n"
         "Layout: one isolated item in a clear elevated three-quarter view, showing its "
         "depth, silhouette and functional details. No extra variants or unrelated objects. "
         "Supplied images are style references only; the subject above defines the item."
@@ -44,11 +53,16 @@ def turnaround_prompt(brief, worn=False):
                    "The other supplied images are style references only; the subject above defines the design.")
 
 
-def style_images():
+def style_references(world=False):
+    """The style images a concept is drawn against: the pack's props for a world prop, the hero for everything else."""
+    return PROP_REFERENCES if world else STYLE_REFERENCES
+
+
+def style_images(world=False):
     """Load independent copies so provider calls do not retain open file handles."""
     from PIL import Image
     images = []
-    for path in STYLE_REFERENCES:
+    for path in style_references(world):
         with Image.open(path) as source:
             images.append(source.copy())
     return images

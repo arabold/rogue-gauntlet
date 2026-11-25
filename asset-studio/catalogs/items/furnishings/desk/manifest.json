@@ -1,0 +1,88 @@
+{
+  "key": "furnishings/desk",
+  "inputs": "9b09b7210e6943e4c27fd3d6d4de99ec1c62fa30f120c269850cd5abc24db485",
+  "files": {
+    "desk.glb": "bdbfc3678c7cb2c4af32913498b05997cf957d08d66eb7527a143ff366c82ac9",
+    "lineup.png": "93f1f97b37327d5f9bbebf8b5db6eac2fbb98a246ecc96a34a4564f0cd3f2581"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 4446,
+      "bounds": [
+        [
+          -1.2387279272079468,
+          -0.009017360396683216,
+          -0.6547396779060364
+        ],
+        [
+          1.2840226888656616,
+          1.6669870615005493,
+          0.6666295528411865
+        ]
+      ],
+      "dimensions": [
+        2.5227506160736084,
+        1.6760044218972325,
+        1.321369230747223
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 2.155394314224283
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Desk",
+      "reference": "res://asset-studio/objects/furnishings/desk/reference.png",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "desk"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 5000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/prison/desk.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Prison furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

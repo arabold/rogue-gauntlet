@@ -1,0 +1,77 @@
+{
+  "key": "furnishings/hay_bale",
+  "inputs": "610d2dfe7b96680b24f62fbef61ac27994da356eddae2e6cc300163c2c63309d",
+  "files": {
+    "hay_bale.glb": "8957a31f72df3bcfa26cdaa75bb4b683391e36c8f2eb60c1b87b3b54b6a773b4",
+    "lineup.png": "9e3c52b0ac0b8ec3a7c3f78665318778743842845c353cdfa9f5939c5d71dc6a"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 1600,
+      "bounds": [
+        [
+          -0.6884832382202148,
+          0.0,
+          -0.3974688649177551
+        ],
+        [
+          0.6765178442001343,
+          0.6600000262260437,
+          0.4060435891151428
+        ]
+      ],
+      "dimensions": [
+        1.3650010824203491,
+        0.6600000262260437,
+        0.803512454032898
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 0.6184449356389357
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Hay Bale",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "hay_bale"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 2000,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {},
+      "export": {
+        "glb": "res://assets/custom-props/ruins/hay_bale.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Room furnishing at KayKit dungeon scale: floor props stand on y=0 facing +Z; wall props keep a flat back on z=0 at their hanging height. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

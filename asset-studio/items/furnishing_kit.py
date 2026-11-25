@@ -15,7 +15,7 @@ import zlib
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items.solid import box, lathe, tube, welded
+from items.solid import Assembly, box, lathe, tube, welded
 
 
 def random(name):
@@ -131,6 +131,16 @@ def planks(a, rng, length, width, thickness, frame, count=None, slot='wood', chi
               slot, frame, chips, .5)
 
 
+def strut(a, rng, start, end, width, slot='wood', chips=1):
+    """A square timber from `start` to `end`: braces, stringers, rafters."""
+    start, end = np.asarray(start, float), np.asarray(end, float)
+    d = end - start
+    pitch = np.degrees(np.arctan2(d[1], np.hypot(d[0], d[2])))
+    yaw = np.degrees(np.arctan2(-d[2], d[0]))
+    board(a, rng, (float(np.linalg.norm(d)), width, width), (0, 0, 0), slot,
+          [((0, 0, pitch), (0, 0, 0)), ((0, yaw, 0), tuple((start + end) / 2))], chips, .3)
+
+
 def square_post(a, rng, size, y0, y1, x=0, z=0, slot='wood', cap=None, frame=None):
     """A square timber post, optionally capped with a wider block."""
     # Posts sink a little into what they stand on so the joint stays one solid.
@@ -157,6 +167,27 @@ def stones(a, rng, x0, x1, y0, y1, depth, z=0.0, rows=1, slot='stone', frame=Non
             board(a, rng, (w + .006, t - b + .006, d), (x + w / 2, (b + t) / 2, z + rng.uniform(-.012, .012)),
                   slot, frame, chips, .6, slot + '_dark' if not slot.endswith('_dark') else slot)
             x += w
+
+
+def crack_path(rng, start, heading, length, bends=4, wander=30.0):
+    """Points of a jagged crack on a face (x across, y up): from `start` along `heading` degrees, kinking at random."""
+    points, angle = [np.asarray(start, float)], np.radians(heading)
+    for _ in range(bends):
+        angle += np.radians(rng.uniform(-wander, wander))
+        points.append(points[-1] + length / bends * rng.uniform(.7, 1.3) * np.array([np.cos(angle), np.sin(angle)]))
+    return points
+
+
+def crack(points, z=0.0, width=.045, depth=.08):
+    """A groove along a polyline drawn on a face at z (x across, y up), narrowing toward its end, to `cut` from stone.
+    Turn the result onto other faces like any part."""
+    grooves = []
+    for i, (p, q) in enumerate(zip(points[:-1], points[1:])):
+        d = q - p
+        w = width * (1 - .5 * i / max(1, len(points) - 2))
+        groove = block((float(np.hypot(*d)) + w, w, depth), (0, 0, 0), 0).rotate((0, 0, float(np.degrees(np.arctan2(d[1], d[0])))))
+        grooves.append(groove.translate((float(p[0] + q[0]) / 2, float(p[1] + q[1]) / 2, z)))
+    return mf.Manifold.batch_boolean(grooves, mf.OpType.Add)
 
 
 def rivet(center, radius=.045, facing=(0, 0, 1)):
@@ -324,3 +355,27 @@ def log(a, rng, length, radius, frame=None, stub=False):
         a.join(framed(a.label(twig_core, 'bark'), frame))
         leaf = framed(ball((0, radius * 1.32, .07), (.06, .025, .12), 6), twig)
         a.join(framed(a.label(leaf, 'leaf'), frame))
+
+
+# ---------------------------------------------------------------------------- remains
+
+def bone(a, start, end, radius=.07):
+    start, end = np.asarray(start, float), np.asarray(end, float)
+    a.add(rod(tuple(start), tuple(end), radius, 6), 'bone')
+    side = np.cross(end - start, (0, 1, 0))
+    side = side / max(np.linalg.norm(side), 1e-6) * radius * .9
+    for p in (start, end):
+        for s in (-1, 1):
+            a.add(ball(tuple(p + s * side), (radius * 1.35,) * 3, 6), 'bone')
+
+
+def skull(a, x, z, turn, y=0.0, slot='bone', socket='socket', tilt=0.0, size=1.0):
+    """A chunky skull with real eye sockets, added to `a` as one solid; `slot` carves it in stone instead."""
+    head = Assembly()
+    head.slots = a.slots
+    head.add(ball((0, .24, 0), (.24, .21, .26), 10), slot)
+    head.add(block((.28, .12, .16), (0, .1, .14), .04), slot)
+    for s in (-1, 1):
+        head.cut(ball((s * .09, .24, .22), (.065, .07, .07), 7), socket)
+    head.cut(block((.06, .06, .08), (0, .16, .25), .015), socket)
+    a.join(head.build_solid().scale((size,) * 3).rotate((tilt, turn, 0)).translate((x, y, z)))

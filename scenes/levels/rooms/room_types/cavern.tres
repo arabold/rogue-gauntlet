@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=42 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=45 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="2_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="3_rectangleshape"]
@@ -15,7 +15,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="14_bone_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="15_floor_debris"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="16_bucket"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/straw_pile.tres" id="17_straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/hay_bale.tres" id="17_hay_bale"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="20_walldecorstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/fern.tres" id="p_fern"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/plants/mushrooms.tres" id="p_mushrooms"]
@@ -26,6 +26,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/winch.tres" id="m_winch"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/ore_vein.tres" id="m_ore_vein"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="m_lantern_wall"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_vein.tres" id="motif_crystal_vein"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_cluster.tres" id="motif_crystal_cluster"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_outcrop.tres" id="motif_crystal_outcrop"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("3_rectangleshape")
@@ -81,7 +84,7 @@ metadata/_custom_type_script = ExtResource("13_scatterstep")
 [sub_resource type="Resource" id="ScatterStep_8"]
 script = ExtResource("13_scatterstep")
 Id = "remains"
-Content = [ExtResource("14_bone_pile"), ExtResource("15_floor_debris"), ExtResource("16_bucket"), ExtResource("17_straw_pile")]
+Content = [ExtResource("14_bone_pile"), ExtResource("15_floor_debris"), ExtResource("16_bucket"), ExtResource("17_hay_bale")]
 MaximumCount = 3
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("13_scatterstep")
@@ -126,6 +129,23 @@ MinimumSize = Vector2i(2, 3)
 MaximumSize = Vector2i(3, 3)
 metadata/_custom_type_script = ExtResource("3_rectangleshape")
 
+[sub_resource type="Resource" id="WallDecorStep_crystal_veins"]
+script = ExtResource("20_walldecorstep")
+Id = "crystal_veins"
+Content = [ExtResource("motif_crystal_vein")]
+MaximumCount = 2
+Spacing = 5.0
+Motifs = PackedStringArray("crystals")
+metadata/_custom_type_script = ExtResource("20_walldecorstep")
+
+[sub_resource type="Resource" id="ScatterStep_crystals"]
+script = ExtResource("13_scatterstep")
+Id = "crystals"
+Content = [ExtResource("motif_crystal_cluster"), ExtResource("motif_crystal_outcrop")]
+MaximumCount = 3
+Motifs = PackedStringArray("crystals")
+metadata/_custom_type_script = ExtResource("13_scatterstep")
+
 [resource]
 script = ExtResource("2_roomtype")
 Id = "cavern"
@@ -140,5 +160,5 @@ Walls = [ExtResource("cave_walls")]
 Floors = [ExtResource("8_cave_floor")]
 Columns = [SubResource("CenterColumns_5"), SubResource("CornerColumns_6")]
 ColumnChance = 0.5
-Steps = [SubResource("AlongWallsStep_winch"), SubResource("ScatterStep_7"), SubResource("ScatterStep_8"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_veins"), SubResource("WallDecorStep_9")]
+Steps = [SubResource("AlongWallsStep_winch"), SubResource("ScatterStep_7"), SubResource("ScatterStep_8"), SubResource("ScatterStep_undergrowth"), SubResource("WallDecorStep_veins"), SubResource("WallDecorStep_9"), SubResource("WallDecorStep_crystal_veins"), SubResource("ScatterStep_crystals")]
 metadata/_custom_type_script = ExtResource("2_roomtype")

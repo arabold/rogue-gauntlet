@@ -1,0 +1,88 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=30 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleShape"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CenterStep.cs" id="3_CenterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/guard_table.tres" id="4_guard_table"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/prop_groups/counting_table.tres" id="5_counting_table"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/AlongWallsStep.cs" id="6_AlongWallsStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/crate_stack.tres" id="7_crate_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/barrel_stack.tres" id="8_barrel_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/big_crate_stack.tres" id="9_big_crate_stack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/trunk_large.tres" id="10_trunk_large"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="11_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/sack.tres" id="12_sack"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/keg.tres" id="13_keg"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/chest_treasury.tres" id="14_chest_treasury"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="15_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="16_small_box"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/coin_piles.tres" id="17_coin_piles"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="18_WallDecorStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/torch.tres" id="19_torch"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="20_slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="21_stone_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/bricks_floor.tres" id="22_bricks_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/channel_flagstones.tres" id="23_channel_flagstones"]
+
+[sub_resource type="Resource" id="shape_0"]
+script = ExtResource("2_RectangleShape")
+Weight = 1.0
+MinimumSize = Vector2i(2, 2)
+MaximumSize = Vector2i(3, 3)
+metadata/_custom_type_script = ExtResource("2_RectangleShape")
+
+[sub_resource type="Resource" id="step_table"]
+script = ExtResource("3_CenterStep")
+Id = "table"
+Content = [ExtResource("4_guard_table"), ExtResource("5_counting_table")]
+MinimumCount = 1
+MaximumCount = 1
+metadata/_custom_type_script = ExtResource("3_CenterStep")
+
+[sub_resource type="Resource" id="step_contraband"]
+script = ExtResource("6_AlongWallsStep")
+Id = "contraband"
+Content = [ExtResource("7_crate_stack"), ExtResource("8_barrel_stack"), ExtResource("9_big_crate_stack"), ExtResource("10_trunk_large")]
+MinimumCount = 2
+MaximumCount = 5
+Spacing = 0.5
+metadata/_custom_type_script = ExtResource("6_AlongWallsStep")
+
+[sub_resource type="Resource" id="step_stores"]
+script = ExtResource("11_CornersStep")
+Id = "stores"
+Content = [ExtResource("12_sack"), ExtResource("13_keg"), ExtResource("14_chest_treasury")]
+MinimumCount = 1
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("11_CornersStep")
+
+[sub_resource type="Resource" id="step_loose"]
+script = ExtResource("15_ScatterStep")
+Id = "loose"
+Content = [ExtResource("16_small_box"), ExtResource("12_sack"), ExtResource("17_coin_piles")]
+MaximumCount = 4
+WallChance = 0.6
+metadata/_custom_type_script = ExtResource("15_ScatterStep")
+
+[sub_resource type="Resource" id="step_lamps"]
+script = ExtResource("18_WallDecorStep")
+Id = "lamps"
+Content = [ExtResource("19_torch")]
+MaximumCount = 2
+Spacing = 4.0
+metadata/_custom_type_script = ExtResource("18_WallDecorStep")
+
+[resource]
+script = ExtResource("1_RoomType")
+Id = "smugglers_den"
+MaxPerFloor = 1
+Realms = PackedStringArray("sewer")
+Weight = 1.0
+Shapes = [SubResource("shape_0")]
+MinDoorways = 1
+MaxDoorways = 2
+DoorChance = 0.8
+Walls = [ExtResource("20_slimy_walls"), ExtResource("21_stone_walls")]
+Floors = [ExtResource("22_bricks_floor"), ExtResource("23_channel_flagstones")]
+Steps = [SubResource("step_table"), SubResource("step_contraband"), SubResource("step_stores"), SubResource("step_loose"), SubResource("step_lamps")]
+metadata/_custom_type_script = ExtResource("1_RoomType")

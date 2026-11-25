@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=32 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
@@ -26,6 +26,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_red.tres" id="tapestry_red"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_blue.tres" id="tapestry_blue"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tapestry_green.tres" id="tapestry_green"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/banner_red.tres" id="motif_banner_red"]
 
 [sub_resource type="Resource" id="RectangleShape_chapel"]
 script = ExtResource("rectangle")
@@ -59,6 +60,15 @@ Id = "hangings"
 Content = [ExtResource("sconce"), ExtResource("tapestry_red"), ExtResource("tapestry_blue"), ExtResource("tapestry_green")]
 MaximumCount = 2
 
+[sub_resource type="Resource" id="WallDecorStep_vampire_hangings"]
+script = ExtResource("decor")
+Id = "vampire_hangings"
+Content = [ExtResource("tapestry_red"), ExtResource("motif_banner_red")]
+MaximumCount = 3
+Spacing = 2.5
+Motifs = PackedStringArray("vampire")
+metadata/_custom_type_script = ExtResource("decor")
+
 [resource]
 script = ExtResource("room_type")
 Id = "side_chapel"
@@ -71,4 +81,4 @@ MaxDoorways = 1
 DoorwayPlacement = 3
 Walls = [ExtResource("arched"), ExtResource("crypt"), ExtResource("pillared"), ExtResource("mossy")]
 Floors = [ExtResource("decorated_floor"), ExtResource("checker_floor"), ExtResource("flagstones_floor"), ExtResource("bricks_floor"), ExtResource("flagstones_ruined_floor")]
-Steps = [SubResource("AlongWallsStep_altar"), SubResource("CornersStep_candles"), SubResource("AlongWallsStep_statue"), SubResource("WallDecorStep_hangings")]
+Steps = [SubResource("AlongWallsStep_altar"), SubResource("CornersStep_candles"), SubResource("AlongWallsStep_statue"), SubResource("WallDecorStep_hangings"), SubResource("WallDecorStep_vampire_hangings")]

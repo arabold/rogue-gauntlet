@@ -1,9 +1,9 @@
 {
   "key": "fountains/fountain_spring_mana",
-  "inputs": "23a1c8f51a3aecbcf27c0f703fd85d6d741152c8f3d1a57d3b7755653373f2d1",
+  "inputs": "a1f8689ef5d0c2db046ecc29e81f33dfe7b6a947d730482c183327c131d0c819",
   "files": {
-    "fountain_spring_mana.glb": "892bc97f1f49504231a162e420f9fbe29b7d7deffa0dd434bfdcddc24a6df5da",
-    "lineup.png": "c98893ec12964221a664bc11724666b759fd904351e3718c1371b736663dbb8b"
+    "fountain_spring_mana.glb": "5ad19717c5a92061afb40374927dc6155cbab6f9ef4c277bd23696b01d628630",
+    "lineup.png": "911ea5df861e46057b41c743deb0b8918bd6f72a922c5175711c446377cfb4a5"
   },
   "metadata": {
     "report": {
@@ -40,6 +40,7 @@
         "duplicate_faces": 0,
         "signed_volume": 2.008535400976514
       },
+      "host_fit": null,
       "warnings": [
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],

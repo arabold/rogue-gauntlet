@@ -10,10 +10,11 @@ public abstract partial class RoomDefinition : Resource
 {
 	[Export] public string Id { get; set; } = "";
 	[Export(PropertyHint.Range, "0.01,10,0.01")] public float Weight { get; set; } = 1f;
-	/// <summary>Themes (<see cref="Realm.Theme"/>) this definition belongs to; empty lets every realm use it.</summary>
+	/// <summary>
+	/// Themes (<see cref="Realm.Theme"/>) this definition can be built in; empty lets every theme build it. Which floors
+	/// show it is the realm's schedule (<see cref="Realm.Rooms"/>).
+	/// </summary>
 	[Export] public string[] Realms { get; set; } = [];
-	/// <summary>Chance a floor offers this definition at all, rolled once per floor; below 1 makes it a rare sight, like a throne room.</summary>
-	[Export(PropertyHint.Range, "0,1,0.01")] public float FloorChance { get; set; } = 1f;
 	/// <summary>Most copies of this definition one floor holds; 0 leaves it unlimited.</summary>
 	[Export(PropertyHint.Range, "0,10")] public int MaxPerFloor { get; set; }
 

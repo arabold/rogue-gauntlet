@@ -27,16 +27,18 @@ public partial class MapGenerator : Node3D
 	[Export] public MobFactory MobFactory { get; set; }
 	[Export] public WorldEffectDefinition SpawnArrivalEffect { get; set; }
 
-	/// <summary>The shared room pool; each floor takes the rooms of its realm.</summary>
+	/// <summary>The shared room catalog: entrances and exits by theme, and the rooms of realms that schedule none.</summary>
 	[Export] public RoomPool Rooms { get; set; }
 	/// <summary>
-	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> picks the floor's rooms from <see cref="Rooms"/>
-	/// and supplies its corridor tiles; the deepest realm carries on below the last band.
+	/// Realms by depth band: the one covering <see cref="DungeonDepth"/> schedules the floor's rooms and headline
+	/// (<see cref="RealmFloor"/>) and supplies its corridor tiles; the deepest realm carries on below the last band.
 	/// </summary>
 	[Export] public Realm[] Realms { get; set; } = [];
 
 	/// <summary>The realm the current floor builds from, resolved once before its first layout attempt.</summary>
 	public Realm CurrentRealm { get; private set; }
+	/// <summary>The current floor's view of its realm's schedule: its number, headline and rooms on offer.</summary>
+	public RealmFloor CurrentRealmFloor { get; private set; }
 	/// <summary>The floor recipe every layout attempt of the current floor builds with.</summary>
 	public FloorProfile CurrentProfile { get; private set; }
 	/// <summary>The current attempt's map size in tiles: its profile's <see cref="FloorProfile.MapSize"/>, or the generator's.</summary>
@@ -152,8 +154,11 @@ public partial class MapGenerator : Node3D
 	{
 		GD.Print("Generating rooms...");
 
-		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, RoomBudget, _random.Layout);
+		var headline = CurrentRealmFloor?.Headline;
+		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, RoomBudget, _random.Layout, new HeadlineSlot(headline));
 		var plan = CurrentProfile.Layout.GenerateLayout(Map, context);
+		if (headline != null && !plan.Placements.Any(placed => (placed.Cluster.Definition ?? placed.Cluster.PrimaryRoom?.Type) == headline))
+			GD.Print($"No room for the headline {headline.Id} on this layout attempt.");
 		PlaceClusters(plan.Placements);
 		return plan;
 	}
@@ -803,7 +808,7 @@ public partial class MapGenerator : Node3D
 		if (encounter?.GatekeeperId != null && CurrentRealm?.BossProfile != null) return CurrentRealm.BossProfile;
 		if (UniqueFloorPlan.At(UniqueFloorPlans, RunSeed, DungeonDepth, IsOrdinaryFloor) is { } unique) return unique;
 		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Layout, "floor-plan");
-		return CurrentRealm?.PickFloorPlan(rng);
+		return CurrentRealm?.PickFloorPlan(rng, CurrentRealm.FloorOf(DungeonDepth));
 	}
 
 	/// <summary>A floor with neither a gatekeeper nor a shop, which a unique plan may take over.</summary>
@@ -811,16 +816,19 @@ public partial class MapGenerator : Node3D
 		MobFactory?.PlanEncounters(depth)?.GatekeeperId == null && RealmAt(depth)?.ShopsAt(depth).Any() != true;
 
 	/// <summary>
-	/// Floor-wide choices every layout attempt shares: the realm, its rooms with the rare ones rolled for this floor, the
-	/// special encounters (planned before anything else, since they decide the floor plan, which sizes the map) and the plan.
+	/// Floor-wide choices every layout attempt shares: the realm, the special encounters (planned before anything else,
+	/// since they decide the floor plan, which sizes the map), the floor's share of its realm's schedule and the plan.
 	/// </summary>
 	private void PrepareFloor()
 	{
 		var errors = UniqueFloorPlans.SelectMany(plan => plan?.Validate() ?? ["MapGenerator: remove empty unique floor plan entries."]).ToArray();
 		if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
 		CurrentRealm = RealmAt(DungeonDepth);
-		_realmRooms = Rooms?.ForRealm(CurrentRealm?.Theme).ForFloor(Seed);
 		_encounter = MobFactory?.PlanEncounters(DungeonDepth);
+		var realm = CurrentRealm;
+		// Shop and gatekeeper floors are headlined by their keeper or gatekeeper, so they draw no headline room.
+		CurrentRealmFloor = realm == null ? null : RealmFloor.Create(realm, DungeonDepth, RunSeed, floor => !IsOrdinaryFloor(realm.DepthOf(floor)));
+		_realmRooms = Rooms?.ForRealm(realm?.Theme).ForFloor(CurrentRealmFloor);
 		CurrentProfile = Profile ?? FloorPlanFor(_encounter);
 	}
 

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=19 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -15,6 +15,13 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="15_sconce"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="x_flagstones_ruined_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="motif_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="motif_candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="motif_rubble_scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="motif_floor_debris"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="motif_CornersStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="motif_web_corner_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="motif_web_corner_large"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -40,6 +47,33 @@ MaximumCount = 2
 WallChance = 1.0
 metadata/_custom_type_script = ExtResource("11_ScatterStep")
 
+[sub_resource type="Resource" id="ScatterStep_undead_remains"]
+script = ExtResource("11_ScatterStep")
+Id = "undead_remains"
+Content = [ExtResource("motif_bone_pile"), ExtResource("motif_candle_stubs")]
+MaximumCount = 2
+Motifs = PackedStringArray("undead")
+metadata/_custom_type_script = ExtResource("11_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_decay"]
+script = ExtResource("11_ScatterStep")
+Id = "decay"
+Content = [ExtResource("motif_rubble_scatter"), ExtResource("motif_floor_debris")]
+MaximumCount = 3
+Motifs = PackedStringArray("decay")
+metadata/_custom_type_script = ExtResource("11_ScatterStep")
+
+[sub_resource type="Resource" id="CornersStep_decay_webs"]
+script = ExtResource("motif_CornersStep")
+Id = "decay_webs"
+Content = [ExtResource("motif_web_corner_small"), ExtResource("motif_web_corner_large")]
+Clearance = 0.2
+Diagonal = true
+MinimumCount = 0
+MaximumCount = 2
+Motifs = PackedStringArray("decay")
+metadata/_custom_type_script = ExtResource("motif_CornersStep")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "passage"
@@ -53,5 +87,5 @@ DoorwayPlacement = 1
 Circulation = 1
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_ruined_walls")]
 Floors = [ExtResource("5_stone_floor"), ExtResource("6_cobble_floor"), ExtResource("x_flagstones_floor"), ExtResource("x_flagstones_ruined_floor")]
-Steps = [SubResource("WallDecorStep_2"), SubResource("ScatterStep_3")]
+Steps = [SubResource("WallDecorStep_2"), SubResource("ScatterStep_3"), SubResource("ScatterStep_undead_remains"), SubResource("ScatterStep_decay"), SubResource("CornersStep_decay_webs")]
 metadata/_custom_type_script = ExtResource("1_RoomType")

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="1_Prop"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/cathedral/coffin.glb" id="2_coffin"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/cathedral/coffin_open.glb" id="3_coffin_open"]
+
+[resource]
+script = ExtResource("1_Prop")
+Id = "coffin"
+Scenes = [ExtResource("2_coffin"), ExtResource("3_coffin_open")]
+Gap = 0.3
+TurnJitter = 6.0
+ShiftJitter = 0.05
+Weight = 1.0
+metadata/_custom_type_script = ExtResource("1_Prop")

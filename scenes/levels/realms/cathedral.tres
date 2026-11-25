@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Realm" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="Realm" load_steps=46 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="realm"]
 [ext_resource type="Script" path="res://scenes/levels/generators/FloorPlanChoice.cs" id="choice"]
@@ -8,21 +8,151 @@
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cathedral.tres" id="cathedral"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cloister.tres" id="cloister"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster.tres" id="cluster"]
+[ext_resource type="Resource" path="res://scenes/shops/quartermaster_placement.tres" id="quartermaster"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmRoom.cs" id="realm_room"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/storage.tres" id="room_storage"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/scriptorium.tres" id="room_scriptorium"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/monk_cell.tres" id="room_monk_cell"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/dining.tres" id="room_dining"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/kitchen.tres" id="room_kitchen"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/chapel.tres" id="room_chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/side_chapel.tres" id="room_side_chapel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/crypt.tres" id="room_crypt"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/library.tres" id="room_library"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmMotif.cs" id="motif_RealmMotif"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/baptistry.tres" id="room_baptistry"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/bell_tower.tres" id="room_bell_tower"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/reliquary_hall.tres" id="room_reliquary_hall"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/throne_room.tres" id="room_throne_room"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/banquet_hall.tres" id="room_banquet_hall"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/vampire_crypt.tres" id="room_vampire_crypt"]
+
+[sub_resource type="Resource" id="schedule_storage"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_storage")
+FirstFloor = 1
+LastFloor = 2
+
+[sub_resource type="Resource" id="schedule_scriptorium"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_scriptorium")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_monk_cell"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_monk_cell")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_dining"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_dining")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_kitchen"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_kitchen")
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="schedule_chapel"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_chapel")
+FirstFloor = 1
+LastFloor = 4
+
+[sub_resource type="Resource" id="schedule_side_chapel"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_side_chapel")
+FirstFloor = 2
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_crypt"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_crypt")
+FirstFloor = 4
+LastFloor = 5
+Motif = "vampire"
+
+[sub_resource type="Resource" id="schedule_library"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_library")
+FirstFloor = 2
+LastFloor = 3
+Headline = true
 
 [sub_resource type="Resource" id="plan_cathedral"]
 script = ExtResource("choice")
 Profile = ExtResource("cathedral")
 Weight = 2.0
+FirstFloor = 2
+LastFloor = 5
 
 [sub_resource type="Resource" id="plan_cloister"]
 script = ExtResource("choice")
 Profile = ExtResource("cloister")
 Weight = 2.0
+FirstFloor = 1
+LastFloor = 3
 
 [sub_resource type="Resource" id="plan_cluster"]
 script = ExtResource("choice")
 Profile = ExtResource("cluster")
 Weight = 1.0
+FirstFloor = 1
+LastFloor = 1
+
+[sub_resource type="Resource" id="motif_vampire_0"]
+script = ExtResource("motif_RealmMotif")
+Id = "vampire"
+FirstFloor = 4
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_baptistry"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_baptistry")
+FirstFloor = 2
+LastFloor = 3
+Headline = true
+
+[sub_resource type="Resource" id="schedule_bell_tower"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_bell_tower")
+FirstFloor = 2
+LastFloor = 4
+Headline = true
+
+[sub_resource type="Resource" id="schedule_reliquary_hall"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_reliquary_hall")
+FirstFloor = 3
+LastFloor = 4
+Headline = true
+
+[sub_resource type="Resource" id="schedule_throne_room"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_throne_room")
+FirstFloor = 3
+LastFloor = 4
+Headline = true
+
+[sub_resource type="Resource" id="schedule_banquet_hall"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_banquet_hall")
+FirstFloor = 4
+LastFloor = 5
+Headline = true
+Motif = "vampire"
+
+[sub_resource type="Resource" id="schedule_vampire_crypt"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_vampire_crypt")
+FirstFloor = 4
+LastFloor = 5
+Headline = true
+Motif = "vampire"
 
 [resource]
 script = ExtResource("realm")
@@ -32,5 +162,8 @@ FirstDepth = 21
 LastDepth = 25
 Corridors = ExtResource("corridors")
 Atmosphere = ExtResource("atmosphere")
+Shops = [ExtResource("quartermaster")]
+Rooms = [SubResource("schedule_storage"), SubResource("schedule_scriptorium"), SubResource("schedule_monk_cell"), SubResource("schedule_dining"), SubResource("schedule_kitchen"), SubResource("schedule_chapel"), SubResource("schedule_side_chapel"), SubResource("schedule_crypt"), SubResource("schedule_library"), SubResource("schedule_baptistry"), SubResource("schedule_bell_tower"), SubResource("schedule_reliquary_hall"), SubResource("schedule_throne_room"), SubResource("schedule_banquet_hall"), SubResource("schedule_vampire_crypt")]
+Motifs = [SubResource("motif_vampire_0")]
 FloorPlans = [SubResource("plan_cathedral"), SubResource("plan_cloister"), SubResource("plan_cluster")]
 BossProfile = ExtResource("boss")

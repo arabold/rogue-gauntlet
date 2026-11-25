@@ -18,7 +18,7 @@ from core import kit
 from items.solid import Assembly, lathe, loop
 from items.furnishing_kit import (
     ball, bend, block, board, disc, facade, framed, grounded, jag,
-    moved, outline, post, random, rect, rivet, ring, rod, solid, square_post, torus, turned,
+    moved, outline, post, random, rect, rivet, ring, rod, solid, square_post, stones, torus, turned,
 )
 
 
@@ -962,6 +962,62 @@ def timber_frame_cracked():
 
 # ---------------------------------------------------------------------------- winch (~1.5 m)
 
+def mine_shaft():
+    """A mine shaft (3.2 m square, 3.6 m tall): a raised timber collar round a black square drop, a braced headframe over
+    it with an iron sheave, and a rope down to an ore bucket hanging above the dark."""
+    a, rng = Assembly(), random('mine_shaft')
+    half, collar = 1.0, .42
+    # The drop: a dark well filling the collar, its top just above the floor so it reads as a hole from above.
+    a.add(block((2 * half, .06, 2 * half), (0, .03, 0), 0), 'socket')
+    for s in (-1, 1):
+        board(a, rng, (2 * half + .64, collar, .32), (0, collar / 2, s * (half + .16)), 'wood_dark', chips=2)
+        board(a, rng, (.32, collar, 2 * half), (s * (half + .16), collar / 2, 0), 'wood_dark', chips=2)
+    for x in (-half - .16, half + .16):
+        for z in (-half - .16, half + .16):
+            a.add(rivet((x, collar + .01, z), .06, (0, 1, 0)), 'iron')
+    # Headframe: two leaning legs each side meeting under the crossbeam.
+    for x in (-1.25, 1.25):
+        for z in (-1, 1):
+            a.add(mf.Manifold.batch_hull([block((.24, .2, .24), (x, .3, z * (half + .1)), .03),
+                                          block((.22, .2, .22), (x, 3.2, z * .12), .03)]), 'wood')
+    board(a, rng, (2.9, .3, .34), (0, 3.3, 0), 'wood_dark', chips=2)
+    a.add(torus(.42, .07, 0, 16, 6).rotate((0, 0, 90)).translate((0, 3.0, 0)), 'iron')
+    for k in range(4):
+        a.add(rod((0, 3.0, 0), (0, 3.0 + .4 * np.cos(np.radians(45 * k)), .4 * np.sin(np.radians(45 * k))), .03, 5), 'iron_dark')
+    a.add(rod((0, 3.0, -.4), (0, 3.0, .4), .03, 5), 'iron_dark')
+    a.add(rod((-.2, 3.0, 0), (.2, 3.0, 0), .06, 6), 'iron_dark')
+    a.add(rod((0, 2.6, .0), (0, 1.25, 0), .035, 6), 'rope')
+    a.add(lathe([(.26, .7), (.3, 1.12), (.28, 1.16)], 8), 'wood')
+    a.add(torus(.3, .03, 1.0, 10, 5), 'iron')
+    a.add(bend([(-.28, 1.14, 0), (0, 1.36, 0), (.28, 1.14, 0)], [.025] * 3, 5), 'iron')
+    for x, z in ((-.1, .05), (.08, -.06), (.0, .1)):
+        a.add(ball((x, 1.16, z), (.1, .08, .1), 6), 'ore_gold' if x > 0 else 'rock')
+    return a.build()
+
+
+def furnace():
+    """A smelting furnace (2.1 m wide, 3 m to its chimney top): a squat body of stacked stone round an arched firebox
+    glowing with coals, an iron door hung open beside it, a tapering chimney and a heap of coal before it."""
+    a, rng = Assembly(), random('furnace')
+    stones(a, rng, -1.0, 1.0, 0, 1.6, 1.4, -.1, 4, 'stone', span=(.5, .8))
+    board(a, rng, (2.2, .2, 1.6), (0, 1.66, -.1), 'stone_dark', chips=3, wobble=.4, chip_slot='stone_dark')
+    a.add(lathe([(.62, 1.7), (.5, 2.4), (.36, 2.9), (.4, 3.0)], 6).translate((0, 0, -.2)), 'stone')
+    a.cut(lathe([(.001, 2.6), (.22, 2.6), (.22, 3.1)], 6).translate((0, 0, -.2)), 'coal')
+    # The firebox: an arched mouth with the coals' glow set back in it.
+    a.cut(facade(outline([(-.42, .3)] + [(np.cos(t) * .42, .78 + np.sin(t) * .42) for t in np.linspace(0, np.pi, 8)]), .9, .0), 'socket')
+    a.add(ball((0, .3, .34), (.38, .34, .34), 8).trim_by_plane((0, 1, 0), .3), 'lantern_glow')
+    a.add(block((.9, .12, .2), (0, .24, .58), .03), 'stone_dark')
+    # The door, hung open on the left, and its hinge pins.
+    a.add(block((.66, .9, .06), (-.82, .74, .82), .02).rotate((0, 0, 0)), 'iron_dark')
+    for y in (.45, 1.0):
+        a.add(rod((-.5, y, .52), (-.5, y, .84), .04, 6), 'iron')
+    a.add(ring(.03, .07, 0, .03, 8).rotate((90, 0, 0)).translate((-1.02, .74, .835)), 'iron')
+    for x, z, r in ((.5, 1.0, .22), (.75, .85, .16), (.3, 1.15, .14), (.62, 1.18, .12)):
+        a.add(ball((x, 0, z), (r, r * .7, r), 6).trim_by_plane((0, 1, 0), 0), 'coal')
+    a.add(ball((.55, 0, .92), (.42, .2, .38), 8).trim_by_plane((0, 1, 0), 0), 'coal')
+    return a.build()
+
+
 def winch():
     """Timber A-frame mining winch (~1.54 m W x 1.24 m D x 1.62 m H) with rope drum, crank, and hanging bucket."""
     a, rng = Assembly(), random('winch')
@@ -1056,56 +1112,51 @@ def winch():
 
 # ---------------------------------------------------------------------------- blasting powder kegs (~1.0 m)
 
-def _build_powder_keg(parent, yaw_deg=0.0):
-    """One chunky small powder keg (~0.48 m dia x 0.58 m H) with carved staves, iron hoops, and carved hazard X."""
+def _powder_keg(parent, rng, badge_turn=0):
+    """One fat powder keg (1.0 m across, 1.04 m tall) like the pack's barrels: grooved staves, sunk heads, thick iron
+    hoops and a skull and crossbones carved into its front (+Z), turned `badge_turn` degrees on its face."""
     a = _sub(parent)
-    profile = [(0.20, 0.0), (0.225, 0.08), (0.248, 0.29), (0.225, 0.50), (0.20, 0.58)]
-    a.add(lathe(profile, 14), 'wood')
-    # Real carved stave grooves
-    for k in range(10):
-        ang = 360 * k / 10 + 18
-        a.cut(block((0.018, 0.64, 0.06), (0, 0.29, 0.248), 0.004).rotate((0, ang, 0)), 'wood_dark')
-    # Recessed top & bottom barrel heads
-    a.cut(post(0.175, 0.545, 0.66, sides=14), 'wood_dark')
-    a.cut(post(0.175, -0.05, 0.025, sides=14), 'wood_dark')
-    # Real carved hazard mark on front (+Z) stave face: recessed red circular badge + carved gold X
-    a.cut(rod((0, 0.29, 0.215), (0, 0.29, 0.28), 0.092, 10), 'cloth_red')
-    for turn in (45, -45):
-        a.cut(block((0.135, 0.032, 0.06), (0, 0, 0), 0.005).rotate((0, 0, turn)).translate((0, 0.29, 0.245)), 'gold')
-    # Dark iron hoops & rivets
-    for y0, r in ((0.06, 0.225), (0.45, 0.225)):
-        a.add(ring(r - 0.015, r + 0.024, y0, y0 + 0.060, 14), 'iron_dark')
+    a.add(lathe([(.4, 0), (.46, .1), (.5, .52), (.46, .94), (.4, 1.04)], 16), 'wood')
+    for k in range(12):
+        a.cut(block((.03, 1.2, .08), (0, .52, .5), .006).rotate((0, 360 * k / 12 + 15, 0)), 'wood_dark')
+    a.cut(post(.34, .97, 1.2, sides=16), 'wood_dark')
+    a.cut(post(.34, -.1, .05, sides=16), 'wood_dark')
+    for y0, r in ((.1, .47), (.84, .47)):
+        a.add(ring(r - .03, r + .04, y0, y0 + .1, 16), 'iron')
         for k in range(4):
-            ang = k * np.pi / 2 + np.pi / 4
-            a.add(rivet((np.sin(ang) * (r + 0.024), y0 + 0.030, np.cos(ang) * (r + 0.024)), 0.018,
-                        (np.sin(ang), 0, np.cos(ang))), 'steel')
-    return a.build_solid().rotate((0, yaw_deg, 0))
+            t = k * np.pi / 2 + np.pi / 4
+            a.add(rivet((np.sin(t) * (r + .04), y0 + .05, np.cos(t) * (r + .04)), .03, (np.sin(t), 0, np.cos(t))), 'iron_dark')
+    def badge(shape):
+        return shape.rotate((0, 0, badge_turn)).translate((0, .51, .5))
+
+    for turn in (35, -35):
+        a.cut(badge(block((.36, .07, .12), (0, 0, 0), .02).rotate((0, 0, turn)).translate((0, -.09, 0))), 'bone')
+    a.cut(badge(ball((0, .09, 0), (.12, .11, .1), 10)), 'bone')
+    for x in (-.045, .045):
+        a.cut(badge(ball((x, .1, -.05), (.032, .036, .08), 6)), 'socket')
+    return a.build_solid().rotate((0, rng.uniform(-20, 20), 0))
 
 
 def blasting_kegs():
-    """Stack of 3 small powder kegs (~1.0 m across x 1.1 m H) with carved hazard emblems and coiled fuse."""
-    a = Assembly()
-    # Base pair of upright powder kegs staggered in XZ + third upper horizontal keg built from one template
-    keg = _build_powder_keg(a)
-    a.join(keg.rotate((0, 18, 0)).translate((-0.24, 0.0, 0.11)))
-    a.join(keg.rotate((0, -22, 0)).translate((0.24, 0.0, -0.09)))
-    # Wooden chock block on top rims cradling the upper horizontal keg
-    a.add(block((0.42, 0.06, 0.16), (0, 0, 0), 0.012).rotate((0, -22, 0)).translate((0.0, 0.58, 0.01)), 'wood_dark')
-    # Third keg lying horizontally diagonally across the saddle of the two base kegs
-    a.join(keg.translate((0.0, -0.29, 0.0)).rotate((0, 0, -90)).rotate((0, -22, 0)).translate((0.0, 0.79, 0.01)))
-    # Chunky wooden bung + coiled rope fuse resting on top of the upper keg (y ~ 1.03..1.18)
-    a.add(post(0.044, 0.98, 1.06, 0.02, 0.02, 8), 'wood_dark')
-    fuse_pts = []
-    for t in np.linspace(0.4, 2.35 * np.pi, 18):
-        r = 0.032 + 0.015 * t
-        fuse_pts.append((0.02 + np.cos(t) * r, 1.045 + 0.008 * np.sin(2 * t), 0.02 + np.sin(t) * r))
-    end_x, end_y, end_z = fuse_pts[-1]
-    fuse_pts.extend([
-        (end_x + 0.02, end_y + 0.06, end_z + 0.02),
-        (end_x + 0.04, end_y + 0.11, end_z + 0.04),
-    ])
-    a.add(bend(fuse_pts, [0.022] * (len(fuse_pts) - 1) + [0.014], 6), 'rope')
-    a.add(ball((end_x + 0.04, end_y + 0.115, end_z + 0.04), (0.026, 0.026, 0.026), 6), 'wick')
+    """A stack of four fat powder kegs about as tall as the hero (2.3 m): three standing together and one lying across
+    them in a timber cradle, a skull and crossbones on each and a coiled fuse on top."""
+    a, rng = Assembly(), random('blasting_kegs')
+    for x, z in ((-.5, .3), (.5, .3), (0, -.56)):
+        a.join(_powder_keg(a, rng).translate((x, 0, z)))
+    for x in (-.36, .36):
+        a.add(block((.18, .14, 1.3), (x, 1.08, -.12), .02), 'wood_dark')
+        for z in (-.46, .22):
+            a.add(block((.2, .2, .14), (x, 1.22, z), .02), 'wood_dark')
+    lying = _powder_keg(a, rng, badge_turn=90).translate((0, -.52, 0)).rotate((0, 0, -90))
+    a.join(lying.translate((0, 1.6, -.12)))
+    # A bung on top of the lying keg and its fuse coiled round it.
+    a.add(post(.06, 2.05, 2.16, 0, -.12, 8), 'wood_dark')
+    coil = [(np.cos(t) * (.05 + .02 * t), 2.13 + .01 * np.sin(2 * t), -.12 + np.sin(t) * (.05 + .02 * t))
+            for t in np.linspace(.4, 2.35 * np.pi, 18)]
+    end = np.array(coil[-1])
+    coil += [tuple(end + (.03, .08, .03)), tuple(end + (.06, .15, .06))]
+    a.add(bend(coil, [.03] * (len(coil) - 1) + [.02], 6), 'rope')
+    a.add(ball(tuple(end + (.06, .155, .06)), (.035, .035, .035), 6), 'wick')
     return grounded(a.build())
 
 
@@ -1134,5 +1185,7 @@ KINDS = {
     'timber_frame_intact': timber_frame_intact,
     'timber_frame_cracked': timber_frame_cracked,
     'winch': winch,
+    'mine_shaft': mine_shaft,
+    'furnace': furnace,
     'blasting_kegs': blasting_kegs,
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/encounters/DestructibleNest.cs" id="nest"]
 [ext_resource type="PackedScene" path="res://scenes/components/health_component.tscn" id="health"]
@@ -9,7 +9,6 @@
 [ext_resource type="PackedScene" path="res://scenes/components/damage_number.tscn" id="damage_number"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/bat/giant_bat.tscn" id="minion"]
 [ext_resource type="PackedScene" path="res://assets/custom-props/ruins/rubble_large.glb" id="rubble"]
-[ext_resource type="PackedScene" path="res://assets/custom-props/ruins/straw_pile.glb" id="straw"]
 [ext_resource type="PackedScene" path="res://assets/custom-monsters/bat/giant_bat.glb" id="bat"]
 
 [sub_resource type="CylinderShape3D" id="body"]
@@ -47,9 +46,6 @@ position = Vector3(0, 0.5, 0)
 shape = SubResource("body")
 
 [node name="Roost" type="Node3D" parent="."]
-
-[node name="Straw" parent="Roost" instance=ExtResource("straw")]
-transform = Transform3D(0.94, 0, 0.34, 0, 1, 0, -0.34, 0, 0.94, 0, 0, 0)
 
 [node name="Rubble" parent="Roost" instance=ExtResource("rubble")]
 transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 0, -0.05)

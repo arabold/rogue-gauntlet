@@ -11,8 +11,10 @@ public static partial class TestFactories
 	public static readonly string[] RealmIds = ["garrison", "prison", "sewer", "mines", "cathedral"];
 	/// <summary>The first depth of each authored look: the Garrison's (shared by the Prison and Cathedral), the Sewer's and the Mines' jungle theme.</summary>
 	public static readonly uint[] ThemeDepths = [1, 11, 16];
-	/// <summary>The Garrison's gatekeeper floor, where the Forsaken Warden and the Quartermaster stand.</summary>
+	/// <summary>The Garrison's gatekeeper floor, where the Forsaken Warden stands.</summary>
 	public const uint GarrisonGatekeeperDepth = 5;
+	/// <summary>The Prison's first floor, where the Quartermaster greets the hero after the Warden.</summary>
+	public const uint FirstShopDepth = 6;
 
 	/// <summary>
 	/// Gives a generator from <see cref="LoadGenerator"/> the authored realms instead of the Garrison it is pinned to, so

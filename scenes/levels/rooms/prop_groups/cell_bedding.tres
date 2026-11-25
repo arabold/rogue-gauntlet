@@ -5,7 +5,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/bed.tres" id="3_bed"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/PropGroupMember.cs" id="4_PropGroupMem"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="5_small_box"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/straw_pile.tres" id="6_straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/hay_bale.tres" id="6_hay_bale"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="7_bucket"]
 
 [sub_resource type="Resource" id="PropGroupMember_1"]
@@ -20,7 +20,7 @@ metadata/_custom_type_script = ExtResource("4_PropGroupMem")
 script = ExtResource("1_PropGroup")
 Id = "cell_bedding"
 Weight = 1.0
-Anchor = [ExtResource("2_bedroll"), ExtResource("3_bed"), ExtResource("6_straw_pile")]
+Anchor = [ExtResource("2_bedroll"), ExtResource("3_bed"), ExtResource("6_hay_bale")]
 Members = [SubResource("PropGroupMember_1")]
 MirrorChance = 0.5
 metadata/_custom_type_script = ExtResource("1_PropGroup")

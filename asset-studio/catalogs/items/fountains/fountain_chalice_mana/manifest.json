@@ -1,9 +1,9 @@
 {
   "key": "fountains/fountain_chalice_mana",
-  "inputs": "5ef4441ca02ab05e12f58a149991696fa9434af51f0b0b94435889c0c7866beb",
+  "inputs": "ea61f1e31c2db8a7c761ea6fdca187c355aa13985b553edb3f588391544e10d5",
   "files": {
-    "fountain_chalice_mana.glb": "21575443f30919f165646390e2676294e9d7f8370279bf39a5f8d70bf61bc6b8",
-    "lineup.png": "32843d2f90bd2e4e16f36b5ba869a51d319d42e9cdebbbf23108a24fe522265c"
+    "fountain_chalice_mana.glb": "3a75a1cd8cb04cb89057ded4fcde5b4ccba5276f128301c7d599a3a7366c50ac",
+    "lineup.png": "fca146c2e0b79f738d38302cb5b2719c0931d5d1b8301bcddebb1963f2954e0b"
   },
   "metadata": {
     "report": {
@@ -40,6 +40,7 @@
         "duplicate_faces": 0,
         "signed_volume": 0.38362217660467596
       },
+      "host_fit": null,
       "warnings": [
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],

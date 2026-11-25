@@ -105,7 +105,6 @@ Pier = ExtResource("arcade_pier")
 [resource]
 script = ExtResource("2_roomtype")
 Id = "cistern_hall"
-FloorChance = 0.5
 MaxPerFloor = 1
 Realms = PackedStringArray("sewer")
 Shapes = [SubResource("RectangleShape_1")]

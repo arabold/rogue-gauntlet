@@ -1,0 +1,89 @@
+{
+  "key": "furnishings/grave_leaning",
+  "inputs": "914537e9a10d5b4b199132a74e4f1e4dad64eec489f120638c80f3ada2fc429d",
+  "files": {
+    "grave_leaning.glb": "1eda2c1881319bd4b0d6bab3cc0dd6770e65380471a6245e466d8cf19762df9e",
+    "lineup.png": "8dc1cb6ef38f6f7323765e0b1abd55a70f7dceea3c3119437a1c7259b8090fad"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2760,
+      "bounds": [
+        [
+          -0.7002275586128235,
+          0.0,
+          -1.558976173400879
+        ],
+        [
+          0.7025456428527832,
+          1.571700096130371,
+          1.2540528774261475
+        ]
+      ],
+      "dimensions": [
+        1.4027732014656067,
+        1.571700096130371,
+        2.8130290508270264
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.0514956250646432
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Grave With Leaning Headstone",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "grave",
+        "marker": "round",
+        "lean": 16
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3800,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/graveyard/grave_leaning.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Burial-ground furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; graves keep their marker at -Z; fence modules run along X in exact 4 m and 2 m lengths. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Realm" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="Realm" load_steps=40 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/Realm.cs" id="realm"]
 [ext_resource type="Script" path="res://scenes/levels/generators/FloorPlanChoice.cs" id="choice"]
@@ -7,16 +7,125 @@
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/boss.tres" id="boss"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster_large.tres" id="cluster_large"]
 [ext_resource type="Resource" path="res://scenes/levels/generators/floor_profiles/cluster.tres" id="cluster"]
+[ext_resource type="Resource" path="res://scenes/shops/quartermaster_placement.tres" id="quartermaster"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmRoom.cs" id="realm_room"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/drain_tunnel.tres" id="room_drain_tunnel"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/junction.tres" id="room_junction"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/sewer_vault.tres" id="room_sewer_vault"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/prison.tres" id="room_prison"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/storage.tres" id="room_storage"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/partitioned_store.tres" id="room_partitioned_store"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/rat_warren.tres" id="room_rat_warren"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/ruins.tres" id="room_ruins"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/cistern_hall.tres" id="room_cistern_hall"]
+[ext_resource type="Script" path="res://scenes/levels/generators/RealmMotif.cs" id="motif_RealmMotif"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/smugglers_den.tres" id="room_smugglers_den"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/outfall_chamber.tres" id="room_outfall_chamber"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/rat_king_nest.tres" id="room_rat_king_nest"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_types/sunken_shrine.tres" id="room_sunken_shrine"]
+
+[sub_resource type="Resource" id="schedule_drain_tunnel"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_drain_tunnel")
+FirstFloor = 1
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_junction"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_junction")
+FirstFloor = 1
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_sewer_vault"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_sewer_vault")
+FirstFloor = 1
+LastFloor = 4
+
+[sub_resource type="Resource" id="schedule_prison"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_prison")
+FirstFloor = 1
+LastFloor = 1
+
+[sub_resource type="Resource" id="schedule_storage"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_storage")
+FirstFloor = 1
+LastFloor = 2
+
+[sub_resource type="Resource" id="schedule_partitioned_store"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_partitioned_store")
+FirstFloor = 1
+LastFloor = 2
+
+[sub_resource type="Resource" id="schedule_rat_warren"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_rat_warren")
+FirstFloor = 2
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_ruins"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_ruins")
+FirstFloor = 3
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_cistern_hall"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_cistern_hall")
+FirstFloor = 2
+LastFloor = 4
+Headline = true
 
 [sub_resource type="Resource" id="plan_cluster_large"]
 script = ExtResource("choice")
 Profile = ExtResource("cluster_large")
 Weight = 3.0
+FirstFloor = 1
+LastFloor = 5
 
 [sub_resource type="Resource" id="plan_cluster"]
 script = ExtResource("choice")
 Profile = ExtResource("cluster")
 Weight = 1.0
+FirstFloor = 1
+LastFloor = 3
+
+[sub_resource type="Resource" id="motif_flooded_0"]
+script = ExtResource("motif_RealmMotif")
+Id = "flooded"
+FirstFloor = 4
+LastFloor = 5
+
+[sub_resource type="Resource" id="schedule_smugglers_den"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_smugglers_den")
+FirstFloor = 2
+LastFloor = 3
+Headline = true
+
+[sub_resource type="Resource" id="schedule_outfall_chamber"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_outfall_chamber")
+FirstFloor = 3
+LastFloor = 5
+Headline = true
+
+[sub_resource type="Resource" id="schedule_rat_king_nest"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_rat_king_nest")
+FirstFloor = 3
+LastFloor = 5
+Headline = true
+
+[sub_resource type="Resource" id="schedule_sunken_shrine"]
+script = ExtResource("realm_room")
+Room = ExtResource("room_sunken_shrine")
+FirstFloor = 4
+LastFloor = 5
+Headline = true
 
 [resource]
 script = ExtResource("realm")
@@ -26,5 +135,8 @@ FirstDepth = 11
 LastDepth = 15
 Corridors = ExtResource("corridors")
 Atmosphere = ExtResource("atmosphere")
+Shops = [ExtResource("quartermaster")]
+Rooms = [SubResource("schedule_drain_tunnel"), SubResource("schedule_junction"), SubResource("schedule_sewer_vault"), SubResource("schedule_prison"), SubResource("schedule_storage"), SubResource("schedule_partitioned_store"), SubResource("schedule_rat_warren"), SubResource("schedule_ruins"), SubResource("schedule_cistern_hall"), SubResource("schedule_smugglers_den"), SubResource("schedule_outfall_chamber"), SubResource("schedule_rat_king_nest"), SubResource("schedule_sunken_shrine")]
+Motifs = [SubResource("motif_flooded_0")]
 FloorPlans = [SubResource("plan_cluster_large"), SubResource("plan_cluster")]
 BossProfile = ExtResource("boss")

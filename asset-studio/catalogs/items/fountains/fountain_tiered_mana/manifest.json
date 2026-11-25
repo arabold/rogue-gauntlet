@@ -1,9 +1,9 @@
 {
   "key": "fountains/fountain_tiered_mana",
-  "inputs": "f47677f7169460735f0dbe8444b908eef52529719240442b6de159951a287e2f",
+  "inputs": "550f59eb6ed2fdb738c93ee2063437c1619472f8fc3f8be357936f2736eee0d8",
   "files": {
-    "fountain_tiered_mana.glb": "60d4948703ad3f36944d061fed9a0ba4da60a48721b20a59972a4ff38be44093",
-    "lineup.png": "b60c66caacce7ab080406d06c6886ee5aeed96f019bc90217c072d6f691c950c"
+    "fountain_tiered_mana.glb": "58f9615e9d8dc72e83ee4e4784a74e778bf2378e22600f1cc7383aa0af23d3bd",
+    "lineup.png": "a02a2c125f7fc40fe96d1a6e26e654acdf241c4751898f7d24d7158255450730"
   },
   "metadata": {
     "report": {
@@ -40,6 +40,7 @@
         "duplicate_faces": 0,
         "signed_volume": 1.343496522042839
       },
+      "host_fit": null,
       "warnings": [
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],

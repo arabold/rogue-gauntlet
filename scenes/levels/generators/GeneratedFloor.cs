@@ -502,8 +502,9 @@ public sealed class GeneratedFloor
 			}
 		}
 
-		// Nothing in throwing range: over water a flyer's drop lands on the nearest dry floor in sight instead.
-		return FindFreePositionNear(source, 6f, candidate => WorldSight.IsClear(world, source + sight, candidate + sight));
+		// Nothing in throwing range: over water a flyer's drop lands on the nearest dry floor no wall stands in front of
+		// instead. Falling from above the water, it clears the railings along a bank.
+		return FindFreePositionNear(source, 6f, candidate => WorldSight.IsClear(world, source + sight, candidate + sight, mask: WorldSight.Structure));
 	}
 
 	private bool IsSpawnPositionFree(Vector3 worldPosition)

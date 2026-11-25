@@ -1,6 +1,7 @@
 {
   "version": 1,
   "name": "Blasting Kegs",
+  "reference": "res://asset-studio/objects/furnishings/blasting_kegs/reference.png",
   "backend": "procedural",
   "builder": "furnishing",
   "design": {
@@ -13,7 +14,7 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 6000,
+    "triangles": 8000,
     "materials": 2,
     "texture_size": 1024
   },

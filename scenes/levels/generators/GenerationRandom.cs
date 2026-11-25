@@ -19,6 +19,8 @@ public static class GenerationRandom
 	public const string Fountains = "fountains";
 	/// <summary>The run's schedule of floor plans it meets only once, keyed by the run seed.</summary>
 	public const string UniqueFloors = "unique-floor";
+	/// <summary>Each realm's schedule of its floors' content, such as headline rooms, keyed by the run seed.</summary>
+	public const string RealmContent = "realm-content";
 	/// <summary>Rolls made during play without a stable source (enchanting, summons), keyed by a saved counter.</summary>
 	public const string GameplayLoot = "gameplay-loot";
 	/// <summary>Presentation-only rolls, such as where a drop lands, kept apart so they never shift gameplay streams.</summary>

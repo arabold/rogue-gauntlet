@@ -1,9 +1,9 @@
 {
   "key": "fountains/fountain_chalice_health",
-  "inputs": "6821a5dfbfae2f180a1730c2139ed68310f55e0b7cab794db6a3760e1ac2e7d3",
+  "inputs": "20faccc62ff4de747c39e0a68419c9bf1f60ce36e59dc0abcdee95da42dfc940",
   "files": {
-    "fountain_chalice_health.glb": "5c80c261d340d410662c1aa88bfeb6fb859b1091410072bcb22aa3468afaab86",
-    "lineup.png": "90b9336e95c4a9fb9d6f73793412fd34188cf18c82444327f17a7567d75d80dd"
+    "fountain_chalice_health.glb": "d913a7055a416b7e3158ed727757c78b10683e9e6542f88de80c5ea6a68ef648",
+    "lineup.png": "4f27a0b1fc9ff8c181aa9f269d791f0d028f70e69c2bdab693d5293ad0d4ee5e"
   },
   "metadata": {
     "report": {
@@ -40,6 +40,7 @@
         "duplicate_faces": 0,
         "signed_volume": 0.38362217660467596
       },
+      "host_fit": null,
       "warnings": [
         "2 surface components: visually review intended attachments and gaps; component count cannot establish floating parts"
       ],

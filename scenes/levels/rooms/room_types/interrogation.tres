@@ -22,7 +22,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/keyring.tres" id="keyring"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="bone_pile"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="bucket"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/straw_pile.tres" id="straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/hay_bale.tres" id="hay_bale"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/prison/torture_rack.tres" id="torture_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/prison/stocks.tres" id="stocks"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/prison/iron_maiden.tres" id="iron_maiden"]
@@ -70,7 +70,7 @@ Chance = 0.5
 [sub_resource type="Resource" id="ScatterStep_remains"]
 script = ExtResource("scatter")
 Id = "remains"
-Content = [ExtResource("bone_pile"), ExtResource("bucket"), ExtResource("straw_pile")]
+Content = [ExtResource("bone_pile"), ExtResource("bucket"), ExtResource("hay_bale")]
 MaximumCount = 2
 
 [resource]

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=49 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=61 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -38,6 +38,14 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/key_alcove_walls.tres" id="x_key_alcove_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/planks_dark_floor.tres" id="x_planks_dark_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="x_flagstones_floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="motif_ScatterStep"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="motif_bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="motif_candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="motif_rubble_scatter"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="motif_floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="motif_web_corner_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="motif_web_corner_large"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/furniture/training_dummy.tres" id="motif_training_dummy"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -122,6 +130,43 @@ MinimumSize = Vector2i(2, 2)
 MaximumSize = Vector2i(3, 3)
 metadata/_custom_type_script = ExtResource("2_RectangleSha")
 
+[sub_resource type="Resource" id="ScatterStep_undead_remains"]
+script = ExtResource("motif_ScatterStep")
+Id = "undead_remains"
+Content = [ExtResource("motif_bone_pile"), ExtResource("motif_candle_stubs")]
+MaximumCount = 2
+Motifs = PackedStringArray("undead")
+metadata/_custom_type_script = ExtResource("motif_ScatterStep")
+
+[sub_resource type="Resource" id="ScatterStep_decay"]
+script = ExtResource("motif_ScatterStep")
+Id = "decay"
+Content = [ExtResource("motif_rubble_scatter"), ExtResource("motif_floor_debris")]
+MaximumCount = 3
+Motifs = PackedStringArray("decay")
+metadata/_custom_type_script = ExtResource("motif_ScatterStep")
+
+[sub_resource type="Resource" id="CornersStep_decay_webs"]
+script = ExtResource("16_CornersStep")
+Id = "decay_webs"
+Content = [ExtResource("motif_web_corner_small"), ExtResource("motif_web_corner_large")]
+Clearance = 0.2
+Diagonal = true
+MinimumCount = 0
+MaximumCount = 2
+Motifs = PackedStringArray("decay")
+metadata/_custom_type_script = ExtResource("16_CornersStep")
+
+[sub_resource type="Resource" id="AlongWallsStep_warband_arms"]
+script = ExtResource("12_AlongWallsSt")
+Id = "warband_arms"
+Content = [ExtResource("32_weapon_rack"), ExtResource("motif_training_dummy")]
+MaximumCount = 2
+Chance = 0.8
+Spacing = 1.5
+Motifs = PackedStringArray("warband")
+metadata/_custom_type_script = ExtResource("12_AlongWallsSt")
+
 [resource]
 script = ExtResource("1_RoomType")
 Id = "guardroom"
@@ -133,5 +178,5 @@ MinDoorways = 1
 MaxDoorways = 3
 Walls = [ExtResource("3_stone_walls"), ExtResource("4_pillared_wal"), ExtResource("x_key_alcove_walls")]
 Floors = [ExtResource("5_stone_floor"), ExtResource("7_dark_wood_fl"), ExtResource("8_planked_ston"), ExtResource("x_planks_dark_floor"), ExtResource("x_flagstones_floor")]
-Steps = [SubResource("CenterStep_2"), SubResource("AlongWallsStep_9"), SubResource("AlongWallsStep_3"), SubResource("CornersStep_4"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8")]
+Steps = [SubResource("CenterStep_2"), SubResource("AlongWallsStep_9"), SubResource("AlongWallsStep_3"), SubResource("CornersStep_4"), SubResource("WallDecorStep_5"), SubResource("WallDecorStep_6"), SubResource("WallDecorStep_7"), SubResource("WallDecorStep_8"), SubResource("ScatterStep_undead_remains"), SubResource("ScatterStep_decay"), SubResource("CornersStep_decay_webs"), SubResource("AlongWallsStep_warband_arms")]
 metadata/_custom_type_script = ExtResource("1_RoomType")
