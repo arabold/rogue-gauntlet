@@ -60,8 +60,8 @@ public partial class CombatFeedbackController : Node
 		var settings = feedback.Settings;
 		if (!settings.Enabled || settings.ScaleFor(feedback.Outcome, feedback.Emphasis) <= 0) return;
 		float scale = settings.ScaleFor(feedback.Outcome, feedback.Emphasis);
-		bool damaging = feedback.Outcome == DamageOutcome.Damaged;
-		if (damaging && feedback.Reaction is null or HitReaction.Flinch)
+		// Every damaging hit flashes and bleeds, whatever its reaction: a stagger or a forced push needs the read most.
+		if (feedback.Outcome == DamageOutcome.Damaged)
 		{
 			float flashAmount = settings.FlashAmount * scale;
 			bool flashTriggered = SurfaceAppearance?.PulseHit(settings.FlashColor, flashAmount, settings.FlashDuration) == true;

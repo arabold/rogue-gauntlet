@@ -142,7 +142,7 @@ script = ExtResource("combat_motion_script")
 Actor = NodePath("..")
 VisualOffsetRoot = NodePath("../Pivot")
 
-[node name="CombatFeedbackController" type="Node" parent="." node_paths=PackedStringArray("Actor", "HurtBox", "Movement", "SurfaceProfile", "SurfaceAppearance", "VisualMotion", "Invisibility", "FallbackProfile")]
+[node name="CombatFeedbackController" type="Node" parent="." node_paths=PackedStringArray("Actor", "HurtBox", "Movement", "SurfaceAppearance", "VisualMotion", "Invisibility")]
 script = ExtResource("combat_feedback_script")
 Actor = NodePath("..")
 HurtBox = NodePath("../HurtBoxComponent")
