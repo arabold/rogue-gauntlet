@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://mnenlo5o33bq"
-path="res://.godot/imported/grave_pedestal_candles_dungeon_texture.png-6fec7bd816f87c41b6ba1b45531f80cf.ctex"
+path.s3tc="res://.godot/imported/grave_pedestal_candles_dungeon_texture.png-6fec7bd816f87c41b6ba1b45531f80cf.s3tc.ctex"
+path.etc2="res://.godot/imported/grave_pedestal_candles_dungeon_texture.png-6fec7bd816f87c41b6ba1b45531f80cf.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "33c924802a36c4f3415e10bb6940e832"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-props/graveyard/grave_pedestal_candles_dungeon_texture.png"
-dest_files=["res://.godot/imported/grave_pedestal_candles_dungeon_texture.png-6fec7bd816f87c41b6ba1b45531f80cf.ctex"]
+dest_files=["res://.godot/imported/grave_pedestal_candles_dungeon_texture.png-6fec7bd816f87c41b6ba1b45531f80cf.s3tc.ctex", "res://.godot/imported/grave_pedestal_candles_dungeon_texture.png-6fec7bd816f87c41b6ba1b45531f80cf.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

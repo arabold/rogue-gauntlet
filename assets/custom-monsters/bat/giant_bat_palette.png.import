@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://sywl4ei71wrv"
-path="res://.godot/imported/giant_bat_palette.png-a437955b9a0b40956258dca30551b215.ctex"
+path.s3tc="res://.godot/imported/giant_bat_palette.png-a437955b9a0b40956258dca30551b215.s3tc.ctex"
+path.etc2="res://.godot/imported/giant_bat_palette.png-a437955b9a0b40956258dca30551b215.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "7f87a2f0c527da3448dd35afd8384c99"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/custom-monsters/bat/giant_bat_palette.png"
-dest_files=["res://.godot/imported/giant_bat_palette.png-a437955b9a0b40956258dca30551b215.ctex"]
+dest_files=["res://.godot/imported/giant_bat_palette.png-a437955b9a0b40956258dca30551b215.s3tc.ctex", "res://.godot/imported/giant_bat_palette.png-a437955b9a0b40956258dca30551b215.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
