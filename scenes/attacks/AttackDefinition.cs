@@ -150,11 +150,12 @@ public partial class AttackDefinition : Resource
 	[Export] public float PoiseDamage { get; set; } = DefaultPoiseDamage;
 
 	/// <summary>
-	/// Push strength when a contact interrupts or staggers its defender; flinches push only with <see cref="ForcePushback"/>.
+	/// Metres a contact pushes its defender when it interrupts or staggers it, whatever the defender's speed; flinches push
+	/// only with <see cref="ForcePushback"/>.
 	/// Zero holds the defender in place, as Diablo II's hit recovery does: knockback belongs to heavy weapons, special
 	/// attacks and signature monster attacks, never to every hit.
 	/// </summary>
-	[Export] public float Knockback { get; set; }
+	[Export(PropertyHint.Range, "0,10,0.1,suffix:m")] public float Knockback { get; set; }
 
 	/// <summary>
 	/// Knocks back a defender that would only flinch, interrupting its current action without a stagger.

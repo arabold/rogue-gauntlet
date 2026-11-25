@@ -28,8 +28,8 @@ public partial class LingeringAreaDefinition : Resource
 	[Export] public float ShardHitRadius { get; set; } = 1f;
 	/// <summary>Ice Wall: an enemy inside the ring is hit again at most this often while it stays.</summary>
 	[Export] public float RepelSeconds { get; set; } = .8f;
-	/// <summary>Ice Wall: how hard each hit shoves an enemy back out of the ring.</summary>
-	[Export] public float RepelPush { get; set; } = 3f;
+	/// <summary>Ice Wall: metres each hit shoves an enemy back out of the ring.</summary>
+	[Export(PropertyHint.Range, "0,10,0.1,suffix:m")] public float RepelPush { get; set; } = 1.1f;
 	public int LevelCount => System.Math.Min(SpellLevels.Max, System.Math.Min(RadiusByLevel?.Length ?? 0, DamageScaleByLevel?.Length ?? 0));
 	public bool IsValidLevel(int level)
 	{

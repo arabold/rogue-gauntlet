@@ -22,8 +22,8 @@ public partial class PlayerAttackController : AttackController
 	/// <summary>The secondary's poise damage as a multiple of the primary's.</summary>
 	[Export] public float SecondaryPoiseScale { get; set; } = 2.5f;
 	[Export] public float SecondaryHitStop { get; set; } = 0.08f;
-	/// <summary>Push of the default melee secondary, which forces pushback; ranged secondaries never push.</summary>
-	[Export] public float SecondaryKnockback { get; set; } = 3f;
+	/// <summary>Metres the default melee secondary pushes its target; it forces pushback, and ranged secondaries never push.</summary>
+	[Export(PropertyHint.Range, "0,10,0.1,suffix:m")] public float SecondaryKnockback { get; set; } = 1.1f;
 	/// <summary>Normalized hyper-armor window of the default secondary technique, so a heavy swing can trade through light hits.</summary>
 	[Export(PropertyHint.Range, "0,1,0.01")] public float SecondaryHyperArmorStart { get; set; } = 0.1f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float SecondaryHyperArmorEnd { get; set; } = 0.75f;

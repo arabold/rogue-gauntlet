@@ -182,8 +182,8 @@ ARCHETYPES = {
 # armor: each hit removes `hit` times its weapon kind's hit share (WEAPONS' `hit`; a missile its dart's share), `blunt`
 # times more for blunt weapons, and a monster's meter holds `hits` such reference hits by archetype (0: no poise; the
 # hit recovery of the hurtbox instead). Each break leaves the next meter `growth` larger until `memory` seconds pass
-# without one, so staggers cannot be chained. Only the weapon kinds in `knockback` push on a stagger; the hero's
-# melee secondary and signature monster attacks author their own.
+# without one, so staggers cannot be chained. Only the weapon kinds in `knockback` push on a stagger, by that many
+# metres; the hero's melee secondary and signature monster attacks author their own.
 POISE = dict(
     commit=0.5,
     hit=10.0,
@@ -191,7 +191,7 @@ POISE = dict(
     hits=dict(fodder=2, swarmer=0, standard=3, brute=4, shooter=2, caster=2, boss=8),
     growth=0.5,
     memory=10.0,
-    knockback=dict(blunt_2h=3.0),
+    knockback=dict(blunt_2h=1.1),
 )
 
 # Packs a floor spends its budget on. A pack spawns together in one room; it may appear from `first` to `last`
