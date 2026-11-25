@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c8gtoxx30ull0"
-path="res://.godot/imported/straw_pile.glb-50052751357f21f9497d4f943dcec782.scn"
+uid="uid://ud243yh04gb7"
+path="res://.godot/imported/grave_cross.glb-8ceb025ce5bf2df1a89d511e0dd51c00.scn"
 
 [deps]
 
-source_file="res://assets/custom-props/ruins/straw_pile.glb"
-dest_files=["res://.godot/imported/straw_pile.glb-50052751357f21f9497d4f943dcec782.scn"]
+source_file="res://assets/custom-props/graveyard/grave_cross.glb"
+dest_files=["res://.godot/imported/grave_cross.glb-8ceb025ce5bf2df1a89d511e0dd51c00.scn"]
 
 [params]
 

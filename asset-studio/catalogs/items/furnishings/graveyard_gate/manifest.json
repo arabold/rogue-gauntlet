@@ -1,0 +1,87 @@
+{
+  "key": "furnishings/graveyard_gate",
+  "inputs": "649276b19c01d57dc1544ad8f7403dd74b44e3a6e449b37734728c9557761e6e",
+  "files": {
+    "graveyard_gate.glb": "0e784f45b7c224ed1b17a30c9c342d88fe15897c95b4948c44d6f33d5d1d79fc",
+    "lineup.png": "b0c6dc98c5fbb8854a7a79e643b4db04278a5364aae0e3433e4ef3af98146c4a"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 5400,
+      "bounds": [
+        [
+          -2.0,
+          0.0,
+          -1.184999942779541
+        ],
+        [
+          2.0,
+          3.8052940368652344,
+          0.4169999957084656
+        ]
+      ],
+      "dimensions": [
+        4.0,
+        3.8052940368652344,
+        1.6019999384880066
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 3.2337540088139876
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Graveyard Gate",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "graveyard_gate"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 6600,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/graveyard/graveyard_gate.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Burial-ground furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; graves keep their marker at -Z; fence modules run along X in exact 4 m and 2 m lengths. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

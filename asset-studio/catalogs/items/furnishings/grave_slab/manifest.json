@@ -1,0 +1,88 @@
+{
+  "key": "furnishings/grave_slab",
+  "inputs": "0e7a62d78084b6b67ec7d14405375cf3255caf40548ad4180ebea01ae11151ef",
+  "files": {
+    "grave_slab.glb": "e974e3f285099908e801d89911d8d40aa0a11240f46e6a2f89ddfe9a732f4dea",
+    "lineup.png": "31f2344befff3359328b65d97fb8d5b807fee043e88a0819e35ef55e3006845b"
+  },
+  "metadata": {
+    "report": {
+      "triangles": 2996,
+      "bounds": [
+        [
+          -0.6988667845726013,
+          0.0,
+          -1.3564118146896362
+        ],
+        [
+          0.7070000171661377,
+          1.7200000286102295,
+          1.2542879581451416
+        ]
+      ],
+      "dimensions": [
+        1.405866801738739,
+        1.7200000286102295,
+        2.610699772834778
+      ],
+      "materials": 1,
+      "textures": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "topology": {
+        "components": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "duplicate_faces": 0,
+        "signed_volume": 1.1159217296499822
+      },
+      "host_fit": null,
+      "warnings": [],
+      "errors": []
+    },
+    "recipe": {
+      "version": 1,
+      "name": "Grave With Gabled Slab",
+      "backend": "procedural",
+      "builder": "furnishing",
+      "design": {
+        "kind": "grave",
+        "marker": "slab"
+      },
+      "color_mode": "world",
+      "topology": "closed_surface",
+      "placement": {
+        "pivot": "authored",
+        "scale": 1
+      },
+      "budget": {
+        "triangles": 3800,
+        "materials": 2,
+        "texture_size": 1024
+      },
+      "crease": 35,
+      "materials": {
+        "iron": {
+          "crease": 40
+        },
+        "iron_dark": {
+          "crease": 40
+        },
+        "steel": {
+          "crease": 40
+        }
+      },
+      "export": {
+        "glb": "res://assets/custom-props/graveyard/grave_slab.glb"
+      },
+      "provenance": {
+        "kind": "studio_original",
+        "quality_notes": "Burial-ground furnishing at KayKit dungeon scale, chunky beside the 2.2 m hero: floor props stand on y=0 facing +Z; graves keep their marker at -Z; fence modules run along X in exact 4 m and 2 m lengths. Solid-unioned parts with material color regions. No gameplay data."
+      }
+    }
+  }
+}

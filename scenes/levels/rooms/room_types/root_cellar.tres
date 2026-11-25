@@ -19,7 +19,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/pot.tres" id="18_pot"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/bucket.tres" id="19_bucket"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/small_box.tres" id="20_small_box"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/straw_pile.tres" id="21_straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/hay_bale.tres" id="21_hay_bale"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="22_scatterstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/herb_rack.tres" id="23_herb_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="24_wall_shelf"]
@@ -65,7 +65,7 @@ metadata/_custom_type_script = ExtResource("16_alongwallsstep")
 [sub_resource type="Resource" id="ScatterStep_5"]
 script = ExtResource("22_scatterstep")
 Id = "loose_stores"
-Content = [ExtResource("17_sack"), ExtResource("18_pot"), ExtResource("19_bucket"), ExtResource("20_small_box"), ExtResource("21_straw_pile")]
+Content = [ExtResource("17_sack"), ExtResource("18_pot"), ExtResource("19_bucket"), ExtResource("20_small_box"), ExtResource("21_hay_bale")]
 MaximumCount = 4
 WallChance = 0.8
 metadata/_custom_type_script = ExtResource("22_scatterstep")

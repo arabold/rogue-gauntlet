@@ -50,7 +50,7 @@ The chasm/lake plan waits on these. Chasm tiles and water rendering already exis
 | Lake shore | Floor tile | One tile | Underground lake borders | Rough rock shore in the same three pieces as the chasm edge; the existing quay pieces suit built pools only |
 | Lava surface | Floor tile | One tile | Fire chasm variant | Emissive lava under the chasm edge pieces, for a cathedral-in-flames realm |
 
-The prison's props are built (`scenes/levels/rooms/props/prison/`): the interrogation room centers on a torture rack, lines a wall with stocks or an iron maiden (closed or open on its spikes) and may hang a cage, empty or with bones, which cell blocks hang too. They are sized chunky beside the 2.2 m hero, like the KayKit pack.
+The prison's props are built (`scenes/levels/rooms/props/prison/`): the interrogation room centers on a torture rack, lines a wall with stocks or an iron maiden (closed or open on its spikes) and may hang a cage, empty or with bones, which cell blocks hang too. They are sized chunky beside the 2.2 m hero, like the KayKit pack. The Garrison's graveyard (`scenes/levels/rooms/props/graveyard/`) is built too: rows of graves, grave pedestals, and a mausoleum behind an iron fence with an arched gateway.
 
 ## Rooms already built from existing props
 

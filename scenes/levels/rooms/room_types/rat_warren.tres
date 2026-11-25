@@ -6,7 +6,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/ruined_walls.tres" id="5_ruined_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="6_slimy_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="8_flagstones_ruine"]
-[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/straw_pile.tres" id="9_straw_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/hay_bale.tres" id="9_hay_bale"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="10_bone_pile"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="11_cornersstep"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="12_floor_debris"]
@@ -40,7 +40,7 @@ metadata/_custom_type_script = ExtResource("4_lshape")
 [sub_resource type="Resource" id="CornersStep_3"]
 script = ExtResource("11_cornersstep")
 Id = "nests"
-Content = [ExtResource("9_straw_pile"), ExtResource("10_bone_pile")]
+Content = [ExtResource("9_hay_bale"), ExtResource("10_bone_pile")]
 MinimumCount = 1
 MaximumCount = 3
 metadata/_custom_type_script = ExtResource("11_cornersstep")
@@ -48,7 +48,7 @@ metadata/_custom_type_script = ExtResource("11_cornersstep")
 [sub_resource type="Resource" id="ScatterStep_4"]
 script = ExtResource("15_scatterstep")
 Id = "gnawed"
-Content = [ExtResource("10_bone_pile"), ExtResource("9_straw_pile"), ExtResource("12_floor_debris"), ExtResource("13_vase_broken"), ExtResource("14_sack"), ExtResource("p_goo_puddle")]
+Content = [ExtResource("10_bone_pile"), ExtResource("9_hay_bale"), ExtResource("12_floor_debris"), ExtResource("13_vase_broken"), ExtResource("14_sack"), ExtResource("p_goo_puddle")]
 MaximumCount = 5
 WallChance = 0.5
 metadata/_custom_type_script = ExtResource("15_scatterstep")

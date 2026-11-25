@@ -18,11 +18,11 @@ from pathlib import Path
 import numpy as np
 import manifold3d as mf
 from core import kit
-from items import foliage, mining, webs
+from items import foliage, graveyard, mining, webs
 from items.solid import Assembly, lathe, loop, welded
 from items.furnishing_kit import (block, cushion, post, rod, ball, bend, framed, board, planks, square_post, stones,
                                   rivet, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands,
-                                  turned, moved, grounded, ring, chain, torus, log, random)
+                                  turned, moved, grounded, ring, chain, torus, log, random, bone, skull)
 
 # Colors come from the dungeon texture (`world_surface.SWATCHES`); slots only choose how hard their edges shade:
 # boards, stone and metal keep crisp facets, cast pots, bowls and soft goods shade smooth.
@@ -649,15 +649,37 @@ def shackles():
     return a.build()
 
 
-def straw_pile():
-    a, rng = Assembly(), random('straw_pile')
-    a.add(lathe([(.95, 0), (.86, .09), (.6, .24), (.3, .34), (.01, .37)], 11).scale((1, 1, .72)), 'straw')
-    for i in range(20):
-        t, r = rng.uniform(0, 2 * np.pi), rng.uniform(.1, .8)
-        y = .37 * (1 - (r / .95) ** 1.6) - .04
-        stalk = block((.055, .035, rng.uniform(.45, .75)), (0, 0, 0), .01)
-        stalk = stalk.rotate((rng.uniform(-14, 6), rng.uniform(0, 180), 0)).translate((np.cos(t) * r, max(y, .025), np.sin(t) * r * .72))
-        a.add(stalk, 'straw_dark' if i % 3 == 0 else 'straw')
+def _hay_bale(a, rng, turn=0.0, origin=(0, 0, 0)):
+    """One bale as the pack draws it: a soft-edged block of straw with lumpy ends, bound by two inset bands of twine."""
+    bale = Assembly()
+    bale.slots = a.slots
+    length, height, depth = 1.3, .66, .8
+    bale.add(cushion((length, height, depth), (0, height / 2, 0), .25), 'hay')
+    for s in (-1, 1):
+        # Straw ends bulge unevenly past the cut face in a few soft lumps.
+        for y, z in ((.2, -.18), (.44, .14), (.24, .22)):
+            size = (.16, rng.uniform(.22, .3), rng.uniform(.26, .34))
+            center = (s * (length / 2 - .06 + rng.uniform(.0, .03)), y + rng.uniform(-.04, .04), z + rng.uniform(-.04, .04))
+            bale.add(cushion(size, center, .45), 'hay')
+    for x in (-.3, .3):
+        band = block((.09, height + .2, depth + .2), (x, height / 2, 0), 0)
+        bale.cut(band - cushion((length - .1, height - .08, depth - .08), (0, height / 2, 0), .25), 'rock')
+    a.join(bale.build_solid().rotate((0, turn, 0)).translate(tuple(origin)))
+
+
+def hay_bale():
+    """A single bale of hay, as the pack draws it: no loose stalks."""
+    a = Assembly()
+    _hay_bale(a, random('hay_bale'))
+    return a.build()
+
+
+def hay_bales():
+    """Two bales side by side with a third laid across them."""
+    a, rng = Assembly(), random('hay_bales')
+    _hay_bale(a, rng, 2, (0, 0, -.42))
+    _hay_bale(a, rng, -3, (.04, 0, .42))
+    _hay_bale(a, rng, 84, (-.02, .64, .02))
     return a.build()
 
 
@@ -675,28 +697,6 @@ def bucket():
     for s in (-1, 1):
         a.add(block((.06, .14, .1), (s * .39, .62, 0), .02), 'iron')
     return a.build()
-
-
-def bone(a, start, end, radius=.07):
-    start, end = np.asarray(start, float), np.asarray(end, float)
-    a.add(rod(tuple(start), tuple(end), radius, 6), 'bone')
-    side = np.cross(end - start, (0, 1, 0))
-    side = side / max(np.linalg.norm(side), 1e-6) * radius * .9
-    for p in (start, end):
-        for s in (-1, 1):
-            a.add(ball(tuple(p + s * side), (radius * 1.35,) * 3, 6), 'bone')
-
-
-def skull(a, x, z, turn, y=0.0, slot='bone', socket='socket', tilt=0.0, size=1.0):
-    """A chunky skull with real eye sockets, added to `a` as one solid; `slot` carves it in stone instead."""
-    head = Assembly()
-    head.slots = a.slots
-    head.add(ball((0, .24, 0), (.24, .21, .26), 10), slot)
-    head.add(block((.28, .12, .16), (0, .1, .14), .04), slot)
-    for s in (-1, 1):
-        head.cut(ball((s * .09, .24, .22), (.065, .07, .07), 7), socket)
-    head.cut(block((.06, .06, .08), (0, .16, .25), .015), socket)
-    a.join(head.build_solid().scale((size,) * 3).rotate((tilt, turn, 0)).translate((x, y, z)))
 
 
 def bone_pile():
@@ -1462,14 +1462,14 @@ KINDS = {
     'globe': globe, 'cauldron': cauldron, 'scroll_rack': scroll_rack, 'herb_rack': herb_rack,
     'hearth': hearth, 'chopping_block': chopping_block, 'mortar': mortar, 'pot_rack': pot_rack, 'cheese_wheel': cheese_wheel,
     'ham': ham, 'bread': bread, 'weapon_rack': weapon_rack, 'training_dummy': training_dummy, 'bunk_bed': bunk_bed,
-    'war_map': war_map, 'shackles': shackles, 'straw_pile': straw_pile, 'bucket': bucket, 'bone_pile': bone_pile,
+    'war_map': war_map, 'shackles': shackles, 'hay_bale': hay_bale, 'hay_bales': hay_bales, 'bucket': bucket, 'bone_pile': bone_pile,
     'torture_rack': torture_rack, 'stocks': stocks, 'hanging_cage': hanging_cage, 'iron_maiden': iron_maiden,
     'fallen_beam': fallen_beam, 'tapestry': tapestry, 'heraldic_shield': heraldic_shield, 'sconce': sconce,
     'rubble_scatter': rubble_scatter, 'rubble_small': rubble_small, 'rubble_medium': rubble_medium,
     'rubble_large': rubble_large, 'rubble_boulders': rubble_boulders,
     'sarcophagus': sarcophagus, 'sarcophagus_open': sarcophagus_open, 'valve': valve, 'pipe_outlet': pipe_outlet,
     'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle, **foliage.KINDS,
-    **mining.KINDS, **webs.KINDS,
+    **graveyard.KINDS, **mining.KINDS, **webs.KINDS,
 }
 
 

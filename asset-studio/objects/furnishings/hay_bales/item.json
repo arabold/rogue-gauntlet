@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "name": "Straw Pile",
+  "name": "Hay Bale Stack",
   "backend": "procedural",
   "builder": "furnishing",
   "design": {
-    "kind": "straw_pile"
+    "kind": "hay_bales"
   },
   "color_mode": "world",
   "topology": "closed_surface",
@@ -13,14 +13,14 @@
     "scale": 1
   },
   "budget": {
-    "triangles": 1300,
+    "triangles": 5600,
     "materials": 2,
     "texture_size": 1024
   },
-  "crease": 45,
+  "crease": 35,
   "materials": {},
   "export": {
-    "glb": "res://assets/custom-props/ruins/straw_pile.glb"
+    "glb": "res://assets/custom-props/ruins/hay_bales.glb"
   },
   "provenance": {
     "kind": "studio_original",
