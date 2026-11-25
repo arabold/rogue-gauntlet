@@ -3,8 +3,8 @@ using Godot;
 /// <summary>
 /// A hinged door composed in its scene: optional <see cref="DoorLockComponent"/> and <see cref="SecretDoorComponent"/>
 /// own access state and announce changes, while the door turns that state into its offer, prompt, marker and indicator.
-/// The frame is ordinary solid collision; the leaf's collider follows the leaf about its hinge, so the doorway closes
-/// with it and the open leaf stands solid beside the opening. It only passes through actors while it swings.
+/// The frame is ordinary solid collision; the leaf's collider closes the doorway while the door is shut. An open leaf, and
+/// one mid-swing, lets actors walk through it, so a door standing open is never in the way.
 /// </summary>
 [Tool]
 public partial class Door : Node3D
@@ -190,7 +190,7 @@ public partial class Door : Node3D
 		// The editor previews the leaf only; moving the collider there would save the open pose into the scene.
 		if (Engine.IsEditorHint()) return;
 		Collision.Transform = DoorSpace(Collision.GetParentNode3D()).AffineInverse() * LeafPose(IsOpen);
-		Collision.Disabled = false;
+		Collision.Disabled = IsOpen;
 	}
 
 	private void OpenDoor()

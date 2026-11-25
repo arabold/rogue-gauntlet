@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/LootTable.cs" id="table"]
+[ext_resource type="Script" path="res://scenes/components/LootTableGroup.cs" id="group"]
+[ext_resource type="Resource" path="res://scenes/items/loot/pools/gold.tres" id="pool_gold"]
+
+[sub_resource type="Resource" id="Group_gold"]
+resource_name = "Gold"
+script = ExtResource("group")
+Weight = 100.0
+Pool = ExtResource("pool_gold")
+metadata/_custom_type_script = ExtResource("group")
+
+[resource]
+script = ExtResource("table")
+Groups = [SubResource("Group_gold")]
+metadata/_custom_type_script = ExtResource("table")

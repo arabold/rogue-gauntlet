@@ -52,7 +52,7 @@ public partial class LootTableComponent : Node
 		for (int i = 0; i < rolls; i++)
 		{
 			LootTableItem entry = table.PickEntry(depth, rng);
-			int quantity = entry?.QuantityAt(depth) ?? 0;
+			int quantity = entry?.RollQuantity(depth, rng) ?? 0;
 			if (quantity > 0)
 			{ result.AddRange(ItemFactory.CreateBatch(entry.Item, quantity, policy, depth, rng, $"{sourceId}:drop:{i}")); }
 		}

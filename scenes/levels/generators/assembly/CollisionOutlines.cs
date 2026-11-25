@@ -92,11 +92,13 @@ public static class CollisionOutlines
 	}
 
 	/// <summary>
-	/// Static collision under <paramref name="root"/> (bodies and GridMaps). A door counts with its frame and its leaf
-	/// standing open; the shut leaf is a navigation gate (<see cref="ClearanceGrid.AddGate"/>), not a solid. Bodies count
-	/// when they collide on one of <paramref name="layers"/>.
+	/// Static collision under <paramref name="root"/> (bodies and GridMaps). A door counts with its frame only: its open
+	/// leaf lets actors through, and the shut leaf is a navigation gate (<see cref="ClearanceGrid.AddGate"/>). Bodies count
+	/// when they collide on one of <paramref name="layers"/>. With <paramref name="openSecrets"/>, a secret door's wall
+	/// disguise is left out too, so the door counts as found and open like every other.
 	/// </summary>
-	public static IEnumerable<SolidOutline> FromStaticBodies(Node root, Transform3D toParent, uint layers = BlockingLayers)
+	public static IEnumerable<SolidOutline> FromStaticBodies(Node root, Transform3D toParent, uint layers = BlockingLayers,
+		bool openSecrets = false)
 	{
 		var result = new List<SolidOutline>();
 		var leaves = new HashSet<Node>();
@@ -106,13 +108,10 @@ public static class CollisionOutlines
 		void Collect(Node node, Transform3D transform)
 		{
 			if (node.IsQueuedForDeletion() || leaves.Contains(node)) return;
-			if (node is Door { Collision.Shape: not null } door)
-			{
-				result.Add(door.LeafOutline(open: true, transform));
-				leaves.Add(door.Collision);
-			}
+			if (node is Door { Collision.Shape: not null } door) leaves.Add(door.Collision);
 			if (node is GridMap grid)
 			{
+				if (openSecrets && grid.GetParent() is Door { Secret.IsSecret: true }) return;
 				// GridMap.Transform is already part of transform here.
 				result.AddRange(FromGridMap(grid, transform * grid.Transform.AffineInverse()));
 				return;

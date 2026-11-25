@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 
+[Tool] // Exported by the tool CharacterClass script: a tool script's exports must be tool types in the editor.
 [GlobalClass]
 public partial class InventoryItemSlot : Resource
 {

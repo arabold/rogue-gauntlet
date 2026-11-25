@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/gelatinous_cube/goo_patch.tscn" id="2_patch"]
+[ext_resource type="Shader" path="res://scenes/effects/shaders/ground_overlay.gdshader" id="ground_overlay"]
 
 [sub_resource type="SphereMesh" id="glob_mesh"]
 radius = 0.32
@@ -21,10 +22,9 @@ outer_radius = 1.0
 rings = 32
 ring_segments = 4
 
-[sub_resource type="StandardMaterial3D" id="ring_material"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(0.72, 0.96, 0.36, 0.7)
+[sub_resource type="ShaderMaterial" id="ring_material"]
+shader = ExtResource("ground_overlay")
+shader_parameter/color = Color(0.72, 0.96, 0.36, 0.7)
 
 [node name="GooGlob" instance=ExtResource("1_base") node_paths=PackedStringArray("LandingMarker")]
 ImpactEffectScene = ExtResource("2_patch")

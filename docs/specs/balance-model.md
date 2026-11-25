@@ -94,8 +94,10 @@ depth 1 to 25% at depth 24. Its weapon is what the floors actually drop (`model.
 with worn (Poor) weapons at 70% of a tier 1 weapon's damage and wields the expected best of that and the weapons of
 the kinds its class picks up (`uses`) found on the floors before, half of the current floor's included. Each found
 weapon turns up a Poisson number of times at its measured rate (`WEAPON_SUPPLY`, from `supply --save`), so the best
-one beats a damage `x` with chance `1 − exp(−count above x)`. Floors drop only 0.4–1.2 weapons each, so the expected
-hero holds about 75–85% of the on-curve weapon for most of the run. The Barbarian keeps its one-handed axe until it can
+one beats a damage `x` with chance `1 − exp(−count above x)`. Floors drop about 1.1–2.7 weapons each, most of them
+from chests and reward rooms, so the expected hero holds about 84% of the on-curve weapon at depth 4 and about 95% from
+depth 8 on. Monsters were derived against an earlier, sparser supply and deliberately not re-derived after loot grew, so
+the game plays easier than the targets; `audit` lists the gap. The Barbarian keeps its one-handed axe until it can
 expect a stronger two-handed weapon than its best one-handed one, around depth 10.
 
 - **Weapons:** the reference one-handed sword's mean hit is `3.7 × 1.05^(depth − 1)`, so a T1 sword rolls 2–5 and a T5
@@ -254,11 +256,11 @@ Garrison's Quartermaster holds two small potions of different types (healing fav
 and three pieces of local-tier gear. At most that adds one healing potion to the realm, about two floors' worth of found
 healing and less than a fountain's full heal, on the gatekeeper floor. The model therefore leaves gold out
 of the run. `supply` reports the gold a
-floor holds, so prices can be checked against it by hand: about 85 on depth 1, 80 on depth 2, 115 on depth 3, 80 on
-depth 4 and 50 on depth 5, with every source looted. A hero who clears the Garrison's five floors reaches the Quartermaster on
-depth 6 with up to about 410 gold, plus what selling spare loot (a fifth of its retail value) brings. The shelf costs about
-1,000, so that buys less than half of it: a weapon and a potion, or potions, a loaf and a lockpick, but never the whole
-shelf. Re-measure after changing gold drops, and
+floor holds, so prices can be checked against it by hand: about 120 on depth 1, 135 on depth 2, 210 on depth 3, 270 on
+depth 4 and 190 on depth 5, with every source looted, plus the treasury's gold when its room appears. A hero who clears
+the Garrison's five floors reaches the Quartermaster on depth 6 with up to about 925 gold, plus what selling spare loot (a
+fifth of its retail value) brings. The shelf costs about 1,000, so a thorough hero can buy most of it; prices are due a
+retune against the denser loot. Re-measure after changing gold drops, and
 model shops only if merchants ever restock or sell more than a shelf.
 
 ## Experience

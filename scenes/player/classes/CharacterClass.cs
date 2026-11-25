@@ -7,6 +7,7 @@ using Godot.Collections;
 /// start of a run, persisted per save slot by <see cref="Id"/>, and applied to the player
 /// on spawn.
 /// </summary>
+[Tool] // Exported by the tool HeroBuildProfile script: a tool script's exports must be tool types in the editor.
 [GlobalClass]
 public partial class CharacterClass : Resource
 {

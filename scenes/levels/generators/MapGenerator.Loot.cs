@@ -9,8 +9,18 @@ public partial class MapGenerator
 	/// <summary>Chest prop placed against a room wall, facing into the room. Unset skips chest placement.</summary>
 	[ExportGroup("Loot")]
 	[Export] public PackedScene ChestScene { get; set; }
-	[Export(PropertyHint.Range, "0,10")] public int MinChests { get; set; } = 0;
-	[Export(PropertyHint.Range, "0,10")] public int MaxChests { get; set; } = 2;
+	[Export(PropertyHint.Range, "0,10")] public int MinChests { get; set; } = 1;
+	[Export(PropertyHint.Range, "0,10")] public int MaxChests { get; set; } = 3;
+	/// <summary>
+	/// The chest every generated locked room holds, never a mimic, so a key always pays. Unset leaves locked rooms to
+	/// the ordinary scatter.
+	/// </summary>
+	[Export] public PackedScene LockedRewardScene { get; set; }
+	/// <summary>
+	/// The chest every room reached only through secret doors holds, never a mimic, so finding a secret always pays.
+	/// Unset leaves secret rooms to the ordinary scatter.
+	/// </summary>
+	[Export] public PackedScene SecretRewardScene { get; set; }
 
 	/// <summary>Floor trap prop, placeable on any open room/corridor tile. Unset skips trap placement.</summary>
 	[Export] public PackedScene TrapScene { get; set; }
@@ -21,8 +31,12 @@ public partial class MapGenerator
 	[Export] public PackedScene LooseItemScene { get; set; }
 	/// <summary>What each loose item rolls from. Unset skips loose-item placement.</summary>
 	[Export] public LootDropProfile LooseItems { get; set; }
-	[Export(PropertyHint.Range, "0,10")] public int MinLooseItems { get; set; } = 0;
-	[Export(PropertyHint.Range, "0,10")] public int MaxLooseItems { get; set; } = 4;
+	[Export(PropertyHint.Range, "0,10")] public int MinLooseItems { get; set; } = 3;
+	[Export(PropertyHint.Range, "0,10")] public int MaxLooseItems { get; set; } = 5;
+	/// <summary>What each gold pile lying on the floor rolls from, like Rogue's gold in every other room. Unset skips them.</summary>
+	[Export] public LootDropProfile GoldPiles { get; set; }
+	[Export(PropertyHint.Range, "0,10")] public int MinGoldPiles { get; set; } = 2;
+	[Export(PropertyHint.Range, "0,10")] public int MaxGoldPiles { get; set; } = 3;
 
 	// Smaller than the enemy-spawn equivalents: loot close to the entrance is fine, and a
 	// tight level shouldn't run out of valid spots just to keep loot far from the player.
@@ -33,22 +47,116 @@ public partial class MapGenerator
 	internal const float LootSpawnSpacing = 6f;
 
 	/// <summary>
-	/// Scatters chests, traps, and loose ground items across the finished map. Runs after
+	/// Scatters chests, traps, gold and loose ground items across the finished map. Runs after
 	/// walls/corridors are final (so wall-adjacency and occupancy checks are accurate) and
 	/// before <see cref="BuildNavigation"/> (so chests -- solid, unlike traps/loose items
 	/// -- are children of <see cref="FloorContent"/> in time to count as navigation solids,
 	/// the same way rooms already do). Every content type shares one
 	/// running list of placed points so chests/traps/items all keep clear of each other, not
-	/// just their own kind. Access pickups and keepers, placed earlier, seed that list, and the run's scheduled
-	/// fountains claim their spots first.
+	/// just their own kind. Access pickups and keepers, placed earlier, seed that list, the run's scheduled
+	/// fountains claim their spots first and the locked and secret rooms' reward chests claim theirs next.
 	/// </summary>
 	private void PlaceLoot(List<Vector3> placedLootPoints)
 	{
 		var doorClearances = DoorClearances();
 		PlaceFountains(placedLootPoints, doorClearances);
+		PlaceRewardChests(placedLootPoints, doorClearances);
 		PlaceChests(placedLootPoints, doorClearances);
 		PlaceTraps(placedLootPoints);
-		PlaceLooseItems(placedLootPoints);
+		PlaceScatter(placedLootPoints, LooseItems, MinLooseItems, MaxLooseItems, "loose");
+		PlaceScatter(placedLootPoints, GoldPiles, MinGoldPiles, MaxGoldPiles, "gold");
+	}
+
+	/// <summary>
+	/// One reward chest in every generated locked room and every room reached only through secret doors: a key or a
+	/// found secret always pays. Placed before the ordinary chests so the room's own wall spots are still free.
+	/// </summary>
+	private void PlaceRewardChests(List<Vector3> placedLootPoints, IReadOnlyList<Aabb> doorClearances)
+	{
+		var secretConnectors = Floor.Doors.Where(d => d.Door.Secret?.IsSecret == true).Select(d => d.Connector).ToHashSet();
+		var rewards = new List<(RoomRegion Room, PackedScene Scene, string Kind)>();
+		if (LockedRewardScene != null) rewards.AddRange(_lockedRewardRooms.Select(room => (room, LockedRewardScene, "locked")));
+		if (SecretRewardScene != null)
+		{
+			rewards.AddRange(Floor.Rooms
+				.Where(room => room.ConnectorTiles.Count > 0 && room.ConnectorTiles.All(secretConnectors.Contains))
+				.Select(room => (room, SecretRewardScene, "secret")));
+		}
+
+		foreach (var (room, scene, kind) in rewards)
+		{
+			string id = $"depth:{DungeonDepth}:{kind}-reward:{room.Id}";
+			var chest = scene.Instantiate<Node3D>();
+			if (TryPlaceRoomChest(room, chest, id, placedLootPoints, doorClearances)) continue;
+			// A room too crowded for a chest still pays: its reward lies on the floor instead.
+			var profile = chest.GetNodeOrNull<LootTableComponent>("LootTableComponent")?.Profile;
+			chest.Free();
+			if (!TryScatterRoomReward(room, profile, id, placedLootPoints))
+			{
+				GD.PrintErr($"No spot for the {kind} room {room.Id}'s reward.");
+			}
+		}
+	}
+
+	/// <summary>Spacing a reward keeps from other loot: its room is closed off, so it may stand closer than the scatter.</summary>
+	private const float RewardSpacing = 2.5f;
+
+	/// <summary>
+	/// Stands <paramref name="chest"/> inside <paramref name="room"/>: against a wall facing into it where one is free,
+	/// otherwise on any free tile facing the room's middle. Keeps the chest on failure so the caller can free it.
+	/// </summary>
+	private bool TryPlaceRoomChest(RoomRegion room, Node3D chest, string persistentId, List<Vector3> placedLootPoints,
+		IReadOnlyList<Aabb> doorClearances)
+	{
+		var tiles = room.Tiles.ToHashSet();
+		var middle = room.Tiles.Aggregate(Vector3.Zero, (sum, tile) => sum + Map.TileToWorld(tile.X, tile.Y)) / room.Tiles.Count;
+		var (primary, corners) = ChestSpots();
+		var spots = primary.Concat(corners).Where(spot => tiles.Contains(spot.Tile)).Select(spot => (spot.Point, spot.RotationDegrees)).ToList();
+		spots.AddRange(GetSolidPropTiles()
+			.Where(spot => tiles.Contains(spot.Tile))
+			.Select(spot => (spot.Point, Mathf.RadToDeg(Mathf.Atan2(middle.X - spot.Point.X, middle.Z - spot.Point.Z)))));
+		foreach (var (point, rotation) in spots)
+		{
+			// The room's door already keeps the arrival out, so its reward may stand anywhere inside.
+			if (IsBlockedLootPoint(point, placedLootPoints, RewardSpacing, arrivalClearance: 0f)) continue;
+			Vector3 frontPoint = point + new Basis(Vector3.Up, Mathf.DegToRad(rotation)).Z * 1.5f;
+			if (!Floor.IsReachable(frontPoint) || Floor.IsColumnObstructed(frontPoint)) continue;
+			if (!TryPlaceSolidProp(chest, point, rotation, persistentId, doorClearances)) continue;
+			placedLootPoints.Add(point);
+			return true;
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// Lays a reward's loot inside <paramref name="room"/>, as one seeded reward source: on an open tile, or in a furnished
+	/// room on any clear spot the hero can stand on.
+	/// </summary>
+	private bool TryScatterRoomReward(RoomRegion room, LootDropProfile profile, string sourceId, List<Vector3> placedLootPoints)
+	{
+		if (LooseItemScene == null || profile?.Table == null) return false;
+		var tiles = room.Tiles.ToHashSet();
+		float quarter = Room.TileSize * 0.25f;
+		var clearSpots = room.Tiles
+			.SelectMany(tile => new[] { Vector3.Zero, new(quarter, 0, quarter), new(-quarter, 0, quarter), new(quarter, 0, -quarter), new(-quarter, 0, -quarter) }
+				.Select(offset => Map.TileToWorld(tile.X, tile.Y) + offset))
+			.Where(point => tiles.Contains(Map.WorldToTile(point)) && Floor.IsReachable(point) && !Floor.IsColumnObstructed(point));
+		foreach (var point in Floor.OpenTileCandidates().Where(point => tiles.Contains(Map.WorldToTile(point))).Concat(clearSpots))
+		{
+			if (IsBlockedLootPoint(point, placedLootPoints, RewardSpacing, arrivalClearance: 0f)) continue;
+			using var rng = CreateSourceLootRng(sourceId);
+			var outcome = LootTableComponent.GenerateOutcome(profile, DungeonDepth, rng, sourceId);
+			for (int i = 0; i < outcome.Count; i++)
+			{
+				// Fanned out around the spot as a chest throws them, so the pieces do not lie on top of each other.
+				var heading = Vector3.Forward.Rotated(Vector3.Up, Mathf.Tau * i / outcome.Count);
+				var landing = outcome.Count == 1 ? point : Floor.FindDropLanding(point, heading, 1.2f) with { Y = point.Y };
+				SpawnPickup(outcome[i].Item, outcome[i].Quantity, sourceId, landing);
+			}
+			placedLootPoints.Add(point);
+			return true;
+		}
+		return false;
 	}
 
 	/// <summary>Every interior door's swing area in generator space: solid props keep clear of them.</summary>
@@ -221,9 +329,13 @@ public partial class MapGenerator
 		}
 	}
 
-	private void PlaceLooseItems(List<Vector3> placedLootPoints)
+	/// <summary>
+	/// Scatters <paramref name="min"/> to <paramref name="max"/> pickups rolled from <paramref name="profile"/> over open
+	/// floor, each spot its own <paramref name="kind"/> reward source: the loose items and the gold piles.
+	/// </summary>
+	private void PlaceScatter(List<Vector3> placedLootPoints, LootDropProfile profile, int min, int max, string kind)
 	{
-		if (LooseItemScene == null || LooseItems?.Table == null || MaxLooseItems <= 0)
+		if (LooseItemScene == null || profile?.Table == null || max <= 0)
 		{
 			return;
 		}
@@ -231,13 +343,13 @@ public partial class MapGenerator
 		var candidates = Floor.OpenTileCandidates();
 		if (candidates.Count == 0)
 		{
-			GD.PrintErr("Cannot place loose items: no valid floor tiles found.");
+			GD.PrintErr($"Cannot place {kind} pickups: no valid floor tiles found.");
 			return;
 		}
 
 		float deadEndWeight = CurrentProfile?.DeadEndLootWeight ?? 1f;
 		uint depth = DungeonDepth;
-		int count = _random.Items.RandiRange(MinLooseItems, MaxLooseItems);
+		int count = _random.Items.RandiRange(min, max);
 		var remaining = new List<(Vector3 Point, float Weight)>(candidates.Count);
 		foreach (var point in candidates)
 		{
@@ -259,9 +371,9 @@ public partial class MapGenerator
 
 			// Each spot is a reward source: its own stream, chance, roll count and instance ids. A spot whose roll yields
 			// nothing still counts, so chance thins the scatter instead of moving it.
-			string sourceId = $"depth:{DungeonDepth}:loose:{placed}";
+			string sourceId = $"depth:{DungeonDepth}:{kind}:{placed}";
 			using var rng = CreateSourceLootRng(sourceId);
-			var outcome = LootTableComponent.GenerateOutcome(LooseItems, depth, rng, sourceId);
+			var outcome = LootTableComponent.GenerateOutcome(profile, depth, rng, sourceId);
 			foreach (var record in outcome)
 			{
 				SpawnPickup(record.Item, record.Quantity, sourceId, point);
@@ -274,9 +386,9 @@ public partial class MapGenerator
 			placed++;
 		}
 
-		if (placed < MinLooseItems)
+		if (placed < min)
 		{
-			GD.PrintErr($"Placed only {placed}/{MinLooseItems} minimum loose items: ran out of valid spots.");
+			GD.PrintErr($"Placed only {placed}/{min} minimum {kind} pickups: ran out of valid spots.");
 		}
 	}
 
@@ -351,9 +463,19 @@ public partial class MapGenerator
 
 	/// <summary>
 	/// Every wall-backed solid prop tile (including corridor dead ends and corners/junctions, skipping straight 1-tile
-	/// corridor bottlenecks), paired with the Y-rotation facing away from the backing wall.
+	/// corridor bottlenecks), paired with the Y-rotation facing away from the backing wall: the wall-backed spots, or the
+	/// corner spots on a floor without any.
 	/// </summary>
 	private List<(Vector2I Tile, Vector3 Point, float RotationDegrees)> GetChestCandidates()
+	{
+		var (primary, corners) = ChestSpots();
+		return primary.Count > 0 ? primary : corners;
+	}
+
+	/// <summary>
+	/// Chest spots split into the preferred ones (one backing wall, or a corridor dead end) and corners and junctions.
+	/// </summary>
+	private (List<(Vector2I Tile, Vector3 Point, float RotationDegrees)> Primary, List<(Vector2I Tile, Vector3 Point, float RotationDegrees)> Corners) ChestSpots()
 	{
 		var primary = new List<(Vector2I, Vector3, float)>();
 		var corners = new List<(Vector2I, Vector3, float)>();
@@ -411,7 +533,7 @@ public partial class MapGenerator
 			(wallCount == 1 || (isCorridor && isDeadEnd) ? primary : corners).Add((tile, point, rotation));
 		}
 
-		return primary.Count > 0 ? primary : corners;
+		return (primary, corners);
 	}
 
 	/// <summary>

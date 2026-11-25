@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=27 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
@@ -22,6 +22,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/storage/pot.tres" id="pot"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/wall_shelf.tres" id="wall_shelf"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/access/proximity_detection.tres" id="secret_detection"]
 
 [sub_resource type="Resource" id="RectangleShape_cell"]
 script = ExtResource("rectangle")
@@ -58,6 +59,8 @@ MinDoorways = 1
 MaxDoorways = 1
 DoorwayPlacement = 3
 DoorChance = 0.6
+SecretDoorChance = 0.4
+SecretDetection = ExtResource("secret_detection")
 Walls = [ExtResource("stone"), ExtResource("arched"), ExtResource("crypt"), ExtResource("mossy")]
 Floors = [ExtResource("planks_floor"), ExtResource("flagstones_floor"), ExtResource("bricks_floor"), ExtResource("earth_floor"), ExtResource("flagstones_ruined_floor")]
 Steps = [SubResource("AlongWallsStep_bed"), SubResource("ScatterStep_belongings"), SubResource("WallDecorStep_shelf")]

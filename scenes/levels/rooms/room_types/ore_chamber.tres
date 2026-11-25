@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=37 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=38 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_roomtype"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_rectangleshape"]
@@ -27,6 +27,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/tool_rack.tres" id="27_tool_rack"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/mine_lantern_wall.tres" id="28_lantern_wall"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/mining/crystal_vein.tres" id="motif_crystal_vein"]
+[ext_resource type="Resource" path="res://scenes/levels/access/proximity_detection.tres" id="secret_detection"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_rectangleshape")
@@ -112,8 +113,10 @@ Weight = 3.6
 Shapes = [SubResource("RectangleShape_1"), SubResource("RectangleShape_Compact")]
 MinimumFloorTiles = 9
 MinDoorways = 1
-MaxDoorways = 2
+MaxDoorways = 1
 DoorChance = 0.4
+SecretDoorChance = 0.5
+SecretDetection = ExtResource("secret_detection")
 Circulation = 0
 Walls = [ExtResource("3_cave_walls")]
 Floors = [ExtResource("6_earth_floor"), ExtResource("7_cave_floor")]

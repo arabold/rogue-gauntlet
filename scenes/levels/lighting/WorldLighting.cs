@@ -17,6 +17,7 @@ public enum EnvironmentalEffect
 /// A world's shared illumination. Darkness removes ambient light, reflections and haze. The hero's lighting and
 /// fixtures respond to <see cref="DarknessChanged"/>.
 /// </summary>
+[Tool] // Exported by the tool Level script: a tool script's exports must be tool types in the editor.
 [GlobalClass]
 public partial class WorldLighting : WorldEnvironment
 {
@@ -98,6 +99,8 @@ public partial class WorldLighting : WorldEnvironment
 
 	public override void _Ready()
 	{
+		// The editor shows the authored environment; only the running world owns and adjusts a copy.
+		if (Engine.IsEditorHint()) return;
 		if (Environment != null)
 		{
 			// Own a runtime copy so darkness never mutates the shared environment resource.
@@ -114,6 +117,8 @@ public partial class WorldLighting : WorldEnvironment
 
 	private void ApplyLighting()
 	{
+		// Inspector edits in the editor must never write into the shared environment resource.
+		if (Engine.IsEditorHint()) return;
 		if (Environment != null)
 		{
 			Environment.AmbientLightEnergy = IsDark ? 0f : _normalAmbient * AmbientScale;

@@ -5,8 +5,12 @@ using System;
 [Tool, GlobalClass]
 public partial class AttackIndicatorComponent : MeshInstance3D
 {
+	private static readonly StringName ColorParameter = "color";
+	private static Shader _groundOverlay;
 	private AttackIndicatorProfile _profile;
-	private StandardMaterial3D _material;
+	/// <summary>A floor overlay, so the warning reads on every tile, rug and stair; see ground_overlay.gdshaderinc.</summary>
+	private ShaderMaterial _material;
+	private Color _color;
 	private AttackIdentity _execution;
 	private AttackIndicatorStage _lastStage;
 	private float _releaseRemaining;
@@ -102,7 +106,7 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 		Mesh = _geometryMesh;
 		SetProcess(Engine.IsEditorHint());
 		EnsureMaterial();
-		_material.AlbedoColor = Tint(frame.ThreatTier);
+		SetColor(Tint(frame.ThreatTier));
 		float easedAimProgress = Mathf.Pow(Mathf.Clamp(frame.AimProgress, 0, 1), Mathf.Max(0.01f, _profile.AimConeGrowthExponent));
 		SetOpacity(frame.Stage switch
 		{
@@ -153,14 +157,13 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 	private void ApplyProfile()
 	{
 		if (_profile == null) { Clear(); return; }
-		if (_material != null) _material.AlbedoColor = _profile.NormalTint;
+		if (_material != null) SetColor(_profile.NormalTint);
 	}
 
 	private void EnsureMaterial()
 	{
-		_material ??= new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-			Transparency = BaseMaterial3D.TransparencyEnum.Alpha, CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-			NoDepthTest = false, DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.OpaqueOnly };
+		_groundOverlay ??= GD.Load<Shader>("res://scenes/effects/shaders/ground_overlay.gdshader");
+		_material ??= new ShaderMaterial { Shader = _groundOverlay };
 		MaterialOverride = _material;
 	}
 
@@ -174,7 +177,13 @@ public partial class AttackIndicatorComponent : MeshInstance3D
 	private void SetOpacity(float opacity)
 	{
 		if (_material == null) return;
-		var color = _material.AlbedoColor; color.A = Mathf.Clamp(opacity, 0, 1); _material.AlbedoColor = color;
+		SetColor(_color with { A = Mathf.Clamp(opacity, 0, 1) });
+	}
+
+	private void SetColor(Color color)
+	{
+		_color = color;
+		_material.SetShaderParameter(ColorParameter, color);
 	}
 
 	/// <summary>Only geometry inputs invalidate the single cached mesh; moving and tinting a warning do not.</summary>

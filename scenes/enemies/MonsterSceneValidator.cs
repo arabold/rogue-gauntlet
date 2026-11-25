@@ -11,6 +11,8 @@ using System.Linq;
 /// </summary>
 public static class MonsterSceneValidator
 {
+	/// <summary>How far a walker's body bottom may sit from its origin, where its model's feet are authored.</summary>
+	private const float GroundedBodyTolerance = 0.02f;
 
 	public static string[] Validate(Node actor)
 	{
@@ -114,6 +116,10 @@ public static class MonsterSceneValidator
 				Check(movement is MovementComponent { Gravity: <= 0 } && (flyer.CollisionMask & CollisionOutlines.WalkingTerrainLayer) == 0
 					&& body?.Shape != null && CollisionOutlines.FromShape(body.Shape, body.Transform).Bottom > ClearanceGrid.AirClearanceHeight,
 					"Navigation.Layer: a flyer hovers: no gravity on its movement, no walking terrain in its collision mask, and its BodyShape above ClearanceGrid.AirClearanceHeight.");
+			else if (navigation != null && body?.Shape != null)
+				// The body rests on the floor, so its bottom sets where the model's feet stand.
+				Check(Mathf.Abs(CollisionOutlines.FromShape(body.Shape, body.Transform).Bottom) <= GroundedBodyTolerance,
+					"BodyShape: start the body at the actor's origin, or the walker stands sunk into or floating above the floor.");
 		}
 		var profile = definition.Behavior;
 		Check(profile == null || profile.StayInHomeRoom || EnemyBase.HorizontalRadius(body) <= RoomAssembler.ActorRadius + .001f,

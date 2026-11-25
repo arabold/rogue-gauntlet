@@ -16,7 +16,7 @@ public partial class LoadingScreen : CanvasLayer
 	[Export] public Label DepthLabel { get; set; }
 	[Export] public Label TipLabel { get; set; }
 	/// <summary>One is shown per load, starting at a random tip and then in order, so a session rarely repeats one. A floor
-	/// loads in about a second, so keep each to a glance: seven words at most.</summary>
+	/// loads in about a second, so keep each to a glance: ten words at most. They hint rather than explain: no exact numbers or depths.</summary>
 	[Export] public string[] Tips { get; set; } = [];
 	[Export(PropertyHint.Range, "0,2,0.05,suffix:s")] public float FadeInSeconds { get; set; } = 0.3f;
 	[Export(PropertyHint.Range, "0,2,0.05,suffix:s")] public float FadeOutSeconds { get; set; } = 0.45f;

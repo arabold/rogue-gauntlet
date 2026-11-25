@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=67 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=68 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="1_RoomType"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="2_RectangleSha"]
@@ -50,6 +50,7 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="motif_floor_debris"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="motif_web_corner_small"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="motif_web_corner_large"]
+[ext_resource type="Resource" path="res://scenes/levels/access/proximity_detection.tres" id="secret_detection"]
 
 [sub_resource type="Resource" id="RectangleShape_1"]
 script = ExtResource("2_RectangleSha")
@@ -199,8 +200,10 @@ Realms = PackedStringArray("garrison", "sewer")
 Shapes = [SubResource("RectangleShape_1"), SubResource("LShape_2"), SubResource("RectangleShape_Compact")]
 MinimumFloorTiles = 4
 MinDoorways = 1
-MaxDoorways = 2
+MaxDoorways = 1
 DoorChance = 0.7
+SecretDoorChance = 0.5
+SecretDetection = ExtResource("secret_detection")
 Walls = [ExtResource("4_stone_walls"), ExtResource("5_ruined_walls"), ExtResource("6_scaffold_wal"), ExtResource("x_cellar_alcove_walls"), ExtResource("x_slimy_walls")]
 Floors = [ExtResource("7_stone_floor"), ExtResource("8_dirt_floor"), ExtResource("11_drained_ston"), ExtResource("x_bricks_floor"), ExtResource("x_earth_floor"), ExtResource("x_planks_rotten_floor"), ExtResource("x_drained_flagstones")]
 Columns = [SubResource("CenterColumns_3"), SubResource("CornerColumns_4")]

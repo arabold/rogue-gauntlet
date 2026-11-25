@@ -237,7 +237,7 @@ public class DoorAccessTest
 		generator.Profile.Access.MaximumLockedRooms = 3;
 		generator.Profile.Access.MaximumLockedDoors = 2;
 		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
-		int lockedCount = 0, secretCount = 0;
+		int lockedCount = 0, secretCount = 0, rewardCount = 0;
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
 			generator.Seed = seed; level.Generate();
@@ -257,6 +257,22 @@ public class DoorAccessTest
 			AssertBool(generator.FloorContent.GetChildren().OfType<LootableItem>().All(p => p.Item is not LockpickItem)).IsTrue();
 			var keys = generator.FloorContent.GetChildren().OfType<LootableItem>().Where(p => p.Item is KeyItem).ToArray();
 			foreach (var key in keys) AssertBool(reached.Contains(generator.Map.WorldToTile(key.GlobalPosition))).IsTrue();
+			// Every room behind a generated lock, and every room reached only through secrets, holds its reward: a chest, or in
+			// a room too furnished for one, the chest's loot on the floor.
+			var lockedConnectors = generator.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true).Select(d => d.Connector).ToHashSet();
+			var secretConnectors = secrets.Select(d => d.Connector).ToHashSet();
+			var rewardRooms = generator.Floor.Rooms.Where(r => r.Id != exitRoom && r.ConnectorTiles.Any(lockedConnectors.Contains)).Select(r => (r, "chest_gold"))
+				.Concat(generator.Floor.Rooms.Where(r => r.ConnectorTiles.Count > 0 && r.ConnectorTiles.All(secretConnectors.Contains)).Select(r => (r, "chest_secret")));
+			var chests = generator.FloorContent.GetChildren().OfType<Chest>().ToArray();
+			var pickups = generator.FloorContent.GetChildren().OfType<LootableItem>().ToArray();
+			foreach (var (room, scene) in rewardRooms)
+			{
+				rewardCount++;
+				bool Inside(Node3D node) => room.Tiles.Contains(generator.Map.WorldToTile(node.GlobalPosition));
+				bool chest = chests.Any(c => c.SceneFilePath.EndsWith($"/{scene}.tscn") && Inside(c));
+				bool loot = pickups.Any(p => Inside(p) && p.GetMeta("persistent_id", "").AsString().EndsWith($"-reward:{room.Id}"));
+				AssertBool(chest || loot).OverrideFailureMessage($"seed {seed}: room {room.Id} has no {scene} reward").IsTrue();
+			}
 			// The map route must also be walkable around the actual room furnishings.
 			var walk = generator.Floor.Walkability;
 			var walkSnapshot = walk.Save();
@@ -317,9 +333,10 @@ public class DoorAccessTest
 			}
 			await runner.SimulateFrames(1, 20);
 		}
-		GD.Print($"ACCESS_COUNTS locked={lockedCount} secret={secretCount}");
+		GD.Print($"ACCESS_COUNTS locked={lockedCount} secret={secretCount} rewards={rewardCount}");
 		AssertInt(lockedCount).IsGreater(0);
 		AssertInt(secretCount).IsGreater(0);
+		AssertInt(rewardCount).IsGreater(0);
 	}
 
 	[TestCase]

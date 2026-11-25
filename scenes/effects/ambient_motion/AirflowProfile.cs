@@ -1,6 +1,7 @@
 using Godot;
 
 /// <summary>Stateless, spatially coherent indoor drafts. Neighboring props sample the same slowly changing force.</summary>
+[Tool] // Exported by the tool Airflow script: a tool script's exports must be tool types in the editor.
 [GlobalClass]
 public partial class AirflowProfile : ObservableResource
 {

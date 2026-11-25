@@ -652,11 +652,22 @@ def report_supply(depths, seeds, samples, save=False):
     """
     import subprocess
     import tempfile
-    out = Path(tempfile.mkdtemp()) / "supply.json"
-    subprocess.run([str(GODOT), "--headless", "--path", str(R.ROOT), "res://scenes/debug/balance/loot_supply_probe.tscn",
-                    "--", f"--supply-out={out}", f"--supply-depths={depths}", f"--supply-seeds={seeds}",
-                    f"--supply-samples={samples}"], check=True, capture_output=True)
-    report = json.loads(out.read_text())
+    from concurrent.futures import ThreadPoolExecutor
+    first, _, last = depths.partition("-")
+    folder = Path(tempfile.mkdtemp())
+
+    def probe(depth: int) -> dict:
+        # One engine per depth: a long multi-floor run in one process could abort in the engine, and depths run in parallel.
+        out = folder / f"supply_{depth}.json"
+        subprocess.run([str(GODOT), "--headless", "--path", str(R.ROOT), "res://scenes/debug/balance/loot_supply_probe.tscn",
+                        "--", f"--supply-out={out}", f"--supply-depths={depth}", f"--supply-seeds={seeds}",
+                        f"--supply-samples={samples}"], check=True, capture_output=True)
+        return json.loads(out.read_text())
+
+    report = {}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        for part in pool.map(probe, range(int(first), int(last or first) + 1)):
+            report.update(part)
     if save:
         path = P.WEAPON_SUPPLY_PATH
         path.write_text(json.dumps(dict(seeds=seeds, samples=samples, depths=weapon_supply(report)), indent=1) + "\n")

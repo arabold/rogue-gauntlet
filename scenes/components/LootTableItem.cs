@@ -19,6 +19,11 @@ public partial class LootTableItem : Resource
 	[Export] public uint MaxDepth { get; set; }
 	/// <summary>Extra quantity granted per dungeon depth, added on top of <see cref="Quantity"/>.</summary>
 	[Export] public float QuantityPerDepth { get; set; }
+	/// <summary>
+	/// How far a drop's quantity strays from <see cref="QuantityAt"/>, as a share of it: 0.4 rolls 60–140% of it, so gold
+	/// piles differ in size the way Rogue's and Pixel Dungeon's do. 0 drops exactly that quantity.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float QuantitySpread { get; set; }
 
 	/// <summary>True if this entry's own window allows the given dungeon depth. A <see cref="LootPool"/> with tier
 	/// bands uses its equipment's tier instead, through <see cref="LootPool.IsEligibleAt"/>.</summary>
@@ -42,5 +47,17 @@ public partial class LootTableItem : Resource
 	{
 		double scaled = Quantity + (double)QuantityPerDepth * depth;
 		return (int)System.Math.Clamp(scaled, 0, int.MaxValue);
+	}
+
+	/// <summary>
+	/// The quantity one drop yields at <paramref name="depth"/>: <see cref="QuantityAt"/>, varied by
+	/// <see cref="QuantitySpread"/>. Draws from <paramref name="rng"/> only when the entry has a spread.
+	/// </summary>
+	public int RollQuantity(uint depth, RandomNumberGenerator rng)
+	{
+		int quantity = QuantityAt(depth);
+		if (QuantitySpread <= 0 || quantity <= 0) return quantity;
+		float spread = Mathf.Min(QuantitySpread, 1f);
+		return Mathf.Max(1, Mathf.RoundToInt(quantity * rng.RandfRange(1f - spread, 1f + spread)));
 	}
 }

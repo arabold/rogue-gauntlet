@@ -24,7 +24,7 @@ script = ExtResource("1_screen")
 Card = NodePath("Card")
 DepthLabel = NodePath("Card/Center/Depth")
 TipLabel = NodePath("Card/Center/Tip")
-Tips = PackedStringArray("Death is permanent.", "Every floor saves on arrival.", "Unknown potions hide their names.", "Cursed gear cannot be taken off.", "Remove Curse frees a cursed item.", "Dodge through a blow to avoid it.", "Guard as a blow lands to parry.", "Armor softens blows, never stops them.", "Keep a wall at your back.", "Missiles are free. Spells cost mana.", "Lockpicks open any lock, slowly.", "Quick slots work mid-fight.")
+Tips = PackedStringArray("Death is permanent. Tread carefully.", "Strange potions keep their secrets until tasted.", "Some gear clings to its wearer.", "A certain scroll loosens a cursed grip.", "A well-timed dodge passes through harm.", "A guard raised at the last moment turns blades.", "Armor softens blows. It never stops them.", "Keep a wall at your back.", "Missiles are free. Magic has its price.", "Every lock yields to patience.", "Quick slots don't wait for peace.", "Beware of snakes! They strike when you pass close.", "Chests may bite!", "Nymphs have quick fingers and quicker feet.", "Acid blobs repay every blow.", "What falls in stone may rise again.", "A charging beast fears only walls.", "Keen minds notice what others miss.", "A revealed trap still bites.", "Every lock guards something worth keeping.", "Some walls hide more than stone.", "In the dark, carry your own flame.")
 
 [node name="Card" type="Control" parent="."]
 layout_mode = 3

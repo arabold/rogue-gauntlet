@@ -4,6 +4,7 @@ using Godot;
 /// A keeper the generator stands on one floor of a realm, near where the hero arrives. The realm lists its shops, so a
 /// keeper moves with the realm's depth band instead of being tied to an absolute depth.
 /// </summary>
+[Tool] // Exported by the tool Realm script: a tool script's exports must be tool types in the editor.
 [GlobalClass]
 public partial class ShopPlacementProfile : Resource
 {

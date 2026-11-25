@@ -112,6 +112,21 @@ public class LootTableDepthTest
 	}
 
 	[TestCase]
+	public void QuantitySpreadVariesPilesWithinItsBand()
+	{
+		var item = MakeItem(0, 0);
+		item.Quantity = 20;
+		item.QuantityPerDepth = 5f;
+		item.QuantitySpread = 0.4f;
+		using var rng = GenerationRandom.Create(7, "spread-test");
+
+		var piles = System.Linq.Enumerable.Range(0, 400).Select(_ => item.RollQuantity(4, rng)).ToArray();
+		AssertInt(piles.Min()).IsGreaterEqual(24);
+		AssertInt(piles.Max()).IsLessEqual(56);
+		AssertInt(piles.Distinct().Count()).IsGreater(10);
+	}
+
+	[TestCase]
 	public void ZeroBoundsMeanUnbounded()
 	{
 		var item = MakeItem(0, 0);
