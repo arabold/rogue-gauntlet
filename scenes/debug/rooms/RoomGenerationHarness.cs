@@ -14,6 +14,8 @@ public partial class RoomGenerationHarness : Node3D
 {
 	private const string FloorProfilesDir = "res://scenes/levels/generators/floor_profiles";
 	private const string RoomGroupsDir = "res://scenes/levels/rooms/room_groups";
+	/// <summary>Trap gauntlet rooms: designed and previewed here, kept out of the room pool until floors place them.</summary>
+	private const string GauntletRoomsDir = "res://scenes/levels/rooms/room_types/gauntlets";
 
 	/// <summary>The production generator: its room pool and realms are what the harness previews.</summary>
 	[Export] public MapGenerator Generator { get; set; }
@@ -224,6 +226,8 @@ public partial class RoomGenerationHarness : Node3D
 				_recipes.Add(group);
 			}
 		}
+		_recipes.AddRange(DebugCatalog.Resources<RoomType>(GauntletRoomsDir).Select(entry => entry.Resource)
+			.Where(type => type.SupportsRealm(Realm.Theme) && !_recipes.Contains(type)));
 		_recipePicker.Clear();
 		foreach (var recipe in Recipes) _recipePicker.AddItem(RecipeName(recipe));
 	}

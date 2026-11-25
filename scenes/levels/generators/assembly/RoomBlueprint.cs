@@ -102,8 +102,8 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 /// </summary>
 public readonly record struct WallFace(float Depth, float MountDepth, MountSpan[] DecorMounts);
 
-/// <summary>A prop accepted into the room, in room-local space.</summary>
-public readonly record struct PlacedPiece(Prop Prop, int Variant, Transform3D Transform, Aabb Envelope);
+/// <summary>A prop accepted into the room, in room-local space; a trap hazard carries its <see cref="Beat"/>.</summary>
+public readonly record struct PlacedPiece(Prop Prop, int Variant, Transform3D Transform, Aabb Envelope, HazardBeat? Beat = null);
 
 /// <summary>A cosmetic floor-material override in room-local space, recorded after its defining structure fits.</summary>
 public readonly record struct FloorPatch(Rect2 Area, FloorMaterial Material);
@@ -236,6 +236,15 @@ public sealed class RoomBlueprint
 		Weighted.PickVariant(prop, v => _uses.GetValueOrDefault((prop, v)), rng);
 
 	public void RecordUse(Placeable placeable) => _uses[placeable] = _uses.GetValueOrDefault(placeable) + 1;
+
+	/// <summary>
+	/// Gives every piece placed since <paramref name="firstPiece"/> (a count of <see cref="Pieces"/> taken before placing)
+	/// a hazard beat. The room emits all its hazards under one <see cref="TrapGauntlet"/>, so they share its clock.
+	/// </summary>
+	public void AssignBeat(int firstPiece, HazardBeat beat)
+	{
+		for (int index = firstPiece; index < _pieces.Count; index++) _pieces[index] = _pieces[index] with { Beat = beat };
+	}
 
 	/// <summary>A value computed once per room for <paramref name="key"/>, such as a step's single content choice.</summary>
 	public T Remember<T>(object key, System.Func<T> create)
@@ -474,6 +483,15 @@ public sealed class RoomBlueprint
 
 	private readonly record struct Checkpoint(float[] Grid, int Pieces, int Reserved, int Pits, int Landings);
 
+	/// <summary>Runs <paramref name="place"/> as one placement: when it returns false, everything it placed is taken back.</summary>
+	public bool TryAtomically(Func<bool> place)
+	{
+		var start = Save();
+		if (place()) return true;
+		Restore(start);
+		return false;
+	}
+
 	private Checkpoint Save() => new(Grid.Save(), _pieces.Count, _reserved.Count, _pits.Count, _landings.Count);
 
 	private void Restore(Checkpoint checkpoint)
@@ -487,13 +505,15 @@ public sealed class RoomBlueprint
 
 	/// <summary>
 	/// Instantiates every accepted prop under a Props node of the room; mesh-library props get static collision.
-	/// Interior doors (cell gates) get stable room-local identities from their prop and order.
+	/// Interior doors (cell gates) get stable room-local identities from their prop and order. Pieces with a hazard beat
+	/// go under one <see cref="TrapGauntlet"/>, tuned before they enter the tree.
 	/// </summary>
 	public void EmitProps()
 	{
 		var root = new Node3D { Name = "Props" };
 		using var lighting = GenerationRandom.Create(Seed, GenerationRandom.Cosmetic, $"room-lighting:{Type.Id}");
 		Room.AddChild(root);
+		TrapGauntlet gauntlet = null;
 		for (int index = 0; index < _pieces.Count; index++)
 		{
 			var piece = _pieces[index];
@@ -502,7 +522,18 @@ public sealed class RoomBlueprint
 			node.Name = $"{piece.Prop.Id.Split('.').Last()}_{index}";
 			node.SetMeta("prop_id", piece.Prop.Id);
 			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
-			root.AddChild(node);
+			if (piece.Beat is { } beat)
+			{
+				if (node is not ITrapHazard hazard)
+				{
+					node.Free();
+					throw new InvalidOperationException($"Prop {piece.Prop.Id}: only trap hazard scenes take a hazard beat.");
+				}
+				hazard.Tune(beat);
+				if (gauntlet == null) root.AddChild(gauntlet = new TrapGauntlet { Name = "Gauntlet" });
+				gauntlet.AddChild(node);
+			}
+			else root.AddChild(node);
 			// A wall prop's front faces +Z of its placement, into the room. Only those flat on one wall hang on its mounts;
 			// a corner piece turned across two walls keeps the corner it was placed by.
 			var inward = piece.Transform.Basis.Z.Normalized();
