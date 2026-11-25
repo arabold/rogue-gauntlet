@@ -323,7 +323,9 @@ common/physics_interpolation=true
 
 textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/positional_shadow/soft_shadow_filter_quality=4
-environment/ssao/quality=3
+environment/ssao/quality=2
+environment/ssao/half_size=false
+environment/ssao/blur_passes=1
 anti_aliasing/quality/msaa_3d=2
 anti_aliasing/quality/use_debanding=true
 environment/volumetric_fog/volume_size=80
