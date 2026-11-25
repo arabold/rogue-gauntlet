@@ -3,8 +3,8 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/lighting/atmosphere_effects/drips.tscn" id="base"]
 
 [node name="Drips" instance=ExtResource("base")]
-ParticlesPerTile = 1.5
-MaxParticles = 3072
+ParticlesPerTile = 0.8
+MaxParticles = 1536
 
 [node name="Particles" parent="." index="0"]
 lifetime = 2.2

@@ -8,6 +8,7 @@ script = ExtResource("1_Prop")
 Id = "pipe_outlet"
 Scenes = [ExtResource("2_pipe_outlet")]
 BackToWall = true
+WallReach = 0.35
 Gap = 0.3
 Weight = 1.0
 metadata/_custom_type_script = ExtResource("1_Prop")
