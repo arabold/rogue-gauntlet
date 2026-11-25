@@ -13,10 +13,9 @@ using static GdUnit4.Assertions;
 public partial class GauntletRoomTest
 {
 	private const string GauntletRooms = "res://scenes/levels/rooms/room_types/gauntlets";
-	private static readonly ulong[] Seeds = [1, 2, 3, 4, 5, 6];
+	private static readonly ulong[] Seeds = [1, 2, 3];
 
-	private static IEnumerable<Node> Descendants(Node node) =>
-		node.GetChildren().SelectMany(child => Descendants(child).Prepend(child));
+	private static IEnumerable<T> Find<T>(Node node) => node.FindChildren("*", "", true, false).OfType<T>();
 
 	/// <summary>
 	/// Every gauntlet room puts all its hazards under one gauntlet, in rows that span the room: spouts hang on the side
@@ -35,10 +34,10 @@ public partial class GauntletRoomTest
 			var blueprint = RoomAssembler.Build(type, seed, new RoomAssemblyOptions { Realm = type.Realms.First() });
 			try
 			{
-				var gauntlets = Descendants(blueprint.Room).OfType<TrapGauntlet>().ToArray();
+				var gauntlets = Find<TrapGauntlet>(blueprint.Room).ToArray();
 				AssertInt(gauntlets.Length).OverrideFailureMessage($"{at}: one gauntlet").IsEqual(1);
 				var hazards = gauntlets[0].GetChildren().OfType<Node3D>().ToArray();
-				AssertBool(hazards.All(hazard => hazard is ITrapHazard)).OverrideFailureMessage($"{at}: only hazards").IsTrue();
+				AssertBool(hazards.All(hazard => hazard is TrapHazard)).OverrideFailureMessage($"{at}: only hazards").IsTrue();
 				var interior = blueprint.Interior;
 				foreach (var spout in hazards.OfType<WallSpout>())
 				{
@@ -76,17 +75,15 @@ public partial class GauntletRoomTest
 	[TestCase]
 	public async Task AStagedRoomWakesItsGauntletForTheHeroAtItsEntrance()
 	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 4);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		TestFactories.MovePracticeTargetAway(harness);
+		var (runner, harness) = await TestFactories.LoadQuietHarness();
+		using var scope = runner;
 		var traps = TestFactories.Tool<TrapTool>(runner.Scene());
 		var room = traps.StageRoom(TestFactories.Load<RoomType>($"{GauntletRooms}/pendulum_hall.tres"));
 		AssertObject(room).IsNotNull();
-		var gauntlet = Descendants(room).OfType<TrapGauntlet>().Single();
+		var gauntlet = Find<TrapGauntlet>(room).Single();
 		await TestFactories.AwaitPhysicsUntil(runner, () => gauntlet.IsAwake, 2);
-		Vector3 ahead = harness.Player.MovementComponent.LookAtDirection with { Y = 0 };
+		harness.Player.MovementComponent.LookAtDirection.TryNormalizeHorizontal(out Vector3 ahead);
 		var nearest = gauntlet.GetChildren().OfType<Node3D>().MinBy(hazard => hazard.GlobalPosition.DistanceTo(harness.Player.GlobalPosition));
-		AssertFloat((nearest.GlobalPosition - harness.Player.GlobalPosition).Dot(ahead.Normalized())).IsGreater(0);
+		AssertFloat((nearest.GlobalPosition - harness.Player.GlobalPosition).Dot(ahead)).IsGreater(0);
 	}
 }

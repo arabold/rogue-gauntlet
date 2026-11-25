@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/HazardStep.cs" id="hazard_step"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CrossFireStep.cs" id="hazard_step"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="w_crypt_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="f_flagstones_floor"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="f_flagstones_ruined_floor"]
@@ -35,7 +35,6 @@ Content = [ExtResource("gargoyle_head")]
 MinimumCount = 2
 MaximumCount = 5
 Uniform = true
-Layout = 0
 Pattern = 1
 Sides = 0
 PeriodRange = Vector2(2.6, 3.2)

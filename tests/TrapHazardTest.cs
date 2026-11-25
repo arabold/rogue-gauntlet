@@ -12,40 +12,31 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public partial class TrapHazardTest
 {
-	private const string DartSpout = "res://scenes/props/traps/wall_spout_slit.tscn";
-	private const string Pendulum = "res://scenes/props/traps/pendulum_blade.tscn";
+	private const string DartSlit = "res://scenes/levels/rooms/props/traps/dart_slit.tres";
+	private const string Pendulum = "res://scenes/levels/rooms/props/traps/pendulum_blade.tres";
 
-	/// <summary>The arena with the hero standing still and the practice target away, and one staged gauntlet of <paramref name="scene"/>.</summary>
-	private static async Task<(ISceneRunner Runner, Player Hero, TrapGauntlet Gauntlet, T[] Hazards)> Stage<T>(string scene,
-		HazardPattern pattern = HazardPattern.Unison, int rows = 1, float period = 1.2f) where T : Node3D
+	/// <summary>The quiet arena with one staged gauntlet of the <paramref name="hazard"/> prop.</summary>
+	private static async Task<(ISceneRunner Runner, CombatHarness Harness, TrapGauntlet Gauntlet, T[] Hazards)> Stage<T>(string hazard,
+		HazardPattern pattern = HazardPattern.Unison, int rows = 1, float period = 1.2f) where T : TrapHazard
 	{
-		var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner, 4);
-		harness.Player.InputController.SetPhysicsProcess(false);
-		TestFactories.MovePracticeTargetAway(harness);
+		var (runner, harness) = await TestFactories.LoadQuietHarness();
 		var traps = TestFactories.Tool<TrapTool>(runner.Scene());
 		traps.Rows = rows;
 		traps.Pattern = pattern;
 		traps.Period = period;
-		var gauntlet = traps.Stage(TestFactories.Load<PackedScene>(scene));
-		return (runner, harness.Player, gauntlet, gauntlet.GetChildren().OfType<T>().ToArray());
+		var gauntlet = traps.Stage(TestFactories.Load<Prop>(hazard));
+		return (runner, harness, gauntlet, gauntlet.GetChildren().OfType<T>().ToArray());
 	}
 
-	/// <summary>Puts the hero <paramref name="distance"/> metres down <paramref name="spout"/>'s lane.</summary>
-	private static void StandInLane(Player hero, WallSpout spout, float distance)
+	/// <summary>Stands <paramref name="body"/> at <paramref name="point"/>'s spot on the ground, keeping its own height.</summary>
+	private static void PlaceAt(Node3D body, Vector3 point)
 	{
-		Vector3 point = spout.Muzzle.GlobalPosition + spout.FireDirection * distance;
-		hero.GlobalPosition = point with { Y = hero.GlobalPosition.Y };
-		hero.ResetPhysicsInterpolation();
+		body.GlobalPosition = point with { Y = body.GlobalPosition.Y };
+		body.ResetPhysicsInterpolation();
 	}
 
-	/// <summary>Puts the hero on the path under <paramref name="blade"/>, <paramref name="along"/> metres back from its swing.</summary>
-	private static void StandAtPendulum(Player hero, PendulumBlade blade, float along)
-	{
-		Vector3 point = blade.GlobalPosition + blade.GlobalBasis.Z * along;
-		hero.GlobalPosition = point with { Y = hero.GlobalPosition.Y };
-		hero.ResetPhysicsInterpolation();
-	}
+	/// <summary>The point <paramref name="distance"/> metres down <paramref name="spout"/>'s lane.</summary>
+	private static Vector3 Lane(WallSpout spout, float distance) => spout.Muzzle.GlobalPosition + spout.FireDirection * distance;
 
 	private static List<DamageOutcome> RecordOutcomes(Player hero)
 	{
@@ -54,32 +45,41 @@ public partial class TrapHazardTest
 		return outcomes;
 	}
 
+	/// <summary>Waits until <paramref name="spout"/> has fired <paramref name="shots"/> shots and the last one has hit
+	/// something or flown out.</summary>
+	private static Task AwaitShotResolved(ISceneRunner runner, WallSpout spout, int shots)
+	{
+		Node3D last = null;
+		spout.Fired += shot => last = shot;
+		return TestFactories.AwaitPhysicsUntil(runner, () => spout.ShotsFired >= shots && !last.IsPhysicsProcessing());
+	}
+
 	[TestCase]
 	public async Task ADartHitsTheHeroInItsLaneOncePerShot()
 	{
-		var (runner, hero, _, spouts) = await Stage<WallSpout>(DartSpout);
+		var (runner, harness, _, spouts) = await Stage<WallSpout>(DartSlit);
 		using var scope = runner;
-		StandInLane(hero, spouts[0], 3.5f);
-		var outcomes = RecordOutcomes(hero);
-		await TestFactories.AwaitPhysicsUntil(runner, () => spouts[0].ShotsFired >= 2);
-		await TestFactories.AwaitPhysicsSeconds(runner, .8f);
+		PlaceAt(harness.Player, Lane(spouts[0], 3.5f));
+		var outcomes = RecordOutcomes(harness.Player);
+		await AwaitShotResolved(runner, spouts[0], 2);
 		AssertInt(outcomes.Count(outcome => outcome == DamageOutcome.Damaged)).IsEqual(2);
 	}
 
 	[TestCase]
 	public async Task DodgingIntoADartPassesThroughIt()
 	{
-		var (runner, hero, _, spouts) = await Stage<WallSpout>(DartSpout);
+		var (runner, harness, _, spouts) = await Stage<WallSpout>(DartSlit);
 		using var scope = runner;
+		var hero = harness.Player;
 		var spout = spouts[0];
-		StandInLane(hero, spout, 5f);
+		PlaceAt(hero, Lane(spout, 5f));
 		var outcomes = RecordOutcomes(hero);
 		Node3D shot = null;
 		spout.Fired += fired => shot = fired;
 		Vector3 chest = hero.GlobalPosition + Vector3.Up;
 		await TestFactories.AwaitPhysicsUntil(runner, () => GodotObject.IsInstanceValid(shot) && shot.GlobalPosition.DistanceTo(chest) < 2.5f);
 		AssertObject(hero.DodgeComponent.TryDodge(-spout.FireDirection)).IsEqual(DefenseRequestResult.Success);
-		await TestFactories.AwaitPhysicsSeconds(runner, .5f);
+		await TestFactories.AwaitPhysicsSeconds(runner, .4f);
 		AssertThat(outcomes).Contains(DamageOutcome.Dodged);
 		AssertThat(outcomes).NotContains(DamageOutcome.Damaged);
 	}
@@ -87,19 +87,15 @@ public partial class TrapHazardTest
 	[TestCase]
 	public async Task AMonsterInTheLaneTakesNoDamageButStopsTheDart()
 	{
-		var (runner, hero, _, spouts) = await Stage<WallSpout>(DartSpout);
+		var (runner, harness, _, spouts) = await Stage<WallSpout>(DartSlit);
 		using var scope = runner;
 		var spout = spouts[0];
-		StandInLane(hero, spout, 5f);
-		var harness = runner.Scene().GetNode<CombatHarness>("Instructions");
+		PlaceAt(harness.Player, Lane(spout, 5f));
 		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
-		Vector3 between = spout.Muzzle.GlobalPosition + spout.FireDirection * 2.5f;
-		monster.GlobalPosition = between with { Y = monster.GlobalPosition.Y };
-		monster.ResetPhysicsInterpolation();
+		PlaceAt(monster, Lane(spout, 2.5f));
 		float health = monster.HealthComponent.CurrentHealth;
-		var outcomes = RecordOutcomes(hero);
-		await TestFactories.AwaitPhysicsUntil(runner, () => spout.ShotsFired >= 1);
-		await TestFactories.AwaitPhysicsSeconds(runner, .8f);
+		var outcomes = RecordOutcomes(harness.Player);
+		await AwaitShotResolved(runner, spout, 1);
 		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(health);
 		AssertThat(outcomes).IsEmpty();
 	}
@@ -111,11 +107,10 @@ public partial class TrapHazardTest
 	[TestCase]
 	public async Task AGauntletFiresOnlyWhileTheHeroIsNearAndOnlyAfterAFullWarning()
 	{
-		var (runner, hero, gauntlet, spouts) = await Stage<WallSpout>(DartSpout);
+		var (runner, harness, gauntlet, spouts) = await Stage<WallSpout>(DartSlit);
 		using var scope = runner;
 		var spout = spouts[0];
-		StandInLane(hero, spout, 3.5f);
-		hero.GlobalPosition += Vector3.Back * 3;
+		PlaceAt(harness.Player, Lane(spout, 3.5f) + Vector3.Back * 3);
 		gauntlet.ActivationRadius = 1;
 		await TestFactories.AwaitPhysicsSeconds(runner, 1.5f);
 		AssertBool(gauntlet.IsAwake).IsFalse();
@@ -137,12 +132,13 @@ public partial class TrapHazardTest
 	[TestCase]
 	public async Task AWaveFiresEachRowAsLateAsTheHeroTakesToWalkThere()
 	{
-		var (runner, hero, gauntlet, spouts) = await Stage<WallSpout>(DartSpout, HazardPattern.Wave, rows: 3, period: 2.4f);
+		var (runner, harness, gauntlet, spouts) = await Stage<WallSpout>(DartSlit, HazardPattern.Wave, rows: 3);
 		using var scope = runner;
+		var hero = harness.Player;
 		var firstShot = new Dictionary<WallSpout, double>();
 		foreach (var spout in spouts) spout.Fired += _ => firstShot.TryAdd(spout, gauntlet.Clock);
-		await TestFactories.AwaitPhysicsUntil(runner, () => firstShot.Count == spouts.Length, 6);
-		Vector3 path = (hero.MovementComponent.LookAtDirection with { Y = 0 }).Normalized();
+		await TestFactories.AwaitPhysicsUntil(runner, () => firstShot.Count == spouts.Length, 3);
+		hero.MovementComponent.LookAtDirection.TryNormalizeHorizontal(out Vector3 path);
 		foreach (var spout in spouts.Skip(1))
 		{
 			double walk = (spout.GlobalPosition - spouts[0].GlobalPosition).Dot(path) / hero.Stats.Speed;
@@ -155,18 +151,22 @@ public partial class TrapHazardTest
 	[TestCase]
 	public async Task APendulumCutsAHeroUnderItOncePerSwingAndPushesThemAlongIt()
 	{
-		var (runner, hero, _, blades) = await Stage<PendulumBlade>(Pendulum, period: 2f);
+		var (runner, harness, _, blades) = await Stage<PendulumBlade>(Pendulum, period: 1.6f);
 		using var scope = runner;
+		var hero = harness.Player;
 		var blade = blades[0];
-		StandAtPendulum(hero, blade, 2f);
+		PlaceAt(hero, blade.GlobalPosition + blade.GlobalBasis.Z * 2f);
 		var outcomes = RecordOutcomes(hero);
-		await TestFactories.AwaitPhysicsSeconds(runner, 2.1f);
+		await TestFactories.AwaitPhysicsSeconds(runner, 1.7f);
 		AssertThat(outcomes).IsEmpty();
 
-		StandAtPendulum(hero, blade, 0);
-		await TestFactories.AwaitPhysicsUntil(runner, () => outcomes.Count > 0, 2);
+		// Step under it as it crosses the middle: a quarter period (0.4 s) of this swing remains, so a second cut can only
+		// come from the next one.
+		await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(blade.Arm.Rotation.Z) < Mathf.DegToRad(2), 2);
+		PlaceAt(hero, blade.GlobalPosition);
+		await TestFactories.AwaitPhysicsUntil(runner, () => outcomes.Count > 0, 1);
 		Vector3 struck = hero.GlobalPosition;
-		await TestFactories.AwaitPhysicsSeconds(runner, .3f);
+		await TestFactories.AwaitPhysicsSeconds(runner, .25f);
 		AssertThat(outcomes).ContainsExactly(DamageOutcome.Damaged);
 		AssertFloat(Mathf.Abs((hero.GlobalPosition - struck).Dot(blade.GlobalBasis.X))).IsGreater(.3f);
 	}
@@ -174,10 +174,11 @@ public partial class TrapHazardTest
 	[TestCase]
 	public async Task DodgingThroughASwingingBladePassesThroughIt()
 	{
-		var (runner, hero, _, blades) = await Stage<PendulumBlade>(Pendulum, period: 2f);
+		var (runner, harness, _, blades) = await Stage<PendulumBlade>(Pendulum, period: 1.6f);
 		using var scope = runner;
+		var hero = harness.Player;
 		var blade = blades[0];
-		StandAtPendulum(hero, blade, 1.5f);
+		PlaceAt(hero, blade.GlobalPosition + blade.GlobalBasis.Z * 1.5f);
 		var outcomes = RecordOutcomes(hero);
 		await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(blade.Arm.Rotation.Z) < Mathf.DegToRad(3), 3);
 		AssertObject(hero.DodgeComponent.TryDodge(-blade.GlobalBasis.Z)).IsEqual(DefenseRequestResult.Success);

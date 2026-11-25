@@ -84,6 +84,16 @@ public static partial class TestFactories
 		return runner.Scene().GetNode<CombatHarness>("Instructions");
 	}
 
+	/// <summary>The combat harness with the hero standing still (input off) and the practice target out of the way.</summary>
+	public static async Task<(ISceneRunner Runner, CombatHarness Harness)> LoadQuietHarness()
+	{
+		var runner = LoadCombatHarness();
+		var harness = await SettleCombatHarness(runner, 4);
+		harness.Player.InputController.SetPhysicsProcess(false);
+		MovePracticeTargetAway(harness);
+		return (runner, harness);
+	}
+
 	public const string MinionScene = "res://scenes/enemies/skeleton/skeleton_minion.tscn";
 	public const string WarriorScene = "res://scenes/enemies/skeleton/skeleton_warrior.tscn";
 	public const string CrossbowScene = "res://scenes/enemies/skeleton/skeleton_crossbow.tscn";

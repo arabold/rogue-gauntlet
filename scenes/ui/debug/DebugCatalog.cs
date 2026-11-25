@@ -12,7 +12,6 @@ public static class DebugCatalog
 {
 	private static readonly Dictionary<(Type Type, string Directory), object> ResourcesByDirectory = [];
 	private static readonly Dictionary<string, IReadOnlyList<(PackedScene Scene, string Name)>> MonstersByDirectory = [];
-	private static readonly Dictionary<string, IReadOnlyList<(PackedScene Scene, string Name)>> HazardsByDirectory = [];
 	private static ulong _settledFrame = ulong.MaxValue;
 
 	/// <summary>
@@ -68,29 +67,6 @@ public static class DebugCatalog
 				.ThenBy(m => m.Scene.ResourcePath, StringComparer.Ordinal).ToList();
 		}
 		return monsters;
-	}
-
-	/// <summary>
-	/// Every trap hazard scene (its root an <see cref="ITrapHazard"/>) in <paramref name="directory"/> and its subfolders,
-	/// named after its file and sorted by name. Other scenes there are skipped quietly.
-	/// </summary>
-	public static IReadOnlyList<(PackedScene Scene, string Name)> Hazards(string directory)
-	{
-		if (!HazardsByDirectory.TryGetValue(directory, out var hazards))
-		{
-			SettleOncePerFrame();
-			var found = new List<(PackedScene Scene, string Name)>();
-			foreach (string path in FilesUnder(directory, ".tscn"))
-			{
-				if (ResourceLoader.Load(path) is not PackedScene scene) continue;
-				Node root = scene.Instantiate();
-				bool isHazard = root is ITrapHazard;
-				root.Free();
-				if (isHazard) found.Add((scene, path.GetFile().GetBaseName().Capitalize()));
-			}
-			HazardsByDirectory[directory] = hazards = found.OrderBy(hazard => hazard.Name, StringComparer.OrdinalIgnoreCase).ToList();
-		}
-		return hazards;
 	}
 
 	/// <summary>

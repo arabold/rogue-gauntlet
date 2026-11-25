@@ -10,6 +10,13 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	public Vector3 Tangent => new(Along.X, 0, Along.Y);
 	public Vector3 Inward => new(-Outward.X, 0, -Outward.Y);
 	public Vector2I TileAt(int index) => Start + Along * index;
+	/// <summary>Where <paramref name="tile"/> stands along this run, or -1 when the run does not hold it.</summary>
+	public int IndexOf(Vector2I tile)
+	{
+		var offset = tile - Start;
+		int index = offset.X * Along.X + offset.Y * Along.Y;
+		return index >= 0 && index < Length && TileAt(index) == tile ? index : -1;
+	}
 	public Vector2I Last => TileAt(Length - 1);
 	public float TileCenterAlong(int index) => (index + 0.5f) * Room.TileSize;
 	/// <summary>The run's start on the wall line (the tile edge), at its first tile's outer corner.</summary>
@@ -238,13 +245,10 @@ public sealed class RoomBlueprint
 	public void RecordUse(Placeable placeable) => _uses[placeable] = _uses.GetValueOrDefault(placeable) + 1;
 
 	/// <summary>
-	/// Gives every piece placed since <paramref name="firstPiece"/> (a count of <see cref="Pieces"/> taken before placing)
-	/// a hazard beat. The room emits all its hazards under one <see cref="TrapGauntlet"/>, so they share its clock.
+	/// Gives the placed piece at <paramref name="piece"/> (an index into <see cref="Pieces"/>) a hazard beat. The room emits
+	/// all its hazards under one <see cref="TrapGauntlet"/>, so they share its clock.
 	/// </summary>
-	public void AssignBeat(int firstPiece, HazardBeat beat)
-	{
-		for (int index = firstPiece; index < _pieces.Count; index++) _pieces[index] = _pieces[index] with { Beat = beat };
-	}
+	public void AssignBeat(int piece, HazardBeat beat) => _pieces[piece] = _pieces[piece] with { Beat = beat };
 
 	/// <summary>A value computed once per room for <paramref name="key"/>, such as a step's single content choice.</summary>
 	public T Remember<T>(object key, System.Func<T> create)
@@ -483,15 +487,6 @@ public sealed class RoomBlueprint
 
 	private readonly record struct Checkpoint(float[] Grid, int Pieces, int Reserved, int Pits, int Landings);
 
-	/// <summary>Runs <paramref name="place"/> as one placement: when it returns false, everything it placed is taken back.</summary>
-	public bool TryAtomically(Func<bool> place)
-	{
-		var start = Save();
-		if (place()) return true;
-		Restore(start);
-		return false;
-	}
-
 	private Checkpoint Save() => new(Grid.Save(), _pieces.Count, _reserved.Count, _pits.Count, _landings.Count);
 
 	private void Restore(Checkpoint checkpoint)
@@ -524,7 +519,7 @@ public sealed class RoomBlueprint
 			if (node is Door { Interior: not null } door) door.Interior.Id = $"{piece.Prop.Id}:{index}";
 			if (piece.Beat is { } beat)
 			{
-				if (node is not ITrapHazard hazard)
+				if (node is not TrapHazard hazard)
 				{
 					node.Free();
 					throw new InvalidOperationException($"Prop {piece.Prop.Id}: only trap hazard scenes take a hazard beat.");

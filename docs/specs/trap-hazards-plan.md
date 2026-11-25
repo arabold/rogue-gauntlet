@@ -49,7 +49,7 @@ A gauntlet wakes when the hero stands within `ActivationRadius` (16 m) and any o
 
 Gauntlets are never secret: they stand on the route the hero must take (choke points: the room or corridor between two parts of the floor), so crossing them is the challenge. Where generation puts them is its own task; slice 3 below names the seams, and the choke-point placement rule is settled in a later session.
 
-**Gauntlet rooms (landed, not yet placed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a `HazardStep`, lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. They stay out of the room pool, so no floor places them yet; the room harness previews them and **Traps → Rooms** stages one in the combat arena to play.
+**Gauntlet rooms (landed, not yet placed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a hazard row step (`CrossFireStep` or `PendulumRowsStep`), lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. They stay out of the room pool, so no floor places them yet; the room harness previews them and **Traps → Rooms** stages one in the combat arena to play.
 
 | Room | Shape | Rows | Beat | Look |
 | --- | --- | --- | --- | --- |
@@ -58,9 +58,9 @@ Gauntlets are never secret: they stand on the route the hero must take (choke po
 | *Pendulum hall* | 3 × 6–8 tiles | 4–6 rows of three blades | Wave, 1.8–2.4 s; neighbouring blades half a beat apart, so the gaps between them open and close like scissors | Stone or prison walls, torches |
 | *Blade passage* | 1 × 6–9 tiles: a hallway | 4–7 single blades | Wave, 1.8–2.4 s; each blade pins one wall at a time, so the hero passes on the side it has left | Stone or ruined walls, torches |
 
-A spout row whose wall has no plain stretch at that tile (an alcove or a pillar) hangs its spout on the opposite wall instead, so ornate walls such as the crypt's still fill their rows. A blade swings as far as its walls and its neighbours allow (`HazardBeat.Sweep`): outer blades stop just short of the wall, inner ones halfway to the next blade, which swings toward it at the same time.
+A spout row whose wall has no plain stretch at that tile (an alcove or a pillar) hangs its spout on the opposite wall instead, so ornate walls such as the crypt's still fill their rows. A blade swings as far as its walls and its neighbours allow: the step gives each blade the space it has (`HazardBeat.Space`), to just short of the wall or halfway to the next blade, which swings toward it at the same time, and the blade narrows its own `Sweep` to fit.
 
-The cathedral nave (pendulums down the aisle with gargoyles firing across) is two `HazardStep`s with interleaved rows; it needs a row offset on the step and waits for the Cathedral's turn.
+The cathedral nave (pendulums down the aisle with gargoyles firing across) is a `PendulumRowsStep` and a `CrossFireStep` with interleaved rows; it needs a row offset on the step and waits for the Cathedral's turn.
 
 Gauntlet rooms may headline a floor (see Realm schedule). A reward at the far end ("the vault behind the blades") needs a room-owned reward seam that does not exist yet; see Open decisions.
 
@@ -94,17 +94,20 @@ Windows, chances and weights are realm data; the table is a starting point for p
 	public IEnumerable<Aabb> DangerBounds { get; }
 }
 
-/// <summary>A member of a gauntlet: synchronized from the gauntlet's physics tick, never self-timed.</summary>
-public interface ITrapHazard
+/// <summary>A member of a gauntlet: synchronized from the gauntlet's physics tick, never self-timed. A tool script.</summary>
+[Tool, GlobalClass] public abstract partial class TrapHazard : Node3D
 {
-	float Period { get; set; }
-	float Phase { get; set; }
-	/// <summary>Asleep: never fire, hit or telegraph (pendulums keep swinging). Awake: act on <paramref name="clock"/>.</summary>
-	void Sync(double clock, bool awake);
-	Aabb DangerBounds { get; }
+	[Export] public int Damage { get; set; }
+	[Export] public float DamagePerDepth { get; set; }
+	[Export] public float Period { get; set; } = 2f;
+	[Export(PropertyHint.Range, "0,1,0.01")] public float Phase { get; set; }
+	public virtual void Tune(HazardBeat beat);
+	/// <summary>hero is the hero the gauntlet woke for, null while asleep: hold still, never fire, hit or warn.</summary>
+	public abstract void Sync(double clock, Node3D hero);
+	public abstract Aabb DangerBounds { get; }
 }
 
-[GlobalClass] public partial class WallSpout : Node3D, ITrapHazard
+[Tool, GlobalClass] public partial class WallSpout : TrapHazard
 {
 	[Export] public PackedScene ProjectileScene { get; set; }   // the projectile scene carries element and look
 	[Export] public Marker3D Muzzle { get; set; }
@@ -113,25 +116,17 @@ public interface ITrapHazard
 	[Export] public float Speed { get; set; } = 8f;
 	[Export] public float Range { get; set; } = 12f;              // generation sets it to the opposite wall
 	[Export] public float WindUp { get; set; } = .6f;
-	[Export] public int Damage { get; set; }
-	[Export] public float DamagePerDepth { get; set; }
 	[Export] public DamageElement Element { get; set; }        // fire ignores armor
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
-	[Export] public float Period { get; set; } = 2.4f;
-	[Export(PropertyHint.Range, "0,1,0.01")] public float Phase { get; set; }
-	[Signal] public delegate void FiredEventHandler();
+	[Signal] public delegate void FiredEventHandler(Node3D shot);
 }
 
-[GlobalClass] public partial class PendulumBlade : Node3D, ITrapHazard
+[Tool, GlobalClass] public partial class PendulumBlade : TrapHazard
 {
 	[Export] public Node3D Arm { get; set; }       // turns about this node's origin, the pivot above the walls
 	[Export] public ShapeCast3D Edge { get; set; } // the blade's cutting volume, an overlap query
-	[Export] public float Sweep { get; set; } = 1.9f;       // metres either side; rooms fit it to walls and neighbours
-	[Export] public int Damage { get; set; }
-	[Export] public float DamagePerDepth { get; set; }
+	[Export] public float Sweep { get; set; } = 1.9f;       // metres either side at most; a beat's Space narrows it
 	[Export] public float Knockback { get; set; } = 4f;
-	[Export] public float Period { get; set; } = 2f;
-	[Export(PropertyHint.Range, "0,1,0.01")] public float Phase { get; set; }
 }
 
 /// <summary>Depth scaling shared by every trap; <see cref="FloorTrap.CurrentDamage"/> moves onto it.</summary>
@@ -151,29 +146,25 @@ Contracts:
 Landed for rooms (slice 3a):
 
 ```csharp
-public enum HazardLayout { CrossFire, PendulumRows }
-public enum SpoutSides { Alternate, Both, Left, Right }
+/// <summary>One hazard's beat: period, phase in the gauntlet's clock, and for a swing the free space beside it (0: none).</summary>
+public readonly record struct HazardBeat(float Period, float Phase, float Space = 0);
 
-/// <summary>One hazard's beat: period, phase in the gauntlet's clock, and a swing's sweep in metres (0 keeps the scene's).</summary>
-public readonly record struct HazardBeat(float Period, float Phase, float Sweep = 0);
-
-public interface ITrapHazard { void Tune(HazardBeat beat); void Sync(double clock, bool awake); Aabb DangerBounds { get; } }
-
-/// <summary>Room step: rows across the door-to-door spine, each covering the room's width. Put it first.</summary>
-[GlobalClass] public partial class HazardStep : FurnishingStep
+/// <summary>Rows across the door-to-door spine, each covering the room's width. Put it first.</summary>
+[Tool, GlobalClass] public abstract partial class HazardRowsStep : FurnishingStep
 {
-	[Export] public HazardLayout Layout { get; set; }
 	[Export] public HazardPattern Pattern { get; set; } = HazardPattern.Wave;   // read along +Z
-	[Export] public SpoutSides Sides { get; set; }
 	[Export] public Vector2 PeriodRange { get; set; } = new(2f, 2.6f);
 	[Export(PropertyHint.Range, "1,6")] public int RowSpacing { get; set; } = 1;   // tiles
 	[Export(PropertyHint.Range, "1,3")] public int EndMargin { get; set; } = 1;    // doorway tiles kept clear
-	[Export] public float MaximumSweep { get; set; } = 1.9f;
-	[Export] public float MinimumSweep { get; set; } = .4f;
+	protected abstract bool LayRow(RoomBlueprint room, RandomNumberGenerator rng, int row, int[] columns, int index, HazardBeat beat);
 }
+
+public enum SpoutSides { Alternate, Both, Left, Right }
+[Tool, GlobalClass] public partial class CrossFireStep : HazardRowsStep { [Export] public SpoutSides Sides { get; set; } }
+[Tool, GlobalClass] public partial class PendulumRowsStep : HazardRowsStep { [Export] public float MinimumSpace { get; set; } = 1.2f; }
 ```
 
-- `PlacedPiece` carries an optional `HazardBeat`; the step sets it with `RoomBlueprint.AssignBeat` and places each row whole or not at all (`RoomBlueprint.TryAtomically`). `RoomBlueprint.EmitProps` puts beat pieces under one `TrapGauntlet` per room and tunes them before they enter the tree.
+- `PlacedPiece` carries an optional `HazardBeat`; the steps set it with `RoomBlueprint.AssignBeat`. A pendulum row is one placement plan, so it stands whole or not at all. `RoomBlueprint.EmitProps` puts beat pieces under one `TrapGauntlet` per room and tunes them before they enter the tree.
 - The step reserves each row's band (`RoomBlueprint.Reserve`), so later furniture never stands in a lane or under a blade. Hazards are non-blocking: walkability and navigation do not change.
 - Rooms time waves for the hero's derived walking speed (`TrapGauntlet.HeroWalkSpeed`); patterns share `TrapGauntlet.PhaseFor`.
 - Periods come from the room step's stream; no new stream.
@@ -195,8 +186,8 @@ Remaining for placement (slice 3b, a later session):
 
 ```
 MapGenerator.Generate
-├─ rooms assemble ── RoomAssembler runs HazardStep first
-│   └─ HazardStep: pick layout rows on the spine → reserve lanes/arcs → place pieces with HazardBeat
+├─ rooms assemble ── RoomAssembler runs the hazard row step first
+│   └─ HazardRowsStep: rows on the spine → each layout lays its row → reserve lanes/arcs → pieces carry a HazardBeat
 │      invariant: rows ≥ RowSpacing apart; doorway tiles and thresholds never in a lane or arc
 ├─ RoomBlueprint.EmitProps → TrapGauntlet per beat key, hazards configured before _Ready
 ├─ DecorateCorridors → CorridorHazardStep on Spans → CorridorBlueprint.EmitProps (same grouping)
@@ -219,10 +210,11 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
 ### Affected files
 
 ```
-+ scenes/props/traps/TrapGauntlet.cs, WallSpout.cs, PendulumBlade.cs, TrapDamage.cs, HazardBeat.cs; common/interfaces/ITrapHazard.cs
++ scenes/props/traps/TrapHazard.cs, TrapGauntlet.cs, WallSpout.cs, PendulumBlade.cs, TrapDamage.cs, HazardBeat.cs
++ scripts/PlayerLookup.cs                                (the hero lookup Nameplate and gauntlets share)
 + scenes/props/traps/wall_spout_slit.tscn, wall_spout_gargoyle.tscn, pendulum_blade.tscn, pendulum_rod.gdshader
 ~ scenes/props/FloorTrap.cs                 (CurrentDamage through TrapDamage)
-+ scenes/levels/generators/assembly/steps/HazardStep.cs
++ scenes/levels/generators/assembly/steps/HazardRowsStep.cs, CrossFireStep.cs, PendulumRowsStep.cs
 + scenes/levels/generators/corridors/CorridorHazardStep.cs
 ~ scenes/levels/generators/assembly/RoomBlueprint.cs     (PlacedPiece.Beat, gauntlet grouping on emit)
 ~ scenes/levels/generators/corridors/CorridorBlueprint.cs
@@ -246,14 +238,14 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
 - **`TrapTool`** (debug menu **Traps**, landed) lists the hazard scenes in `scenes/props/traps/` and stages 1, 3 or 5 rows ahead of the hero, two tiles apart, on a Unison, Alternate or Wave beat, in the arena or on a floor. A wall spout hangs on the first wall beside the path, or on a stand-in wall in open space. New hazard scenes show up without code changes.
 - **`TrapHazardTest`** (runtime, fixed delta, outcomes only): a hero standing in a spout lane takes one hit per shot; a dodge timed through the shot is `Dodged`; a raised shield blocks a dart; a pendulum hits a standing hero once per pass and pushes them along the swing; a hero outside the arc is never hit; an asleep gauntlet (hero far, tiles unexplored) fires nothing; monsters in a lane take no damage and stop darts.
 - **`GeneratedFloorSweepTest`:** on the sweep floors, no spawn, loot or floor trap stands on a hazard tile, every doorway stays reachable, no lane or arc covers a doorway or threshold, and pendulum blades stay inside their walls.
-- **`GauntletRoomTest`** (landed): every room in the gauntlet folder, over six seeds, puts its hazards under one gauntlet in at least two full-width rows; spouts hang on side walls firing straight across; blades never swing into a wall or a neighbour; no blocking furniture stands in a row. A room staged in the arena wakes its gauntlet for the hero at its entrance.
+- **`GauntletRoomTest`** (landed): every room in the gauntlet folder, over three seeds, puts its hazards under one gauntlet in at least two full-width rows; spouts hang on side walls firing straight across; blades never swing into a wall or a neighbour; no blocking furniture stands in a row. A room staged in the arena wakes its gauntlet for the hero at its entrance.
 - Visual checks: a GIF of each hazard in the arena (`record_gif.sh`), and `render_level_topdown.gd` for a floor with gauntlets.
 
 ## Slices
 
-1. **Wall spouts and gauntlets (landed).** `TrapGauntlet`, `ITrapHazard`, `WallSpout`, `TrapDamage`, a dart spout (the crossbow bolt) and a fireball spout (the fireball spell's projectile) with primitive placeholder mounts, `TrapTool`, `TrapHazardTest`. Exercisable in the arena; nothing generates yet. Playtest note: at game zoom the dart is hard to see in flight, so its lane warning carries the read; the art slice should give it a bigger silhouette or a trail.
+1. **Wall spouts and gauntlets (landed).** `TrapGauntlet`, `TrapHazard`, `WallSpout`, `TrapDamage`, a dart spout (the crossbow bolt) and a fireball spout (the fireball spell's projectile) with primitive placeholder mounts, `TrapTool`, `TrapHazardTest`. Exercisable in the arena; nothing generates yet. Playtest note: at game zoom the dart is hard to see in flight, so its lane warning carries the read; the art slice should give it a bigger silhouette or a trail.
 2. **Pendulum blade (landed).** `PendulumBlade`, the rod fade shader, a crescent placeholder blade (CSG), tests for the cut, push and dodge-through. A hero walking a five-row wave one tile apart at full speed, started on the beat, crosses untouched. For slice 3: the crescent is 1.6 m wide, so a 4 m corridor cannot keep the middle safe at both extremes; corridors need a narrower swing (the blade fitted to the measured walls) or a narrower blade, and the hero passes on the side the blade is not.
-3. **Gauntlet rooms (3a, landed).** `HazardBeat` on placed pieces, `HazardStep`, the four room types, the harness listing and **Traps → Rooms**, `GauntletRoomTest`. Playable in the arena; no floor places them.
+3. **Gauntlet rooms (3a, landed).** `HazardBeat` on placed pieces, `CrossFireStep` and `PendulumRowsStep`, the four room types, the harness listing and **Traps → Rooms**, `GauntletRoomTest`. Playable in the arena; no floor places them.
    **Placement (3b, later).** Choke-point placement of rooms and `CorridorHazardStep` spans, hazard tiles in `GeneratedFloor`, realm schedules, save version bump, sweep tests. First gauntlets in real floors.
 4. **Art** (Asset Studio, pipeline-only PRs per the asset skill): slit plate, gargoyle head, pendulum blade and rod, replacing the placeholders without touching gameplay data.
 5. **Balance.** `HAZARDS` in the model (damage shares, gauntlets per floor, expected hits), `derive` writes the scenes' `Damage`/`DamagePerDepth`, `simulate` counts gauntlet attrition, `content.py` audits it.

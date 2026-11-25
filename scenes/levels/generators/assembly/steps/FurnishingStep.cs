@@ -43,9 +43,13 @@ public abstract partial class FurnishingStep : Resource
 		return errors.ToArray();
 	}
 
+	/// <summary>The next content to place: balanced over the room, or the room's one choice when <see cref="Uniform"/>.</summary>
+	protected Placeable Choose(RoomBlueprint room, RandomNumberGenerator rng) =>
+		Uniform ? room.Remember(this, () => room.Pick(Content, rng)) : room.Pick(Content, rng);
+
 	protected PlacementPlan Next(RoomBlueprint room, RandomNumberGenerator rng, out Placeable choice)
 	{
-		choice = Uniform ? room.Remember(this, () => room.Pick(Content, rng)) : room.Pick(Content, rng);
+		choice = Choose(room, rng);
 		return choice?.Compose(room, rng) ?? new PlacementPlan();
 	}
 

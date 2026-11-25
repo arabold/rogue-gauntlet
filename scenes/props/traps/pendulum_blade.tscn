@@ -16,7 +16,7 @@ top_radius = 0.07
 bottom_radius = 0.07
 height = 9.8
 radial_segments = 12
-rings = 16
+rings = 0
 
 [sub_resource type="StandardMaterial3D" id="Material_steel"]
 albedo_color = Color(0.86, 0.88, 0.9, 1)
@@ -95,7 +95,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.025, 0)
 enabled = false
 shape = SubResource("BoxShape_edge")
 target_position = Vector3(0, 0, 0)
-collision_mask = 12
+collision_mask = 4
 collide_with_areas = true
 collide_with_bodies = false
 

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
-[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/HazardStep.cs" id="hazard_step"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CrossFireStep.cs" id="hazard_step"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/stone_walls.tres" id="w_stone_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/ruined_walls.tres" id="w_ruined_walls"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_floor.tres" id="f_stone_floor"]
@@ -34,7 +34,6 @@ Content = [ExtResource("dart_slit")]
 MinimumCount = 3
 MaximumCount = 5
 Uniform = true
-Layout = 0
 Pattern = 2
 Sides = 0
 PeriodRange = Vector2(2.0, 2.6)
