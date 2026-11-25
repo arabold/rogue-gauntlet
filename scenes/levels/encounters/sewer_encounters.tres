@@ -57,12 +57,19 @@ Weight = 2
 MinimumDepth = 12
 MaximumDepth = 15
 
+[sub_resource type="Resource" id="slime_sentry"]
+script = ExtResource("entry")
+Members = PackedStringArray("res://scenes/enemies/slime/spitting_slime.tscn")
+Weight = 1
+MinimumDepth = 11
+MaximumDepth = 15
+
 [resource]
 script = ExtResource("factory")
 RealmName = "The Sewer"
 FirstDepth = 11
 FloorCount = 5
-Entries = [SubResource("rat_pack"), SubResource("rat_horde"), SubResource("lone_blob"), SubResource("blob_pair"), SubResource("blob_trio"), SubResource("lone_snake"), SubResource("snake_pair")]
+Entries = [SubResource("rat_pack"), SubResource("rat_horde"), SubResource("lone_blob"), SubResource("blob_pair"), SubResource("blob_trio"), SubResource("lone_snake"), SubResource("snake_pair"), SubResource("slime_sentry")]
 Fallback = ExtResource("fallback")
 NestScene = ExtResource("nest")
 GatekeeperScene = ExtResource("boss")

@@ -88,7 +88,7 @@ Each capability is a reusable component, action or strategy, authored on the mon
 | Capability | Users | Builds on |
 | --- | --- | --- |
 | Flight | Giant bat, vampire bat, gargoyle, wraith | Clearance grid, `NavigationComponent`, `EnemyMovementStrategy` |
-| Arcing lob and ground pools | Spitting slime, gelatinous cube | `AttackDefinition.ProjectileArcHeight` and `Projectile.LandingMarker` (landed), `GooPatch` (landed), `LingeringAreaField` for poison pools |
+| Arcing lob and ground pools | Spitting slime, gelatinous cube | `AttackDefinition.ProjectileArcHeight`, `Projectile.LandingMarker` and `GooPatch` (landed) |
 | Goo bind and petrify | Gelatinous cube, medusa | The player's `GooBoundStatus` (a `FrozenStatusComponent`, landed), `StatusCondition`, poison status, the Stone Skin look |
 | Grasp | Sewer tentacles, living roots | Ambush, poise, poison |
 | Theft and escape | Nymph, leprechaun | Inventory, gold, blink |
@@ -119,15 +119,15 @@ Landed for the giant bat, with its bat roost nest; [level design](../level-desig
 
 ### Arcing lob and ground pools
 
-- **Trajectory (proposed):** `ProjectileTrajectory { Straight, Arc }` on the projectile's definition. An arc flies over low cover and allies to a point aimed at the target's lead, so ducking behind a crate does not help; the hero must step aside.
-- **Telegraph:** the landing point shows through `AttackIndicatorComponent` for the whole flight.
-- **Impact:** the projectile spawns a `LingeringAreaField` at the landing point. A new `LingeringAreaKind.PoisonPool` applies the existing poison status while the hero stands in it. Fields keep their current ownership and cancellation rules.
+- **Trajectory (landed):** an attack's `ProjectileArcHeight` turns a single shot into a lob over cover and allies to where the target stood at release, so ducking behind a crate does not help; the hero must step aside ([weapon attack system](../weapon-attack-system.md)).
+- **Telegraph (landed):** the projectile's `LandingMarker` ring marks the landing point for the whole flight.
+- **Impact (landed):** the landing is the shot's one contact, and its impact effect is a [`GooPatch`](../../scenes/components/GooPatch.cs): a patch that holds a buff on the hero while they stand in it (`BuffController.SetPersistentBuff`), whatever the buff's own duration, and drops it when they step out or the patch dries up. Saves leave out every hold whose source is not part of the hero, since the restored hero stands elsewhere. The spitting slime's [poison pool](../../scenes/enemies/slime/poison_pool.tscn) holds a poison that ticks for as long as the hero stays; the gelatinous cube's patches hold a slow.
 
 ### Goo bind and petrify
 
 Two short holds that stop the hero completely, the way freezing does, each with its own look.
 
-- **Goo bind (landed):** the gelatinous cube's goo replaces swallowing the hero. Its lob lands as the projectile's one contact and applies two on-hit statuses: [`goo_bound.tres`](../../scenes/buffs/goo_bound.tres), whose `goo_bound` condition the player's `GooBoundStatus` holds for 1.6 s under a green goo shell ([`goo_bound.tscn`](../../scenes/effects/world/goo_bound/goo_bound.tscn)), and [`cube_digest.tres`](../../scenes/buffs/cube_digest.tres), a poison that digests them for 3 s. Where it lands it leaves a [`GooPatch`](../../scenes/enemies/gelatinous_cube/GooPatch.cs), which holds the `slowed_2` condition on the hero only while they stand in it; the cube drags the acid blob's slime track (a `TrailMarksComponent` of larger marks) over invisible slowing patches ([`slime_trail_patch.tscn`](../../scenes/enemies/gelatinous_cube/slime_trail_patch.tscn)) that its `SlimeTrailComponent` drops every 2 m it travels.
+- **Goo bind (landed):** the gelatinous cube's goo replaces swallowing the hero. Its lob lands as the projectile's one contact and applies two on-hit statuses: [`goo_bound.tres`](../../scenes/buffs/goo_bound.tres), whose `goo_bound` condition the player's `GooBoundStatus` holds for 1.6 s under a green goo shell ([`goo_bound.tscn`](../../scenes/effects/world/goo_bound/goo_bound.tscn)), and [`cube_digest.tres`](../../scenes/buffs/cube_digest.tres), a poison that digests them for 3 s. Where it lands it leaves a `GooPatch` that slows the hero (`slowed_2`) only while they stand in it; the cube drags the acid blob's slime track (a `TrailMarksComponent` of larger marks) over invisible slowing patches ([`slime_trail_patch.tscn`](../../scenes/enemies/gelatinous_cube/slime_trail_patch.tscn)) that its `SlimeTrailComponent` drops every 2 m it travels.
 - **Petrify:** medusa's gaze applies a `petrified` condition (proposed), shown with the existing Stone Skin surface effect, to a hero caught facing her when the gaze lands (see [Gaze](#ambush-burrow-gaze-and-invisibility)). It deals no damage; the danger is her thrown snakes while the hero stands helpless.
 - **Wiring:** each condition is held by its own `FrozenStatusComponent` instance on the player, with its own appearance (see open decision 2).
 
@@ -261,6 +261,7 @@ Each slice lands playable: its realm's floors spawn the new roster, and the harn
    - Verify: plain-C# tests that the air grid crosses water and chasms and keeps walls and closed doors; a harness scenario where a bat crosses a pool to reach the hero; melee and projectiles hit a hovering bat.
 3. **Sewer.** Arcing lob and poison pools (spitting slime), contact corrosion (acid blob), armor rust (aquator), the snake, ambush and grasp (sewer tentacles), goo bind and the gelatinous cube, and the slime vat.
    - Landed: the gelatinous cube as the Sewer's gatekeeper on depth 15 ([`gelatinous_cube.tscn`](../../scenes/enemies/gelatinous_cube/gelatinous_cube.tscn)): a slow brute held in its boss room that lobs goo (the arcing lob and goo bind above), engulfs a hero up close with a hyper-armored lunge, drags a slowing slime trail and lobs more often below half health. `GelatinousCubeTest` covers a lob over a wall, the patch's slow and the trail.
+   - Landed: the spitting slime ([`spitting_slime.tscn`](../../scenes/enemies/slime/spitting_slime.tscn)), the acid blob's model and acid with a shooter's behavior: it keeps its distance and lobs globs that leave poison pools, and slams like the blob when the hero closes in. It keeps watch alone, the Sewer's sentry pack. `SpittingSlimeTest` covers the pool under the hero, its poison only while they stand in it and a save made inside it.
    - Verify: a lob lands behind cover; standing in a pool poisons, leaving it stops it; goo binds for its duration and poisons; striking an acid blob corrodes, shooting it does not; a grasped hero can attack but not move, and breaking the tentacles' poise frees them.
 4. **Mines and thieves.** Gnome family, the stone golem with revive, soldier ant, piercer, living roots (the grasper's second look), rattlesnake, leprechaun (theft and escape), umber hulk (burrow and gaze), and the ant hill. Theft also brings the Prison's nymph, and the chest mimic joins every realm from the Prison on.
    - Landed early: the [Mines factory](../../scenes/levels/encounters/mines_encounters.tres), chained from the Sewer, with the stone golem as the brute (the Studio's procedural golem at full size, held in its room) and giant bats and snakes standing in for the cave dwellers; the bat roost serves as its nest until the ant hill exists. No gatekeeper yet.

@@ -198,7 +198,8 @@ POISE = dict(
 # depth (0 = to the end). Rats lead: depth 1 opens with small rat groups, depth 2 brings hordes that can overwhelm a
 # careless hero with only occasional skeletons, and mixed groups take over from depth 3. From the Prison (depth 6) on,
 # swarms are bats, a lone fodder is a thieving nymph, and orc grunts come in pairs and threes. In the Sewer (depth 11)
-# rats return in packs and hordes, acid blobs ooze in alone or in twos and threes, and snakes lie alone or in pairs.
+# rats return in packs and hordes, acid blobs ooze in alone or in twos and threes, snakes lie alone or in pairs, and
+# a spitting slime keeps watch alone.
 PACKS = [
     dict(name="rat pack",      first=1, last=0, weight=6, members=["swarmer"] * 3),
     dict(name="rat horde",     first=2, last=0, weight=3, members=["swarmer"] * 5),

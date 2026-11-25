@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/slime/acid_blob.tscn" id="1_blob"]
+[ext_resource type="Resource" path="res://scenes/enemies/slime/spitting_slime_definition.tres" id="2_definition"]
+[ext_resource type="Resource" path="res://scenes/enemies/slime/spitting_slime_animation.tres" id="3_animation"]
+
+[node name="SpittingSlime" instance=ExtResource("1_blob")]
+Definition = ExtResource("2_definition")
+
+[node name="CombatAnimationComponent" parent="." index="9"]
+Profile = ExtResource("3_animation")

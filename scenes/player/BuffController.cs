@@ -143,27 +143,44 @@ public partial class BuffController : Node
 	}
 
 	/// <summary>Enable or disable one persistent condition source without disturbing other sources.</summary>
-	public bool SetPersistentStatus(StatusCondition condition, object source, bool enabled, bool narrate = true)
+	public bool SetPersistentStatus(StatusCondition condition, object source, bool enabled, bool narrate = true) =>
+		condition != null && Hold(source, enabled, narrate, active => active.Buff.Condition == condition,
+			() => new Buff { Name = condition.ResourceName, Condition = condition });
+
+	/// <summary>
+	/// Hold <paramref name="definition"/> on from <paramref name="source"/> until the source lets go, whatever the
+	/// definition's own duration: a pool's poison ticks for as long as the hero stands in it. Other sources and timed
+	/// applications of the same definition stay independent.
+	/// </summary>
+	public bool SetPersistentBuff(Buff definition, object source, bool enabled, bool narrate = true)
 	{
-		if (condition == null || source == null || (enabled && Health?.IsDead == true)) return false;
+		if (definition == null || (enabled && (definition.IsValid != true || Target == null || !definition.CanApplyTo(Target)))) return false;
+		return Hold(source, enabled, narrate, active => active.Buff == definition, () => definition);
+	}
+
+	/// <summary>
+	/// The one hold mechanism: <paramref name="source"/> keeps the activation that <paramref name="matches"/> on until it
+	/// lets go. Enabling turns a timed activation from the same source into a hold, or adds one made by
+	/// <paramref name="create"/>; disabling removes the source's matching activations and nothing else.
+	/// </summary>
+	private bool Hold(object source, bool enabled, bool narrate, Func<ActiveBuff, bool> matches, Func<Buff> create)
+	{
+		if (source == null || (enabled && Health?.IsDead == true)) return false;
 		if (!enabled)
 		{
-			if (RemoveWhere(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition, "removed", narrate)) EmitSignalBuffsChanged();
+			if (RemoveWhere(a => ReferenceEquals(a.Source, source) && matches(a), "removed", narrate)) EmitSignalBuffsChanged();
 			return true;
 		}
-		var existing = ActiveBuffs.FirstOrDefault(a => ReferenceEquals(a.Source, source) && a.Buff.Condition == condition && !a.IsExpired);
+		var existing = ActiveBuffs.FirstOrDefault(a => ReferenceEquals(a.Source, source) && matches(a) && !a.IsExpired);
 		if (existing != null)
 		{
 			if (!existing.IsPermanent) { existing.Refresh(0); UpdateProcessing(); EmitSignalBuffsChanged(); }
 			return true;
 		}
-		bool hadCondition = HasCondition(condition);
-		var statusBuff = new Buff { Name = condition.ResourceName, Condition = condition, Duration = 0 };
-		AddActivation(statusBuff, source);
-		if (ShouldNarratePlayer(narrate))
-		{
-			SignalBus.EmitPlayerBuffApplied(statusBuff, hadCondition);
-		}
+		var buff = create();
+		bool hadCondition = buff.Condition != null && HasCondition(buff.Condition);
+		AddActivation(buff, source, hold: true);
+		if (ShouldNarratePlayer(narrate)) SignalBus.EmitPlayerBuffApplied(buff, hadCondition);
 		EmitSignalBuffsChanged();
 		return true;
 	}
@@ -205,10 +222,12 @@ public partial class BuffController : Node
 		}
 	}
 
-	private void AddActivation(Buff buff, object source = null, double? remaining = null, double tickProgress = 0)
+	/// <summary>Adds one activation of <paramref name="buff"/>; a <paramref name="hold"/> lasts until its source removes it.</summary>
+	private void AddActivation(Buff buff, object source = null, double? remaining = null, double tickProgress = 0, bool hold = false)
 	{
 		var active = new ActiveBuff();
 		active.Initialize(Target, buff);
+		if (hold) active.Refresh(0);
 		active.SetSource(source);
 		if (remaining.HasValue) active.RestoreClock(remaining.Value, tickProgress);
 		ActiveBuffs.Add(active);

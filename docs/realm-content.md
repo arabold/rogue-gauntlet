@@ -81,7 +81,7 @@ The Prison shares the garrison's walls but none of its great halls, libraries, c
 
 | | 1 | 2 | 3 | 4 | 5 |
 | --- | --- | --- | --- | --- | --- |
-| *Monsters* | rats, blobs, snakes | + slime vats, blob trios, snake pairs | | | |
+| *Monsters* | rats, blobs, snakes, spitting slime sentries | + slime vats, blob trios, snake pairs | | | |
 | *Headline* | shop | room | room | room | the gelatinous cube |
 | *Plans* | large cluster, cluster | large cluster, cluster | large cluster, cluster | large cluster | large cluster |
 | *Motifs* | | | | `flooded` 4–5 | |

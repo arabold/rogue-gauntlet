@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/enemies/gelatinous_cube/goo_glob.tscn" id="1_glob"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/slime/poison_pool.tscn" id="2_pool"]
+
+[node name="SpitGlob" instance=ExtResource("1_glob")]
+ImpactEffectScene = ExtResource("2_pool")
+ImpactRadius = 1.0
+
+[node name="Glob" parent="Pivot" index="2"]
+transform = Transform3D(0.65, 0, 0, 0, 0.65, 0, 0, 0, 0.65, 0, 0, 0)

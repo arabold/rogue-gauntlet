@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/enemies/MonsterDefinition.cs" id="definition"]
+[ext_resource type="Script" path="res://scenes/enemies/EnemyBehaviorProfile.cs" id="behavior"]
+[ext_resource type="Resource" path="res://scenes/enemies/slime/spitting_slime_combat.tres" id="combat"]
+[ext_resource type="Resource" path="res://scenes/items/loot/drops/enemy_common.tres" id="loot"]
+
+[sub_resource type="Resource" id="behavior"]
+script = ExtResource("behavior")
+DetectionRange = 16.0
+DetectionAngle = 100.0
+RoamRadius = 5.0
+RoamPauseMax = 3.0
+HitActionDuration = 0.3
+Combat = ExtResource("combat")
+
+[resource]
+script = ExtResource("definition")
+Id = "spitting_slime"
+DisplayName = "Spitting Slime"
+Archetype = 5
+BalanceDepth = 13.0
+SpeedScale = 0.45
+Loot = ExtResource("loot")
+Behavior = SubResource("behavior")
+MaxHealth = 21.0
+Armor = 0.5
+MoveSpeed = 1.8
+ThreatLevel = 6.51

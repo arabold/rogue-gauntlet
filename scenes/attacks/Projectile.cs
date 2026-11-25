@@ -37,8 +37,8 @@ public partial class Projectile : Node3D, IPooledNode
 	/// <summary>Half-width of the damage lane across the flight direction.</summary>
 	[Export] public float GroundReachRadius { get; set; } = 0.25f;
 	/// <summary>
-	/// Optional ground marker a lobbed flight places where it will land, for its whole flight; size it to
-	/// <see cref="ImpactRadius"/>. Straight flights leave it hidden.
+	/// Optional ground marker a lobbed flight places where it will land, for its whole flight: a unit-radius ring the
+	/// flight scales to <see cref="ImpactRadius"/>. Straight flights leave it hidden.
 	/// </summary>
 	[Export] public Node3D LandingMarker { get; set; }
 
@@ -225,7 +225,7 @@ public partial class Projectile : Node3D, IPooledNode
 		if (GodotObject.IsInstanceValid(LandingMarker))
 		{
 			LandingMarker.TopLevel = true;
-			LandingMarker.GlobalTransform = new Transform3D(Basis.Identity, _landing + Vector3.Up * 0.05f);
+			LandingMarker.GlobalTransform = new Transform3D(Basis.Identity.Scaled(Vector3.One * Mathf.Max(ImpactRadius, 0.1f)), _landing + Vector3.Up * 0.05f);
 			LandingMarker.Visible = true;
 			LandingMarker.ResetPhysicsInterpolation();
 		}
