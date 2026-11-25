@@ -100,7 +100,7 @@ public class ItemCatalogTest
 	/// <summary>
 	/// Every pickup reads on the floor beside the 2.2 m hero: none is too small to spot from the game camera, and a model
 	/// that only ever shows as a pickup stays at the pack's prop scale (its bottles and key are 0.9 m) instead of rivaling
-	/// the hero. Weapons and armor lie at the size the hero holds or wears them, so only the minimum binds them.
+	/// the hero. Weapons and armor lie at about the size the hero holds or wears them, so only the minimum binds them.
 	/// </summary>
 	[TestCase]
 	public void EveryPickupModelReadsOnTheFloorAtThePacksScale()

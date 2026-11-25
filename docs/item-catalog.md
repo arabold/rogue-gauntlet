@@ -26,7 +26,8 @@ copies once; `ItemSaveCodec` restores exact state without rolling. See [item own
   not implied by their names. Casting weapons use the existing ranged/elemental strategies.
 - Values, potency, and source weights are an initial playable tuning pass, not final balance.
 - A pickup shows its model at the size its wrapper scene sets. Weapons and shields lie at the size the hero holds
-  them, helmets and body armor at the size the hero wears them (their pickup models share the worn scale). Every
+  them and body armor at the size the hero wears it. Helmets and hats lie at three quarters of their worn size: at
+  full size the pack's big heads make them look oversized on the floor. Every
   other pickup only ever shows on the floor and as an icon, so its wrapper sizes it to the pack's props beside the
   2.2 m hero: KayKit's bottles and key are 0.9 m, so potions step 0.7, 0.88 and 1.06 m, keys and scrolls are about
   0.9 m, and rings (0.6 m), apples and other small things never drop below what reads from the game camera.
