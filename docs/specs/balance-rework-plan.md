@@ -141,7 +141,7 @@ speeds change.
 
 ### 6. Traps in the budget
 
-A trap costs floor budget like a pack. `FloorTrap.Damage` is derived per realm (a share of the expected hero's health)
+A trap costs floor budget like a pack. `SpikeBurst.Damage` (the spike plate's) is derived per realm (a share of the expected hero's health)
 and the trap count comes from the budget instead of `MinTraps`/`MaxTraps`. The model charges each trap's damage times
 the chance a hero of that skill triggers it, measured from playtests.
 
@@ -160,7 +160,7 @@ scenes/components/
 scenes/player/
   ~ player.tscn           movement speed 6.0
 scenes/props/
-  ~ FloorTrap.cs          damage stays authored, written by derive
+  ~ SpikeBurst.cs         damage stays authored, written by derive
 scenes/levels/generators/
   ~ MapGenerator.Loot.cs  trap count from the floor budget
 scenes/enemies/**         derived health, damage, speed; rat and minion tactics

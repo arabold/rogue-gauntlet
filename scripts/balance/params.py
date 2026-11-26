@@ -224,7 +224,7 @@ PACKS = [
 # FLOOR's budget and gatekeeper share to it; supplies and the arrival odds follow. Chosen 2026-11-14 to keep the
 # difficulty playtests liked (ordinary floors cost about 60%) with gatekeeper floors the walls.
 ATTRITION = dict(floor=0.60, gatekeeper_floor=0.75)
-# Floor traps (FloorTrap): `per_floor` = traps placed per floor (MapGenerator.MinTraps..MaxTraps, audited), `triggers`
+# Floor traps (spike plates: SpikeBurst): `per_floor` = traps placed per floor (MapGenerator.MinTraps..MaxTraps, audited), `triggers`
 # = springs per trap on the hero per floor (measured: 26 over 30 playtest floors of about 1.5 traps), `damage` = a
 # spring's physical hit as a share of the expected hero's health, rolled against armor like a blow. `derive` writes a
 # trap's damage on depth 1 and per depth. Traps count toward a floor's attrition, so the budget leaves room for them.

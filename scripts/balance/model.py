@@ -651,7 +651,7 @@ def pack_units(pack, depth: float) -> float:
 
 def trap_line() -> tuple[int, float]:
     """
-    A floor trap's authored damage on depth 1 and per depth (`FloorTrap.Damage`, `DamagePerDepth`): a line through its
+    A spike plate's authored damage on depth 1 and per depth (`SpikeBurst.Damage`, `DamagePerDepth`): a line through its
     share of the reference hero's health on depths 1 and 24 (TRAPS `damage`).
     """
     first, last = (P.TRAPS["damage"] * reference_hp(d) for d in (1, P.DEPTHS))
@@ -659,7 +659,7 @@ def trap_line() -> tuple[int, float]:
 
 
 def trap_damage(depth: float) -> float:
-    """A trap's spring on `depth` before armor, as the game computes it from the authored line (`FloorTrap.CurrentDamage`)."""
+    """A trap's spring on `depth` before armor, as the game computes it from the authored line (`SpikeBurst.CurrentDamage`)."""
     first, per_depth = trap_line()
     return max(1, round(first + per_depth * (round(depth) - 1)))
 

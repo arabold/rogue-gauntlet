@@ -22,7 +22,8 @@ public partial class MapGenerator
 	/// </summary>
 	[Export] public PackedScene SecretRewardScene { get; set; }
 
-	/// <summary>Floor trap prop, placeable on any open room/corridor tile. Unset skips trap placement.</summary>
+	/// <summary>The trap a trap slot places: a concealed <see cref="PressurePlate"/> scene, the spike plate by default,
+	/// placeable on any open room or corridor tile. Unset skips trap placement.</summary>
 	[Export] public PackedScene TrapScene { get; set; }
 	[Export(PropertyHint.Range, "0,10")] public int MinTraps { get; set; } = 0;
 	[Export(PropertyHint.Range, "0,10")] public int MaxTraps { get; set; } = 3;
@@ -314,9 +315,9 @@ public partial class MapGenerator
 			var trap = TrapScene.Instantiate<Node3D>();
 			FloorContent.AddChild(trap);
 			trap.GlobalPosition = point;
-			if (trap is FloorTrap floorTrap)
+			if (trap is PressurePlate plate)
 			{
-				floorTrap.Initialize($"depth:{DungeonDepth}:trap:{placed}", Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(point)));
+				plate.Initialize($"depth:{DungeonDepth}:trap:{placed}", Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(point)));
 			}
 
 			placedLootPoints.Add(point);

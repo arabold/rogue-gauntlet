@@ -25,19 +25,30 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public void DiscoveredTrapRemainsDangerousAndRestoreDoesNotPlayTheCue()
 	{
-		var scene = TestFactories.Load<PackedScene>("res://scenes/props/floor_trap.tscn");
-		var trap = TestFactories.AddToSceneTree(scene.Instantiate<FloorTrap>());
-		AssertBool(trap.IsDiscovered).IsFalse(); AssertBool(trap.Visible).IsFalse();
-		AssertBool(trap.DiscoveryEffect.Visible).IsFalse();
-		AssertBool(trap.Reveal()).IsTrue(); AssertBool(trap.Reveal()).IsFalse();
-		AssertBool(trap.GetNodeOrNull("DangerMarker") == null).IsTrue(); AssertBool(trap.DiscoveryEffect.IsPlaying).IsTrue();
-		AssertBool(trap.IsTriggered).IsFalse();
+		var scene = TestFactories.Load<PackedScene>("res://scenes/props/traps/pressure_plate_spikes.tscn");
+		var plate = TestFactories.AddToSceneTree(scene.Instantiate<PressurePlate>());
+		var spikes = plate.GetNode<SpikeBurst>("SpikeBurst");
+		AssertBool(plate.IsDiscovered).IsFalse(); AssertBool(plate.Visible).IsFalse();
+		AssertBool(plate.DiscoveryEffect.Visible).IsFalse();
+		AssertBool(plate.Reveal()).IsTrue(); AssertBool(plate.Reveal()).IsFalse();
+		AssertBool(plate.GetNodeOrNull("DangerMarker") == null).IsTrue(); AssertBool(plate.DiscoveryEffect.IsPlaying).IsTrue();
+		AssertBool(spikes.IsRaised).IsFalse();
+		// Plates answer only the hero; the stand-in leaves the group before it goes, so later suites never find it.
 		var victim = TestFactories.AddToSceneTree(new Victim());
-		trap.GetNode<TriggerComponent>("TriggerComponent").EmitSignal(TriggerComponent.SignalName.Triggered, victim);
-		AssertBool(trap.IsTriggered).IsTrue(); AssertFloat(victim.DamageTaken).IsEqual(trap.CurrentDamage);
-		trap.GetNode<TriggerComponent>("TriggerComponent").EmitSignal(TriggerComponent.SignalName.Triggered, victim);
-		AssertFloat(victim.DamageTaken).IsEqual(trap.CurrentDamage);
-		var restored = TestFactories.AddToSceneTree(scene.Instantiate<FloorTrap>());
+		victim.AddToGroup("player");
+		try
+		{
+			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, victim);
+			AssertBool(spikes.IsRaised).IsTrue(); AssertFloat(victim.DamageTaken).IsEqual(spikes.CurrentDamage);
+			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, victim);
+			AssertFloat(victim.DamageTaken).IsEqual(spikes.CurrentDamage);
+		}
+		finally
+		{
+			victim.RemoveFromGroup("player");
+			victim.QueueFree();
+		}
+		var restored = TestFactories.AddToSceneTree(scene.Instantiate<PressurePlate>());
 		restored.RestoreDiscovered(true);
 		AssertBool(restored.Visible).IsTrue(); AssertBool(restored.DiscoveryEffect.IsPlaying).IsFalse();
 	}

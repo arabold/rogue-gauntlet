@@ -1,59 +1,67 @@
+using System.Collections.Generic;
 using Godot;
-using System;
 
-/// <summary>A concealed, reusable spike trap. Discovery warns the player but never disarms it.</summary>
-public partial class FloorTrap : Node3D, IProximityDiscoverable
+/// <summary>
+/// A concealed floor plate, on while the hero stands on it, that reports each change to its <see cref="Output"/>. It
+/// is found like a secret door, by proximity rolls from explored space, or by stepping on it, which reveals it without
+/// the discovery pulse; discovery warns but never disarms it. What it sets off is up to its output's receivers: the
+/// spikes of a spike trap, a wall launcher across the floor.
+/// </summary>
+[GlobalClass]
+public partial class PressurePlate : Node3D, IProximityDiscoverable
 {
-	/// <summary>Damage on the first depth; the balance model derives it (`simulate.py derive`).</summary>
-	[Export] public int Damage { get; set; } = 5;
-	/// <summary>Damage added per depth below the first, so a trap keeps its share of the hero's growing health.</summary>
-	[Export] public float DamagePerDepth { get; set; }
+	private static readonly StringName HeroGroup = "player";
+
+	/// <summary>Detects bodies on the plate; its collision mask sees only the hero.</summary>
 	[Export] public TriggerComponent Trigger { get; set; }
-	[Export] public MeshInstance3D Spikes { get; set; }
-	[Export] public DiscoveryPulse DiscoveryEffect { get; set; }
+	[Export] public TriggerOutputComponent Output { get; set; }
 	[Export] public MeshInstance3D FloorSurface { get; set; }
-	/// <summary>Optional: without it the trap is found only by stepping on it.</summary>
+	[Export] public DiscoveryPulse DiscoveryEffect { get; set; }
+	/// <summary>Optional: without it the plate is found only by stepping on it.</summary>
 	[Export] public ProximityDiscoveryComponent Discovery { get; set; }
 
 	/// <summary>Stable identity for persisted discovery; generated content assigns it through <see cref="Initialize"/>.</summary>
 	public string PersistentId { get; private set; } = "";
 	public bool IsDiscovered { get; private set; }
-	public bool IsTriggered { get; private set; }
-	/// <summary>What a spring deals on its level's depth (the first outside a level), at least 1.</summary>
-	public int CurrentDamage => TrapDamage.At(Damage, DamagePerDepth, _level?.Depth ?? 1);
-	private Level _level;
+	public bool IsPressed => _occupants.Count > 0;
+
+	private readonly HashSet<Node3D> _occupants = [];
 	private GridMap _surfaceGrid;
 	private Vector3I _surfaceCell;
-	private ulong _levelSeed = 42;
+	private ulong _levelSeed = RunState.DefaultSeed;
 	private bool _initialized;
 	private ExplorationVisibility _exploration;
-	private Tween _activeTween;
 	private ulong DiscoverySeed => GenerationRandom.DeriveSeed(_levelSeed, "trap-discovery", PersistentId);
-	public override void _EnterTree() => _level = this.GetAncestorOrNull<Level>();
+
 	public override void _Ready()
 	{
-		if (Trigger == null || Spikes == null || FloorSurface == null)
+		if (Trigger == null || Output == null || FloorSurface == null)
 		{
-			GD.PushError($"{Name}: a floor trap requires assigned Trigger, Spikes and FloorSurface nodes.");
+			GD.PushError($"{Name}: a pressure plate requires assigned Trigger, Output and FloorSurface nodes.");
 			return;
 		}
-		this.SubscribeUntilExit(Trigger, t => t.Triggered += OnTriggered, t => t.Triggered -= OnTriggered);
-		Spikes.Position = new Vector3(0, -2, 0);
+		this.SubscribeUntilExit(Trigger, t => t.Triggered += OnEntered, t => t.Triggered -= OnEntered);
+		this.SubscribeUntilExit(Trigger, t => t.Released += OnLeft, t => t.Released -= OnLeft);
 		_exploration = new ExplorationVisibility(this);
 		if (!_initialized) PersistentId = "authored:" + GetPath();
 		Discovery?.Initialize(DiscoverySeed);
 		RestoreDiscovered(false);
 	}
+
 	/// <summary>Applies generation context: stable identity, the floor seed for discovery rolls and the floor cell the
-	/// plate conceals. Call it once the trap is in place, since the plate aligns to its final height.</summary>
+	/// plate conceals. Call it once the plate is in place, since it aligns to its final height.</summary>
 	public void Initialize(string persistentId, ulong levelSeed, GridMap surfaceGrid, Vector3I surfaceCell)
 	{
-		PersistentId = persistentId; _levelSeed = levelSeed; _surfaceGrid = surfaceGrid; _surfaceCell = surfaceCell;
+		PersistentId = persistentId;
+		_levelSeed = levelSeed;
+		_surfaceGrid = surfaceGrid;
+		_surfaceCell = surfaceCell;
 		_initialized = true;
 		if (!IsNodeReady()) return;
 		Discovery?.Initialize(DiscoverySeed);
 		AlignSurface();
 	}
+
 	private void AlignSurface()
 	{
 		if (_surfaceGrid == null) return;
@@ -63,6 +71,7 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 		float height = (transform * _surfaceGrid.MeshLibrary.GetItemMesh(item).GetAabb()).End.Y;
 		FloorSurface.Position = Vector3.Up * (height - GlobalPosition.Y - FloorSurface.Mesh.GetAabb().End.Y + 0.025f);
 	}
+
 	public bool Reveal(bool playEffect = true)
 	{
 		if (IsDiscovered) return false;
@@ -71,6 +80,7 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 		if (playEffect) DiscoveryEffect?.Play(FloorSurface, original);
 		return true;
 	}
+
 	public void RestoreDiscovered(bool discovered)
 	{
 		DiscoveryEffect?.Stop();
@@ -78,28 +88,26 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 		IsDiscovered = discovered;
 		Visible = discovered;
 	}
+
 	/// <summary>Discovery requires explored space; neither proximity nor effects reveal a hidden room through a wall.</summary>
 	public bool IsDiscoverable => !IsDiscovered && _exploration?.IsRevealed(GlobalPosition) == true;
 	public Vector3 DiscoveryAnchor => GlobalPosition;
 	public Vector3 SightTarget => GlobalPosition + Vector3.Up;
+
 	public void Discover()
 	{
-		if (Reveal())
-		{
-			SignalBus.EmitPlayerStatusMessage("You spotted a trap!", LogSeverity.Warning);
-		}
+		if (Reveal()) SignalBus.EmitPlayerStatusMessage("You spotted a trap!", LogSeverity.Warning);
 	}
-	private void OnTriggered(Node3D node)
+
+	private void OnEntered(Node3D body)
 	{
-		if (IsTriggered || node is not IDamageable damageable) return;
-		IsTriggered = true;
-		DiscoveryEffect?.Stop();
-		Reveal(false); // Stepping on it exposes the trap; its spike attack supplies the feedback.
-		damageable.TakeDamage(CurrentDamage, node.Basis.Z, this);
-		_activeTween?.Kill();
-		_activeTween = CreateTween();
-		_activeTween.TweenProperty(Spikes, "position:y", 0f, 0.2f);
-		_activeTween.TweenProperty(Spikes, "position:y", -2f, 1.5f).SetDelay(0.5f);
-		_activeTween.Finished += () => IsTriggered = false;
+		if (!body.IsInGroup(HeroGroup) || !_occupants.Add(body) || _occupants.Count > 1) return;
+		Reveal(false); // Stepping on it exposes the plate; what it sets off supplies the feedback.
+		Output.Report(true, body);
+	}
+
+	private void OnLeft(Node3D body)
+	{
+		if (_occupants.Remove(body) && _occupants.Count == 0) Output.Report(false, body);
 	}
 }

@@ -1,6 +1,6 @@
 # Triggers: plates, switches and linked mechanisms
 
-Status: proposed. Adds one general trigger model: **sources** that are on or off, **links** that carry a source's changes to **receivers** in one of three modes, and **conditions** that combine sources into puzzles. The first use is a triggered trap: a hidden pressure plate that makes a mechanism on the wall across from it shoot a fast dart or fireball. Switches that open a door elsewhere on the map, switch puzzles, plates weighed down by dropped items, and later a quest system build on the same model.
+Status: slice 1 (the trigger core, pressure plates and the spike trap rebuilt on them) landed; the rest is proposed. Adds one general trigger model: **sources** that are on or off, **links** that carry a source's changes to **receivers** in one of three modes, and **conditions** that combine sources into puzzles. The first use is a triggered trap: a hidden pressure plate that makes a mechanism on the wall across from it shoot a fast dart or fireball. Switches that open a door elsewhere on the map, switch puzzles, plates weighed down by dropped items, and later a quest system build on the same model.
 
 Current systems this builds on:
 - The spike trap ([`FloorTrap`](../../scenes/props/FloorTrap.cs), discovery in [dungeon exploration](../dungeon-exploration-design.md)).
@@ -68,7 +68,16 @@ The spike trap becomes a concealed plate with a Pulse link to spikes on the same
 ### Trigger core (new)
 
 ```csharp
-public enum TriggerMode { Pulse, Hold, Latch }
+/// <summary>
+/// How an output carries its source's changes: a Strategy, one shared stateless `.tres` per mode in
+/// `scenes/props/triggers/modes/` (pulse, hold, latch); the output keeps whatever a mode remembers.
+/// </summary>
+[Tool, GlobalClass] public abstract partial class TriggerMode : Resource
+{
+	public abstract void Carry(TriggerOutputComponent output, bool on, in TriggerActivation activation);
+}
+// PulseTriggerMode: on → output.PulseTargets. HoldTriggerMode: output.SetTargetsActive(on).
+// LatchTriggerMode: first on → output.TryLatch() → output.SetTargetsActive(true).
 
 /// <summary>Who or what changed a source: the source and the actor that pressed, pulled or left it. Restored is set
 /// when a saved state is replayed on load, so receivers apply it without effects.</summary>
@@ -89,14 +98,16 @@ public interface ITriggerable
 /// </summary>
 [Tool, GlobalClass] public partial class TriggerOutputComponent : Node
 {
-	[Export] public TriggerMode Mode { get; set; } = TriggerMode.Pulse;
+	[Export] public TriggerMode Mode { get; set; }   // pulse.tres, hold.tres or latch.tres
 	[Export] public Node[] Targets { get; set; } = [];
-	public string PersistentId { get; set; }     // set by its source: authored path or generated id
 	public bool IsOn { get; }
 	public bool IsLatched { get; }
 	[Signal] public delegate void SwitchedEventHandler(bool on, Node3D activator);
 	public void Report(bool on, Node3D activator);
-	public void RestoreLatched();                  // replays a saved latch: receivers on, Restored
+	public void PulseTargets(in TriggerActivation activation);              // used by modes
+	public void SetTargetsActive(bool active, in TriggerActivation activation);
+	public bool TryLatch();
+	// Slice 4: PersistentId and RestoreLatched() replay a saved latch to receivers, Restored.
 }
 ```
 
@@ -183,9 +194,9 @@ public interface ITriggerable
 
 Related changes:
 - `WallSpout` keeps its beat and warning and fires through its `TrapShotComponent`; its projectile exports move there.
-- `FloorTrap` is removed:
-  - `pressure_plate.tscn` is a concealed, hero-pressed plate with no receivers.
-  - `pressure_plate_spikes.tscn` adds a `SpikeBurst` on a Pulse link. It replaces `floor_trap.tscn` everywhere: the level's `TrapScene`, tests, and the balance model's `TRAP_SCENE`, whose damage moves to the `SpikeBurst` node.
+- `FloorTrap` is removed (landed):
+  - `scenes/props/traps/pressure_plate_spikes.tscn` is a concealed, hero-pressed `PressurePlate` whose Pulse output springs the `SpikeBurst` on its tile. It replaces `floor_trap.tscn` everywhere: the level's `TrapScene`, tests, and the balance model's `TRAP_SCENE`, whose damage moved to the `SpikeBurst` node.
+  - A bare `pressure_plate.tscn`, for launchers, comes with slice 2 and its own plate model.
 - New scenes:
   - `wall_launcher_dart.tscn` and `wall_launcher_gargoyle.tscn` reuse the spout models.
   - `switch_lever.tscn` is a KayKit-style lever.
@@ -198,7 +209,7 @@ Related changes:
 {
 	[Export] public PackedScene PlateScene { get; set; }
 	[Export] public PackedScene LauncherScene { get; set; }
-	[Export] public TriggerMode Mode { get; set; } = TriggerMode.Pulse;
+	[Export] public TriggerMode Mode { get; set; }   // pulse by default
 	[Export] public float Weight { get; set; } = 1;
 	[Export] public uint FirstDepth { get; set; } = 1;
 	[Export] public float MinLane { get; set; } = 3;
@@ -234,7 +245,7 @@ Floor load (after generation, before handoff)
 
 ## Slices
 
-1. **Trigger core and plates.**
+1. **Trigger core and plates (landed).**
    - Adds `TriggerMode`, `TriggerActivation`, `ITriggerable`, `TriggerOutputComponent`, `PressurePlate` (hero only) and `SpikeBurst`, and rebuilds the spike trap on them with no behavior change.
    - Renames plates in the floor and the save, bumps the save version and points the balance model at the new scene.
    - Verification:

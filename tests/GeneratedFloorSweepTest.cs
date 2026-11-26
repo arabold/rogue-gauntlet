@@ -116,7 +116,7 @@ public class GeneratedFloorSweepTest
 				foreach (var node in generator.FloorContent.GetChildren().OfType<Node3D>())
 				{
 					if (node.IsQueuedForDeletion()) continue;
-					if (node is not (LootableItem or FloorTrap or Chest)) continue;
+					if (node is not (LootableItem or PressurePlate or Chest)) continue;
 					var tile = map.WorldToTile(node.GlobalPosition);
 					if (map.IsCorridor(tile.X, tile.Y)) totalCorridorLoot++;
 

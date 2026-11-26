@@ -122,7 +122,7 @@ public partial class Level : Node, IDebugWorld
 	public (LevelItemDeltaSaveData Items, RevealedLevelSaveData Exploration) CaptureFloorDeltas() =>
 		(ItemPersistence.Capture(), CaptureExploration());
 
-	/// <summary>This floor's door, trap and exploration deviations from its seeded baseline; the inverse of <see cref="RestoreExploration"/>.</summary>
+	/// <summary>This floor's door, plate and exploration deviations from its seeded baseline; the inverse of <see cref="RestoreExploration"/>.</summary>
 	public RevealedLevelSaveData CaptureExploration()
 	{
 		if (Floor == null) throw new System.InvalidOperationException("No generated floor to capture.");
@@ -135,7 +135,7 @@ public partial class Level : Node, IDebugWorld
 					|| pair.Current.IsOpen != pair.Baseline.IsOpen)
 				.Select(pair => pair.Current).ToList(),
 			ExploredSamples = Discovery?.CaptureSamples() ?? [],
-			DiscoveredTrapIds = Floor.Traps.Where(trap => IsInstanceValid(trap) && trap.IsDiscovered).Select(trap => trap.PersistentId)
+			DiscoveredPlateIds = Floor.Plates.Where(plate => IsInstanceValid(plate) && plate.IsDiscovered).Select(plate => plate.PersistentId)
 				.OrderBy(id => id, System.StringComparer.Ordinal).ToList(),
 		};
 	}
@@ -146,9 +146,9 @@ public partial class Level : Node, IDebugWorld
 	{
 		if (saved == null) return;
 		if (saved.DungeonDepth != Depth) throw new System.InvalidOperationException("Wrong exploration floor.");
-		var traps = Floor.Traps.Where(IsInstanceValid).ToDictionary(trap => trap.PersistentId);
-		if (saved.DiscoveredTrapIds.Distinct().Count() != saved.DiscoveredTrapIds.Count || saved.DiscoveredTrapIds.Any(id => !traps.ContainsKey(id)))
-			throw new System.InvalidOperationException("Unknown or duplicate saved trap discovery.");
+		var plates = Floor.Plates.Where(IsInstanceValid).ToDictionary(plate => plate.PersistentId);
+		if (saved.DiscoveredPlateIds.Distinct().Count() != saved.DiscoveredPlateIds.Count || saved.DiscoveredPlateIds.Any(id => !plates.ContainsKey(id)))
+			throw new System.InvalidOperationException("Unknown or duplicate saved plate discovery.");
 		var ids = new HashSet<string>();
 		foreach (var state in saved.Doors)
 		{
@@ -160,7 +160,7 @@ public partial class Level : Node, IDebugWorld
 		// Validated against the floor even without a discovery node, so a bad record never survives a save round trip.
 		DungeonDiscovery.ValidateSamples(Floor.Map, saved.ExploredSamples);
 		foreach (var state in saved.Doors) Floor.DoorBaselines[state.ConnectionId].Door.RestoreAccess(state);
-		foreach (var id in saved.DiscoveredTrapIds) traps[id].RestoreDiscovered(true);
+		foreach (var id in saved.DiscoveredPlateIds) plates[id].RestoreDiscovered(true);
 		Discovery?.RestoreSamples(saved.ExploredSamples);
 	}
 

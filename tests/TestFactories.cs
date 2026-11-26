@@ -367,7 +367,7 @@ public static partial class TestFactories
 	public static void WireLootScenes(MapGenerator mapGenerator)
 	{
 		mapGenerator.ChestScene = Load<PackedScene>("res://scenes/props/chest.tscn");
-		mapGenerator.TrapScene = Load<PackedScene>("res://scenes/props/floor_trap.tscn");
+		mapGenerator.TrapScene = Load<PackedScene>("res://scenes/props/traps/pressure_plate_spikes.tscn");
 		mapGenerator.LooseItemScene = Load<PackedScene>("res://scenes/items/lootable_item.tscn");
 		mapGenerator.LooseItems = Load<LootDropProfile>("res://scenes/items/loot/drops/loose_items.tres");
 		mapGenerator.LockedRewardScene = Load<PackedScene>("res://scenes/props/chest_gold.tscn");

@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
 [ext_resource type="Resource" path="res://scenes/levels/encounters/sunken_garrison.tres" id="6_ouxo3"]
 [ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="8_chest"]
-[ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="9_trap"]
+[ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/traps/pressure_plate_spikes.tscn" id="9_trap"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/loose_items.tres" id="11_loose_items"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/gold_piles.tres" id="gold_piles"]

@@ -42,7 +42,7 @@ public class LootPlacementTest
 				mapGenerator.Seed = seed;
 				mapGenerator.GenerateMap(includeGameplay: true);
 
-				var loot = mapGenerator.FloorContent.GetChildren().Where(node => node is Chest or FloorTrap or LootableItem).Cast<Node3D>().ToArray();
+				var loot = mapGenerator.FloorContent.GetChildren().Where(node => node is Chest or PressurePlate or LootableItem).Cast<Node3D>().ToArray();
 				if (loot.Length < 3 * PerKind)
 				{
 					failures.Add($"seed {seed}: placed only {loot.Length} of {3 * PerKind} requested pieces, so fewer pairs were checked");
@@ -126,7 +126,7 @@ public class LootPlacementTest
 			{
 				mapGenerator.Seed = seed;
 				mapGenerator.GenerateMap(includeGameplay: true);
-				var loot = mapGenerator.FloorContent.GetChildren().Where(node => node is Chest or FloorTrap or LootableItem).Cast<Node3D>().ToArray();
+				var loot = mapGenerator.FloorContent.GetChildren().Where(node => node is Chest or PressurePlate or LootableItem).Cast<Node3D>().ToArray();
 				foreach (var item in loot)
 				{
 					var tile = mapGenerator.Map.WorldToTile(item.GlobalPosition);

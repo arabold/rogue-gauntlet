@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="HoldTriggerMode" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/triggers/HoldTriggerMode.cs" id="mode"]
+
+[resource]
+script = ExtResource("mode")
+metadata/_custom_type_script = ExtResource("mode")

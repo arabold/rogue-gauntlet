@@ -315,7 +315,7 @@ public class DoorAccessTest
 				var carried = new Inventory(); carried.AddItem(locked[0].Lock.Definition.RequiredKey, 1);
 				AssertBool(locked[0].Lock.TryUnlock(Context(carried), "key_open")).IsTrue();
 			}
-			foreach (var trap in generator.FloorContent.GetChildren().OfType<FloorTrap>()) trap.Reveal(false);
+			foreach (var plate in generator.FloorContent.GetChildren().OfType<PressurePlate>()) plate.Reveal(false);
 			level.Discovery.RevealRoom(0);
 			var snapshot = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(level.CaptureExploration()));
 			string signature = string.Join("|", doors.Select(d => d.ConnectionId + ":" + d.Lock?.Definition?.RequiredKey?.DefinitionPath));
@@ -325,7 +325,7 @@ public class DoorAccessTest
 			level.RestoreExploration(snapshot);
 			var recaptured = level.CaptureExploration();
 			AssertInt(recaptured.ExploredSamples.Count).IsEqual(snapshot.ExploredSamples.Count);
-			AssertString(string.Join("|", recaptured.DiscoveredTrapIds)).IsEqual(string.Join("|", snapshot.DiscoveredTrapIds));
+			AssertString(string.Join("|", recaptured.DiscoveredPlateIds)).IsEqual(string.Join("|", snapshot.DiscoveredPlateIds));
 			foreach (var state in snapshot.Doors)
 			{
 				var restored = regenerated.Single(d => d.ConnectionId == state.ConnectionId);

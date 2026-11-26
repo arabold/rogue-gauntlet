@@ -1,13 +1,16 @@
 using Godot;
 
 /// <summary>
-/// A component that triggers events when the player enters or exits its area.
+/// An area that reports bodies entering it (<see cref="Triggered"/>) and leaving it (<see cref="Released"/>); its
+/// collision mask decides which bodies count.
 /// </summary>
 [GlobalClass]
 public partial class TriggerComponent : Area3D
 {
 	[Signal]
 	public delegate void TriggeredEventHandler(Node3D body);
+	[Signal]
+	public delegate void ReleasedEventHandler(Node3D body);
 
 	/// <summary>
 	/// Waits for body exit event before triggering.
@@ -36,5 +39,6 @@ public partial class TriggerComponent : Area3D
 	private void OnBodyExited(Node3D body)
 	{
 		WaitForBodyExited = false;
+		EmitSignalReleased(body);
 	}
 }

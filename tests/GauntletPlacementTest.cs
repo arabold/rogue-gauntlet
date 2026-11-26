@@ -114,7 +114,7 @@ public class GauntletPlacementTest
 			if (floor.Rooms[map.RoomRegionFor(floor.Descent)].Tiles.Any(reached.Contains))
 				failures.Add($"{at}: the descent can be reached around the gauntlet");
 
-			var occupants = map.EnemySpawnPoints.Cast<Node3D>().Concat(floor.Traps)
+			var occupants = map.EnemySpawnPoints.Cast<Node3D>().Concat(floor.Plates)
 				.Concat(level.FindChildren("*", "", true, false).Where(node => node is Chest or LootableItem or Fountain).Cast<Node3D>());
 			foreach (var occupant in occupants.Where(node => room.Tiles.Contains(floor.Map.WorldToTile(node.GlobalPosition))))
 				failures.Add($"{at}: {occupant.Name} stands in the gauntlet");

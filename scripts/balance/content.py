@@ -719,23 +719,24 @@ def _ticks(file: R.TextResource, buff: R.Section) -> int:
 
 POTION_POOL = "res://scenes/items/loot/pools/potions.tres"
 HEALING_POTION = "potion.healing"
-TRAP_SCENE = "res://scenes/props/floor_trap.tscn"
+TRAP_SCENE = "res://scenes/props/traps/pressure_plate_spikes.tscn"
 TRAP_PLACEMENT = "res://scenes/levels/generators/MapGenerator.Loot.cs"
 
 
 def traps(match=None) -> Group:
     """
-    A floor trap's damage on depth 1 and per depth (`model.trap_line`), and the traps a floor places against TRAPS
-    `per_floor`.
+    A spike plate's damage on depth 1 and per depth (`model.trap_line`, on its `SpikeBurst`), and the traps a floor
+    places against TRAPS `per_floor`.
     """
     g = Group("Traps", headers=["depth", "spring", "derived"])
     f = R.load(TRAP_SCENE)
     if not _selected(f.path, match):
         return g
+    spikes = f.node("SpikeBurst")
     first, per_depth = M.trap_line()
-    g.add("Floor trap", f, f.root, "Damage", first)
-    g.add("Floor trap", f, f.root, "DamagePerDepth", per_depth)
-    authored = f.get(f.root, "Damage", 0), f.get(f.root, "DamagePerDepth", 0.0)
+    g.add("Spike plate", f, spikes, "Damage", first)
+    g.add("Spike plate", f, spikes, "DamagePerDepth", per_depth)
+    authored = f.get(spikes, "Damage", 0), f.get(spikes, "DamagePerDepth", 0.0)
     for d in (1, 12, P.DEPTHS):
         g.rows.append([d, f"{max(1, round(authored[0] + authored[1] * (d - 1)))}", f"{M.trap_damage(d):.0f}"])
     placed = (R.script_default(TRAP_PLACEMENT, "MinTraps") + R.script_default(TRAP_PLACEMENT, "MaxTraps")) / 2
