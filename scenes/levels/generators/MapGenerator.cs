@@ -331,7 +331,8 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>
 	/// Rooms hang their decor before the floor walls its corridors. Where a corridor wall then meets a room's wall, a
-	/// junction takes over half of the room's edge and may stand a post behind a prop; those props come down.
+	/// junction takes over half of the room's edge and may stand a post behind a prop; those props come down. The rest
+	/// are the floor's <see cref="GeneratedFloor.WallDecor"/>.
 	/// </summary>
 	private void RemoveWallPropsOffMounts()
 	{
@@ -339,6 +340,7 @@ public partial class MapGenerator : Node3D
 		var itemCache = new System.Collections.Generic.Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)>();
 		MountSpan[] MountsAt(Vector2I tile, Vector2I outward) =>
 			WallFootprints.MeasureEdge(WallGridMap, WallStyle.EdgeCell(tile, outward), -outward, Room.TileSize, itemCache).Mounts;
+		var decor = new System.Collections.Generic.List<Aabb>();
 		foreach (var room in FloorContent.GetChildren().OfType<Room>())
 		{
 			foreach (var (node, envelope, inward) in room.WallProps)
@@ -346,9 +348,11 @@ public partial class MapGenerator : Node3D
 				var transform = toGrid * node.GlobalTransform;
 				var box = transform * envelope;
 				if (!RoomBlueprint.HasWallSupport(box, WallRun.Behind(box, transform.Basis * inward), MountsAt)) node.Free();
+				else decor.Add(node.GlobalTransform * envelope);
 			}
 			room.WallProps.Clear();
 		}
+		Floor.WallDecor = decor;
 	}
 
 	private bool AreAllWalkableTilesConnected()

@@ -9,9 +9,9 @@ using System.Linq;
 /// a stand-in wall where there is none; a floor prop, such as a pendulum, stands on the path with its X across it. New
 /// hazard props show up without a menu edit. Staged gauntlets carry no persistent identity, so a floor never saves them.
 /// In an arena it also stages whole gauntlet rooms from <see cref="RoomDirectory"/>, entrance first, just ahead of the
-/// hero, so a room can be played before any floor places it. <b>Triggered</b> stages a plate trap: a revealed
-/// <see cref="PlateScene"/> ahead of the hero and a launcher from <see cref="LauncherDirectory"/> on the wall beside it,
-/// facing it, set off in <see cref="PlateMode"/>.
+/// hero, so a room can be played before any floor places it. <b>Triggered</b> stages a plate trap from
+/// <see cref="TriggeredDirectory"/>, the profiles floors place: its plate, revealed, ahead of the hero and its launcher on
+/// the wall beside it, facing it, set off in <see cref="PlateMode"/>.
 /// </summary>
 [GlobalClass]
 public partial class TrapTool : DebugTool
@@ -38,13 +38,11 @@ public partial class TrapTool : DebugTool
 	[Export] public ulong RoomSeed { get; set; } = 1;
 	/// <summary>How far beside the path a wall spout hangs when no wall is closer.</summary>
 	[Export(PropertyHint.Range, "1,10,0.5,suffix:m")] public float LaneOffset { get; set; } = 4f;
-	/// <summary>Folder whose wall launchers the triggered submenu lists.</summary>
-	[Export] public string LauncherDirectory { get; set; } = "res://scenes/props/traps/launchers";
+	/// <summary>Folder whose plate trap profiles the triggered submenu lists.</summary>
+	[Export] public string TriggeredDirectory { get; set; } = "res://scenes/props/traps/triggered";
 	/// <summary>Folder whose trigger modes the plate mode submenu lists.</summary>
 	[Export] public string ModeDirectory { get; set; } = "res://scenes/props/triggers/modes";
-	/// <summary>The plate a triggered trap's launcher answers to.</summary>
-	[Export] public PackedScene PlateScene { get; set; }
-	/// <summary>How a staged plate sets off its launcher; null keeps the plate's own mode.</summary>
+	/// <summary>How a staged plate sets off its launcher; null keeps the profile's mode.</summary>
 	[Export] public TriggerMode PlateMode { get; set; }
 
 	/// <summary>The gauntlets and rooms this tool staged; freed ones drop out on the next refresh.</summary>
@@ -119,25 +117,25 @@ public partial class TrapTool : DebugTool
 	}
 
 	/// <summary>
-	/// Stages a plate trap ahead of the hero and returns its root: a revealed plate <see cref="FirstRowDistance"/> ahead
-	/// and <paramref name="launcherScene"/> hung on the wall beside it, facing it. Null without a hero, a world, a plate
-	/// or a launcher.
+	/// Stages <paramref name="profile"/> ahead of the hero and returns its root: its plate, revealed,
+	/// <see cref="FirstRowDistance"/> ahead and its launcher hung on the wall beside it, facing it. Null without a hero, a
+	/// world or a valid profile.
 	/// </summary>
-	public Node3D StageTriggered(PackedScene launcherScene)
+	public Node3D StageTriggered(TriggeredTrapProfile profile)
 	{
 		Player player = Menu?.Player;
 		IDebugWorld world = Menu?.DebugWorld;
-		if (launcherScene == null || PlateScene == null || player == null || world == null) return null;
+		if (profile?.IsValid != true || player == null || world == null) return null;
 		Vector3 origin = player.GlobalPosition;
 		Vector3 forward = Heading(player);
 		var trap = new Node3D { Name = "StagedTriggeredTrap" };
-		var launcher = launcherScene.Instantiate<WallLauncher>();
+		var launcher = profile.Launcher.Scenes[0].Instantiate<WallLauncher>();
 		trap.AddChild(launcher);
 		Vector3 center = forward * FirstRowDistance;
 		HangBesidePath(trap, launcher, center, forward.Cross(Vector3.Up), player.GetWorld3D().DirectSpaceState, origin);
-		var plate = PlateScene.Instantiate<PressurePlate>();
+		var plate = profile.PlateScene.Instantiate<PressurePlate>();
 		plate.Position = center;
-		if (PlateMode != null) plate.Output.Mode = PlateMode;
+		plate.Output.Mode = PlateMode ?? profile.Mode;
 		plate.Output.Targets = [launcher];
 		trap.AddChild(plate);
 		world.AddWorldNode(trap, origin);
@@ -230,9 +228,9 @@ public partial class TrapTool : DebugTool
 	private void FillTriggeredMenu()
 	{
 		if (_triggeredMenu.ItemCount > 0) return;
-		foreach (var (launcher, path) in DebugCatalog.Resources<PackedScene>(LauncherDirectory, ".tscn"))
+		foreach (var (profile, path) in DebugCatalog.Resources<TriggeredTrapProfile>(TriggeredDirectory))
 		{
-			AddAction(_triggeredMenu, path.GetFile().GetBaseName().TrimPrefix("wall_launcher_").Capitalize(), () => StageTriggered(launcher));
+			AddAction(_triggeredMenu, path.GetFile().GetBaseName().Capitalize(), () => StageTriggered(profile));
 			_triggeredMenu.SetItemTooltip(_triggeredMenu.ItemCount - 1, path);
 		}
 	}
@@ -240,6 +238,7 @@ public partial class TrapTool : DebugTool
 	private void FillModeMenu()
 	{
 		if (_modeMenu.ItemCount > 0) return;
+		AddRadio(_modeMenu, "As authored", () => PlateMode == null, () => PlateMode = null);
 		foreach (var (mode, path) in DebugCatalog.Resources<TriggerMode>(ModeDirectory))
 		{
 			AddRadio(_modeMenu, path.GetFile().GetBaseName().Capitalize(), () => PlateMode == mode, () => PlateMode = mode);

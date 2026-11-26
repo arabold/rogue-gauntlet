@@ -38,6 +38,13 @@ public static partial class TestFactories
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
 	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
 	public const string RoomPoolPath = "res://scenes/levels/rooms/room_pool.tres";
+	/// <summary>The plate trap profiles the level places in its trap slots.</summary>
+	public static readonly string[] TriggeredTrapPaths =
+	[
+		"res://scenes/props/traps/triggered/dart_plate.tres",
+		"res://scenes/props/traps/triggered/fire_plate.tres",
+		"res://scenes/props/traps/triggered/dart_plate_hold.tres",
+	];
 	/// <summary>The profile the level prices encounters with, for tests that call a realm factory without a level.</summary>
 	public const string ThreatProfilePath = "res://scenes/levels/encounters/threat_profile.tres";
 
@@ -368,6 +375,7 @@ public static partial class TestFactories
 	{
 		mapGenerator.ChestScene = Load<PackedScene>("res://scenes/props/chest.tscn");
 		mapGenerator.TrapScene = Load<PackedScene>("res://scenes/props/traps/pressure_plate_spikes.tscn");
+		mapGenerator.TriggeredTraps = [.. TriggeredTrapPaths.Select(path => Load<TriggeredTrapProfile>(path))];
 		mapGenerator.LooseItemScene = Load<PackedScene>("res://scenes/items/lootable_item.tscn");
 		mapGenerator.LooseItems = Load<LootDropProfile>("res://scenes/items/loot/drops/loose_items.tres");
 		mapGenerator.LockedRewardScene = Load<PackedScene>("res://scenes/props/chest_gold.tscn");

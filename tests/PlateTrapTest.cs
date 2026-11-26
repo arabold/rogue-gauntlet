@@ -13,18 +13,18 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public partial class PlateTrapTest
 {
-	private const string DartLauncher = "res://scenes/props/traps/launchers/wall_launcher_dart.tscn";
+	private const string DartPlate = "res://scenes/props/traps/triggered/dart_plate.tres";
 	private const string HoldMode = "res://scenes/props/triggers/modes/hold.tres";
 
 	/// <summary>The quiet arena with one staged dart trap whose plate sets its launcher off in <paramref name="mode"/>
-	/// (the plate's own, Pulse, by default).</summary>
+	/// (the profile's own, Pulse, by default).</summary>
 	private static async Task<(ISceneRunner Runner, CombatHarness Harness, PressurePlate Plate, WallLauncher Launcher)> Stage(
 		string mode = null)
 	{
 		var (runner, harness) = await TestFactories.LoadQuietHarness();
 		var traps = TestFactories.Tool<TrapTool>(runner.Scene());
 		if (mode != null) traps.PlateMode = TestFactories.Load<TriggerMode>(mode);
-		var trap = traps.StageTriggered(TestFactories.Load<PackedScene>(DartLauncher));
+		var trap = traps.StageTriggered(TestFactories.Load<TriggeredTrapProfile>(DartPlate));
 		await runner.AwaitIdleFrame();
 		return (runner, harness, trap.GetChildren().OfType<PressurePlate>().Single(), trap.GetChildren().OfType<WallLauncher>().Single());
 	}

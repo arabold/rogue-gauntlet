@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/props/triggers/PressurePlate.cs" id="plate_script"]
 [ext_resource type="Script" path="res://scenes/props/triggers/TriggerOutputComponent.cs" id="output_script"]
@@ -8,6 +8,13 @@
 [ext_resource type="Resource" path="res://scenes/levels/access/trap_detection.tres" id="detection"]
 [ext_resource type="PackedScene" path="res://scenes/effects/discovery_pulse.tscn" id="discovery_effect"]
 [ext_resource type="Script" uid="uid://cgw68vsnlt58" path="res://scenes/levels/access/ProximityDiscoveryComponent.cs" id="discovery_script"]
+[ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="kaykit_texture"]
+
+[sub_resource type="StandardMaterial3D" id="Material_plate"]
+resource_name = "plate_stone"
+albedo_color = Color(0.62, 0.58, 0.55, 1)
+albedo_texture = ExtResource("kaykit_texture")
+roughness = 0.85
 
 [sub_resource type="BoxShape3D" id="Shape_plate"]
 size = Vector3(1.6, 1, 1.6)
@@ -19,8 +26,12 @@ Output = NodePath("TriggerOutput")
 DiscoveryEffect = NodePath("DiscoveryEffect")
 FloorSurface = NodePath("Plate/floor_tile_small_broken_A")
 Discovery = NodePath("ProximityDiscovery")
+SurfaceLift = 0.055
 
 [node name="Plate" parent="." instance=ExtResource("plate_model")]
+
+[node name="floor_tile_small_broken_A" parent="Plate" index="0"]
+surface_material_override/0 = SubResource("Material_plate")
 
 [node name="TriggerComponent" parent="." instance=ExtResource("trigger")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

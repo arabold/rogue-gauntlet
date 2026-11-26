@@ -16,6 +16,9 @@ public partial class PressurePlate : Node3D, IProximityDiscoverable
 	[Export] public TriggerComponent Trigger { get; set; }
 	[Export] public TriggerOutputComponent Output { get; set; }
 	[Export] public MeshInstance3D FloorSurface { get; set; }
+	/// <summary>How far the plate's top stands above the floor it lies in: a hair for a tile that replaces the floor's,
+	/// more for a slab that should read as one once found.</summary>
+	[Export(PropertyHint.Range, "0,0.2,0.005,suffix:m")] public float SurfaceLift { get; set; } = .025f;
 	[Export] public DiscoveryPulse DiscoveryEffect { get; set; }
 	/// <summary>Optional: without it the plate is found only by stepping on it.</summary>
 	[Export] public ProximityDiscoveryComponent Discovery { get; set; }
@@ -69,7 +72,7 @@ public partial class PressurePlate : Node3D, IProximityDiscoverable
 		if (item < 0) return;
 		var transform = _surfaceGrid.GlobalTransform * _surfaceGrid.GetCellTransform(_surfaceCell) * _surfaceGrid.MeshLibrary.GetItemMeshTransform(item);
 		float height = (transform * _surfaceGrid.MeshLibrary.GetItemMesh(item).GetAabb()).End.Y;
-		FloorSurface.Position = Vector3.Up * (height - GlobalPosition.Y - FloorSurface.Mesh.GetAabb().End.Y + 0.025f);
+		FloorSurface.Position = Vector3.Up * (height - GlobalPosition.Y - FloorSurface.Mesh.GetAabb().End.Y + SurfaceLift);
 	}
 
 	public bool Reveal(bool playEffect = true)

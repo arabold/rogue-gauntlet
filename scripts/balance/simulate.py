@@ -354,7 +354,11 @@ def run(name, skill_name, rng):
         if d in P.SUPPLY["fountain_depths"]:
             state["hp"] = h.hp
         for _ in range(poisson(rng, P.TRAPS["per_floor"] * P.TRAPS["triggers"])):
-            state["hp"] -= M.roll_armor(M.trap_damage(d), h.armor, rng)
+            roll, share = rng.random(), M.launcher_share(d)
+            if share <= roll:
+                state["hp"] -= M.roll_armor(M.trap_damage(d), h.armor, rng)
+            elif roll < share * P.LAUNCHERS["hits"]:
+                state["hp"] -= M.roll_armor(M.launcher_damage(d), h.armor, rng)
             if state["hp"] <= 0:
                 return d
         packs = compose_floor(d, rng)

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="TriggeredTrapProfile" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/traps/TriggeredTrapProfile.cs" id="profile"]
+[ext_resource type="PackedScene" path="res://scenes/props/triggers/pressure_plate.tscn" id="plate"]
+[ext_resource type="Resource" path="res://scenes/props/traps/launchers/dart_launcher.tres" id="launcher"]
+[ext_resource type="Resource" path="res://scenes/props/triggers/modes/hold.tres" id="mode"]
+
+[resource]
+script = ExtResource("profile")
+PlateScene = ExtResource("plate")
+Launcher = ExtResource("launcher")
+Mode = ExtResource("mode")
+Weight = 1.0
+FirstDepth = 11
+metadata/_custom_type_script = ExtResource("profile")

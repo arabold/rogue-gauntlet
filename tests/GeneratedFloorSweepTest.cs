@@ -67,6 +67,80 @@ public class GeneratedFloorSweepTest
 		}
 	}
 
+	/// <summary>
+	/// Plate traps in every realm: each launcher's back touches its wall, it faces its plate, and its shot reaches the
+	/// plate's middle with nothing in the way, measured against the floor's physics rather than generation's outlines.
+	/// </summary>
+	[TestCase]
+	public async Task PlateTrapLaunchersFaceTheirPlatesOverClearLanes()
+	{
+		var (runner, generator) = await TestFactories.LoadGenerator(new PackedRoomLayout());
+		using (runner)
+		{
+			TestFactories.UseAuthoredRealms(generator);
+			TestFactories.WireLootScenes(generator);
+			generator.MinTraps = generator.MaxTraps = 3;
+			generator.TriggeredTrapChance = 1;
+			var failures = new List<string>();
+			int launchers = 0;
+			for (ulong seed = 1; seed <= 10; seed++)
+			{
+				generator.Seed = seed;
+				generator.DungeonDepth = (uint)(2 + seed % 5 * 5);
+				generator.GenerateMap(includeGameplay: true);
+				// Wall collision exists once the grid map's octants have entered the physics space.
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.PhysicsFrame);
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.PhysicsFrame);
+				string label = $"seed {seed} depth {generator.DungeonDepth} ({generator.CurrentRealm.Id})";
+				foreach (var plate in generator.Floor.Plates)
+				foreach (var launcher in plate.Output.Targets.OfType<WallLauncher>())
+				{
+					launchers++;
+					Vector3 muzzle = launcher.Shot.Muzzle.GlobalPosition;
+					Vector3 toPlate = (plate.GlobalPosition - muzzle) with { Y = 0 };
+					string at = $"{label}: launcher at {launcher.GlobalPosition.Snapped(.01f)}";
+					if (launcher.Shot.FireDirection.Dot(toPlate.Normalized()) < .999f)
+						failures.Add($"{at} does not face its plate at {plate.GlobalPosition}");
+					if (launcher.Shot.MeasureLane() < toPlate.Length())
+					{
+						var hit = launcher.GetWorld3D().DirectSpaceState.IntersectRay(
+							PhysicsRayQueryParameters3D.Create(muzzle, muzzle + toPlate, WorldSight.Blockers));
+						string blocker = hit.Count > 0 ? hit["collider"].As<Node>().GetParent().Name : "nothing";
+						failures.Add($"{at} is blocked by {blocker} after {launcher.Shot.MeasureLane():F2} m of {toPlate.Length():F2} m");
+					}
+					// Wall decor hangs on the flat face recessed behind the wall's trim (Prop.WallInset, 0.17), where the
+					// collision stays: a launcher's back may sit that far, or a deeper trim's, behind it but never stand proud.
+					if (GapToWall(launcher) is var gap and (< -.3f or > .05f))
+						failures.Add($"{at} has its back {gap:F3} off its wall");
+				}
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+			AssertThat(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
+			AssertInt(launchers).IsGreater(5);
+		}
+	}
+
+	/// <summary>
+	/// How far a launcher's visible back stands off the wall behind it at its muzzle's height, by physics: negative
+	/// when sunk into the wall, large when floating in front of it.
+	/// </summary>
+	private static float GapToWall(WallLauncher launcher)
+	{
+		const float probe = .5f;
+		Vector3 facing = launcher.Shot.FireDirection;
+		var box = FloorContracts.MeshBounds(launcher) ?? new Aabb(launcher.GlobalPosition, Vector3.Zero);
+		Vector3 muzzle = launcher.Shot.Muzzle.GlobalPosition;
+		// The back face's middle at muzzle height: the box's extreme along -facing.
+		float back = Mathf.Abs(facing.X) > Mathf.Abs(facing.Z)
+			? (facing.X > 0 ? box.Position.X : box.End.X)
+			: (facing.Z > 0 ? box.Position.Z : box.End.Z);
+		Vector3 start = Mathf.Abs(facing.X) > Mathf.Abs(facing.Z) ? muzzle with { X = back } : muzzle with { Z = back };
+		start += facing * probe;
+		var hit = launcher.GetWorld3D().DirectSpaceState.IntersectRay(
+			PhysicsRayQueryParameters3D.Create(start, start - facing * (probe + 1), WorldSight.Structure));
+		return hit.Count > 0 ? start.DistanceTo(hit["position"].AsVector3()) - probe : float.PositiveInfinity;
+	}
+
 	[TestCase]
 	public async Task LabyrinthProfileAcrossRealmsIsSealedSolvableAndHasCorridorLoot()
 	{
@@ -640,7 +714,7 @@ public class GeneratedFloorSweepTest
 		}
 
 		/// <summary>The world bounds of every mesh under <paramref name="root"/>, null without meshes.</summary>
-		private static Aabb? MeshBounds(Node root)
+		internal static Aabb? MeshBounds(Node root)
 		{
 			Aabb? bounds = null;
 			foreach (var mesh in root.FindChildren("*", nameof(MeshInstance3D), true, false).OfType<MeshInstance3D>())

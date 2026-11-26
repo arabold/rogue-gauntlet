@@ -27,6 +27,10 @@ public partial class MapGenerator
 	[Export] public PackedScene TrapScene { get; set; }
 	[Export(PropertyHint.Range, "0,10")] public int MinTraps { get; set; } = 0;
 	[Export(PropertyHint.Range, "0,10")] public int MaxTraps { get; set; } = 3;
+	/// <summary>Plate traps a trap slot may place instead of <see cref="TrapScene"/>, by weight, from their first depth.</summary>
+	[Export] public TriggeredTrapProfile[] TriggeredTraps { get; set; } = [];
+	/// <summary>Chance that a trap slot tries a plate trap, where one may place; slots without a fitting lane keep the spike plate.</summary>
+	[Export(PropertyHint.Range, "0,1,0.05")] public float TriggeredTrapChance { get; set; } = .35f;
 
 	/// <summary>Pickup scene for loose ground items and generated access keys. Unset skips loose-item placement.</summary>
 	[Export] public PackedScene LooseItemScene { get; set; }
@@ -63,7 +67,7 @@ public partial class MapGenerator
 		PlaceFountains(placedLootPoints, doorClearances);
 		PlaceRewardChests(placedLootPoints, doorClearances);
 		PlaceChests(placedLootPoints, doorClearances);
-		PlaceTraps(placedLootPoints);
+		PlaceTraps(placedLootPoints, doorClearances);
 		PlaceScatter(placedLootPoints, LooseItems, MinLooseItems, MaxLooseItems, "loose");
 		PlaceScatter(placedLootPoints, GoldPiles, MinGoldPiles, MaxGoldPiles, "gold");
 	}
@@ -275,7 +279,11 @@ public partial class MapGenerator
 		return rng.Randf() < realm.MimicChance;
 	}
 
-	private void PlaceTraps(List<Vector3> placedLootPoints)
+	/// <summary>
+	/// Fills the floor's trap slots: each may become a plate trap (<see cref="TryPlacePlateTrap"/>), and otherwise lays the
+	/// spike plate on a random open room or corridor tile.
+	/// </summary>
+	private void PlaceTraps(List<Vector3> placedLootPoints, IReadOnlyList<Aabb> doorClearances)
 	{
 		float scale = CurrentProfile?.TrapDensityScale ?? 1f;
 		int minTraps = Mathf.RoundToInt(MinTraps * scale);
@@ -294,33 +302,15 @@ public partial class MapGenerator
 
 		int count = _random.Items.RandiRange(minTraps, maxTraps);
 		var remaining = new List<Vector3>(candidates);
+		var search = PlateTrapSearchFor(doorClearances);
 		int placed = 0;
-		while (placed < count && remaining.Count > 0)
+		while (placed < count)
 		{
-			int index = _random.Items.RandiRange(0, remaining.Count - 1);
-			var point = remaining[index];
-			remaining.RemoveAt(index);
-			if (IsBlockedLootPoint(point, placedLootPoints, LootSpawnSpacing))
+			string id = $"depth:{DungeonDepth}:trap:{placed}";
+			if (!TryPlacePlateTrap(id, placedLootPoints, search) && !TryPlaceSpikeTrap(id, remaining, placedLootPoints))
 			{
-				continue;
+				break;
 			}
-
-			// Traps deliberately allow room/corridor chokepoint tiles (unlike chests) -- a
-			// trap you're forced to cross is the point. No facing requirement either. The
-			// floor plate mesh is square and its texture is grid-aligned, matching the
-			// room's own floor tiles -- rotating it off-axis visibly breaks that seam
-			// alignment (the plate's edges no longer line up with its floor neighbors),
-			// which read as an oddly angled, "floating" tile rather than a natural part
-			// of the floor. Leave it unrotated, like any other floor tile.
-			var trap = TrapScene.Instantiate<Node3D>();
-			FloorContent.AddChild(trap);
-			trap.GlobalPosition = point;
-			if (trap is PressurePlate plate)
-			{
-				plate.Initialize($"depth:{DungeonDepth}:trap:{placed}", Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(point)));
-			}
-
-			placedLootPoints.Add(point);
 			placed++;
 		}
 
@@ -328,6 +318,35 @@ public partial class MapGenerator
 		{
 			GD.PrintErr($"Placed only {placed}/{minTraps} minimum traps: ran out of valid spots.");
 		}
+	}
+
+	/// <summary>
+	/// Lays the spike plate on the first of the <paramref name="remaining"/> open tiles, taken at random, that keeps
+	/// clear of other loot; false once none does.
+	/// </summary>
+	private bool TryPlaceSpikeTrap(string id, List<Vector3> remaining, List<Vector3> placedLootPoints)
+	{
+		while (remaining.Count > 0)
+		{
+			int index = _random.Items.RandiRange(0, remaining.Count - 1);
+			var point = remaining[index];
+			remaining.RemoveAt(index);
+			if (IsBlockedLootPoint(point, placedLootPoints, LootSpawnSpacing)) continue;
+
+			// Spike plates deliberately allow room/corridor chokepoint tiles (unlike chests): a trap you're forced to
+			// cross is the point. The plate is square and grid-aligned like the room's own floor tiles, so it stays
+			// unrotated: turned off-axis its edges no longer line up with its neighbours and it reads as a floating tile.
+			var trap = TrapScene.Instantiate<Node3D>();
+			FloorContent.AddChild(trap);
+			trap.GlobalPosition = point;
+			if (trap is PressurePlate plate)
+			{
+				plate.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(point)));
+			}
+			placedLootPoints.Add(point);
+			return true;
+		}
+		return false;
 	}
 
 	/// <summary>

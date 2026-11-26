@@ -74,6 +74,7 @@ Most of a floor's loot lies waiting to be explored, as in Rogue and Shattered Pi
 - **Chests:** one to three per floor against walls, each one roll of the common chest table; from the Prison on, each may be a mimic.
 - **Loose items:** three to five spots, each one roll of the same table.
 - **Gold piles:** two to three, of 20 + 6 gold per depth, varied by 40% either way.
+- **Traps:** zero to three hidden traps (`MinTraps..MaxTraps`, scaled by the profile's trap density). Each is a spike plate on an open room or corridor tile, chokepoints included, or, from depth 2, a plate trap with a 35% chance (`TriggeredTrapChance`): a concealed plate and a wall launcher across from it, picked by weight from `TriggeredTraps` ([`scenes/props/traps/triggered/`](../scenes/props/traps/triggered/): darts from depth 2, fireballs from the Prison, held darts from the Sewer). Its lane runs from a plain stretch of room wall, where the launcher hangs as rooms hang wall decor, clear of the decor already there and of doors, to the plate on the tile in front of it. The lane stays in one room, the plate keeps clear of doorways and leaves room to walk past it, and no solid stands in the shot's way (the floor's real collision outlines, as physics sees them). A slot without a fitting lane keeps the spike plate.
 
 Each spot is its own seeded reward source. [Stats and itemization](stats-and-itemization.md#loot-eligibility) describes the tables.
 

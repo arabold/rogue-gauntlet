@@ -48,7 +48,7 @@ script = ExtResource("1_launcher")
 Shot = NodePath("Shot")
 ClickEffect = NodePath("ClickDust")
 Damage = 3
-DamagePerDepth = 0.48
+DamagePerDepth = 0.54
 
 [node name="Plate" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.07)

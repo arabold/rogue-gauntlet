@@ -72,7 +72,7 @@ script = ExtResource("1_launcher")
 Shot = NodePath("Shot")
 ClickEffect = NodePath("MouthGlow")
 Damage = 2
-DamagePerDepth = 0.39
+DamagePerDepth = 0.4
 
 [node name="Backing" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0.04)
@@ -122,6 +122,6 @@ draw_pass_1 = SubResource("QuadMesh_embers")
 script = ExtResource("5_shot")
 ProjectileScene = ExtResource("2_fireball")
 Muzzle = NodePath("../Muzzle")
-Speed = 18.0
+Speed = 24.0
 Range = 24.0
 Element = 1

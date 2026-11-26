@@ -12,7 +12,7 @@ Current systems this builds on:
 
 ### Goals
 
-- **Read the floor, or pay.** A trap plate is hidden like the spike trap and found the same way; once found, the hero walks around it. Its mechanism is in plain sight on the wall, so an attentive player suspects the plate first. The mechanism fires almost at once (0.1 s) and fast (darts 30 m/s, fireballs 18 m/s) over a few tiles, so a careless step is a hit, and a dodge on the click passes.
+- **Read the floor, or pay.** A trap plate is hidden like the spike trap and found the same way; once found, the hero walks around it. Its mechanism is in plain sight on the wall, so an attentive player suspects the plate first. The mechanism fires almost at once (0.1 s) and fast (darts 30 m/s, fireballs 24 m/s) over a few tiles, so a careless step is a hit, and a dodge out of the lane on the click escapes.
 - **Switches and puzzles.** A switch is a visible lever the hero pulls between two positions. It may open a gate across the map, and several switches or plates can have to be set a certain way together. Plates also take dropped items as weight, so an item left on a plate can hold a gate open.
 - **One model.** Plates, switches and puzzle conditions are sources; launchers, spikes and doors are receivers. Neither side knows the other's type, and a quest system later listens to the same changes.
 
@@ -55,13 +55,12 @@ The spike trap becomes a concealed plate with a Pulse link to spikes on the same
 - **Monsters.** Trap plates are pressed by the hero only (see Open decisions). Puzzle plates choose their own `PressedBy`.
 - **Launcher shots** belong to the trap faction like spout shots: monsters ignore them, but a monster's body still stops them. A pulse during the launcher's delay does nothing more.
 - **Effects on load.** Restoring a saved floor sets every Hold and Latch receiver to its state without effects: no shot fires and doors snap, never swing.
-- **Placement of trap pairs.**
-  - Some of a floor's trap slots become plate and launcher pairs where a lane fits:
-    - an open tile within `MaxLane` (8 m) of a wall that takes wall decor;
-    - the lane from the wall to the plate clear of walls and blocking props;
-    - the launcher at least `MinLane` (3 m) away, so the shot is not point-blank.
-  - The rest stay spike plates. Pairs are rolled from the trap stream, as traps are now.
-  - Switches, conditions and door links are authored in rooms or room groups, not scattered.
+- **Placement of trap pairs (landed).**
+  - A trap slot rolls a plate trap (`TriggeredTrapChance`, 35%) and picks a profile by weight from those whose `FirstDepth` it has reached. Rolls come from the trap stream, as traps did.
+  - A lane runs from a room tile's wall edge straight out to a plate tile in the same room, `MinLane` to `MaxLane` (4–7 m: one tile out) from the launcher, short enough that a dart reaches a hero still on the plate.
+  - The launcher hangs as rooms hang wall decor: on the wall's mounting face, within a stretch that takes decor, clear of the floor's wall decor (`GeneratedFloor.WallDecor`) and of doors.
+  - The plate keeps clear of doorways and other loot, and leaves reachable floor beside it to walk past. No solid in the actor height band stands within a shot's breadth of the lane, by the floor's collision outlines: the walkability grid alone is too coarse for a line.
+  - A slot without a fitting lane keeps the spike plate. Switches, conditions and door links are authored in rooms or room groups, not scattered.
 
 ## Code shape
 
@@ -213,16 +212,16 @@ Related changes:
 [Tool, GlobalClass] public partial class TriggeredTrapProfile : Resource
 {
 	[Export] public PackedScene PlateScene { get; set; }
-	[Export] public PackedScene LauncherScene { get; set; }
-	[Export] public TriggerMode Mode { get; set; }   // pulse by default
+	[Export] public Prop Launcher { get; set; }      // a wall prop: its measured geometry decides where it hangs
+	[Export] public TriggerMode Mode { get; set; }
 	[Export] public float Weight { get; set; } = 1;
-	[Export] public uint FirstDepth { get; set; } = 1;
-	[Export] public float MinLane { get; set; } = 3;
-	[Export] public float MaxLane { get; set; } = 8;
+	[Export] public int FirstDepth { get; set; } = 1;
+	[Export] public float MinLane { get; set; } = 4;
+	[Export] public float MaxLane { get; set; } = 7;
 }
 ```
 
-`MapGenerator.TriggeredTraps` (array) is assigned in `level.tscn`.
+`MapGenerator.TriggeredTraps` (array) and `TriggeredTrapChance` are assigned in `level.tscn`.
 
 ### Saving
 
@@ -260,10 +259,10 @@ Floor load (after generation, before handoff)
    - Adds `Trap` (the base of every trap: depth damage, the trap group, seeded rolls), `TrapShotComponent` (shared with `WallSpout`), `WallLauncher` (pulse and interval fire), the dart and gargoyle launcher scenes and the bare `pressure_plate.tscn`.
    - **Traps → Triggered** in the debug menu stages a plate a few metres from a launcher in the **Plate mode** chosen.
    - Verification (`PlateTrapTest`): an unaware hero who steps on the plate is hit once, and walking past it fires nothing; a dodge out of the lane on the click escapes; a Hold launcher stops when the hero steps off; a monster on the plate sets nothing off.
-3. **Trap placement.**
-   - Adds `TriggeredTrapProfile` and lane search in `PlaceTraps`, and the profiles in `level.tscn`.
-   - The balance model gets a share for launcher damage, and the sweep test checks that every launcher faces its plate over a clear lane.
-   - Visual check on a generated floor.
+3. **Trap placement (landed).**
+   - Adds `TriggeredTrapProfile` (`scenes/props/traps/triggered/`: dart plate from depth 2, fire plate from the Prison, held dart plate from the Sewer), the lane search in `MapGenerator.PlateTraps.cs` and the profiles in `level.tscn`. The debug menu stages the same profiles. Save v118.
+   - The balance model's `LAUNCHERS` gives plate traps their share of trap slots and their own damage line (`launcher_line`); a fireball deals `fire_scale` of a dart since armor never absorbs it.
+   - `GeneratedFloorSweepTest` checks by physics that every launcher touches its wall, faces its plate and has a clear shot to it. Latch-mode profiles wait for saved latches (slice 4).
 4. **Switches, conditions and items.**
    - Adds `Switch`, `TriggerCondition`, item weight on plates (`PlatePressers.Items`), saved switch positions and latches, and restore without effects.
    - Verification: a switch pull toggles its output, and survives save and load; a condition turns on only when every requirement holds; an item dropped on a plate holds it on.
@@ -276,6 +275,5 @@ Floor load (after generation, before handoff)
 
 - **Do monsters press trap plates?** Proposed no: trap plates are for the hero, and monsters walking into their own traps would need trap-aware navigation. Yes would let the hero lure monsters onto plates. Puzzle plates choose for themselves.
 - **Is a trap's mechanism visible before its plate is found?** Proposed yes, as an attentive player's hint.
-- **Where and how often?** Proposed: darts from depth 2 and fireballs from the Prison, sharing a floor's existing trap count rather than adding traps. Hold-mode launchers (a stream of shots while the hero stays on the plate) and Latch-mode ones (a jet that never stops) are rarer variants.
-- **Damage:** proposed to match the wall spouts (dart 3, fireball 2 plus depth scaling) until the balance model gives launchers their own share.
+- **Where and how often?** Decided with slice 3: darts from depth 2, fireballs from the Prison and rarer Hold-mode darts from the Sewer, sharing a floor's existing trap count. Latch-mode jets wait for saved latches.
 - **Switch-to-gate placement:** which room groups pair a switch with a gate elsewhere, and how far apart, is a level-design choice for slice 5. Generated access (locks and keys) must still solve.
