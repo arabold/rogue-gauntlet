@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://scenes/ui/debug/PlaytestTool.cs" id="10_playtest_tool"]
 [ext_resource type="Script" path="res://scenes/ui/debug/VisualEffectsTool.cs" id="12_visual_tool"]
 [ext_resource type="Script" path="res://scenes/ui/debug/TrapTool.cs" id="13_trap_tool"]
+[ext_resource type="PackedScene" path="res://scenes/props/triggers/pressure_plate.tscn" id="14_plate"]
+[ext_resource type="Resource" path="res://scenes/props/triggers/modes/pulse.tres" id="15_pulse"]
 [ext_resource type="PackedScene" path="res://scenes/debug/combat/combat_practice_target.tscn" id="10_practice_target"]
 [ext_resource type="Resource" path="res://scenes/items/food/food/food_bread_roll.tres" id="11_fill_item"]
 
@@ -109,6 +111,8 @@ PracticeTargetScene = ExtResource("10_practice_target")
 [node name="TrapTool" type="Node" parent="."]
 script = ExtResource("13_trap_tool")
 Title = "Traps"
+PlateScene = ExtResource("14_plate")
+PlateMode = ExtResource("15_pulse")
 
 [node name="HeroTool" type="Node" parent="." node_paths=PackedStringArray("Items")]
 script = ExtResource("7_hero_tool")

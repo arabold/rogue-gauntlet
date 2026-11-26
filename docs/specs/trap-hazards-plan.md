@@ -95,10 +95,9 @@ Windows, chances and weights are realm data; the table is a starting point for p
 }
 
 /// <summary>A member of a gauntlet: synchronized from the gauntlet's physics tick, never self-timed. A tool script.</summary>
-[Tool, GlobalClass] public abstract partial class TrapHazard : Node3D
+/// Damage, DamagePerDepth and the trap group come from the shared Trap base (triggers plan).
+[Tool, GlobalClass] public abstract partial class TrapHazard : Trap
 {
-	[Export] public int Damage { get; set; }
-	[Export] public float DamagePerDepth { get; set; }
 	[Export] public float Period { get; set; } = 2f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float Phase { get; set; }
 	public virtual void Tune(HazardBeat beat);
@@ -109,15 +108,10 @@ Windows, chances and weights are realm data; the table is a starting point for p
 
 [Tool, GlobalClass] public partial class WallSpout : TrapHazard
 {
-	[Export] public PackedScene ProjectileScene { get; set; }   // the projectile scene carries element and look
-	[Export] public Marker3D Muzzle { get; set; }
+	[Export] public TrapShotComponent Shot { get; set; }        // projectile, muzzle, speed, range, element, defense traits
 	[Export] public AttackIndicatorComponent Indicator { get; set; }  // optional lane telegraph during wind-up
 	[Export] public Node3D WindUpEffect { get; set; }            // optional glow, embers or dust
-	[Export] public float Speed { get; set; } = 8f;
-	[Export] public float Range { get; set; } = 12f;              // generation sets it to the opposite wall
 	[Export] public float WindUp { get; set; } = .6f;
-	[Export] public DamageElement Element { get; set; }        // fire ignores armor
-	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 	[Signal] public delegate void FiredEventHandler(Node3D shot);
 }
 

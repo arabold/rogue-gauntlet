@@ -13,7 +13,17 @@ public partial class TriggerOutputComponent : Node
 {
 	/// <summary>Pulse, Hold or Latch: a shared, stateless strategy from <c>scenes/props/triggers/modes/</c>.</summary>
 	[Export] public TriggerMode Mode { get; set; }
-	[Export] public Node[] Targets { get; set; } = [];
+	/// <summary>The receivers: <see cref="ITriggerable"/> nodes, such as a trap's spikes or a wall launcher.</summary>
+	[Export]
+	public Node[] Targets
+	{
+		get;
+		set
+		{
+			field = value ?? [];
+			if (IsNodeReady()) CacheReceivers();
+		}
+	} = [];
 
 	[Signal] public delegate void SwitchedEventHandler(bool on, Node3D activator);
 
@@ -27,6 +37,12 @@ public partial class TriggerOutputComponent : Node
 	{
 		if (Engine.IsEditorHint()) return;
 		if (Mode == null) GD.PushError($"{GetPath()}: assign a trigger mode.");
+		CacheReceivers();
+	}
+
+	private void CacheReceivers()
+	{
+		if (Engine.IsEditorHint()) return;
 		_receivers = Targets.OfType<ITriggerable>().ToArray();
 		foreach (var target in Targets.Where(target => target is not ITriggerable))
 			GD.PushWarning($"{GetPath()}: {target?.Name ?? "an empty target"} is not a trigger receiver.");

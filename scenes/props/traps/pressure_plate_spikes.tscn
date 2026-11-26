@@ -122,4 +122,5 @@ Targets = [NodePath("../SpikeBurst")]
 script = ExtResource("spike_script")
 Spikes = NodePath("../floor_tile_big_spikes/spikes")
 Contact = NodePath("../TriggerComponent")
+Damage = 5
 DamagePerDepth = 0.87

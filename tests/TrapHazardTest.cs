@@ -36,7 +36,7 @@ public partial class TrapHazardTest
 	}
 
 	/// <summary>The point <paramref name="distance"/> metres down <paramref name="spout"/>'s lane.</summary>
-	private static Vector3 Lane(WallSpout spout, float distance) => spout.Muzzle.GlobalPosition + spout.FireDirection * distance;
+	private static Vector3 Lane(WallSpout spout, float distance) => spout.Shot.Muzzle.GlobalPosition + spout.Shot.FireDirection * distance;
 
 	private static List<DamageOutcome> RecordOutcomes(Player hero)
 	{
@@ -78,7 +78,7 @@ public partial class TrapHazardTest
 		spout.Fired += fired => shot = fired;
 		Vector3 chest = hero.GlobalPosition + Vector3.Up;
 		await TestFactories.AwaitPhysicsUntil(runner, () => GodotObject.IsInstanceValid(shot) && shot.GlobalPosition.DistanceTo(chest) < 2.5f);
-		AssertObject(hero.DodgeComponent.TryDodge(-spout.FireDirection)).IsEqual(DefenseRequestResult.Success);
+		AssertObject(hero.DodgeComponent.TryDodge(-spout.Shot.FireDirection)).IsEqual(DefenseRequestResult.Success);
 		await TestFactories.AwaitPhysicsSeconds(runner, .4f);
 		AssertThat(outcomes).Contains(DamageOutcome.Dodged);
 		AssertThat(outcomes).NotContains(DamageOutcome.Damaged);

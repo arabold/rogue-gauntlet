@@ -15,15 +15,16 @@ public static class DebugCatalog
 	private static ulong _settledFrame = ulong.MaxValue;
 
 	/// <summary>
-	/// Every <typeparamref name="T"/> <c>.tres</c> in <paramref name="directory"/> and its subfolders with its path, sorted
-	/// by path. Files that fail to load or have another type are skipped.
+	/// Every <typeparamref name="T"/> file ending in <paramref name="extension"/> (<c>.tscn</c> for scenes) in
+	/// <paramref name="directory"/> and its subfolders with its path, sorted by path. Files that fail to load or have
+	/// another type are skipped.
 	/// </summary>
-	public static IReadOnlyList<(T Resource, string Path)> Resources<T>(string directory) where T : Resource
+	public static IReadOnlyList<(T Resource, string Path)> Resources<T>(string directory, string extension = ".tres") where T : Resource
 	{
 		if (!ResourcesByDirectory.TryGetValue((typeof(T), directory), out object cached))
 		{
 			SettleOncePerFrame();
-			ResourcesByDirectory[(typeof(T), directory)] = cached = FilesUnder(directory, ".tres")
+			ResourcesByDirectory[(typeof(T), directory)] = cached = FilesUnder(directory, extension)
 				.Select(path => (Resource: ResourceLoader.Load(path) as T, Path: path))
 				.Where(entry => entry.Resource != null)
 				.OrderBy(entry => entry.Path, StringComparer.Ordinal).ToList();

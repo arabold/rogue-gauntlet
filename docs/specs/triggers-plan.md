@@ -155,23 +155,27 @@ public interface ITriggerable
 ### Receivers
 
 ```csharp
-/// <summary>Spikes that spring from their plate and hurt whoever stands on it (today's spike trap).</summary>
-[GlobalClass] public partial class SpikeBurst : Node3D, ITriggerable
+/// <summary>Anything that hurts as a trap: depth-scaled damage, the trap faction's group, seeded rolls.</summary>
+[Tool, GlobalClass] public abstract partial class Trap : Node3D
 {
-	[Export] public MeshInstance3D Spikes { get; set; }
 	[Export] public int Damage { get; set; }
 	[Export] public float DamagePerDepth { get; set; }
 }
 
+/// <summary>Spikes that spring from their plate and hurt whoever stands on it (today's spike trap).</summary>
+[Tool, GlobalClass] public partial class SpikeBurst : Trap, ITriggerable
+{
+	[Export] public MeshInstance3D Spikes { get; set; }
+	[Export] public TriggerComponent Contact { get; set; }
+}
+
 /// <summary>A wall-mounted mechanism: one fast shot along its front per pulse, a shot every Interval while active.</summary>
-[Tool, GlobalClass] public partial class WallLauncher : Node3D, ITriggerable
+[Tool, GlobalClass] public partial class WallLauncher : Trap, ITriggerable
 {
 	[Export] public TrapShotComponent Shot { get; set; }
 	[Export] public Node3D ClickEffect { get; set; }
 	[Export(PropertyHint.Range, "0,0.5,0.01,suffix:s")] public float Delay { get; set; } = .1f;
 	[Export(PropertyHint.Range, "0.2,5,0.05,suffix:s")] public float Interval { get; set; } = 1f;
-	[Export] public int Damage { get; set; }
-	[Export] public float DamagePerDepth { get; set; }
 	[Signal] public delegate void FiredEventHandler(Node3D shot);
 }
 
@@ -186,6 +190,7 @@ public interface ITriggerable
 	[Export] public AttackDefenseTraits DefenseTraits { get; set; }
 	public Vector3 FireDirection { get; }
 	public Projectile Fire(Node3D attacker, int damage, ulong seed, AttackIdentity identity);
+	public float MeasureLane();
 }
 
 /// <summary>Makes its door a receiver: a pulse toggles it, on opens it, off shuts it.</summary>
@@ -251,10 +256,10 @@ Floor load (after generation, before handoff)
    - Verification:
      - The existing trap, discovery and save tests pass.
      - New tests: Pulse pulses once per press; Hold follows the plate on and off; Latch stays on after the hero leaves.
-2. **Wall launcher.**
-   - Adds `TrapShotComponent` (shared with `WallSpout`), `WallLauncher` (pulse and interval fire) and the dart and gargoyle launcher scenes.
-   - **Traps → Triggered** in the debug menu stages a plate a few metres from a launcher in any mode.
-   - Verification: an unaware hero who steps on the plate is hit; a dodge on the click passes; a discovered plate walked around fires nothing; a Hold launcher stops when the hero steps off.
+2. **Wall launcher (landed).**
+   - Adds `Trap` (the base of every trap: depth damage, the trap group, seeded rolls), `TrapShotComponent` (shared with `WallSpout`), `WallLauncher` (pulse and interval fire), the dart and gargoyle launcher scenes and the bare `pressure_plate.tscn`.
+   - **Traps → Triggered** in the debug menu stages a plate a few metres from a launcher in the **Plate mode** chosen.
+   - Verification (`PlateTrapTest`): an unaware hero who steps on the plate is hit once, and walking past it fires nothing; a dodge out of the lane on the click escapes; a Hold launcher stops when the hero steps off; a monster on the plate sets nothing off.
 3. **Trap placement.**
    - Adds `TriggeredTrapProfile` and lane search in `PlaceTraps`, and the profiles in `level.tscn`.
    - The balance model gets a share for launcher damage, and the sweep test checks that every launcher faces its plate over a clear lane.
