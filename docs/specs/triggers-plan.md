@@ -1,6 +1,6 @@
 # Triggers: plates, switches and linked mechanisms
 
-Status: slice 1 (the trigger core, pressure plates and the spike trap rebuilt on them) landed; the rest is proposed. Adds one general trigger model: **sources** that are on or off, **links** that carry a source's changes to **receivers** in one of three modes, and **conditions** that combine sources into puzzles. The first use is a triggered trap: a hidden pressure plate that makes a mechanism on the wall across from it shoot a fast dart or fireball. Switches that open a door elsewhere on the map, switch puzzles, plates weighed down by dropped items, and later a quest system build on the same model.
+Status: slices 1–3 (the trigger core, the spike trap rebuilt on it, wall launchers and their placement on generated floors) landed; slices 4–6 are proposed. Adds one general trigger model: **sources** that are on or off, **links** that carry a source's changes to **receivers** in one of three modes, and **conditions** that combine sources into puzzles. The first use is a triggered trap: a hidden pressure plate that makes a mechanism on the wall across from it shoot a fast dart or fireball. Switches that open a door elsewhere on the map, switch puzzles, plates weighed down by dropped items, and later a quest system build on the same model.
 
 Current systems this builds on:
 - The spike trap ([`FloorTrap`](../../scenes/props/FloorTrap.cs), discovery in [dungeon exploration](../dungeon-exploration-design.md)).
@@ -200,7 +200,7 @@ Related changes:
 - `WallSpout` keeps its beat and warning and fires through its `TrapShotComponent`; its projectile exports move there.
 - `FloorTrap` is removed (landed):
   - `scenes/props/traps/pressure_plate_spikes.tscn` is a concealed, hero-pressed `PressurePlate` whose Pulse output springs its `SpikeBurst`. It carries no floor tile: its holes are a ground overlay on the room's own floor and its spikes rise from under the floor plane, so no floor height has to match. It replaces `floor_trap.tscn` everywhere: the level's `TrapScene`, tests, and the balance model's `TRAP_SCENE`, whose damage moved to the `SpikeBurst` node.
-  - A bare `pressure_plate.tscn`, for launchers, comes with slice 2 and its own plate model.
+  - A bare `pressure_plate.tscn`, for launchers (landed): a Studio slab in a fixed frame (`furnishings/pressure_plate`, `pressure_plate_frame`) that sinks while pressed.
 - New scenes:
   - `wall_launcher_dart.tscn` and `wall_launcher_gargoyle.tscn` reuse the spout models.
   - `switch_lever.tscn` is a KayKit-style lever.
@@ -260,7 +260,7 @@ Floor load (after generation, before handoff)
    - **Traps → Triggered** in the debug menu stages a plate a few metres from a launcher in the **Plate mode** chosen.
    - Verification (`PlateTrapTest`): an unaware hero who steps on the plate is hit once, and walking past it fires nothing; a dodge out of the lane on the click escapes; a Hold launcher stops when the hero steps off; a monster on the plate sets nothing off.
 3. **Trap placement (landed).**
-   - Adds `TriggeredTrapProfile` (`scenes/props/traps/triggered/`: dart plate from depth 2, fire plate from the Prison, held dart plate from the Sewer), the lane search in `MapGenerator.PlateTraps.cs` and the profiles in `level.tscn`. The debug menu stages the same profiles. Save v118.
+   - Adds `TriggeredTrapProfile` (`scenes/props/traps/triggered/`: dart plate from depth 2, fire plate from the Prison, held dart plate from the Sewer), the lane search in `MapGenerator.PlateTraps.cs` and the profiles in `level.tscn`. The debug menu stages the same profiles. Plates keep off floor grates and drains, and a dodge carries the hero over a plate without pressing it. Save v120.
    - The balance model's `LAUNCHERS` gives plate traps their share of trap slots and their own damage line (`launcher_line`); a fireball deals `fire_scale` of a dart since armor never absorbs it.
    - `GeneratedFloorSweepTest` checks by physics that every launcher touches its wall, faces its plate and has a clear shot to it. Latch-mode profiles wait for saved latches (slice 4).
 4. **Switches, conditions and items.**
