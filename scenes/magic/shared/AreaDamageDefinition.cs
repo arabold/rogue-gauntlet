@@ -9,7 +9,7 @@ public partial class AreaDamageDefinition : Resource
 	[Export] public float[] RadiusByLevel { get; set; } = [3.5f, 5f, 6.5f];
 	/// <summary>Damage per contact as a multiple of the caster's weapon hit (see <see cref="SpellPower"/>).</summary>
 	[Export] public float[] DamageScaleByLevel { get; set; } = [.375f, .4125f, .45f];
-	/// <summary>Initial outward push speed per level, shoving actors away from the cast point; empty does not push.</summary>
+	/// <summary>Metres each level shoves actors away from the cast point; empty does not push.</summary>
 	[Export] public float[] PushByLevel { get; set; } = [];
 	/// <summary>Seconds between the visual's release and its contact, for delayed eruptions.</summary>
 	[Export(PropertyHint.Range, "0,10,0.05")] public float ContactDelay { get; set; }

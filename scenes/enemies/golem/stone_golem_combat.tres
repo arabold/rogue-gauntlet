@@ -12,7 +12,7 @@
 script = ExtResource("attack_definition")
 MeleeContact = ExtResource("punch_contact")
 PoiseDamage = 30.0
-Knockback = 5.0
+Knockback = 2.1
 HitStopDuration = 0.05
 FacingLockLead = 0.25
 WindUpTurnRate = 90.0
@@ -23,7 +23,7 @@ script = ExtResource("attack_definition")
 MeleeContact = ExtResource("smash_contact")
 DefenseTraits = 15
 PoiseDamage = 40.0
-Knockback = 7.0
+Knockback = 4.1
 HyperArmorEnd = 0.4
 Interruptible = false
 HitStopDuration = 0.07

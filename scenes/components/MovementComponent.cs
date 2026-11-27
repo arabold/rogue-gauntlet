@@ -207,36 +207,42 @@ public partial class MovementComponent : Node
 	/// </summary>
 	[Export] public bool ResistsKnockback { get; set; }
 
-	/// <summary>The push strength that carries this body <paramref name="distance"/> metres: a push starts at its strength
-	/// and slows by <see cref="Speed"/> every second, so it travels strength² / (2 × Speed).</summary>
-	public float PushStrengthFor(float distance) => Mathf.Sqrt(2 * Speed * Mathf.Max(distance, 0));
+	/// <summary>
+	/// How fast every push slows, in m/s², the same for every body, so an authored push distance carries a fast and a
+	/// slow body alike. It is the hero's base walking speed, which pushes used to slow by.
+	/// </summary>
+	public const float PushDeceleration = 6f;
 
-	public void Push(Vector3 direction, float strength)
+	/// <summary>Pushes the body <paramref name="distance"/> metres along <paramref name="direction"/>, starting fast and
+	/// slowing at <see cref="PushDeceleration"/>, whatever its own speed.</summary>
+	public void Push(Vector3 direction, float distance)
 	{
-		SetPush(direction, strength, false);
+		SetPush(direction, distance, false);
 	}
 
-	public void PushForced(Vector3 direction, float strength)
+	/// <summary><see cref="Push"/>, carried out even while a status locks the body in place.</summary>
+	public void PushForced(Vector3 direction, float distance)
 	{
-		SetPush(direction, strength, true);
+		SetPush(direction, distance, true);
 		_forcePushWhileLocked = true;
 	}
 
-	private void SetPush(Vector3 direction, float strength, bool bypassStatusLock)
+	private void SetPush(Vector3 direction, float distance, bool bypassStatusLock)
 	{
-		if (ResistsKnockback && strength > 0)
+		if (ResistsKnockback && distance > 0)
 		{
-			CombatTrace.Write(this, "effect.knockback_resisted", ("strength", strength));
+			CombatTrace.Write(this, "effect.knockback_resisted", ("distance", distance));
 			return;
 		}
 		CancelLunge();
 		_pushDirection = direction.Normalized();
-		_pushStrength = strength;
+		// The starting speed that slows to rest over the distance: d = v² / (2a).
+		_pushStrength = Mathf.Sqrt(2 * PushDeceleration * Mathf.Max(distance, 0));
 		_pushCoveredByStagger = ActionGate?.IsStaggered == true;
 		_forcePushWhileLocked = false;
 		_hasOverrideVelocity = false;
 		CombatTrace.Write(this, "effect.knockback", ("direction", CombatTrace.Vector(_pushDirection)),
-			("strength", strength), ("bypass_status_lock", bypassStatusLock));
+			("distance", distance), ("bypass_status_lock", bypassStatusLock));
 	}
 
 	public void SetInputDirection(Vector3 inputDirection)
@@ -385,7 +391,7 @@ public partial class MovementComponent : Node
 			// Pushed by an external force; a poise break's knockback plays out during its stagger.
 			velocity = _pushDirection * _pushStrength;
 			if (ActionGate?.IsStaggered == true) _pushCoveredByStagger = true;
-			_pushStrength -= Speed * (float)delta; // Decrease push strength over time
+			_pushStrength -= PushDeceleration * (float)delta;
 			if (_pushStrength <= 0.1f) _forcePushWhileLocked = false;
 		}
 		else if (ActionGate?.IsStatusLocked == true || ActionGate?.IsStaggered == true)

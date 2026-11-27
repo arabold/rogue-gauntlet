@@ -84,6 +84,25 @@ public class CombatPositioningTest
 		AssertFloat(DamageOf(unaware, Contact(harness.Player, 2, 1, Vector3.Back))).IsEqualApprox(2 * staggered, .001);
 	}
 
+	/// <summary>A push carries a slow and a fast body the same distance: knockback is authored in metres, not as a speed.</summary>
+	[TestCase]
+	public async Task APushTravelsItsDistanceWhateverTheBodysSpeed()
+	{
+		var (runner, harness) = await TestFactories.LoadQuietHarness();
+		using var scope = runner;
+		var movement = TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene, 3).MovementComponent;
+		Vector3 across = harness.Player.MovementComponent.LookAtDirection.Cross(Vector3.Up).Normalized();
+		foreach (float speed in new[] { 2f, 8f })
+		{
+			movement.Speed = speed;
+			Vector3 start = movement.Actor.GlobalPosition;
+			movement.Push(across, 1.5f);
+			await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 2);
+			AssertFloat((movement.Actor.GlobalPosition - start).Dot(across)).OverrideFailureMessage($"at {speed} m/s").IsEqualApprox(1.5f, .1f);
+			across = -across;
+		}
+	}
+
 	/// <summary>Real enemies keep running MoveAndSlide while idle, so pass-through must suppress their recovery too.</summary>
 	[TestCase("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn", 6f)]
 	[TestCase("res://scenes/enemies/forsaken_warden/forsaken_warden.tscn", 3f)]

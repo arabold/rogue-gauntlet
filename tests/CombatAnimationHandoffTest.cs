@@ -69,12 +69,13 @@ public class CombatAnimationHandoffTest
 		return monster;
 	}
 
-	/// <summary>A push that decays over about 1.2 seconds at the actor's own speed.</summary>
+	/// <summary>A push lasting about 1.2 seconds: it slows to rest at <see cref="MovementComponent.PushDeceleration"/>.</summary>
 	private static MovementComponent PushLong(Node actor)
 	{
+		const float seconds = 1.2f;
 		var movement = actor.GetNode<MovementComponent>("MovementComponent");
 		movement.ResistsKnockback = false; // the animation handoff, not who resists a push (the Warden does)
-		movement.Push(Vector3.Right, movement.Speed * 1.2f);
+		movement.Push(Vector3.Right, MovementComponent.PushDeceleration * seconds * seconds / 2);
 		return movement;
 	}
 

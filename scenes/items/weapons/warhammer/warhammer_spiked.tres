@@ -31,5 +31,5 @@ ShowInInventory = true
 IsStackable = false
 IsQuestItem = false
 PoiseDamage = 23.0
-Knockback = 3.0
+Knockback = 1.1
 metadata/_custom_type_script = ExtResource("2_script")

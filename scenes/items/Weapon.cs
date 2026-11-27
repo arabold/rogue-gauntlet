@@ -56,8 +56,9 @@ public partial class Weapon : EquipableItem, ICombatAttackAction
 	/// <c>simulate.py derive</c> writes it from the balance model's weapon kind.
 	/// </summary>
 	[Export] public float PoiseDamage { get; set => SetValue(ref field, value); } = 10f;
-	/// <summary>Push of a primary hit that interrupts or staggers; zero for all but heavy weapons (from the model's weapon kind).</summary>
-	[Export] public float Knockback { get; set => SetValue(ref field, value); }
+	/// <summary>Metres a primary hit that interrupts or staggers pushes its target; zero for all but heavy weapons (from the
+	/// model's weapon kind).</summary>
+	[Export(PropertyHint.Range, "0,10,0.1,suffix:m")] public float Knockback { get; set => SetValue(ref field, value); }
 
 	// Secondary Attack Configuration
 	[Export] public StringName SecondaryAttackStyle { get; set => SetValue(ref field, value); } = "";
