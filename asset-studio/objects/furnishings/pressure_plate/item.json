@@ -37,6 +37,6 @@
   },
   "provenance": {
     "kind": "studio_original",
-    "quality_notes": "Trap plate at KayKit dungeon scale: a 1.6 m stone slab standing 0.16 m proud of the floor plane and reaching 0.12 m below it, so it rises out of any floor tile. Sinks into its separate frame (pressure_plate_frame) while pressed. No gameplay data. Pale stone_light, the KayKit floor tiles' own swatch, rather than the concept's dark stone, so it sits with the grey floors; square in plan with only its top edges bevelled; instead of the concept's chipped corners, shallow dirt-filled scratches and drag scuffs wear its top, inside the bevel."
+    "quality_notes": "Trap plate at KayKit dungeon scale: a 1.6 m stone slab standing 0.16 m proud of the floor plane and reaching 0.12 m below it, so it rises out of any floor tile. Sinks into its separate frame (pressure_plate_frame) while pressed. No gameplay data. Pale stone_light, the KayKit floor tiles' own swatch, rather than the concept's dark stone, so it sits with the grey floors; plain and square in plan with only its top edges bevelled, without the concept's chipped corners."
   }
 }
