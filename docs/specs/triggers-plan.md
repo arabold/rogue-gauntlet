@@ -22,7 +22,7 @@ Every source is on or off and reports each change, with the actor that caused it
 
 | Source | On while | Notes |
 | --- | --- | --- |
-| **Pressure plate** | anything it accepts stands or lies on it | Accepts the hero, and optionally monsters and dropped items (`PressedBy`). Concealed plates are found like the spike trap; visible plates are puzzle pieces. |
+| **Pressure plate** | anything it accepts stands or lies on it | Accepts the hero, and optionally monsters and dropped items (`PressedBy`). A body passing over without touching the floor (the hero mid-dodge, `IFloorContact`) presses it only if it touches down on it. Concealed plates are found like the spike trap; visible plates are puzzle pieces. |
 | **Switch** | it is in position B | A lever the hero pulls with a short timed interaction (the door's), from A to B and back. Its authored start position is part of the floor. |
 | **Condition** | every source it watches is in its required state | A puzzle: the sources it needs on, and those it needs off. A condition is itself a source, so conditions nest. |
 
@@ -47,7 +47,7 @@ Every receiver answers a pulse (a one-time effect) and being switched on and off
 | **Door** (slice 5) | toggles open or shut | opens | shuts |
 | **Condition** | — (it watches sources directly) | — | — |
 
-The spike trap becomes a concealed plate with a Pulse link to spikes on the same tile, so the trap behaves as today, and all plates share one class for discovery, saving and floor alignment.
+The spike trap becomes a concealed plate with a Pulse link to spikes on the same tile, so the trap behaves as today, and all plates share one class for discovery and saving. No plate fits itself to the floor: a spike trap's holes draw on whatever floor is there, and a launcher's plate is a slab rising out of the floor that sinks while pressed (`PlatePressComponent`).
 
 ### Rules
 
@@ -123,7 +123,7 @@ public interface ITriggerable
 	[Export] public TriggerOutputComponent Output { get; set; }
 	[Export] public PlatePressers PressedBy { get; set; } = PlatePressers.Hero;   // slice 4: sets the trigger's mask, the only filter
 	[Export] public bool Concealed { get; set; } = true;
-	[Export] public MeshInstance3D FloorSurface { get; set; }
+	[Export] public Node3D Visual { get; set; }                   // holes on the floor, or a slab rising out of it: never fitted to the floor
 	[Export] public DiscoveryPulse DiscoveryEffect { get; set; }
 	[Export] public ProximityDiscoveryComponent Discovery { get; set; }   // optional: found only by stepping on it
 	public string PersistentId { get; }

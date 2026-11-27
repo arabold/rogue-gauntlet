@@ -54,6 +54,32 @@ public partial class PlateTrapTest
 		AssertBool(plate.IsDiscovered).IsTrue();
 	}
 
+	/// <summary>
+	/// A dodge carries the hero over the plate without touching it, so dashing across sets nothing off; a dodge too short
+	/// to clear it (an overloaded hero's) ends on the plate, and that counts as stepping on.
+	/// </summary>
+	[TestCase]
+	public async Task DashingOverThePlateSetsNothingOffButLandingOnItDoes()
+	{
+		var (runner, harness, plate, launcher) = await Stage();
+		using var scope = runner;
+		var hero = harness.Player;
+		Vector3 across = launcher.Shot.FireDirection.Cross(Vector3.Up);
+		TestFactories.PlaceAt(hero, plate.GlobalPosition - across * 3);
+		AssertObject(hero.DodgeComponent.TryDodge(across)).IsEqual(DefenseRequestResult.Success);
+		await TestFactories.AwaitPhysicsUntil(runner, () => !hero.DodgeComponent.IsDodging, timeout: 1);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
+		AssertFloat(hero.GlobalPosition.HorizontalDistanceTo(plate.GlobalPosition)).IsGreater(2);
+		AssertInt(launcher.ShotsFired).IsEqual(0);
+
+		hero.DodgeComponent.DistanceScale = .3f;
+		TestFactories.PlaceAt(hero, plate.GlobalPosition + across * 2);
+		await TestFactories.AwaitPhysicsUntil(runner, () => hero.DodgeComponent.CooldownRemaining <= 0, timeout: 2);
+		AssertObject(hero.DodgeComponent.TryDodge(-across)).IsEqual(DefenseRequestResult.Success);
+		await TestFactories.AwaitPhysicsUntil(runner, () => launcher.ShotsFired == 1, timeout: 1);
+		AssertBool(plate.IsPressed).IsTrue();
+	}
+
 	/// <summary>The click is the only warning once the hero is on the plate: a dodge out of the lane on it escapes.</summary>
 	[TestCase]
 	public async Task DodgingOnTheClickEscapesTheDart()
@@ -71,20 +97,26 @@ public partial class PlateTrapTest
 		AssertThat(outcomes).NotContains(DamageOutcome.Damaged);
 	}
 
-	/// <summary>Held on, the launcher keeps firing while the hero stands on the plate, and stops once they step off.</summary>
+	/// <summary>
+	/// Held on, the launcher keeps firing while the hero stands on the plate, and stops once they step off. The plate sinks
+	/// under the hero and rises again after.
+	/// </summary>
 	[TestCase]
 	public async Task AHoldLauncherFiresUntilTheHeroStepsOff()
 	{
 		var (runner, harness, plate, launcher) = await Stage(HoldMode);
 		using var scope = runner;
+		float raised = plate.Visual.GlobalPosition.Y;
 		TestFactories.PlaceAt(harness.Player, plate.GlobalPosition);
 		await TestFactories.AwaitPhysicsUntil(runner, () => launcher.ShotsFired >= 2, timeout: 3);
+		AssertFloat(plate.Visual.GlobalPosition.Y).IsLess(raised - .05f);
 		TestFactories.PlaceAt(harness.Player, Beside(plate, launcher));
 		await TestFactories.AwaitPhysicsUntil(runner, () => !plate.IsPressed, timeout: 1);
 		int fired = launcher.ShotsFired;
 		await TestFactories.AwaitPhysicsSeconds(runner, launcher.Interval * 1.5f);
 		AssertInt(launcher.ShotsFired).IsEqual(fired);
 		AssertBool(launcher.IsActive).IsFalse();
+		AssertFloat(plate.Visual.GlobalPosition.Y).IsEqualApprox(raised, .001f);
 	}
 
 	/// <summary>Trap plates answer to the hero only: a monster standing on one sets nothing off.</summary>

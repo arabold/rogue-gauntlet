@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// The main player character.
 /// </summary>
-public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IAttackSlotHost, IStatusActor, IShieldOwner, ISlowActor, IBurningActor, IBuffTarget
+public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, IStaggerable, IAttackSlotHost, IStatusActor, IShieldOwner, ISlowActor, IBurningActor, IBuffTarget, IFloorContact
 {
 	HealthComponent IBuffTarget.Health => HealthComponent;
 	BuffController IBuffTarget.Buffs => BuffController;
@@ -58,6 +58,8 @@ public partial class Player : CharacterBody3D, IDamageable, ICombatDamageable, I
 	{
 		return ActionGate?.TryStagger(duration) ?? false;
 	}
+	/// <summary>A dodge carries the hero over the floor: what it passes over counts only where it ends.</summary>
+	public bool TouchesFloor => DodgeComponent?.IsDodging != true;
 	/// <summary>The non-combat action the animation tree plays: a quick-slot item, otherwise a channeled interaction's.</summary>
 	public string CurrentActionId => ActionManager?.CurrentAnimationId ?? InteractionComponent?.CurrentAnimationId;
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scenes/props/triggers/PressurePlate.cs" id="plate_script"]
 [ext_resource type="Script" path="res://scenes/props/triggers/TriggerOutputComponent.cs" id="output_script"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/effects/discovery_pulse.tscn" id="discovery_effect"]
 [ext_resource type="Script" uid="uid://cgw68vsnlt58" path="res://scenes/levels/access/ProximityDiscoveryComponent.cs" id="discovery_script"]
 [ext_resource type="Texture2D" uid="uid://cbum6i0uor0jw" path="res://assets/kaykit-dungeon-remastered/dungeon_texture.png" id="kaykit_texture"]
+[ext_resource type="Script" path="res://scenes/props/triggers/PlatePressComponent.cs" id="press_script"]
 
 [sub_resource type="StandardMaterial3D" id="Material_plate"]
 resource_name = "plate_stone"
@@ -19,16 +20,16 @@ roughness = 0.85
 [sub_resource type="BoxShape3D" id="Shape_plate"]
 size = Vector3(1.6, 1, 1.6)
 
-[node name="PressurePlate" type="Node3D" node_paths=PackedStringArray("Trigger", "Output", "DiscoveryEffect", "FloorSurface", "Discovery") groups=["prop"]]
+[node name="PressurePlate" type="Node3D" node_paths=PackedStringArray("Trigger", "Output", "DiscoveryEffect", "Visual", "Discovery") groups=["prop"]]
 script = ExtResource("plate_script")
 Trigger = NodePath("TriggerComponent")
 Output = NodePath("TriggerOutput")
 DiscoveryEffect = NodePath("DiscoveryEffect")
-FloorSurface = NodePath("Plate/floor_tile_small_broken_A")
+Visual = NodePath("Plate")
 Discovery = NodePath("ProximityDiscovery")
-SurfaceLift = 0.055
 
 [node name="Plate" parent="." instance=ExtResource("plate_model")]
+transform = Transform3D(1, 0, 0, 0, 1.7333, 0, 0, 0, 1, 0, 0.0733, 0)
 
 [node name="floor_tile_small_broken_A" parent="Plate" index="0"]
 surface_material_override/0 = SubResource("Material_plate")
@@ -50,3 +51,8 @@ Profile = ExtResource("detection")
 [node name="TriggerOutput" type="Node" parent="."]
 script = ExtResource("output_script")
 Mode = ExtResource("pulse")
+
+[node name="PlatePress" type="Node" parent="." node_paths=PackedStringArray("Output", "Target")]
+script = ExtResource("press_script")
+Output = NodePath("../TriggerOutput")
+Target = NodePath("../Plate")

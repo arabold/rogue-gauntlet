@@ -66,12 +66,12 @@ size = Vector2(2.6, 2.6)
 [sub_resource type="BoxShape3D" id="BoxShape3D_t1utv"]
 size = Vector3(2.4, 1, 2.4)
 
-[node name="PressurePlate" type="Node3D" node_paths=PackedStringArray("Trigger", "Output", "DiscoveryEffect", "FloorSurface", "Discovery") groups=["prop"]]
+[node name="PressurePlate" type="Node3D" node_paths=PackedStringArray("Trigger", "Output", "DiscoveryEffect", "Visual", "Discovery") groups=["prop"]]
 script = ExtResource("1_064fn")
 Trigger = NodePath("TriggerComponent")
 Output = NodePath("TriggerOutput")
 DiscoveryEffect = NodePath("DiscoveryEffect")
-FloorSurface = NodePath("Holes")
+Visual = NodePath("Holes")
 Discovery = NodePath("ProximityDiscovery")
 
 [node name="Holes" type="MeshInstance3D" parent="."]
