@@ -1,0 +1,90 @@
+[gd_resource type="Resource" script_class="RoomType" load_steps=26 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CrossFireStep.cs" id="hazard_step"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/crypt_walls.tres" id="w_crypt_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_floor.tres" id="f_flagstones_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/flagstones_ruined_floor.tres" id="f_flagstones_ruined_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/checker_floor.tres" id="f_checker_floor"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/stone_floor.tres" id="f_stone_floor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/WallDecorStep.cs" id="wall_decor"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/ScatterStep.cs" id="scatter"]
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/steps/CornersStep.cs" id="corners"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/sconce.tres" id="sconce"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_pile.tres" id="candle_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/decor/candle_stubs.tres" id="candle_stubs"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/bone_pile.tres" id="bone_pile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="floor_debris"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="web_corner_small"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="web_corner_large"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/props/traps/gargoyle_head.tres" id="gargoyle_head"]
+
+[sub_resource type="Resource" id="shape"]
+script = ExtResource("rectangle")
+Weight = 1.0
+MinimumSize = Vector2i(3, 5)
+MaximumSize = Vector2i(3, 7)
+OddWidth = true
+metadata/_custom_type_script = ExtResource("rectangle")
+
+[sub_resource type="Resource" id="fire_rows"]
+script = ExtResource("hazard_step")
+Id = "fire_rows"
+Content = [ExtResource("gargoyle_head")]
+MinimumCount = 2
+MaximumCount = 5
+Uniform = true
+Pattern = 1
+Sides = 0
+PeriodRange = Vector2(2.6, 3.2)
+metadata/_custom_type_script = ExtResource("hazard_step")
+
+[sub_resource type="Resource" id="sconces"]
+script = ExtResource("wall_decor")
+Id = "sconces"
+Content = [ExtResource("sconce")]
+MaximumCount = 2
+Spacing = 6.0
+metadata/_custom_type_script = ExtResource("wall_decor")
+
+[sub_resource type="Resource" id="candles"]
+script = ExtResource("scatter")
+Id = "candles"
+Content = [ExtResource("candle_pile"), ExtResource("candle_stubs")]
+MaximumCount = 3
+WallChance = 1.0
+metadata/_custom_type_script = ExtResource("scatter")
+
+[sub_resource type="Resource" id="bones"]
+script = ExtResource("scatter")
+Id = "bones"
+Content = [ExtResource("bone_pile"), ExtResource("floor_debris")]
+MaximumCount = 3
+metadata/_custom_type_script = ExtResource("scatter")
+
+[sub_resource type="Resource" id="corner_webs"]
+script = ExtResource("corners")
+Id = "corner_webs"
+Content = [ExtResource("web_corner_small"), ExtResource("web_corner_large")]
+Clearance = 0.2
+Diagonal = true
+MaximumCount = 2
+metadata/_custom_type_script = ExtResource("corners")
+
+[resource]
+script = ExtResource("room_type")
+Id = "gargoyle_crypt"
+Realms = PackedStringArray("garrison")
+Shapes = [SubResource("shape")]
+MinimumFloorTiles = 15
+MinDoorways = 2
+MaxDoorways = 2
+DoorwayPlacement = 1
+DoorChance = 0.0
+FrameChance = 0.5
+Circulation = 1
+Walls = [ExtResource("w_crypt_walls")]
+Floors = [ExtResource("f_flagstones_floor"), ExtResource("f_flagstones_ruined_floor"), ExtResource("f_checker_floor"), ExtResource("f_stone_floor")]
+Steps = [SubResource("fire_rows"), SubResource("sconces"), SubResource("candles"), SubResource("bones"), SubResource("corner_webs")]
+metadata/_custom_type_script = ExtResource("room_type")

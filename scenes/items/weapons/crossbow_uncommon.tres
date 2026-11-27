@@ -9,7 +9,7 @@
 script = ExtResource("2_crossunc")
 AttackStyle = &"crossbow.shoot"
 Grip = ExtResource("weapon_grip")
-ProjectileSpeed = 15.0
+ProjectileSpeed = 24.0
 Range = 20.0
 AimingAngle = 45.0
 Tier = 3

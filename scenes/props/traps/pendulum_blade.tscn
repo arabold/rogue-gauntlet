@@ -1,0 +1,105 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" uid="uid://c284tmb1ho6vg" path="res://scenes/props/traps/PendulumBlade.cs" id="1_pendulum"]
+[ext_resource type="Shader" path="res://scenes/props/traps/pendulum_rod.gdshader" id="2_rod_shader"]
+[ext_resource type="Script" uid="uid://cqxw2ow56hai2" path="res://scenes/components/ExplorationGateComponent.cs" id="3_gate"]
+
+[sub_resource type="ShaderMaterial" id="Material_rod"]
+render_priority = 0
+shader = ExtResource("2_rod_shader")
+shader_parameter/fade_start = -0.7
+shader_parameter/fade_end = 4.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rod"]
+material = SubResource("Material_rod")
+top_radius = 0.07
+bottom_radius = 0.07
+height = 9.8
+radial_segments = 12
+rings = 0
+
+[sub_resource type="StandardMaterial3D" id="Material_steel"]
+albedo_color = Color(0.86, 0.88, 0.9, 1)
+metallic = 0.3
+roughness = 0.25
+emission_enabled = true
+emission = Color(0.7, 0.78, 0.9, 1)
+emission_energy_multiplier = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Material_iron"]
+albedo_color = Color(0.4, 0.38, 0.36, 1)
+metallic = 0.3
+roughness = 0.55
+
+[sub_resource type="BoxMesh" id="BoxMesh_collar"]
+material = SubResource("Material_iron")
+size = Vector3(0.6, 0.2, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_socket"]
+material = SubResource("Material_iron")
+size = Vector3(0.2, 0.42, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape_edge"]
+size = Vector3(1.6, 1.3, 0.3)
+
+[node name="PendulumBlade" type="Node3D" node_paths=PackedStringArray("Arm", "Edge")]
+script = ExtResource("1_pendulum")
+Arm = NodePath("Arm")
+Edge = NodePath("Arm/Edge")
+Sweep = 1.9
+Damage = 4
+DamagePerDepth = 0.77
+
+[node name="Arm" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11, 0)
+
+[node name="Rod" type="MeshInstance3D" parent="Arm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5.3, 0)
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_rod")
+
+[node name="Socket" type="MeshInstance3D" parent="Arm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.0, 0)
+mesh = SubResource("BoxMesh_socket")
+
+[node name="Collar" type="MeshInstance3D" parent="Arm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.12, 0)
+mesh = SubResource("BoxMesh_collar")
+
+[node name="Blade" type="CSGCombiner3D" parent="Arm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -9.8, 0)
+
+[node name="Rim" type="CSGCylinder3D" parent="Arm/Blade"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
+radius = 0.92
+height = 0.05
+sides = 48
+material = SubResource("Material_steel")
+
+[node name="Body" type="CSGCylinder3D" parent="Arm/Blade"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
+radius = 0.82
+height = 0.16
+sides = 48
+material = SubResource("Material_iron")
+
+[node name="Hollow" type="CSGCylinder3D" parent="Arm/Blade"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.35, 0)
+operation = 2
+radius = 0.8
+height = 0.4
+sides = 48
+
+[node name="Edge" type="ShapeCast3D" parent="Arm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.025, 0)
+enabled = false
+shape = SubResource("BoxShape_edge")
+target_position = Vector3(0, 0, 0)
+collision_mask = 4
+collide_with_areas = true
+collide_with_bodies = false
+
+[node name="ExplorationGate" type="Node3D" parent="." node_paths=PackedStringArray("Target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+script = ExtResource("3_gate")
+Target = NodePath("../Arm")

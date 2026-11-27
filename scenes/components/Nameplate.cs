@@ -15,10 +15,8 @@ public partial class Nameplate : Node3D
 	/// <summary>The name starts showing or hiding, e.g. so a health bar can appear with it.</summary>
 	[Signal] public delegate void ShownChangedEventHandler(bool shown);
 
-	private static readonly StringName PlayerGroup = "player";
 	/// <summary>Extra distance before a shown name hides again, so a player at the edge doesn't make it flicker.</summary>
 	private const float HideMargin = 0.5f;
-	private const float PlayerLookupInterval = 0.5f;
 
 	/// <summary>Required: the name this plate fades in and out.</summary>
 	[Export] public Label3D NameLabel { get; set; }
@@ -33,9 +31,8 @@ public partial class Nameplate : Node3D
 	/// <summary>Lets the owner hold the name back, e.g. while a thrown drop is still in the air.</summary>
 	[Export] public bool Enabled { get; set; } = true;
 
-	private Node3D _player;
 	private ExplorationVisibility _exploration;
-	private Cooldown _playerLookup;
+	private PlayerLookup _player;
 	private float _outlineAlpha;
 	private AlphaFade _fade;
 
@@ -59,7 +56,7 @@ public partial class Nameplate : Node3D
 	public override void _Process(double delta)
 	{
 		bool allowed = RefreshFog() && Enabled && Health?.IsDead != true && Subject?.IsHiddenFromHero != true;
-		Node3D player = allowed ? FindPlayer(delta) : null;
+		Node3D player = allowed ? _player.Find(this, delta) : null;
 		bool shown = player != null
 			&& player.GlobalPosition.HorizontalDistanceTo(GlobalPosition) <= ShowDistance + (IsShown ? HideMargin : 0f);
 		if (_fade.Set(shown, FadeDuration)) EmitSignalShownChanged(shown);
@@ -71,15 +68,6 @@ public partial class Nameplate : Node3D
 		bool revealed = _exploration.IsRevealed(GlobalPosition);
 		if (Visible != revealed) Visible = revealed;
 		return revealed;
-	}
-
-	/// <summary>Caches the player; a missing one is looked up again only every <see cref="PlayerLookupInterval"/>.</summary>
-	private Node3D FindPlayer(double delta)
-	{
-		if (IsInstanceValid(_player) && _player.IsInsideTree()) return _player;
-		if (!_playerLookup.Tick(delta)) return null;
-		_playerLookup.Start(PlayerLookupInterval);
-		return _player = GetTree().GetFirstNodeInGroup(PlayerGroup) as Node3D;
 	}
 
 	/// <summary>Fades through alpha only, keeping the color the owner or scene gave the name.</summary>

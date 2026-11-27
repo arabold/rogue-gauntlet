@@ -20,7 +20,7 @@ public partial class FloorTrap : Node3D, IProximityDiscoverable
 	public bool IsDiscovered { get; private set; }
 	public bool IsTriggered { get; private set; }
 	/// <summary>What a spring deals on its level's depth (the first outside a level), at least 1.</summary>
-	public int CurrentDamage => Mathf.Max(1, Mathf.RoundToInt(Damage + DamagePerDepth * ((int)(_level?.Depth ?? 1) - 1)));
+	public int CurrentDamage => TrapDamage.At(Damage, DamagePerDepth, _level?.Depth ?? 1);
 	private Level _level;
 	private GridMap _surfaceGrid;
 	private Vector3I _surfaceCell;
