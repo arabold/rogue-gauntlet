@@ -199,7 +199,7 @@ public interface ITriggerable
 Related changes:
 - `WallSpout` keeps its beat and warning and fires through its `TrapShotComponent`; its projectile exports move there.
 - `FloorTrap` is removed (landed):
-  - `scenes/props/traps/pressure_plate_spikes.tscn` is a concealed, hero-pressed `PressurePlate` whose Pulse output springs the `SpikeBurst` on its tile. It replaces `floor_trap.tscn` everywhere: the level's `TrapScene`, tests, and the balance model's `TRAP_SCENE`, whose damage moved to the `SpikeBurst` node.
+  - `scenes/props/traps/pressure_plate_spikes.tscn` is a concealed, hero-pressed `PressurePlate` whose Pulse output springs its `SpikeBurst`. It carries no floor tile: its holes are a ground overlay on the room's own floor and its spikes rise from under the floor plane, so no floor height has to match. It replaces `floor_trap.tscn` everywhere: the level's `TrapScene`, tests, and the balance model's `TRAP_SCENE`, whose damage moved to the `SpikeBurst` node.
   - A bare `pressure_plate.tscn`, for launchers, comes with slice 2 and its own plate model.
 - New scenes:
   - `wall_launcher_dart.tscn` and `wall_launcher_gargoyle.tscn` reuse the spout models.

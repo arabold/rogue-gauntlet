@@ -67,16 +67,19 @@ public partial class DiscoveryAndAccessBalanceTest
 		harness.Replay();
 		var trap = harness.PreviewTrap;
 		AssertBool(trap.DiscoveryEffect.IsPlaying).IsTrue();
-		var plate = trap.GetNode<MeshInstance3D>("floor_tile_big_spikes");
-		AssertObject(plate.MaterialOverlay).IsNull();
-		AssertBool(plate.Visible).IsFalse();
-		AssertFloat(((BaseMaterial3D)plate.GetSurfaceOverrideMaterial(0)).AlbedoColor.A).IsEqual(0);
+		// The spike holes fade in through their shader's reveal, then keep their authored material.
+		var holes = trap.GetNode<MeshInstance3D>("Holes");
+		float Reveal() => ((ShaderMaterial)holes.GetSurfaceOverrideMaterial(0)).GetShaderParameter("reveal").AsSingle();
+		AssertObject(holes.MaterialOverlay).IsNull();
+		AssertBool(holes.Visible).IsFalse();
+		AssertFloat(Reveal()).IsEqual(0);
 		await runner.SimulateFrames(12, 20);
-		AssertFloat(((BaseMaterial3D)plate.GetSurfaceOverrideMaterial(0)).AlbedoColor.A).IsGreater(0);
-		AssertFloat(((BaseMaterial3D)plate.GetSurfaceOverrideMaterial(0)).AlbedoColor.A).IsLess(1);
+		AssertFloat(Reveal()).IsGreater(0);
+		AssertFloat(Reveal()).IsLess(1);
 		await runner.SimulateFrames(30, 20);
 		AssertBool(trap.DiscoveryEffect.IsPlaying).IsFalse();
-		AssertObject(plate.MaterialOverlay).IsNull(); AssertFloat(plate.Transparency).IsEqual(0);
+		AssertObject(holes.MaterialOverlay).IsNull();
+		AssertObject(holes.GetSurfaceOverrideMaterial(0)).IsNull();
 		AssertInt(trap.DiscoveryEffect.GetChildCount()).IsEqual(0);
 		AssertInt(harness.PreviewRoot.GetChildren().OfType<GridMap>().Single().GetCellItem(Vector3I.Zero)).IsEqual(0);
 		AssertBool(trap.GetNode<TriggerComponent>("TriggerComponent").IsInsideTree()).IsTrue();

@@ -7,7 +7,8 @@ using Godot;
 [Tool, GlobalClass]
 public partial class SpikeBurst : Trap, ITriggerable
 {
-	private const float Lowered = -2f;
+	/// <summary>Where the spikes wait: their tips just under the floor plane, below every floor tile, and none show.</summary>
+	private const float Lowered = -2.1f;
 
 	[Export] public MeshInstance3D Spikes { get; set; }
 
