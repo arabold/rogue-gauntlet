@@ -236,7 +236,7 @@ spawns together in one room.
 
 The budget is sized to **attrition** (`params.ATTRITION`, `simulate.py fit`): a regular hero without potions, averaged
 over the classes, loses about 60% of max health on an ordinary floor and about 75% on a gatekeeper floor (its packs,
-traps and gatekeeper). Packs cost in proportion to the budget they spend; traps and gatekeepers do not, so `fit` solves
+traps and gatekeeper). Packs cost in proportion to the budget they spend; traps, gauntlets and gatekeepers do not, so `fit` solves
 for the budget line and the gatekeeper floor's share from the class-mean costs at every depth, then reports the
 arrival odds. The targets keep the difficulty the 2026-11-14 playtests liked: fodder and swarmers hit softly, so a
 floor holds many of them, about 9 monsters on depth 1 and 10–12 on deeper ordinary floors, and a gatekeeper floor 6–8
@@ -252,6 +252,18 @@ their springs hit, for a dart's 5.5% of the expected hero's health, and a fireba
 armor never absorbs it. `derive` writes each launcher's `Damage` and `DamagePerDepth`. Together traps cost about 6% of
 max health per floor. The trap count stays authored rather
 than spent from the budget: at 6% a floor, the budget fit simply leaves room for them.
+
+**Trap gauntlets** (`params.HAZARDS`) count toward attrition too. A run deals two or three
+(`GauntletProfile.MinPerRun..MaxPerRun` and `FirstDepth`, audited), one in each band of the ordinary floors from depth 2,
+each guarding its floor's descent, and never the same room twice; `simulate` deals them the same way. The model spreads
+them over shop and labyrinth floors too, which never hold one, so a gauntlet floor comes a little rarer there and
+a little likelier elsewhere. The gauntlet rooms hold darts, fireballs and blades one to one to two (audited from
+[the gauntlet rooms](../../scenes/levels/rooms/room_types/gauntlets/)). Every row has a safe window and the hero may
+wait between rows, so a crossing costs an estimated one hit. A dart is a physical hit of 5% of the expected hero's
+health, a fireball the launchers' three quarters of that, and a blade's cut 8%: 3, 2 and 4 on depth 1, 15, 11 and 23 on
+depth 25, which `derive` writes as each hazard's `Damage` and `DamagePerDepth`. A gauntlet floor loses 4–5% more
+health, under 1% a floor averaged over the run; `fit` shows it in its own column. Re-measure the hits per crossing with
+`playtest`, which reports gauntlet hits apart from floor traps.
 
 ### Shops
 
@@ -328,7 +340,7 @@ uv run scripts/balance/simulate.py monster --depth 3 --hp 140 --armor 3 --damage
 ### Game content
 
 `audit` compares the game's `.tres` files with the model's targets; `derive` writes the targets into them. Both take
-`--only` with any of `monsters,encounters,weapons,armor,jewelry,curses,classes,supplies,statuses,loot` and `--match <path text>`
+`--only` with any of `monsters,encounters,weapons,armor,jewelry,curses,classes,supplies,statuses,traps,loot` and `--match <path text>`
 (repeatable). `derive` overwrites every value it owns; review the result with `git diff`.
 
 ```bash
@@ -362,6 +374,10 @@ uv run scripts/balance/simulate.py derive --match skeleton     # write the targe
 - **Statuses:** poison potions (`potion.poison`) get their size's poison points and spoiled food (each food's
   `PoisonEffect`, one per portion: `food_poison_small.tres` to `_large`) its portion's, as `DamagePointsPerTick`,
   `Duration` and `TicksPerSecond`. Blindness and confusion potions get their size's `Duration`.
+- **Traps:** the spike plate (`SpikeBurst`), each wall launcher (`scenes/props/traps/launchers/`) and each gauntlet
+  hazard (a `WallSpout` or `PendulumBlade` scene in `scenes/props/traps/`) get their damage line as `Damage` and
+  `DamagePerDepth`; an elemental shot takes the fireball's. The audit notes trap counts, plate trap odds, the gauntlets
+  a run deals and the gauntlet rooms by hazard that differ from `TRAPS`, `LAUNCHERS` and `HAZARDS`.
 - **Loot** writes the tier depth bands (`tier_intro`, `tier_band`) into `tier_depth_bands.tres`. The weapon, armor
   and jewelry pools drop each entry in its item tier's band, so their entries carry no window to write.
 - **Classes** match the model's classes by `Id`. `derive` writes base attributes, and the hero sheet and stat
@@ -407,7 +423,7 @@ The model can be no better than its skill tiers. Measure them before tuning numb
   `playtest` reports per floor the time spent, kills, XP, level, damage taken and healing (in max health), the
   healing potions found by size against the model's supply, and gear found. Per monster type it reports the hero's
   contacts to kill one (blocked ones count; mean and range), one-hit kills, seconds from the first contact to the
-  kill and the damage the type dealt, then floor trap damage and the first weapon picked up. A monster is named by its
+  kill and the damage the type dealt, then floor trap and gauntlet damage and hits, and the first weapon picked up. A monster is named by its
   death, else by its node name; a pooled rat or minion that never died is unidentified. It then lists every hidden item type
   found (potions, scrolls, jewelry) by its real name, how many were found and used, and how each was identified (used,
   worn, or by a scroll of identify), the cursed items the hero put on, and each timed effect on the hero (how often

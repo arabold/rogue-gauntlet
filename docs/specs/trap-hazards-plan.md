@@ -1,6 +1,6 @@
 # Trap hazards and gauntlets
 
-Status: slices 1 to 3b (wall spouts, pendulum blades, gauntlets, the gauntlet rooms and their placement before a few descents per run) landed, described in [combat](../combat-system.md#trap-hazards) and [level design](../level-design.md#trap-gauntlets); the rest is proposed. Adds visible, rhythmic hazards (wall spouts, pendulum blades, optionally timed spike strips) and arranges them into gauntlet rooms and corridor stretches the hero crosses with timing and dodges. The hidden spike plate ([spike plate](../../scenes/props/traps/pressure_plate_spikes.tscn), discovery in [dungeon exploration](../dungeon-exploration-design.md)) stays as it is.
+Status: slices 1 to 3b (wall spouts, pendulum blades, gauntlets, the gauntlet rooms and their placement before a few descents per run) and 5 (their balance) landed, described in [combat](../combat-system.md#trap-hazards), [level design](../level-design.md#trap-gauntlets) and the [balance model](balance-model.md); the rest is proposed. Adds visible, rhythmic hazards (wall spouts, pendulum blades, optionally timed spike strips) and arranges them into gauntlet rooms and corridor stretches the hero crosses with timing and dodges. The hidden spike plate ([spike plate](../../scenes/props/traps/pressure_plate_spikes.tscn), discovery in [dungeon exploration](../dungeon-exploration-design.md)) stays as it is.
 
 Current systems this builds on: [combat defense](../combat-system.md) (dodge immunity, guard, poise, threat tiers, attack indicators), [level design](../level-design.md) (room assembly, corridor styling, reachability, fog), [realm content](../realm-content.md) (room windows, headlines, motifs), [balance model](balance-model.md) (trap attrition), [room assembly authoring](../../scenes/levels/generators/assembly/README.md).
 
@@ -22,7 +22,7 @@ Current systems this builds on: [combat defense](../combat-system.md) (dodge imm
 | **Pendulum blade** | A crescent scythe blade on a T collar at the end of a long shaft; the pivot hangs 11 m up and the shaft fades out from 5 m, so no ceiling is needed | Swings across the path; period 1.6–2.6 s | The motion itself, plus its shadow under the hero's light | Hazard contact on each pass, pushed out of the blade's path | Dodge-through only (unguardable) |
 | **Spike strip** (optional) | A row of the existing spike plates, visible | Spikes rise, hold, retract | 0.4 s rattle: tips poke through first | Hazard contact while up, once per rise | None: only timing avoids it |
 
-Damage scales with depth like the floor trap (`Damage` + `DamagePerDepth`, written by the balance model's `derive`). Proposed shares of the reference hero's health per hit: dart 5%, fireball 4%, blade 8%, spikes 6% (the floor trap is 9% but hidden and rarer).
+Damage scales with depth like the floor trap (`Damage` + `DamagePerDepth`, written by the balance model's `derive` from `params.HAZARDS`). Shares of the reference hero's health per hit: dart 5%, fireball three quarters of a dart (armor never absorbs it), blade 8%; spikes would be 6% (the floor trap is 9% but hidden and rarer).
 
 Monsters stay immune, as they are to floor traps today (their hurtbox filter excludes the `Trap` faction). Spout projectiles still stop on a monster's body, so monsters shield the hero from darts. Gauntlet tiles get no monster spawns, loot, floor traps or teleport landings.
 
@@ -220,7 +220,7 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
 + scenes/ui/debug/TrapTool.cs                           (debug menu: lists scenes/props/traps/)
 ~ scenes/ui/debug/DebugCatalog.cs, debug_menu.tscn       (hazard scene listing; the Traps submenu)
 ~ scripts/saves/SaveGame.cs                             (CurrentVersion)
-~ scripts/balance/params.py, content.py, model.py, simulate.py   (HAZARDS)
+~ scripts/balance/params.py, content.py, model.py, simulate.py   (HAZARDS, slice 5)
 + tests/TrapHazardTest.cs
 ~ tests/GeneratedFloorSweepTest.cs
 ~ docs/level-design.md, docs/realm-content.md, docs/combat-system.md   (once implemented)
@@ -242,7 +242,7 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
    **Placement (3b, landed).** The run's gauntlet schedule, the approach group before the descent, gauntlet rooms kept free of spawns and loot, save version bump, `GauntletPlacementTest`.
    **Corridor gauntlets (3c, later).** `CorridorHazardStep` spans with recorded danger tiles.
 4. **Art** (Asset Studio, pipeline-only PRs per the asset skill): slit plate, gargoyle head, pendulum blade and rod, replacing the placeholders without touching gameplay data.
-5. **Balance.** `HAZARDS` in the model (damage shares, gauntlets per floor, expected hits), `derive` writes the scenes' `Damage`/`DamagePerDepth`, `simulate` counts gauntlet attrition, `content.py` audits it.
+5. **Balance (landed).** `HAZARDS` in the model (damage shares, gauntlets per run, the rooms by hazard, hits per crossing), `derive` writes the hazard scenes' `Damage`/`DamagePerDepth`, `simulate` deals each run's gauntlets and counts their attrition, `content.py` audits the scenes, the gauntlet profile and the rooms. The hits per crossing are an estimate until playtests measure them.
 6. **Optional:** spike strips; the reward seam for vault gauntlets; acid pipes for the Sewer.
 
 ## Open decisions
