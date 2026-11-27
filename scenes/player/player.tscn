@@ -454,6 +454,7 @@ Poise = NodePath("../PoiseComponent")
 Buffs = NodePath("../BuffController")
 HitEffect = ExtResource("9_nunx8")
 ImpactSurface = ExtResource("impact_surface_profile")
+FeedbackProfile = ExtResource("combat_feedback_profile")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBoxComponent" unique_id=1508668277]
 shape = SubResource("CapsuleShape3D_fktr1")
@@ -612,16 +613,14 @@ script = ExtResource("combat_motion_script")
 Actor = NodePath("..")
 VisualOffsetRoot = NodePath("../Pivot")
 
-[node name="CombatFeedbackController" type="Node" parent="." node_paths=PackedStringArray("Actor", "HurtBox", "Movement", "SurfaceProfile", "SurfaceAppearance", "VisualMotion", "Invisibility", "FallbackProfile")]
+[node name="CombatFeedbackController" type="Node" parent="." node_paths=PackedStringArray("Actor", "HurtBox", "Movement", "SurfaceAppearance", "VisualMotion", "Invisibility")]
 script = ExtResource("combat_feedback_script")
 Actor = NodePath("..")
 HurtBox = NodePath("../HurtBoxComponent")
 Movement = NodePath("../MovementComponent")
-SurfaceProfile = ExtResource("impact_surface_profile")
 SurfaceAppearance = NodePath("../SurfaceAppearanceController")
 VisualMotion = NodePath("../CombatVisualMotion")
 Invisibility = NodePath("../InvisibilityComponent")
-FallbackProfile = ExtResource("combat_feedback_profile")
 
 [node name="ItemUseEffects" type="Node" parent="." unique_id=377069831 node_paths=PackedStringArray("Host")]
 script = ExtResource("vfx_use")

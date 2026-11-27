@@ -55,7 +55,7 @@ public partial class LinearRoomLayout : RoomLayoutStrategy
 			var rng = context.Rng;
 			var uses = new Dictionary<RoomDefinition, int>();
 			int maxRooms = Math.Max(2, (int)context.MaxRooms);
-			int goalRoomSlots = context.Profile?.GoalOverride?.EstimatedRoomCount ?? 1;
+			int goalRoomSlots = context.Goal?.EstimatedRoomCount ?? 1;
 			int maxExtraSlots = Math.Max(0, maxRooms - 1 - goalRoomSlots);
 
 			int minApp = Math.Clamp(MinApproachRooms, 0, maxExtraSlots);

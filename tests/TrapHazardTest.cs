@@ -128,47 +128,47 @@ public partial class TrapHazardTest
 		AssertBool(warned).IsTrue();
 	}
 
-	/// <summary>A wave lags each row by the hero's walk from the first, so a walker meets every row at the same beat.</summary>
+	/// <summary>A wave sweeps along the gauntlet: each row fires a quarter beat after the row before it.</summary>
 	[TestCase]
-	public async Task AWaveFiresEachRowAsLateAsTheHeroTakesToWalkThere()
+	public async Task AWaveFiresEachRowAQuarterBeatAfterTheRowBefore()
 	{
-		var (runner, harness, gauntlet, spouts) = await Stage<WallSpout>(DartSlit, HazardPattern.Wave, rows: 3);
+		var (runner, _, gauntlet, spouts) = await Stage<WallSpout>(DartSlit, HazardPattern.Wave, rows: 3);
 		using var scope = runner;
-		var hero = harness.Player;
 		var firstShot = new Dictionary<WallSpout, double>();
 		foreach (var spout in spouts) spout.Fired += _ => firstShot.TryAdd(spout, gauntlet.Clock);
 		await TestFactories.AwaitPhysicsUntil(runner, () => firstShot.Count == spouts.Length, 3);
-		hero.MovementComponent.LookAtDirection.TryNormalizeHorizontal(out Vector3 path);
-		foreach (var spout in spouts.Skip(1))
+		foreach (var (before, after) in spouts.Zip(spouts.Skip(1)))
 		{
-			double walk = (spout.GlobalPosition - spouts[0].GlobalPosition).Dot(path) / hero.Stats.Speed;
-			double lag = Mathf.PosMod(firstShot[spout] - firstShot[spouts[0]] - walk, spout.Period);
-			AssertFloat((float)Mathf.Min(lag, spout.Period - lag)).IsLess(.05f);
+			double lag = Mathf.PosMod(firstShot[after] - firstShot[before], after.Period);
+			AssertFloat((float)lag).IsEqualApprox(after.Period / 4, .05f);
 		}
 	}
 
-	/// <summary>Beside its swing a hero is never cut; under it, once per swing, and pushed along the swing.</summary>
+	/// <summary>
+	/// Beside its swing a hero is never cut; under it, cut once and pushed out of the blade's path, clear of its reach, so
+	/// later swings miss.
+	/// </summary>
 	[TestCase]
-	public async Task APendulumCutsAHeroUnderItOncePerSwingAndPushesThemAlongIt()
+	public async Task APendulumCutsAHeroUnderItOnceAndPushesThemOutOfItsPath()
 	{
 		var (runner, harness, _, blades) = await Stage<PendulumBlade>(Pendulum, period: 1.6f);
 		using var scope = runner;
 		var hero = harness.Player;
 		var blade = blades[0];
-		PlaceAt(hero, blade.GlobalPosition + blade.GlobalBasis.Z * 2f);
+		Vector3 across = blade.GlobalBasis.Z;
+		PlaceAt(hero, blade.GlobalPosition + across * 2f);
 		var outcomes = RecordOutcomes(hero);
 		await TestFactories.AwaitPhysicsSeconds(runner, 1.7f);
 		AssertThat(outcomes).IsEmpty();
 
-		// Step under it as it crosses the middle: a quarter period (0.4 s) of this swing remains, so a second cut can only
-		// come from the next one.
+		// Step just off the middle of its path as it swings through: the cut pushes back to that side.
 		await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(blade.Arm.Rotation.Z) < Mathf.DegToRad(2), 2);
-		PlaceAt(hero, blade.GlobalPosition);
+		PlaceAt(hero, blade.GlobalPosition - across * .2f);
 		await TestFactories.AwaitPhysicsUntil(runner, () => outcomes.Count > 0, 1);
-		Vector3 struck = hero.GlobalPosition;
-		await TestFactories.AwaitPhysicsSeconds(runner, .25f);
+		await TestFactories.AwaitPhysicsUntil(runner, () => (hero.GlobalPosition - blade.GlobalPosition).Dot(across) < -blade.Clearance + .1f, 1.5f);
+		// The blade sweeps its path every half period: one more pass misses the hero it pushed out.
+		await TestFactories.AwaitPhysicsSeconds(runner, 1f);
 		AssertThat(outcomes).ContainsExactly(DamageOutcome.Damaged);
-		AssertFloat(Mathf.Abs((hero.GlobalPosition - struck).Dot(blade.GlobalBasis.X))).IsGreater(.3f);
 	}
 
 	[TestCase]

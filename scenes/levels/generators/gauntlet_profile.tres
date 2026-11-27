@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="GauntletProfile" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/GauntletProfile.cs" id="profile"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_groups/gauntlet_exit.tres" id="approach"]
+
+[resource]
+script = ExtResource("profile")
+Approach = ExtResource("approach")
+MinPerRun = 2
+MaxPerRun = 3
+FirstDepth = 2
+LastDepth = 25
+metadata/_custom_type_script = ExtResource("profile")

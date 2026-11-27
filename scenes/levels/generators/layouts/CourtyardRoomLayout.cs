@@ -14,6 +14,9 @@ public partial class CourtyardRoomLayout : HallRoomLayout
 	/// <summary>The rectangular room at the heart of the floor; its doorways open onto the walkway around it.</summary>
 	[Export] public RoomDefinition Center { get; set; }
 
+	/// <summary>The goal opens onto the walkway's far end, a few tiles from the floor's edge: no room for a gauntlet.</summary>
+	public override bool HoldsGauntlets => false;
+
 	protected override List<BranchPoint> LayCore(MapData map, FloorPlan plan, FloorBuildContext context, Dictionary<Vector2I, int> halls)
 	{
 		if (Center == null || !Center.SupportsRealm(context.Pool.RealmId))

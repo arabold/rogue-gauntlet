@@ -228,6 +228,7 @@ public static partial class RoomAssembler
 			{
 				RoomPoolSlot.Entrance => pool.Entrances,
 				RoomPoolSlot.Exit => pool.Exits,
+				RoomPoolSlot.Gauntlet => pool.Gauntlets,
 				_ => pool.Rooms,
 			};
 		}

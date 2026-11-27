@@ -155,10 +155,12 @@ public partial class MapGenerator : Node3D
 		GD.Print("Generating rooms...");
 
 		var headline = CurrentRealmFloor?.Headline;
-		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, RoomBudget, _random.Layout, new HeadlineSlot(headline));
+		var goal = AttemptGoal();
+		var context = new FloorBuildContext(_realmRooms, CurrentProfile, Floor.Encounter, RoomBudget, _random.Layout, new HeadlineSlot(headline), goal);
 		var plan = CurrentProfile.Layout.GenerateLayout(Map, context);
 		if (headline != null && !plan.Placements.Any(placed => (placed.Cluster.Definition ?? placed.Cluster.PrimaryRoom?.Type) == headline))
 			GD.Print($"No room for the headline {headline.Id} on this layout attempt.");
+		if (CurrentGauntlet != null && goal == null) GD.Print($"No room for the gauntlet {CurrentGauntlet.Id}; this attempt goes without it.");
 		PlaceClusters(plan.Placements);
 		return plan;
 	}
@@ -809,7 +811,7 @@ public partial class MapGenerator : Node3D
 		if (encounter?.GatekeeperId != null && CurrentRealm?.BossProfile != null) return CurrentRealm.BossProfile;
 		if (UniqueFloorPlan.At(UniqueFloorPlans, RunSeed, DungeonDepth, IsOrdinaryFloor) is { } unique) return unique;
 		using var rng = GenerationRandom.Create(Seed, GenerationRandom.Layout, "floor-plan");
-		return CurrentRealm?.PickFloorPlan(rng, CurrentRealm.FloorOf(DungeonDepth));
+		return CurrentRealm?.PickFloorPlan(rng, CurrentRealm.FloorOf(DungeonDepth), gauntlet: CurrentGauntlet != null);
 	}
 
 	/// <summary>A floor with neither a gatekeeper nor a shop, which a unique plan may take over.</summary>
@@ -818,18 +820,21 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>
 	/// Floor-wide choices every layout attempt shares: the realm, the special encounters (planned before anything else,
-	/// since they decide the floor plan, which sizes the map), the floor's share of its realm's schedule and the plan.
+	/// since they decide the floor plan, which sizes the map), the floor's share of its realm's schedule, its gauntlet and
+	/// the plan.
 	/// </summary>
 	private void PrepareFloor()
 	{
-		var errors = UniqueFloorPlans.SelectMany(plan => plan?.Validate() ?? ["MapGenerator: remove empty unique floor plan entries."]).ToArray();
+		var errors = UniqueFloorPlans.SelectMany(plan => plan?.Validate() ?? ["MapGenerator: remove empty unique floor plan entries."])
+			.Concat(Gauntlets?.Validate() ?? []).ToArray();
 		if (errors.Length > 0) throw new InvalidOperationException(string.Join("\n", errors));
 		CurrentRealm = RealmAt(DungeonDepth);
 		_encounter = MobFactory?.PlanEncounters(DungeonDepth);
 		var realm = CurrentRealm;
 		// Shop and gatekeeper floors are headlined by their keeper or gatekeeper, so they draw no headline room.
 		CurrentRealmFloor = realm == null ? null : RealmFloor.Create(realm, DungeonDepth, RunSeed, floor => !IsOrdinaryFloor(realm.DepthOf(floor)));
-		_realmRooms = Rooms?.ForRealm(realm?.Theme).ForFloor(CurrentRealmFloor);
+		CurrentGauntlet = GauntletSchedule().FirstOrDefault(entry => entry.Depth == DungeonDepth).Room;
+		_realmRooms = Rooms?.ForRealm(realm?.Theme).ForFloor(CurrentRealmFloor, CurrentGauntlet);
 		CurrentProfile = Profile ?? FloorPlanFor(_encounter);
 	}
 

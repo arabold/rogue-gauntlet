@@ -12,6 +12,10 @@ public abstract partial class RoomLayoutStrategy : Resource
 	/// </summary>
 	public abstract FloorPlan GenerateLayout(MapData map, FloorBuildContext context);
 
+	/// <summary>Whether the layout has room for the long approach through a trap gauntlet before its descent
+	/// (<see cref="GauntletProfile"/>).</summary>
+	public virtual bool HoldsGauntlets => true;
+
 	/// <summary>Keeps <paramref name="cluster"/> at <paramref name="placement"/>, stamps it, and marks internal bridges protected.</summary>
 	protected static void AddPlacement(MapData map, FloorPlan plan, RoomCluster cluster, Vector2I placement)
 	{
@@ -35,8 +39,8 @@ public abstract partial class RoomLayoutStrategy : Resource
 	}
 
 	protected static RoomCluster CreateGoal(FloorBuildContext context, RoomAssemblyOptions options) =>
-		context.Profile?.GoalOverride != null
-			? context.Pool.CreateFrom(context.Profile.GoalOverride, context.Rng, options)
+		context.Goal != null
+			? context.Pool.CreateFrom(context.Goal, context.Rng, options)
 			: context.Pool.CreateExit(context.Rng, options);
 
 	/// <summary>

@@ -5,7 +5,8 @@ using System.Collections.Generic;
 /// <summary>
 /// A blade on a rod swinging from a pivot above the walls. The root stands on the floor; <see cref="Arm"/> hangs from the
 /// pivot and turns about its local Z, so the blade sweeps along the root's X: across a path running along Z. Awake, it
-/// cuts the hero at most once per swing and pushes them along it; a dodge passes through it and nothing blocks it.
+/// cuts the hero at most once per swing and pushes them out of its path, back to the side they stood on, so one cut
+/// never becomes several; a dodge passes through it and nothing blocks it.
 /// Asleep, it holds still: its gauntlet wakes before the blade comes into view. The blade crosses the middle moving
 /// toward +X at the start of each cycle.
 /// </summary>
@@ -19,8 +20,10 @@ public partial class PendulumBlade : TrapHazard
 	[Export] public ShapeCast3D Edge { get; set; }
 	/// <summary>How far the blade's middle travels to each side of the pivot at most; a room narrows it to the space it has.</summary>
 	[Export(PropertyHint.Range, "0,4,0.05,suffix:m")] public float Sweep { get; set; } = 1.9f;
-	/// <summary>Push along the swing on every cut, even one that only flinches.</summary>
-	[Export(PropertyHint.Range, "0,12,0.5")] public float Knockback { get; set; } = 4f;
+	/// <summary>How far from the blade's path a cut pushes its victim, whatever the victim's speed: past the blade's own
+	/// depth and the hero's hurtbox (0.75 m), short of the next row a tile away. Every cut pushes, even one that only
+	/// flinches.</summary>
+	[Export(PropertyHint.Range, "0.5,3,0.05,suffix:m")] public float Clearance { get; set; } = 1.6f;
 
 	/// <summary>Half the blade's width across its swing: how far it reaches past its middle.</summary>
 	public float BladeHalfWidth => Edge?.Shape is BoxShape3D box ? box.Size.X / 2 : 0;
@@ -69,8 +72,16 @@ public partial class PendulumBlade : TrapHazard
 			_struck.Clear();
 		}
 		// Only a hero within reach of the swing can be cut; the body's width is the margin.
-		if (DangerBounds.Grow(1).HasPoint(hero.GlobalPosition + Vector3.Up))
-			Cut(swing, GlobalBasis.X.Horizontal().Normalized() * Math.Sign(Math.Cos(Math.Tau * cycle)));
+		if (DangerBounds.Grow(1).HasPoint(hero.GlobalPosition + Vector3.Up)) Cut(swing);
+	}
+
+	/// <summary>Straight out of the blade's path toward the side <paramref name="point"/> is on, and how far off the path
+	/// it stands.</summary>
+	private (Vector3 Away, float Offset) OffPath(Vector3 point)
+	{
+		Vector3 across = GlobalBasis.Z.Horizontal().Normalized();
+		float offset = (point - GlobalPosition).Dot(across);
+		return (offset < 0 ? -across : across, Mathf.Abs(offset));
 	}
 
 	private Aabb MeasureDanger()
@@ -82,13 +93,15 @@ public partial class PendulumBlade : TrapHazard
 		return GlobalTransform * new Aabb(new Vector3(-sweep, 0, -half.Z), new Vector3(2 * sweep, top, 2 * half.Z));
 	}
 
-	private void Cut(long swing, Vector3 travel)
+	private void Cut(long swing)
 	{
 		Edge.ForceShapecastUpdate();
 		int damage = CurrentDamage;
 		for (int index = 0; index < Edge.GetCollisionCount(); index++)
 		{
 			if (Edge.GetCollider(index) is not HurtBoxComponent hurtBox || !_struck.Add(hurtBox.GetInstanceId())) continue;
+			var (away, offset) = OffPath(hurtBox.GlobalPosition);
+			float push = hurtBox.MovementComponent?.PushStrengthFor(Clearance - offset) ?? 0;
 			var contact = new DamageContext
 			{
 				ExecutionId = new AttackIdentity(GetInstanceId(), unchecked((ulong)swing)),
@@ -97,10 +110,10 @@ public partial class PendulumBlade : TrapHazard
 				Faction = DamageSourceFlags.Trap,
 				Amount = damage,
 				Random = _random,
-				IncomingDirection = travel,
+				IncomingDirection = away,
 				DefenseTraits = AttackDefenseTraits.Dodgeable,
 				DeliveryKind = DamageDeliveryKind.Hazard,
-				Impact = new AttackImpact(damage, Knockback, ForcePushback: true),
+				Impact = new AttackImpact(damage, push, ForcePushback: true),
 			};
 			hurtBox.ResolveDamage(in contact);
 		}

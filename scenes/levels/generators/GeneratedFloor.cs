@@ -31,6 +31,8 @@ public sealed class GeneratedFloor
 	private bool[] _reachable;
 	private readonly Dictionary<string, (Door Door, DoorAccessSaveData Baseline)> _doorBaselines = new();
 	private List<FloorTrap> _traps;
+	/// <summary>The tiles of every trap gauntlet room, kept free of spawns and loot.</summary>
+	private readonly HashSet<Vector2I> _gauntletTiles = [];
 	private HashSet<Vector2I> _decoratedTiles;
 	private readonly HashSet<Vector2I> _propTiles = new();
 	private ulong _propTilesFrame = ulong.MaxValue;
@@ -73,6 +75,8 @@ public sealed class GeneratedFloor
 	public IReadOnlyDictionary<string, (Door Door, DoorAccessSaveData Baseline)> DoorBaselines => _doorBaselines;
 	/// <summary>Authored and generated floor traps, collected when the floor freezes.</summary>
 	public IReadOnlyList<FloorTrap> Traps => _traps ?? [];
+	/// <summary>The slot of the trap gauntlet room in its approach group (<c>gauntlet_exit.tres</c>).</summary>
+	public const string GauntletSlot = "gauntlet";
 	/// <summary>World XZ outlines of the solid wall pieces, from their mesh footprints rather than collision hulls: a corner
 	/// counts as its two arms, so a room's inner corner stays open. Set once the walls are final.</summary>
 	public IReadOnlyList<Vector2[]> SolidWalls { get; internal set; } = [];
@@ -182,10 +186,14 @@ public sealed class GeneratedFloor
 		if (IsFrozen) throw new InvalidOperationException("A frozen floor cannot change.");
 	}
 
-	/// <summary>Caches decorated tiles once rooms and corridors have finished adding GridMap decorations.</summary>
+	/// <summary>
+	/// Caches decorated tiles once rooms and corridors have finished adding GridMap decorations, and the trap gauntlet
+	/// rooms' tiles.
+	/// </summary>
 	internal void FreezeDecorations()
 	{
 		if (_decoratedTiles != null) return;
+		foreach (var room in _rooms.Where(room => room.SlotId == GauntletSlot)) _gauntletTiles.UnionWith(room.Tiles);
 		var decorated = new HashSet<Vector2I>();
 		int half = Room.TileSize / 2;
 		foreach (Vector3I cell in _decoration.GetUsedCells())
@@ -210,7 +218,10 @@ public sealed class GeneratedFloor
 	public int RoomIdAt(Vector2I tile) => _tileToRoom.TryGetValue(tile, out var id) ? id : -1;
 	public int RoomIdAt(Vector3 point) => RoomIdAt(Map.WorldToTile(point));
 
-	/// <summary>An unreachable tile center, decoration and nearby props make a tile unusable for spawns and loot.</summary>
+	/// <summary>
+	/// An unreachable tile center, decoration, nearby props and a trap gauntlet's room make a tile unusable for spawns and
+	/// loot: a gauntlet is crossed on timing alone, with nothing to fight or pick up under its blades.
+	/// </summary>
 	internal bool IsOccupied(int x, int z)
 	{
 		RefreshPropTiles();
@@ -221,7 +232,7 @@ public sealed class GeneratedFloor
 	internal bool IsOccupiedNow(int x, int z)
 	{
 		var tile = new Vector2I(x, z);
-		return !IsReachable(Map.TileToWorld(x, z)) || HasDecorationInTile(x, z) || _propTiles.Contains(tile);
+		return !IsReachable(Map.TileToWorld(x, z)) || HasDecorationInTile(x, z) || _propTiles.Contains(tile) || _gauntletTiles.Contains(tile);
 	}
 
 	/// <summary>

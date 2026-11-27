@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=30 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://scenes/props/chest_gold.tscn" id="locked_reward"]
 [ext_resource type="PackedScene" path="res://scenes/props/chest_secret.tscn" id="secret_reward"]
 [ext_resource type="Resource" path="res://scenes/props/fountains/fountain_profile.tres" id="12_fountains"]
+[ext_resource type="Resource" path="res://scenes/levels/generators/gauntlet_profile.tres" id="gauntlets"]
 [ext_resource type="Resource" path="res://scenes/levels/navigation/navigation_profiles/default.tres" id="13_navigation"]
 [ext_resource type="Resource" path="res://scenes/levels/encounters/threat_profile.tres" id="threat_profile"]
 
@@ -63,6 +64,7 @@ GoldPiles = ExtResource("gold_piles")
 LockedRewardScene = ExtResource("locked_reward")
 SecretRewardScene = ExtResource("secret_reward")
 Fountains = ExtResource("12_fountains")
+Gauntlets = ExtResource("gauntlets")
 
 [node name="ItemPersistence" type="Node" parent="."]
 script = ExtResource("13_persistence")

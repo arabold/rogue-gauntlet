@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=22 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
@@ -16,6 +16,11 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/floor_debris.tres" id="floor_debris"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/debris/rubble_scatter.tres" id="rubble_scatter"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/traps/pendulum_blade.tres" id="pendulum_blade"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="t_slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/cave_walls.tres" id="t_cave_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silted_bricks.tres" id="t_silted_bricks"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/drained_flagstones.tres" id="t_drained_flagstones"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/cave_floor.tres" id="t_cave_floor"]
 
 [sub_resource type="Resource" id="shape"]
 script = ExtResource("rectangle")
@@ -63,7 +68,7 @@ metadata/_custom_type_script = ExtResource("scatter")
 [resource]
 script = ExtResource("room_type")
 Id = "blade_passage"
-Realms = PackedStringArray("garrison")
+Realms = PackedStringArray("garrison", "sewer", "jungle")
 Shapes = [SubResource("shape")]
 MinimumFloorTiles = 6
 MinDoorways = 2
@@ -72,7 +77,7 @@ DoorwayPlacement = 1
 DoorChance = 0.0
 FrameChance = 0.5
 Circulation = 1
-Walls = [ExtResource("w_stone_walls"), ExtResource("w_ruined_walls")]
-Floors = [ExtResource("f_stone_floor"), ExtResource("f_flagstones_floor"), ExtResource("f_cobble_floor")]
+Walls = [ExtResource("w_stone_walls"), ExtResource("w_ruined_walls"), ExtResource("t_slimy_walls"), ExtResource("t_cave_walls")]
+Floors = [ExtResource("f_stone_floor"), ExtResource("f_flagstones_floor"), ExtResource("f_cobble_floor"), ExtResource("t_silted_bricks"), ExtResource("t_drained_flagstones"), ExtResource("t_cave_floor")]
 Steps = [SubResource("blade_rows"), SubResource("torches"), SubResource("undead_remains"), SubResource("decay")]
 metadata/_custom_type_script = ExtResource("room_type")

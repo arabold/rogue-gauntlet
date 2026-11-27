@@ -164,9 +164,6 @@ Movement = NodePath("../MovementComponent")
 AnimationTree = NodePath("../EnemyBehaviorComponent/AnimationTree")
 NaturalLocomotionSpeed = 4.5
 
-[node name="CombatFeedbackController" parent="."]
-SurfaceProfile = ExtResource("flesh")
-
 [node name="MovementEffectsComponent" parent="."]
 Profile = ExtResource("movement_profile")
 

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RoomType" load_steps=26 format=3]
+[gd_resource type="Resource" script_class="RoomType" load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/RoomType.cs" id="room_type"]
 [ext_resource type="Script" path="res://scenes/levels/generators/assembly/shapes/RectangleShape.cs" id="rectangle"]
@@ -19,6 +19,9 @@
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_small.tres" id="web_corner_small"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/wall/web_corner_large.tres" id="web_corner_large"]
 [ext_resource type="Resource" path="res://scenes/levels/rooms/props/traps/gargoyle_head.tres" id="gargoyle_head"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/walls/slimy_walls.tres" id="t_slimy_walls"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/silted_bricks.tres" id="t_silted_bricks"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/styles/floors/drained_flagstones.tres" id="t_drained_flagstones"]
 
 [sub_resource type="Resource" id="shape"]
 script = ExtResource("rectangle")
@@ -75,7 +78,7 @@ metadata/_custom_type_script = ExtResource("corners")
 [resource]
 script = ExtResource("room_type")
 Id = "gargoyle_crypt"
-Realms = PackedStringArray("garrison")
+Realms = PackedStringArray("garrison", "sewer", "jungle")
 Shapes = [SubResource("shape")]
 MinimumFloorTiles = 15
 MinDoorways = 2
@@ -84,7 +87,7 @@ DoorwayPlacement = 1
 DoorChance = 0.0
 FrameChance = 0.5
 Circulation = 1
-Walls = [ExtResource("w_crypt_walls")]
-Floors = [ExtResource("f_flagstones_floor"), ExtResource("f_flagstones_ruined_floor"), ExtResource("f_checker_floor"), ExtResource("f_stone_floor")]
+Walls = [ExtResource("w_crypt_walls"), ExtResource("t_slimy_walls")]
+Floors = [ExtResource("f_flagstones_floor"), ExtResource("f_flagstones_ruined_floor"), ExtResource("f_checker_floor"), ExtResource("f_stone_floor"), ExtResource("t_silted_bricks"), ExtResource("t_drained_flagstones")]
 Steps = [SubResource("fire_rows"), SubResource("sconces"), SubResource("candles"), SubResource("bones"), SubResource("corner_webs")]
 metadata/_custom_type_script = ExtResource("room_type")

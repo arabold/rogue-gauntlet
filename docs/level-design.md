@@ -56,6 +56,12 @@ The generator's `Fountains` profile ([fountain_profile.tres](../scenes/props/fou
 
 `Fountain` grants its `FountainBlessing` strategy (`RestoreHealthBlessing`, `RestoreManaBlessing`) once, through the ordinary timed interaction. A drinker whose pool is full sees a blocked prompt. Drinking hides the art's `Liquid` node, leaving the basin empty. The [pool effects](world-effects.md#fountain-effects) spray a burst over the change, and the drinker plays the healing or mana burst. The drink also plays the drinker's use-item gesture: an interaction offer can name an animation action, and `Player.CurrentActionId` falls back to it while the interaction runs. The fountain's `depth:N:fountain:<kind>` id becomes one of the run's cleared entities, so a revisited or loaded floor rebuilds it drained.
 
+## Trap gauntlets
+
+A run meets a few [trap gauntlets](combat-system.md#trap-hazards), never the same room twice, each guarding a floor's descent. The generator's `Gauntlets` profile ([gauntlet_profile.tres](../scenes/levels/generators/gauntlet_profile.tres), `GauntletProfile`) schedules them from the run seed alone, spread over the ordinary floors (no gatekeeper, shop or labyrinth) whose realm has a plan there with room for the approach; courtyard layouts have none, and a gauntlet floor draws only from its realm's other plans. Gauntlet rooms suit the garrison, sewer and jungle themes, in each theme's walls and floors. A pinned `Profile` builds every floor without one.
+
+On its floor the descent builds from the approach group ([gauntlet_exit.tres](../scenes/levels/rooms/room_groups/gauntlet_exit.tres)) instead of a plain exit: the gauntlet, then the exit room behind it, joined at the gauntlet's far doorway. The gauntlet is a `MustTraverse` member, so a layout where the descent can be reached around it is retried, and neither room's doorways take secret doors or generated locks. A floor whose layouts keep finding no room for the approach goes without its gauntlet. Gauntlet rooms hold nothing to fight or pick up: their tiles count as occupied, so no monster spawns, loot, keys, chests, fountains, keepers or floor traps land there, and teleports and drops land outside.
+
 ## Shops
 
 A realm's `Shops` stand keepers on the realm floors their placements name, as solid props placed after locks and keys and before loot. A layout with no spot for a keeper is retried. [Shops](shops.md#placement) owns the placement rules.
