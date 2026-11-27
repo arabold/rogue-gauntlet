@@ -49,6 +49,8 @@ public partial class MapGenerator : Node3D
 	private EncounterPlan _encounter;
 	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
 	private readonly HashSet<Vector3I> _dividerCells = [];
+	/// <summary>Floor library items the rooms laid as inlays (drains, gutters): no trap lies on a tile holding one.</summary>
+	private readonly HashSet<int> _inlayItems = [];
 	/// <summary>World boxes of the decor hanging on room walls once the floor's walls are final: later wall mounts keep clear of them.</summary>
 	private readonly List<Aabb> _wallDecor = [];
 	private readonly HashSet<(Vector3I Center, bool Horizontal)> _framedEdges = [];
@@ -132,6 +134,7 @@ public partial class MapGenerator : Node3D
 	private void MergeRoomGridMaps(Room room, Vector3I offset)
 	{
 		foreach (var cell in room.DividerCells) _dividerCells.Add(cell + offset);
+		_inlayItems.UnionWith(room.InlayItems);
 		foreach (var (center, horizontal) in room.FramedEdges) _framedEdges.Add((center + offset, horizontal));
 		foreach (var (source, target) in new[] { (room.FloorGridMap, FloorGridMap), (room.WallGridMap, WallGridMap), (room.DecorationGridMap, DecorationGridMap) })
 		{
@@ -852,6 +855,7 @@ public partial class MapGenerator : Node3D
 		ResetAccess();
 		_cachedStaticOutlines = null;
 		_wallDecor.Clear();
+		_inlayItems.Clear();
 		_dividerCells.Clear();
 		_framedEdges.Clear();
 

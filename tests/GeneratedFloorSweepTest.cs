@@ -69,7 +69,8 @@ public class GeneratedFloorSweepTest
 
 	/// <summary>
 	/// Plate traps in every realm: each launcher's back touches its wall, it faces its plate, and its shot reaches the
-	/// plate's middle with nothing in the way, measured against the floor's physics rather than generation's outlines.
+	/// plate's middle with nothing in the way, measured against the floor's physics rather than generation's outlines. No
+	/// trap, launcher plate or spike plate, lies over a drain grate (the sewer's floors set them in).
 	/// </summary>
 	[TestCase]
 	public async Task PlateTrapLaunchersFaceTheirPlatesOverClearLanes()
@@ -114,10 +115,36 @@ public class GeneratedFloorSweepTest
 					if (GapToWall(launcher) is var gap and (< -.3f or > .05f))
 						failures.Add($"{at} has its back {gap:F3} off its wall");
 				}
+				failures.AddRange(PlatesOnGrates(generator, label));
+				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
+			}
+			// Many spike plates where the sewer's floors lay their grates.
+			generator.TriggeredTrapChance = 0;
+			generator.MinTraps = generator.MaxTraps = 8;
+			for (ulong seed = 1; seed <= 3; seed++)
+			{
+				generator.Seed = seed;
+				generator.DungeonDepth = 12;
+				generator.GenerateMap(includeGameplay: true);
+				failures.AddRange(PlatesOnGrates(generator, $"spike plates seed {seed} depth 12"));
 				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
 			}
 			AssertThat(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
 			AssertInt(launchers).IsGreater(3);
+		}
+	}
+
+	/// <summary>Plates whose tile holds a grate piece, anywhere in the floor cells the tile spans.</summary>
+	private static IEnumerable<string> PlatesOnGrates(MapGenerator generator, string label)
+	{
+		var grid = generator.FloorGridMap;
+		var offsets = Enumerable.Range(-TileSize / 2, TileSize + 1).ToArray();
+		foreach (var plate in generator.Floor.Plates)
+		{
+			var center = (Vector3I)generator.Map.TileToWorld(generator.Map.WorldToTile(plate.GlobalPosition));
+			string grate = offsets.SelectMany(dx => offsets.Select(dz => grid.GetCellItem(center + new Vector3I(dx, 0, dz))))
+				.Where(item => item >= 0).Select(item => grid.MeshLibrary.GetItemName(item)).FirstOrDefault(name => name.Contains("grate"));
+			if (grate != null) yield return $"{label}: a plate at {plate.GlobalPosition} lies over {grate}";
 		}
 	}
 

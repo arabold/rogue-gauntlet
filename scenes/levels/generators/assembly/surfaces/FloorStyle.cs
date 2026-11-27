@@ -138,12 +138,14 @@ public abstract partial class FloorStyle : Resource
 			}
 			if (layout.Origins == null) return;
 			var origin = layout.Origins[rng.RandiRange(0, layout.Origins.Count - 1)];
+			int itemId = grid.MeshLibrary.FindItemByName(item);
+			room.Room.InlayItems.Add(itemId);
 			for (int k = 0; k < layout.Run; k++)
 			{
 				// Quarter tile q spans cells 2q - 2 to 2q, so a piece starting at quarter tile a is centered on 2a - 2 + size.
 				var at = origin + layout.Step * k;
 				int orientation = layout.Turned ? (rng.Randf() < .5f ? GridTurns.Turn90 : GridTurns.Turn270) : (rng.Randf() < .5f ? GridTurns.Turn0 : GridTurns.Turn180);
-				grid.SetCellItem(new Vector3I(2 * at.X - 2 + layout.Piece.X, 0, 2 * at.Y - 2 + layout.Piece.Y), grid.MeshLibrary.FindItemByName(item), orientation);
+				grid.SetCellItem(new Vector3I(2 * at.X - 2 + layout.Piece.X, 0, 2 * at.Y - 2 + layout.Piece.Y), itemId, orientation);
 				for (int x = at.X; x < at.X + layout.Piece.X; x++)
 				for (int z = at.Y; z < at.Y + layout.Piece.Y; z++)
 					covered[x, z] = true;

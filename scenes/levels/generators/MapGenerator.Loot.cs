@@ -301,7 +301,7 @@ public partial class MapGenerator
 		}
 
 		int count = _random.Items.RandiRange(minTraps, maxTraps);
-		var remaining = new List<Vector3>(candidates);
+		var remaining = candidates.Where(point => !HoldsInlay(Map.WorldToTile(point))).ToList();
 		var search = PlateTrapSearchFor(doorClearances);
 		int placed = 0;
 		while (placed < count)
@@ -339,6 +339,21 @@ public partial class MapGenerator
 			LayPlate(TrapScene, id, point, placedLootPoints);
 			return true;
 		}
+		return false;
+	}
+
+	/// <summary>
+	/// Whether a floor inlay (a drain grate, a gutter) lies in <paramref name="tile"/>: a trap there would sit on the grate
+	/// instead of the floor. Inlays anchor at most a quarter tile off the tile's middle, or on its edge.
+	/// </summary>
+	private bool HoldsInlay(Vector2I tile)
+	{
+		if (_inlayItems.Count == 0) return false;
+		Vector3I center = Map.TileToWorld(tile);
+		int half = Room.TileSize / 2;
+		for (int dx = -half; dx <= half; dx++)
+		for (int dz = -half; dz <= half; dz++)
+			if (_inlayItems.Contains(FloorGridMap.GetCellItem(center + new Vector3I(dx, 0, dz)))) return true;
 		return false;
 	}
 

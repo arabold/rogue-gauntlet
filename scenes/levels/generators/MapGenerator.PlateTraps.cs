@@ -116,7 +116,8 @@ public partial class MapGenerator
 	{
 		edge = default;
 		Vector3 platePoint = Map.TileToWorld(lane.PlateTile);
-		if (Floor.IsOccupiedNow(lane.PlateTile.X, lane.PlateTile.Y) || IsBlockedLootPoint(platePoint, placedLootPoints, LootSpawnSpacing)) return false;
+		if (Floor.IsOccupiedNow(lane.PlateTile.X, lane.PlateTile.Y) || HoldsInlay(lane.PlateTile)
+			|| IsBlockedLootPoint(platePoint, placedLootPoints, LootSpawnSpacing)) return false;
 		var side = new Vector3(lane.Outward.Y, 0, -lane.Outward.X) * PlateSideClearance;
 		if (!Floor.IsReachable(platePoint + side) && !Floor.IsReachable(platePoint - side)) return false;
 		edge = WallFootprints.MeasureEdge(WallGridMap, WallStyle.EdgeCell(GridTile(lane.WallTile), lane.Outward), -lane.Outward,
