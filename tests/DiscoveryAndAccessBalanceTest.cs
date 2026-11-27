@@ -25,19 +25,30 @@ public partial class DiscoveryAndAccessBalanceTest
 	[TestCase]
 	public void DiscoveredTrapRemainsDangerousAndRestoreDoesNotPlayTheCue()
 	{
-		var scene = TestFactories.Load<PackedScene>("res://scenes/props/floor_trap.tscn");
-		var trap = TestFactories.AddToSceneTree(scene.Instantiate<FloorTrap>());
-		AssertBool(trap.IsDiscovered).IsFalse(); AssertBool(trap.Visible).IsFalse();
-		AssertBool(trap.DiscoveryEffect.Visible).IsFalse();
-		AssertBool(trap.Reveal()).IsTrue(); AssertBool(trap.Reveal()).IsFalse();
-		AssertBool(trap.GetNodeOrNull("DangerMarker") == null).IsTrue(); AssertBool(trap.DiscoveryEffect.IsPlaying).IsTrue();
-		AssertBool(trap.IsTriggered).IsFalse();
+		var scene = TestFactories.Load<PackedScene>("res://scenes/props/traps/pressure_plate_spikes.tscn");
+		var plate = TestFactories.AddToSceneTree(scene.Instantiate<PressurePlate>());
+		var spikes = plate.GetNode<SpikeBurst>("SpikeBurst");
+		AssertBool(plate.IsDiscovered).IsFalse(); AssertBool(plate.Visible).IsFalse();
+		AssertBool(plate.DiscoveryEffect.Visible).IsFalse();
+		AssertBool(plate.Reveal()).IsTrue(); AssertBool(plate.Reveal()).IsFalse();
+		AssertBool(plate.GetNodeOrNull("DangerMarker") == null).IsTrue(); AssertBool(plate.DiscoveryEffect.IsPlaying).IsTrue();
+		AssertBool(spikes.IsRaised).IsFalse();
+		// Plates answer only the hero; the stand-in leaves the group before it goes, so later suites never find it.
 		var victim = TestFactories.AddToSceneTree(new Victim());
-		trap.GetNode<TriggerComponent>("TriggerComponent").EmitSignal(TriggerComponent.SignalName.Triggered, victim);
-		AssertBool(trap.IsTriggered).IsTrue(); AssertFloat(victim.DamageTaken).IsEqual(trap.CurrentDamage);
-		trap.GetNode<TriggerComponent>("TriggerComponent").EmitSignal(TriggerComponent.SignalName.Triggered, victim);
-		AssertFloat(victim.DamageTaken).IsEqual(trap.CurrentDamage);
-		var restored = TestFactories.AddToSceneTree(scene.Instantiate<FloorTrap>());
+		victim.AddToGroup("player");
+		try
+		{
+			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, victim);
+			AssertBool(spikes.IsRaised).IsTrue(); AssertFloat(victim.DamageTaken).IsEqual(spikes.CurrentDamage);
+			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, victim);
+			AssertFloat(victim.DamageTaken).IsEqual(spikes.CurrentDamage);
+		}
+		finally
+		{
+			victim.RemoveFromGroup("player");
+			victim.QueueFree();
+		}
+		var restored = TestFactories.AddToSceneTree(scene.Instantiate<PressurePlate>());
 		restored.RestoreDiscovered(true);
 		AssertBool(restored.Visible).IsTrue(); AssertBool(restored.DiscoveryEffect.IsPlaying).IsFalse();
 	}
@@ -56,16 +67,19 @@ public partial class DiscoveryAndAccessBalanceTest
 		harness.Replay();
 		var trap = harness.PreviewTrap;
 		AssertBool(trap.DiscoveryEffect.IsPlaying).IsTrue();
-		var plate = trap.GetNode<MeshInstance3D>("floor_tile_big_spikes");
-		AssertObject(plate.MaterialOverlay).IsNull();
-		AssertBool(plate.Visible).IsFalse();
-		AssertFloat(((BaseMaterial3D)plate.GetSurfaceOverrideMaterial(0)).AlbedoColor.A).IsEqual(0);
+		// The spike holes fade in through their shader's reveal, then keep their authored material.
+		var holes = trap.GetNode<MeshInstance3D>("Holes");
+		float Reveal() => ((ShaderMaterial)holes.GetSurfaceOverrideMaterial(0)).GetShaderParameter("reveal").AsSingle();
+		AssertObject(holes.MaterialOverlay).IsNull();
+		AssertBool(holes.Visible).IsFalse();
+		AssertFloat(Reveal()).IsEqual(0);
 		await runner.SimulateFrames(12, 20);
-		AssertFloat(((BaseMaterial3D)plate.GetSurfaceOverrideMaterial(0)).AlbedoColor.A).IsGreater(0);
-		AssertFloat(((BaseMaterial3D)plate.GetSurfaceOverrideMaterial(0)).AlbedoColor.A).IsLess(1);
+		AssertFloat(Reveal()).IsGreater(0);
+		AssertFloat(Reveal()).IsLess(1);
 		await runner.SimulateFrames(30, 20);
 		AssertBool(trap.DiscoveryEffect.IsPlaying).IsFalse();
-		AssertObject(plate.MaterialOverlay).IsNull(); AssertFloat(plate.Transparency).IsEqual(0);
+		AssertObject(holes.MaterialOverlay).IsNull();
+		AssertObject(holes.GetSurfaceOverrideMaterial(0)).IsNull();
 		AssertInt(trap.DiscoveryEffect.GetChildCount()).IsEqual(0);
 		AssertInt(harness.PreviewRoot.GetChildren().OfType<GridMap>().Single().GetCellItem(Vector3I.Zero)).IsEqual(0);
 		AssertBool(trap.GetNode<TriggerComponent>("TriggerComponent").IsInsideTree()).IsTrue();

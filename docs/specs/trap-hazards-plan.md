@@ -1,6 +1,6 @@
 # Trap hazards and gauntlets
 
-Status: slices 1 to 3b (wall spouts, pendulum blades, gauntlets, the gauntlet rooms and their placement before a few descents per run) landed, described in [combat](../combat-system.md#trap-hazards) and [level design](../level-design.md#trap-gauntlets); the rest is proposed. Adds visible, rhythmic hazards (wall spouts, pendulum blades, optionally timed spike strips) and arranges them into gauntlet rooms and corridor stretches the hero crosses with timing and dodges. The hidden spike plate ([`FloorTrap`](../../scenes/props/FloorTrap.cs), discovery in [dungeon exploration](../dungeon-exploration-design.md)) stays as it is.
+Status: slices 1 to 3b (wall spouts, pendulum blades, gauntlets, the gauntlet rooms and their placement before a few descents per run) landed, described in [combat](../combat-system.md#trap-hazards) and [level design](../level-design.md#trap-gauntlets); the rest is proposed. Adds visible, rhythmic hazards (wall spouts, pendulum blades, optionally timed spike strips) and arranges them into gauntlet rooms and corridor stretches the hero crosses with timing and dodges. The hidden spike plate ([spike plate](../../scenes/props/traps/pressure_plate_spikes.tscn), discovery in [dungeon exploration](../dungeon-exploration-design.md)) stays as it is.
 
 Current systems this builds on: [combat defense](../combat-system.md) (dodge immunity, guard, poise, threat tiers, attack indicators), [level design](../level-design.md) (room assembly, corridor styling, reachability, fog), [realm content](../realm-content.md) (room windows, headlines, motifs), [balance model](balance-model.md) (trap attrition), [room assembly authoring](../../scenes/levels/generators/assembly/README.md).
 
@@ -95,10 +95,9 @@ Windows, chances and weights are realm data; the table is a starting point for p
 }
 
 /// <summary>A member of a gauntlet: synchronized from the gauntlet's physics tick, never self-timed. A tool script.</summary>
-[Tool, GlobalClass] public abstract partial class TrapHazard : Node3D
+/// Damage, DamagePerDepth and the trap group come from the shared Trap base (triggers plan).
+[Tool, GlobalClass] public abstract partial class TrapHazard : Trap
 {
-	[Export] public int Damage { get; set; }
-	[Export] public float DamagePerDepth { get; set; }
 	[Export] public float Period { get; set; } = 2f;
 	[Export(PropertyHint.Range, "0,1,0.01")] public float Phase { get; set; }
 	public virtual void Tune(HazardBeat beat);
@@ -109,15 +108,10 @@ Windows, chances and weights are realm data; the table is a starting point for p
 
 [Tool, GlobalClass] public partial class WallSpout : TrapHazard
 {
-	[Export] public PackedScene ProjectileScene { get; set; }   // the projectile scene carries element and look
-	[Export] public Marker3D Muzzle { get; set; }
+	[Export] public TrapShotComponent Shot { get; set; }        // projectile, muzzle, speed, range, element, defense traits
 	[Export] public AttackIndicatorComponent Indicator { get; set; }  // optional lane telegraph during wind-up
 	[Export] public Node3D WindUpEffect { get; set; }            // optional glow, embers or dust
-	[Export] public float Speed { get; set; } = 8f;
-	[Export] public float Range { get; set; } = 12f;              // generation sets it to the opposite wall
 	[Export] public float WindUp { get; set; } = .6f;
-	[Export] public DamageElement Element { get; set; }        // fire ignores armor
-	[Export] public AttackDefenseTraits DefenseTraits { get; set; } = AttackDefenseTraits.Dodgeable | AttackDefenseTraits.Guardable;
 	[Signal] public delegate void FiredEventHandler(Node3D shot);
 }
 
@@ -129,7 +123,7 @@ Windows, chances and weights are realm data; the table is a starting point for p
 	[Export] public float Knockback { get; set; } = 4f;
 }
 
-/// <summary>Depth scaling shared by every trap; <see cref="FloorTrap.CurrentDamage"/> moves onto it.</summary>
+/// <summary>Depth scaling shared by every trap, the spike plate's <see cref="SpikeBurst.CurrentDamage"/> included.</summary>
 public static class TrapDamage { public static int At(int damage, float perDepth, uint depth); }
 ```
 
@@ -139,7 +133,7 @@ Contracts:
 - **Blade contact** is a `DamageContext` with `DeliveryKind = Hazard`, `DefenseTraits = Dodgeable`, `Faction = Trap`, `IncomingDirection` straight out of the blade's path toward the victim's side, poise equal to damage and a forced push sized to carry the victim to `Clearance` from the path. Each actor is hit at most once per pass (half period), and the push keeps the next pass from reaching them. Hazard delivery has no hit zone, so no rear-hit bonus.
 - **Spikes** (optional slice) use `DefenseTraits = None`: dodge immunity never avoids them.
 - **Rod fade:** `pendulum_rod.gdshader`, alpha from the rod's local height (opaque at the blade, gone a little below the wall tops), `blend_mix`, `depth_draw_never`; no `GeometryInstance3D.Transparency` (Mobile renderer). The blade stays opaque.
-- Hazard scenes live in `scenes/props/traps/` (`wall_spout_slit.tscn`, `wall_spout_gargoyle.tscn`, `pendulum_blade.tscn`, later `spike_strip.tscn`) and are the authored definitions, like `floor_trap.tscn`.
+- Hazard scenes live in `scenes/props/traps/` (`wall_spout_slit.tscn`, `wall_spout_gargoyle.tscn`, `pendulum_blade.tscn`, later `spike_strip.tscn`) and are the authored definitions, like `pressure_plate_spikes.tscn`. Each look (`scenes/props/traps/models/`) is shared with the wall launcher of the same look.
 
 ### Generation
 
@@ -212,7 +206,7 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
 + scenes/props/traps/TrapHazard.cs, TrapGauntlet.cs, WallSpout.cs, PendulumBlade.cs, TrapDamage.cs, HazardBeat.cs
 + scripts/PlayerLookup.cs                                (the hero lookup Nameplate and gauntlets share)
 + scenes/props/traps/wall_spout_slit.tscn, wall_spout_gargoyle.tscn, pendulum_blade.tscn, pendulum_rod.gdshader
-~ scenes/props/FloorTrap.cs                 (CurrentDamage through TrapDamage)
+~ scenes/props/traps/SpikeBurst.cs          (CurrentDamage through TrapDamage)
 + scenes/levels/generators/assembly/steps/HazardRowsStep.cs, CrossFireStep.cs, PendulumRowsStep.cs
 + scenes/levels/generators/corridors/CorridorHazardStep.cs
 ~ scenes/levels/generators/assembly/RoomBlueprint.cs     (PlacedPiece.Beat, gauntlet grouping on emit)

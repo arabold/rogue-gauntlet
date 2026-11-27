@@ -1,0 +1,52 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/triggers/PressurePlate.cs" id="plate_script"]
+[ext_resource type="Script" path="res://scenes/props/triggers/TriggerOutputComponent.cs" id="output_script"]
+[ext_resource type="Resource" path="res://scenes/props/triggers/modes/pulse.tres" id="pulse"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/traps/pressure_plate.glb" id="plate_model"]
+[ext_resource type="PackedScene" path="res://assets/custom-props/traps/pressure_plate_frame.glb" id="frame_model"]
+[ext_resource type="PackedScene" uid="uid://d2l47r6atc27d" path="res://scenes/components/trigger_component.tscn" id="trigger"]
+[ext_resource type="Resource" path="res://scenes/levels/access/trap_detection.tres" id="detection"]
+[ext_resource type="PackedScene" path="res://scenes/effects/discovery_pulse.tscn" id="discovery_effect"]
+[ext_resource type="Script" uid="uid://cgw68vsnlt58" path="res://scenes/levels/access/ProximityDiscoveryComponent.cs" id="discovery_script"]
+[ext_resource type="Script" path="res://scenes/props/triggers/PlatePressComponent.cs" id="press_script"]
+
+[sub_resource type="BoxShape3D" id="Shape_plate"]
+size = Vector3(1.6, 1, 1.6)
+
+[node name="PressurePlate" type="Node3D" node_paths=PackedStringArray("Trigger", "Output", "DiscoveryEffect", "Visual", "Discovery") groups=["prop"]]
+script = ExtResource("plate_script")
+Trigger = NodePath("TriggerComponent")
+Output = NodePath("TriggerOutput")
+DiscoveryEffect = NodePath("DiscoveryEffect")
+Visual = NodePath("Model")
+Discovery = NodePath("ProximityDiscovery")
+
+[node name="Model" type="Node3D" parent="."]
+
+[node name="Frame" parent="Model" instance=ExtResource("frame_model")]
+
+[node name="Plate" parent="Model" instance=ExtResource("plate_model")]
+
+[node name="TriggerComponent" parent="." instance=ExtResource("trigger")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TriggerComponent"]
+shape = SubResource("Shape_plate")
+
+[node name="DiscoveryEffect" parent="." instance=ExtResource("discovery_effect")]
+position = Vector3(0, 0.75, 0)
+
+[node name="ProximityDiscovery" type="Node" parent="." node_paths=PackedStringArray("Subject")]
+script = ExtResource("discovery_script")
+Subject = NodePath("..")
+Profile = ExtResource("detection")
+
+[node name="TriggerOutput" type="Node" parent="."]
+script = ExtResource("output_script")
+Mode = ExtResource("pulse")
+
+[node name="PlatePress" type="Node" parent="." node_paths=PackedStringArray("Output", "Target")]
+script = ExtResource("press_script")
+Output = NodePath("../TriggerOutput")
+Target = NodePath("../Model/Plate")

@@ -234,9 +234,8 @@ public sealed class CorridorBlueprint
 		float along = centerAlong - width / 2f;
 		if (along < -Tolerance || along + width > run.LengthUnits + Tolerance) return false;
 
-		var (inwardMin, _) = RoomBlueprint.Project(all, run.Inward);
 		float face = SpanDepth(run, along, along + width, wallMount: true) - prop.WallInset;
-		var origin = run.LineStart + run.Tangent * (along - alongMin) + run.Inward * (face - inwardMin);
+		var origin = run.Place(all, all, along, face);
 		origin.Y = prop.MountHeight;
 		var transform = new Transform3D(run.Facing, origin);
 

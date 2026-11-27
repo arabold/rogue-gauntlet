@@ -21,7 +21,7 @@ public partial class WorldEffectHarness : Node3D, ILitWorld
 	[Export] public WorldEffectPreview Effect { get; set; }
 	[Export] public float RevealGlow { get; set; } = 1.8f;
 	[Export] public bool Blend { get; set; } = true;
-	public FloorTrap PreviewTrap { get; private set; }
+	public PressurePlate PreviewTrap { get; private set; }
 	public Door PreviewDoor { get; private set; }
 	public Chest PreviewChest { get; private set; }
 	public GridMap PreviewOccluder { get; private set; }
@@ -101,7 +101,7 @@ public partial class WorldEffectHarness : Node3D, ILitWorld
 		switch (Effect)
 		{
 			case WorldEffectPreview.TrapDiscovery:
-				PreviewTrap = TrapScene.Instantiate<FloorTrap>();
+				PreviewTrap = TrapScene.Instantiate<PressurePlate>();
 				PreviewRoot.AddChild(PreviewTrap); Configure(PreviewTrap.DiscoveryEffect);
 				PreviewTrap.Initialize("preview:trap", 42, floor, Vector3I.Zero);
 				LastResult = "Original floor. Press Reveal to discover the trap.";

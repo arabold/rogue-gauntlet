@@ -1697,6 +1697,39 @@ def sconce(flames=False):
     return lit(a, tips, flames)
 
 
+# ---------------------------------------------------------------------------- traps
+
+# A pressure plate stands a hand's width proud of the floor and reaches below the floor plane, so it rises out of any
+# floor tile without fitting to one. The game sinks the plate .1 into its frame while it is pressed.
+PLATE_TOP, PLATE_BOTTOM = .16, -.12
+PLATE_FRAME_TOP = .09
+
+
+def pressure_plate(part='plate'):
+    """A trap's pressure plate: a plain square slab of the floor tiles' pale stone with bevelled top edges, inside a
+    thin iron frame with domed corner posts. The plate (`part` 'plate') and its frame ('frame') are separate models,
+    since only the plate moves."""
+    a = Assembly()
+    if part == 'plate':
+        # Square in plan: only the top edges bevel, so the corners stay sharp and the bevels meet in mitres.
+        bevel = .08
+        body = PLATE_TOP - bevel - PLATE_BOTTOM
+        plate = a.label(mf.Manifold.batch_hull([block((1.6, body, 1.6), (0, PLATE_BOTTOM + body / 2, 0), 0),
+                                                block((1.6 - 2 * bevel, .001, 1.6 - 2 * bevel), (0, PLATE_TOP - .0005, 0), 0)]),
+                        'stone_light')
+        a.join(plate)
+        return a.build()
+    half, bar, middle = .85, .09, (PLATE_FRAME_TOP + PLATE_BOTTOM) / 2
+    for sign in (-1, 1):
+        a.add(block((2 * half, PLATE_FRAME_TOP - PLATE_BOTTOM, bar), (0, middle, sign * half)), 'iron')
+        a.add(block((bar, PLATE_FRAME_TOP - PLATE_BOTTOM, 2 * half), (sign * half, middle, 0)), 'iron')
+    for x in (-half, half):
+        for z in (-half, half):
+            a.add(post(.13, PLATE_BOTTOM, .13, x, z, 10), 'iron')
+            a.add(rivet((x, .13, z), .1, (0, 1, 0)), 'stone_light')
+    return a.build()
+
+
 # ---------------------------------------------------------------------------- dispatch
 
 KINDS = {
@@ -1716,7 +1749,8 @@ KINDS = {
     'rubble_scatter': rubble_scatter, 'rubble_small': rubble_small, 'rubble_medium': rubble_medium,
     'rubble_large': rubble_large, 'rubble_boulders': rubble_boulders,
     'sarcophagus': sarcophagus, 'sarcophagus_open': sarcophagus_open, 'valve': valve, 'pipe_outlet': pipe_outlet,
-    'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle, **foliage.KINDS,
+    'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle,
+    'pressure_plate': pressure_plate, **foliage.KINDS,
     **cathedral.KINDS, **graveyard.KINDS, **mining.KINDS, **webs.KINDS,
 }
 

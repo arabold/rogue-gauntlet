@@ -9,7 +9,9 @@ using System.Linq;
 /// a stand-in wall where there is none; a floor prop, such as a pendulum, stands on the path with its X across it. New
 /// hazard props show up without a menu edit. Staged gauntlets carry no persistent identity, so a floor never saves them.
 /// In an arena it also stages whole gauntlet rooms from <see cref="RoomDirectory"/>, entrance first, just ahead of the
-/// hero, so a room can be played before any floor places it.
+/// hero, so a room can be played before any floor places it. <b>Triggered</b> stages a plate trap from
+/// <see cref="TriggeredDirectory"/>, the profiles floors place: its plate, revealed, ahead of the hero and its launcher on
+/// the wall beside it, facing it, set off in <see cref="PlateMode"/>.
 /// </summary>
 [GlobalClass]
 public partial class TrapTool : DebugTool
@@ -36,10 +38,16 @@ public partial class TrapTool : DebugTool
 	[Export] public ulong RoomSeed { get; set; } = 1;
 	/// <summary>How far beside the path a wall spout hangs when no wall is closer.</summary>
 	[Export(PropertyHint.Range, "1,10,0.5,suffix:m")] public float LaneOffset { get; set; } = 4f;
+	/// <summary>Folder whose plate trap profiles the triggered submenu lists.</summary>
+	[Export] public string TriggeredDirectory { get; set; } = "res://scenes/props/traps/triggered";
+	/// <summary>Folder whose trigger modes the plate mode submenu lists.</summary>
+	[Export] public string ModeDirectory { get; set; } = "res://scenes/props/triggers/modes";
+	/// <summary>How a staged plate sets off its launcher; null keeps the profile's mode.</summary>
+	[Export] public TriggerMode PlateMode { get; set; }
 
 	/// <summary>The gauntlets and rooms this tool staged; freed ones drop out on the next refresh.</summary>
 	private readonly List<Node3D> _staged = [];
-	private PopupMenu _stageMenu, _roomMenu;
+	private PopupMenu _stageMenu, _roomMenu, _triggeredMenu, _modeMenu;
 	private int _clearId, _roomsIndex;
 
 	protected override void BuildMenu(PopupMenu menu)
@@ -50,6 +58,10 @@ public partial class TrapTool : DebugTool
 		_roomMenu = AddSubmenu(menu, "Rooms", "StageTrapRoomMenu");
 		_roomsIndex = menu.ItemCount - 1;
 		_roomMenu.AboutToPopup += FillRoomMenu;
+		_triggeredMenu = AddSubmenu(menu, "Triggered", "StageTriggeredTrapMenu");
+		_triggeredMenu.AboutToPopup += FillTriggeredMenu;
+		_modeMenu = AddSubmenu(menu, "Plate mode", "TrapPlateModeMenu");
+		_modeMenu.AboutToPopup += FillModeMenu;
 		PopupMenu rows = AddSubmenu(menu, "Rows", "TrapRowsMenu");
 		foreach (int count in RowCounts)
 		{
@@ -96,12 +108,42 @@ public partial class TrapTool : DebugTool
 			var node = scene.Instantiate<TrapHazard>();
 			node.Tune(new HazardBeat(Period, TrapGauntlet.PhaseFor(Pattern, row)));
 			gauntlet.AddChild(node);
-			if (hazard.Mount == PropMount.Wall) HangBesidePath(gauntlet, node, center + Vector3.Up * hazard.MountHeight, right, space, origin);
+			if (hazard.Mount == PropMount.Wall)
+				HangBesidePath(gauntlet, node, center + Vector3.Up * hazard.MountHeight, right, space, origin, LaneOffset, LaneOffset * 2);
 			else node.Transform = new Transform3D(Basis.LookingAt(forward), center);
 		}
 		world.AddWorldNode(gauntlet, origin);
 		_staged.Add(gauntlet);
 		return gauntlet;
+	}
+
+	/// <summary>
+	/// Stages <paramref name="profile"/> ahead of the hero and returns its root: its plate, revealed,
+	/// <see cref="FirstRowDistance"/> ahead and its launcher hung on the wall beside it, facing it, within the profile's
+	/// lane length (on a stand-in wall when no wall is). Null without a hero, a world or a valid profile.
+	/// </summary>
+	public Node3D StageTriggered(TriggeredTrapProfile profile)
+	{
+		Player player = Menu?.Player;
+		IDebugWorld world = Menu?.DebugWorld;
+		if (profile?.IsValid != true || player == null || world == null) return null;
+		Vector3 origin = player.GlobalPosition;
+		Vector3 forward = Heading(player);
+		var trap = new Node3D { Name = "StagedTriggeredTrap" };
+		var launcher = profile.Launcher.Scenes[0].Instantiate<WallLauncher>();
+		trap.AddChild(launcher);
+		Vector3 center = forward * FirstRowDistance;
+		HangBesidePath(trap, launcher, center + Vector3.Up * profile.Launcher.MountHeight, forward.Cross(Vector3.Up),
+			player.GetWorld3D().DirectSpaceState, origin, (profile.MinLane + profile.MaxLane) / 2, profile.MaxLane);
+		var plate = profile.PlateScene.Instantiate<PressurePlate>();
+		plate.Position = center;
+		plate.Output.Mode = PlateMode ?? profile.Mode;
+		plate.Output.Targets = [launcher];
+		trap.AddChild(plate);
+		world.AddWorldNode(trap, origin);
+		plate.RestoreDiscovered(true);
+		_staged.Add(trap);
+		return trap;
 	}
 
 	/// <summary>
@@ -126,7 +168,7 @@ public partial class TrapTool : DebugTool
 		return room;
 	}
 
-	/// <summary>Removes every gauntlet and room this tool staged.</summary>
+	/// <summary>Removes every gauntlet, room and plate trap this tool staged.</summary>
 	public void Clear()
 	{
 		foreach (var node in _staged.Where(IsInstanceValid)) node.QueueFree();
@@ -134,20 +176,20 @@ public partial class TrapTool : DebugTool
 	}
 
 	/// <summary>
-	/// Hangs <paramref name="hazard"/> facing the path on the first wall to its <paramref name="right"/>, or on a stand-in
-	/// wall <see cref="LaneOffset"/> away, at <paramref name="center"/>'s height. Positions are relative to the gauntlet
-	/// at <paramref name="origin"/>.
+	/// Hangs <paramref name="hazard"/> facing the path on the first wall within <paramref name="reach"/> to its
+	/// <paramref name="right"/>, or on a stand-in wall <paramref name="offset"/> away, at <paramref name="center"/>'s
+	/// height. Positions are relative to <paramref name="parent"/>, a staged gauntlet or plate trap at <paramref name="origin"/>.
 	/// </summary>
-	private void HangBesidePath(TrapGauntlet gauntlet, Node3D hazard, Vector3 center, Vector3 right,
-		PhysicsDirectSpaceState3D space, Vector3 origin)
+	private static void HangBesidePath(Node3D parent, Node3D hazard, Vector3 center, Vector3 right,
+		PhysicsDirectSpaceState3D space, Vector3 origin, float offset, float reach)
 	{
 		Vector3 probe = origin + center with { Y = MountProbeHeight };
-		var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(probe, probe + right * LaneOffset * 2, WorldSight.Structure));
-		Vector3 mount = hit.Count > 0 ? hit[PositionKey].AsVector3() - origin : center + right * LaneOffset;
+		var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(probe, probe + right * reach, WorldSight.Structure));
+		Vector3 mount = hit.Count > 0 ? hit[PositionKey].AsVector3() - origin : center + right * offset;
 		mount.Y = center.Y;
 		// A wall prop's front (+Z) faces into the room, so its back (-Z) faces the wall to the right.
 		hazard.Transform = new Transform3D(Basis.LookingAt(right), mount);
-		if (hit.Count == 0) gauntlet.AddChild(StandInWall(mount with { Y = 0 } + right * StandInWallSize.Z / 2, right));
+		if (hit.Count == 0) parent.AddChild(StandInWall(mount with { Y = 0 } + right * StandInWallSize.Z / 2, right));
 	}
 
 	/// <summary>A plain stone slab with world collision to hang a spout on in open space.</summary>
@@ -182,6 +224,26 @@ public partial class TrapTool : DebugTool
 		{
 			AddAction(_roomMenu, type.Id.Replace('_', ' ').Capitalize(), () => StageRoom(type));
 			_roomMenu.SetItemTooltip(_roomMenu.ItemCount - 1, path);
+		}
+	}
+
+	private void FillTriggeredMenu()
+	{
+		if (_triggeredMenu.ItemCount > 0) return;
+		foreach (var (profile, path) in DebugCatalog.Resources<TriggeredTrapProfile>(TriggeredDirectory))
+		{
+			AddAction(_triggeredMenu, path.GetFile().GetBaseName().Capitalize(), () => StageTriggered(profile));
+			_triggeredMenu.SetItemTooltip(_triggeredMenu.ItemCount - 1, path);
+		}
+	}
+
+	private void FillModeMenu()
+	{
+		if (_modeMenu.ItemCount > 0) return;
+		AddRadio(_modeMenu, "As authored", () => PlateMode == null, () => PlateMode = null);
+		foreach (var (mode, path) in DebugCatalog.Resources<TriggerMode>(ModeDirectory))
+		{
+			AddRadio(_modeMenu, path.GetFile().GetBaseName().Capitalize(), () => PlateMode == mode, () => PlateMode = mode);
 		}
 	}
 

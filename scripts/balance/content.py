@@ -719,25 +719,46 @@ def _ticks(file: R.TextResource, buff: R.Section) -> int:
 
 POTION_POOL = "res://scenes/items/loot/pools/potions.tres"
 HEALING_POTION = "potion.healing"
-TRAP_SCENE = "res://scenes/props/floor_trap.tscn"
+TRAP_SCENE = "res://scenes/props/traps/pressure_plate_spikes.tscn"
 TRAP_PLACEMENT = "res://scenes/levels/generators/MapGenerator.Loot.cs"
+LAUNCHER_SCENES = "scenes/props/traps/launchers/*.tscn"
+TRIGGERED_TRAPS = "scenes/props/traps/triggered/*.tres"
 
 
 def traps(match=None) -> Group:
     """
-    A floor trap's damage on depth 1 and per depth (`model.trap_line`), and the traps a floor places against TRAPS
-    `per_floor`.
+    A spike plate's damage on depth 1 and per depth (`model.trap_line`, on its `SpikeBurst`), each wall launcher's
+    (`model.launcher_line`, scaled by LAUNCHERS `fire_scale` for elemental shots), and the traps a floor places against
+    TRAPS `per_floor` and LAUNCHERS `chance` and `first_depth`.
     """
     g = Group("Traps", headers=["depth", "spring", "derived"])
     f = R.load(TRAP_SCENE)
     if not _selected(f.path, match):
         return g
+    spikes = f.node("SpikeBurst")
     first, per_depth = M.trap_line()
-    g.add("Floor trap", f, f.root, "Damage", first)
-    g.add("Floor trap", f, f.root, "DamagePerDepth", per_depth)
-    authored = f.get(f.root, "Damage", 0), f.get(f.root, "DamagePerDepth", 0.0)
+    g.add("Spike plate", f, spikes, "Damage", first)
+    g.add("Spike plate", f, spikes, "DamagePerDepth", per_depth)
+    authored = f.get(spikes, "Damage", 0), f.get(spikes, "DamagePerDepth", 0.0)
     for d in (1, 12, P.DEPTHS):
-        g.rows.append([d, f"{max(1, round(authored[0] + authored[1] * (d - 1)))}", f"{M.trap_damage(d):.0f}"])
+        g.rows.append([d, f"{M.line_damage(authored, d):.0f}", f"{M.trap_damage(d):.0f}"])
+    for path in sorted(R.ROOT.glob(LAUNCHER_SCENES)):
+        launcher = R.load(path)
+        root, shot = launcher.root, launcher.node("Shot")
+        elemental = launcher.get(shot, "Element", 0) != 0
+        first, per_depth = M.launcher_line(P.LAUNCHERS["fire_scale"] if elemental else 1.0)
+        name = root.attrs.get("name")
+        g.add(name, launcher, root, "Damage", first)
+        g.add(name, launcher, root, "DamagePerDepth", per_depth)
+    profiles = [R.load(path) for path in sorted(R.ROOT.glob(TRIGGERED_TRAPS))]
+    first_depth = min((p.get(p.main, "FirstDepth", 1) for p in profiles), default=None)
+    if first_depth is not None and first_depth != P.LAUNCHERS["first_depth"]:
+        g.note(f"The shallowest plate trap profile starts on depth {first_depth}; LAUNCHERS first_depth is "
+               f"{P.LAUNCHERS['first_depth']}")
+    chance = R.script_default(TRAP_PLACEMENT, "TriggeredTrapChance")
+    if abs(chance - P.LAUNCHERS["chance"]) > 1e-9:
+        g.note(f"Trap slots roll plate traps at {chance:g} (MapGenerator.TriggeredTrapChance); LAUNCHERS chance is "
+               f"{P.LAUNCHERS['chance']:g}")
     placed = (R.script_default(TRAP_PLACEMENT, "MinTraps") + R.script_default(TRAP_PLACEMENT, "MaxTraps")) / 2
     if abs(placed - P.TRAPS["per_floor"]) > 1e-9:
         g.note(f"Floors place {placed:g} traps on average (MapGenerator.MinTraps..MaxTraps); TRAPS per_floor is "

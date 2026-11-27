@@ -196,7 +196,7 @@ public partial class GameNarratorTest
 			player.ApplyBuff(healing);
 			AssertBool(sink.Entries.Any(e => e.Message == "You are no longer ill.")).IsTrue();
 
-			var trap = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/floor_trap.tscn").Instantiate<FloorTrap>());
+			var trap = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/traps/pressure_plate_spikes.tscn").Instantiate<PressurePlate>());
 			trap.Discover();
 			AssertString(sink.Entries[^1].Message).IsEqual("You spotted a trap!");
 			AssertInt((int)sink.Entries[^1].Severity).IsEqual((int)LogSeverity.Warning);

@@ -28,22 +28,8 @@ public partial class TrapHazardTest
 		return (runner, harness, gauntlet, gauntlet.GetChildren().OfType<T>().ToArray());
 	}
 
-	/// <summary>Stands <paramref name="body"/> at <paramref name="point"/>'s spot on the ground, keeping its own height.</summary>
-	private static void PlaceAt(Node3D body, Vector3 point)
-	{
-		body.GlobalPosition = point with { Y = body.GlobalPosition.Y };
-		body.ResetPhysicsInterpolation();
-	}
-
 	/// <summary>The point <paramref name="distance"/> metres down <paramref name="spout"/>'s lane.</summary>
-	private static Vector3 Lane(WallSpout spout, float distance) => spout.Muzzle.GlobalPosition + spout.FireDirection * distance;
-
-	private static List<DamageOutcome> RecordOutcomes(Player hero)
-	{
-		var outcomes = new List<DamageOutcome>();
-		hero.HurtBoxComponent.DamageResolved += (outcome, _, _) => outcomes.Add((DamageOutcome)outcome);
-		return outcomes;
-	}
+	private static Vector3 Lane(WallSpout spout, float distance) => spout.Shot.Muzzle.GlobalPosition + spout.Shot.FireDirection * distance;
 
 	/// <summary>Waits until <paramref name="spout"/> has fired <paramref name="shots"/> shots and the last one has hit
 	/// something or flown out.</summary>
@@ -59,8 +45,8 @@ public partial class TrapHazardTest
 	{
 		var (runner, harness, _, spouts) = await Stage<WallSpout>(DartSlit);
 		using var scope = runner;
-		PlaceAt(harness.Player, Lane(spouts[0], 3.5f));
-		var outcomes = RecordOutcomes(harness.Player);
+		TestFactories.PlaceAt(harness.Player, Lane(spouts[0], 3.5f));
+		var outcomes = TestFactories.RecordOutcomes(harness.Player);
 		await AwaitShotResolved(runner, spouts[0], 2);
 		AssertInt(outcomes.Count(outcome => outcome == DamageOutcome.Damaged)).IsEqual(2);
 	}
@@ -72,13 +58,13 @@ public partial class TrapHazardTest
 		using var scope = runner;
 		var hero = harness.Player;
 		var spout = spouts[0];
-		PlaceAt(hero, Lane(spout, 5f));
-		var outcomes = RecordOutcomes(hero);
+		TestFactories.PlaceAt(hero, Lane(spout, 5f));
+		var outcomes = TestFactories.RecordOutcomes(hero);
 		Node3D shot = null;
 		spout.Fired += fired => shot = fired;
 		Vector3 chest = hero.GlobalPosition + Vector3.Up;
 		await TestFactories.AwaitPhysicsUntil(runner, () => GodotObject.IsInstanceValid(shot) && shot.GlobalPosition.DistanceTo(chest) < 2.5f);
-		AssertObject(hero.DodgeComponent.TryDodge(-spout.FireDirection)).IsEqual(DefenseRequestResult.Success);
+		AssertObject(hero.DodgeComponent.TryDodge(-spout.Shot.FireDirection)).IsEqual(DefenseRequestResult.Success);
 		await TestFactories.AwaitPhysicsSeconds(runner, .4f);
 		AssertThat(outcomes).Contains(DamageOutcome.Dodged);
 		AssertThat(outcomes).NotContains(DamageOutcome.Damaged);
@@ -90,11 +76,11 @@ public partial class TrapHazardTest
 		var (runner, harness, _, spouts) = await Stage<WallSpout>(DartSlit);
 		using var scope = runner;
 		var spout = spouts[0];
-		PlaceAt(harness.Player, Lane(spout, 5f));
+		TestFactories.PlaceAt(harness.Player, Lane(spout, 5f));
 		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
-		PlaceAt(monster, Lane(spout, 2.5f));
+		TestFactories.PlaceAt(monster, Lane(spout, 2.5f));
 		float health = monster.HealthComponent.CurrentHealth;
-		var outcomes = RecordOutcomes(harness.Player);
+		var outcomes = TestFactories.RecordOutcomes(harness.Player);
 		await AwaitShotResolved(runner, spout, 1);
 		AssertFloat(monster.HealthComponent.CurrentHealth).IsEqual(health);
 		AssertThat(outcomes).IsEmpty();
@@ -110,7 +96,7 @@ public partial class TrapHazardTest
 		var (runner, harness, gauntlet, spouts) = await Stage<WallSpout>(DartSlit);
 		using var scope = runner;
 		var spout = spouts[0];
-		PlaceAt(harness.Player, Lane(spout, 3.5f) + Vector3.Back * 3);
+		TestFactories.PlaceAt(harness.Player, Lane(spout, 3.5f) + Vector3.Back * 3);
 		gauntlet.ActivationRadius = 1;
 		await TestFactories.AwaitPhysicsSeconds(runner, 1.5f);
 		AssertBool(gauntlet.IsAwake).IsFalse();
@@ -156,14 +142,14 @@ public partial class TrapHazardTest
 		var hero = harness.Player;
 		var blade = blades[0];
 		Vector3 across = blade.GlobalBasis.Z;
-		PlaceAt(hero, blade.GlobalPosition + across * 2f);
-		var outcomes = RecordOutcomes(hero);
+		TestFactories.PlaceAt(hero, blade.GlobalPosition + across * 2f);
+		var outcomes = TestFactories.RecordOutcomes(hero);
 		await TestFactories.AwaitPhysicsSeconds(runner, 1.7f);
 		AssertThat(outcomes).IsEmpty();
 
 		// Step just off the middle of its path as it swings through: the cut pushes back to that side.
 		await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(blade.Arm.Rotation.Z) < Mathf.DegToRad(2), 2);
-		PlaceAt(hero, blade.GlobalPosition - across * .2f);
+		TestFactories.PlaceAt(hero, blade.GlobalPosition - across * .2f);
 		await TestFactories.AwaitPhysicsUntil(runner, () => outcomes.Count > 0, 1);
 		await TestFactories.AwaitPhysicsUntil(runner, () => (hero.GlobalPosition - blade.GlobalPosition).Dot(across) < -blade.Clearance + .1f, 1.5f);
 		// The blade sweeps its path every half period: one more pass misses the hero it pushed out.
@@ -178,8 +164,8 @@ public partial class TrapHazardTest
 		using var scope = runner;
 		var hero = harness.Player;
 		var blade = blades[0];
-		PlaceAt(hero, blade.GlobalPosition + blade.GlobalBasis.Z * 1.5f);
-		var outcomes = RecordOutcomes(hero);
+		TestFactories.PlaceAt(hero, blade.GlobalPosition + blade.GlobalBasis.Z * 1.5f);
+		var outcomes = TestFactories.RecordOutcomes(hero);
 		await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(blade.Arm.Rotation.Z) < Mathf.DegToRad(3), 3);
 		AssertObject(hero.DodgeComponent.TryDodge(-blade.GlobalBasis.Z)).IsEqual(DefenseRequestResult.Success);
 		await TestFactories.AwaitPhysicsSeconds(runner, .4f);

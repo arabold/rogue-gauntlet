@@ -21,6 +21,14 @@ public readonly record struct WallRun(Vector2I Start, Vector2I Along, Vector2I O
 	public float TileCenterAlong(int index) => (index + 0.5f) * Room.TileSize;
 	/// <summary>The run's start on the wall line (the tile edge), at its first tile's outer corner.</summary>
 	public Vector3 LineStart => RoomFootprint.TileCenter(Start) - Inward * (Room.TileSize / 2f) - Tangent * (Room.TileSize / 2f);
+	/// <summary>
+	/// Where a piece's root stands, at floor level, when its <paramref name="alongBounds"/> start <paramref name="along"/>
+	/// units from the run's start and its <paramref name="backBounds"/> back touches a face <paramref name="face"/> in from
+	/// the wall line. Both bounds are already turned to <see cref="Facing"/>.
+	/// </summary>
+	public Vector3 Place(Aabb alongBounds, Aabb backBounds, float along, float face) =>
+		LineStart + Tangent * (along - RoomBlueprint.Project(alongBounds, Tangent).Min)
+		+ Inward * (face - RoomBlueprint.Project(backBounds, Inward).Min);
 	/// <summary>Extracts ordered contiguous runs from room or corridor wall edges, optionally breaking at sealed perpendicular edges.</summary>
 	public static IEnumerable<WallRun> Find(
 		IEnumerable<Vector2I> tiles,
@@ -380,10 +388,9 @@ public sealed class RoomBlueprint
 		var all = facing * plan.Bounds();
 		var required = facing * plan.Bounds(includeOptional: false);
 		var (alongMin, alongMax) = Project(all, run.Tangent);
-		var (inwardMin, _) = Project(required, run.Inward);
 		bool wallMount = anchor.Mount == PropMount.Wall;
 		float face = SpanDepth(run, along, along + (alongMax - alongMin), wallMount) - (wallMount ? anchor.WallInset : 0);
-		var origin = run.LineStart + run.Tangent * (along - alongMin) + run.Inward * (face - inwardMin);
+		var origin = run.Place(all, required, along, face);
 		if (wallMount) origin.Y = anchor.MountHeight;
 		return new Transform3D(run.Facing, origin);
 	}

@@ -49,6 +49,10 @@ public partial class MapGenerator : Node3D
 	private EncounterPlan _encounter;
 	private DungeonTileFactory Corridors => CurrentRealm?.Corridors;
 	private readonly HashSet<Vector3I> _dividerCells = [];
+	/// <summary>Floor library items the rooms laid as inlays (drains, gutters): no trap lies on a tile holding one.</summary>
+	private readonly HashSet<int> _inlayItems = [];
+	/// <summary>World boxes of the decor hanging on room walls once the floor's walls are final: later wall mounts keep clear of them.</summary>
+	private readonly List<Aabb> _wallDecor = [];
 	private readonly HashSet<(Vector3I Center, bool Horizontal)> _framedEdges = [];
 
 	public MapData Map;
@@ -130,6 +134,7 @@ public partial class MapGenerator : Node3D
 	private void MergeRoomGridMaps(Room room, Vector3I offset)
 	{
 		foreach (var cell in room.DividerCells) _dividerCells.Add(cell + offset);
+		_inlayItems.UnionWith(room.InlayItems);
 		foreach (var (center, horizontal) in room.FramedEdges) _framedEdges.Add((center + offset, horizontal));
 		foreach (var (source, target) in new[] { (room.FloorGridMap, FloorGridMap), (room.WallGridMap, WallGridMap), (room.DecorationGridMap, DecorationGridMap) })
 		{
@@ -331,7 +336,8 @@ public partial class MapGenerator : Node3D
 
 	/// <summary>
 	/// Rooms hang their decor before the floor walls its corridors. Where a corridor wall then meets a room's wall, a
-	/// junction takes over half of the room's edge and may stand a post behind a prop; those props come down.
+	/// junction takes over half of the room's edge and may stand a post behind a prop; those props come down. The rest
+	/// are the floor's <see cref="_wallDecor"/>.
 	/// </summary>
 	private void RemoveWallPropsOffMounts()
 	{
@@ -339,13 +345,16 @@ public partial class MapGenerator : Node3D
 		var itemCache = new System.Collections.Generic.Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)>();
 		MountSpan[] MountsAt(Vector2I tile, Vector2I outward) =>
 			WallFootprints.MeasureEdge(WallGridMap, WallStyle.EdgeCell(tile, outward), -outward, Room.TileSize, itemCache).Mounts;
+		_wallDecor.Clear();
 		foreach (var room in FloorContent.GetChildren().OfType<Room>())
 		{
 			foreach (var (node, envelope, inward) in room.WallProps)
 			{
-				var transform = toGrid * node.GlobalTransform;
+				var global = node.GlobalTransform;
+				var transform = toGrid * global;
 				var box = transform * envelope;
 				if (!RoomBlueprint.HasWallSupport(box, WallRun.Behind(box, transform.Basis * inward), MountsAt)) node.Free();
+				else _wallDecor.Add(global * envelope);
 			}
 			room.WallProps.Clear();
 		}
@@ -845,6 +854,8 @@ public partial class MapGenerator : Node3D
 
 		ResetAccess();
 		_cachedStaticOutlines = null;
+		_wallDecor.Clear();
+		_inlayItems.Clear();
 		_dividerCells.Clear();
 		_framedEdges.Clear();
 

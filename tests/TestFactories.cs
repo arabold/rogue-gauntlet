@@ -1,6 +1,7 @@
 namespace RogueGauntlet.Tests;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -38,6 +39,13 @@ public static partial class TestFactories
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
 	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
 	public const string RoomPoolPath = "res://scenes/levels/rooms/room_pool.tres";
+	/// <summary>The plate trap profiles the level places in its trap slots.</summary>
+	private static readonly string[] TriggeredTrapPaths =
+	[
+		"res://scenes/props/traps/triggered/dart_plate.tres",
+		"res://scenes/props/traps/triggered/fire_plate.tres",
+		"res://scenes/props/traps/triggered/dart_plate_hold.tres",
+	];
 	/// <summary>The profile the level prices encounters with, for tests that call a realm factory without a level.</summary>
 	public const string ThreatProfilePath = "res://scenes/levels/encounters/threat_profile.tres";
 
@@ -207,6 +215,21 @@ public static partial class TestFactories
 		}
 	}
 
+	/// <summary>Stands <paramref name="body"/> at <paramref name="point"/>'s spot on the ground, keeping its own height.</summary>
+	public static void PlaceAt(Node3D body, Vector3 point)
+	{
+		body.GlobalPosition = point with { Y = body.GlobalPosition.Y };
+		body.ResetPhysicsInterpolation();
+	}
+
+	/// <summary>Every damage outcome <paramref name="hero"/>'s hurtbox resolves from now on, in order.</summary>
+	public static List<DamageOutcome> RecordOutcomes(Player hero)
+	{
+		var outcomes = new List<DamageOutcome>();
+		hero.HurtBoxComponent.DamageResolved += (outcome, _, _) => outcomes.Add((DamageOutcome)outcome);
+		return outcomes;
+	}
+
 	/// <summary>Create an inert real monster for area-contact tests.</summary>
 	public static EnemyBase SpawnCombatMonster(Node root, Vector3 position, string name,
 		string scene = "res://scenes/enemies/skeleton/skeleton_minion.tscn")
@@ -367,7 +390,8 @@ public static partial class TestFactories
 	public static void WireLootScenes(MapGenerator mapGenerator)
 	{
 		mapGenerator.ChestScene = Load<PackedScene>("res://scenes/props/chest.tscn");
-		mapGenerator.TrapScene = Load<PackedScene>("res://scenes/props/floor_trap.tscn");
+		mapGenerator.TrapScene = Load<PackedScene>("res://scenes/props/traps/pressure_plate_spikes.tscn");
+		mapGenerator.TriggeredTraps = [.. TriggeredTrapPaths.Select(path => Load<TriggeredTrapProfile>(path))];
 		mapGenerator.LooseItemScene = Load<PackedScene>("res://scenes/items/lootable_item.tscn");
 		mapGenerator.LooseItems = Load<LootDropProfile>("res://scenes/items/loot/drops/loose_items.tres");
 		mapGenerator.LockedRewardScene = Load<PackedScene>("res://scenes/props/chest_gold.tscn");

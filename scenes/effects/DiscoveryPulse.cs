@@ -2,7 +2,11 @@ using Godot;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>Temporary surface glow and crossfade. Physical collision and navigation remain owned by the prop.</summary>
+/// <summary>
+/// Temporary surface glow and crossfade. Physical collision and navigation remain owned by the prop. Standard materials
+/// fade through their albedo and glow through their emission; a shader material takes part when its shader declares
+/// <c>uniform float reveal</c> (its opacity) and <c>uniform vec3 reveal_glow</c> (added light).
+/// </summary>
 [Tool]
 public partial class DiscoveryPulse : Node3D
 {
@@ -11,11 +15,13 @@ public partial class DiscoveryPulse : Node3D
 	[Export] public Color GlowColor { get; set; } = new(1, 0.78f, 0.08f);
 	[Export] public bool Blend { get; set; } = true;
 	public bool IsPlaying { get; private set; }
+	private static readonly StringName RevealParameter = "reveal", RevealGlowParameter = "reveal_glow";
 	// Material alpha works on Mobile too; GeometryInstance3D.Transparency only works on Forward+.
 	private sealed class Surface
 	{
 		public MeshMaterialSnapshot State;
 		public BaseMaterial3D[] Fades;
+		public ShaderMaterial[] Reveals;
 		public Color[] Colors, Emission;
 		public BaseMaterial3D.TransparencyEnum[] Transparency;
 		public bool Original;
@@ -55,7 +61,7 @@ public partial class DiscoveryPulse : Node3D
 		var state = new MeshMaterialSnapshot(mesh);
 		int count = state.SurfaceCount;
 		var surface = new Surface { State = state, Original = original, Fades = new BaseMaterial3D[count], Colors = new Color[count],
-			Emission = new Color[count], Transparency = new BaseMaterial3D.TransparencyEnum[count] };
+			Emission = new Color[count], Transparency = new BaseMaterial3D.TransparencyEnum[count], Reveals = new ShaderMaterial[count] };
 		var shown = new Material[count];
 		for (int i = 0; i < count; i++)
 		{
@@ -71,6 +77,12 @@ public partial class DiscoveryPulse : Node3D
 				fade.EmissionEnergyMultiplier = 1;
 				surface.Fades[i] = fade;
 				shown[i] = fade;
+			}
+			else if (shown[i] is ShaderMaterial { Shader: { } shader } custom && Reveals(shader))
+			{
+				var reveal = (ShaderMaterial)custom.Duplicate();
+				surface.Reveals[i] = reveal;
+				shown[i] = reveal;
 			}
 		}
 		// One material owns both glow and opacity throughout the transition. An overlay would
@@ -88,6 +100,12 @@ public partial class DiscoveryPulse : Node3D
 			float opacity = surface.Original ? (Blend ? 1 - blend : 0) : (Blend ? blend : 1);
 			surface.State.Mesh.Visible = surface.State.Visible && opacity > 0.001f;
 			float glow = Mathf.Max(0, Mathf.Sin(progress * Mathf.Pi)) * GlowStrength;
+			for (int i = 0; i < surface.Reveals.Length; i++)
+			{
+				if (surface.Reveals[i] == null) continue;
+				surface.Reveals[i].SetShaderParameter(RevealParameter, opacity);
+				surface.Reveals[i].SetShaderParameter(RevealGlowParameter, new Vector3(GlowColor.R, GlowColor.G, GlowColor.B) * glow);
+			}
 			for (int i = 0; i < surface.Fades.Length; i++)
 				if (surface.Fades[i] != null)
 				{
@@ -100,6 +118,10 @@ public partial class DiscoveryPulse : Node3D
 				}
 		}
 	}
+	/// <summary>Whether <paramref name="shader"/> takes part in the fade through a <c>reveal</c> uniform.</summary>
+	private static bool Reveals(Shader shader) =>
+		shader.GetShaderUniformList().Any(uniform => uniform.AsGodotDictionary()["name"].AsString() == RevealParameter.ToString());
+
 	public void Stop()
 	{
 		_tween?.Kill(); _tween = null;

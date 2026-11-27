@@ -224,11 +224,18 @@ PACKS = [
 # FLOOR's budget and gatekeeper share to it; supplies and the arrival odds follow. Chosen 2026-11-14 to keep the
 # difficulty playtests liked (ordinary floors cost about 60%) with gatekeeper floors the walls.
 ATTRITION = dict(floor=0.60, gatekeeper_floor=0.75)
-# Floor traps (FloorTrap): `per_floor` = traps placed per floor (MapGenerator.MinTraps..MaxTraps, audited), `triggers`
+# Floor traps (spike plates: SpikeBurst): `per_floor` = traps placed per floor (MapGenerator.MinTraps..MaxTraps, audited), `triggers`
 # = springs per trap on the hero per floor (measured: 26 over 30 playtest floors of about 1.5 traps), `damage` = a
 # spring's physical hit as a share of the expected hero's health, rolled against armor like a blow. `derive` writes a
 # trap's damage on depth 1 and per depth. Traps count toward a floor's attrition, so the budget leaves room for them.
 TRAPS = dict(per_floor=1.5, triggers=0.58, damage=0.09)
+# Plate traps (a concealed plate and the wall launcher across from it: MapGenerator.TriggeredTraps) fill a share of the
+# trap slots from `first_depth` (the shallowest profile's FirstDepth): each slot rolls `chance`
+# (MapGenerator.TriggeredTrapChance, audited) and a lane fits about `lane_fit` of those (the generated-floor sweep). Of
+# their springs `hits` land (estimated: a hero crossing at full speed can clear the lane). A dart is a physical hit of
+# `damage` of the expected hero's health; a fireball deals `fire_scale` of it, since armor never absorbs it. `derive`
+# writes each launcher's Damage and DamagePerDepth.
+LAUNCHERS = dict(first_depth=2, chance=0.35, lane_fit=0.9, hits=0.75, damage=0.055, fire_scale=0.75)
 FLOOR = dict(
     budget=(7.3, 11.4),        # standard-monster equivalents per floor, packs costed as groups (`fit` sizes it)
     boss_budget_share=0.45,    # a boss floor spends this share of the budget before the boss (`fit` sizes it)

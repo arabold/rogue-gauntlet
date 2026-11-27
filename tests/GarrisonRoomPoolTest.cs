@@ -116,7 +116,7 @@ public class GarrisonRoomPoolTest
 		foreach (var node in generator.FloorContent.FindChildren("*", "", true, false).OfType<Node3D>())
 		{
 			bool chest = node.HasMeta("persistent_id") && node.GetMeta("persistent_id").AsString().Contains(":chest:");
-			if ((chest || node is LootableItem or FloorTrap) && !TestFactories.IsLootReachable(generator.Floor, node))
+			if ((chest || node is LootableItem or PressurePlate) && !TestFactories.IsLootReachable(generator.Floor, node))
 				return $"{node.Name} at {node.GlobalPosition}";
 		}
 		return "";

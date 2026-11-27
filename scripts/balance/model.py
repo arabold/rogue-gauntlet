@@ -649,25 +649,52 @@ def pack_units(pack, depth: float) -> float:
     return group_factor(len(pack["members"])) * sum(archetype_units(a, depth) for a in pack["members"])
 
 
-def trap_line() -> tuple[int, float]:
-    """
-    A floor trap's authored damage on depth 1 and per depth (`FloorTrap.Damage`, `DamagePerDepth`): a line through its
-    share of the reference hero's health on depths 1 and 24 (TRAPS `damage`).
-    """
-    first, last = (P.TRAPS["damage"] * reference_hp(d) for d in (1, P.DEPTHS))
+def health_line(share: float) -> tuple[int, float]:
+    """A trap's authored damage on depth 1 and per depth (`Trap.Damage`, `DamagePerDepth`): a line through `share` of the
+    reference hero's health on depths 1 and 24."""
+    first, last = (share * reference_hp(d) for d in (1, P.DEPTHS))
     return round(first), round((last - first) / (P.DEPTHS - 1), 2)
 
 
-def trap_damage(depth: float) -> float:
-    """A trap's spring on `depth` before armor, as the game computes it from the authored line (`FloorTrap.CurrentDamage`)."""
-    first, per_depth = trap_line()
+def line_damage(line: tuple[float, float], depth: float) -> float:
+    """A hit on `depth` before armor from an authored damage line, as the game's `TrapDamage.At` computes it."""
+    first, per_depth = line
     return max(1, round(first + per_depth * (round(depth) - 1)))
 
 
+def trap_line() -> tuple[int, float]:
+    """A spike plate's damage line (`SpikeBurst`): TRAPS `damage` of the reference hero's health."""
+    return health_line(P.TRAPS["damage"])
+
+
+def trap_damage(depth: float) -> float:
+    """A spike plate's spring on `depth` before armor."""
+    return line_damage(trap_line(), depth)
+
+
+def launcher_line(scale: float = 1.0) -> tuple[int, float]:
+    """A wall launcher's damage line (`WallLauncher`): LAUNCHERS `damage` of the reference hero's health, times `scale`
+    (a fireball's `fire_scale`)."""
+    return health_line(P.LAUNCHERS["damage"] * scale)
+
+
+def launcher_damage(depth: float) -> float:
+    """A dart's hit on `depth` before armor."""
+    return line_damage(launcher_line(), depth)
+
+
+def launcher_share(depth: float) -> float:
+    """Share of a floor's trap slots that hold plate traps on `depth`."""
+    l = P.LAUNCHERS
+    return l["chance"] * l["lane_fit"] if depth >= l["first_depth"] else 0.0
+
+
 def trap_cost(h: Hero) -> float:
-    """Expected share of `h`'s max health a floor's traps take."""
-    t = P.TRAPS
-    return t["per_floor"] * t["triggers"] * mitigate(trap_damage(h.depth), h.armor) / h.hp
+    """Expected share of `h`'s max health a floor's traps take: spike plates, and plate traps whose shot lands."""
+    t, share = P.TRAPS, launcher_share(h.depth)
+    spring = ((1 - share) * mitigate(trap_damage(h.depth), h.armor)
+              + share * P.LAUNCHERS["hits"] * mitigate(launcher_damage(h.depth), h.armor))
+    return t["per_floor"] * t["triggers"] * spring / h.hp
 
 
 def is_gatekeeper_floor(depth: int) -> bool:

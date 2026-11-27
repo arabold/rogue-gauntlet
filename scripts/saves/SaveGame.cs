@@ -15,7 +15,7 @@ public enum RunOutcome
 /// </summary>
 public sealed class SaveGame
 {
-	public const int CurrentVersion = 116;
+	public const int CurrentVersion = 120;
 
 	/// <summary>Default class for a new run.</summary>
 	public const string DefaultCharacterClassId = "barbarian";
@@ -278,7 +278,7 @@ public sealed class RewardSourceSaveData
 
 /// <summary>
 /// Exploration deltas for one dungeon depth. The map regenerates deterministically
-/// from its seed; explored tiles, door access and found traps are replayed on top.
+/// from its seed; explored tiles, door access and found plates are replayed on top.
 /// </summary>
 public sealed class RevealedLevelSaveData
 {
@@ -286,7 +286,7 @@ public sealed class RevealedLevelSaveData
 	/// <summary>Row-major indices in the eight-samples-per-tile discovery grid.</summary>
 	public List<int> ExploredSamples { get; set; } = [];
 	public List<DoorAccessSaveData> Doors { get; set; } = [];
-	public List<string> DiscoveredTrapIds { get; set; } = [];
+	public List<string> DiscoveredPlateIds { get; set; } = [];
 }
 
 public sealed class FoodItemSaveData

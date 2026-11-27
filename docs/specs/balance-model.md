@@ -244,9 +244,13 @@ plus its gatekeeper, which alone costs about 48% at depth 5 and 39% at depth 25.
 attrition: potions stay scarce, so the hero runs down over a realm and the fountains and gatekeepers set the rhythm.
 
 **Traps** (`params.TRAPS`) count toward attrition. A floor places 0–3 hidden traps (`MapGenerator.MinTraps..MaxTraps`,
-audited); playtests sprang about 0.58 per trap per floor. A spring is a physical hit of 9% of the expected hero's
+audited); playtests sprang about 0.58 per trap per floor, measured when a spike trap's trigger covered its whole tile (it now covers only its holes, 2.4 m square, so re-measure). A spring is a physical hit of 9% of the expected hero's
 health, rolled against armor like a blow: 5 on depth 1 and 26 on depth 25, which `derive` writes as the trap's
-`Damage` and `DamagePerDepth`. Together they cost about 6% of max health per floor. The trap count stays authored rather
+`Damage` and `DamagePerDepth`. From depth 2 a share of the slots holds plate traps instead (`params.LAUNCHERS`: the
+35% `MapGenerator.TriggeredTrapChance`, audited, times the 90% of rolls a lane fits); an estimated three in four of
+their springs hit, for a dart's 5.5% of the expected hero's health, and a fireball deals three quarters of that because
+armor never absorbs it. `derive` writes each launcher's `Damage` and `DamagePerDepth`. Together traps cost about 6% of
+max health per floor. The trap count stays authored rather
 than spent from the budget: at 6% a floor, the budget fit simply leaves room for them.
 
 ### Shops

@@ -1,10 +1,13 @@
-[gd_scene load_steps=30 format=3 uid="uid://b1b1kyg5ak1kw"]
+[gd_scene load_steps=33 format=3 uid="uid://b1b1kyg5ak1kw"]
 
 [ext_resource type="Script" uid="uid://dufyxbs8mado1" path="res://scenes/levels/Level.cs" id="1_37vyo"]
 [ext_resource type="PackedScene" uid="uid://dhi51wv5tbpik" path="res://scenes/levels/generators/map_generator.tscn" id="2_dtjl1"]
 [ext_resource type="Resource" path="res://scenes/levels/encounters/sunken_garrison.tres" id="6_ouxo3"]
 [ext_resource type="PackedScene" uid="uid://cgi3a5fi0sxu6" path="res://scenes/props/chest.tscn" id="8_chest"]
-[ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/floor_trap.tscn" id="9_trap"]
+[ext_resource type="PackedScene" uid="uid://cap6wqfjubqjx" path="res://scenes/props/traps/pressure_plate_spikes.tscn" id="9_trap"]
+[ext_resource type="Resource" path="res://scenes/props/traps/triggered/dart_plate.tres" id="plate_dart"]
+[ext_resource type="Resource" path="res://scenes/props/traps/triggered/dart_plate_hold.tres" id="plate_dart_hold"]
+[ext_resource type="Resource" path="res://scenes/props/traps/triggered/fire_plate.tres" id="plate_fire"]
 [ext_resource type="PackedScene" uid="uid://ccltoxuycom37" path="res://scenes/items/lootable_item.tscn" id="10_lootitem"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/loose_items.tres" id="11_loose_items"]
 [ext_resource type="Resource" path="res://scenes/items/loot/drops/gold_piles.tres" id="gold_piles"]
@@ -58,6 +61,7 @@ Rooms = ExtResource("room_pool")
 Realms = [ExtResource("realm_garrison"), ExtResource("realm_prison"), ExtResource("realm_sewer"), ExtResource("realm_mines"), ExtResource("realm_cathedral")]
 ChestScene = ExtResource("8_chest")
 TrapScene = ExtResource("9_trap")
+TriggeredTraps = [ExtResource("plate_dart"), ExtResource("plate_fire"), ExtResource("plate_dart_hold")]
 LooseItemScene = ExtResource("10_lootitem")
 LooseItems = ExtResource("11_loose_items")
 GoldPiles = ExtResource("gold_piles")

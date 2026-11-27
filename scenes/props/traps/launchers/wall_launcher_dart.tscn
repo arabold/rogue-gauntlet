@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/props/traps/WallLauncher.cs" id="1_launcher"]
+[ext_resource type="Script" path="res://scenes/props/traps/TrapShotComponent.cs" id="5_shot"]
+[ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="2_dart"]
+[ext_resource type="PackedScene" path="res://scenes/props/traps/models/dart_slit.tscn" id="model"]
+
+[node name="WallLauncherDart" type="Node3D" node_paths=PackedStringArray("Shot", "ClickEffect")]
+script = ExtResource("1_launcher")
+Shot = NodePath("Shot")
+ClickEffect = NodePath("Model/Dust")
+Damage = 3
+DamagePerDepth = 0.54
+
+[node name="Model" parent="." instance=ExtResource("model")]
+
+[node name="Shot" type="Node" parent="." node_paths=PackedStringArray("Muzzle")]
+script = ExtResource("5_shot")
+ProjectileScene = ExtResource("2_dart")
+Muzzle = NodePath("../Model/Muzzle")
+Speed = 30.0
+Range = 24.0

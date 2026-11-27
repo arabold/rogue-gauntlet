@@ -405,7 +405,7 @@ public partial class HurtBoxComponent : Area3D, IDamageable, ICombatDamageable
 			return DamageSourceFlags.Enemy;
 		}
 
-		if (attacker.IsInGroup("trap") || attacker is FloorTrap)
+		if (attacker.IsInGroup("trap"))
 		{
 			return DamageSourceFlags.Trap;
 		}

@@ -136,6 +136,10 @@ class TextResource:
         """A scene's root node."""
         return next(s for s in self.sections if s.kind == "node")
 
+    def node(self, name: str) -> Section:
+        """A scene's node by name."""
+        return next(s for s in self.sections if s.kind == "node" and s.attrs.get("name") == name)
+
     def sub(self, id_: str) -> Section:
         return next(s for s in self.sections if s.kind == "sub_resource" and s.id == id_)
 

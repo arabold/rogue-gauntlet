@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Prop" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/generators/assembly/content/Prop.cs" id="prop"]
+[ext_resource type="PackedScene" path="res://scenes/props/traps/launchers/wall_launcher_gargoyle.tscn" id="scene"]
+
+[resource]
+script = ExtResource("prop")
+Id = "gargoyle_launcher"
+Scenes = [ExtResource("scene")]
+Mount = 1
+MountHeight = 0.0
+Blocking = false
+Gap = 0.1
+metadata/_custom_type_script = ExtResource("prop")

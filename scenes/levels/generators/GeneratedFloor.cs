@@ -30,7 +30,7 @@ public sealed class GeneratedFloor
 	private WalkabilityGrid _walkability;
 	private bool[] _reachable;
 	private readonly Dictionary<string, (Door Door, DoorAccessSaveData Baseline)> _doorBaselines = new();
-	private List<FloorTrap> _traps;
+	private List<PressurePlate> _plates;
 	/// <summary>The tiles of every trap gauntlet room, kept free of spawns and loot.</summary>
 	private readonly HashSet<Vector2I> _gauntletTiles = [];
 	private HashSet<Vector2I> _decoratedTiles;
@@ -73,8 +73,8 @@ public sealed class GeneratedFloor
 	public bool IsFrozen { get; private set; }
 	/// <summary>Every door's generated access state, keyed by its stable connection id: what exploration saves diff against.</summary>
 	public IReadOnlyDictionary<string, (Door Door, DoorAccessSaveData Baseline)> DoorBaselines => _doorBaselines;
-	/// <summary>Authored and generated floor traps, collected when the floor freezes.</summary>
-	public IReadOnlyList<FloorTrap> Traps => _traps ?? [];
+	/// <summary>Authored and generated pressure plates, collected when the floor freezes.</summary>
+	public IReadOnlyList<PressurePlate> Plates => _plates ?? [];
 	/// <summary>The slot of the trap gauntlet room in its approach group (<c>gauntlet_exit.tres</c>).</summary>
 	public const string GauntletSlot = "gauntlet";
 	/// <summary>World XZ outlines of the solid wall pieces, from their mesh footprints rather than collision hulls: a corner
@@ -210,7 +210,7 @@ public sealed class GeneratedFloor
 	{
 		RequireLive();
 		FreezeDecorations();
-		_traps = _world.FindChildren("*", "", true, false).OfType<FloorTrap>().Where(trap => !trap.IsQueuedForDeletion()).ToList();
+		_plates = _world.FindChildren("*", "", true, false).OfType<PressurePlate>().Where(plate => !plate.IsQueuedForDeletion()).ToList();
 		IsFrozen = true;
 	}
 
