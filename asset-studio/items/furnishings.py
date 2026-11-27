@@ -21,7 +21,7 @@ from core import kit
 from items import cathedral, foliage, graveyard, mining, webs
 from items.solid import Assembly, lathe, loop, welded
 from items.furnishing_kit import (block, cushion, post, rod, ball, bend, framed, board, planks, square_post, stones,
-                                  rivet, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands, strut,
+                                  rivet, crack, crack_path, candle, lit, outline, rect, star, disc, facade, floor_plan, jag, painted, bands, strut,
                                   turned, moved, grounded, ring, chain, torus, log, random, bone, skull)
 
 # Colors come from the dungeon texture (`world_surface.SWATCHES`); slots only choose how hard their edges shade:
@@ -1706,19 +1706,34 @@ PLATE_FRAME_TOP = .09
 
 
 def pressure_plate(part='plate'):
-    """A trap's pressure plate: a square slab of the floor tiles' pale stone with a broad bevel and two corners
-    knocked off square, inside a thin iron frame with domed corner posts. The plate (`part` 'plate') and its frame
-    ('frame') are separate models, since only the plate moves."""
+    """A trap's pressure plate: a square slab of the floor tiles' pale stone with bevelled top edges, worn by feet with
+    a few shallow scratches and scuffed drag marks, inside a thin iron frame with domed corner posts. The plate
+    (`part` 'plate') and its frame ('frame') are separate models, since only the plate moves."""
     a = Assembly()
     if part == 'plate':
-        size = np.array([1.6, PLATE_TOP - PLATE_BOTTOM, 1.6])
-        plate = a.label(block(tuple(size), (0, (PLATE_TOP + PLATE_BOTTOM) / 2, 0), .08), 'stone_light')
-        # Worn corners cut straight down, so the cut meets the bevel along clean edges.
-        # `depth` runs along the diagonal in from the sharp corner; the turned box's face toward the middle is the cut.
-        for x, z, depth in ((1, -1, .26), (-1, 1, .2)):
-            reach = .8 + (.2 - depth) / 2 ** .5
-            corner = block((.4, 1, .4), (0, 0, 0), 0).rotate((0, 45, 0)).translate((x * reach, 0, z * reach))
-            plate = plate - a.label(corner, 'stone_light')
+        rng = random('pressure_plate_wear')
+        # Square in plan: only the top edges bevel, so the corners stay sharp and the bevels meet in mitres.
+        bevel = .08
+        body = PLATE_TOP - bevel - PLATE_BOTTOM
+        plate = a.label(mf.Manifold.batch_hull([block((1.6, body, 1.6), (0, PLATE_BOTTOM + body / 2, 0), 0),
+                                                block((1.6 - 2 * bevel, .001, 1.6 - 2 * bevel), (0, PLATE_TOP - .0005, 0), 0)]),
+                        'stone_light')
+        # Wear drawn on the top face (x across, y toward -z) and turned onto it: shallow grooves, a hair deep, kept
+        # inside the bevel so no cut meets an edge.
+        marks = []
+        for start, heading in (((-.55, -.3), 15), ((-.05, .5), -25), ((.2, .05), 160)):
+            marks.append(crack(crack_path(rng, start, heading, rng.uniform(.45, .65), 3, 18), width=.032, depth=.03))
+        for x, y, heading in ((.3, -.35, 35), (-.25, -.48, 40)):
+            # Scuffs: short parallel strokes, as from something dragged across.
+            step = np.radians(heading + 90)
+            for k in range(3):
+                start = np.array([x, y]) + k * .05 * np.array([np.cos(step), np.sin(step)])
+                marks.append(crack(crack_path(rng, start, heading + rng.uniform(-4, 4), rng.uniform(.16, .26), 1, 0),
+                                   width=.024, depth=.022))
+        wear = mf.Manifold.batch_boolean(marks, mf.OpType.Add).rotate((-90, 0, 0)).translate((0, PLATE_TOP, 0))
+        wear = wear ^ block((1.24, 1, 1.24), (0, 0, 0), 0)
+        # Grime fills the grooves: the floor's warm dark, not the iron's blue grey.
+        plate = plate - a.label(wear, 'soil')
         a.join(plate)
         return a.build()
     half, bar, middle = .85, .09, (PLATE_FRAME_TOP + PLATE_BOTTOM) / 2
