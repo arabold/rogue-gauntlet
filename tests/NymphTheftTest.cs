@@ -92,14 +92,18 @@ public class NymphTheftTest
 			return nymph.ActionGate.CurrentKind == ActorActionKind.Dash;
 		}, 5);
 		AssertBool(nymph.TryStagger(.4f)).IsTrue();
+		// Watched past the stagger and the fade she started, sampled every physics tick: a tick moves her under 0.1 m at a
+		// run while a landed blink moves her metres. A rendered frame is no unit for this: under load one frame holds
+		// many ticks of ordinary running.
+		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(.6f * Engine.PhysicsTicksPerSecond);
 		float jump = 0;
 		Vector3 last = nymph.GlobalPosition;
-		for (int frame = 0; frame < 30; frame++)
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
 		{
-			await runner.SimulateFrames(1, 20);
 			jump = Mathf.Max(jump, nymph.GlobalPosition.HorizontalDistanceTo(last));
 			last = nymph.GlobalPosition;
-		}
+			return Engine.GetPhysicsFrames() >= end;
+		}, 1);
 		AssertFloat(jump).IsLess(1f);
 	}
 
