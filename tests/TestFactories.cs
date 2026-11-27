@@ -1,6 +1,7 @@
 namespace RogueGauntlet.Tests;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -39,7 +40,7 @@ public static partial class TestFactories
 	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
 	public const string RoomPoolPath = "res://scenes/levels/rooms/room_pool.tres";
 	/// <summary>The plate trap profiles the level places in its trap slots.</summary>
-	public static readonly string[] TriggeredTrapPaths =
+	private static readonly string[] TriggeredTrapPaths =
 	[
 		"res://scenes/props/traps/triggered/dart_plate.tres",
 		"res://scenes/props/traps/triggered/fire_plate.tres",
@@ -212,6 +213,21 @@ public static partial class TestFactories
 			if (Engine.GetPhysicsFrames() >= end) throw new TimeoutException($"Condition not met within {timeout} s of physics time.");
 			await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
 		}
+	}
+
+	/// <summary>Stands <paramref name="body"/> at <paramref name="point"/>'s spot on the ground, keeping its own height.</summary>
+	public static void PlaceAt(Node3D body, Vector3 point)
+	{
+		body.GlobalPosition = point with { Y = body.GlobalPosition.Y };
+		body.ResetPhysicsInterpolation();
+	}
+
+	/// <summary>Every damage outcome <paramref name="hero"/>'s hurtbox resolves from now on, in order.</summary>
+	public static List<DamageOutcome> RecordOutcomes(Player hero)
+	{
+		var outcomes = new List<DamageOutcome>();
+		hero.HurtBoxComponent.DamageResolved += (outcome, _, _) => outcomes.Add((DamageOutcome)outcome);
+		return outcomes;
 	}
 
 	/// <summary>Create an inert real monster for area-contact tests.</summary>

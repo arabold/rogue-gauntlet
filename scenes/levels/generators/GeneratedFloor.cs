@@ -80,8 +80,6 @@ public sealed class GeneratedFloor
 	/// <summary>World XZ outlines of the solid wall pieces, from their mesh footprints rather than collision hulls: a corner
 	/// counts as its two arms, so a room's inner corner stays open. Set once the walls are final.</summary>
 	public IReadOnlyList<Vector2[]> SolidWalls { get; internal set; } = [];
-	/// <summary>World boxes of the decor hanging on room walls, once the floor's walls are final: later wall mounts keep clear of them.</summary>
-	internal IReadOnlyList<Aabb> WallDecor { get; set; } = [];
 	/// <summary>World XZ centerlines of fixed structures inside rooms, including cell walls and GridMap dividers.</summary>
 	internal IReadOnlyList<(Vector2 Start, Vector2 End)> InteriorWallSegments { get; set; } = [];
 

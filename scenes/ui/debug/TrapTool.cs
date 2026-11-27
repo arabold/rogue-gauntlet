@@ -108,7 +108,8 @@ public partial class TrapTool : DebugTool
 			var node = scene.Instantiate<TrapHazard>();
 			node.Tune(new HazardBeat(Period, TrapGauntlet.PhaseFor(Pattern, row)));
 			gauntlet.AddChild(node);
-			if (hazard.Mount == PropMount.Wall) HangBesidePath(gauntlet, node, center + Vector3.Up * hazard.MountHeight, right, space, origin);
+			if (hazard.Mount == PropMount.Wall)
+				HangBesidePath(gauntlet, node, center + Vector3.Up * hazard.MountHeight, right, space, origin, LaneOffset, LaneOffset * 2);
 			else node.Transform = new Transform3D(Basis.LookingAt(forward), center);
 		}
 		world.AddWorldNode(gauntlet, origin);
@@ -118,8 +119,8 @@ public partial class TrapTool : DebugTool
 
 	/// <summary>
 	/// Stages <paramref name="profile"/> ahead of the hero and returns its root: its plate, revealed,
-	/// <see cref="FirstRowDistance"/> ahead and its launcher hung on the wall beside it, facing it. Null without a hero, a
-	/// world or a valid profile.
+	/// <see cref="FirstRowDistance"/> ahead and its launcher hung on the wall beside it, facing it, within the profile's
+	/// lane length (on a stand-in wall when no wall is). Null without a hero, a world or a valid profile.
 	/// </summary>
 	public Node3D StageTriggered(TriggeredTrapProfile profile)
 	{
@@ -132,7 +133,8 @@ public partial class TrapTool : DebugTool
 		var launcher = profile.Launcher.Scenes[0].Instantiate<WallLauncher>();
 		trap.AddChild(launcher);
 		Vector3 center = forward * FirstRowDistance;
-		HangBesidePath(trap, launcher, center, forward.Cross(Vector3.Up), player.GetWorld3D().DirectSpaceState, origin);
+		HangBesidePath(trap, launcher, center + Vector3.Up * profile.Launcher.MountHeight, forward.Cross(Vector3.Up),
+			player.GetWorld3D().DirectSpaceState, origin, (profile.MinLane + profile.MaxLane) / 2, profile.MaxLane);
 		var plate = profile.PlateScene.Instantiate<PressurePlate>();
 		plate.Position = center;
 		plate.Output.Mode = PlateMode ?? profile.Mode;
@@ -174,16 +176,16 @@ public partial class TrapTool : DebugTool
 	}
 
 	/// <summary>
-	/// Hangs <paramref name="hazard"/> facing the path on the first wall to its <paramref name="right"/>, or on a stand-in
-	/// wall <see cref="LaneOffset"/> away, at <paramref name="center"/>'s height. Positions are relative to
-	/// <paramref name="parent"/>, a staged gauntlet or plate trap at <paramref name="origin"/>.
+	/// Hangs <paramref name="hazard"/> facing the path on the first wall within <paramref name="reach"/> to its
+	/// <paramref name="right"/>, or on a stand-in wall <paramref name="offset"/> away, at <paramref name="center"/>'s
+	/// height. Positions are relative to <paramref name="parent"/>, a staged gauntlet or plate trap at <paramref name="origin"/>.
 	/// </summary>
-	private void HangBesidePath(Node3D parent, Node3D hazard, Vector3 center, Vector3 right,
-		PhysicsDirectSpaceState3D space, Vector3 origin)
+	private static void HangBesidePath(Node3D parent, Node3D hazard, Vector3 center, Vector3 right,
+		PhysicsDirectSpaceState3D space, Vector3 origin, float offset, float reach)
 	{
 		Vector3 probe = origin + center with { Y = MountProbeHeight };
-		var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(probe, probe + right * LaneOffset * 2, WorldSight.Structure));
-		Vector3 mount = hit.Count > 0 ? hit[PositionKey].AsVector3() - origin : center + right * LaneOffset;
+		var hit = space.IntersectRay(PhysicsRayQueryParameters3D.Create(probe, probe + right * reach, WorldSight.Structure));
+		Vector3 mount = hit.Count > 0 ? hit[PositionKey].AsVector3() - origin : center + right * offset;
 		mount.Y = center.Y;
 		// A wall prop's front (+Z) faces into the room, so its back (-Z) faces the wall to the right.
 		hazard.Transform = new Transform3D(Basis.LookingAt(right), mount);

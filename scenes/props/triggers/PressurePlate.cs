@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Godot;
 
 /// <summary>
@@ -10,9 +9,7 @@ using Godot;
 [GlobalClass]
 public partial class PressurePlate : Node3D, IProximityDiscoverable
 {
-	private static readonly StringName HeroGroup = "player";
-
-	/// <summary>Detects bodies on the plate; its collision mask sees only the hero.</summary>
+	/// <summary>Detects bodies on the plate; its collision mask decides who presses it (only the hero, for a trap).</summary>
 	[Export] public TriggerComponent Trigger { get; set; }
 	[Export] public TriggerOutputComponent Output { get; set; }
 	[Export] public MeshInstance3D FloorSurface { get; set; }
@@ -26,9 +23,8 @@ public partial class PressurePlate : Node3D, IProximityDiscoverable
 	/// <summary>Stable identity for persisted discovery; generated content assigns it through <see cref="Initialize"/>.</summary>
 	public string PersistentId { get; private set; } = "";
 	public bool IsDiscovered { get; private set; }
-	public bool IsPressed => _occupants.Count > 0;
+	public bool IsPressed => Output?.IsOn == true;
 
-	private readonly HashSet<Node3D> _occupants = [];
 	private GridMap _surfaceGrid;
 	private Vector3I _surfaceCell;
 	private ulong _levelSeed = RunState.DefaultSeed;
@@ -104,13 +100,9 @@ public partial class PressurePlate : Node3D, IProximityDiscoverable
 
 	private void OnEntered(Node3D body)
 	{
-		if (!body.IsInGroup(HeroGroup) || !_occupants.Add(body) || _occupants.Count > 1) return;
 		Reveal(false); // Stepping on it exposes the plate; what it sets off supplies the feedback.
 		Output.Report(true, body);
 	}
 
-	private void OnLeft(Node3D body)
-	{
-		if (_occupants.Remove(body) && _occupants.Count == 0) Output.Report(false, body);
-	}
+	private void OnLeft(Node3D body) => Output.Report(false, body);
 }

@@ -58,8 +58,9 @@ The spike trap becomes a concealed plate with a Pulse link to spikes on the same
 - **Placement of trap pairs (landed).**
   - A trap slot rolls a plate trap (`TriggeredTrapChance`, 35%) and picks a profile by weight from those whose `FirstDepth` it has reached. Rolls come from the trap stream, as traps did.
   - A lane runs from a room tile's wall edge straight out to a plate tile in the same room, `MinLane` to `MaxLane` (4–7 m: one tile out) from the launcher, short enough that a dart reaches a hero still on the plate.
-  - The launcher hangs as rooms hang wall decor: on the wall's mounting face, within a stretch that takes decor, clear of the floor's wall decor (`GeneratedFloor.WallDecor`) and of doors.
+  - The launcher hangs as rooms hang wall decor: on the wall's mounting face, within a stretch that takes decor, clear of the room decor already hanging there, other launchers and doors.
   - The plate keeps clear of doorways and other loot, and leaves reachable floor beside it to walk past. No solid in the actor height band stands within a shot's breadth of the lane, by the floor's collision outlines: the walkability grid alone is too coarse for a line.
+  - A lane whose spot no plate trap can use is dropped for the floor; one only the picked launcher does not fit stays for the other profiles.
   - A slot without a fitting lane keeps the spike plate. Switches, conditions and door links are authored in rooms or room groups, not scattered.
 
 ## Code shape
@@ -78,9 +79,9 @@ The spike trap becomes a concealed plate with a Pulse link to spikes on the same
 // PulseTriggerMode: on → output.PulseTargets. HoldTriggerMode: output.SetTargetsActive(on).
 // LatchTriggerMode: first on → output.TryLatch() → output.SetTargetsActive(true).
 
-/// <summary>Who or what changed a source: the source and the actor that pressed, pulled or left it. Restored is set
-/// when a saved state is replayed on load, so receivers apply it without effects.</summary>
-public readonly record struct TriggerActivation(Node Source, Node3D Activator, bool Restored = false);
+/// <summary>Who changed a source: the actor that pressed, pulled or left it. Slice 4 adds Restored, set when a saved
+/// state is replayed on load, so receivers apply it without effects.</summary>
+public readonly record struct TriggerActivation(Node3D Activator);
 
 /// <summary>A receiver: a one-time effect on a pulse, a lasting one while on.</summary>
 public interface ITriggerable
@@ -120,7 +121,7 @@ public interface ITriggerable
 {
 	[Export] public TriggerComponent Trigger { get; set; }          // existing Area3D: bodies, and items' areas
 	[Export] public TriggerOutputComponent Output { get; set; }
-	[Export] public PlatePressers PressedBy { get; set; } = PlatePressers.Hero;
+	[Export] public PlatePressers PressedBy { get; set; } = PlatePressers.Hero;   // slice 4: sets the trigger's mask, the only filter
 	[Export] public bool Concealed { get; set; } = true;
 	[Export] public MeshInstance3D FloorSurface { get; set; }
 	[Export] public DiscoveryPulse DiscoveryEffect { get; set; }
@@ -161,11 +162,10 @@ public interface ITriggerable
 	[Export] public float DamagePerDepth { get; set; }
 }
 
-/// <summary>Spikes that spring from their plate and hurt whoever stands on it (today's spike trap).</summary>
+/// <summary>Spikes that spring from their plate and hurt whoever set them off (today's spike trap); held up while active.</summary>
 [Tool, GlobalClass] public partial class SpikeBurst : Trap, ITriggerable
 {
 	[Export] public MeshInstance3D Spikes { get; set; }
-	[Export] public TriggerComponent Contact { get; set; }
 }
 
 /// <summary>A wall-mounted mechanism: one fast shot along its front per pulse, a shot every Interval while active.</summary>

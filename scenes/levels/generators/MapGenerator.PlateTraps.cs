@@ -23,13 +23,13 @@ public partial class MapGenerator
 	/// <summary>A room tile's wall edge, facing <see cref="Outward"/>, and a plate tile straight in front of it.</summary>
 	private readonly record struct PlateLane(Vector2I WallTile, Vector2I Outward, Vector2I PlateTile);
 
-	/// <summary>What a floor's trap slots share while laying plate traps: the lanes not yet ruled out, the solids a shot
-	/// must clear, the interior doors' swing areas and the wall pieces measured so far.</summary>
-	private sealed class PlateTrapSearch(List<PlateLane> lanes, List<SolidOutline> blockers, IReadOnlyList<Aabb> doorClearances)
+	/// <summary>
+	/// What a floor's trap slots share while laying plate traps: the lanes not yet ruled out for every profile, the solids
+	/// a shot must clear, what already hangs on the walls or swings there, and the wall pieces measured so far.
+	/// </summary>
+	private sealed record PlateTrapSearch(List<PlateLane> Lanes, List<(Vector2[] Polygon, Rect2 Bounds)> Blockers,
+		List<Aabb> Mounted, IReadOnlyList<Aabb> DoorClearances, List<Vector3> Doors)
 	{
-		public List<PlateLane> Lanes { get; } = lanes;
-		public List<SolidOutline> Blockers { get; } = blockers;
-		public IReadOnlyList<Aabb> DoorClearances { get; } = doorClearances;
 		public Dictionary<int, (Aabb Bounds, Aabb UpperBounds, string Name)> WallPieces { get; } = [];
 	}
 
@@ -37,13 +37,16 @@ public partial class MapGenerator
 	private Lazy<PlateTrapSearch> PlateTrapSearchFor(IReadOnlyList<Aabb> doorClearances) => new(() => new PlateTrapSearch(
 		FindPlateLanes(),
 		[.. SolidOutlines(WorldSight.Blockers)
-			.Where(solid => solid.Top > ClearanceGrid.MinimumBlockingHeight && solid.Bottom < ClearanceGrid.MaximumBlockingHeight)],
-		doorClearances));
+			.Where(solid => solid.Top > ClearanceGrid.MinimumBlockingHeight && solid.Bottom < ClearanceGrid.MaximumBlockingHeight)
+			.Select(solid => (solid.Polygon, CollisionOutlines.Bounds(solid.Polygon)))],
+		[.. _wallDecor],
+		doorClearances,
+		[.. Floor.Doors.Select(pair => pair.Door.GlobalPosition)]));
 
 	/// <summary>
 	/// Lays a plate trap for trap slot <paramref name="id"/> when the slot rolls one (<see cref="TriggeredTrapChance"/>)
-	/// and a lane fits the profile it picks. False leaves the slot to the spike plate. Lanes that do not fit are dropped
-	/// from the floor's <paramref name="search"/>.
+	/// and a lane fits the profile it picks. False leaves the slot to the spike plate. A lane whose spot no plate trap can
+	/// use leaves the floor's <paramref name="search"/>; one the picked launcher does not fit stays for the others.
 	/// </summary>
 	private bool TryPlacePlateTrap(string id, List<Vector3> placedLootPoints, Lazy<PlateTrapSearch> search)
 	{
@@ -51,13 +54,19 @@ public partial class MapGenerator
 		if (eligible.Count == 0 || _random.Items.Randf() >= TriggeredTrapChance) return false;
 		var profile = eligible[PickWeightedCandidateIndex(eligible, p => p.Weight, _random.Items)];
 		Floor.RefreshPropTiles();
-		var lanes = search.Value.Lanes;
-		while (lanes.Count > 0)
+		var candidates = new List<PlateLane>(search.Value.Lanes);
+		while (candidates.Count > 0)
 		{
-			int index = _random.Items.RandiRange(0, lanes.Count - 1);
-			var lane = lanes[index];
-			lanes.RemoveAt(index);
-			if (TryLayPlateTrap(profile, lane, id, placedLootPoints, search.Value)) return true;
+			int index = _random.Items.RandiRange(0, candidates.Count - 1);
+			var lane = candidates[index];
+			candidates[index] = candidates[^1];
+			candidates.RemoveAt(candidates.Count - 1);
+			if (!IsPlateSpotOpen(lane, placedLootPoints, search.Value, out var edge)) search.Value.Lanes.Remove(lane);
+			else if (TryLayPlateTrap(profile, lane, edge, id, placedLootPoints, search.Value))
+			{
+				search.Value.Lanes.Remove(lane);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -70,7 +79,8 @@ public partial class MapGenerator
 	private List<PlateLane> FindPlateLanes()
 	{
 		float longest = TriggeredTraps.Where(profile => profile?.IsValid == true).Select(profile => profile.MaxLane).DefaultIfEmpty().Max();
-		int reach = Mathf.FloorToInt(longest / Room.TileSize + .5f);
+		// A plate n tiles out lies about n + 1/2 tiles from the wall line, and the launcher stands a little in front of it.
+		int reach = Mathf.FloorToInt((longest - Room.TileSize / 2f + 1) / Room.TileSize);
 		var lanes = new List<PlateLane>();
 		for (int x = 0; x < Map.Width; x++)
 		for (int z = 0; z < Map.Height; z++)
@@ -97,70 +107,76 @@ public partial class MapGenerator
 		return lanes;
 	}
 
-	/// <summary>Lays <paramref name="profile"/> on <paramref name="lane"/> when the plate's spot, the launcher's wall and
-	/// the lane between them all hold.</summary>
-	private bool TryLayPlateTrap(TriggeredTrapProfile profile, PlateLane lane, string id, List<Vector3> placedLootPoints,
-		PlateTrapSearch search)
+	/// <summary>
+	/// Whether any plate trap could use <paramref name="lane"/>, whatever its launcher: the plate's tile is free and keeps
+	/// clear of other loot with room to walk past it, a wall covers the lane's edge (<paramref name="edge"/>), and no
+	/// solid stands in the shot's way.
+	/// </summary>
+	private bool IsPlateSpotOpen(PlateLane lane, List<Vector3> placedLootPoints, PlateTrapSearch search, out WallFootprints.WallEdge edge)
 	{
+		edge = default;
 		Vector3 platePoint = Map.TileToWorld(lane.PlateTile);
 		if (Floor.IsOccupiedNow(lane.PlateTile.X, lane.PlateTile.Y) || IsBlockedLootPoint(platePoint, placedLootPoints, LootSpawnSpacing)) return false;
 		var side = new Vector3(lane.Outward.Y, 0, -lane.Outward.X) * PlateSideClearance;
 		if (!Floor.IsReachable(platePoint + side) && !Floor.IsReachable(platePoint - side)) return false;
-		if (!TryHangLauncher(profile.Launcher, lane, search, out Transform3D mount, out float wallDepth)) return false;
-		float length = mount.Origin.HorizontalDistanceTo(platePoint);
-		if (length < profile.MinLane || length > profile.MaxLane || !IsLaneOpen(search.Blockers, lane, wallDepth, platePoint)) return false;
+		edge = WallFootprints.MeasureEdge(WallGridMap, WallStyle.EdgeCell(GridTile(lane.WallTile), lane.Outward), -lane.Outward,
+			Room.TileSize, search.WallPieces);
+		return edge.Covered && IsLaneOpen(search.Blockers, lane, edge.Depth, platePoint);
+	}
 
-		var plate = profile.PlateScene.Instantiate<PressurePlate>();
-		FloorContent.AddChild(plate);
-		plate.GlobalPosition = platePoint;
-		plate.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(platePoint)));
+	/// <summary>Lays <paramref name="profile"/> on an open <paramref name="lane"/> when its launcher hangs on the lane's wall
+	/// and stands its lane length from the plate.</summary>
+	private bool TryLayPlateTrap(TriggeredTrapProfile profile, PlateLane lane, WallFootprints.WallEdge edge, string id,
+		List<Vector3> placedLootPoints, PlateTrapSearch search)
+	{
+		Vector3 platePoint = Map.TileToWorld(lane.PlateTile);
+		if (!TryHangLauncher(profile.Launcher, lane, edge, search, out Transform3D mount, out Aabb occupied)) return false;
+		float length = mount.Origin.HorizontalDistanceTo(platePoint);
+		if (length < profile.MinLane || length > profile.MaxLane) return false;
+
+		var plate = LayPlate(profile.PlateScene, id, platePoint, placedLootPoints);
 		var launcher = profile.Launcher.Scenes[0].Instantiate<WallLauncher>();
 		launcher.SetMeta("prop_id", profile.Launcher.Id);
 		FloorContent.AddChild(launcher);
 		launcher.GlobalTransform = mount;
+		search.Mounted.Add(occupied);
 		plate.Output.Mode = profile.Mode;
 		plate.Output.Targets = [launcher];
-		placedLootPoints.Add(platePoint);
 		return true;
 	}
 
 	/// <summary>
 	/// Hangs <paramref name="prop"/> centred on the lane's wall edge as rooms hang wall decor: on the wall's mounting
-	/// face, within one stretch that takes decor, clear of the decor already there and of doors. Also reports how far
-	/// the wall reaches in from its line, where the lane's open floor begins.
+	/// face, within a stretch that takes decor, clear of what already hangs there and of doors.
 	/// </summary>
-	private bool TryHangLauncher(Prop prop, PlateLane lane, PlateTrapSearch search, out Transform3D mount, out float wallDepth)
+	private bool TryHangLauncher(Prop prop, PlateLane lane, WallFootprints.WallEdge edge, PlateTrapSearch search,
+		out Transform3D mount, out Aabb occupied)
 	{
 		mount = default;
-		var itemCache = search.WallPieces;
-		MountSpan[] MountsAt(Vector2I tile, Vector2I outward) =>
-			WallFootprints.MeasureEdge(WallGridMap, WallStyle.EdgeCell(tile, outward), -outward, Room.TileSize, itemCache).Mounts;
-		// Grid tiles are map tiles about the map's middle (MapData.TileToWorld); the wall grid holds the floor's walls.
-		var gridTile = lane.WallTile - new Vector2I(Map.Width / 2, Map.Height / 2);
-		var edge = WallFootprints.MeasureEdge(WallGridMap, WallStyle.EdgeCell(gridTile, lane.Outward), -lane.Outward, Room.TileSize, itemCache);
-		wallDepth = edge.Depth;
-		if (!edge.Covered) return false;
-
-		var run = new WallRun(gridTile, lane.Outward.X == 0 ? Vector2I.Right : Vector2I.Down, lane.Outward, 1);
+		occupied = default;
+		var run = new WallRun(GridTile(lane.WallTile), lane.Outward.X == 0 ? Vector2I.Right : Vector2I.Down, lane.Outward, 1);
 		var geometry = prop.Geometry(0);
 		var facing = new Transform3D(run.Facing, Vector3.Zero) * geometry.Envelope;
 		var (alongMin, alongMax) = RoomBlueprint.Project(facing, run.Tangent);
-		var (inwardMin, _) = RoomBlueprint.Project(facing, run.Inward);
-		float along = run.TileCenterAlong(0) - (alongMax - alongMin) / 2;
-		var origin = run.LineStart + run.Tangent * (along - alongMin) + run.Inward * (edge.MountDepth - prop.WallInset - inwardMin);
+		var origin = run.Place(facing, facing, run.TileCenterAlong(0) - (alongMax - alongMin) / 2, edge.MountDepth - prop.WallInset);
 		origin.Y = prop.MountHeight;
 		var local = new Transform3D(run.Facing, origin);
 		var envelope = local * geometry.Envelope;
-		if (!RoomBlueprint.HasWallSupport(envelope, run, MountsAt)) return false;
+		// A one-tile run: the edge just measured is the only one it asks about.
+		if (!RoomBlueprint.HasWallSupport(envelope, run, (_, _) => edge.Mounts)) return false;
 
 		mount = WallGridMap.GlobalTransform * local;
-		var occupied = (WallGridMap.GlobalTransform * envelope).Grow(prop.Gap);
+		occupied = (WallGridMap.GlobalTransform * envelope).Grow(prop.Gap);
 		var inGenerator = GlobalTransform.AffineInverse() * occupied;
 		Vector3 at = mount.Origin;
-		return !Floor.WallDecor.Any(box => box.Intersects(occupied))
+		var box = occupied;
+		return !search.Mounted.Any(other => other.Intersects(box))
 			&& !search.DoorClearances.Any(clearance => clearance.Intersects(inGenerator))
-			&& !Floor.Doors.Any(pair => pair.Door.GlobalPosition.HorizontalDistanceTo(at) < LauncherDoorClearance);
+			&& !search.Doors.Any(door => door.HorizontalDistanceTo(at) < LauncherDoorClearance);
 	}
+
+	/// <summary>The wall grid's tile for map tile <paramref name="tile"/>: map tiles about the map's middle (<see cref="MapData.TileToWorld"/>).</summary>
+	private Vector2I GridTile(Vector2I tile) => tile - new Vector2I(Map.Width / 2, Map.Height / 2);
 
 	/// <summary>
 	/// No solid in the height band actors and shots move through stands within <see cref="LaneMargin"/> of the lane's
@@ -168,7 +184,7 @@ public partial class MapGenerator
 	/// (convex hulls, as physics sees them) would stop the shot short. The lane's own wall is left out by starting past
 	/// its full depth.
 	/// </summary>
-	private bool IsLaneOpen(IReadOnlyList<SolidOutline> blockers, PlateLane lane, float wallDepth, Vector3 platePoint)
+	private bool IsLaneOpen(List<(Vector2[] Polygon, Rect2 Bounds)> blockers, PlateLane lane, float wallDepth, Vector3 platePoint)
 	{
 		var outward = new Vector2(lane.Outward.X, lane.Outward.Y);
 		var plate = new Vector2(platePoint.X, platePoint.Z);
@@ -176,12 +192,12 @@ public partial class MapGenerator
 		var start = new Vector2(tile.X, tile.Z) + outward * (Room.TileSize / 2f - wallDepth - LaneMargin - .05f);
 		var area = new Rect2(start, Vector2.Zero).Expand(plate).Grow(LaneMargin);
 		int samples = Mathf.CeilToInt(start.DistanceTo(plate) / LaneSampleSpacing);
-		foreach (var blocker in blockers)
+		foreach (var (polygon, bounds) in blockers)
 		{
-			if (!CollisionOutlines.Bounds(blocker.Polygon).Intersects(area)) continue;
+			if (!bounds.Intersects(area)) continue;
 			for (int i = 0; i <= samples; i++)
 			{
-				if (CollisionOutlines.DistanceTo(blocker.Polygon, start.Lerp(plate, (float)i / samples)) < LaneMargin) return false;
+				if (CollisionOutlines.DistanceTo(polygon, start.Lerp(plate, (float)i / samples)) < LaneMargin) return false;
 			}
 		}
 		return true;

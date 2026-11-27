@@ -83,7 +83,8 @@ public class GeneratedFloorSweepTest
 			generator.TriggeredTrapChance = 1;
 			var failures = new List<string>();
 			int launchers = 0;
-			for (ulong seed = 1; seed <= 10; seed++)
+			// One floor per realm.
+			for (ulong seed = 1; seed <= 5; seed++)
 			{
 				generator.Seed = seed;
 				generator.DungeonDepth = (uint)(2 + seed % 5 * 5);
@@ -116,7 +117,7 @@ public class GeneratedFloorSweepTest
 				await generator.ToSignal(generator.GetTree(), SceneTree.SignalName.ProcessFrame);
 			}
 			AssertThat(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
-			AssertInt(launchers).IsGreater(5);
+			AssertInt(launchers).IsGreater(3);
 		}
 	}
 

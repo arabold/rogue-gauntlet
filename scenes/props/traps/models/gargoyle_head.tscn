@@ -1,0 +1,110 @@
+[gd_scene load_steps=13 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Material_stone"]
+albedo_color = Color(0.42, 0.42, 0.45, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Material_mouth"]
+albedo_color = Color(0.05, 0.03, 0.03, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Material_glow"]
+shading_mode = 0
+albedo_color = Color(1, 0.55, 0.15, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_backing"]
+material = SubResource("Material_stone")
+size = Vector3(0.7, 0.8, 0.08)
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+material = SubResource("Material_stone")
+radius = 0.3
+height = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_snout"]
+material = SubResource("Material_stone")
+size = Vector3(0.32, 0.2, 0.24)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_horn"]
+material = SubResource("Material_stone")
+top_radius = 0.0
+bottom_radius = 0.07
+height = 0.26
+
+[sub_resource type="BoxMesh" id="BoxMesh_mouth"]
+material = SubResource("Material_mouth")
+size = Vector3(0.22, 0.07, 0.02)
+
+[sub_resource type="SphereMesh" id="SphereMesh_glow"]
+material = SubResource("Material_glow")
+radius = 0.07
+height = 0.14
+
+[sub_resource type="ParticleProcessMaterial" id="Process_embers"]
+direction = Vector3(0, 0.3, 1)
+spread = 30.0
+initial_velocity_min = 0.3
+initial_velocity_max = 0.8
+gravity = Vector3(0, 0.6, 0)
+scale_min = 0.5
+scale_max = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Material_embers"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.6, 0.2, 0.9)
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_embers"]
+material = SubResource("Material_embers")
+size = Vector2(0.05, 0.05)
+
+[node name="GargoyleHead" type="Node3D"]
+
+[node name="Backing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0.04)
+mesh = SubResource("BoxMesh_backing")
+
+[node name="Head" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0.2)
+mesh = SubResource("SphereMesh_head")
+
+[node name="Snout" type="MeshInstance3D" parent="Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0.2)
+mesh = SubResource("BoxMesh_snout")
+
+[node name="Mouth" type="MeshInstance3D" parent="Head/Snout"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.04, 0.12)
+mesh = SubResource("BoxMesh_mouth")
+
+[node name="HornLeft" type="MeshInstance3D" parent="Head"]
+transform = Transform3D(0.94, 0.34, 0, -0.34, 0.94, 0, 0, 0, 1, -0.2, 0.24, -0.04)
+mesh = SubResource("CylinderMesh_horn")
+
+[node name="HornRight" type="MeshInstance3D" parent="Head"]
+transform = Transform3D(0.94, -0.34, 0, 0.34, 0.94, 0, 0, 0, 1, 0.2, 0.24, -0.04)
+mesh = SubResource("CylinderMesh_horn")
+
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02, 0.6)
+
+[node name="MouthGlow" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.01, 0.53)
+
+[node name="Ember" type="MeshInstance3D" parent="MouthGlow"]
+mesh = SubResource("SphereMesh_glow")
+
+[node name="Light" type="OmniLight3D" parent="MouthGlow"]
+light_color = Color(1, 0.5, 0.15, 1)
+light_energy = 2.0
+omni_range = 3.0
+
+[node name="Embers" type="GPUParticles3D" parent="MouthGlow"]
+amount = 12
+lifetime = 0.7
+process_material = SubResource("Process_embers")
+draw_pass_1 = SubResource("QuadMesh_embers")

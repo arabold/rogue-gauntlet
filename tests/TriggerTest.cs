@@ -50,42 +50,28 @@ public partial class TriggerTest
 	[TestCase]
 	public void ALatchTurnsItsReceiversOnForGood()
 	{
-		var (output, received) = Switch("latch", true, false, true, false);
+		var (_, received) = Switch("latch", true, false, true, false);
 		AssertThat(received).ContainsExactly("on");
-		AssertBool(output.IsLatched).IsTrue();
 	}
 
 	/// <summary>
-	/// A plate turns on when the hero steps onto it, revealing itself, and off when they step off; it answers no one else,
-	/// and a second step onto it is a second change.
+	/// A plate turns on when someone steps onto it, revealing itself, and off when they step off; a second step onto it is
+	/// a second change. Who counts is its trigger's collision mask: only the hero, for a trap (<see cref="PlateTrapTest"/>).
 	/// </summary>
 	[TestCase]
-	public void APlateIsOnWhileTheHeroStandsOnIt()
+	public void APlateIsOnWhileSomeoneStandsOnIt()
 	{
 		var plate = TestFactories.AddToSceneTree(TestFactories.Load<PackedScene>("res://scenes/props/traps/pressure_plate_spikes.tscn")
 			.Instantiate<PressurePlate>());
 		var changes = new List<bool>();
 		plate.Output.Switched += (on, _) => changes.Add(on);
-		var stranger = TestFactories.AddToSceneTree(new Node3D());
 		var hero = TestFactories.AddToSceneTree(new Node3D());
-		hero.AddToGroup("player");
-		try
-		{
-			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, stranger);
-			AssertBool(plate.IsPressed).IsFalse();
-			AssertBool(plate.IsDiscovered).IsFalse();
 
-			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, hero);
-			AssertBool(plate.IsDiscovered).IsTrue();
-			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Released, hero);
-			plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, hero);
-			AssertThat(changes).ContainsExactly(true, false, true);
-		}
-		finally
-		{
-			hero.RemoveFromGroup("player");
-			hero.QueueFree();
-			stranger.QueueFree();
-		}
+		plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, hero);
+		AssertBool(plate.IsDiscovered).IsTrue();
+		AssertBool(plate.IsPressed).IsTrue();
+		plate.Trigger.EmitSignal(TriggerComponent.SignalName.Released, hero);
+		plate.Trigger.EmitSignal(TriggerComponent.SignalName.Triggered, hero);
+		AssertThat(changes).ContainsExactly(true, false, true);
 	}
 }

@@ -649,34 +649,38 @@ def pack_units(pack, depth: float) -> float:
     return group_factor(len(pack["members"])) * sum(archetype_units(a, depth) for a in pack["members"])
 
 
-def trap_line() -> tuple[int, float]:
-    """
-    A spike plate's authored damage on depth 1 and per depth (`SpikeBurst.Damage`, `DamagePerDepth`): a line through its
-    share of the reference hero's health on depths 1 and 24 (TRAPS `damage`).
-    """
-    first, last = (P.TRAPS["damage"] * reference_hp(d) for d in (1, P.DEPTHS))
+def health_line(share: float) -> tuple[int, float]:
+    """A trap's authored damage on depth 1 and per depth (`Trap.Damage`, `DamagePerDepth`): a line through `share` of the
+    reference hero's health on depths 1 and 24."""
+    first, last = (share * reference_hp(d) for d in (1, P.DEPTHS))
     return round(first), round((last - first) / (P.DEPTHS - 1), 2)
+
+
+def line_damage(line: tuple[float, float], depth: float) -> float:
+    """A hit on `depth` before armor from an authored damage line, as the game's `TrapDamage.At` computes it."""
+    first, per_depth = line
+    return max(1, round(first + per_depth * (round(depth) - 1)))
+
+
+def trap_line() -> tuple[int, float]:
+    """A spike plate's damage line (`SpikeBurst`): TRAPS `damage` of the reference hero's health."""
+    return health_line(P.TRAPS["damage"])
 
 
 def trap_damage(depth: float) -> float:
-    """A trap's spring on `depth` before armor, as the game computes it from the authored line (`SpikeBurst.CurrentDamage`)."""
-    first, per_depth = trap_line()
-    return max(1, round(first + per_depth * (round(depth) - 1)))
+    """A spike plate's spring on `depth` before armor."""
+    return line_damage(trap_line(), depth)
 
 
 def launcher_line(scale: float = 1.0) -> tuple[int, float]:
-    """
-    A wall launcher's authored damage on depth 1 and per depth (`WallLauncher.Damage`, `DamagePerDepth`): LAUNCHERS
-    `damage` of the reference hero's health on depths 1 and 24, times `scale` (a fireball's `fire_scale`).
-    """
-    first, last = (P.LAUNCHERS["damage"] * scale * reference_hp(d) for d in (1, P.DEPTHS))
-    return round(first), round((last - first) / (P.DEPTHS - 1), 2)
+    """A wall launcher's damage line (`WallLauncher`): LAUNCHERS `damage` of the reference hero's health, times `scale`
+    (a fireball's `fire_scale`)."""
+    return health_line(P.LAUNCHERS["damage"] * scale)
 
 
 def launcher_damage(depth: float) -> float:
-    """A dart's hit on `depth` before armor, as the game computes it from the authored line (`WallLauncher.CurrentDamage`)."""
-    first, per_depth = launcher_line()
-    return max(1, round(first + per_depth * (round(depth) - 1)))
+    """A dart's hit on `depth` before armor."""
+    return line_damage(launcher_line(), depth)
 
 
 def launcher_share(depth: float) -> float:

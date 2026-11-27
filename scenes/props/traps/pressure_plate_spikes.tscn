@@ -118,9 +118,8 @@ script = ExtResource("output_script")
 Mode = ExtResource("pulse")
 Targets = [NodePath("../SpikeBurst")]
 
-[node name="SpikeBurst" type="Node3D" parent="." node_paths=PackedStringArray("Spikes", "Contact")]
+[node name="SpikeBurst" type="Node3D" parent="." node_paths=PackedStringArray("Spikes")]
 script = ExtResource("spike_script")
 Spikes = NodePath("../floor_tile_big_spikes/spikes")
-Contact = NodePath("../TriggerComponent")
 Damage = 5
 DamagePerDepth = 0.87

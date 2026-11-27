@@ -133,7 +133,7 @@ Contracts:
 - **Blade contact** is a `DamageContext` with `DeliveryKind = Hazard`, `DefenseTraits = Dodgeable`, `Faction = Trap`, `IncomingDirection` straight out of the blade's path toward the victim's side, poise equal to damage and a forced push sized to carry the victim to `Clearance` from the path. Each actor is hit at most once per pass (half period), and the push keeps the next pass from reaching them. Hazard delivery has no hit zone, so no rear-hit bonus.
 - **Spikes** (optional slice) use `DefenseTraits = None`: dodge immunity never avoids them.
 - **Rod fade:** `pendulum_rod.gdshader`, alpha from the rod's local height (opaque at the blade, gone a little below the wall tops), `blend_mix`, `depth_draw_never`; no `GeometryInstance3D.Transparency` (Mobile renderer). The blade stays opaque.
-- Hazard scenes live in `scenes/props/traps/` (`wall_spout_slit.tscn`, `wall_spout_gargoyle.tscn`, `pendulum_blade.tscn`, later `spike_strip.tscn`) and are the authored definitions, like `floor_trap.tscn`.
+- Hazard scenes live in `scenes/props/traps/` (`wall_spout_slit.tscn`, `wall_spout_gargoyle.tscn`, `pendulum_blade.tscn`, later `spike_strip.tscn`) and are the authored definitions, like `pressure_plate_spikes.tscn`. Each look (`scenes/props/traps/models/`) is shared with the wall launcher of the same look.
 
 ### Generation
 

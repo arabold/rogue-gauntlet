@@ -1,81 +1,27 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" uid="uid://cqrml0dw6jham" path="res://scenes/props/traps/WallSpout.cs" id="1_spout"]
 [ext_resource type="Script" path="res://scenes/props/traps/TrapShotComponent.cs" id="5_shot"]
 [ext_resource type="PackedScene" uid="uid://c71hsyyiyu6y4" path="res://scenes/attacks/projectile.tscn" id="2_dart"]
 [ext_resource type="PackedScene" path="res://scenes/combat/attack_indicator.tscn" id="3_indicator"]
 [ext_resource type="Resource" path="res://scenes/combat/attack_indicator_profiles/default.tres" id="4_indicator_profile"]
-
-[sub_resource type="StandardMaterial3D" id="Material_stone"]
-albedo_color = Color(0.56, 0.54, 0.5, 1)
-roughness = 0.85
-
-[sub_resource type="StandardMaterial3D" id="Material_slit"]
-albedo_color = Color(0.05, 0.045, 0.04, 1)
-roughness = 1.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_plate"]
-material = SubResource("Material_stone")
-size = Vector3(0.9, 0.62, 0.14)
-
-[sub_resource type="BoxMesh" id="BoxMesh_slit"]
-material = SubResource("Material_slit")
-size = Vector3(0.46, 0.09, 0.02)
-
-[sub_resource type="ParticleProcessMaterial" id="Process_dust"]
-direction = Vector3(0, 0, 1)
-spread = 25.0
-initial_velocity_min = 0.4
-initial_velocity_max = 0.9
-gravity = Vector3(0, -1.5, 0)
-scale_min = 0.6
-scale_max = 1.2
-
-[sub_resource type="StandardMaterial3D" id="Material_dust"]
-transparency = 1
-shading_mode = 0
-vertex_color_use_as_albedo = true
-albedo_color = Color(0.72, 0.66, 0.56, 0.6)
-billboard_mode = 3
-particles_anim_h_frames = 1
-particles_anim_v_frames = 1
-particles_anim_loop = false
-
-[sub_resource type="QuadMesh" id="QuadMesh_dust"]
-material = SubResource("Material_dust")
-size = Vector2(0.12, 0.12)
+[ext_resource type="PackedScene" path="res://scenes/props/traps/models/dart_slit.tscn" id="model"]
 
 [node name="WallSpoutSlit" type="Node3D" node_paths=PackedStringArray("Shot", "Indicator", "WindUpEffect")]
 script = ExtResource("1_spout")
 Shot = NodePath("Shot")
 Indicator = NodePath("AttackIndicator")
-WindUpEffect = NodePath("WindUpDust")
+WindUpEffect = NodePath("Model/Dust")
 Damage = 3
 DamagePerDepth = 0.48
 Period = 2.4
 
-[node name="Plate" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.07)
-mesh = SubResource("BoxMesh_plate")
-
-[node name="Slit" type="MeshInstance3D" parent="Plate"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.075)
-mesh = SubResource("BoxMesh_slit")
-
-[node name="Muzzle" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.4)
-
-[node name="WindUpDust" type="GPUParticles3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.2)
-amount = 10
-lifetime = 0.6
-process_material = SubResource("Process_dust")
-draw_pass_1 = SubResource("QuadMesh_dust")
+[node name="Model" parent="." instance=ExtResource("model")]
 
 [node name="Shot" type="Node" parent="." node_paths=PackedStringArray("Muzzle")]
 script = ExtResource("5_shot")
 ProjectileScene = ExtResource("2_dart")
-Muzzle = NodePath("../Muzzle")
+Muzzle = NodePath("../Model/Muzzle")
 Speed = 14.0
 Range = 24.0
 

@@ -336,17 +336,22 @@ public partial class MapGenerator
 			// Spike plates deliberately allow room/corridor chokepoint tiles (unlike chests): a trap you're forced to
 			// cross is the point. The plate is square and grid-aligned like the room's own floor tiles, so it stays
 			// unrotated: turned off-axis its edges no longer line up with its neighbours and it reads as a floating tile.
-			var trap = TrapScene.Instantiate<Node3D>();
-			FloorContent.AddChild(trap);
-			trap.GlobalPosition = point;
-			if (trap is PressurePlate plate)
-			{
-				plate.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(point)));
-			}
-			placedLootPoints.Add(point);
+			LayPlate(TrapScene, id, point, placedLootPoints);
 			return true;
 		}
 		return false;
+	}
+
+	/// <summary>Lays a concealed plate from <paramref name="scene"/> on <paramref name="point"/>, identified as trap slot
+	/// <paramref name="id"/>, and claims the spot from other loot.</summary>
+	private PressurePlate LayPlate(PackedScene scene, string id, Vector3 point, List<Vector3> placedLootPoints)
+	{
+		var plate = scene.Instantiate<PressurePlate>();
+		FloorContent.AddChild(plate);
+		plate.GlobalPosition = point;
+		plate.Initialize(id, Seed, FloorGridMap, FloorGridMap.LocalToMap(FloorGridMap.ToLocal(point)));
+		placedLootPoints.Add(point);
+		return plate;
 	}
 
 	/// <summary>

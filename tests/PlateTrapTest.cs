@@ -29,23 +29,9 @@ public partial class PlateTrapTest
 		return (runner, harness, trap.GetChildren().OfType<PressurePlate>().Single(), trap.GetChildren().OfType<WallLauncher>().Single());
 	}
 
-	/// <summary>Stands <paramref name="body"/> at <paramref name="point"/>'s spot on the ground, keeping its own height.</summary>
-	private static void PlaceAt(Node3D body, Vector3 point)
-	{
-		body.GlobalPosition = point with { Y = body.GlobalPosition.Y };
-		body.ResetPhysicsInterpolation();
-	}
-
 	/// <summary>Beside the plate, along the hero's path: off it, and out of the launcher's lane.</summary>
 	private static Vector3 Beside(PressurePlate plate, WallLauncher launcher) =>
 		plate.GlobalPosition + launcher.Shot.FireDirection.Cross(Vector3.Up) * 1.5f;
-
-	private static List<DamageOutcome> RecordOutcomes(Player hero)
-	{
-		var outcomes = new List<DamageOutcome>();
-		hero.HurtBoxComponent.DamageResolved += (outcome, _, _) => outcomes.Add((DamageOutcome)outcome);
-		return outcomes;
-	}
 
 	/// <summary>Walking past the plate sets nothing off; stepping on it fires one dart that hits the hero.</summary>
 	[TestCase]
@@ -54,12 +40,12 @@ public partial class PlateTrapTest
 		var (runner, harness, plate, launcher) = await Stage();
 		using var scope = runner;
 		var hero = harness.Player;
-		var outcomes = RecordOutcomes(hero);
-		PlaceAt(hero, Beside(plate, launcher));
+		var outcomes = TestFactories.RecordOutcomes(hero);
+		TestFactories.PlaceAt(hero, Beside(plate, launcher));
 		await TestFactories.AwaitPhysicsSeconds(runner, .3f);
 		AssertInt(launcher.ShotsFired).IsEqual(0);
 
-		PlaceAt(hero, plate.GlobalPosition);
+		TestFactories.PlaceAt(hero, plate.GlobalPosition);
 		await TestFactories.AwaitPhysicsUntil(runner, () => outcomes.Count > 0, timeout: 1);
 		await TestFactories.AwaitPhysicsSeconds(runner, launcher.Interval);
 		AssertInt(launcher.ShotsFired).IsEqual(1);
@@ -75,8 +61,8 @@ public partial class PlateTrapTest
 		var (runner, harness, plate, launcher) = await Stage();
 		using var scope = runner;
 		var hero = harness.Player;
-		var outcomes = RecordOutcomes(hero);
-		PlaceAt(hero, plate.GlobalPosition);
+		var outcomes = TestFactories.RecordOutcomes(hero);
+		TestFactories.PlaceAt(hero, plate.GlobalPosition);
 		await TestFactories.AwaitPhysicsUntil(runner, () => plate.IsPressed, timeout: 1);
 		Vector3 alongPath = launcher.Shot.FireDirection.Cross(Vector3.Up);
 		AssertObject(hero.DodgeComponent.TryDodge(alongPath)).IsEqual(DefenseRequestResult.Success);
@@ -91,9 +77,9 @@ public partial class PlateTrapTest
 	{
 		var (runner, harness, plate, launcher) = await Stage(HoldMode);
 		using var scope = runner;
-		PlaceAt(harness.Player, plate.GlobalPosition);
+		TestFactories.PlaceAt(harness.Player, plate.GlobalPosition);
 		await TestFactories.AwaitPhysicsUntil(runner, () => launcher.ShotsFired >= 2, timeout: 3);
-		PlaceAt(harness.Player, Beside(plate, launcher));
+		TestFactories.PlaceAt(harness.Player, Beside(plate, launcher));
 		await TestFactories.AwaitPhysicsUntil(runner, () => !plate.IsPressed, timeout: 1);
 		int fired = launcher.ShotsFired;
 		await TestFactories.AwaitPhysicsSeconds(runner, launcher.Interval * 1.5f);
@@ -108,7 +94,7 @@ public partial class PlateTrapTest
 		var (runner, harness, plate, launcher) = await Stage();
 		using var scope = runner;
 		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
-		PlaceAt(monster, plate.GlobalPosition);
+		TestFactories.PlaceAt(monster, plate.GlobalPosition);
 		await TestFactories.AwaitPhysicsSeconds(runner, .3f);
 		AssertInt(launcher.ShotsFired).IsEqual(0);
 		AssertBool(plate.IsPressed).IsFalse();
