@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "backend": "procedural",
+  "builder": "furnishing",
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    }
+  },
+  "name": "Pressure Plate",
+  "concept": "A pressure plate trap set into the dungeon floor, seen from the game's raised three-quarter view: one plain square stone plate, about as wide as the large barrel is tall, standing a hand's width proud of the floor with broad chamfered edges and a few chipped corners, sitting inside a thin dark iron frame that is barely wider than a finger, with one oversized rivet at each frame corner. No runes, no spikes, no grate: just the plate and its frame, chunky and clean in the pack's style and palette, readable at a glance as something you could step on.",
+  "reference": "res://asset-studio/objects/furnishings/pressure_plate-reference.png",
+  "design": {
+    "kind": "pressure_plate",
+    "part": "plate"
+  },
+  "export": {
+    "glb": "res://assets/custom-props/traps/pressure_plate.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Trap plate at KayKit dungeon scale: a 1.6 m stone slab standing 0.16 m proud of the floor plane and reaching 0.12 m below it, so it rises out of any floor tile. Sinks into its separate frame (pressure_plate_frame) while pressed. No gameplay data. Pale stone_light, the KayKit floor tiles' own swatch, rather than the concept's dark stone, so it sits with the grey floors; two corners are cut straight down instead of chipped, which left slivers."
+  }
+}

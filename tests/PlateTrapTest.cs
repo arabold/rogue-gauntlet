@@ -106,17 +106,19 @@ public partial class PlateTrapTest
 	{
 		var (runner, harness, plate, launcher) = await Stage(HoldMode);
 		using var scope = runner;
-		float raised = plate.Visual.GlobalPosition.Y;
+		// The slab that moves, inside its fixed frame.
+		var slab = plate.GetChildren().OfType<PlatePressComponent>().Single().Target;
+		float raised = slab.GlobalPosition.Y;
 		TestFactories.PlaceAt(harness.Player, plate.GlobalPosition);
 		await TestFactories.AwaitPhysicsUntil(runner, () => launcher.ShotsFired >= 2, timeout: 3);
-		AssertFloat(plate.Visual.GlobalPosition.Y).IsLess(raised - .05f);
+		AssertFloat(slab.GlobalPosition.Y).IsLess(raised - .05f);
 		TestFactories.PlaceAt(harness.Player, Beside(plate, launcher));
 		await TestFactories.AwaitPhysicsUntil(runner, () => !plate.IsPressed, timeout: 1);
 		int fired = launcher.ShotsFired;
 		await TestFactories.AwaitPhysicsSeconds(runner, launcher.Interval * 1.5f);
 		AssertInt(launcher.ShotsFired).IsEqual(fired);
 		AssertBool(launcher.IsActive).IsFalse();
-		AssertFloat(plate.Visual.GlobalPosition.Y).IsEqualApprox(raised, .001f);
+		AssertFloat(slab.GlobalPosition.Y).IsEqualApprox(raised, .001f);
 	}
 
 	/// <summary>Trap plates answer to the hero only: a monster standing on one sets nothing off.</summary>

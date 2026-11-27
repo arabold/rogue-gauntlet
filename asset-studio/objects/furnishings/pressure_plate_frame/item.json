@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "backend": "procedural",
+  "builder": "furnishing",
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 2000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "iron_dark": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    }
+  },
+  "name": "Pressure Plate Frame",
+  "reference": "res://asset-studio/objects/furnishings/pressure_plate-reference.png",
+  "design": {
+    "kind": "pressure_plate",
+    "part": "frame"
+  },
+  "export": {
+    "glb": "res://assets/custom-props/traps/pressure_plate_frame.glb"
+  },
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "The pressure plate's thin iron frame with domed corner posts, a separate model because only the plate moves; concept shared with pressure_plate. No gameplay data. Light iron (the pack's strap grey) rather than the concept's dark iron, beside the pale plate."
+  }
+}
