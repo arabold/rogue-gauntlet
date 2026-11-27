@@ -1730,6 +1730,117 @@ def pressure_plate(part='plate'):
     return a.build()
 
 
+# Wall mounts keep the bounds of the trap scenes' first placeholders, which room assembly measures to fit and hang them
+# (a mount's back goes on the wall), so the points the scenes fire from stay where they were: the dart slit's muzzle at
+# 1.1 m, the gargoyle's mouth glow at 1.01 m and 0.63 m out from the wall.
+SLIT_Y = 1.1
+MOUTH_Y = 1.01
+
+
+def slab(width, height, depth, bevel, y):
+    """A wall plate with a flat back on z = 0: square corners, only its front edges bevelled."""
+    return mf.Manifold.batch_hull([block((width, height, depth - bevel), (0, y, (depth - bevel) / 2), 0),
+                                   block((width - 2 * bevel, height - 2 * bevel, .001), (0, y, depth - .0005), 0)])
+
+
+def dart_slit():
+    """A dart trap's wall plate: a plain slab of the floor tiles' pale stone, a deep slit cut across it with three dart
+    points showing in its dark, and an oversized bolt in each corner."""
+    a = Assembly()
+    depth = .1
+    a.add(slab(.9, .62, depth, .04, SLIT_Y), 'stone_light')
+    a.cut(block((.56, .12, .2), (0, SLIT_Y, .12), 0), 'socket')
+    for x in (-.33, .33):
+        for y in (SLIT_Y - .19, SLIT_Y + .19):
+            a.add(rivet((x, y, .105), .062), 'iron')
+    # Square points on stubby shafts rising from the slit's back wall, their tips just past the plate's face.
+    for x in (-.17, 0, .17):
+        point = lathe([(.018, 0), (.018, .045), (.045, .05), (.002, .115)], 4).rotate((90, 0, 0))
+        a.add(point.translate((x, SLIT_Y, .015)), 'steel')
+    return a.build()
+
+
+def gargoyle_head():
+    """A fire trap's gargoyle: a blocky horned head bursting from a thick square plaque, both in the floor tiles' pale
+    stone, its wide mouth a real dark hole around the point the fireball leaves from."""
+    a = Assembly()
+    a.add(slab(.7, .8, .2, .05, 1.15), 'stone_light')
+    a.add(ball((0, 1.24, .34), (.25, .23, .22), 12), 'stone_light')                  # cranium
+    a.add(ball((0, .98, .3), (.16, .13, .18), 10), 'stone_light')                    # jowls into the plaque
+    a.add(block((.32, .34, .22), (0, 1.035, .52), .05), 'stone_light')               # jaws
+    a.add(block((.22, .09, .1), (0, 1.14, .61), .03), 'stone_light')                 # snout
+    for s in (-1, 1):
+        brow = block((.2, .075, .11), (0, 0, 0), .025).rotate((0, 0, 15 * s)).translate((s * .1, 1.33, .52))
+        a.add(brow, 'stone_light')
+        ear = mf.Manifold.extrude(outline([(0, 0), (.15, .07), (.02, .13)]), .045).translate((0, 0, -.0225)).rotate((0, 15, 0))
+        a.add((ear if s > 0 else ear.mirror((1, 0, 0))).translate((s * .19, 1.22, .28)), 'stone_light')
+        a.add(bend([(s * .12, 1.4, .4), (s * .2, 1.48, .42), (s * .27, 1.505, .35), (s * .31, 1.49, .24)],
+                   [.06, .05, .035, .015], 8), 'stone_light')
+    a.cut(block((.24, .13, .3), (0, MOUTH_Y + .0025, .66), .03), 'socket')
+    a.cut(ball((0, MOUTH_Y, .48), (.1, .055, .1), 8), 'socket')
+    for s in (-1, 1):
+        a.cut(ball((s * .05, 1.14, .66), (.026, .022, .04), 6), 'socket')              # nostrils
+        a.cut(ball((s * .105, 1.25, .55), (.052, .045, .05), 8), 'socket')            # eye sockets
+    for s in (-1, 1):
+        a.add(ball((s * .105, 1.25, .515), (.042, .037, .045), 8), 'stone_light')     # eyes
+        fang = lathe([(.024, 0), (.002, .08)], 4)
+        a.add(fang.rotate((180, 0, 0)).translate((s * .085, MOUTH_Y + .085, .6)), 'stone_light')
+        a.add(fang.translate((s * .095, MOUTH_Y - .075, .6)), 'stone_light')
+    return a.build()
+
+
+# A pendulum hangs from its pivot 11 m up; both models are drawn at rest, y the height above the floor, x the swing.
+# The crescent is the placeholder's: an outer circle with a higher circle cut from it, tips sweeping up past the collar.
+BLADE_OUTER, BLADE_INNER = ((0, 1.2), .92), ((0, 1.55), .8)
+ROD_BOTTOM, ROD_TOP = .8, 10.6
+
+
+def crescent(outer, inner, steps=28):
+    """The outline between two circles' lower arcs, from tip to tip."""
+    (c1, r1), (c2, r2) = outer, inner
+    d = c2[1] - c1[1]
+    # Tip height where the circles cross, then each arc's angle to it.
+    y = (r1 ** 2 - r2 ** 2 + d ** 2) / (2 * d)
+    x = np.sqrt(r1 ** 2 - y ** 2)
+    a1, a2 = np.arctan2(y, x), np.arctan2(c1[1] + y - c2[1], x)
+    t1 = np.linspace(np.pi - a1, 2 * np.pi + a1, steps)
+    t2 = np.linspace(2 * np.pi + a2, np.pi - a2, steps)[1:-1]
+    return outline([(c1[0] + r1 * np.cos(t), c1[1] + r1 * np.sin(t)) for t in t1]
+                   + [(c2[0] + r2 * np.cos(t), c2[1] + r2 * np.sin(t)) for t in t2])
+
+
+def revolved(profile, center, sides=48):
+    """A (radius, z) profile revolved about the z axis through `center` (x, y)."""
+    section = mf.CrossSection([np.asarray(profile, float)])
+    return mf.Manifold.revolve(section, sides).translate((center[0], center[1], 0))
+
+
+def pendulum_blade(part='blade'):
+    """A pendulum's crescent scythe blade of pale steel, bevelled to its lower edge, with an iron spine along its inner
+    arc, clamped in a T collar (`part` 'blade'); or the square iron shaft the collar holds ('rod'), a separate model
+    because the game fades it out toward the pivot."""
+    a = Assembly()
+    if part == 'rod':
+        a.add(block((.16, ROD_TOP - ROD_BOTTOM, .16), (0, (ROD_TOP + ROD_BOTTOM) / 2, 0), .035), 'iron')
+        for y in (2.3, 3.8):
+            a.add(block((.21, .14, .21), (0, y, 0), .035), 'iron')
+        return a.build()
+    (c1, r1), (c2, r2) = BLADE_OUTER, BLADE_INNER
+    body = revolved([(0, -.065), (r1 - .19, -.065), (r1, -.012), (r1, .012), (r1 - .19, .065), (0, .065)], c1)
+    a.add(body ^ mf.Manifold.extrude(crescent(BLADE_OUTER, BLADE_INNER), .4).translate((0, 0, -.2)), 'steel')
+    spine = revolved([(r2 - .005, -.085), (r2 + .07, -.085), (r2 + .1, -.055), (r2 + .1, .055), (r2 + .07, .085),
+                      (r2 - .005, .085)], c2)
+    a.add(spine ^ revolved([(0, -.1), (r1 - .03, -.1), (r1 - .03, .1), (0, .1)], c1), 'iron')
+    a.add(block((.2, .5, .2), (0, .87, 0)), 'iron')                                    # strap down over the blade
+    a.add(block((.5, .14, .26), (0, 1.17, 0)), 'iron')                                 # the T's bar round the shaft
+    for z in (-1, 1):
+        for y in (.72, .97):
+            a.add(rivet((0, y, z * .1), .045, (0, 0, z)), 'iron')
+        for x in (-.17, .17):
+            a.add(rivet((x, 1.17, z * .13), .04, (0, 0, z)), 'iron')
+    return a.build()
+
+
 # ---------------------------------------------------------------------------- dispatch
 
 KINDS = {
@@ -1750,7 +1861,8 @@ KINDS = {
     'rubble_large': rubble_large, 'rubble_boulders': rubble_boulders,
     'sarcophagus': sarcophagus, 'sarcophagus_open': sarcophagus_open, 'valve': valve, 'pipe_outlet': pipe_outlet,
     'pipe_run': pipe_run, 'sluice_gate': sluice_gate, 'goo_barrel': goo_barrel, 'goo_puddle': goo_puddle,
-    'pressure_plate': pressure_plate, **foliage.KINDS,
+    'pressure_plate': pressure_plate, 'dart_slit': dart_slit, 'gargoyle_head': gargoyle_head,
+    'pendulum_blade': pendulum_blade, **foliage.KINDS,
     **cathedral.KINDS, **graveyard.KINDS, **mining.KINDS, **webs.KINDS,
 }
 
