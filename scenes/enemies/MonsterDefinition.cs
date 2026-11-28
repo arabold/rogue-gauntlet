@@ -31,6 +31,13 @@ public partial class MonsterDefinition : Resource
 	/// </summary>
 	[Export(PropertyHint.Range, "-20,40,0.01,or_greater")] public float ThreatLevel { get; set; } = 1;
 
+	[ExportGroup("Encounters")]
+	/// <summary>
+	/// Most of this monster one floor's packs may hold, so a special monster stays rare instead of filling a floor: once
+	/// a floor holds this many, its realm draws no more packs with it. 0 leaves it unlimited.
+	/// </summary>
+	[Export(PropertyHint.Range, "0,32")] public int MaximumPerFloor { get; set; }
+
 	[ExportGroup("Stats")]
 	[Export(PropertyHint.Range, "1,10000,1,or_greater")] public float MaxHealth { get; set; } = 10;
 	[Export(PropertyHint.Range, "0,20,0.1,or_greater")] public float MoveSpeed { get; set; } = 3.2f;
@@ -55,6 +62,7 @@ public partial class MonsterDefinition : Resource
 		context.Check(!string.IsNullOrWhiteSpace(DisplayName), "Definition.DisplayName: enter a display name.");
 		context.Check(MonsterValidationContext.IsPositive(BalanceDepth), "Definition.BalanceDepth: must be positive and finite.");
 		context.Check(MonsterValidationContext.IsPositive(SpeedScale), "Definition.SpeedScale: must be positive and finite.");
+		context.Check(MaximumPerFloor >= 0, "Definition.MaximumPerFloor: must be 0 (unlimited) or more.");
 		context.Check(MonsterValidationContext.IsPositive(MaxHealth), "Definition.MaxHealth: must be positive and finite.");
 		context.Check(MonsterValidationContext.IsNonnegative(MoveSpeed), "Definition.MoveSpeed: must be nonnegative and finite.");
 		context.Check(MonsterValidationContext.IsNonnegative(Armor), "Definition.Armor: must be nonnegative and finite.");

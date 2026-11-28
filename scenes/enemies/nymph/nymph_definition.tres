@@ -22,6 +22,7 @@ DisplayName = "Nymph"
 Archetype = 1
 BalanceDepth = 8.0
 SpeedScale = 1.1
+MaximumPerFloor = 1
 MaxHealth = 16.0
 MoveSpeed = 5.5
 Loot = ExtResource("loot")
