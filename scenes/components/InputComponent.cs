@@ -43,14 +43,6 @@ public partial class InputComponent : Node
 		"quick_item_4"
 	];
 
-	private static readonly StringName[] LegacyActions =
-	[
-		"action_1",
-		"action_2",
-		"action_3",
-		"action_4"
-	];
-
 	public bool IsPrimaryActionPressed()
 	{
 		return DeviceEnabled && Input.IsActionPressed(ActionPrimary);
@@ -68,17 +60,8 @@ public partial class InputComponent : Node
 
 	public bool IsQuickItemJustPressed(int slotIndex)
 	{
-		if ((uint)slotIndex < (uint)QuickItemActions.Length)
-		{
-			return DeviceEnabled && (Input.IsActionJustPressed(QuickItemActions[slotIndex])
-				|| Input.IsActionJustPressed(LegacyActions[slotIndex]));
-		}
-		return false;
-	}
-
-	public bool IsActionSlotPressed(int slotIndex)
-	{
-		return IsQuickItemJustPressed(slotIndex);
+		return DeviceEnabled && (uint)slotIndex < (uint)QuickItemActions.Length
+			&& Input.IsActionJustPressed(QuickItemActions[slotIndex]);
 	}
 
 	public bool IsInteractPressed()
