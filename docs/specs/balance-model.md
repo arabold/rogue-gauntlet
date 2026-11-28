@@ -223,7 +223,9 @@ standards and a caster who heals them); guard posts (brute and shooter) and vang
 join from depth 4. From the Prison (depth 6) a lone fodder, standard pairs and, from depth 8, standard trios join too; from the Sewer (depth 11) a lone swarmer, and from depth 12 swarmer pairs and fodder trios. Each pack has a depth range in `params.PACKS`. Gatekeeper floors spend 45% of the budget, then the
 gatekeeper. The simulator fills a floor as the game does: it draws by weight among the eligible packs the remaining
 budget affords, until none is affordable or the floor holds 32 monsters. A floor therefore ends less than its cheapest
-pack below its budget, 1–5% on average.
+pack below its budget, 1–5% on average. The game also skips packs that would take a monster past its `MaximumPerFloor`
+(the Nymph: one a floor); the model's packs are archetypes and do not see that, so a Prison floor may leave up to a
+lone Nymph's cost unspent that the model spends.
 
 A pack costs `(N + 1) / 2` times its members fought alone (`model.group_factor`): the hero kills them one by one while
 the rest keep attacking. The simulator's group fights match that within 10% for swarms, fodder and mixed melee; packs

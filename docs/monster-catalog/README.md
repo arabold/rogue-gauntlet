@@ -20,7 +20,7 @@ Each realm's encounter table (`scenes/levels/encounters/*_encounters.tres`, star
 | Monster definition | Role | Availability |
 | --- | --- | --- |
 | [Giant Bat](../../scenes/enemies/bat/giant_bat_definition.tres) | Swarmer that flies on the air grid over water, pits and low solids; bites and swoops, darting erratically so it never holds still | Depths 6–10 and bat roosts |
-| [Nymph](../../scenes/enemies/nymph/nymph_definition.tres) | Thief: jabs and kicks; her first damaging hit steals a pack item, then she runs and blinks away and vanishes with it unless killed first | Depths 6–10 |
+| [Nymph](../../scenes/enemies/nymph/nymph_definition.tres) | Thief: jabs and kicks; her first damaging hit steals a pack item, then she runs and blinks away and vanishes with it unless killed first | Depths 6–10, at most one a floor |
 | [Orc Warrior](../../scenes/enemies/orc/orc_warrior_definition.tres) | Armored melee grunt: chop, diagonal and sweep swings | Depths 6–10 |
 | [Orc Spearman](../../scenes/enemies/orc/orc_spearman_definition.tres) | Shooter: keeps his distance throwing javelins, stabs up close | Depths 6–10 |
 | [Orc Shaman](../../scenes/enemies/orc/orc_shaman_definition.tres) | Caster: earth missile volleys, heals allies and himself, hastes nearby orcs | Depths 6–10 |

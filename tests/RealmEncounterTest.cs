@@ -1,5 +1,6 @@
 namespace RogueGauntlet.Tests;
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -11,14 +12,18 @@ using static GdUnit4.Assertions;
 public class RealmEncounterTest
 {
 	[TestCase]
-	public void BudgetsAreDeterministicScopedAndImmutable()
+	public void BudgetsAreDeterministicScopedAndKeepMonsterLimits()
 	{
 		var factory = TestFactories.Load<RealmEncounterFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
 		var threat = TestFactories.Load<ThreatProfile>(TestFactories.ThreatProfilePath);
 		// Every realm down the fallback chain spends its floors' budgets the same way.
+		bool limitReached = false;
+		var definitions = new Dictionary<string, MonsterDefinition>();
 		for (var realm = factory; realm != null; realm = realm.Fallback as RealmEncounterFactory)
 			for (uint depth = realm.FirstDepth; realm.ContainsDepth(depth); depth++)
-				AssertBudgetSpent(realm, depth, threat);
+				limitReached |= AssertBudgetSpent(realm, depth, threat, definitions);
+		// Some limited monster spawns on a floor, up to its limit: limits thin a monster out without removing it.
+		AssertBool(limitReached).IsTrue();
 		using var fallbackA = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		using var fallbackB = GenerationRandom.Create(42, GenerationRandom.Monsters);
 		AssertString(Fingerprint(Members(factory.CreatePacks(TestFactories.GarrisonGatekeeperDepth + 1, threat, fallbackA))))
@@ -28,10 +33,18 @@ public class RealmEncounterTest
 		AssertBool(factory.ContainsDepth(TestFactories.GarrisonGatekeeperDepth + 1)).IsFalse();
 	}
 
-	private static void AssertBudgetSpent(RealmEncounterFactory factory, uint depth, ThreatProfile threat)
+	/// <summary>
+	/// Checks eight seeded floors at <paramref name="depth"/>: each spends its budget on whole packs and never fields more
+	/// of a monster than its <see cref="MonsterDefinition.MaximumPerFloor"/>. Returns whether a limited monster spawned.
+	/// <paramref name="definitions"/> caches each member scene's definition across depths, so each scene loads once.
+	/// </summary>
+	private static bool AssertBudgetSpent(RealmEncounterFactory factory, uint depth, ThreatProfile threat,
+		Dictionary<string, MonsterDefinition> definitions)
 	{
 		var costs = factory.Entries.Where(e => e.EligibleAt(depth)).ToDictionary(e => e, e => RealmEncounterFactory.Cost(e, depth, threat));
-		float cheapest = costs.Values.Min();
+		foreach (string path in costs.Keys.SelectMany(e => e.Members).Distinct().Where(path => !definitions.ContainsKey(path)))
+			definitions[path] = RealmEncounterFactory.DefinitionOf(TestFactories.Load<PackedScene>(path));
+		bool limited = false;
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
 			using var a = GenerationRandom.Create(seed, GenerationRandom.Monsters);
@@ -39,12 +52,23 @@ public class RealmEncounterTest
 			var first = Members(factory.CreatePacks(depth, threat, a));
 			var second = Members(factory.CreatePacks(depth, threat, b));
 			AssertString(Fingerprint(first)).IsEqual(Fingerprint(second));
-			// The floor spends its budget on whole packs until no eligible pack still fits.
+			var spawned = first.SelectMany(pack => pack).GroupBy(path => definitions[path]).ToDictionary(kind => kind.Key, kind => kind.Count());
+			foreach (var (definition, count) in spawned.Where(pair => pair.Key.MaximumPerFloor > 0))
+			{
+				AssertInt(count).OverrideFailureMessage($"{definition.DisplayName} at depth {depth}, seed {seed}")
+					.IsLessEqual(definition.MaximumPerFloor);
+				limited = true;
+			}
+			// The floor spends its budget on whole packs until no eligible pack still fits within the monsters' limits.
 			float spent = first.Sum(pack => costs[costs.Keys.Single(e => e.Members.SequenceEqual(pack))]);
+			var byId = spawned.ToDictionary(pair => pair.Key.Id, pair => pair.Value);
+			float cheapest = costs.Where(pair => RealmEncounterFactory.WithinLimits(pair.Key.Members.Select(path => definitions[path]), byId))
+				.Select(pair => pair.Value).DefaultIfEmpty(float.PositiveInfinity).Min();
 			AssertBool(first.Length > 0 && spent <= factory.FloorBudget(depth, threat) + 1e-4f).IsTrue();
 			AssertBool(first.Sum(pack => pack.Length) >= RealmEncounterFactory.MaximumMonsters
 				|| factory.FloorBudget(depth, threat) - spent < cheapest).IsTrue();
 		}
+		return limited;
 	}
 
 	/// <summary>

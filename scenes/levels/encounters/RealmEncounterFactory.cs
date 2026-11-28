@@ -71,26 +71,44 @@ public partial class RealmEncounterFactory : MobFactory
 		return entry == null ? null : Scene(entry.Members[rng.RandiRange(0, entry.Members.Length - 1)], scenes);
 	}
 
-	/// <summary>Spend the floor's budget on packs, filtering unaffordable entries before each weighted draw.</summary>
+	/// <summary>
+	/// Spend the floor's budget on packs. Before each weighted draw it drops the entries the floor can no longer afford
+	/// and those that would take a member past its <see cref="MonsterDefinition.MaximumPerFloor"/>, so the cheapest
+	/// monster cannot fill the end of every budget.
+	/// </summary>
 	public override List<PackedScene[]> CreatePacks(uint depth, ThreatProfile threat, RandomNumberGenerator rng)
 	{
 		if (!ContainsDepth(depth)) return Fallback?.CreatePacks(depth, threat, rng) ?? [];
 		var scenes = new Dictionary<string, PackedScene>();
 		Require(ValidatePool(depth, threat, scenes));
 		var costs = Costs(depth, threat, scenes);
+		var members = costs.ToDictionary(pair => pair.Entry, pair => Definitions(pair.Entry, scenes));
+		var spawned = new Dictionary<string, int>();
 		var result = new List<PackedScene[]>();
 		float remaining = FloorBudget(depth, threat);
 		int monsters = 0;
 		while (remaining > 0 && monsters < MaximumMonsters)
 		{
-			var (entry, cost) = Pick(costs, remaining, rng);
+			var (entry, cost) = Pick(costs.Where(pair => WithinLimits(members[pair.Entry], spawned)).ToArray(), remaining, rng);
 			if (entry == null) break;
 			result.Add(entry.Members.Select(path => Scene(path, scenes)).ToArray());
+			foreach (var definition in members[entry]) spawned[definition.Id] = spawned.GetValueOrDefault(definition.Id) + 1;
 			monsters += entry.Members.Length;
 			remaining -= cost;
 		}
 		return result;
 	}
+
+	/// <summary>
+	/// Whether a pack of <paramref name="members"/> keeps each within its per-floor limit on a floor that already holds
+	/// <paramref name="spawned"/> (counts by monster ID).
+	/// </summary>
+	public static bool WithinLimits(IEnumerable<MonsterDefinition> members, IReadOnlyDictionary<string, int> spawned) =>
+		members.GroupBy(definition => definition.Id).All(kind => kind.First().MaximumPerFloor == 0
+			|| spawned.GetValueOrDefault(kind.Key) + kind.Count() <= kind.First().MaximumPerFloor);
+
+	private static MonsterDefinition[] Definitions(MobSpawnEntry entry, Dictionary<string, PackedScene> scenes) =>
+		entry.Members.Select(path => DefinitionOf(Scene(path, scenes))).ToArray();
 
 	/// <summary>A floor never spawns more ordinary monsters than this, however cheap they are.</summary>
 	public const int MaximumMonsters = 32;
@@ -138,6 +156,10 @@ public partial class RealmEncounterFactory : MobFactory
 				ids[id] = path;
 			}
 		}
+		// Read definitions only once every member scene loads and validates.
+		if (errors.Count == 0)
+			errors.AddRange(Entries.Where(entry => !WithinLimits(Definitions(entry, scenes), new Dictionary<string, int>()))
+				.Select(entry => $"{string.Join(", ", entry.Members)}: holds more of a monster than its MaximumPerFloor, so the pack can never spawn."));
 		return errors;
 	}
 
