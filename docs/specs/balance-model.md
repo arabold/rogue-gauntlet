@@ -97,7 +97,8 @@ weapon turns up a Poisson number of times at its measured rate (`WEAPON_SUPPLY`,
 one beats a damage `x` with chance `1 − exp(−count above x)`. Floors drop about 1.1–2.7 weapons each, most of them
 from chests and reward rooms, so the expected hero holds about 84% of the on-curve weapon at depth 4 and about 95% from
 depth 8 on. Monsters were derived against an earlier, sparser supply and deliberately not re-derived after loot grew, so
-the game plays easier than the targets; `audit` lists the gap. The Barbarian keeps its one-handed axe until it can
+the game plays easier than the targets; `audit` lists the gap. The threat profile's `CostGrowth` and the XP ladder stay
+with them, since their targets assume re-derived monsters, while the floor budget follows `fit`. The Barbarian keeps its one-handed axe until it can
 expect a stronger two-handed weapon than its best one-handed one, around depth 10.
 
 - **Weapons:** the reference one-handed sword's mean hit is `3.7 × 1.05^(depth − 1)`, so a T1 sword rolls 2–5 and a T5
@@ -216,11 +217,11 @@ archetype marks the gatekeeper bonus. `simulate.py monster` evaluates proposed s
 
 ## Floors and gatekeepers
 
-A floor spends a budget of 7.3 standard fights at depth 1, rising to 11.4 at depth 25. It spends it on **packs**, not
+A floor spends a budget of 7.1 standard fights at depth 1, rising to 10.7 at depth 25. It spends it on **packs**, not
 single monsters, so roles appear together. Rats lead: rat packs of three from depth 1 and hordes of five from depth 2,
 with fodder pairs, lone standards, patrols (standard and fodder), sentries (a shooter) and, from depth 3, warbands (two
 standards and a caster who heals them); guard posts (brute and shooter) and vanguards (brute, standard and shooter)
-join from depth 4. From the Prison (depth 6) a lone fodder, standard pairs and, from depth 8, standard trios join too; from the Sewer (depth 11) a lone swarmer, and from depth 12 swarmer pairs and fodder trios. Each pack has a depth range in `params.PACKS`. Gatekeeper floors spend 45% of the budget, then the
+join from depth 4. From the Prison (depth 6) a lone fodder, standard pairs and, from depth 8, standard trios join too; from the Sewer (depth 11) a lone swarmer, and from depth 12 swarmer pairs and fodder trios. Each pack has a depth range in `params.PACKS`. Gatekeeper floors spend half the budget, then the
 gatekeeper. The simulator fills a floor as the game does: it draws by weight among the eligible packs the remaining
 budget affords, until none is affordable or the floor holds 32 monsters. A floor therefore ends less than its cheapest
 pack below its budget, 1–5% on average.
@@ -239,8 +240,9 @@ over the classes, loses about 60% of max health on an ordinary floor and about 7
 traps and gatekeeper). Packs cost in proportion to the budget they spend; traps, gauntlets and gatekeepers do not, so `fit` solves
 for the budget line and the gatekeeper floor's share from the class-mean costs at every depth, then reports the
 arrival odds. The targets keep the difficulty the 2026-11-14 playtests liked: fodder and swarmers hit softly, so a
-floor holds many of them, about 9 monsters on depth 1 and 10–12 on deeper ordinary floors, and a gatekeeper floor 6–8
-plus its gatekeeper, which alone costs about 48% at depth 5 and 39% at depth 25. Healing is not sized to refill the
+floor holds many of them, about 8 monsters on depth 1, 10–12 on the ordinary floors of the Prison and the Sewer and up
+to about 17 by depth 24, and a gatekeeper floor 7–11 plus its gatekeeper, which alone costs about 48% at depth 5 and 37%
+at depth 25. Healing is not sized to refill the
 attrition: potions stay scarce, so the hero runs down over a realm and the fountains and gatekeepers set the rhythm.
 
 **Traps** (`params.TRAPS`) count toward attrition. A floor places 0–3 hidden traps (`MapGenerator.MinTraps..MaxTraps`,
