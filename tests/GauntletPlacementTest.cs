@@ -14,13 +14,12 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class GauntletPlacementTest
 {
-	private const string LevelScene = "res://scenes/levels/level.tscn";
 
 	/// <summary>
 	/// The shipped level outside the tree, so nothing generates: the run schedules are plain computation over its
 	/// generator's resources.
 	/// </summary>
-	private static Level UnplacedLevel() => TestFactories.Load<PackedScene>(LevelScene).Instantiate<Level>();
+	private static Level UnplacedLevel() => TestFactories.Load<PackedScene>(TestFactories.LevelScenePath).Instantiate<Level>();
 
 	[TestCase]
 	public void ARunMeetsAFewGauntletsWithoutRepeatsOnOrdinaryFloors()

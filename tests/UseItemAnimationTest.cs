@@ -21,20 +21,20 @@ public class UseItemAnimationTest
 		var player = (await TestFactories.SettleCombatHarness(runner, 5)).Player;
 		player.InputComponent.DeviceEnabled = false;
 		var playback = (AnimationNodeStateMachinePlayback)player.GetNode<AnimationTree>("AnimationTree").Get("parameters/playback");
-		await runner.SimulateFrames(5, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 
 		player.InputComponent.InputDirection = Vector3.Left;
 		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Walking", 1);
 		// Settle the 0.3-second blend into walking: the tree takes no transition mid-blend.
-		await runner.SimulateFrames(20, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .4f);
 		player.ActionManager.AssignAction(0, new ConsumableItem(), null, 1);
 		player.ActionManager.TryPerformAction(0);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertString(playback.GetCurrentNode()).IsEqual("Use Item");
 
 		// The clip runs 1.6 seconds; the action ends long before, and the held direction resumes walking.
 		await TestFactories.AwaitPhysicsUntil(runner, () => !player.IsPerformingAction, 1);
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 		AssertString(playback.GetCurrentNode()).IsEqual("Walking");
 	}
 }

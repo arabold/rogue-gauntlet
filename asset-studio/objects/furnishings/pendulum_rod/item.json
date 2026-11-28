@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "name": "Pendulum Rod",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 600,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    }
+  },
+  "concept": "A pendulum blade trap that swings from a long shaft rising far out of view: a huge crescent scythe blade, wider than the large barrel is tall, curved like a smile with its sharp edge down and both tips sweeping up past the shaft's end. The blade is one thick plate of polished silver steel with a broad bevelled cutting edge along its whole lower arc, and a chunky pale grey iron spine along its inner arc. It hangs from a heavy T-shaped iron collar clamped round the bottom of a thick square iron shaft, with oversized bolt heads through the collar. Chunky, clean shapes, broad flat facets, no chips or nicks, no rust; menacing but in the pack's friendly style and palette.",
+  "design": {
+    "kind": "pendulum_blade",
+    "part": "rod"
+  },
+  "export": {
+    "glb": "res://assets/custom-props/traps/pendulum_rod.glb"
+  },
+  "reference": "res://asset-studio/objects/furnishings/pendulum_blade/reference.png",
+  "height_range": [
+    0.28,
+    1.67
+  ],
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Pendulum shaft at rest, 0.8 to 10.6 m above the floor, a square iron bar with two bands, shaded on the blade's ramp (height_range). The game fades it out toward the pivot with pendulum_rod.gdshader. No gameplay data."
+  }
+}

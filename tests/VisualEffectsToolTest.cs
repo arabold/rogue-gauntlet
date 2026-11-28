@@ -14,7 +14,7 @@ public class VisualEffectsToolTest
 	public async Task GameplayVisualControlsChangeTheirEffects()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 		var scene = runner.Scene();
 		var tool = TestFactories.Tool<VisualEffectsTool>(scene);
 		tool.Refresh();
@@ -72,7 +72,7 @@ public class VisualEffectsToolTest
 		lighting.IsDark = false;
 		AssertBool(probe.Visible || probe.IsProcessing()).IsFalse();
 		TestFactories.Press(popup, "Reflections");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(probe.Visible && probe.IsProcessing()).IsTrue();
 	}
 

@@ -14,7 +14,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task ReplayKeepsOneSubjectAndReappliesSustainedEffectsAfterClearing()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(0);
 		AssertInt(preview.InstanceCount).IsEqual(1); preview.ClearEffects(); AssertInt(preview.InstanceCount).IsEqual(0);
 		preview.Replay(); AssertInt(preview.Stage.GetChildCount()).IsEqual(1); AssertInt(preview.InstanceCount).IsEqual(1);
@@ -22,7 +22,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task MouseDragAndTheGameCameraActionBothOrbitThePreview()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var camera = (EffectPreviewCamera)((ActorItemEffectPreview)runner.Scene()).Camera; Vector3 before = camera.Position;
 		camera._UnhandledInput(new InputEventMouseMotion { ButtonMask = MouseButtonMask.Right, Relative = new Vector2(40, 10) });
 		AssertBool(camera.Position.IsEqualApprox(before)).IsFalse(); before = camera.Position;
@@ -33,7 +33,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task CurseReusesTheItemSurfaceAndHasNoProxyShell()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(7); preview.SetSubject(3);
 		var subject = preview.Stage.GetChild(0);
 		AssertInt(subject.FindChildren("*", "", true, false).OfType<ItemAuraPresenter>().Count()).IsEqual(0);
@@ -47,17 +47,17 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task TeleportFadesBeforeRelocationAndRestoresTheSkinAfterArrival()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(0);
 		var player = preview.Stage.GetChild<Player>(0); var host = player.WorldEffects; Vector3 origin = player.GlobalPosition;
 		Vector3 destination = origin + Vector3.Right * 4;
 		TeleportEffect.Play(player, host, destination, preview.TeleportDeparture, preview.TeleportArrival, 42);
 		AssertBool(player.GlobalPosition.IsEqualApprox(origin)).IsTrue();
-		await runner.SimulateFrames(7, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .14f);
 		AssertBool(player.GlobalPosition.IsEqualApprox(origin)).IsTrue();
 		var departure = host.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(e => e.Definition == preview.TeleportDeparture);
 		AssertObject(departure.SurfaceEnvelope).IsNotNull();
-		await runner.SimulateFrames(38, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .76f);
 		AssertBool(player.GlobalPosition.IsEqualApprox(destination)).IsTrue(); AssertInt(host.ActiveInstanceCount).IsEqual(1);
 		// The iron skin shows again once the traveler has arrived.
 		var body = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().EndsWith("_Body"));
@@ -67,7 +67,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task InterruptingATeleportCommitsItsDestination()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
 		// Clearing the effects completes the travel without leaving an arrival behind.
 		Vector3 destination = player.GlobalPosition + Vector3.Right * 4;
@@ -83,7 +83,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task SkinStyleOptionsOnlyModifyPrivatePreviewMaterials()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(0); preview.SetSurfaceStyle(true, true);
 		var body = preview.Stage.GetChild(0).FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().EndsWith("_Body"));
 		var material = (ShaderMaterial)body.GetActiveMaterial(0);
@@ -95,7 +95,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task DeathCancelsRelocationAndCloakRetainsPriorityOverTheFade()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
 		Vector3 origin = player.GlobalPosition;
 		TeleportEffect.Play(player, player.WorldEffects, origin + Vector3.Right * 4, preview.TeleportDeparture, preview.TeleportArrival, 42);
@@ -103,17 +103,17 @@ public class EffectPreviewTest
 		var body = player.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().First(m => m.Name.ToString().EndsWith("_Body"));
 		AssertBool(((ShaderMaterial)body.GetActiveMaterial(0)).Shader.Code.Contains("body_opacity")).IsTrue();
 		player.HealthComponent.TakeDamage(100000);
-		await runner.SimulateFrames(24, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .48f);
 		AssertBool(player.GlobalPosition.IsEqualApprox(origin)).IsTrue(); AssertInt(preview.InstanceCount).IsEqual(0);
 	}
 	[TestCase]
 	public async Task MonsterSilhouettesUseTheDebugLayerAndStayOutOfTheWorldReflectionProbe()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene();
 		foreach (int subject in new[] { 1, 2 })
 		{
-			preview.SetSubject(subject); await runner.SimulateFrames(2, 20);
+			preview.SetSubject(subject); await TestFactories.AwaitPhysicsFrames(runner, 2);
 			var helpers = preview.Stage.GetChild(0).FindChildren("*_Xray", "MeshInstance3D", true, false).OfType<MeshInstance3D>().ToArray();
 			AssertInt(helpers.Length).IsGreater(0);
 			foreach (var helper in helpers)
@@ -127,7 +127,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task TeleportFadePassesArePrivateAndShareTheSameFadeAmount()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
 		player.WorldEffects.PlayBurst(preview.TeleportDeparture, 42);
 		var effect = player.WorldEffects.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(e => !e.IsQueuedForDeletion());
@@ -140,7 +140,7 @@ public class EffectPreviewTest
 	[TestCase]
 	public async Task ActorAndScrollLightsShareTheirWorldOffsetWhileActorsTurnAndMove()
 	{
-		using var runner = TestFactories.LoadScene(Scene); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Scene); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.SelectEffect(2);
 		var actor = preview.Stage.GetChild<Player>(0);
 		var effect = actor.WorldEffects.InstancesRoot.GetChildren().OfType<WorldEffectInstance>().Single(e => !e.IsQueuedForDeletion());

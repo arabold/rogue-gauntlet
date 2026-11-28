@@ -41,7 +41,7 @@ public class QuickSlotConsumptionTest
 		{
 			ItemOperationResult result = quick.TryUseSlot(slot);
 			AssertBool(result.Success).OverrideFailureMessage($"drink: {result.Failure}").IsTrue();
-			for (int i = 0; i < 60 && consumed == 0; i++) { await runner.SimulateFrames(5, 20); }
+			await TestFactories.AwaitPhysicsUntil(runner, () => consumed > 0, 5);
 		}
 		finally
 		{

@@ -21,7 +21,7 @@ public class SnakeAmbushTest
 		var (runner, harness, snake) = await TestFactories.StageHarnessMonster(Snake, 6);
 		using var cleanup = runner;
 		Vector3 start = snake.GlobalPosition;
-		await runner.SimulateFrames(50, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, 1f);
 		AssertBool(snake.IsConcealed).IsTrue();
 		AssertBool(snake.Nameplate.IsShown || snake.Xray.IsShown).IsFalse();
 		AssertFloat(snake.GlobalPosition.HorizontalDistanceTo(start)).IsLess(.05f);
@@ -41,7 +41,7 @@ public class SnakeAmbushTest
 		var (runner, harness, snake) = await TestFactories.StageHarnessMonster(Snake, 6);
 		using var cleanup = runner;
 		AssertBool(harness.ExecuteCommand("equip", "res://scenes/items/weapons/crossbow_common.tres")).IsTrue();
-		await runner.SimulateFrames(30, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .6f);
 		AssertBool(snake.IsConcealed).IsTrue();
 		harness.Attack();
 		await TestFactories.AwaitPhysicsUntil(runner, () => snake.AmbushComponent.IsAwake, 3);

@@ -236,9 +236,19 @@ TRAPS = dict(per_floor=1.5, triggers=0.58, damage=0.09)
 # `damage` of the expected hero's health; a fireball deals `fire_scale` of it, since armor never absorbs it. `derive`
 # writes each launcher's Damage and DamagePerDepth.
 LAUNCHERS = dict(first_depth=2, chance=0.35, lane_fit=0.9, hits=0.75, damage=0.055, fire_scale=0.75)
+# Trap gauntlets (wall spouts and pendulum blades on one beat in a gauntlet room: TrapGauntlet, GauntletProfile). A run
+# deals `per_run` of them (GauntletProfile.MinPerRun..MaxPerRun, audited), one in each equal band of the ordinary floors
+# from `first_depth` (its FirstDepth, audited), each guarding its floor's descent; the model spreads them over shop and
+# labyrinth floors too, which never hold one. `rooms` counts the gauntlet rooms by hazard (room_types/gauntlets/,
+# audited); a run never deals one twice. A crossing takes `hits` hits (estimated: every row has a safe window and the
+# hero may wait between rows, so about one misjudged row a crossing; re-measure with `playtest`). A dart is
+# a physical hit of `damage["dart"]` of the expected hero's health, a fireball LAUNCHERS `fire_scale` of a dart since
+# armor never absorbs it, and a blade's cut `damage["blade"]`. `derive` writes each hazard's Damage and DamagePerDepth.
+HAZARDS = dict(per_run=2.5, first_depth=2, hits=1.0, rooms=dict(dart=1, fireball=1, blade=2),
+               damage=dict(dart=0.05, blade=0.08))
 FLOOR = dict(
-    budget=(7.3, 11.4),        # standard-monster equivalents per floor, packs costed as groups (`fit` sizes it)
-    boss_budget_share=0.45,    # a boss floor spends this share of the budget before the boss (`fit` sizes it)
+    budget=(7.1, 10.7),        # standard-monster equivalents per floor, packs costed as groups (`fit` sizes it)
+    boss_budget_share=0.50,    # a boss floor spends this share of the budget before the boss (`fit` sizes it)
     max_monsters=32,           # a floor stops adding packs once it holds this many (RealmEncounterFactory.MaximumMonsters)
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )

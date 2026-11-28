@@ -32,7 +32,7 @@ public class RunLifecycleTest
 		using var saves = new ScratchSaves();
 		GameSession.Instance.BeginRun(Slot, "barbarian", Seed);
 		using ISceneRunner runner = TestFactories.LoadScene(MainScene);
-		await runner.SimulateFrames(5, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 		var main = (Main)runner.Scene();
 
 		SaveGame arrival = SaveService.Load(Slot);
@@ -87,7 +87,7 @@ public class RunLifecycleTest
 		AssertBool(SaveService.Save(fallen)).IsTrue();
 
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/menu/main_menu.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var menu = (MainMenu)runner.Scene();
 		menu.RunsButton.EmitSignal(BaseButton.SignalName.Pressed);
 		var card = menu.CardRow.GetChild<RunCard>(1);
@@ -116,7 +116,7 @@ public class RunLifecycleTest
 		}
 
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/menu/main_menu.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var menu = (MainMenu)runner.Scene();
 		menu.NewRunButton.EmitSignal(BaseButton.SignalName.Pressed);
 		AssertBool(menu.HeroScreen.Visible).IsTrue();

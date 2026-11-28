@@ -54,7 +54,7 @@ public partial class FloorDiscovery : Node3D
 	private ImageTexture _texture;
 	private MeshInstance3D _surface;
 	private bool _textureDirty;
-	private ulong _clockStart;
+	private double _clockStart;
 	private float _fadeUntil;
 	private Player _player;
 	private double _untilPoll;
@@ -63,7 +63,7 @@ public partial class FloorDiscovery : Node3D
 	private bool _refresh = true;
 
 	/// <summary>Seconds since this floor's exploration began, offset so immediate reveals (stored as -1) are always faded in.</summary>
-	private float Clock => 1f + (Time.GetTicksUsec() - _clockStart) / 1_000_000f;
+	private float Clock => 1f + (float)(FrameClock.Seconds - _clockStart);
 
 	public override void _Ready()
 	{
@@ -136,7 +136,7 @@ public partial class FloorDiscovery : Node3D
 		RenderingServer.GlobalShaderParameterSet(MapOriginGlobal, bounds.Position);
 		RenderingServer.GlobalShaderParameterSet(MapExtentGlobal, bounds.Size);
 		PublishWalls();
-		_clockStart = Time.GetTicksUsec();
+		_clockStart = FrameClock.Seconds;
 		_fadeUntil = 0;
 		_refresh = true;
 		_untilPoll = 0;

@@ -33,7 +33,7 @@ public class MonsterFlankTest
 		var scene = TestFactories.Load<PackedScene>(scenePath);
 		var monsters = distances.Select(distance => (EnemyBase)harness.Monsters.Spawn(scene, distance)).ToList();
 		harness.ExecuteCommand("automation", value: 1);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		return monsters;
 	}
 

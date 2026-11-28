@@ -35,7 +35,7 @@ public class DiscoveryPersistenceTest
 		try { level.RestoreExploration(saved); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
 		AssertInt(level.CaptureExploration().ExploredSamples.Count).IsEqual(saved.ExploredSamples.Count - 1);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 	}
 
 	/// <summary>
@@ -110,6 +110,6 @@ public class DiscoveryPersistenceTest
 		secret.Door.IsOpen = true;
 		level.Discovery.RevealFrom(Point(outside));
 		AssertBool(level.Discovery.IsRevealedAt(Point(secret.Connector))).IsTrue();
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 	}
 }

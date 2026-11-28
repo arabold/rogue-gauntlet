@@ -53,7 +53,6 @@ FocusBlur = NodePath("../../ScreenEffects/FocusBlur")
 [node name="ScreenEffects" parent="." instance=ExtResource("10_effects")]
 
 [node name="Level" parent="." unique_id=1654143163 instance=ExtResource("5_nxjfc")]
-AutoGenerateOnReady = false
 
 [node name="MapGenerator" parent="Level" index="0"]
 Seed = 30

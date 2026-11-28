@@ -26,7 +26,7 @@ public partial class GolemReviveTest
 		var revive = golem.GetNode<ReviveComponent>("ReviveComponent");
 		revive.DownedDuration = DownedFor;
 		revive.RiseDuration = RiseFor;
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(golem.DefinitionValid).OverrideFailureMessage("the golem must pass monster validation").IsTrue();
 		var health = golem.HealthComponent;
 		bool died = false;

@@ -71,8 +71,12 @@ SWATCHES = {slot: PACK[swatch] for slot, swatch in {
 EMISSIVE = {'flame', 'liquid', 'lantern_glow'}
 
 
-def export(path, name, piece, crease=40.0, slot_crease=None):
-    """Write `piece` as a GLB on the pack's texture: its one material, plus an emissive copy for glowing slots."""
+def export(path, name, piece, crease=40.0, slot_crease=None, height_range=None):
+    """Write `piece` as a GLB on the pack's texture: its one material, plus an emissive copy for glowing slots.
+
+    The ramp spans the piece's own height unless `height_range` fixes it, so parts exported apart (a pendulum's blade
+    and the shaft it hangs from) shade as one.
+    """
     slots = [str(s) for s in piece.slots]
     missing = sorted(set(slots) - set(SWATCHES))
     if missing:
@@ -80,7 +84,7 @@ def export(path, name, piece, crease=40.0, slot_crease=None):
     tri = piece.verts[piece.faces]
     normals = corner_normals(piece.verts, piece.faces, crease=crease, slots=piece.slots, slot_crease=slot_crease or {})
     # The characters' ramp (height plus slope: faces turned down shade darker), spread over the pack's measured v range.
-    v = np.clip(.04 + .9 * gradient_coordinates(tri, normals), .03, .97)
+    v = np.clip(.04 + .9 * gradient_coordinates(tri, normals, height_range), .03, .97)
     uv = np.empty(tri.shape[:2] + (2,), dtype=np.float32)
     names = np.array(slots)
     for slot in set(slots):

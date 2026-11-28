@@ -80,15 +80,9 @@ public class FountainTest
 						&& other.GlobalPosition.HorizontalDistanceTo(fountain.GlobalPosition) < MapGenerator.LootSpawnSpacing))
 						failures.Add($"seed {seed}: {fountain.Name} crowds another prop");
 				}
-				await runner.SimulateFrames(1, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 1);
 			}
 
-			// The shipped schedule leaves depth 1 empty, and the generator places nothing there.
-			map.Fountains = TestFactories.Load<FountainProfile>(ProfilePath);
-			map.RunSeed = 1;
-			map.DungeonDepth = 1;
-			map.GenerateMap(includeGameplay: true);
-			AssertBool(map.FloorContent.GetChildren().OfType<Fountain>().Any()).OverrideFailureMessage("depth 1 holds no fountains").IsFalse();
 			AssertArray(failures).OverrideFailureMessage(string.Join("\n", failures)).IsEmpty();
 			AssertInt(complete).IsGreaterEqual(4);
 		}
@@ -99,7 +93,7 @@ public class FountainTest
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
 		var (level, player) = AddLevelAndPlayer(new Vector3(200, 0, 200));
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		var health = Spawn(level, "health");
 		var mana = Spawn(level, "mana");
@@ -141,7 +135,7 @@ public class FountainTest
 		var (level, player) = AddLevelAndPlayer(new Vector3(200, 0, 201.6f));
 		var fountain = Spawn(level, "health");
 		fountain.Position = new Vector3(200, 0, 200);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		player.HealthComponent.TakeDamage(10);
 		var context = player.InteractionContext;

@@ -13,7 +13,7 @@ Shot = NodePath("Shot")
 Indicator = NodePath("AttackIndicator")
 WindUpEffect = NodePath("Model/Dust")
 Damage = 3
-DamagePerDepth = 0.48
+DamagePerDepth = 0.49
 Period = 2.4
 
 [node name="Model" parent="." instance=ExtResource("model")]

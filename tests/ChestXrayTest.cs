@@ -59,7 +59,7 @@ public class ChestXrayTest
 	public async Task ChestSilhouetteAppearsOnlyOnceItsTileIsSeen()
 	{
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var (level, map) = TestFactories.UngeneratedLevel();
 		TestFactories.AddToSceneTree(level);
 		GeneratedFloor floor = TestFactories.StartEmptyFloor(level, map);
@@ -70,13 +70,13 @@ public class ChestXrayTest
 		{
 			GameDebug.LootXrayEnabled = true;
 			level.AddChild(chest);
-			await runner.SimulateFrames(20, 20); // Past the 0.3 s poll: still fogged, so still dark.
+			await TestFactories.AwaitPhysicsSeconds(runner, .4f); // Past the 0.3 s poll: still fogged, so still dark.
 			AssertInt(Silhouettes(chest).Length).IsEqual(2);
 			AssertBool(Silhouettes(chest).All(m => !m.Visible)).IsTrue();
 
 			// Line-of-sight discovery reveals the tile without a room event; the poll alone must light it.
 			TestFactories.RevealTileAt(level.Discovery, floor.Map, chest.GlobalPosition);
-			await runner.SimulateFrames(20, 20);
+			await TestFactories.AwaitPhysicsSeconds(runner, .4f);
 			AssertBool(Silhouettes(chest).All(m => m.Visible)).IsTrue();
 		}
 		finally

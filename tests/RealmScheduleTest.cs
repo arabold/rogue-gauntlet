@@ -123,17 +123,15 @@ public class RealmScheduleTest
 	[TestCase]
 	public async Task GeneratedFloorsHoldTheirHeadline()
 	{
+		var (runner, level) = await TestFactories.LoadLevelScene();
+		using var scope = runner;
 		foreach (uint depth in new uint[] { 1, 2, 3, 4, 7, 9, 13, 14, 18, 20, 22, 24 })
 		{
-			var (runner, level) = await TestFactories.GenerateLevel(7, depth);
-			using (runner)
-			{
-				var headline = level.MapGenerator.CurrentRealmFloor.Headline;
-				AssertObject(headline).OverrideFailureMessage($"depth {depth} has no headline").IsNotNull();
-				var types = level.MapGenerator.FloorContent.GetChildren().OfType<Room>().Select(room => room.Type).ToList();
-				AssertBool(types.Contains(headline)).OverrideFailureMessage($"depth {depth}: {headline.Id} was not placed").IsTrue();
-				AssertInt(types.Count(type => type == headline)).IsEqual(1);
-			}
+			TestFactories.Regenerate(level, 7, depth);
+			var headline = level.MapGenerator.CurrentRealmFloor.Headline;
+			AssertObject(headline).OverrideFailureMessage($"depth {depth} has no headline").IsNotNull();
+			var types = level.MapGenerator.FloorContent.GetChildren().OfType<Room>().Select(room => room.Type).ToList();
+			AssertInt(types.Count(type => type == headline)).OverrideFailureMessage($"depth {depth}: {headline.Id} placements").IsEqual(1);
 		}
 	}
 
