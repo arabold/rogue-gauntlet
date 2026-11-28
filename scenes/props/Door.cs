@@ -52,9 +52,10 @@ public partial class Door : Node3D
 			return;
 		}
 
-		// Editor previews conceal generated secrets too, so access changes are observed in both modes.
-		this.SubscribeUntilExit(Lock, l => l.Changed += RefreshAccessPresentation, l => l.Changed -= RefreshAccessPresentation);
-		this.SubscribeUntilExit(Secret, s => s.Changed += RefreshAccessPresentation, s => s.Changed -= RefreshAccessPresentation);
+		// Editor previews conceal generated secrets too, so access changes are observed in both modes. Both are the door's
+		// own children, connected by method: SubscribeUntilExit's closures would not survive the editor's assembly reload.
+		if (Lock != null) Lock.Changed += RefreshAccessPresentation;
+		if (Secret != null) Secret.Changed += RefreshAccessPresentation;
 		if (!Engine.IsEditorHint())
 		{
 			Interactive.OfferProvider = GetDoorOffer;

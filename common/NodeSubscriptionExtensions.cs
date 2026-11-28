@@ -8,6 +8,8 @@ public static class NodeSubscriptionExtensions
 	/// re-entering connects it again, so pooled and reparented nodes keep their subscriptions (<see cref="ScenePool"/>
 	/// moves nodes out of and back into the tree without running <c>_Ready</c> again). Use this for long-lived emitters,
 	/// custom C# signals, resources, and captured delegates. The returned action ends the subscription for good.
+	/// Runtime only: its closures do not survive the editor's assembly reload, so tool code running in the editor connects
+	/// by method instead.
 	/// </summary>
 	public static Action SubscribeUntilExit<TEmitter>(
 		this Node owner,
