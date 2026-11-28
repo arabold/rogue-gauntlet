@@ -49,16 +49,15 @@ A gauntlet wakes when the hero stands within `ActivationRadius` (16 m) and any o
 
 Gauntlets are never secret: they stand on the route the hero must take, so crossing them is the challenge. A run meets two or three gauntlet rooms, never the same one twice, each guarding a floor's descent ([level design](../level-design.md#trap-gauntlets)).
 
-**Gauntlet rooms (landed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a hazard row step (`CrossFireStep` or `PendulumRowsStep`), lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. Rows stop at the first that cannot be laid (a wall niche on both sides), so a gauntlet never has a gap twice its spacing; too few rows retry the room. Each room suits the garrison, sewer and jungle themes with that theme's walls and floors. The pool keeps them in their own `Gauntlets` slot, which only the approach group draws, so no layout picks one as an ordinary room; the room harness previews them and **Traps → Rooms** stages one in the combat arena to play.
+**Gauntlet rooms (landed).** Room types in `scenes/levels/rooms/room_types/gauntlets/` whose first step, a hazard row step (`CrossFireStep` or `PendulumRowsStep`), lays rows across the door-to-door spine: one row per tile between the doorway tiles at both ends, each spanning the room's full width so it cannot be walked around, and each row's band reserved so furniture never blocks a lane or a swing. All of a room's hazards share one gauntlet. Rows stop at the first that cannot be laid (a wall niche on both sides), so a gauntlet never has a gap twice its spacing; too few rows retry the room. Each room suits the garrison, sewer and jungle themes with that theme's walls and floors. The pool keeps them in their own `Gauntlets` slot, which only the approach group draws, so no layout picks one as an ordinary room; the room harness plays them with the game's hero.
 
 | Room | Shape | Rows | Beat | Look |
 | --- | --- | --- | --- | --- |
 | *Arrow gallery* | 3 × 5–7 tiles | 3–5 rows of dart slits, alternating side walls | Wave from the -Z end, 2.0–2.6 s | Stone or ruined walls, torches, a little clutter |
 | *Gargoyle crypt* | 3 × 5–7 tiles | 2–5 rows of gargoyle heads, alternating walls | Alternate, 2.6–3.2 s | Crypt walls, sconces, candles, bones, webs |
-| *Pendulum hall* | 3 × 6–8 tiles | 4–6 rows of three blades | Wave, 1.8–2.4 s; neighbouring blades half a beat apart, so the gaps between them open and close like scissors | Stone or prison walls, torches |
-| *Blade passage* | 1 × 6–9 tiles: a hallway | 4–7 single blades | Wave, 1.8–2.4 s; each blade pins one wall at a time, so the hero passes on the side it has left | Stone or ruined walls, torches |
+| *Pendulum hall* | 3 × 6–8 tiles | 4–6 rows of one blade over the middle, swinging from wall to wall | Wave, 1.8–2.4 s; the hero crosses each row on the side the blade has left | Stone or prison walls, torches |
 
-A spout row whose wall has no plain stretch at that tile (an alcove or a pillar) hangs its spout on the opposite wall instead, so ornate walls such as the crypt's still fill their rows. A blade swings as far as its walls and its neighbours allow: the step gives each blade the space it has (`HazardBeat.Space`), to just short of the wall or halfway to the next blade, which swings toward it at the same time, and the blade narrows its own `Sweep` to fit.
+A spout row whose wall has no plain stretch at that tile (an alcove or a pillar) hangs its spout on the opposite wall instead, so ornate walls such as the crypt's still fill their rows. A blade swings as far as its walls and its neighbours allow: the step gives each blade the space it has (`HazardBeat.Space`), to just short of the wall or halfway to the next blade, which swings toward it at the same time (a lone blade has the whole row), and the blade narrows its own `Sweep` to fit.
 
 The cathedral nave (pendulums down the aisle with gargoyles firing across) is a `PendulumRowsStep` and a `CrossFireStep` with interleaved rows; it needs a row offset on the step and waits for the Cathedral's turn.
 
@@ -119,7 +118,7 @@ Windows, chances and weights are realm data; the table is a starting point for p
 {
 	[Export] public Node3D Arm { get; set; }       // turns about this node's origin, the pivot above the walls
 	[Export] public ShapeCast3D Edge { get; set; } // the blade's cutting volume, an overlap query
-	[Export] public float Sweep { get; set; } = 1.9f;       // metres either side at most; a beat's Space narrows it
+	[Export] public float Sweep { get; set; } = 4.6f;       // metres either side at most; a beat's Space narrows it
 	[Export] public float Knockback { get; set; } = 4f;
 }
 
@@ -213,12 +212,11 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
 ~ scenes/levels/generators/corridors/CorridorBlueprint.cs
 ~ scenes/levels/generators/GeneratedFloor.cs             (hazard tiles)
 + scenes/levels/rooms/props/traps/dart_slit.tres, gargoyle_head.tres, pendulum_blade.tres   (hazard props)
-+ scenes/levels/rooms/room_types/gauntlets/arrow_gallery.tres, gargoyle_crypt.tres, pendulum_hall.tres, blade_passage.tres
++ scenes/levels/rooms/room_types/gauntlets/arrow_gallery.tres, gargoyle_crypt.tres, pendulum_hall.tres
 ~ scenes/levels/rooms/room_pool.tres, scenes/levels/realms/*.tres, *_corridors.tres   (3b: placement)
-~ scenes/debug/rooms/RoomGenerationHarness.cs           (lists the gauntlet rooms)
+~ scenes/debug/rooms/RoomGenerationHarness.cs           (plays the gauntlet rooms with the hero)
 + tests/GauntletRoomTest.cs
-+ scenes/ui/debug/TrapTool.cs                           (debug menu: lists scenes/props/traps/)
-~ scenes/ui/debug/DebugCatalog.cs, debug_menu.tscn       (hazard scene listing; the Traps submenu)
++ tests/TrapStaging.cs                                  (stages hazards and plate traps in the arena for tests)
 ~ scripts/saves/SaveGame.cs                             (CurrentVersion)
 ~ scripts/balance/params.py, content.py, model.py, simulate.py   (HAZARDS, slice 5)
 + tests/TrapHazardTest.cs
@@ -228,17 +226,17 @@ Hazards are seeded content with no state of their own, so saves gain nothing. Ne
 
 ## Debugging and tests
 
-- **`TrapTool`** (debug menu **Traps**, landed) lists the hazard scenes in `scenes/props/traps/` and stages 1, 3 or 5 rows ahead of the hero, two tiles apart, on a Unison, Alternate or Wave beat, in the arena or on a floor. A wall spout hangs on the first wall beside the path, or on a stand-in wall in open space. New hazard scenes show up without code changes.
+- **Room harness** (landed): the [room generation harness](../../scenes/debug/README.md#room-generation) plays every gauntlet room with the game's hero, entering from a corridor before its doorway. It replaced the debug menu's trap tool, whose ad-hoc rows, rooms and plate traps staged in the arena or on a floor proved messy; tests stage single hazards and plate traps themselves (`TrapStaging`).
 - **`TrapHazardTest`** (runtime, fixed delta, outcomes only): a hero standing in a spout lane takes one hit per shot; a dodge timed through the shot is `Dodged`; a raised shield blocks a dart; a pendulum cuts a hero once and pushes them out of its path, so later swings miss; a hero outside the arc is never hit; an asleep gauntlet (hero far, tiles unexplored) fires nothing; monsters in a lane take no damage and stop darts.
 - **`GauntletPlacementTest`** (landed): over 200 runs, two or three gauntlets on ordinary floors, never repeated, each suiting its realm; on generated Garrison and Prison gauntlet floors the gauntlet stands between the arrival and the descent and holds no spawns, loot or traps.
-- **`GauntletRoomTest`** (landed): every room in the gauntlet folder, over three seeds, puts its hazards under one gauntlet in at least two full-width rows; spouts hang on side walls firing straight across; blades never swing into a wall or a neighbour; no blocking furniture stands in a row. A room staged in the arena wakes its gauntlet for the hero at its entrance.
+- **`GauntletRoomTest`** (landed): every room in the gauntlet folder, over three seeds, puts its hazards under one gauntlet in at least two full-width rows; spouts hang on side walls firing straight across; blades never swing into a wall or a neighbour; no blocking furniture stands in a row. In the room harness the hero walks in from the entrance and the gauntlet wakes with its hazards ahead.
 - Visual checks: a GIF of each hazard in the arena (`record_gif.sh`), and `render_level_topdown.gd` for a floor with gauntlets.
 
 ## Slices
 
-1. **Wall spouts and gauntlets (landed).** `TrapGauntlet`, `TrapHazard`, `WallSpout`, `TrapDamage`, a dart spout (the crossbow bolt) and a fireball spout (the fireball spell's projectile) with primitive placeholder mounts, `TrapTool`, `TrapHazardTest`. Exercisable in the arena; nothing generates yet. Playtest note: at game zoom the dart is hard to see in flight, so its lane warning carries the read; the art slice should give it a bigger silhouette or a trail.
+1. **Wall spouts and gauntlets (landed).** `TrapGauntlet`, `TrapHazard`, `WallSpout`, `TrapDamage`, a dart spout (the crossbow bolt) and a fireball spout (the fireball spell's projectile) with primitive placeholder mounts, a trap debug tool (since replaced by the room harness), `TrapHazardTest`. Exercisable in the arena; nothing generates yet. Playtest note: at game zoom the dart is hard to see in flight, so its lane warning carries the read; the art slice should give it a bigger silhouette or a trail.
 2. **Pendulum blade (landed).** `PendulumBlade`, the rod fade shader, a crescent placeholder blade (CSG), tests for the cut, push and dodge-through. For slice 3: the crescent is 1.6 m wide, so a 4 m corridor cannot keep the middle safe at both extremes; corridors need a narrower swing (the blade fitted to the measured walls) or a narrower blade, and the hero passes on the side the blade is not.
-3. **Gauntlet rooms (3a, landed).** `HazardBeat` on placed pieces, `CrossFireStep` and `PendulumRowsStep`, the four room types, the harness listing and **Traps → Rooms**, `GauntletRoomTest`. Playable in the arena; no floor places them.
+3. **Gauntlet rooms (3a, landed).** `HazardBeat` on placed pieces, `CrossFireStep` and `PendulumRowsStep`, the room types, the harness listing, `GauntletRoomTest`. Of the four rooms, the blade passage (a one-tile hallway of single blades) was dropped after play-testing: its 4 m corridor left about 0.2 s to walk past each blade. The room harness plays the other three.
    **Placement (3b, landed).** The run's gauntlet schedule, the approach group before the descent, gauntlet rooms kept free of spawns and loot, save version bump, `GauntletPlacementTest`.
    **Corridor gauntlets (3c, later).** `CorridorHazardStep` spans with recorded danger tiles.
 4. **Art (landed).** Studio furnishings `dart_slit`, `gargoyle_head`, `pendulum_blade` and `pendulum_rod` in the floor tiles' pale stone and the pack's iron and steel, exported to `assets/custom-props/traps/`. The wall mounts keep the placeholders' measured bounds, so rooms hang them where they did and the muzzles stay put; the blade now counts in the pendulum's measured footprint, so decor in pendulum rooms keeps out of the blade rows. The rod and blade share one shading ramp (recipe `height_range`), the rod keeps its fade shader on the pack texture, and the blade keeps its faint glint. The dart itself is still the crossbow bolt.

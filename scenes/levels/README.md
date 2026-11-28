@@ -22,4 +22,4 @@
 | `stairs/` | The level's up- and down-stairs scenes (staircase, arrival spawn, level transition) placed by `StairsStep` |
 | `../props/furnishings/` | Prop scenes that need nodes (torches, banners, bookcases) and the furnishing mesh library |
 
-Start with [implemented level design](../../docs/level-design.md), [room assembly authoring](generators/assembly/README.md), or the [room generation harness](../debug/rooms/room_generation_harness.tscn). [Harness index](../debug/README.md) lists the debug entry points.
+Start with [implemented level design](../../docs/level-design.md), [room assembly authoring](generators/assembly/README.md), or the [room generation](../debug/rooms/room_generation_harness.tscn) and [map generation](../debug/maps/map_generation_harness.tscn) harnesses. [Harness index](../debug/README.md) lists the debug entry points.

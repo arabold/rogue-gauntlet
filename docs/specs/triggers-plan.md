@@ -257,7 +257,7 @@ Floor load (after generation, before handoff)
      - New tests: Pulse pulses once per press; Hold follows the plate on and off; Latch stays on after the hero leaves.
 2. **Wall launcher (landed).**
    - Adds `Trap` (the base of every trap: depth damage, the trap group, seeded rolls), `TrapShotComponent` (shared with `WallSpout`), `WallLauncher` (pulse and interval fire), the dart and gargoyle launcher scenes and the bare `pressure_plate.tscn`.
-   - **Traps → Triggered** in the debug menu stages a plate a few metres from a launcher in the **Plate mode** chosen.
+   - Tests stage a plate a few metres from a launcher in any trigger mode (`TrapStaging`); the debug menu's **Traps → Triggered** did the same until the room harness replaced the trap tool.
    - Verification (`PlateTrapTest`): an unaware hero who steps on the plate is hit once, and walking past it fires nothing; a dodge out of the lane on the click escapes; a Hold launcher stops when the hero steps off; a monster on the plate sets nothing off.
 3. **Trap placement (landed).**
    - Adds `TriggeredTrapProfile` (`scenes/props/traps/triggered/`: dart plate from depth 2, fire plate from the Prison, held dart plate from the Sewer), the lane search in `MapGenerator.PlateTraps.cs` and the profiles in `level.tscn`. The debug menu stages the same profiles. Plates keep off floor grates and drains, and a dodge carries the hero over a plate without pressing it. Save v120.

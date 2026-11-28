@@ -1,74 +1,117 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://dmt5scqvd325o" path="res://scenes/debug/rooms/RoomGenerationHarness.cs" id="script"]
-[ext_resource type="PackedScene" path="res://scenes/levels/level.tscn" id="level"]
+[ext_resource type="Script" path="res://scenes/debug/stage/DebugArena.cs" id="arena"]
+[ext_resource type="Script" uid="uid://dmt5scqvd325o" path="res://scenes/debug/rooms/RoomGenerationHarness.cs" id="harness"]
+[ext_resource type="Resource" path="res://scenes/levels/navigation/navigation_profiles/default.tres" id="navigation_profile"]
+[ext_resource type="PackedScene" path="res://scenes/levels/lighting/world_lighting.tscn" id="lighting"]
+[ext_resource type="PackedScene" path="res://scenes/main/camera/game_camera.tscn" id="camera"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/effects/screen/screen_effects.tscn" id="screen_effects"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="hud"]
+[ext_resource type="PackedScene" path="res://scenes/effects/ambient_motion/airflow.tscn" id="airflow"]
+[ext_resource type="Resource" path="res://scenes/levels/rooms/room_pool.tres" id="room_pool"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/FloorMeshLibrary.tres" id="floors"]
+[ext_resource type="MeshLibrary" path="res://scenes/levels/dungeon/WallsMeshLibrary.tres" id="walls"]
 
-[sub_resource type="Environment" id="Environment"]
-background_mode = 1
-background_color = Color(0.05, 0.06, 0.08, 1)
-ambient_light_source = 3
-ambient_light_color = Color(0.75, 0.8, 0.9, 1)
-ambient_light_energy = 0.7
+[sub_resource type="BoxShape3D" id="floor_shape"]
+size = Vector3(400, 1, 400)
 
-[sub_resource type="Theme" id="Theme"]
+[sub_resource type="Theme" id="controls_theme"]
 default_font_size = 16
 
-[node name="RoomGenerationHarness" type="Node3D" node_paths=PackedStringArray("Generator", "PreviewRoot", "PreviewCamera", "Controls", "Status", "Airflow")]
-script = ExtResource("script")
-Generator = NodePath("Level/MapGenerator")
-Airflow = NodePath("Level/Airflow")
-PreviewRoot = NodePath("PreviewRoot")
-PreviewCamera = NodePath("Camera3D")
-Controls = NodePath("UI/Panel/Margin/Controls")
-Status = NodePath("UI/Panel/Margin/Controls/Status")
+[sub_resource type="StyleBoxFlat" id="panel_style"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.055, 0.063, 0.08, 0.94)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
 
-[node name="Level" parent="." instance=ExtResource("level")]
+[node name="RoomGenerationHarness" type="Node3D" node_paths=PackedStringArray("Lighting", "Structure")]
+script = ExtResource("arena")
+NavigationProfile = ExtResource("navigation_profile")
+Lighting = NodePath("WorldLighting")
+Structure = NodePath("Room")
 
-[node name="MapGenerator" parent="Level" index="0"]
-MapWidth = 26
-MapDepth = 26
-MaxRooms = 6
-Seed = 2
+[node name="WorldLighting" parent="." instance=ExtResource("lighting")]
 
-[node name="WorldLighting" parent="Level" index="3"]
-environment = SubResource("Environment")
+[node name="Airflow" parent="." instance=ExtResource("airflow")]
 
-[node name="PreviewRoot" type="Node3D" parent="."]
+[node name="GameCamera" parent="." instance=ExtResource("camera")]
 
-[node name="Camera3D" type="Camera3D" parent="."]
-position = Vector3(0, 85, 40)
-rotation_degrees = Vector3(-65, 0, 0)
+[node name="OverviewCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.42261827, 0.90630776, 0, -0.90630776, 0.42261827, 0, 85, 40)
 projection = 1
-size = 110.0
-current = true
+size = 60.0
 far = 250.0
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-60, -25, 0)
-light_energy = 1.0
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="Room" type="Node3D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("player")]
+
+[node name="ScreenEffects" parent="." instance=ExtResource("screen_effects")]
 
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="Panel" type="PanelContainer" parent="UI"]
-theme = SubResource("Theme")
-offset_left = 16.0
+[node name="HUD" parent="UI" instance=ExtResource("hud")]
+
+[node name="DebugMenu" parent="UI/HUD" index="2" node_paths=PackedStringArray("World")]
+World = NodePath("../../..")
+
+[node name="Harness" type="CanvasLayer" parent="." node_paths=PackedStringArray("Arena", "Player", "Hero", "ScreenEffects", "Airflow", "OverviewCamera", "Controls", "Status")]
+layer = 2
+script = ExtResource("harness")
+Arena = NodePath("..")
+Player = NodePath("../Player")
+Hero = NodePath("../UI/HUD/DebugMenu/HeroTool")
+ScreenEffects = NodePath("../ScreenEffects")
+Airflow = NodePath("../Airflow")
+Rooms = ExtResource("room_pool")
+CorridorFloors = ExtResource("floors")
+CorridorWalls = ExtResource("walls")
+OverviewCamera = NodePath("../OverviewCamera")
+Controls = NodePath("Panel/Scroll/Controls")
+Status = NodePath("Panel/Scroll/Controls/Status")
+
+[node name="Panel" type="PanelContainer" parent="Harness"]
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -376.0
 offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -150.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("panel_style")
 
-[node name="Margin" type="MarginContainer" parent="UI/Panel"]
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+[node name="Scroll" type="ScrollContainer" parent="Harness/Panel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
 
-[node name="Controls" type="VBoxContainer" parent="UI/Panel/Margin"]
-custom_minimum_size = Vector2(480, 0)
-theme_override_constants/separation = 8
+[node name="Controls" type="VBoxContainer" parent="Harness/Panel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("controls_theme")
+custom_minimum_size = Vector2(320, 0)
+theme_override_constants/separation = 5
 
-[node name="Title" type="Label" parent="UI/Panel/Margin/Controls"]
+[node name="Title" type="Label" parent="Harness/Panel/Scroll/Controls"]
+layout_mode = 2
 text = "Room generation"
 theme_override_font_sizes/font_size = 22
 
-[node name="Status" type="Label" parent="UI/Panel/Margin/Controls"]
+[node name="Status" type="Label" parent="Harness/Panel/Scroll/Controls"]
+layout_mode = 2
+autowrap_mode = 2
 text = "Generating…"
-
-[editable path="Level"]

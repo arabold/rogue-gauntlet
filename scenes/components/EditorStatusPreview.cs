@@ -17,9 +17,19 @@ public partial class EditorStatusPreview : Node
 	public override void _Ready()
 	{
 		if (!Engine.IsEditorHint()) { SetProcess(false); return; }
-		if (Actor == null || Target == null) { GD.PushWarning($"{Name}: assign the preview actor and visual root."); SetProcess(false); return; }
-		this.SubscribeUntilExit(GetTree(), t => t.NodeAdded += OnNodeAdded, t => t.NodeAdded -= OnNodeAdded);
-		this.SubscribeUntilExit(GetTree(), t => t.NodeRemoved += OnNodeRemoved, t => t.NodeRemoved -= OnNodeRemoved);
+		if (Actor == null || Target == null) { GD.PushWarning($"{Name}: assign the preview actor and visual root."); SetProcess(false); }
+	}
+
+	/// <summary>
+	/// Watches the tree with method connections made here and undone in <see cref="_ExitTree"/>, not
+	/// <c>SubscribeUntilExit</c>: the editor reloads the C# assembly after every build and cannot restore that helper's
+	/// closures, so their <c>tree_exiting</c> callables would fail when the scene closes.
+	/// </summary>
+	public override void _EnterTree()
+	{
+		if (!Engine.IsEditorHint()) return;
+		GetTree().NodeAdded += OnNodeAdded;
+		GetTree().NodeRemoved += OnNodeRemoved;
 	}
 
 	public override void _Process(double delta)
@@ -90,6 +100,11 @@ public partial class EditorStatusPreview : Node
 	private void OnNodeRemoved(Node node) { if (_preview.Contains(node)) _dirty = true; }
 	public override void _ExitTree()
 	{
+		if (Engine.IsEditorHint())
+		{
+			GetTree().NodeAdded -= OnNodeAdded;
+			GetTree().NodeRemoved -= OnNodeRemoved;
+		}
 		_preview.Clear();
 		if (IsInstanceValid(_burnPreview)) _burnPreview.QueueFree();
 	}

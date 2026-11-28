@@ -7,20 +7,24 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Trap gauntlet rooms, as the room assembler builds them and as the arena stages them for play.</summary>
+/// <summary>Trap gauntlet rooms, as the room assembler builds them and as the room harness stands them for play.</summary>
 [TestSuite]
 [RequireGodotRuntime]
 public partial class GauntletRoomTest
 {
 	private const string GauntletRooms = "res://scenes/levels/rooms/room_types/gauntlets";
 	private static readonly ulong[] Seeds = [1, 2, 3];
+	/// <summary>The hero's body across (a 0.5 m capsule radius): no narrower gap lets them through.</summary>
+	private const float HeroWidth = 1f;
+	/// <summary>How far a plain wall's trim reaches in from its tile edge; ornate walls reach further.</summary>
+	private const float WallTrim = .5f;
 
 	private static IEnumerable<T> Find<T>(Node node) => node.FindChildren("*", "", true, false).OfType<T>();
 
 	/// <summary>
 	/// Every gauntlet room, in each theme it suits, puts all its hazards under one gauntlet, in rows one tile apart with
 	/// none missing that span the room: spouts hang on the side walls firing straight across, blades swing within the walls
-	/// and never into each other, and no blocking furniture stands in a row.
+	/// and never into each other yet leave no way around them, and no blocking furniture stands in a row.
 	/// </summary>
 	[TestCase]
 	public void EveryGauntletRoomLaysRowsTheHeroMustCross()
@@ -57,6 +61,16 @@ public partial class GauntletRoomTest
 						AssertBool(other.Position.X - other.Sweep - other.BladeHalfWidth >= blade.Position.X + reach - .01f)
 							.OverrideFailureMessage($"{at}: neighbouring blades collide").IsTrue();
 				}
+				foreach (var row in hazards.OfType<PendulumBlade>().GroupBy(blade => Mathf.Snapped(blade.Position.Z, .01f)))
+				{
+					// From the wall faces (at least a trim's depth in) across every swing, no gap a hero fits through.
+					var edges = row.OrderBy(blade => blade.Position.X)
+						.SelectMany(blade => new[] { blade.Position.X - blade.Sweep - blade.BladeHalfWidth, blade.Position.X + blade.Sweep + blade.BladeHalfWidth })
+						.Prepend(interior.Position.X + WallTrim).Append(interior.End.X - WallTrim).ToArray();
+					for (int gap = 0; gap < edges.Length; gap += 2)
+						AssertFloat(edges[gap + 1] - edges[gap]).OverrideFailureMessage($"{at}: a hero walks around the blades of row {row.Key}")
+							.IsLess(HeroWidth);
+				}
 				var rows = hazards.Select(hazard => hazard.Position.Z).Distinct().Order().ToArray();
 				AssertInt(rows.Length).OverrideFailureMessage($"{at}: at least two rows").IsGreaterEqual(2);
 				AssertBool(rows.Zip(rows.Skip(1)).All(pair => Mathf.IsEqualApprox(pair.Second - pair.First, Room.TileSize, .05f)))
@@ -74,19 +88,25 @@ public partial class GauntletRoomTest
 		}
 	}
 
-	/// <summary>A room staged in the arena puts its entrance ahead of the hero, and its gauntlet wakes for them.</summary>
+	/// <summary>
+	/// In the room harness the hero walks from the entrance into a gauntlet room, and its gauntlet wakes for them with its
+	/// hazards ahead.
+	/// </summary>
 	[TestCase]
-	public async Task AStagedRoomWakesItsGauntletForTheHeroAtItsEntrance()
+	public async Task TheHeroWalksIntoAGauntletRoomAndItWakes()
 	{
-		var (runner, harness) = await TestFactories.LoadQuietHarness();
-		using var scope = runner;
-		var traps = TestFactories.Tool<TrapTool>(runner.Scene());
-		var room = traps.StageRoom(TestFactories.Load<RoomType>($"{GauntletRooms}/pendulum_hall.tres"));
-		AssertObject(room).IsNotNull();
-		var gauntlet = Find<TrapGauntlet>(room).Single();
+		using var runner = TestFactories.LoadScene(RoomGenerationHarnessTest.Scene);
+		var harness = await RoomGenerationHarnessTest.Settle(runner);
+		AssertBool(harness.SelectRoom(TestFactories.Load<RoomType>($"{GauntletRooms}/pendulum_hall.tres"))).IsTrue();
+		harness.Regenerate();
+		var hero = harness.Player;
+		var gauntlet = Find<TrapGauntlet>(harness.PreviewRoom).Single();
+		// One tile in: through the doorway, short of the first row.
+		hero.MovementComponent.SetInputDirection(harness.Inward);
+		await TestFactories.AwaitPhysicsUntil(runner, () => (hero.GlobalPosition - harness.Entrance).Dot(harness.Inward) > Room.TileSize, 2);
+		hero.MovementComponent.SetInputDirection(Vector3.Zero);
 		await TestFactories.AwaitPhysicsUntil(runner, () => gauntlet.IsAwake, 2);
-		harness.Player.MovementComponent.LookAtDirection.TryNormalizeHorizontal(out Vector3 ahead);
-		var nearest = gauntlet.GetChildren().OfType<Node3D>().MinBy(hazard => hazard.GlobalPosition.DistanceTo(harness.Player.GlobalPosition));
-		AssertFloat((nearest.GlobalPosition - harness.Player.GlobalPosition).Dot(ahead)).IsGreater(0);
+		var nearest = gauntlet.GetChildren().OfType<Node3D>().MinBy(hazard => hazard.GlobalPosition.DistanceTo(hero.GlobalPosition));
+		AssertFloat((nearest.GlobalPosition - hero.GlobalPosition).Dot(harness.Inward)).IsGreater(0);
 	}
 }

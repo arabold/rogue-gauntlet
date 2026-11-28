@@ -39,6 +39,7 @@ MaximumCount = 6
 Uniform = true
 Pattern = 2
 PeriodRange = Vector2(1.8, 2.4)
+OnePerRow = true
 metadata/_custom_type_script = ExtResource("hazard_step")
 
 [sub_resource type="Resource" id="torches"]

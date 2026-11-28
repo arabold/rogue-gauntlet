@@ -7,7 +7,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Wall spouts and pendulums staged in the combat arena through the debug menu's trap tool, against the real hero.</summary>
+/// <summary>Wall spouts and pendulums staged in the combat arena, against the real hero.</summary>
 [TestSuite]
 [RequireGodotRuntime]
 public partial class TrapHazardTest
@@ -20,11 +20,7 @@ public partial class TrapHazardTest
 		HazardPattern pattern = HazardPattern.Unison, int rows = 1, float period = 1.2f) where T : TrapHazard
 	{
 		var (runner, harness) = await TestFactories.LoadQuietHarness();
-		var traps = TestFactories.Tool<TrapTool>(runner.Scene());
-		traps.Rows = rows;
-		traps.Pattern = pattern;
-		traps.Period = period;
-		var gauntlet = traps.Stage(TestFactories.Load<Prop>(hazard));
+		var gauntlet = TrapStaging.Gauntlet(harness, TestFactories.Load<Prop>(hazard), rows, pattern, period);
 		return (runner, harness, gauntlet, gauntlet.GetChildren().OfType<T>().ToArray());
 	}
 

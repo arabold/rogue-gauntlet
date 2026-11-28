@@ -244,7 +244,7 @@ LAUNCHERS = dict(first_depth=2, chance=0.35, lane_fit=0.9, hits=0.75, damage=0.0
 # hero may wait between rows, so about one misjudged row a crossing; re-measure with `playtest`). A dart is
 # a physical hit of `damage["dart"]` of the expected hero's health, a fireball LAUNCHERS `fire_scale` of a dart since
 # armor never absorbs it, and a blade's cut `damage["blade"]`. `derive` writes each hazard's Damage and DamagePerDepth.
-HAZARDS = dict(per_run=2.5, first_depth=2, hits=1.0, rooms=dict(dart=1, fireball=1, blade=2),
+HAZARDS = dict(per_run=2.5, first_depth=2, hits=1.0, rooms=dict(dart=1, fireball=1, blade=1),
                damage=dict(dart=0.05, blade=0.08))
 FLOOR = dict(
     budget=(7.1, 10.7),        # standard-monster equivalents per floor, packs costed as groups (`fit` sizes it)

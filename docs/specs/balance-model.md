@@ -261,7 +261,7 @@ than spent from the budget: at 6% a floor, the budget fit simply leaves room for
 (`GauntletProfile.MinPerRun..MaxPerRun` and `FirstDepth`, audited), one in each band of the ordinary floors from depth 2,
 each guarding its floor's descent, and never the same room twice; `simulate` deals them the same way. The model spreads
 them over shop and labyrinth floors too, which never hold one, so a gauntlet floor comes a little rarer there and
-a little likelier elsewhere. The gauntlet rooms hold darts, fireballs and blades one to one to two (audited from
+a little likelier elsewhere. The gauntlet rooms hold darts, fireballs and blades one each (audited from
 [the gauntlet rooms](../../scenes/levels/rooms/room_types/gauntlets/)). Every row has a safe window and the hero may
 wait between rows, so a crossing costs an estimated one hit. A dart is a physical hit of 5% of the expected hero's
 health, a fireball the launchers' three quarters of that, and a blade's cut 8%: 3, 2 and 4 on depth 1, 15, 11 and 23 on

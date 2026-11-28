@@ -2,7 +2,7 @@
 
 Implemented generation, room authoring, encounters and visibility. [Dungeon layout, access and discovery](dungeon-exploration-design.md) owns intended realm pools, recipes, locks and secrets; [door access](door-access.md) describes implemented locks/secrets and the [progression plan](specs/level-progression-prototype-plan.md) retains future realm recipes and seals.
 
-See the [folder guide](../scenes/levels/README.md) for code and preset locations, and the [room generation harness](../scenes/debug/README.md#room-generation) for single-room and full-floor previews.
+See the [folder guide](../scenes/levels/README.md) for code and preset locations, the [room generation harness](../scenes/debug/README.md#room-generation) to play any room type and the [map generation harness](../scenes/debug/README.md#map-generation) for full-floor previews.
 
 ## Current generation
 
@@ -157,7 +157,7 @@ Actors can leave marks too: a `TrailMarksComponent` drops its mark scene every `
 
 To author another atmosphere, create an `AtmosphereProfile` and choose its `Effects` scenes. Duplicate or inherit a scene under `atmosphere_effects/` and adjust its exported and native material settings; select it in any realm preset. New rendering behavior implements the small `AtmosphereEffect` preparation, activation and release contract in its scene root, using the supplied floor context. It needs no new slot or branch in the controller, level or realm.
 
-Selected props also opt into [ambient motion](ambient-motion.md) through `Prop.Motion`. Generated levels and the room-generation harness supply a world-local airflow after placement; banner cloth and ferns retain their original models, placement geometry and collision. Motion and its shadow share a pausable clock, with force and response presets exposed in the Inspector.
+Selected props also opt into [ambient motion](ambient-motion.md) through `Prop.Motion`. Generated levels and the room generation harness supply a world-local airflow after placement; banner cloth and ferns retain their original models, placement geometry and collision. Motion and its shadow share a pausable clock, with force and response presets exposed in the Inspector.
 
 Rooms and corridor palettes each expose `FixtureLitChance` (default 85%): generation chooses each fixture's initial state on a separate cosmetic seed, so lighting does not change placement. Dark-floor visibility still follows the environmental-light rules.
 
