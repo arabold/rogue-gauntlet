@@ -247,8 +247,8 @@ LAUNCHERS = dict(first_depth=2, chance=0.35, lane_fit=0.9, hits=0.75, damage=0.0
 HAZARDS = dict(per_run=2.5, first_depth=2, hits=1.0, rooms=dict(dart=1, fireball=1, blade=2),
                damage=dict(dart=0.05, blade=0.08))
 FLOOR = dict(
-    budget=(7.3, 11.4),        # standard-monster equivalents per floor, packs costed as groups (`fit` sizes it)
-    boss_budget_share=0.45,    # a boss floor spends this share of the budget before the boss (`fit` sizes it)
+    budget=(7.1, 10.7),        # standard-monster equivalents per floor, packs costed as groups (`fit` sizes it)
+    boss_budget_share=0.50,    # a boss floor spends this share of the budget before the boss (`fit` sizes it)
     max_monsters=32,           # a floor stops adding packs once it holds this many (RealmEncounterFactory.MaximumMonsters)
     clear_share=0.9,           # share of each floor's monsters an average hero kills
 )
