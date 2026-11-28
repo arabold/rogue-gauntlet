@@ -18,8 +18,9 @@ public partial class PendulumBlade : TrapHazard
 	/// <summary>The blade's cutting volume under <see cref="Arm"/>, straight below the pivot: a box overlap query on the
 	/// hero's hurtbox layer, authored in the scene.</summary>
 	[Export] public ShapeCast3D Edge { get; set; }
-	/// <summary>How far the blade's middle travels to each side of the pivot at most; a room narrows it to the space it has.</summary>
-	[Export(PropertyHint.Range, "0,4,0.05,suffix:m")] public float Sweep { get; set; } = 1.9f;
+	/// <summary>How far the blade's middle travels to each side of the pivot at most, as far as a lone blade swings from
+	/// wall to wall across a three-tile hall; a room narrows it to the space it has.</summary>
+	[Export(PropertyHint.Range, "0,6,0.05,suffix:m")] public float Sweep { get; set; } = 4.6f;
 	/// <summary>How far from the blade's path a cut pushes its victim, whatever the victim's speed: past the blade's own
 	/// depth and the hero's hurtbox (0.75 m), short of the next row a tile away. Every cut pushes, even one that only
 	/// flinches.</summary>
