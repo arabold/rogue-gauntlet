@@ -14,13 +14,17 @@ public partial class GauntletRoomTest
 {
 	private const string GauntletRooms = "res://scenes/levels/rooms/room_types/gauntlets";
 	private static readonly ulong[] Seeds = [1, 2, 3];
+	/// <summary>The hero's body across (a 0.5 m capsule radius): no narrower gap lets them through.</summary>
+	private const float HeroWidth = 1f;
+	/// <summary>How far a plain wall's trim reaches in from its tile edge; ornate walls reach further.</summary>
+	private const float WallTrim = .5f;
 
 	private static IEnumerable<T> Find<T>(Node node) => node.FindChildren("*", "", true, false).OfType<T>();
 
 	/// <summary>
 	/// Every gauntlet room, in each theme it suits, puts all its hazards under one gauntlet, in rows one tile apart with
 	/// none missing that span the room: spouts hang on the side walls firing straight across, blades swing within the walls
-	/// and never into each other, and no blocking furniture stands in a row.
+	/// and never into each other yet leave no way around them, and no blocking furniture stands in a row.
 	/// </summary>
 	[TestCase]
 	public void EveryGauntletRoomLaysRowsTheHeroMustCross()
@@ -56,6 +60,16 @@ public partial class GauntletRoomTest
 						&& Mathf.IsEqualApprox(other.Position.Z, blade.Position.Z) && other.Position.X > blade.Position.X))
 						AssertBool(other.Position.X - other.Sweep - other.BladeHalfWidth >= blade.Position.X + reach - .01f)
 							.OverrideFailureMessage($"{at}: neighbouring blades collide").IsTrue();
+				}
+				foreach (var row in hazards.OfType<PendulumBlade>().GroupBy(blade => Mathf.Snapped(blade.Position.Z, .01f)))
+				{
+					// From the wall faces (at least a trim's depth in) across every swing, no gap a hero fits through.
+					var edges = row.OrderBy(blade => blade.Position.X)
+						.SelectMany(blade => new[] { blade.Position.X - blade.Sweep - blade.BladeHalfWidth, blade.Position.X + blade.Sweep + blade.BladeHalfWidth })
+						.Prepend(interior.Position.X + WallTrim).Append(interior.End.X - WallTrim).ToArray();
+					for (int gap = 0; gap < edges.Length; gap += 2)
+						AssertFloat(edges[gap + 1] - edges[gap]).OverrideFailureMessage($"{at}: a hero walks around the blades of row {row.Key}")
+							.IsLess(HeroWidth);
 				}
 				var rows = hazards.Select(hazard => hazard.Position.Z).Distinct().Order().ToArray();
 				AssertInt(rows.Length).OverrideFailureMessage($"{at}: at least two rows").IsGreaterEqual(2);

@@ -55,9 +55,9 @@ Gauntlets are never secret: they stand on the route the hero must take, so cross
 | --- | --- | --- | --- | --- |
 | *Arrow gallery* | 3 × 5–7 tiles | 3–5 rows of dart slits, alternating side walls | Wave from the -Z end, 2.0–2.6 s | Stone or ruined walls, torches, a little clutter |
 | *Gargoyle crypt* | 3 × 5–7 tiles | 2–5 rows of gargoyle heads, alternating walls | Alternate, 2.6–3.2 s | Crypt walls, sconces, candles, bones, webs |
-| *Pendulum hall* | 3 × 6–8 tiles | 4–6 rows of three blades | Wave, 1.8–2.4 s; neighbouring blades half a beat apart, so the gaps between them open and close like scissors | Stone or prison walls, torches |
+| *Pendulum hall* | 3 × 6–8 tiles | 4–6 rows of one blade over the middle, swinging from wall to wall | Wave, 1.8–2.4 s; the hero crosses each row on the side the blade has left | Stone or prison walls, torches |
 
-A spout row whose wall has no plain stretch at that tile (an alcove or a pillar) hangs its spout on the opposite wall instead, so ornate walls such as the crypt's still fill their rows. A blade swings as far as its walls and its neighbours allow: the step gives each blade the space it has (`HazardBeat.Space`), to just short of the wall or halfway to the next blade, which swings toward it at the same time, and the blade narrows its own `Sweep` to fit.
+A spout row whose wall has no plain stretch at that tile (an alcove or a pillar) hangs its spout on the opposite wall instead, so ornate walls such as the crypt's still fill their rows. A blade swings as far as its walls and its neighbours allow: the step gives each blade the space it has (`HazardBeat.Space`), to just short of the wall or halfway to the next blade, which swings toward it at the same time (a lone blade has the whole row), and the blade narrows its own `Sweep` to fit.
 
 The cathedral nave (pendulums down the aisle with gargoyles firing across) is a `PendulumRowsStep` and a `CrossFireStep` with interleaved rows; it needs a row offset on the step and waits for the Cathedral's turn.
 
@@ -118,7 +118,7 @@ Windows, chances and weights are realm data; the table is a starting point for p
 {
 	[Export] public Node3D Arm { get; set; }       // turns about this node's origin, the pivot above the walls
 	[Export] public ShapeCast3D Edge { get; set; } // the blade's cutting volume, an overlap query
-	[Export] public float Sweep { get; set; } = 1.9f;       // metres either side at most; a beat's Space narrows it
+	[Export] public float Sweep { get; set; } = 4.6f;       // metres either side at most; a beat's Space narrows it
 	[Export] public float Knockback { get; set; } = 4f;
 }
 

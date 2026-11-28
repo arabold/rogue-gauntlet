@@ -29,7 +29,7 @@ size = Vector3(1.6, 1.3, 0.3)
 script = ExtResource("1_pendulum")
 Arm = NodePath("Arm")
 Edge = NodePath("Arm/Edge")
-Sweep = 1.9
+Sweep = 4.6
 Damage = 4
 DamagePerDepth = 0.78
 
