@@ -1,5 +1,5 @@
 """
-Formulas of the balance model (docs/specs/balance-model.md). Pure functions over `params`; no game data.
+Formulas of the balance model (docs/balance-model.md). Pure functions over `params`; no game data.
 
 One currency runs through everything: the hero's health. A monster's cost is the share of the hero's
 maximum health it is expected to take before it dies; its threat level is the depth at which that cost

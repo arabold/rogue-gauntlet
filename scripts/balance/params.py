@@ -1,7 +1,7 @@
 """
 Design parameters of the Rogue Gauntlet balance model.
 
-Every number the game's balance derives from lives here. `docs/specs/balance-model.md` explains the
+Every number the game's balance derives from lives here. `docs/balance-model.md` explains the
 model; `simulate.py` turns these parameters into target tables and difficulty estimates, and `derive` writes the
 game's values from them.
 

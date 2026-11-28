@@ -1,6 +1,6 @@
 # Props for the new floor plans
 
-Status: partly built. The mine, prison, graveyard and Cathedral props are built (under `scenes/levels/rooms/props/` in the `mining`, `prison`, `graveyard` and `cathedral` folders, plus the dry fountains in `decor`). This page lists only the props still missing. The [floor generators plan](floor-generators-plan.md) describes the floor plans these props serve, and [level design](../level-design.md) owns room assembly and furnishing.
+Status: not started for the props below; the mine, prison, graveyard and Cathedral props are built (`scenes/levels/rooms/props/` `mining`, `prison`, `graveyard` and `cathedral`, and the dry fountain in `decor`). This page lists only the props still missing. [Level design](../level-design.md#floor-plans) describes the floor plans they serve, and the [authoring guide](../../scenes/levels/generators/assembly/README.md) room assembly and furnishing.
 
 Each entry becomes a `Prop` under `scenes/levels/rooms/props/<category>/`: a mesh-library item, or a scene when it needs nodes such as a light. It then joins the furnishing steps of the rooms named here. Props follow the Studio's [room furnishing workflow](../../asset-studio/README.md#room-furnishings):
 - start from a concept drawn against the pack's own props;
@@ -22,7 +22,7 @@ One or two signature props would make each plan unmistakable.
 
 ## Chasm and lake plan
 
-The chasm/lake plan waits on these. Chasm tiles and water rendering already exist inside rooms; these extend them to the whole floor.
+A chasm or underground-lake floor plan, not designed yet, would wait on these. Chasm tiles and water already exist inside rooms; these extend them to a whole floor.
 
 | Prop | Mount | Footprint | Used by | Notes |
 | --- | --- | --- | --- | --- |

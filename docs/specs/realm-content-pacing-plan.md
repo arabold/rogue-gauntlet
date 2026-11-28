@@ -1,10 +1,10 @@
 # Realm content pacing
 
-Status: room and plan windows, headlines, shops after each gatekeeper, floor motifs and the new headline rooms landed. [Realm content](../realm-content.md) describes each realm's arc and [level design](../level-design.md#current-generation) the mechanism. What remains is below.
+Status: partly implemented. Room and plan windows, headlines, shops in each later realm and floor motifs landed: [realm content](../realm-content.md) describes each realm's arc and [level design](../level-design.md#current-generation) the mechanism. What remains is below.
 
 ## Encounters follow motifs (proposed)
 
-`EncounterPack` gains `Motifs`, and `MobFactory.PlanEncounters(depth)` becomes `PlanEncounters(RealmFloor)`, so skeleton warbands weight up on `undead` floors. A room may also name the packs that prefer to spawn in it, so skeletons rise in the graveyard and bats hang in caverns. This touches every encounter resource and the spawn placement, so it waits until the paced floors have played well. It bumps `SaveGame.CurrentVersion`.
+A pack entry (`MobSpawnEntry`) gains `Motifs`, and the factory learns the floor's motifs (`RealmFloor`) when it draws packs, so skeleton warbands weight up on `undead` floors. A room may also name the packs that prefer to spawn in it, so skeletons rise in the graveyard and bats hang in caverns. This touches every encounter resource and the spawn placement, so it waits until the paced floors have played well. It bumps `SaveGame.CurrentVersion`.
 
 ## Open decisions
 
