@@ -697,6 +697,36 @@ def trap_cost(h: Hero) -> float:
     return t["per_floor"] * t["triggers"] * spring / h.hp
 
 
+def hazard_line(kind: str) -> tuple[int, float]:
+    """A gauntlet hazard's damage line (`TrapHazard`) for `kind` (dart, fireball or blade): HAZARDS `damage` of the
+    reference hero's health; a fireball deals LAUNCHERS `fire_scale` of a dart's."""
+    damage = P.HAZARDS["damage"]
+    return health_line(damage["dart"] * P.LAUNCHERS["fire_scale"] if kind == "fireball" else damage[kind])
+
+
+def hazard_hit(kind: str, h: Hero) -> float:
+    """A gauntlet hazard's mean hit on `h` after armor; armor never absorbs a fireball."""
+    hit = line_damage(hazard_line(kind), h.depth)
+    return hit if kind == "fireball" else mitigate(hit, h.armor)
+
+
+def gauntlet_depths() -> list[int]:
+    """Depths that can hold a gauntlet: the ordinary floors from HAZARDS `first_depth`."""
+    return [d for d in range(P.HAZARDS["first_depth"], P.DEPTHS + 1) if not is_gatekeeper_floor(d)]
+
+
+def gauntlet_cost(h: Hero) -> float:
+    """
+    Expected share of `h`'s max health the gauntlet of a floor at `h`'s depth takes: the chance the floor holds one (a
+    run's `per_run` spread over the floors that can), times a crossing's hits, each a hit of a room's hazard.
+    """
+    g, floors = P.HAZARDS, gauntlet_depths()
+    if h.depth not in floors:
+        return 0.0
+    hit = sum(n * hazard_hit(kind, h) for kind, n in g["rooms"].items()) / sum(g["rooms"].values())
+    return g["per_run"] / len(floors) * g["hits"] * hit / h.hp
+
+
 def is_gatekeeper_floor(depth: int) -> bool:
     """The last floor of each realm holds its gatekeeper."""
     return depth % P.REALM_SIZE == 0

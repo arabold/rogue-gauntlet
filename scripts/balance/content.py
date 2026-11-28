@@ -723,26 +723,49 @@ TRAP_SCENE = "res://scenes/props/traps/pressure_plate_spikes.tscn"
 TRAP_PLACEMENT = "res://scenes/levels/generators/MapGenerator.Loot.cs"
 LAUNCHER_SCENES = "scenes/props/traps/launchers/*.tscn"
 TRIGGERED_TRAPS = "scenes/props/traps/triggered/*.tres"
+HAZARD_SCENES = "scenes/props/traps/*.tscn"
+GAUNTLET_ROOMS = "scenes/levels/rooms/room_types/gauntlets/*.tres"
+GAUNTLET_PROFILE = "res://scenes/levels/generators/gauntlet_profile.tres"
+
+
+def _hazard_kind(scene: R.TextResource) -> str | None:
+    """A trap scene's gauntlet hazard as HAZARDS names it: a wall spout's dart or elemental fireball, a pendulum's blade."""
+    script = scene.script_of(scene.root) or ""
+    if script.endswith("/WallSpout.cs"):
+        return "fireball" if scene.get(scene.node("Shot"), "Element", 0) != 0 else "dart"
+    return "blade" if script.endswith("/PendulumBlade.cs") else None
+
+
+def _room_hazards(room: R.TextResource) -> set[str]:
+    """The hazards a gauntlet room's steps place (hazards are text scenes; imported models are not)."""
+    kinds = set()
+    for section in (s for s in room.sections if "Content" in s.props):
+        for prop_file, prop in (room.follow(ref) for ref in room.get(section, "Content")):
+            scenes = (prop_file.ext_path(ref.id) for ref in prop_file.get(prop, "Scenes", []))
+            kinds |= {_hazard_kind(R.load(scene)) for scene in scenes if scene.endswith(".tscn")}
+    return kinds - {None}
 
 
 def traps(match=None) -> Group:
     """
     A spike plate's damage on depth 1 and per depth (`model.trap_line`, on its `SpikeBurst`), each wall launcher's
-    (`model.launcher_line`, scaled by LAUNCHERS `fire_scale` for elemental shots), and the traps a floor places against
-    TRAPS `per_floor` and LAUNCHERS `chance` and `first_depth`.
+    (`model.launcher_line`, scaled by LAUNCHERS `fire_scale` for elemental shots), each gauntlet hazard's
+    (`model.hazard_line`), the traps a floor places against TRAPS `per_floor` and LAUNCHERS `chance` and `first_depth`,
+    and the gauntlets a run deals against HAZARDS `per_run`, `first_depth` and `rooms`.
     """
     g = Group("Traps", headers=["depth", "spring", "derived"])
     f = R.load(TRAP_SCENE)
-    if not _selected(f.path, match):
-        return g
-    spikes = f.node("SpikeBurst")
-    first, per_depth = M.trap_line()
-    g.add("Spike plate", f, spikes, "Damage", first)
-    g.add("Spike plate", f, spikes, "DamagePerDepth", per_depth)
-    authored = f.get(spikes, "Damage", 0), f.get(spikes, "DamagePerDepth", 0.0)
-    for d in (1, 12, P.DEPTHS):
-        g.rows.append([d, f"{M.line_damage(authored, d):.0f}", f"{M.trap_damage(d):.0f}"])
+    if _selected(f.path, match):
+        spikes = f.node("SpikeBurst")
+        first, per_depth = M.trap_line()
+        g.add("Spike plate", f, spikes, "Damage", first)
+        g.add("Spike plate", f, spikes, "DamagePerDepth", per_depth)
+        authored = f.get(spikes, "Damage", 0), f.get(spikes, "DamagePerDepth", 0.0)
+        for d in (1, 12, P.DEPTHS):
+            g.rows.append([d, f"{M.line_damage(authored, d):.0f}", f"{M.trap_damage(d):.0f}"])
     for path in sorted(R.ROOT.glob(LAUNCHER_SCENES)):
+        if not _selected(path, match):
+            continue
         launcher = R.load(path)
         root, shot = launcher.root, launcher.node("Shot")
         elemental = launcher.get(shot, "Element", 0) != 0
@@ -750,6 +773,15 @@ def traps(match=None) -> Group:
         name = root.attrs.get("name")
         g.add(name, launcher, root, "Damage", first)
         g.add(name, launcher, root, "DamagePerDepth", per_depth)
+    for path in sorted(R.ROOT.glob(HAZARD_SCENES)):
+        hazard = R.load(path)
+        kind = _hazard_kind(hazard)
+        if kind is None or not _selected(path, match):
+            continue
+        first, per_depth = M.hazard_line(kind)
+        name = hazard.root.attrs.get("name")
+        g.add(name, hazard, hazard.root, "Damage", first)
+        g.add(name, hazard, hazard.root, "DamagePerDepth", per_depth)
     profiles = [R.load(path) for path in sorted(R.ROOT.glob(TRIGGERED_TRAPS))]
     first_depth = min((p.get(p.main, "FirstDepth", 1) for p in profiles), default=None)
     if first_depth is not None and first_depth != P.LAUNCHERS["first_depth"]:
@@ -763,6 +795,17 @@ def traps(match=None) -> Group:
     if abs(placed - P.TRAPS["per_floor"]) > 1e-9:
         g.note(f"Floors place {placed:g} traps on average (MapGenerator.MinTraps..MaxTraps); TRAPS per_floor is "
                f"{P.TRAPS['per_floor']:g}")
+    h, gauntlets = P.HAZARDS, R.load(GAUNTLET_PROFILE)
+    per_run = (gauntlets.get(gauntlets.main, "MinPerRun") + gauntlets.get(gauntlets.main, "MaxPerRun")) / 2
+    if abs(per_run - h["per_run"]) > 1e-9:
+        g.note(f"A run deals {per_run:g} gauntlets on average (GauntletProfile.MinPerRun..MaxPerRun); HAZARDS per_run "
+               f"is {h['per_run']:g}")
+    if (first_depth := gauntlets.get(gauntlets.main, "FirstDepth")) != h["first_depth"]:
+        g.note(f"Gauntlets start on depth {first_depth} (GauntletProfile.FirstDepth); HAZARDS first_depth is "
+               f"{h['first_depth']}")
+    rooms = Counter(kind for path in sorted(R.ROOT.glob(GAUNTLET_ROOMS)) for kind in _room_hazards(R.load(path)))
+    if dict(rooms) != h["rooms"]:
+        g.note(f"Gauntlet rooms by hazard are {dict(sorted(rooms.items()))}; HAZARDS rooms is {h['rooms']}")
     return g
 
 

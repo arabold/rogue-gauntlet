@@ -31,7 +31,7 @@ Arm = NodePath("Arm")
 Edge = NodePath("Arm/Edge")
 Sweep = 1.9
 Damage = 4
-DamagePerDepth = 0.77
+DamagePerDepth = 0.78
 
 [node name="Arm" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11, 0)
