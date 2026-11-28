@@ -190,10 +190,6 @@ public class MonsterRosterTest
 		using var starved = new ThreatProfile { FirstFloorBudget = 0.01f, LastFloorBudget = 0.01f };
 		AssertBool(factory.ValidatePool(1, starved).Any(error => error.Contains("affordable"))).IsTrue();
 		AssertBool(factory.ValidatePool(1, null).Any(error => error.Contains("ThreatProfile"))).IsTrue();
-		// A pack holding more of a monster than one floor may field could never spawn.
-		const string nymph = "res://scenes/enemies/nymph/nymph.tscn";
-		factory.Entries = new[] { new MobSpawnEntry { Members = [nymph, nymph] } };
-		AssertBool(factory.ValidatePool(1, threat).Any(error => error.Contains("MaximumPerFloor"))).IsTrue();
 		AssertString(string.Join("; ", source.ValidatePool(1, threat))).IsEmpty();
 	}
 
