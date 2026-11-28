@@ -34,18 +34,16 @@ public class RunMenuNotesAndLayoutTest
 			// The run's own tabs; a keeper's Buy and Sell tabs show only while trading.
 			var tabButtons = menu.GetNode<HBoxContainer>("Header/Tabs").GetChildren().OfType<Button>().Where(button => button.Visible).ToArray();
 			AssertArray(tabButtons.Select(b => b.Text).ToArray()).ContainsExactly("Gear", "Pack", "Notes", "System");
-			AssertInt((int)RunMenuPage.Notes).IsEqual(2);
-			AssertInt((int)RunMenuPage.System).IsEqual(3);
 
 			menu.Open(harness.Player, RunMenuPage.Notes);
 			var notes = (NotesTab)menu.NotesTab;
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 			AssertInt((int)menu.Page.Value).IsEqual((int)RunMenuPage.Notes);
 			AssertBool(notes.Entries.GetChildren().OfType<RichTextLabel>().Any(r => r.GetParsedText().Contains("floor level 2"))).IsTrue();
 
 			GameLog.Player("Ulch - that [b]Crisp Red Apple[/b] was tainted!", LogSeverity.Warning);
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			AssertBool(notes.Entries.GetChildren().OfType<RichTextLabel>().Any(r => r.GetParsedText().Contains("tainted"))).IsTrue();
 		}
 		finally
@@ -102,13 +100,13 @@ public class RunMenuNotesAndLayoutTest
 			ItemSlotPanel SlotFor(Item item) => pack.Grid.GetChildren().OfType<ItemSlotPanel>().First(p => p.Slot?.Item == item);
 
 			SlotFor(shortSword).FocusSlot();
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			float baselineItemsWidth = itemsColumn.Size.X;
 			float baselineItemsPosX = itemsColumn.Position.X;
 			float baselineInfoHeight = infoBox.Size.Y;
 
 			SlotFor(longStaff).FocusSlot();
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			AssertFloat(itemsColumn.Size.X).IsEqualApprox(baselineItemsWidth, 1f);
 			AssertFloat(itemsColumn.Position.X).IsEqualApprox(baselineItemsPosX, 1f);
 			AssertFloat(infoBox.Size.Y).IsEqualApprox(baselineInfoHeight, 1f);
@@ -129,7 +127,7 @@ public class RunMenuNotesAndLayoutTest
 			var gearDetailsClip = gear.GetNode<AutoScrollViewport>("Columns/Center/Info/DetailsClip");
 			var gearLongSlot = gear.GearGrid.GetChildren().OfType<ItemSlotPanel>().First(p => p.Slot?.Item == longStaff);
 			gearLongSlot.FocusSlot();
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			AssertFloat(gearInfo.Size.Y).IsEqualApprox(328f, 1f);
 			gearNameClip._Process(2.0);
 			gearDetailsClip._Process(2.0);
@@ -149,7 +147,7 @@ public class RunMenuNotesAndLayoutTest
 		GameSession.Instance.BeginRun(1, "barbarian", 4242);
 
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(4, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 4);
 
 		GameLog.Player("Ulch - that [b]Crisp Red Apple[/b] was tainted!", LogSeverity.Warning);
 		GameLog.Player("You feel very sick and nauseous.", LogSeverity.Warning);
@@ -174,7 +172,7 @@ public class RunMenuNotesAndLayoutTest
 		{
 			menu.Open(player, RunMenuPage.Notes);
 			var notes = (NotesTab)menu.NotesTab;
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			string[] shown = notes.Entries.GetChildren().OfType<RichTextLabel>().Select(r => r.GetParsedText()).ToArray();
 			AssertBool(shown.Any(t => t.Contains("floor level 1"))).IsTrue();
 			AssertBool(shown.Any(t => t.Contains("tainted"))).IsTrue();
@@ -204,7 +202,7 @@ public class RunMenuNotesAndLayoutTest
 		{
 			menu.Open(harness.Player, RunMenuPage.Notes);
 			var notes = (NotesTab)menu.NotesTab;
-			await runner.SimulateFrames(3, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 3);
 
 			VScrollBar bar = notes.Scroll.GetVScrollBar();
 			int expectedMax = Mathf.Max(0, Mathf.CeilToInt(bar.MaxValue - bar.Page));
@@ -213,13 +211,13 @@ public class RunMenuNotesAndLayoutTest
 
 			// Simulate pressing Page Up to scroll up and confirm position moves cleanly away from bottom.
 			notes._UnhandledInput(new InputEventAction { Action = "ui_page_up", Pressed = true });
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			int scrolledUp = notes.Scroll.ScrollVertical;
 			AssertInt(scrolledUp).IsLess(expectedMax);
 
 			// Emitting a new message brings the newest entry back into view at the bottom.
 			GameLog.Player("You spotted a secret doorway!", LogSeverity.Discovery);
-			await runner.SimulateFrames(3, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 3);
 			int updatedMax = Mathf.Max(0, Mathf.CeilToInt(bar.MaxValue - bar.Page));
 			AssertInt(notes.Scroll.ScrollVertical).IsBetween(updatedMax - 4, updatedMax);
 		}

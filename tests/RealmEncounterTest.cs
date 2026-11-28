@@ -115,7 +115,7 @@ public class RealmEncounterTest
 				|| sealedByGatekeeper && scene.ResourcePath == gatekeeper && spawn.PersistentId == level.Encounters.GatekeeperId)))
 				.OverrideFailureMessage($"depth={depth}").IsTrue();
 			AssertInt(spawns.Count(spawn => level.Floor.IsNest(spawn) && spawn.Scenes[0].ResourcePath == nest)).OverrideFailureMessage($"depth={depth}").IsEqual(nests);
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			var placed = level.FindChildren("*", "", true, false).OfType<DestructibleNest>().ToList();
 			AssertBool(placed.Count == nests && placed.All(n => cast.Contains(n.MinionScene.ResourcePath))).OverrideFailureMessage($"depth={depth}").IsTrue();
 			AssertBool(level.CanDescend).OverrideFailureMessage($"depth={depth}").IsEqual(!sealedByGatekeeper);
@@ -134,7 +134,7 @@ public class RealmEncounterTest
 	public async Task RealmFloorsHaveFiniteNestsAndPersistentGatekeeperUnlock()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var level = runner.Scene().GetNode<Level>("Level");
 		AssertBool(level.CanDescend).IsTrue();
 		// Depth 1 draws from the realm's own packs, not the fallback.
@@ -143,7 +143,7 @@ public class RealmEncounterTest
 
 		level.ConfigureGeneration(new RunState(12345), 2, null, null);
 		level.Generate();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		var nest = level.FindChildren("*", "", true, false).OfType<DestructibleNest>().First();
 		nest.SetProcess(false);
 		string nestId = nest.GetMeta("persistent_id").AsString();
@@ -163,7 +163,7 @@ public class RealmEncounterTest
 		AssertObject(nest.ReleaseMinion()).IsNull();
 		nest.TakeDamage(1000, Vector3.Forward, faction: DamageSourceFlags.Player);
 		AssertBool(level.Run.IsCleared(nestId)).IsTrue();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertBool(GodotObject.IsInstanceValid(survivor) && !survivor.IsQueuedForDeletion() && !survivor.IsDead).IsTrue();
 		level.Generate();
 		AssertBool(level.FindChildren("*", "", true, false).OfType<DestructibleNest>()
@@ -190,8 +190,7 @@ public class RealmEncounterTest
 			int OrdinaryXp(string path) => level.ThreatProfile.Xp(RealmEncounterFactory.DefinitionOf(TestFactories.Load<PackedScene>(path)));
 			int ordinaryBest = realm.Entries.SelectMany(entry => entry.Members).Distinct().Max(OrdinaryXp);
 			AssertInt(player.Stats.Xp - xp).IsGreater(ordinaryBest);
-			await Task.Delay(1100); // allow the independent stair-arrival cooldown to expire
-			AssertBool(GameSession.Instance.CanUseTransition(GameSession.LevelTravelDirection.Down)).IsTrue();
+			await TestFactories.AwaitDescentUnlocked(runner);
 		}
 		finally { tree.CurrentScene = previousScene; }
 		AssertBool(level.CanDescend).IsTrue();
@@ -206,9 +205,8 @@ public class RealmEncounterTest
 	[TestCase]
 	public async Task GatekeeperFloorWithoutAGatekeeperSceneKeepsItsDescentSealed()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2, 20);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await TestFactories.LoadLevelScene();
+		using var scope = runner;
 		var realm = (RealmEncounterFactory)level.MapGenerator.MobFactory.Duplicate();
 		realm.GatekeeperScene = null;
 		level.MapGenerator.MobFactory = realm;
@@ -217,14 +215,14 @@ public class RealmEncounterTest
 		AssertObject(level.Floor).IsNotNull();
 		AssertObject(level.Floor.GatekeeperSpawn).IsNull();
 		AssertBool(level.CanDescend).IsFalse();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 	}
 
 	[TestCase]
 	public async Task CrossbowSkeletonShootsABoltAtItsTarget()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/enemies/skeleton/skeleton_crossbow.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var actor = runner.Scene();
 		var animation = actor.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
 		AssertBool(animation.TryResolve("ranged", out _)).IsTrue();

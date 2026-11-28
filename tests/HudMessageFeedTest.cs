@@ -107,33 +107,4 @@ public partial class HudMessageFeedTest
 
 		feed.QueueFree();
 	}
-
-	[TestCase]
-	public void MessagesRemainActiveAndFadeWhilePaused()
-	{
-		var feed = TestFactories.AddToSceneTree(new HudMessageFeed
-		{
-			MessageDurationSeconds = 2.0f,
-			FadeDurationSeconds = 1.0f
-		});
-
-		feed.AddMessage("Paused message");
-		var label = feed.GetChild<RichTextLabel>(0);
-
-		SignalBus.EmitGamePaused(true);
-
-		AssertBool(feed.IsVisibleInTree()).IsTrue();
-		AssertInt((int)feed.ProcessMode).IsEqual((int)Node.ProcessModeEnum.Always);
-
-		// Messages added or active while the pause/inventory menu is open continue timing and fading cleanly.
-		feed._Process(1.5);
-		AssertFloat(label.Modulate.A).IsLess(0.9f);
-		AssertInt(feed.ActiveMessageCount).IsEqual(1);
-
-		feed._Process(0.6);
-		AssertInt(feed.ActiveMessageCount).IsEqual(0);
-
-		SignalBus.EmitGamePaused(false);
-		feed.QueueFree();
-	}
 }

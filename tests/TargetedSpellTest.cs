@@ -45,7 +45,7 @@ public partial class TargetedSpellTest
 		var spell = TestFactories.GetSpell<TargetedSpell>(harness, name);
 
 		ulong cast = Engine.GetPhysicsFrames();
-		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3, 20);
+		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await TestFactories.AwaitPhysicsFrames(runner, 3);
 		target.GlobalPosition = new Vector3(0, 0, -15);
 		await TestFactories.AwaitTargetedSpellSettled(runner, spell);
 		float flight = (Engine.GetPhysicsFrames() - cast) / (float)Engine.PhysicsTicksPerSecond;
@@ -53,7 +53,7 @@ public partial class TargetedSpellTest
 
 		// A canceled cast at a target that stays put deals nothing over the time a strike took to land.
 		target.GlobalPosition = start;
-		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await runner.SimulateFrames(3, 20);
+		AssertBool(TestFactories.CastSpell(harness, name, 1)).IsTrue(); await TestFactories.AwaitPhysicsFrames(runner, 3);
 		spell.Cancel();
 		await TestFactories.AwaitPhysicsSeconds(runner, flight);
 		AssertFloat(target.HealthComponent.CurrentHealth).IsEqual(50);
@@ -135,7 +135,7 @@ public partial class TargetedSpellTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = await SpawnTarget(runner, new Vector3(0, 0, -3));
 		AssertBool(TestFactories.CastSpell(harness, "Meteor", 1)).IsTrue();
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 		// Monster moves 1.5m sideways while the meteor is in flight; still within the 2.5m impact blast.
 		target.GlobalPosition = new Vector3(1.5f, 0, -3);
 		await TestFactories.AwaitPhysicsUntil(runner, () => target.HealthComponent.CurrentHealth < 50);
@@ -180,7 +180,7 @@ public partial class TargetedSpellTest
 	{
 		TestFactories.MovePracticeTargetAway(runner.Scene().GetNode<CombatHarness>("Instructions"));
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), position, name);
-		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(target);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); TestFactories.PrepareCombatMonster(target);
 		// Rear and sneak bonuses would scale projectile damage; these cases check strike counts only.
 		target.HurtBoxComponent.Awareness = null; target.HurtBoxComponent.Vulnerability = null;
 		return target;

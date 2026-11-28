@@ -34,10 +34,11 @@ public class GelatinousCubeTest
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(6, 3, 0.4f) } });
 		player.GetParent().AddChild(wall);
 		wall.GlobalPosition = player.GlobalPosition.Lerp(cube.GlobalPosition, 0.5f) + Vector3.Up * 1.5f;
-		Vector3 stood = player.GlobalPosition;
 		float health = player.HealthComponent.CurrentHealth;
 
 		AssertBool(await TestFactories.StartRangedAttack(runner, cube, player, new AttackStats(4, 6, 0))).IsTrue();
+		// Where the hero stands as the lob leaves: it aims at that spot.
+		Vector3 stood = player.GlobalPosition;
 		await TestFactories.AwaitPhysicsUntil(runner, () => player.BuffController.HasCondition(gooBound), 5);
 
 		AssertBool(player.BuffController.HasCondition(poisoned)).IsTrue();
@@ -45,7 +46,7 @@ public class GelatinousCubeTest
 		// It splashed down at the hero's feet, leaving its patch there.
 		var patch = TestFactories.NearestPatch(player, stood);
 		AssertObject(patch).IsNotNull();
-		AssertFloat((patch.GlobalPosition - stood).Length()).IsLess(0.6f);
+		AssertFloat((patch.GlobalPosition - stood).Length()).OverrideFailureMessage($"patch at {patch.GlobalPosition}, hero stood at {stood}").IsLess(0.1f);
 		wall.QueueFree();
 	}
 
@@ -82,7 +83,7 @@ public class GelatinousCubeTest
 		// A blink across the room is not travel, and the trail starts afresh where the cube lands.
 		int before = Patches();
 		cube.GlobalPosition += Vector3.Left * 10;
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 		AssertInt(Patches()).IsEqual(before);
 
 		// Creep 7.5 m back in small steps: a patch every Spacing metres travelled.
@@ -90,7 +91,7 @@ public class GelatinousCubeTest
 		for (int step = 0; step < 30; step++)
 		{
 			cube.GlobalPosition += Vector3.Right * 0.25f;
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 		AssertInt(Patches() - before).IsEqual((int)(7.5f / spacing));
 	}

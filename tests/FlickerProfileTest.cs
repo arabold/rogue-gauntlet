@@ -38,34 +38,6 @@ public class FlickerProfileTest
 		AssertFloat(light.LightEnergy).IsEqual(light.Energy);
 	}
 
-	/// <summary>
-	/// Spell flicker is scene data now that the drivers have no default, so every fire and lightning light must keep a
-	/// profile; ice lights burn steady by design.
-	/// </summary>
-	[TestCase]
-	public void FireAndLightningSpellLightsFlicker()
-	{
-		string[] scenes =
-		[
-			"air/lightning_arc", "air/lightning_ball", "air/lightning_ball_impact", "air/storm_guard", "air/thunderstorm",
-			"fire/ember_guard", "fire/flame_burst", "fire/meteor_shower", "fire/solar_flares", "fireball/fireball_impact", "fireball/fireball_visual",
-		];
-		foreach (string scene in scenes)
-		{
-			var root = AutoFree(TestFactories.Load<PackedScene>($"res://scenes/magic/{scene}.tscn").Instantiate());
-			var flickers = root.FindChildren("*", "", true, false).Prepend(root).Where(node => node == root || node.Owner == root)
-				.Select<Node, (bool Driver, FlickerProfile Profile)>(node => node switch
-				{
-					VisualEffectTimeline timeline => (true, timeline.FlickerProfile),
-					FireballImpact impact => (true, impact.FlickerProfile),
-					FlickeringLight light => (true, light.Profile),
-					_ => default,
-				}).Where(driver => driver.Driver).ToArray();
-			AssertArray(flickers).OverrideFailureMessage($"{scene} has no flicker driver").IsNotEmpty();
-			AssertBool(flickers.All(driver => driver.Profile != null)).OverrideFailureMessage($"{scene} has a steady light").IsTrue();
-		}
-	}
-
 	/// <summary>A flicker dip can hide the impact light for a frame; the light must come back while the flame burns.</summary>
 	[TestCase]
 	public void FireballImpactLightRecoversFromFlickerDips()

@@ -57,9 +57,9 @@ public class DamageNumberTest
 		Vector3 start = number.GlobalPosition;
 		AssertBool(start.Y > harness.PracticeTarget.GlobalPosition.Y + 2).IsTrue();
 
-		await runner.SimulateFrames(20, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .4f);
 		AssertBool(number.GlobalPosition.Y > start.Y).IsTrue();
-		await runner.SimulateFrames(60, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, 1.2f);
 		// Despawned to the pool (hidden, idle) or freed when the pool is full.
 		AssertBool(!GodotObject.IsInstanceValid(number) || (!number.IsProcessing() && !number.Visible)).IsTrue();
 	}

@@ -26,7 +26,7 @@ public class StairAutoWalkTest
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		var main = (Main)runner.Scene();
 		var level = main.GetNode<Level>("Level");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		Player entered = level.GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 		AssertObject(entered).IsNotNull();
@@ -41,28 +41,18 @@ public class StairAutoWalkTest
 		AssertBool(StairAutoWalk.IsActive(entered)).IsTrue();
 		AssertInt(entered.GetChildren().OfType<StairAutoWalk>().Count()).IsEqual(1);
 
-		for (int i = 0; i < 6; i++)
-		{
-			await runner.SimulateFrames(1, 20);
-		}
+		await TestFactories.AwaitPhysicsFrames(runner, 6);
 		AssertFloat(entered.GlobalPosition.HorizontalDistanceTo(landingPos)).IsLess(initialDistanceToLanding);
 		AssertInt(entered.GetChildren().OfType<StairAutoWalk>().Count()).IsEqual(1);
 
 		// Finish the entrance walk and verify total displacement is only ~AutoWalkDistance (~3.4m), not a second 5.6m walk.
-		for (int i = 0; i < 60 && StairAutoWalk.IsActive(entered); i++)
-		{
-			await runner.SimulateFrames(1, 20);
-		}
-		AssertBool(StairAutoWalk.IsActive(entered)).IsFalse();
+		await TestFactories.AwaitPhysicsUntil(runner, () => !StairAutoWalk.IsActive(entered), 3);
 		float walkedDist = entered.GlobalPosition.HorizontalDistanceTo(startPos);
 		AssertFloat(walkedDist).IsBetween(2.5f, 4.3f);
 
 		// Wait past the 1s stair-arrival lock window to confirm no second forward walk ever starts.
 		Vector3 settledPos = entered.GlobalPosition;
-		for (int i = 0; i < 20; i++)
-		{
-			await runner.SimulateFrames(1, 20);
-		}
+		await TestFactories.AwaitPhysicsSeconds(runner, 1f);
 		AssertBool(StairAutoWalk.IsActive(entered)).IsFalse();
 		AssertFloat(entered.GlobalPosition.HorizontalDistanceTo(settledPos)).IsLess(0.05f);
 
@@ -73,12 +63,9 @@ public class StairAutoWalkTest
 		SignalBus.EmitPlayerSpawned(entered);
 
 		// Allow one physics step for Jolt stair-step capsule depenetration, then verify the hero remains completely stationary.
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		Vector3 settledLoadPos = entered.GlobalPosition;
-		for (int i = 0; i < 15; i++)
-		{
-			await runner.SimulateFrames(1, 20);
-		}
+		await TestFactories.AwaitPhysicsFrames(runner, 15);
 
 		AssertBool(StairAutoWalk.IsActive(entered)).IsFalse();
 		AssertFloat(entered.GlobalPosition.HorizontalDistanceTo(startPos)).IsLess(0.45f);
@@ -86,11 +73,11 @@ public class StairAutoWalkTest
 
 		// 3. Leaving the stairs clears the spawn block so walking back onto UpTransitionTrigger works normally.
 		entered.GlobalPosition = landingPos;
-		await runner.SimulateFrames(4, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 4);
 		AssertBool(StairAutoWalk.IsActive(entered)).IsFalse();
 
 		entered.GlobalPosition = startPos;
-		await runner.SimulateFrames(4, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 4);
 		AssertBool(StairAutoWalk.IsActive(entered)).IsTrue();
 	}
 
@@ -103,12 +90,12 @@ public class StairAutoWalkTest
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		var main = (Main)runner.Scene();
 		var level = main.GetNode<Level>("Level");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		Player player = level.GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 		AssertObject(player).IsNotNull();
 		StairAutoWalk.Cancel(player);
-		await WaitUntilTransitionUnlocked();
+		await TestFactories.AwaitDescentUnlocked(runner);
 
 		LevelTransitionTrigger descent = level.Floor.Descent;
 		AssertObject(descent).IsNotNull();
@@ -119,18 +106,14 @@ public class StairAutoWalkTest
 		// Stand on the stair landing just outside the descent trigger, then dodge straight into it.
 		player.GlobalPosition = landing.GlobalPosition + dir * 3.8f;
 		player.ResetPhysicsInterpolation();
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(1);
 
 		DefenseRequestResult dodgeResult = player.DodgeComponent.TryDodge(dir);
 		AssertInt((int)dodgeResult).IsEqual((int)DefenseRequestResult.Success);
 		AssertBool(player.DodgeComponent.IsDodging).IsTrue();
 
-		for (int i = 0; i < 30 && GameSession.Instance.ActiveDungeonDepth == 1; i++)
-		{
-			await runner.SimulateFrames(1, 20);
-		}
-
+		await TestFactories.AwaitPhysicsUntil(runner, () => GameSession.Instance.ActiveDungeonDepth != 1, 2);
 		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(2);
 	}
 
@@ -143,12 +126,12 @@ public class StairAutoWalkTest
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
 		var main = (Main)runner.Scene();
 		var level = main.GetNode<Level>("Level");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		Player player = level.GetTree().GetNodesInGroup("player").OfType<Player>().FirstOrDefault();
 		AssertObject(player).IsNotNull();
 		StairAutoWalk.Cancel(player);
-		await WaitUntilTransitionUnlocked();
+		await TestFactories.AwaitDescentUnlocked(runner);
 
 		ActorActionRequestResult acquired = player.ActionGate.TryAcquire(
 			ActorActionKind.ItemUse,
@@ -160,25 +143,13 @@ public class StairAutoWalkTest
 		// Move directly into the descent trigger while ItemUse is active: entry refuses without leaving the trigger.
 		player.GlobalPosition = level.Floor.Descent.GlobalPosition;
 		player.ResetPhysicsInterpolation();
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(1);
 
 		// Completing the item action inside the trigger activates transition without walking out and back in.
 		player.ActionGate.Release(lease);
-		for (int i = 0; i < 10 && GameSession.Instance.ActiveDungeonDepth == 1; i++)
-		{
-			await runner.SimulateFrames(1, 20);
-		}
-
+		await TestFactories.AwaitPhysicsUntil(runner, () => GameSession.Instance.ActiveDungeonDepth != 1, 1);
 		AssertInt((int)GameSession.Instance.ActiveDungeonDepth).IsEqual(2);
-	}
-
-	private static async Task WaitUntilTransitionUnlocked()
-	{
-		for (int i = 0; i < 30 && !GameSession.Instance.CanUseTransition(GameSession.LevelTravelDirection.Down); i++)
-		{
-			await Task.Delay(50);
-		}
 	}
 
 	private sealed class ScratchSaves : IDisposable

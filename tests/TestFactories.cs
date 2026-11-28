@@ -36,6 +36,33 @@ public static partial class TestFactories
 	}
 #pragma warning restore RS0030
 
+	public const string LevelScenePath = "res://scenes/levels/level.tscn";
+
+	/// <summary>
+	/// The authored level scene, settled and not generated yet: configure it, then <see cref="Regenerate"/> it (or call
+	/// <see cref="Level.Generate"/> after setting the generator up by hand).
+	/// </summary>
+	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevelScene()
+	{
+		ISceneRunner runner = LoadScene(LevelScenePath);
+		await runner.SimulateFrames(2);
+		return (runner, (Level)runner.Scene());
+	}
+
+	/// <summary>Generates <paramref name="level"/> in place as run <paramref name="seed"/>'s real floor at <paramref name="depth"/>.</summary>
+	public static void Regenerate(Level level, ulong seed, uint depth)
+	{
+		GameSession.Instance.ResetLevelDebugState(depth);
+		level.ConfigureGeneration(new RunState(seed), depth, null, null);
+		level.Generate();
+	}
+
+	/// <summary>Frees the generated floor's own monsters, which would wander into whatever the test stages.</summary>
+	public static void RemoveFloorMonsters(Level level)
+	{
+		foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()) enemy.QueueFree();
+	}
+
 	public const string LitTorch = "res://scenes/props/torch_mounted.tscn";
 	public const string UnlitTorch = "res://scenes/props/furnishings/wall_torch_unlit.tscn";
 	public const string RoomPoolPath = "res://scenes/levels/rooms/room_pool.tres";
@@ -134,7 +161,7 @@ public static partial class TestFactories
 		harness.Player.InputController.SetPhysicsProcess(false);
 		var monster = SpawnHarnessMonster(harness, scenePath, distance);
 		if (ai) harness.ExecuteCommand("automation", value: 1);
-		await runner.SimulateFrames(2, 20);
+		await AwaitPhysicsFrames(runner, 2);
 		return (runner, harness, monster);
 	}
 
@@ -193,14 +220,24 @@ public static partial class TestFactories
 	}
 
 	/// <summary>
-	/// Waits on physics ticks for <paramref name="seconds"/> of gameplay time. Contacts and statuses run on the
-	/// physics clock, and rendered frames can outpace it, so counting frames would under-wait.
+	/// Waits on physics ticks for <paramref name="seconds"/> of gameplay time, plus two ticks so the last one has run.
+	/// For timed behavior (contacts, statuses, fades); settling a frame or two is <see cref="AwaitPhysicsFrames"/>.
 	/// </summary>
 	public static async Task AwaitPhysicsSeconds(ISceneRunner runner, float seconds)
 	{
 		var tree = runner.Scene().GetTree();
 		ulong end = Engine.GetPhysicsFrames() + (ulong)Mathf.CeilToInt(seconds * Engine.PhysicsTicksPerSecond) + 2;
 		while (Engine.GetPhysicsFrames() < end) await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
+	}
+
+	/// <summary>
+	/// Waits <paramref name="count"/> physics ticks: settles a scene for a frame or two, lets bodies a test just moved or
+	/// added register with the physics space before a contact query reads it, and steps per-tick loops.
+	/// </summary>
+	public static async Task AwaitPhysicsFrames(ISceneRunner runner, int count = 2)
+	{
+		var tree = runner.Scene().GetTree();
+		for (int i = 0; i < count; i++) await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
 	}
 
 	/// <summary>Waits on physics ticks until <paramref name="condition"/> holds, or fails after <paramref name="timeout"/> seconds.</summary>
@@ -214,6 +251,10 @@ public static partial class TestFactories
 			await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
 		}
 	}
+
+	/// <summary>Waits out the one-second lock after a stair arrival, until the hero may take the stairs down.</summary>
+	public static Task AwaitDescentUnlocked(ISceneRunner runner) =>
+		AwaitPhysicsUntil(runner, () => GameSession.Instance.CanUseTransition(GameSession.LevelTravelDirection.Down), 1.5f);
 
 	/// <summary>Stands <paramref name="body"/> at <paramref name="point"/>'s spot on the ground, keeping its own height.</summary>
 	public static void PlaceAt(Node3D body, Vector3 point)
@@ -337,9 +378,7 @@ public static partial class TestFactories
 	public static async Task<(ISceneRunner Runner, Level Level)> LoadLevel(FloorProfile profile, RoomPool pool = null)
 	{
 		pool ??= RoomPool();
-		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await LoadLevelScene();
 		var map = level.MapGenerator;
 		Configure(map, profile, pool);
 		map.ChestScene = map.TrapScene = map.LooseItemScene = map.LockedRewardScene = map.SecretRewardScene = null;
@@ -353,19 +392,15 @@ public static partial class TestFactories
 
 	/// <summary>
 	/// The authored level generated like a real floor for <paramref name="seed"/> and <paramref name="depth"/>, without
-	/// the floor's own monsters, which would wander into whatever the test stages. <paramref name="configure"/> may adjust
-	/// the level, such as its mob factory, before it generates.
+	/// the floor's own monsters (<see cref="RemoveFloorMonsters"/>). <paramref name="configure"/> may adjust the level,
+	/// such as its mob factory, before it generates.
 	/// </summary>
 	public static async Task<(ISceneRunner Runner, Level Level)> GenerateLevel(ulong seed, uint depth, Action<Level> configure = null)
 	{
-		ISceneRunner runner = LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await LoadLevelScene();
 		configure?.Invoke(level);
-		GameSession.Instance.ResetLevelDebugState(depth);
-		level.ConfigureGeneration(new RunState(seed), depth, null, null);
-		level.Generate();
-		foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()) enemy.QueueFree();
+		Regenerate(level, seed, depth);
+		RemoveFloorMonsters(level);
 		await runner.SimulateFrames(2);
 		return (runner, level);
 	}
@@ -407,7 +442,7 @@ public static partial class TestFactories
 		var map = Load<PackedScene>("res://scenes/levels/generators/map_generator.tscn").Instantiate<MapGenerator>();
 		var discovery = Load<PackedScene>("res://scenes/levels/floor_discovery.tscn").Instantiate<FloorDiscovery>();
 		var lighting = Load<PackedScene>("res://scenes/levels/lighting/world_lighting.tscn").Instantiate<WorldLighting>();
-		var level = new Level { AutoGenerateOnReady = false, MapGenerator = map, Discovery = discovery, Lighting = lighting };
+		var level = new Level { MapGenerator = map, Discovery = discovery, Lighting = lighting };
 		level.AddChild(map);
 		level.AddChild(discovery);
 		level.AddChild(lighting);

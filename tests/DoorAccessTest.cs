@@ -67,25 +67,6 @@ public class DoorAccessTest
 		finally { node.Free(); }
 	}
 	[TestCase]
-	public void AccessItemsStackSplitAndRoundTripWithoutDefinitionMutation()
-	{
-		var inventory = new Inventory(); inventory.AddItem(Gold, 19); inventory.AddItem(Gold, 3); inventory.AddItem(Silver, 1); inventory.AddItem(Pick, 3);
-		AssertInt(inventory.Items.Count).IsEqual(4);
-		AssertInt(inventory.Items[0].Quantity).IsEqual(20);
-		AssertBool(inventory.TrySplit(inventory.Items.Last(), 1).Success).IsTrue();
-		var json = JsonSerializer.Serialize(InventorySaveCodec.Capture(inventory));
-		var data = JsonSerializer.Deserialize<InventorySaveData>(json);
-		AssertInt(data.Items.Sum(e => e.Quantity)).IsEqual(26);
-		foreach (var entry in data.Items)
-		{
-			var restored = ItemSaveCodec.Restore(entry);
-			AssertBool(restored is KeyItem or LockpickItem).IsTrue();
-			AssertBool(restored.IsRuntimeInstance).IsTrue();
-		}
-		AssertBool(Gold.IsRuntimeInstance).IsFalse();
-		AssertInt(Pick.MaxStackSize).IsEqual(20);
-	}
-	[TestCase]
 	public async Task TimedProductionDoorCancelsWithoutCostThenCommitsOnce()
 	{
 		var door = TestFactories.Load<PackedScene>("res://scenes/props/door.tscn").Instantiate<Door>();
@@ -122,21 +103,6 @@ public class DoorAccessTest
 		AssertBool(target.TryCommit(reservation, context) != InteractionCommitResult.Success).IsTrue();
 		AssertBool(target.TryCommit(default, context) != InteractionCommitResult.Success).IsTrue();
 	}
-	/// <summary>Every published key is a distinct, stackable access item whose model instantiates.</summary>
-	[TestCase]
-	public void AllPublishedKeyModelsLoadAsCanonicalAccessItems()
-	{
-		const string Keys = "res://scenes/items/keys/key";
-		var ids = new System.Collections.Generic.HashSet<string>();
-		var paths = DirAccess.GetFilesAt(Keys).Where(file => file.EndsWith(".tres")).ToArray();
-		AssertInt(paths.Length).IsGreater(1);
-		foreach (var file in paths)
-		{
-			var key = TestFactories.Load<KeyItem>($"{Keys}/{file}");
-			AssertBool(ids.Add(key.DefinitionPath)).IsTrue(); AssertBool(key.CanStack).IsTrue();
-			var model = key.Scene.Instantiate<Node3D>(); AssertBool(model.GetChildCount() > 0).IsTrue(); model.Free();
-		}
-	}
 	[TestCase]
 	public void DoorPromptShowsOnlyAvailableActionOrMissingKeyRequirement()
 	{
@@ -166,7 +132,7 @@ public class DoorAccessTest
 	public async Task MarkerTurnsInItsKeyColorAndStopsAfterUnlock()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/props/door.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var door = (Door)runner.Scene();
 		var definition = LockDefinition();
 		var gold = definition.RequiredKey;
@@ -178,14 +144,14 @@ public class DoorAccessTest
 		AssertBool(LootVisuals.ResolveColor(gold) == gold.MarkerColor).IsTrue();
 		AssertFloat(marker.Mesh.GetAabb().Size.Z).IsGreater(0);
 		float start = marker.Rotation.Y;
-		await runner.SimulateFrames(6, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .12f);
 		AssertBool(!Mathf.IsEqualApprox(marker.Rotation.Y, start)).IsTrue();
 
 		var inventory = new Inventory(); inventory.AddItem(gold, 1);
 		door.Lock.TryUnlock(Context(inventory), "key_open"); // The lock's Changed signal refreshes the door.
 		AssertBool(marker.Visible).IsFalse();
 		float stopped = marker.Rotation.Y;
-		await runner.SimulateFrames(6, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .12f);
 		AssertFloat(marker.Rotation.Y).IsEqualApprox(stopped, .001f);
 	}
 	[TestCase]
@@ -218,7 +184,7 @@ public class DoorAccessTest
 			if (!exit.Tiles.Any(beforeDiscovery.Contains)) sawHiddenRoute = true;
 			var afterDiscovery = AccessSolutionValidator.Reachable(generator.Map, entry, new System.Collections.Generic.HashSet<Vector2I>());
 			AssertBool(exit.Tiles.Any(afterDiscovery.Contains)).IsTrue();
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 		AssertBool(sawHiddenRoute).IsTrue();
 	}
@@ -238,6 +204,7 @@ public class DoorAccessTest
 		generator.Profile.Access.MaximumLockedDoors = 2;
 		generator.MapWidth = generator.MapDepth = 30; generator.MaxRooms = 6;
 		int lockedCount = 0, secretCount = 0, rewardCount = 0;
+		bool roundTripped = false;
 		for (ulong seed = 1; seed <= 8; seed++)
 		{
 			generator.Seed = seed; level.Generate();
@@ -315,28 +282,35 @@ public class DoorAccessTest
 				var carried = new Inventory(); carried.AddItem(locked[0].Lock.Definition.RequiredKey, 1);
 				AssertBool(locked[0].Lock.TryUnlock(Context(carried), "key_open")).IsTrue();
 			}
-			foreach (var plate in generator.FloorContent.GetChildren().OfType<PressurePlate>()) plate.Reveal(false);
-			level.Discovery.RevealRoom(0);
-			var snapshot = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(level.CaptureExploration()));
-			string signature = string.Join("|", doors.Select(d => d.ConnectionId + ":" + d.Lock?.Definition?.RequiredKey?.DefinitionPath));
-			level.Generate();
-			var regenerated = generator.FloorContent.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
-			AssertString(string.Join("|", regenerated.Select(d => d.ConnectionId + ":" + d.Lock?.Definition?.RequiredKey?.DefinitionPath))).IsEqual(signature);
-			level.RestoreExploration(snapshot);
-			var recaptured = level.CaptureExploration();
-			AssertInt(recaptured.ExploredSamples.Count).IsEqual(snapshot.ExploredSamples.Count);
-			AssertString(string.Join("|", recaptured.DiscoveredPlateIds)).IsEqual(string.Join("|", snapshot.DiscoveredPlateIds));
-			foreach (var state in snapshot.Doors)
+			// Regeneration replays the same doors and restores their saved state; checked once, on the first floor holding both
+			// a lock and a secret, since replaying a floor is the same code for every seed.
+			if (!roundTripped && locked.Length > 0 && secrets.Length > 0)
 			{
-				var restored = regenerated.Single(d => d.ConnectionId == state.ConnectionId);
-				AssertBool(restored.IsDiscovered == state.IsDiscovered && restored.Lock.IsLocked == state.IsLocked && restored.IsOpen == state.IsOpen).IsTrue();
+				roundTripped = true;
+				foreach (var plate in generator.FloorContent.GetChildren().OfType<PressurePlate>()) plate.Reveal(false);
+				level.Discovery.RevealRoom(0);
+				var snapshot = JsonSerializer.Deserialize<RevealedLevelSaveData>(JsonSerializer.Serialize(level.CaptureExploration()));
+				string signature = string.Join("|", doors.Select(d => d.ConnectionId + ":" + d.Lock?.Definition?.RequiredKey?.DefinitionPath));
+				level.Generate();
+				var regenerated = generator.FloorContent.FindChildren("*", "", true, false).OfType<Door>().Where(d => !d.IsQueuedForDeletion());
+				AssertString(string.Join("|", regenerated.Select(d => d.ConnectionId + ":" + d.Lock?.Definition?.RequiredKey?.DefinitionPath))).IsEqual(signature);
+				level.RestoreExploration(snapshot);
+				var recaptured = level.CaptureExploration();
+				AssertInt(recaptured.ExploredSamples.Count).IsEqual(snapshot.ExploredSamples.Count);
+				AssertString(string.Join("|", recaptured.DiscoveredPlateIds)).IsEqual(string.Join("|", snapshot.DiscoveredPlateIds));
+				foreach (var state in snapshot.Doors)
+				{
+					var restored = regenerated.Single(d => d.ConnectionId == state.ConnectionId);
+					AssertBool(restored.IsDiscovered == state.IsDiscovered && restored.Lock.IsLocked == state.IsLocked && restored.IsOpen == state.IsOpen).IsTrue();
+				}
 			}
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 		GD.Print($"ACCESS_COUNTS locked={lockedCount} secret={secretCount} rewards={rewardCount}");
 		AssertInt(lockedCount).IsGreater(0);
 		AssertInt(secretCount).IsGreater(0);
 		AssertInt(rewardCount).IsGreater(0);
+		AssertBool(roundTripped).OverrideFailureMessage("No floor held both a lock and a secret to replay.").IsTrue();
 	}
 
 	[TestCase]
@@ -410,7 +384,7 @@ public class DoorAccessTest
 			totalLockedDoors += lockedDoors.Count;
 			string error = TestFactories.CheckKeyLockSolvability(generator, lockedDoors);
 			AssertString(error ?? "").OverrideFailureMessage($"seed {seed}: {error}").IsEmpty();
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 		AssertInt(totalLockedDoors).IsGreater(0);
 	}

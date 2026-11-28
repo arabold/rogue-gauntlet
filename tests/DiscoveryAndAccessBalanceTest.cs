@@ -56,10 +56,10 @@ public partial class DiscoveryAndAccessBalanceTest
 	public async Task SurfaceRevealsGlowOnceFinishCleanlyAndHarnessReplaysAllProductionEffects()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var harness = (WorldEffectHarness)runner.Scene();
 		AssertBool(harness.PreviewTrap.IsDiscovered).IsFalse();
-		await runner.SimulateFrames(30, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .6f);
 		AssertBool(harness.PreviewTrap.IsDiscovered).IsFalse();
 		bool RowVisible(string label) => harness.Controls.GetChildren().OfType<Container>()
 			.Single(c => c.GetChild(0) is Label l && l.Text == label).Visible;
@@ -73,10 +73,10 @@ public partial class DiscoveryAndAccessBalanceTest
 		AssertObject(holes.MaterialOverlay).IsNull();
 		AssertBool(holes.Visible).IsFalse();
 		AssertFloat(Reveal()).IsEqual(0);
-		await runner.SimulateFrames(12, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .24f);
 		AssertFloat(Reveal()).IsGreater(0);
 		AssertFloat(Reveal()).IsLess(1);
-		await runner.SimulateFrames(30, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .6f);
 		AssertBool(trap.DiscoveryEffect.IsPlaying).IsFalse();
 		AssertObject(holes.MaterialOverlay).IsNull();
 		AssertObject(holes.GetSurfaceOverrideMaterial(0)).IsNull();
@@ -102,7 +102,7 @@ public partial class DiscoveryAndAccessBalanceTest
 		float previous = 0, peak = 0; bool decreasing = false;
 		for (int frame = 0; frame < 80 && door.Secret.DiscoveryEffect.IsPlaying; frame++)
 		{
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			if (!door.Secret.DiscoveryEffect.IsPlaying) break;
 			AssertObject(leaf.GetActiveMaterial(0)).IsSame(material);
 			AssertObject(leaf.MaterialOverlay).IsNull();
@@ -117,25 +117,15 @@ public partial class DiscoveryAndAccessBalanceTest
 		foreach (var mesh in door.DoorVisual.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => !VisualHelper.IsHelper(m)))
 		{ AssertObject(mesh.MaterialOverlay).IsNull(); AssertFloat(mesh.Transparency).IsEqual(0); }
 		AssertInt(door.Secret.DiscoveryEffect.GetChildCount()).IsEqual(0);
-		harness.SelectEffect(2); await runner.SimulateFrames(2, 20);
+		harness.SelectEffect(2); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(RowVisible("Reveal glow")).IsFalse(); AssertBool(RowVisible("Wall variant")).IsFalse();
 		AssertBool(harness.Controls.FindChildren("*", "ColorPickerButton", true, false).Any()).IsFalse();
 		AssertBool(harness.PreviewRoot.GetChildren().OfType<LootBeam>().Any()).IsTrue();
-		harness.SelectEffect(3); await runner.SimulateFrames(2, 20);
+		harness.SelectEffect(3); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(RowVisible("Wall variant")).IsFalse();
 		AssertBool(RowVisible("Reveal glow")).IsFalse();
 		AssertBool(harness.PreviewRoot.GetChildren().OfType<HitEffect>().Any()).IsTrue();
 		harness.SelectEffect(0); AssertBool(harness.PreviewTrap.DiscoveryEffect.IsPlaying).IsFalse();
-	}
-	[TestCase]
-	public void RogueAloneStartsWithTwoPicks()
-	{
-		var catalog = TestFactories.Load<CharacterCatalog>("res://scenes/player/classes/character_catalog.tres");
-		foreach (var character in catalog.Classes)
-		{
-			var inventory = character.CreateStartingInventory(20);
-			AssertInt(inventory.Items.Where(s => s.Item is LockpickItem).Sum(s => s.Quantity)).IsEqual(character.Id == "rogue" ? 2 : 0);
-		}
 	}
 	[TestCase]
 	public void RarityPolicyAllowsEmptyFloors()

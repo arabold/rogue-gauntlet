@@ -124,7 +124,7 @@ public class PlayerSaveCodecTest
 		try { PlayerSaveCodec.Apply(player, data); } catch (InvalidOperationException) { rejected = true; }
 		AssertBool(rejected).IsTrue();
 		AssertInt(player.Stats.Gold).IsEqual(5);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 	}
 
 	[TestCase]

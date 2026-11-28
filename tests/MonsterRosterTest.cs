@@ -25,7 +25,7 @@ public class MonsterRosterTest
 		nowhere.Freeze();
 		behavior.Navigation.SetNavigationOverride(new FloorNavigation(nowhere,
 			TestFactories.Load<NavigationProfile>("res://scenes/levels/navigation/navigation_profiles/default.tres")));
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var context = new EnemyContext(shooter, shooter.MovementComponent, behavior.GetNode<PerceptionComponent>("Perception"),
 			behavior.Navigation, shooter.Definition.Behavior, filter => behavior.TryRequestAction(filter));
 		context.Target = harness.Player;
@@ -76,7 +76,7 @@ public class MonsterRosterTest
 		var wall = new StaticBody3D { CollisionLayer = 2, Position = (shooter.Position + harness.Player.Position) / 2 + Vector3.Up };
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(5, 4, .5f) } });
 		runner.Scene().AddChild(wall);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var behavior = shooter.EnemyBehaviorComponent;
 		AssertBool(behavior.TryAttack()).IsFalse();
 		AssertBool(shooter.AttackController.IsAttacking).IsFalse();
@@ -97,7 +97,7 @@ public class MonsterRosterTest
 		rat.Position = harness.Player.Position + Vector3.Forward * 1.22f;
 		rat.LookAt(harness.Player.GlobalPosition);
 		harness.Player.HurtBoxComponent.Armor = 0;
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(rat.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		rat.AttackController._PhysicsProcess(.5);
 		AssertInt(rat.AttackController.ContactCount).IsEqual(1);
@@ -130,7 +130,7 @@ public class MonsterRosterTest
 		shooter.Position = player.Position + Vector3.Forward * 6;
 		shooter.EnemyBehaviorComponent.AIEnabled = false;
 		runner.Scene().AddChild(shooter);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		shooter.MovementComponent.SetPhysicsProcess(false);
 		shooter.EnemyBehaviorComponent.SetAction(EnemyAction.None);
 		AssertBool(guard.TryBeginGuard(Vector3.Back) == DefenseRequestResult.Success).IsTrue();

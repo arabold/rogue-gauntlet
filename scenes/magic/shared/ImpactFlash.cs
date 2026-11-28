@@ -8,16 +8,16 @@ using Godot;
 /// </summary>
 public static class ImpactFlash
 {
-	private const ulong MinIntervalMsec = 334;
-	private const ulong SharedWindowMsec = 50;
-	private static ulong _windowStart;
+	private const double MinInterval = .334;
+	private const double SharedWindow = .05;
+	private static double _windowStart;
 	private static bool _granted;
 
 	public static bool TryClaim()
 	{
-		ulong now = Time.GetTicksMsec();
-		if (_granted && now - _windowStart < SharedWindowMsec) return true;
-		if (_granted && now - _windowStart < MinIntervalMsec) return false;
+		double now = FrameClock.Seconds;
+		if (_granted && now - _windowStart < SharedWindow) return true;
+		if (_granted && now - _windowStart < MinInterval) return false;
 		_windowStart = now;
 		_granted = true;
 		return true;

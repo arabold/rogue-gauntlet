@@ -3,3 +3,7 @@ M:Godot.GD.Load``1(System.String);Use TestFactories.Load, which settles the reso
 M:Godot.ResourceLoader.Load(System.String,System.String,Godot.ResourceLoader.CacheMode);Use TestFactories.Load, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)
 M:Godot.ResourceLoader.Load``1(System.String,System.String,Godot.ResourceLoader.CacheMode);Use TestFactories.Load, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)
 M:GdUnit4.ISceneRunner.Load(System.String,System.Boolean,System.Boolean);Use TestFactories.LoadScene, which settles the resource cache first (godotengine/godot#83762, see ResourceCacheGuard)
+M:GdUnit4.ISceneRunner.SimulateFrames(System.UInt32,System.UInt32);Sleeps on the wall clock; tests run in simulated time (--fixed-fps), so wait in game time with TestFactories.AwaitPhysicsUntil/AwaitPhysicsSeconds/AwaitPhysicsFrames
+M:GdUnit4.ISceneRunner.AwaitMillis(System.UInt32);Sleeps on the wall clock; tests run in simulated time (--fixed-fps), so wait in game time with TestFactories.AwaitPhysicsUntil/AwaitPhysicsSeconds/AwaitPhysicsFrames
+M:System.Threading.Tasks.Task.Delay(System.Int32);Sleeps on the wall clock; tests run in simulated time (--fixed-fps), so wait in game time with TestFactories.AwaitPhysicsUntil/AwaitPhysicsSeconds/AwaitPhysicsFrames
+M:System.Threading.Tasks.Task.Delay(System.TimeSpan);Sleeps on the wall clock; tests run in simulated time (--fixed-fps), so wait in game time with TestFactories.AwaitPhysicsUntil/AwaitPhysicsSeconds/AwaitPhysicsFrames
