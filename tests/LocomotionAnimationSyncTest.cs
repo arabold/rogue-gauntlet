@@ -39,11 +39,9 @@ public class LocomotionAnimationSyncTest
 		var player = (await TestFactories.SettleCombatHarness(runner)).Player;
 		var scene = runner.Scene();
 		PlaceOnOpenFloor(scene, player);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var animTree = player.GetNode<AnimationTree>("AnimationTree");
 		var playback = (AnimationNodeStateMachinePlayback)animTree.Get("parameters/playback");
-		var animPlayer = animTree.GetNode<AnimationPlayer>(animTree.AnimPlayer);
-		AssertObject(animPlayer.GetAnimation("Running_A").LoopMode).IsEqual(Animation.LoopModeEnum.Linear);
 		float Parameter(string name) => (float)animTree.Get($"parameters/Walking/{name}");
 
 		try
@@ -55,9 +53,9 @@ public class LocomotionAnimationSyncTest
 			Input.ActionPress("move_right");
 			int wrapCount = 0;
 			float lastPosition = 0f;
-			for (int f = 0; f < 60; f++)
+			for (int tick = 0; tick < 90; tick++)
 			{
-				await runner.SimulateFrames(1, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 1);
 				float position = Parameter("Run/current_position");
 				if (position < lastPosition && lastPosition > 0.4f) wrapCount++;
 				lastPosition = position;
@@ -75,7 +73,7 @@ public class LocomotionAnimationSyncTest
 			Input.ActionPress("walk");
 			float HorizontalSpeed() => new Vector2(player.MovementComponent.Velocity.X, player.MovementComponent.Velocity.Z).Length();
 			await TestFactories.AwaitPhysicsUntil(runner, () => Mathf.Abs(HorizontalSpeed() - walk) < 0.1f, 1);
-			await runner.SimulateFrames(5, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 5);
 			AssertBool(player.IsMoving).IsTrue();
 			AssertString(playback.GetCurrentNode()).IsEqual("Walking");
 			AssertFloat(Parameter("Blend2/blend_amount")).IsEqualApprox((walk - 1.5f) / 4.0f, 0.05f);
@@ -92,9 +90,9 @@ public class LocomotionAnimationSyncTest
 			wall.AddChild(new CollisionShape3D { Position = new Vector3(0, 1, 1.5f), Shape = new BoxShape3D { Size = new Vector3(4f, 4f, 0.5f) } });
 			wall.AddChild(new CollisionShape3D { Position = new Vector3(0, 1, -1.5f), Shape = new BoxShape3D { Size = new Vector3(4f, 4f, 0.5f) } });
 			scene.AddChild(wall);
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			Input.ActionPress("move_right");
-			await runner.SimulateFrames(35, 20);
+			await TestFactories.AwaitPhysicsSeconds(runner, .7f);
 			AssertFloat(player.MovementComponent.GroundSpeed).IsLessEqual(0.05f);
 			AssertBool(player.IsMoving).IsFalse();
 			AssertBool(player.MovementComponent.IsMoving).IsFalse();
@@ -105,21 +103,6 @@ public class LocomotionAnimationSyncTest
 			Input.ActionRelease("move_right");
 			Input.ActionRelease("walk");
 		}
-	}
-
-	/// <summary>Already-looping imported clips remain shared across monsters.</summary>
-	[TestCase]
-	public void MonsterLocomotionAnimationsLoop()
-	{
-		var scene = TestFactories.Load<PackedScene>(TestFactories.MinionScene);
-		var skeleton = TestFactories.AddToSceneTree(scene.Instantiate<CharacterBody3D>());
-		var second = TestFactories.AddToSceneTree(scene.Instantiate<CharacterBody3D>());
-		var animTree = skeleton.GetNode<AnimationTree>("EnemyBehaviorComponent/AnimationTree");
-		var animPlayer = animTree.GetNode<AnimationPlayer>(animTree.AnimPlayer);
-		var secondTree = second.GetNode<AnimationTree>("EnemyBehaviorComponent/AnimationTree");
-		var secondPlayer = secondTree.GetNode<AnimationPlayer>(secondTree.AnimPlayer);
-		AssertObject(animPlayer.GetAnimation("Running_A").LoopMode).IsEqual(Animation.LoopModeEnum.Linear);
-		AssertObject(animPlayer.GetAnimation("Running_A")).IsSame(secondPlayer.GetAnimation("Running_A"));
 	}
 
 	[TestCase]

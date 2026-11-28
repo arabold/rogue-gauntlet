@@ -33,7 +33,7 @@ public class ScrollRuneStudyTest
 	public async Task SessionAssignmentCanBeCopiedWithoutIdentifyingOrReshufflingItems()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
-		await runner.SimulateFrames(2, 20); var study = (ScrollRuneStudy)runner.Scene();
+		await TestFactories.AwaitPhysicsFrames(runner, 2); var study = (ScrollRuneStudy)runner.Scene();
 		var run = GameSession.Instance.Run; var assignment = run.Identification.GetAssignmentDescriptors();
 		var known = run.Identification.GetIdentifiedTypeIds().ToArray();
 		study.UseSessionAssignment();
@@ -46,7 +46,7 @@ public class ScrollRuneStudyTest
 	public async Task RuneRingRotatesExpandsAndDissolvesWithoutSubstitutingOtherGlyphs()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/runes/scroll_rune_study.tscn");
-		await runner.SimulateFrames(2, 20); var study = (ScrollRuneStudy)runner.Scene(); study.SetTime(.2f);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); var study = (ScrollRuneStudy)runner.Scene(); study.SetTime(.2f);
 		var ring = study.Stage.GetChild<Node3D>(0);
 		var glyphs = ring.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().Where(m => m.Mesh == study.MatchedGlyph).ToArray();
 		AssertInt(glyphs.Length).IsEqual(10);

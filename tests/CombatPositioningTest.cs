@@ -26,7 +26,7 @@ public class CombatPositioningTest
 		var minion = TestFactories.Load<PackedScene>("res://scenes/enemies/skeleton/skeleton_minion.tscn").Instantiate<EnemyBase>();
 		minion.Position = position;
 		runner.Scene().AddChild(minion);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		minion.EnemyBehaviorComponent.AIEnabled = false;
 		return minion;
 	}
@@ -133,14 +133,14 @@ public class CombatPositioningTest
 			player.ResetPhysicsInterpolation();
 			player.MovementComponent.Stop();
 			player.DodgeComponent.RestoreCharges(2, 0, 0);
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			Vector3 enemyStart = enemy.GlobalPosition;
 			Vector3 playerStart = player.GlobalPosition;
 			uint mask = player.CollisionMask;
 			AssertBool(harness.RequestHeroDodge(direction)).IsTrue();
-			for (int frame = 0; frame < 40 && player.DodgeComponent.IsDodging; frame++)
+			for (int tick = 0; tick < 60 && player.DodgeComponent.IsDodging; tick++)
 			{
-				await runner.SimulateFrames(1, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 1);
 				AssertFloat(enemy.GlobalPosition.DistanceTo(enemyStart))
 					.OverrideFailureMessage($"{scene} was pushed while dodging {direction}: {enemy.GlobalPosition - enemyStart}")
 					.IsLess(.01f);
@@ -174,11 +174,11 @@ public class CombatPositioningTest
 			body.AddChild(new CollisionShape3D { Shape = new SphereShape3D { Radius = .15f } });
 			runner.Scene().AddChild(body);
 		}
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertInt(player.GetCollisionExceptions().Count).IsEqual(crowdSize);
-		await runner.SimulateFrames(40, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .8f);
 		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
 		AssertInt(player.GetCollisionExceptions().Count).IsEqual(0);
 		AssertFloat(player.Position.Z).IsLess(-5f);
@@ -203,9 +203,9 @@ public class CombatPositioningTest
 			player.ResetPhysicsInterpolation();
 			harness.PracticeTarget.Position = Vector3.Forward * 1.5f;
 			player.DodgeComponent.RestoreCharges(2, 0, 0);
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			AssertBool(harness.RequestHeroDodge(Vector3.Forward)).OverrideFailureMessage($"dodge before {ending}").IsTrue();
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			AssertBool(player.GetCollisionExceptions().Contains((PhysicsBody3D)harness.PracticeTarget)).IsTrue();
 			switch (ending)
 			{
@@ -237,9 +237,9 @@ public class CombatPositioningTest
 		var wall = new StaticBody3D { CollisionLayer = 2, Position = new Vector3(0, 2, -2) };
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(10, 5, wallHalfDepth * 2) } });
 		runner.Scene().AddChild(wall);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
-		await runner.SimulateFrames(40, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .8f);
 		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
 		AssertFloat(player.GlobalPosition.Z).IsGreater(wall.GlobalPosition.Z + wallHalfDepth);
 		AssertInt(player.GetCollisionExceptions().Count).IsEqual(0);
@@ -259,10 +259,10 @@ public class CombatPositioningTest
 		player.MovementComponent.SetLookAtDirection(Vector3.Forward);
 		// The practice target is an enemy-layer body just beyond touching distance (player radius 0.5, target 0.4).
 		harness.PracticeTarget.Position = new Vector3(0, 0, -1f);
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 		AssertBool(harness.RequestHeroDodge(Vector3.Forward)).IsTrue();
 		AssertBool((player.CollisionMask & EnemyLayer) == 0).IsEqual(passThrough);
-		for (int i = 0; i < 40 && player.DodgeComponent.IsDodging; i++) await runner.SimulateFrames(1, 20);
+		for (int tick = 0; tick < 60 && player.DodgeComponent.IsDodging; tick++) await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertBool(player.DodgeComponent.IsDodging).IsFalse();
 		AssertBool((player.CollisionMask & EnemyLayer) != 0).IsTrue();
 		if (passThrough)

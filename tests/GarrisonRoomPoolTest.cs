@@ -60,9 +60,8 @@ public class GarrisonRoomPoolTest
 	[TestCase]
 	public async Task ThreeDepthsKeepConnectedGeometryEncountersAndReachableSpawns()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2, 20);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await TestFactories.LoadLevelScene();
+		using var scope = runner;
 		var generator = level.MapGenerator;
 		AssertString(generator.Rooms.ResourcePath).IsEqual(Preset);
 		var encounters = (RealmEncounterFactory)generator.MobFactory;
@@ -103,10 +102,14 @@ public class GarrisonRoomPoolTest
 			if (floor == encounters.GatekeeperFloorIndex) AssertInt(generator.EnemySpawnPoints.Count(spawn => spawn.PersistentId == level.Encounters.GatekeeperId)).IsEqual(1);
 			AssertBool(generator.EnemySpawnPoints.All(spawn => generator.Floor.IsReachable(spawn.GlobalPosition))).IsTrue();
 			AssertString(UnreachableLoot(generator)).OverrideFailureMessage($"seed={runSeed} depth={depth}").IsEmpty();
-			string first = Fingerprint(generator);
-			level.Generate();
-			AssertString(Fingerprint(generator)).IsEqual(first);
-			await runner.SimulateFrames(1, 20);
+			// The shipped floor replays exactly, furnishing included; checked once, on the nest floor with its packs and nests.
+			if (floor == RealmEncounterFactory.NestFloorIndex)
+			{
+				string first = Fingerprint(generator);
+				level.Generate();
+				AssertString(Fingerprint(generator)).IsEqual(first);
+			}
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 	}
 

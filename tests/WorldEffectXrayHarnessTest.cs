@@ -15,9 +15,9 @@ public class WorldEffectXrayHarnessTest
 	{
 		bool doorFlag = GameDebug.DoorXrayEnabled, lootFlag = GameDebug.LootXrayEnabled;
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/world_effect_harness.tscn");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var harness = (WorldEffectHarness)runner.Scene(); harness.SelectEffect(index);
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 		AssertBool(harness.IsXrayPreview).IsTrue(); AssertBool(harness.PreviewOccluder.Visible).IsTrue();
 		AssertInt(harness.PreviewOccluder.GetUsedCells().Count).IsEqual(2);
 		AssertBool(harness.PreviewOccluder.GetUsedCells().All(cell => cell.Z > 0)).IsTrue();
@@ -39,7 +39,7 @@ public class WorldEffectXrayHarnessTest
 		harness.Replay(); AssertBool(harness.PreviewOccluder.Visible).IsTrue();
 		AssertBool(GameDebug.DoorXrayEnabled == doorFlag && GameDebug.LootXrayEnabled == lootFlag).IsTrue();
 		AssertBool(harness.PreviewDoor?.IsOpen == true || harness.PreviewChest?.IsOpen == true).IsFalse();
-		harness.SelectEffect(0); await runner.SimulateFrames(2, 20);
+		harness.SelectEffect(0); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertObject(harness.PreviewOccluder).IsNull(); AssertObject(harness.PreviewChest).IsNull();
 		AssertBool(harness.PreviewTrap.IsDiscovered).IsFalse();
 	}

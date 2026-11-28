@@ -14,9 +14,8 @@ public class WardenTest
 	[TestCase]
 	public async Task RoomPlacementRetriesAndRegenerationKeepExactlyOneWarden()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2, 20);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await TestFactories.LoadLevelScene();
+		using var scope = runner;
 		GameSession.Instance.ResetLevelDebugState(TestFactories.GarrisonGatekeeperDepth);
 		// Seed 42 places the Warden on the first layout attempt, seed 8 only after retries.
 		foreach (ulong seed in new ulong[] { 42, 8 })
@@ -36,7 +35,7 @@ public class WardenTest
 			level.Generate(); // old spawn points must leave the tree before LevelLoaded
 			AssertVector(Boss(level).GlobalPosition).IsEqual(firstPosition);
 			AssertInt(level.MapGenerator.GenerationAttempt).IsEqual(attempt);
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 	}
 
@@ -47,9 +46,8 @@ public class WardenTest
 	[TestCase]
 	public async Task WardenHidesUnderFogAndAnAuthoredMarkerPlacesItOnEveryGeneration()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2, 20);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await TestFactories.LoadLevelScene();
+		using var scope = runner;
 		GameSession.Instance.ResetLevelDebugState(TestFactories.GarrisonGatekeeperDepth);
 		GameSession.Instance.ResetCurrentLevelDebugState();
 		level.ConfigureGeneration(new RunState(42), TestFactories.GarrisonGatekeeperDepth, null, null);
@@ -59,12 +57,12 @@ public class WardenTest
 		var boss = Boss(level);
 		boss.EnemyBehaviorComponent.AIEnabled = false;
 		int home = HomeRoom(level, boss);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(boss.Visible).IsFalse();
 		AssertBool(boss.Nameplate.NameLabel.IsVisibleInTree()).IsFalse();
 		level.Discovery.RevealRoom(home);
 		SignalBus.EmitRoomEntered(home);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertBool(boss.Visible).IsTrue();
 
 		var marker = new GatekeeperSpawnMarker { Name = "WardenAnchor", Position = boss.GlobalPosition,
@@ -76,23 +74,22 @@ public class WardenTest
 			AssertInt(level.MapGenerator.GenerationAttempt).IsEqual(0);
 			AssertVector(Boss(level).GlobalPosition).IsEqual(marker.GlobalPosition);
 			AssertBool(Boss(level).GlobalBasis.IsEqualApprox(marker.GlobalBasis)).IsTrue();
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 	}
 
 	[TestCase]
 	public async Task WardenWalksAroundItsRoomButNotOutOfIt()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2, 20);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await TestFactories.LoadLevelScene();
+		using var scope = runner;
 		GameSession.Instance.ResetLevelDebugState(TestFactories.GarrisonGatekeeperDepth);
 		level.ConfigureGeneration(new RunState(12345), TestFactories.GarrisonGatekeeperDepth, null, null);
 		level.Generate();
 		var boss = Boss(level);
 		// Drive navigation directly; the behavior layer would otherwise pick its own goals.
 		boss.EnemyBehaviorComponent.SetPhysicsProcess(false);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var navigation = boss.EnemyBehaviorComponent.Navigation;
 		AssertBool(navigation.IsAvailable).IsTrue();
 		int home = HomeRoom(level, boss);
@@ -118,7 +115,7 @@ public class WardenTest
 		for (int frame = 0; frame < 600 && !navigation.HasArrived; frame++)
 		{
 			AssertBool(navigation.MoveTo(destination.Value)).IsTrue();
-			await runner.SimulateFrames(1, 16);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			AssertInt(ground.RoomAt(boss.GlobalPosition)).IsEqual(home);
 		}
 		AssertBool(navigation.HasArrived).IsTrue();
@@ -151,7 +148,7 @@ public class WardenTest
 		{
 			hero.GlobalPosition = boss.GlobalPosition + new Vector3(side * 1.7f, 0, -.1f);
 			hero.HealthComponent.SetHealth(100, 100);
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			attack.CancelAttack();
 			AssertBool(attack.TryPrepareAttack(slash.Attack, slash.Style, slash.Duration, out var swing)).IsTrue();
 			AssertBool(attack.StartAttack(swing, new AttackStats(slash.MinDamage, slash.MaxDamage, 0), 4)).IsTrue();
@@ -194,31 +191,6 @@ public class WardenTest
 	}
 
 	/// <summary>
-	/// A hero who keeps out of sword reach does not stall the Warden: from its second phase it slams with Tremor as soon
-	/// as the hero stands inside the wave, and the wave reaches them.
-	/// </summary>
-	[TestCase]
-	public async Task TheWardenSlamsAHeroWhoKeepsOutOfSwordReach()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		var hero = harness.Player;
-		hero.InputController.SetPhysicsProcess(false);
-		hero.MovementComponent.SetPhysicsProcess(false);
-		var boss = TestFactories.SpawnHarnessMonster(harness, TestFactories.WardenScene, 5.5f);
-		// It cannot close in, so only the slam can reach the hero.
-		boss.MovementComponent.SetPhysicsProcess(false);
-		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
-		await runner.SimulateFrames(1, 20);
-		float full = hero.HealthComponent.CurrentHealth;
-		harness.ExecuteCommand("automation", "", 1);
-
-		await TestFactories.AwaitPhysicsUntil(runner, () => hero.HealthComponent.CurrentHealth < full, 4);
-		AssertFloat(hero.HealthComponent.CurrentHealth).IsLess(full);
-		AssertFloat(boss.GlobalPosition.HorizontalDistanceTo(hero.GlobalPosition)).IsGreater(5);
-	}
-
-	/// <summary>
 	/// The slam is the answer to a hero who strikes from behind: it comes within a second, and the hero's blows neither
 	/// stagger it nor make the Warden drop it to raise its shield.
 	/// </summary>
@@ -237,7 +209,7 @@ public class WardenTest
 		hero.GlobalPosition = boss.GlobalPosition + Vector3.Back * 1.6f;
 		hero.ResetPhysicsInterpolation();
 		hero.MovementComponent.SetLookAtDirection(Vector3.Forward);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		float heroFull = hero.HealthComponent.CurrentHealth, bossBefore = boss.HealthComponent.CurrentHealth;
 		harness.ExecuteCommand("automation", "", 1);
 
@@ -252,8 +224,9 @@ public class WardenTest
 	}
 
 	/// <summary>
-	/// Only death ends the slam: frozen and shoved while it winds up, the Warden still brings the wave down on the hero,
-	/// and the freeze holds it once the slam is over. The wave's hit names the slam as the attack that released it.
+	/// A hero who keeps out of sword reach does not stall the Warden: from its second phase it slams, and only death ends
+	/// the slam. Frozen and shoved while it winds up, the Warden still brings the wave down on the hero, and the freeze
+	/// holds it once the slam is over. The wave's hit names the slam as the attack that released it.
 	/// </summary>
 	[TestCase]
 	public async Task NeitherAFreezeNorAShoveStopsTheSlam()
@@ -267,7 +240,7 @@ public class WardenTest
 		// It cannot close in, and the shove keeps it pushed for the whole slam.
 		boss.MovementComponent.SetPhysicsProcess(false);
 		boss.HealthComponent.TakeDamage(boss.HealthComponent.MaxHealth * 0.4f);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		float full = hero.HealthComponent.CurrentHealth;
 		bool? interrupted = null;
 		boss.AttackController.AttackFinished += (_, wasInterrupted) => interrupted ??= wasInterrupted;
@@ -318,7 +291,7 @@ public class WardenTest
 			harness.Player.HealthComponent.SetHealth(100, 100);
 			harness.Player.ActionGate.ResetForSimulation();
 			harness.Player.GetNodeOrNull<PoiseComponent>("PoiseComponent")?.Restore();
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 			// Start through the executor: the AI would not start a swing at a hero behind it, but body contact
 			// must still cover every side once a swing is under way.
 			attack.CancelAttack();
@@ -357,7 +330,7 @@ public class WardenTest
 		movement.SetLookAtDirection(Vector3.Forward);
 		// Beside the Warden, within reach: no swing starts.
 		harness.Player.GlobalPosition = boss.GlobalPosition + new Vector3(2.5f, 0, 0);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		behavior.SetAction(EnemyAction.None);
 		AssertBool(behavior.TryAttack()).IsFalse();
 
@@ -375,7 +348,7 @@ public class WardenTest
 
 		// Facing the hero, it swings; action choices are evaluated once per physics frame.
 		movement.SetLookAtDirection(Vector3.Right);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertBool(behavior.TryAttack()).IsTrue();
 		boss.AttackController.CancelAttack();
 
@@ -415,19 +388,18 @@ public class WardenTest
 		boss.GuardComponent.ParrySuccessful += () => parries++;
 		boss.GuardComponent.BlockSuccessful += _ => blocks++;
 		boss.DefenseController.RiposteTriggered += () => ripostes++;
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var skeleton = boss.FindChildren("*", "Skeleton3D", true, false).OfType<Skeleton3D>().Single();
 		int hand = skeleton.FindBone("handslot.l");
 		var idleHand = skeleton.GetBoneGlobalPose(hand);
 		harness.Attack();
 		AssertBool(player.AttackController.IsAttacking).IsTrue();
 		bool shieldRaised = false;
-		ulong deadline = Engine.GetPhysicsFrames() + 180;
-		while (ripostes == 0 && Engine.GetPhysicsFrames() < deadline)
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
 		{
-			await runner.SimulateFrames(1, 20);
 			shieldRaised |= boss.GuardComponent.IsGuarding && !skeleton.GetBoneGlobalPose(hand).IsEqualApprox(idleHand);
-		}
+			return ripostes > 0;
+		}, 3);
 		AssertBool(shieldRaised).OverrideFailureMessage("The Warden must react during the hero swing and raise its shield").IsTrue();
 		AssertInt(parries).IsEqual(1);
 		AssertInt(blocks).IsEqual(0);
@@ -453,7 +425,7 @@ public class WardenTest
 		boss.DefenseController.Mode = EnemyDefenseMode.GuardParry;
 		bool? interrupted = null;
 		boss.AttackController.AttackFinished += (_, wasInterrupted) => interrupted ??= wasInterrupted;
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		AssertBool(boss.EnemyBehaviorComponent.TryAttack()).IsTrue();
 		harness.Attack();

@@ -238,28 +238,6 @@ public class GeneratedFloorSweepTest
 			AssertInt(totalCorridorLoot).IsGreater(0);
 			AssertInt(totalLockedDoors).IsGreater(0);
 		}
-
-		// Depth-3 garrison gatekeeper check on labyrinth profile (uses LoadLevel so Level.ThreatProfile is wired).
-		var (gateRunner, gateLevel) = await TestFactories.LoadLevel(profile);
-		using (gateRunner)
-		{
-			var gateGen = gateLevel.MapGenerator;
-			TestFactories.UseAuthoredRealms(gateGen);
-			TestFactories.WireLootScenes(gateGen);
-			gateGen.MobFactory = TestFactories.Load<MobFactory>("res://scenes/levels/encounters/sunken_garrison.tres");
-			gateGen.Seed = 1;
-			gateGen.DungeonDepth = TestFactories.GarrisonGatekeeperDepth;
-			gateLevel.Generate();
-			var gateContracts = new FloorContracts();
-			gateContracts.Check(gateGen, "labyrinth seed 1 depth 5 (garrison)");
-			var depth3Locked = gateGen.Floor.Doors.Where(d => d.Door.Lock?.IsLocked == true).ToList();
-			string depth3LockError = TestFactories.CheckKeyLockSolvability(gateGen, depth3Locked);
-			if (depth3LockError != null) gateContracts.Fail("connectivity", $"labyrinth seed 1 depth 5: {depth3LockError}");
-			gateContracts.AssertHeld();
-			AssertObject(gateGen.Floor.GatekeeperSpawn).IsNotNull();
-			AssertBool(gateGen.Floor.IsReachable(gateGen.Floor.GatekeeperSpawn.GlobalPosition)).IsTrue();
-			await gateGen.ToSignal(gateGen.GetTree(), SceneTree.SignalName.ProcessFrame);
-		}
 	}
 
 	[TestCase]

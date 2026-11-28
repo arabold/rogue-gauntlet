@@ -24,21 +24,17 @@ public class LootThrowTest
 		Vector3 landing = pickup.GlobalPosition;
 
 		// Mid-flight, landing right on the player: the pickup waits where it lands while its model is still in the air.
-		await runner.SimulateFrames(10, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
 		AssertBool(pickup.IsCollected).IsFalse();
 		AssertVector(pickup.GlobalPosition).IsEqual(landing);
 		AssertFloat(pickup.Pivot.Position.X).IsGreater(0.2f);
 
 		// Landed and resting: still shown, not yet pulled.
-		await runner.SimulateFrames(18, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .36f);
 		AssertBool(pickup.IsCollected).IsFalse();
 		AssertFloat(pickup.Pivot.Position.X).IsEqualApprox(0f, 0.01f);
 
-		for (int i = 0; i < 40 && !pickup.IsCollected; i++)
-		{
-			await runner.SimulateFrames(5, 20);
-		}
-		AssertBool(pickup.IsCollected).IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => pickup.IsCollected, 4);
 	}
 
 	[TestCase]
@@ -56,7 +52,7 @@ public class LootThrowTest
 			{
 				map.Seed = seed;
 				map.GenerateMap(includeGameplay: true);
-				await runner.SimulateFrames(3, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 3);
 				foreach (Chest chest in map.FloorContent.GetChildren().OfType<Chest>())
 				{
 					chests++;

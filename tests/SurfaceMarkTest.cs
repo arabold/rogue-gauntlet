@@ -12,10 +12,9 @@ public class SurfaceMarkTest
 	[TestCase]
 	public void WorldOverrideSuspendsFixtureMarksAndKeepsAuthoredHiddenMarksHidden()
 	{
-		var levelScene = TestFactories.Load<PackedScene>("res://scenes/levels/level.tscn");
+		var levelScene = TestFactories.Load<PackedScene>(TestFactories.LevelScenePath);
 		var markScene = TestFactories.Load<PackedScene>("res://scenes/effects/surface_marks/wet_mark.tscn");
 		var level = levelScene.Instantiate<Level>();
-		level.AutoGenerateOnReady = false;
 		level.Lighting.DisabledEffects = EnvironmentalEffect.SurfaceMarks;
 		var mark = markScene.Instantiate<SurfaceMark>();
 		var hidden = markScene.Instantiate<SurfaceMark>();

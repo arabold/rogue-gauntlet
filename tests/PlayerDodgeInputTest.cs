@@ -110,7 +110,8 @@ public class PlayerDodgeInputTest
 			ParseKey(directionKey, pressed: true);
 			ParseKey(Key.Space, pressed: true);
 			Input.FlushBufferedEvents();
-			await runner.SimulateFrames(1, 16);
+			// The controller reads the keys on its next physics step, which runs after the tick's signal.
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 			Vector3 expectedDirection = player.InputComponent.InputDirection.Normalized();
 			AssertBool(expectedDirection.LengthSquared() > 0.9f).IsTrue();
@@ -123,7 +124,7 @@ public class PlayerDodgeInputTest
 			ParseKey(directionKey, pressed: false);
 			ParseKey(Key.Space, pressed: false);
 			Input.FlushBufferedEvents();
-			await runner.SimulateFrames(2, 16);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 		}
 	}
 

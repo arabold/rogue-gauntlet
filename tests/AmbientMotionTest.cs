@@ -12,10 +12,9 @@ public class AmbientMotionTest
 	[TestCase]
 	public void WorldWindOverrideRestoresStaticSurfacesAndStopsBothClocks()
 	{
-		var scene = TestFactories.Load<PackedScene>("res://scenes/levels/level.tscn");
+		var scene = TestFactories.Load<PackedScene>(TestFactories.LevelScenePath);
 		var template = TestFactories.Load<ShaderMaterial>("res://scenes/effects/ambient_motion/ambient_motion.tres");
 		var level = scene.Instantiate<Level>();
-		level.AutoGenerateOnReady = false;
 		level.Lighting.DisabledEffects = EnvironmentalEffect.Wind;
 		var original = new StandardMaterial3D();
 		var target = new MeshInstance3D { Mesh = new BoxMesh { Material = original } };

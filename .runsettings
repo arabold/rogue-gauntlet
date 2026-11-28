@@ -3,8 +3,8 @@
   <RunConfiguration>
     <!-- GdUnit4 hosts tests in a single Godot instance; parallel hosts are unsupported. -->
     <MaxCpuCount>1</MaxCpuCount>
-    <!-- The whole suite takes about 13 to 15 minutes on a warm cache (over 800 tests including the
-         generation sweeps and the navigation/traversal suites), so a 900s session aborted runs partway
+    <!-- The whole suite takes about 8 to 10 minutes on a warm cache (under 800 tests including the
+         generation sweeps and the navigation/traversal suites); a 900s session once aborted runs partway
          through. Keep generous headroom; a hung test still stops the run, just later. -->
     <TestSessionTimeout>1500000</TestSessionTimeout>
     <EnvironmentVariables>
@@ -20,8 +20,10 @@
   </RunConfiguration>
   <GdUnit4>
     <!-- Extra Godot CLI args. Headless keeps the engine window from opening and stealing focus;
-         remove it to watch a run or to debug rendering-dependent behavior. -->
-    <Parameters>--headless</Parameters>
+         remove it to watch a run or to debug rendering-dependent behavior. Fixed fps runs simulated
+         time: every frame advances exactly 1/60 s with one physics tick, as fast as the machine allows,
+         so tests must wait in game time (TestFactories.AwaitPhysics*), never on the wall clock. -->
+    <Parameters>--headless --fixed-fps 60</Parameters>
     <DisplayName>FullyQualifiedName</DisplayName>
     <CaptureStdOut>true</CaptureStdOut>
     <!-- Booting a full Godot instance is slow on a cold import cache; keep these generous. -->

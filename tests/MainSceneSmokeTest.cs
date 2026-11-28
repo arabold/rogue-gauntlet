@@ -18,7 +18,7 @@ public class MainSceneSmokeTest
 	public async Task MainSceneSpawnsThePlayerAndCameraZoomClampsWhileRotating()
 	{
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(10, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
 		var main = (Main)runner.Scene();
 		var player = (Node3D)main.GetTree().GetFirstNodeInGroup("player");
 		AssertObject(player).OverrideFailureMessage("Generation spawned no player").IsNotNull();
@@ -50,7 +50,7 @@ public class MainSceneSmokeTest
 			Input.ActionRelease("camera_zoom_out");
 			AssertBool((pcam.GlobalPosition - player.GlobalPosition).Normalized().IsEqualApprox(pcam.GlobalBasis.Z)).IsTrue();
 			rig.SetProcess(true);
-			await runner.SimulateFrames(3, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 3);
 			AssertFloat(camera.Size).IsEqualApprox(32f, 0.001f);
 		}
 		finally

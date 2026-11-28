@@ -432,7 +432,7 @@ public partial class EnemyDefenseTest
 		var monster = TestFactories.SpawnHarnessMonster(harness, TestFactories.WarriorScene, 9f);
 		monster.DefenseController.SetPhysicsProcess(false); // keep the guard raised for the whole approach
 		harness.ExecuteCommand("automation", "", 1);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		float Distance() => monster.GlobalPosition.HorizontalDistanceTo(hero.GlobalPosition);
 		AssertObject(monster.GuardComponent.TryBeginGuard(hero.GlobalPosition - monster.GlobalPosition)).IsEqual(DefenseRequestResult.Success);
 		float start = Distance();

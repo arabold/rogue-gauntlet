@@ -16,10 +16,8 @@ public class ItemLifecycleIntegrationTest
 	public async Task PickupUseDropAndFloorReconstructionConserveItems()
 	{
 		using ISceneRunner runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(10, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
 		var level = runner.Scene().GetNode<Level>("Level");
-		level.MapGenerator.MinChests = 1;
-		level.Generate();
 		Player player = runner.Scene().GetTree().GetNodesInGroup("player").OfType<Player>().First();
 		var inventory = player.Inventory;
 		var controller = player.InventoryController;
@@ -43,10 +41,7 @@ public class ItemLifecycleIntegrationTest
 		int consumed = 0;
 		inventory.ItemConsumed += _ => consumed++;
 		AssertBool(controller.TryUse(carried).Success).IsTrue();
-		for (int i = 0; i < 40 && consumed == 0; i++)
-		{
-			await runner.SimulateFrames(5, 20);
-		}
+		await TestFactories.AwaitPhysicsUntil(runner, () => consumed > 0, 4);
 		AssertInt(carried.Quantity).IsEqual(1);
 		AssertInt(consumed).IsEqual(1);
 		AssertBool(controller.TryDrop(carried, 1).Success).IsTrue();
@@ -62,10 +57,7 @@ public class ItemLifecycleIntegrationTest
 		bool callbackWasGuarded = false;
 		inventory.ItemConsumed += _ => callbackWasGuarded = !controller.TryUse(foodSlot).Success;
 		AssertBool(controller.TryUse(foodSlot).Success).IsTrue();
-		for (int i = 0; i < 40 && !callbackWasGuarded; i++)
-		{
-			await runner.SimulateFrames(5, 20);
-		}
+		await TestFactories.AwaitPhysicsUntil(runner, () => callbackWasGuarded, 4);
 		AssertBool(callbackWasGuarded).IsTrue();
 		AssertInt(player.BuffController.ActiveBuffs.Count(b => b.Buff is PoisonBuff)).IsEqual(1);
 		AssertBool(player.BuffController.HasCondition(TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/poisoned.tres"))).IsTrue();
@@ -107,6 +99,6 @@ public class ItemLifecycleIntegrationTest
 		AssertInt(ground[0].Quantity).IsEqual(1);
 		restoredChest.GetNode<LootTableComponent>("LootTableComponent").DropLoot();
 		AssertString(JsonSerializer.Serialize(level.ItemPersistence.Capture())).IsEqual(JsonSerializer.Serialize(restored));
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 	}
 }

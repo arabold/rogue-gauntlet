@@ -45,7 +45,7 @@ public class CorridorDecorationTest
 						if (item >= 0 && generator.WallGridMap.MeshLibrary.GetItemName(item) == "wall_mossy_A") found++;
 					}
 				}
-				await runner.SimulateFrames(1, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 1);
 			}
 			AssertInt(found).IsGreater(0);
 		}
@@ -81,22 +81,21 @@ public class CorridorDecorationTest
 				string current = string.Join("|", root.GetChildren().OfType<Node3D>().Select(node => $"{node.Name}:{node.Transform}"));
 				if (signature != null) AssertString(current).IsEqual(signature);
 				signature = current;
-				await runner.SimulateFrames(1, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 1);
 			}
 		}
 	}
 
 	/// <summary>
 	/// Each depth is covered by exactly one realm, and one ordinary floor per look builds from its theme's rooms and its
-	/// realm's corridor tiles into a connected floor whose corridors carry lights and decor, face their walls inward and
-	/// replay identically.
+	/// realm's corridor tiles into a connected floor whose corridors carry lights and decor and face their walls inward.
+	/// Replaying corridor props is <see cref="CorridorLightingUsesItsOwnSeededPolicy"/>'s.
 	/// </summary>
 	[TestCase]
-	public async Task EachRealmBuildsItsOwnConnectedFloorWithDeterministicInwardCorridors()
+	public async Task EachRealmBuildsItsOwnConnectedFloorWithInwardCorridors()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/levels/level.tscn");
-		await runner.SimulateFrames(2, 20);
-		var level = (Level)runner.Scene();
+		var (runner, level) = await TestFactories.LoadLevelScene();
+		using var scope = runner;
 		var generator = level.MapGenerator;
 		for (uint depth = 1; depth <= 25; depth++)
 			AssertInt(generator.Realms.Count(realm => realm.Covers(depth))).OverrideFailureMessage($"depth {depth}: realms").IsEqual(1);
@@ -123,25 +122,7 @@ public class CorridorDecorationTest
 
 			AssertInwardCorridorWalls(generator, depth);
 
-			var firstSnapshot = children.Select(node => (node.Name.ToString(), node.GlobalTransform)).ToArray();
-
-			// Regenerating with the same seed and depth must produce the exact same corridor props and transforms.
-			level.ConfigureGeneration(new RunState(77), depth, null, null);
-			level.Generate();
-			var secondRoot = generator.GetNodeOrNull<Node3D>("CorridorProps");
-			var secondSnapshot = secondRoot.GetChildren().OfType<Node3D>()
-				.Select(node => (node.Name.ToString(), node.GlobalTransform))
-				.ToArray();
-			AssertInt(secondSnapshot.Length).IsEqual(firstSnapshot.Length);
-			for (int i = 0; i < firstSnapshot.Length; i++)
-			{
-				AssertString(secondSnapshot[i].Item1).IsEqual(firstSnapshot[i].Item1);
-				AssertBool(secondSnapshot[i].GlobalTransform.IsEqualApprox(firstSnapshot[i].GlobalTransform))
-					.OverrideFailureMessage($"depth {depth}: prop {firstSnapshot[i].Item1} transform differed on deterministic replay")
-					.IsTrue();
-			}
-
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 	}
 

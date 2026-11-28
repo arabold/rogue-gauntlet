@@ -26,7 +26,6 @@ public partial class LootSupplyProbe : Node
 		int samples = int.Parse(args.GetValueOrDefault("supply-samples", "40"));
 
 		var level = LevelScene.Instantiate<Level>();
-		level.AutoGenerateOnReady = false;
 		AddChild(level);
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 

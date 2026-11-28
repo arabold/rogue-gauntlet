@@ -43,7 +43,7 @@ public partial class MonsterActionTest
 		rat.DeathComponent.RewardsEnabled = false;
 		rat.MovementComponent.FaceDirection(player.GlobalPosition - rat.GlobalPosition);
 		rat.EnemyBehaviorComponent.SetTarget(player);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(rat.DefinitionValid).OverrideFailureMessage("the configured rat must pass monster validation").IsTrue();
 		return (harness, rat);
 	}
@@ -95,7 +95,7 @@ public partial class MonsterActionTest
 		AssertBool(behavior.TryAttack()).IsTrue();
 		AssertObject(behavior.RunningAction.Action).IsSame(heavy);
 		await TestFactories.AwaitPhysicsUntil(runner, () => behavior.RunningAction == null, 3);
-		await runner.SimulateFrames(15, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .3f);
 		AssertBool(behavior.TryAttack()).IsTrue();
 		AssertObject(behavior.RunningAction.Action).IsSame(bite);
 		AssertFloat(behavior.Actions.CooldownRemaining(heavy)).IsGreater(25);
@@ -126,7 +126,7 @@ public partial class MonsterActionTest
 		AssertInt(signals).IsEqual(1);
 		health.SetHealth(health.MaxHealth * 0.9f, health.MaxHealth);
 		AssertInt(phases.CurrentPhase).IsEqual(2);
-		await runner.SimulateFrames(15, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .3f);
 		AssertBool(rat.EnemyBehaviorComponent.TryAttack()).IsTrue();
 	}
 
@@ -141,7 +141,7 @@ public partial class MonsterActionTest
 		AssertObject(result).IsEqual(ActorActionRequestResult.Success);
 		AssertBool(rat.ActionGate.IsBusy).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => !rat.DashComponent.IsRunning(execution), 2);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		Vector3 travelled = rat.GlobalPosition - start;
 		AssertFloat(travelled.X).IsEqualApprox(2.5f, 0.2f);
 		AssertFloat(Mathf.Abs(travelled.Z)).IsLess(0.1f);

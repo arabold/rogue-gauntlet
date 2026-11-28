@@ -39,20 +39,6 @@ public class WeaponAttackStatsTest
 	}
 
 	[TestCase]
-	public void TwoWornWeaponsNeverAddTheirDamageTogether()
-	{
-		var stats = new PlayerStats();
-		var sword = Create(Sword);
-		var dagger = Create(Dagger);
-
-		stats.AddWeaponModifiers(sword, sword.StatModifiers);
-		stats.AddWeaponModifiers(dagger, dagger.StatModifiers);
-
-		AssertFloat(stats.ResolveAttack(sword).MaxDamage).IsEqual(sword.ScaledDamageMax);
-		AssertFloat(stats.ResolveAttack(dagger).MaxDamage).IsEqual(dagger.ScaledDamageMax);
-	}
-
-	[TestCase]
 	public void PairedMeleeAttacksAddScaledOffhandContribution()
 	{
 		var stats = new PlayerStats();

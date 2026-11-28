@@ -47,26 +47,16 @@ public class CombatAnimationHandoffTest
 		}
 	}
 
-	private const string Player = "player";
-
 	private static AnimationTree Tree(Node actor) => actor.GetNode<AnimationTree>(actor is global::Player ? "AnimationTree" : "EnemyBehaviorComponent/AnimationTree");
 
-	/// <summary>The harness player, or a harness monster standing in its idle pose.</summary>
-	private static async Task<CharacterBody3D> IdleActor(ISceneRunner runner, string actor)
+	private static AnimationNodeStateMachinePlayback Playback(Node actor) => (AnimationNodeStateMachinePlayback)Tree(actor).Get("parameters/playback");
+
+	/// <summary>Skips the monsters' spawn clip, a 3.5-second rise from the ground: these tests start from idling monsters.</summary>
+	private static async Task SkipSpawnClip(ISceneRunner runner, params EnemyBase[] monsters)
 	{
-		var harness = await TestFactories.SettleCombatHarness(runner);
-		if (actor == Player)
-		{
-			await runner.SimulateFrames(20, 20);
-			return harness.Player;
-		}
-		var monster = TestFactories.SpawnHarnessMonster(harness, actor);
-		// Skip the spawn clip, a 3.5-second rise from the ground: these tests start from an idling monster.
-		var playback = (AnimationNodeStateMachinePlayback)Tree(monster).Get("parameters/playback");
-		playback.Start("Idle");
-		await TestFactories.AwaitPhysicsUntil(runner, () => playback.GetCurrentNode() == "Idle", 1);
-		await runner.SimulateFrames(5, 20);
-		return monster;
+		foreach (var monster in monsters) Playback(monster).Start("Idle");
+		await TestFactories.AwaitPhysicsUntil(runner, () => monsters.All(monster => Playback(monster).GetCurrentNode() == "Idle"), 1);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 	}
 
 	/// <summary>A push lasting about 1.2 seconds: it slows to rest at <see cref="MovementComponent.PushDeceleration"/>.</summary>
@@ -87,10 +77,10 @@ public class CombatAnimationHandoffTest
 		var harness = await TestFactories.SettleCombatHarness(runner);
 		var player = harness.Player;
 		var pose = player.GetNode<CombatAnimationComponent>("CombatAnimationComponent");
-		await runner.SimulateFrames(10, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
 		async Task Perform(string action, Func<bool> request)
 		{
-			await runner.SimulateFrames(10, 20); // Let the tree settle into Idle before logging.
+			await TestFactories.AwaitPhysicsSeconds(runner, .2f); // Let the tree settle into Idle before logging.
 			using var log = new TreeLog(Tree(player));
 			AssertBool(request()).OverrideFailureMessage($"{action} was not accepted.").IsTrue();
 			bool posed = false;
@@ -101,7 +91,7 @@ public class CombatAnimationHandoffTest
 				treeActionId ??= player.CurrentActionId;
 				return !player.IsPerformingAction;
 			}, 3);
-			await runner.SimulateFrames(10, 20);
+			await TestFactories.AwaitPhysicsSeconds(runner, .2f);
 
 			AssertBool(posed).OverrideFailureMessage($"The {action} never posed through the combat component.").IsTrue();
 			AssertString(treeActionId).OverrideFailureMessage(action).IsNull();
@@ -118,39 +108,61 @@ public class CombatAnimationHandoffTest
 
 	/// <summary>
 	/// A knockback plays one hit reaction however long it lasts. A poise break staggers, then pushes, as a hurtbox reacts:
-	/// the stagger pose owns the knockback it overlaps, so the tree never shows the reaction under it.
+	/// the stagger pose owns the knockback it overlaps, so the tree never shows the reaction under it. The player, a
+	/// minion and the Warden are staged side by side in one arena and pushed together.
 	/// </summary>
-	[TestCase(Player)]
-	[TestCase(TestFactories.MinionScene)]
-	[TestCase(TestFactories.WardenScene)]
-	public async Task KnockbackPlaysOneHitReactionAndAStaggerPoseOwnsTheKnockbackItOverlaps(string actor)
+	[TestCase]
+	public async Task KnockbackPlaysOneHitReactionAndAStaggerPoseOwnsTheKnockbackItOverlaps()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
-		var body = await IdleActor(runner, actor);
-		var tree = Tree(body);
-		var clip = tree.GetNode<AnimationPlayer>(tree.AnimPlayer).GetAnimation("Hit_A");
-		using (var log = new TreeLog(tree))
+		var harness = await TestFactories.SettleCombatHarness(runner);
+		TestFactories.MovePracticeTargetAway(harness);
+		var minion = TestFactories.SpawnCombatMonster(runner.Scene(), harness.Player.Position + new Vector3(0, 0, 6), "Minion", TestFactories.MinionScene);
+		var warden = TestFactories.SpawnCombatMonster(runner.Scene(), harness.Player.Position + new Vector3(0, 0, 14), "Warden", TestFactories.WardenScene);
+		var actors = new List<CharacterBody3D> { harness.Player, minion, warden };
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
+		await SkipSpawnClip(runner, minion, warden);
+		await TestFactories.AwaitPhysicsSeconds(runner, .4f);
+		static string Label(Node actor) => actor is global::Player ? "player" : actor.SceneFilePath;
+
+		var logs = actors.Select(actor => new TreeLog(Tree(actor))).ToArray();
+		var movements = actors.Select(PushLong).ToArray();
+		ulong start = Engine.GetPhysicsFrames();
+		var pushed = new float[actors.Count];
+		await TestFactories.AwaitPhysicsUntil(runner, () =>
 		{
-			var movement = PushLong(body);
-			ulong start = Engine.GetPhysicsFrames();
-			await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
-			AssertFloat((Engine.GetPhysicsFrames() - start) / (float)Engine.PhysicsTicksPerSecond).OverrideFailureMessage("The knockback must outlast the clip.").IsGreater((float)clip.Length);
-			await runner.SimulateFrames(10, 20);
-			AssertInt(log.Starts("Hit")).IsEqual(1);
-			AssertString(log.Current).IsEqual("Idle");
+			for (int i = 0; i < actors.Count; i++)
+				if (pushed[i] == 0 && !movements[i].IsPushed) pushed[i] = (Engine.GetPhysicsFrames() - start) / (float)Engine.PhysicsTicksPerSecond;
+			return pushed.All(seconds => seconds > 0);
+		}, 3);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
+		for (int i = 0; i < actors.Count; i++)
+		{
+			var clip = Tree(actors[i]).GetNode<AnimationPlayer>(Tree(actors[i]).AnimPlayer).GetAnimation("Hit_A");
+			AssertFloat(pushed[i]).OverrideFailureMessage($"{Label(actors[i])}: the knockback must outlast the clip.").IsGreater((float)clip.Length);
+			AssertInt(logs[i].Starts("Hit")).OverrideFailureMessage(Label(actors[i])).IsEqual(1);
+			AssertString(logs[i].Current).OverrideFailureMessage(Label(actors[i])).IsEqual("Idle");
+			logs[i].Dispose();
 		}
 
-		var gate = body.GetNode<ActorActionGateComponent>("ActorActionGateComponent");
-		using (var log = new TreeLog(tree))
+		logs = actors.Select(actor => new TreeLog(Tree(actor))).ToArray();
+		var gates = actors.Select(actor => actor.GetNode<ActorActionGateComponent>("ActorActionGateComponent")).ToArray();
+		for (int i = 0; i < actors.Count; i++)
 		{
-			AssertBool(gate.TryStagger(0.3f)).IsTrue();
-			AssertBool(body.GetNode<CombatAnimationComponent>("CombatAnimationComponent").IsPlaying).OverrideFailureMessage("The stagger must pose.").IsTrue();
-			var movement = PushLong(body);
-			await TestFactories.AwaitPhysicsUntil(runner, () => !gate.IsStaggered, 2);
-			AssertBool(movement.IsPushed).OverrideFailureMessage("The knockback must outlast the stagger.").IsTrue();
-			await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
-			await runner.SimulateFrames(10, 20);
-			AssertArray(log.States).ContainsExactly("Idle");
+			AssertBool(gates[i].TryStagger(0.3f)).OverrideFailureMessage(Label(actors[i])).IsTrue();
+			AssertBool(actors[i].GetNode<CombatAnimationComponent>("CombatAnimationComponent").IsPlaying)
+				.OverrideFailureMessage($"{Label(actors[i])}: the stagger must pose.").IsTrue();
+		}
+		movements = actors.Select(PushLong).ToArray();
+		await TestFactories.AwaitPhysicsUntil(runner, () => gates.All(gate => !gate.IsStaggered), 2);
+		for (int i = 0; i < actors.Count; i++)
+			AssertBool(movements[i].IsPushed).OverrideFailureMessage($"{Label(actors[i])}: the knockback must outlast the stagger.").IsTrue();
+		await TestFactories.AwaitPhysicsUntil(runner, () => movements.All(movement => !movement.IsPushed), 3);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
+		for (int i = 0; i < actors.Count; i++)
+		{
+			AssertArray(logs[i].States).OverrideFailureMessage(Label(actors[i])).ContainsExactly("Idle");
+			logs[i].Dispose();
 		}
 	}
 
@@ -159,12 +171,13 @@ public class CombatAnimationHandoffTest
 	public async Task RatRunsAgainOnceAKnockbackEnds()
 	{
 		using var runner = TestFactories.LoadCombatHarness();
-		var rat = await IdleActor(runner, TestFactories.RatScene);
+		var rat = TestFactories.SpawnHarnessMonster(await TestFactories.SettleCombatHarness(runner), TestFactories.RatScene);
+		await SkipSpawnClip(runner, rat);
 		using var log = new TreeLog(Tree(rat));
 		var movement = PushLong(rat);
 		await TestFactories.AwaitPhysicsUntil(runner, () => !movement.IsPushed, 3);
 		movement.SetInputDirection(Vector3.Left);
-		await runner.SimulateFrames(10, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .2f);
 
 		AssertArray(log.States).Contains("Hit");
 		AssertString(log.Current).IsEqual("Walking");
@@ -183,7 +196,7 @@ public class CombatAnimationHandoffTest
 		skeleton.Position = harness.Player.Position + new Vector3(30, 0, 0);
 		using var log = new TreeLog(Tree(skeleton));
 		runner.Scene().AddChild(skeleton);
-		await runner.SimulateFrames(30, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .6f);
 		AssertString(log.Current).IsEqual("Lie");
 
 		skeleton.EnemyBehaviorComponent.NoticeAttacker(harness.Player);

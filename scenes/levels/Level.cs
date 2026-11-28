@@ -5,7 +5,11 @@ using Godot;
 [Tool]
 public partial class Level : Node, IDebugWorld
 {
-	[Export] public bool AutoGenerateOnReady { get; set; } = true;
+	/// <summary>
+	/// Generates a floor in <c>_Ready</c>. Off by default: the game, harnesses and tests configure the run and depth first
+	/// and call <see cref="Generate"/> themselves, so an automatic floor would only be thrown away.
+	/// </summary>
+	[Export] public bool AutoGenerateOnReady { get; set; }
 
 	[Export] public MapGenerator MapGenerator { get; set; }
 	/// <summary>The floor's illumination and darkness; unassigned, the floor's lights stay as authored.</summary>

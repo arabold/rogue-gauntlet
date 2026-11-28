@@ -15,7 +15,6 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class PlayerTraversalTest
 {
-	private const int FrameMilliseconds = 16;
 	private const float Speed = 7.5f;
 	/// <summary>Distance between the independent copies of a staged scenario, so their bodies never meet.</summary>
 	private const float Spacing = 12;
@@ -26,25 +25,25 @@ public class PlayerTraversalTest
 	private const int FloorRouteExpansions = 100_000;
 
 	/// <summary>
-	/// A Garrison floor a playtest got stuck on (2983949030), the Garrison's gatekeeper floor and a Prison-realm floor (seed
-	/// 11 builds the 40-wide prison plan there). The body climbs the arrival stairs, walks the navigation route to the exit
-	/// landing and descends the exit stairs.
+	/// A Garrison floor a playtest got stuck on (2983949030) and a Prison-realm floor (seed 11 builds the 40-wide prison
+	/// plan there). The body climbs the arrival stairs, walks the navigation route to the exit landing and descends the
+	/// exit stairs. A floor-long walk is costly even in simulated time, so it covers two plans; monsters chase across the
+	/// gatekeeper floor in <see cref="MonsterChaseTest"/>.
 	/// </summary>
 	[TestCase(2983949030ul, 1u)]
-	[TestCase(7ul, 5u)]
 	[TestCase(11ul, 8u)]
 	public async Task PlayerClimbsTheStairsAndWalksFromTheArrivalToTheExit(ulong seed, uint depth)
 	{
 		var (runner, level) = await TestFactories.GenerateLevel(seed, depth);
 		using var scope = runner;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
-		await runner.SimulateFrames(1, FrameMilliseconds);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		var start = level.Floor.Arrival.Landing.GlobalPosition;
 		var exit = level.Floor.Descent.GetParent().GetNode<Node3D>("Landing").GlobalPosition;
 		var (body, movement) = CreatePlayerBody(TestFactories.Load<PackedScene>("res://scenes/player/player.tscn"),
 			TestFactories.Load<PackedScene>("res://scenes/player/stairs_trigger.tscn"), start + Vector3.Up * .1f);
 		level.AddWorldNode(body);
-		await runner.SimulateFrames(2, FrameMilliseconds);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		var up = level.Floor.Arrival.GetParent().GetNode<Node3D>("UpTransitionTrigger").GlobalPosition;
 		AssertBool(await WalkTo(runner, body, movement, up)).OverrideFailureMessage($"Up-stairs: stuck at {body.GlobalPosition}").IsTrue();
@@ -52,22 +51,22 @@ public class PlayerTraversalTest
 		body.Velocity = Vector3.Zero;
 		body.ResetPhysicsInterpolation();
 		movement.ResetTransientMotion();
-		await runner.SimulateFrames(2, FrameMilliseconds);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 		var route = new List<Vector2>();
 		float radius = EnemyBase.HorizontalRadius(body.GetNode<CollisionShape3D>("CollisionShape3D"));
 		AssertBool(level.NavigationFor(NavigationLayer.Ground).TryFindPath(start, exit, radius, route, FloorRouteExpansions))
 			.OverrideFailureMessage("No route fits the player's body.").IsTrue();
 		float length = GridPath.Length(start.Xz(), route);
-		int budget = Mathf.CeilToInt(length / Speed * 1000 / FrameMilliseconds * 1.6f) + 60;
+		int budget = Mathf.CeilToInt(length / Speed * Engine.PhysicsTicksPerSecond * 1.6f) + 60;
 		int index = 0;
-		for (int frame = 0; frame < budget && index < route.Count; frame++)
+		for (int tick = 0; tick < budget && index < route.Count; tick++)
 		{
 			var position = body.GlobalPosition.Xz();
 			if (position.DistanceTo(route[index]) < .4f) { index++; continue; }
 			var heading = route[index] - position;
 			movement.SetInputDirection(new Vector3(heading.X, 0, heading.Y).Normalized());
-			await runner.SimulateFrames(1, FrameMilliseconds);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 		AssertFloat(body.GlobalPosition.HorizontalDistanceTo(exit)).OverrideFailureMessage(
 			$"Stuck at {body.GlobalPosition} on waypoint {index}/{route.Count} toward {exit}").IsLess(1f);
@@ -185,7 +184,7 @@ public class PlayerTraversalTest
 			var to = (target - body.GlobalPosition).Horizontal();
 			if (to.Length() < .7f) return true;
 			movement.SetInputDirection(to.Normalized());
-			await runner.SimulateFrames(1, FrameMilliseconds);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 		return false;
 	}
