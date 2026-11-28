@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "name": "Gargoyle Head",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 4000,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    }
+  },
+  "concept": "A fire trap mounted on a dungeon wall at a hero's chest height: a chunky stone gargoyle head bursting out of a square stone plaque, both in the same pale grey stone as the dungeon floor tiles. The plaque is a plain thick slab a little taller than wide with one broad clean chamfer. The head is big and blocky, about as wide as the barrel's lid, pushing forward from the plaque: a heavy brow ridge over two deep carved eye sockets, a broad blunt snout with two nostril holes, two short thick horns curling back from the brow, small pointed ears, and a wide open mouth gaping straight ahead as a real deep dark hole, framed by four stubby fangs. Broad planar facets and softly bevelled edges, no chips, no cracks, no moss. Friendly-menacing and chunky like the pack's own art, readable from the game's raised camera as something that spits fire.",
+  "design": {
+    "kind": "gargoyle_head"
+  },
+  "export": {
+    "glb": "res://assets/custom-props/traps/gargoyle_head.glb"
+  },
+  "reference": "reference.png",
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Fire trap wall mount at KayKit dungeon scale: a horned gargoyle head on a 0.7 x 0.8 m plaque, 0.2 m thick, all in stone_light, its open mouth around the trap scene's glow (1.01 m high, 0.63 m out). Keeps the placeholder's measured bounds, so rooms hang it where they did and the muzzle stays put. No gameplay data."
+  }
+}

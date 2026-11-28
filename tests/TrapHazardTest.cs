@@ -41,17 +41,6 @@ public partial class TrapHazardTest
 	}
 
 	[TestCase]
-	public async Task ADartHitsTheHeroInItsLaneOncePerShot()
-	{
-		var (runner, harness, _, spouts) = await Stage<WallSpout>(DartSlit);
-		using var scope = runner;
-		TestFactories.PlaceAt(harness.Player, Lane(spouts[0], 3.5f));
-		var outcomes = TestFactories.RecordOutcomes(harness.Player);
-		await AwaitShotResolved(runner, spouts[0], 2);
-		AssertInt(outcomes.Count(outcome => outcome == DamageOutcome.Damaged)).IsEqual(2);
-	}
-
-	[TestCase]
 	public async Task DodgingIntoADartPassesThroughIt()
 	{
 		var (runner, harness, _, spouts) = await Stage<WallSpout>(DartSlit);
@@ -114,12 +103,17 @@ public partial class TrapHazardTest
 		AssertBool(warned).IsTrue();
 	}
 
-	/// <summary>A wave sweeps along the gauntlet: each row fires a quarter beat after the row before it.</summary>
+	/// <summary>
+	/// A wave sweeps along the gauntlet: each row fires a quarter beat after the row before it, and a dart hits a hero
+	/// standing in its lane once per shot.
+	/// </summary>
 	[TestCase]
-	public async Task AWaveFiresEachRowAQuarterBeatAfterTheRowBefore()
+	public async Task AWaveFiresEachRowAQuarterBeatAfterTheRowBeforeAndEachDartHitsOnce()
 	{
-		var (runner, _, gauntlet, spouts) = await Stage<WallSpout>(DartSlit, HazardPattern.Wave, rows: 3);
+		var (runner, harness, gauntlet, spouts) = await Stage<WallSpout>(DartSlit, HazardPattern.Wave, rows: 3);
 		using var scope = runner;
+		TestFactories.PlaceAt(harness.Player, Lane(spouts[0], 3.5f));
+		var outcomes = TestFactories.RecordOutcomes(harness.Player);
 		var firstShot = new Dictionary<WallSpout, double>();
 		foreach (var spout in spouts) spout.Fired += _ => firstShot.TryAdd(spout, gauntlet.Clock);
 		await TestFactories.AwaitPhysicsUntil(runner, () => firstShot.Count == spouts.Length, 3);
@@ -128,6 +122,8 @@ public partial class TrapHazardTest
 			double lag = Mathf.PosMod(firstShot[after] - firstShot[before], after.Period);
 			AssertFloat((float)lag).IsEqualApprox(after.Period / 4, .05f);
 		}
+		await AwaitShotResolved(runner, spouts[0], 2);
+		AssertInt(outcomes.Count(outcome => outcome == DamageOutcome.Damaged)).IsEqual(2);
 	}
 
 	/// <summary>

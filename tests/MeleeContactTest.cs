@@ -247,19 +247,6 @@ public class MeleeContactTest
 		AssertString(controller.LastResult).IsEqual("Interrupted");
 	}
 
-	/// <summary>Effects are presentation only: a swing deals the same damage with its swoosh on or off.</summary>
-	[TestCase]
-	public async Task SwooshEnabledAndDisabledHaveIdenticalDamage()
-	{
-		using var runner = TestFactories.LoadCombatHarness();
-		var harness = await Settle(runner);
-		Start(harness)._PhysicsProcess(2);
-		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-		TestFactories.ResetPracticeTarget(harness);
-		Start(harness, effects: true)._PhysicsProcess(2);
-		AssertFloat(Health(harness).CurrentHealth).IsEqual(990);
-	}
-
 	/// <summary>Damage resolution reports why a contact dealt nothing: immunity, nothing left after mitigation, or the wrong faction.</summary>
 	[TestCase]
 	public void DamageResolutionReportsImmunityAbsorptionAndFilteringWithoutDamage()

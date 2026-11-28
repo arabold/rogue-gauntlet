@@ -222,7 +222,7 @@ public class WorldEffectLifecycleTest
 	public async Task HealingTicksDoNotReplayTheActivation()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn");
-		await runner.SimulateFrames(2, 20); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
+		await TestFactories.AwaitPhysicsFrames(runner, 2); var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects();
 		var player = preview.Stage.GetChildren().OfType<Player>().Single();
 		var potion = ItemFactory.CopyDefinition(TestFactories.Load<ConsumableItem>("res://scenes/items/potions/potion_healing_small.tres"));
 		potion.Set("PerformDuration", 0f); player.Inventory.TryAdd(potion, 1);

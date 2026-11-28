@@ -23,7 +23,7 @@ public class MimicAmbushTest
 		using var cleanup = runner;
 		var player = harness.Player;
 		Vector3 start = mimic.GlobalPosition;
-		await runner.SimulateFrames(30, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .6f);
 		AssertBool(mimic.IsConcealed).IsTrue();
 		AssertBool(mimic.Nameplate.IsShown || mimic.Xray.IsShown).IsFalse();
 		AssertFloat(mimic.GlobalPosition.HorizontalDistanceTo(start)).IsLess(0.05f);
@@ -43,7 +43,9 @@ public class MimicAmbushTest
 	{
 		var (runner, _, mimic) = await TestFactories.StageHarnessMonster(Mimic, 1.4f);
 		using var cleanup = runner;
-		await runner.SimulateFrames(40, 20);
+		// A shorter wait than the authored one runs the same lingering countdown.
+		mimic.AmbushComponent.WakeDelay = .6f;
+		await TestFactories.AwaitPhysicsSeconds(runner, .3f);
 		AssertBool(mimic.AmbushComponent.IsAwake).IsFalse();
 		await TestFactories.AwaitPhysicsUntil(runner, () => mimic.AmbushComponent.IsAwake, mimic.AmbushComponent.WakeDelay + 1);
 	}
@@ -63,6 +65,6 @@ public class MimicAmbushTest
 		// Locked and secret rooms' reward chests are never mimics: a key or a found secret always pays.
 		AssertInt(level.MapGenerator.FloorContent.FindChildren("*", "", true, false).OfType<Chest>()
 			.Count(chest => chest.SceneFilePath == "res://scenes/props/chest.tscn")).IsEqual(0);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 	}
 }

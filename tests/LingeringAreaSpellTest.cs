@@ -17,7 +17,7 @@ public partial class LingeringAreaSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2.6f, 0, 0), "Target");
-		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(target);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); TestFactories.PrepareCombatMonster(target);
 		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, name);
 		bool canceled = false;
 		target.BuffController.BuffsChanged += () => { if (target.Slowed || target.Burning) { canceled = true; spell.Cancel(); } };
@@ -35,7 +35,7 @@ public partial class LingeringAreaSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Target");
-		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(target);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); TestFactories.PrepareCombatMonster(target);
 		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Hailstorm");
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
 		await TestFactories.AwaitPhysicsUntil(runner, () => target.Slowed);
@@ -55,7 +55,7 @@ public partial class LingeringAreaSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Target");
-		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(target);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); TestFactories.PrepareCombatMonster(target);
 		target.HurtBoxComponent.Armor = 100;
 		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Hailstorm");
 		float shard = TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]);
@@ -74,11 +74,11 @@ public partial class LingeringAreaSpellTest
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var inside = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(1.5f, 0, 0), "Inside");
 		var outside = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(5, 0, 0), "Outside");
-		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(inside); TestFactories.PrepareCombatMonster(outside);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); TestFactories.PrepareCombatMonster(inside); TestFactories.PrepareCombatMonster(outside);
 		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Ice Wall");
 		float hit = TestFactories.SpellAmount(spell.Definition.DamageScaleByLevel[0]);
 		Vector3 cast = harness.Player.GlobalPosition;
-		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue(); await runner.SimulateFrames(2, 20);
+		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue(); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		// The ring takes hold once its crystals have risen, not at release.
 		AssertFloat(inside.HealthComponent.CurrentHealth).IsEqual(50);
 		await TestFactories.AwaitAreaContact(runner, spell.VisualScene, spell.Definition.RadiusByLevel[0]);
@@ -101,7 +101,7 @@ public partial class LingeringAreaSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2, 0, 0), "Target");
-		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(target);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); TestFactories.PrepareCombatMonster(target);
 		var burn = new BurningContact(); runner.Scene().AddChild(burn); burn.SetPhysicsProcess(false);
 		var condition = TestFactories.Load<StatusCondition>("res://scenes/buffs/conditions/burning.tres");
 		// One-second burn ticking every half second: ticks fall at 0.5s and exactly at expiry.
@@ -117,7 +117,7 @@ public partial class LingeringAreaSpellTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner, 5);
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), new Vector3(2.6f, 0, 0), "Target");
-		await runner.SimulateFrames(2, 20); TestFactories.PrepareCombatMonster(target);
+		await TestFactories.AwaitPhysicsFrames(runner, 2); TestFactories.PrepareCombatMonster(target);
 		var spell = TestFactories.GetSpell<LingeringAreaSpell>(harness, "Fire Serpent");
 		AssertBool(TestFactories.CastSpell(harness, spell.DisplayName, 1)).IsTrue();
 		// The flare's touch ignites the target, and the burn then ticks on top of it.

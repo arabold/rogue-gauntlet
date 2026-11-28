@@ -55,7 +55,7 @@ public class DebugToolkitTest
 	public async Task ASpawnedMonsterPlaysLikeARegularMonsterAndClearsNothingWhenKilled()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 		var scene = runner.Scene();
 		var level = scene.GetNode<Level>("Level");
 		var player = scene.GetTree().GetNodesInGroup("player").OfType<Player>().Single();
@@ -74,7 +74,7 @@ public class DebugToolkitTest
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
 		// The floor's own monsters would join the chase.
 		foreach (var enemy in level.FindChildren("*", "", true, false).OfType<EnemyBase>()) enemy.QueueFree();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		var cleared = level.Run.CaptureClearedIds();
 		var tool = TestFactories.Tool<MonsterTool>(scene);
 
@@ -183,7 +183,7 @@ public class DebugToolkitTest
 		pickup.GlobalPosition = harness.Player.GlobalPosition + Vector3.Right * 2;
 		Vector3 resting = pickup.GlobalPosition;
 
-		await runner.SimulateFrames(20, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .4f);
 		AssertBool(pickup.IsCollected).IsFalse();
 		AssertVector(pickup.GlobalPosition).IsEqual(resting);
 

@@ -63,6 +63,8 @@ SCHEMA = {
                                    "potion_size": {"enum": ["small", "medium", "large"]},
                                    "carve": {"enum": ["cheese_holes"]}}},
         "topology": {"enum": ["closed_assembly", "closed_surface", "authored_assembly"]},
+        # World props: the heights their shading ramp spans (the model's own by default), shared by parts exported apart.
+        "height_range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}},
         "crease": {"type": "number", "minimum": 0, "maximum": 180},
         "concept": {"type": "string"}, "reference": {"type": "string"},
         "source": {"type": "string"}, "blend": {"type": "string"},
@@ -384,7 +386,8 @@ class Item:
                     # World props share the dungeon pack's texture and material instead of the character surface.
                     from items import world_surface
                     world_surface.export(str(raw), self.id, built_piece, crease=data.get("crease", 50),
-                                         slot_crease={slot: spec["crease"] for slot, spec in data.get("materials", {}).items() if "crease" in spec})
+                                         slot_crease={slot: spec["crease"] for slot, spec in data.get("materials", {}).items() if "crease" in spec},
+                                         height_range=data.get("height_range"))
                 else:
                     # Weapon recipes start from the shared weapon palette and list only the slots they change.
                     weapon = data["builder"] in WEAPONS

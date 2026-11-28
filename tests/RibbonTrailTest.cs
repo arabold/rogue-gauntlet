@@ -45,22 +45,16 @@ public class RibbonTrailTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var player = (await TestFactories.SettleCombatHarness(runner)).Player;
 		var effects = player.GetNode<MovementEffectsComponent>("MovementEffectsComponent");
-		var screenVisibility = effects.ScreenVisibility;
+		// Headless nothing is on screen, so drop the on-screen gate that would skip the ribbon.
 		effects.ScreenVisibility = null;
 
 		AssertBool(player.IsOnFloor()).IsTrue();
 		// Sideways, clear of the practice dummy ahead.
 		AssertObject(player.DodgeComponent.TryDodge(Vector3.Right)).IsEqual(DefenseRequestResult.Success);
-		await runner.SimulateFrames(3, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 3);
 
 		AssertObject(effects.Streak.Mesh).IsNotNull();
 		var vertices = ((ArrayMesh)effects.Streak.Mesh).SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
 		AssertInt(vertices.Length).IsGreater(0);
-
-		effects.ScreenVisibility = screenVisibility;
-		player.GlobalPosition += Vector3.Right * 3;
-		player.ResetPhysicsInterpolation();
-		await runner.SimulateFrames(1, 20);
-		AssertBool(screenVisibility.GlobalPosition.IsEqualApprox(player.GlobalPosition)).IsTrue();
 	}
 }

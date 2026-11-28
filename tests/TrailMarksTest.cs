@@ -34,7 +34,7 @@ public class TrailMarksTest
 
 		blob.EnemyBehaviorComponent.AIEnabled = false;
 		blob.MovementComponent.Stop();
-		await runner.SimulateFrames(60, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, 1.2f);
 		AssertInt(Visible()).IsEqual(0);
 	}
 }

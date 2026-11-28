@@ -48,7 +48,7 @@ public partial class HeroShowcaseTest
 		var played = new System.Collections.Generic.List<string>();
 		for (int frame = 0; frame < 300 && (played.Count < 4 || played[^1] != knight.PreviewAnimation); frame++)
 		{
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			string clip = showcase.CurrentClip;
 			if (played.Count == 0 || played[^1] != clip)
 			{

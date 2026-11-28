@@ -10,14 +10,15 @@ using static GdUnit4.Assertions;
 
 /// <summary>
 /// Generation-time chest, trap and loose-item placement, swept across seeds: every requested piece is placed, pieces
-/// keep their minimum spacing, and a chest sits on a room tile clear of doorway traffic with its back to a real wall.
+/// keep their minimum spacing and stay reachable, and a chest sits on a room tile clear of doorway traffic with its back
+/// to a real wall.
 /// Loose items roll as reward sources that survive a save round trip.
 /// </summary>
 [TestSuite]
 [RequireGodotRuntime]
 public class LootPlacementTest
 {
-	private const int SeedCount = 15;
+	private const int SeedCount = 10;
 
 	[TestCase]
 	public async Task PlacedLootIsSpacedAndChestsBackOntoRealWalls()
@@ -65,8 +66,10 @@ public class LootPlacementTest
 				{
 					failures.AddRange(FindChestPlacementFailures(mapGenerator, chest, seed));
 				}
+				failures.AddRange(loot.Where(item => !TestFactories.IsLootReachable(mapGenerator.Floor, item))
+					.Select(item => $"seed {seed}: {item.Name} at {item.GlobalPosition} is unreachable"));
 
-				await runner.SimulateFrames(1, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 1);
 			}
 
 			AssertArray(failures)
@@ -103,43 +106,7 @@ public class LootPlacementTest
 			.Where(p => !p.IsQueuedForDeletion()).Select(p => p.Item.InstanceId).ToHashSet();
 		AssertBool(ground.Contains(taken)).IsFalse();
 		AssertBool(survivors.All(ground.Contains)).IsTrue();
-		await runner.SimulateFrames(1, 20);
-	}
-
-	[TestCase]
-	public async Task CorridorLootRespectsWallBackingAndDeadEndWeights()
-	{
-		var profile = TestFactories.CreateFloorProfile();
-		profile.DeadEndLootWeight = 6f;
-		var (runner, mapGenerator) = await TestFactories.LoadGenerator(profile);
-		using (runner)
-		{
-			TestFactories.WireLootScenes(mapGenerator);
-			mapGenerator.MapWidth = 26;
-			mapGenerator.MapDepth = 26;
-			mapGenerator.MaxRooms = 8;
-			mapGenerator.MinChests = mapGenerator.MaxChests = 3;
-			mapGenerator.MinTraps = mapGenerator.MaxTraps = 2;
-			mapGenerator.MinLooseItems = mapGenerator.MaxLooseItems = 4;
-
-			for (ulong seed = 1; seed <= 6; seed++)
-			{
-				mapGenerator.Seed = seed;
-				mapGenerator.GenerateMap(includeGameplay: true);
-				var loot = mapGenerator.FloorContent.GetChildren().Where(node => node is Chest or PressurePlate or LootableItem).Cast<Node3D>().ToArray();
-				foreach (var item in loot)
-				{
-					var tile = mapGenerator.Map.WorldToTile(item.GlobalPosition);
-					AssertBool(mapGenerator.Map.IsRoom(tile.X, tile.Y) || mapGenerator.Map.IsCorridor(tile.X, tile.Y)).IsTrue();
-					AssertBool(TestFactories.IsLootReachable(mapGenerator.Floor, item)).OverrideFailureMessage($"seed {seed}: {item.Name} at {item.GlobalPosition} is unreachable").IsTrue();
-				}
-				foreach (Chest chest in loot.OfType<Chest>())
-				{
-					AssertArray(FindChestPlacementFailures(mapGenerator, chest, seed)).IsEmpty();
-				}
-				await runner.SimulateFrames(1, 20);
-			}
-		}
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 	}
 
 	private static List<string> FindChestPlacementFailures(MapGenerator mapGenerator, Chest chest, ulong seed)

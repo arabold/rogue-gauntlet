@@ -67,7 +67,8 @@ public partial class GameSession : Node
 	}
 
 	public LevelTravelDirection? PendingTravelDirection { get; private set; }
-	private double _stairArrivalTicks;
+	/// <summary>When the stair-arrival lock lifts, on <see cref="FrameClock"/>; zero when no arrival holds it.</summary>
+	private double _stairUnlockAt;
 	private const double StairArrivalLockSeconds = 1.0;
 
 	private SaveGame _activeSave;
@@ -280,8 +281,7 @@ public partial class GameSession : Node
 			return false;
 		}
 
-		double elapsed = (Time.GetTicksMsec() - _stairArrivalTicks) / 1000.0;
-		if (elapsed < StairArrivalLockSeconds)
+		if (FrameClock.Seconds < _stairUnlockAt)
 		{
 			return false;
 		}
@@ -291,7 +291,7 @@ public partial class GameSession : Node
 
 	public void RegisterStairArrival(Player player)
 	{
-		_stairArrivalTicks = Time.GetTicksMsec();
+		_stairUnlockAt = FrameClock.Seconds + StairArrivalLockSeconds;
 		PendingTravelDirection = null;
 	}
 
@@ -602,7 +602,7 @@ public partial class GameSession : Node
 		_activeSave = null;
 		_pendingLoadedSave = null;
 		_sessionStartedAtMsec = 0;
-		_stairArrivalTicks = 0;
+		_stairUnlockAt = 0;
 		_isSceneTransitioning = false;
 		_saveAfterNextSpawn = false;
 	}

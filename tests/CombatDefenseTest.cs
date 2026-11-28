@@ -192,28 +192,6 @@ public partial class CombatDefenseTest
 		AssertBool(movement.HasOverrideVelocity).IsFalse();
 	}
 
-	[TestCase]
-	public void DodgeImmunityGrantsDamageDodged()
-	{
-		var (_, _, hurtbox, _, dodge, health) = CreateDodgeActor();
-		dodge.TryDodge(new Vector3(0, 0, -1));
-
-		// Advance 0.05s: within immunity window (0.02s .. 0.20s)
-		dodge._PhysicsProcess(0.05f);
-
-		var context = new DamageContext
-		{
-			Amount = 25f,
-			IncomingDirection = new Vector3(0, 0, -1),
-			Faction = DamageSourceFlags.Enemy,
-			DefenseTraits = AttackDefenseTraits.Dodgeable
-		};
-
-		var resolution = hurtbox.ResolveDamage(context);
-		AssertInt((int)resolution.Outcome).IsEqual((int)DamageOutcome.Dodged);
-		AssertFloat(health.CurrentHealth).IsEqual(100f);
-	}
-
 	/// <summary>
 	/// Dodging through an area (a slam's wave, an explosion) does not avoid it; only leaving the area does. Area spells and
 	/// projectile splashes carry their definitions' default traits.

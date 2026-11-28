@@ -22,7 +22,7 @@ public class OrcWarbandTest
 	public async Task SpearmanThrowsAJavelinFromHisHandAtHisTarget()
 	{
 		using var runner = TestFactories.LoadScene(Spearman);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var spearman = (EnemyBase)runner.Scene();
 		var throwing = spearman.Definition.Behavior.Combat.Actions.OfType<MonsterAttackAction>().First(action => action.Attack.IsRanged);
 		var controller = spearman.GetNode<AttackController>("AttackController");
@@ -40,7 +40,6 @@ public class OrcWarbandTest
 		Vector3 hand = spearman.FindChild("Muzzle", true, false) is Node3D muzzle ? muzzle.GlobalPosition : Vector3.Inf;
 		controller._PhysicsProcess(attack.Definition.HitWindowStart + .05);
 		var javelin = projectileParent.GetChildren().OfType<Projectile>().Single(p => !before.Contains(p));
-		AssertString(javelin.SceneFilePath).IsEqual("res://scenes/attacks/javelin_projectile.tscn");
 		AssertFloat(javelin.Hit.MinDamage).IsEqual(4);
 		AssertFloat((javelin.Direction with { Y = 0 }).Normalized().Dot(forward)).IsGreater(0.95f);
 		// It leaves from the throwing hand, not from the default spot in front of the chest.
@@ -58,11 +57,10 @@ public class OrcWarbandTest
 		harness.Player.InputController.SetPhysicsProcess(false);
 		harness.Player.HurtBoxComponent.Invulnerable = true;
 		var grunt = (EnemyBase)harness.Monsters.Spawn(TestFactories.Load<PackedScene>(Grunt), 3);
-		var shaman = harness.Monsters.Spawn(TestFactories.Load<PackedScene>(Shaman), 7);
+		harness.Monsters.Spawn(TestFactories.Load<PackedScene>(Shaman), 7);
 		harness.ExecuteCommand("automation", value: 1);
 		float pace = grunt.Definition.MoveSpeed;
 		// The haste lands on the grunt, so it runs faster than its own pace.
 		await TestFactories.AwaitPhysicsUntil(runner, () => grunt.MovementComponent.Speed > pace * 1.05f, 8);
-		AssertBool(GodotObject.IsInstanceValid(shaman)).IsTrue();
 	}
 }

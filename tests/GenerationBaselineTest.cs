@@ -105,7 +105,7 @@ public class GenerationBaselineTest
 		string first = Fingerprint(generator);
 		AssertInt(generator.EnemySpawnPoints.Count).IsGreater(0);
 		AssertInt(generator.FloorContent.GetChildren().OfType<LootableItem>().Count()).IsGreater(0);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 
 		for (int i = 0; i < 100; i++) { GD.Randi(); }
 		// Creation requests for other sources and unrelated streams must not affect regeneration.
@@ -114,7 +114,7 @@ public class GenerationBaselineTest
 		generator.GenerateMap();
 		AssertString(Fingerprint(generator)).IsEqual(first);
 		AssertBool(GameSession.Instance.Run.LootRollsConsumed == lootCounter).IsTrue();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 	}
 
 	private static string RollReward(LootTable table, string source)

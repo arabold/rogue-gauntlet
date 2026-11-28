@@ -141,9 +141,9 @@ public class ShopTest
 			{
 				// A tap is not a trade: the interaction has to be held.
 				PressE(true);
-				await runner.SimulateFrames(4, 20);
+				await TestFactories.AwaitPhysicsFrames(runner, 4);
 				PressE(false);
-				await runner.SimulateFrames(30, 20);
+				await TestFactories.AwaitPhysicsSeconds(runner, .6f);
 				AssertBool(menu.IsOpen).IsFalse();
 				AssertBool(hud.InteractionContainer.Visible).IsFalse();
 				PressE(true);

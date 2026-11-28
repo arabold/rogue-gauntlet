@@ -15,7 +15,6 @@ using static GdUnit4.Assertions;
 [TestSuite, RequireGodotRuntime]
 public class MonsterChaseTest
 {
-	private const int FrameMilliseconds = 16;
 	private const float MeleeReach = 3.2f;
 	private const int Copies = 2;
 	private static readonly string[] Chasers =
@@ -62,7 +61,7 @@ public class MonsterChaseTest
 		var arrived = new HashSet<EnemyBase>();
 		for (int frame = 0; frame < 1600 && arrived.Count < chases.Count; frame++)
 		{
-			await PhysicsTick(runner);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			foreach (var (monster, target, _) in chases)
 				if (Arrived(monster, target)) arrived.Add(monster);
 		}
@@ -72,12 +71,36 @@ public class MonsterChaseTest
 		AssertArray(missed).OverrideFailureMessage($"Did not arrive: {string.Join("; ", missed)}").IsEmpty();
 	}
 
+	/// <summary>
+	/// On one floor: a rat flees a threat standing beside it and puts real distance between them, then a minion chasing
+	/// a target across a door gives up once every door shuts.
+	/// </summary>
 	[TestCase]
-	public async Task AClosedDoorEndsTheChase()
+	public async Task AFleeingMonsterGetsAwayAndAClosedDoorEndsTheChase()
 	{
 		var (runner, level) = await TestFactories.GenerateLevel(23, 1);
 		using var scope = runner;
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
+		foreach (var p in level.GetTree().GetNodesInGroup("player").OfType<Player>()) p.RemoveFromGroup("player");
+
+		var rng = new RandomNumberGenerator { Seed = 9 };
+		var rat = Spawn(level, TestFactories.Load<PackedScene>(Chasers[0]), rng);
+		var navigation = rat.EnemyBehaviorComponent.Navigation;
+		await Settle(runner);
+		rat.EnemyBehaviorComponent.AIEnabled = false;
+		// The threat stands right next to the rat; fleeing must put real distance between them.
+		AssertBool(navigation.TryFindTraversable(rat.GlobalPosition + Vector3.Right * 2, 2, out var near)).IsTrue();
+		var threat = AddMarker(level, near);
+		float before = rat.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition);
+		for (int frame = 0; frame < 180 && rat.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition) <= before + 6; frame++)
+		{
+			navigation.Flee(threat);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
+		}
+		AssertFloat(rat.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition)).IsGreater(before + 6);
+		rat.QueueFree();
+		threat.QueueFree();
+
 		// Either side of a door that is the only way between them once every door shuts.
 		var minion = Instantiate(TestFactories.Load<PackedScene>(Chasers[1]));
 		Vector3? start = null, goal = null;
@@ -90,10 +113,10 @@ public class MonsterChaseTest
 				|| a.HorizontalDistanceTo(b) <= 4f
 				|| !ground.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>())) continue;
 			foreach (var gate in level.Floor.NavigationGates) gate.IsOpen = false;
-			await PhysicsTick(runner);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			bool separated = !ground.TryFindPath(a, b, minion.BodyRadius, new List<Vector2>());
 			foreach (var gate in level.Floor.NavigationGates) gate.IsOpen = true;
-			await PhysicsTick(runner);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			if (!separated) continue;
 			start = a;
 			goal = b;
@@ -102,41 +125,16 @@ public class MonsterChaseTest
 		AssertBool(start.HasValue).OverrideFailureMessage("No door separates two reachable points on this floor.").IsTrue();
 		minion.Position = start.Value + Vector3.Up * .1f;
 		level.AddWorldNode(minion);
-		foreach (var p in level.GetTree().GetNodesInGroup("player").OfType<Player>()) p.RemoveFromGroup("player");
 		var target = AddMarker(level, goal.Value);
 		// No patrolling through the open door before the chase starts.
 		minion.EnemyBehaviorComponent.AIEnabled = false;
 		await Settle(runner);
 		minion.EnemyBehaviorComponent.SetTarget(target);
 		minion.EnemyBehaviorComponent.AIEnabled = true;
-		await runner.SimulateFrames(5, FrameMilliseconds);
+		await TestFactories.AwaitPhysicsFrames(runner, 4);
 		AssertInt((int)minion.EnemyBehaviorComponent.CurrentBehavior).IsEqual((int)EnemyBehaviorState.Chasing);
 		foreach (var door in level.Floor.NavigationGates) door.IsOpen = false;
-		await runner.SimulateFrames(40, FrameMilliseconds);
-		AssertInt((int)minion.EnemyBehaviorComponent.CurrentBehavior).IsNotEqual((int)EnemyBehaviorState.Chasing);
-	}
-
-	[TestCase]
-	public async Task AFleeingMonsterGetsAway()
-	{
-		var (runner, level) = await TestFactories.GenerateLevel(23, 1);
-		using var scope = runner;
-		foreach (var door in level.Floor.NavigationGates) door.IsOpen = true;
-		var rng = new RandomNumberGenerator { Seed = 9 };
-		var monster = Spawn(level, TestFactories.Load<PackedScene>(Chasers[0]), rng);
-		var navigation = monster.EnemyBehaviorComponent.Navigation;
-		await Settle(runner);
-		monster.EnemyBehaviorComponent.AIEnabled = false;
-		// The threat stands right next to the rat; fleeing must put real distance between them.
-		AssertBool(navigation.TryFindTraversable(monster.GlobalPosition + Vector3.Right * 2, 2, out var near)).IsTrue();
-		var threat = AddMarker(level, near);
-		float before = monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition);
-		for (int frame = 0; frame < 180 && monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition) <= before + 6; frame++)
-		{
-			navigation.Flee(threat);
-			await PhysicsTick(runner);
-		}
-		AssertFloat(monster.GlobalPosition.HorizontalDistanceTo(threat.GlobalPosition)).IsGreater(before + 6);
+		await TestFactories.AwaitPhysicsUntil(runner, () => minion.EnemyBehaviorComponent.CurrentBehavior != EnemyBehaviorState.Chasing, 2);
 	}
 
 	/// <summary>A monster that starts without its spawn and stand-up actions, so its behavior is in control at once.</summary>
@@ -196,17 +194,8 @@ public class MonsterChaseTest
 		return marker;
 	}
 
-	/// <summary>
-	/// One fixed-step physics tick; cheaper than a rendered frame, and monsters move and decide on the physics clock.
-	/// </summary>
-	private static async Task PhysicsTick(ISceneRunner runner)
-	{
-		var tree = runner.Scene().GetTree();
-		await tree.ToSignal(tree, SceneTree.SignalName.PhysicsFrame);
-	}
-
 	/// <summary>Monsters land on the floor; they start without spawn actions, so behavior states are in control.</summary>
-	private static async Task Settle(ISceneRunner runner) => await runner.SimulateFrames(5, FrameMilliseconds);
+	private static Task Settle(ISceneRunner runner) => TestFactories.AwaitPhysicsFrames(runner, 5);
 
 	private static bool Arrived(EnemyBase monster, Node3D target) => monster.GlobalPosition.HorizontalDistanceTo(target.GlobalPosition) <= MeleeReach;
 	private static string Flat(Vector3 point) => $"({point.X:0.0}, {point.Z:0.0})";

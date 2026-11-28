@@ -71,7 +71,7 @@ public class TorchExplorationGateTest
 			foreach (var gate in gates.Where(g => g.GetAncestorOrNull<Room>() == null))
 				TestFactories.RevealTileAt(level.Discovery, level.Floor.Map, gate.GlobalPosition);
 		}
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertArray(gates.Where(g => !g.Target.Visible).Select(g => g.GetPath().ToString()).ToArray()).IsEmpty();
 	}
 }

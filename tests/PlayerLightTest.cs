@@ -13,8 +13,7 @@ public class PlayerLightTest
 	[TestCase(false), TestCase(true)]
 	public async Task TheLightStopsInFrontOfAWallThePlayerFacesAndReturnsInOpenSpace(bool isDark)
 	{
-		var level = TestFactories.Load<PackedScene>("res://scenes/levels/level.tscn").Instantiate<Level>();
-		level.AutoGenerateOnReady = false;
+		var level = TestFactories.Load<PackedScene>(TestFactories.LevelScenePath).Instantiate<Level>();
 		level.Lighting.IsDark = isDark;
 		var player = TestFactories.Load<PackedScene>("res://scenes/player/player.tscn").Instantiate<Player>();
 		level.AddChild(player);

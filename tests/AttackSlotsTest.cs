@@ -22,7 +22,7 @@ public class AttackSlotsTest
 		using var runner = TestFactories.LoadCombatHarness();
 		var harness = await TestFactories.SettleCombatHarness(runner);
 		var minion = TestFactories.SpawnHarnessMonster(harness, TestFactories.MinionScene);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var slots = harness.Player.AttackSlots;
 		var first = Stranger();
 		var second = Stranger();

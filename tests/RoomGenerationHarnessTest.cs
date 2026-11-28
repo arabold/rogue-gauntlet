@@ -16,13 +16,13 @@ public class RoomGenerationHarnessTest
 	public async Task EveryRecipePreviewsAndRoomTypesFurnishThemselves()
 	{
 		using var runner = TestFactories.LoadScene(Scene);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		AssertString(harness.LastError).IsEmpty();
 		for (int index = 0; index < harness.Recipes.Count; index++)
 		{
 			harness.SelectRecipe(index);
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			AssertString(harness.LastError).IsEmpty();
 			if (harness.Recipes[index] is RoomType type)
 			{
@@ -35,7 +35,7 @@ public class RoomGenerationHarnessTest
 		for (int realm = 1; realm < harness.Generator.Realms.Length; realm++)
 		{
 			harness.SelectRealm(realm);
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 			AssertString(harness.LastError).OverrideFailureMessage($"{harness.Realm.Id}: {harness.LastError}").IsEmpty();
 			AssertObject(harness.PreviewRoom.Type).IsSame(harness.Pool.Rooms[0]);
 		}
@@ -49,7 +49,7 @@ public class RoomGenerationHarnessTest
 	public async Task FloorFurnishingAndRotationControlsReachThePreview()
 	{
 		using var runner = TestFactories.LoadScene(Scene);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		int barracks = harness.Recipes.ToList().FindIndex(recipe => recipe is RoomType { Id: "barracks" });
 		harness.SelectRecipe(barracks);
@@ -76,21 +76,21 @@ public class RoomGenerationHarnessTest
 		harness.RotatePreview(3);
 		harness.Regenerate();
 		AssertString(Props(harness.PreviewRoom)).IsEqual(props);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 	}
 
 	[TestCase]
 	public async Task FloorViewUsesProductionFactoryAndCanReturnToAnIndividualRoom()
 	{
 		using var runner = TestFactories.LoadScene(Scene);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var harness = (RoomGenerationHarness)runner.Scene();
 		harness.Mode = RoomPreviewMode.Floor;
 		harness.Seed = 23;
 		// A realm other than the first: the floor view builds the selected realm's rooms and corridors.
 		harness.SelectRealm(1);
 		harness.Regenerate();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertString(harness.LastError).IsEmpty();
 		AssertObject(harness.Generator.CurrentRealm).IsSame(harness.Realm);
 		AssertObject(harness.PreviewRoom).IsNull();
@@ -98,22 +98,21 @@ public class RoomGenerationHarnessTest
 		AssertArray(TestFactories.ConnectivityFailures(harness.Generator).ToArray()).IsEmpty();
 		harness.Mode = RoomPreviewMode.Room;
 		harness.SelectRecipe(0);
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertString(harness.LastError).IsEmpty();
 		AssertBool(harness.PreviewRoot.Visible).IsTrue();
 		AssertBool(harness.Generator.Visible).IsFalse();
 
-		// Switch through every floor profile and verify each floor preview generates and connects cleanly.
+		// Picking another floor profile previews a floor built from it. Every profile's floors are swept for their
+		// contracts in GeneratedFloorSweepTest; here one switch proves the picker reaches the generator.
 		AssertInt(harness.Profiles.Count).IsGreaterEqual(4);
 		harness.Mode = RoomPreviewMode.Floor;
-		for (int p = 0; p < harness.Profiles.Count; p++)
-		{
-			harness.SelectProfile(p);
-			harness.Regenerate();
-			await runner.SimulateFrames(1, 20);
-			AssertString(harness.LastError).OverrideFailureMessage($"profile {harness.Profiles[p].Path}: {harness.LastError}").IsEmpty();
-			AssertArray(TestFactories.ConnectivityFailures(harness.Generator).ToArray()).IsEmpty();
-		}
+		int last = harness.Profiles.Count - 1;
+		harness.SelectProfile(last);
+		harness.Regenerate();
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
+		AssertString(harness.LastError).OverrideFailureMessage($"profile {harness.Profiles[last].Path}: {harness.LastError}").IsEmpty();
+		AssertArray(TestFactories.ConnectivityFailures(harness.Generator).ToArray()).IsEmpty();
 
 		harness.Mode = RoomPreviewMode.Room;
 		int groupIdx = -1;
@@ -128,7 +127,7 @@ public class RoomGenerationHarnessTest
 		AssertInt(groupIdx).IsGreaterEqual(0);
 		harness.SelectRecipe(groupIdx);
 		harness.Regenerate();
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		AssertString(harness.LastError).IsEmpty();
 		AssertObject(harness.PreviewRoom).IsNotNull();
 	}

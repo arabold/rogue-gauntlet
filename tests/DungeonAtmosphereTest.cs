@@ -244,8 +244,7 @@ public class DungeonAtmosphereTest
 
 	private static (Level, GeneratedFloor) CreateFloor()
 	{
-		var level = TestFactories.Load<PackedScene>("res://scenes/levels/level.tscn").Instantiate<Level>();
-		level.AutoGenerateOnReady = false;
+		var level = TestFactories.Load<PackedScene>(TestFactories.LevelScenePath).Instantiate<Level>();
 		TestFactories.AddToSceneTree(level);
 		var map = new MapData(6, 6);
 		map.SetTile(1, 1, MapTile.Room);

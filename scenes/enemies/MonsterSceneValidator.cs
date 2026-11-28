@@ -105,6 +105,13 @@ public static class MonsterSceneValidator
 		Check(barPoise == null || barPoise == poise, "FloatingHealthBar.Poise: show this actor's hurtbox poise or leave it empty.");
 		var barPhases = healthBar != null ? Object<Node>(healthBar, "HealthPhases") : null;
 		Check(barPhases == null || barPhases == phases, "FloatingHealthBar.HealthPhases: bind this actor's phase component or leave it empty.");
+		var nameplate = Object<Node>(actor, "Nameplate");
+		if (nameplate != null)
+		{
+			Check(Local(nameplate) && Object<Node>(nameplate, "Health") == health, "Nameplate: assign this actor's own nameplate and bind its health.");
+			Check(healthBar == null || Object<Node>(healthBar, "ShowWithName") == nameplate,
+				"FloatingHealthBar.ShowWithName: show the bar with this actor's nameplate.");
+		}
 		if (behavior != null)
 		{
 			Check(Object<Node>(behavior, "Actor") == actor && Object<Node>(behavior, "HealthComponent") == health

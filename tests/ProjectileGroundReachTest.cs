@@ -32,7 +32,7 @@ public partial class ProjectileGroundReachTest
 		var table = new StaticBody3D { Position = new Vector3(4, .4f, 0), CollisionLayer = PropsLayer };
 		table.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(1, .8f, 2) } });
 		root.AddChild(table);
-		await runner.SimulateFrames(5, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 		TestFactories.PrepareCombatMonster(reached);
 		TestFactories.PrepareCombatMonster(overflown);
 
