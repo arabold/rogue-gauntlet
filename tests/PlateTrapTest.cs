@@ -7,8 +7,8 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Plate traps (a pressure plate and the wall launcher it sets off) staged in the combat arena through the
-/// debug menu's trap tool, against the real hero.</summary>
+/// <summary>Plate traps (a pressure plate and the wall launcher it sets off) staged in the combat arena, against the real
+/// hero.</summary>
 [TestSuite]
 [RequireGodotRuntime]
 public partial class PlateTrapTest
@@ -22,11 +22,10 @@ public partial class PlateTrapTest
 		string mode = null)
 	{
 		var (runner, harness) = await TestFactories.LoadQuietHarness();
-		var traps = TestFactories.Tool<TrapTool>(runner.Scene());
-		if (mode != null) traps.PlateMode = TestFactories.Load<TriggerMode>(mode);
-		var trap = traps.StageTriggered(TestFactories.Load<TriggeredTrapProfile>(DartPlate));
+		var (plate, launcher) = TrapStaging.PlateTrap(harness, TestFactories.Load<TriggeredTrapProfile>(DartPlate),
+			mode == null ? null : TestFactories.Load<TriggerMode>(mode));
 		await runner.AwaitIdleFrame();
-		return (runner, harness, trap.GetChildren().OfType<PressurePlate>().Single(), trap.GetChildren().OfType<WallLauncher>().Single());
+		return (runner, harness, plate, launcher);
 	}
 
 	/// <summary>Beside the plate, along the hero's path: off it, and out of the launcher's lane.</summary>

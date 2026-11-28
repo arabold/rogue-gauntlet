@@ -11,7 +11,6 @@
 [ext_resource type="Script" path="res://scenes/ui/debug/LevelTool.cs" id="9_level_tool"]
 [ext_resource type="Script" path="res://scenes/ui/debug/PlaytestTool.cs" id="10_playtest_tool"]
 [ext_resource type="Script" path="res://scenes/ui/debug/VisualEffectsTool.cs" id="12_visual_tool"]
-[ext_resource type="Script" path="res://scenes/ui/debug/TrapTool.cs" id="13_trap_tool"]
 [ext_resource type="PackedScene" path="res://scenes/debug/combat/combat_practice_target.tscn" id="10_practice_target"]
 [ext_resource type="Resource" path="res://scenes/items/food/food/food_bread_roll.tres" id="11_fill_item"]
 
@@ -68,7 +67,7 @@ visible = false
 custom_minimum_size = Vector2(0, 32)
 theme_override_constants/separation = 8
 script = ExtResource("1_debug_menu")
-Tools = [NodePath("ItemSpawnTool"), NodePath("SpellCastTool"), NodePath("MonsterTool"), NodePath("TrapTool"), NodePath("HeroTool"), NodePath("CombatDisplayTool"), NodePath("LevelTool"), NodePath("VisualEffectsTool"), NodePath("PlaytestTool")]
+Tools = [NodePath("ItemSpawnTool"), NodePath("SpellCastTool"), NodePath("MonsterTool"), NodePath("HeroTool"), NodePath("CombatDisplayTool"), NodePath("LevelTool"), NodePath("VisualEffectsTool"), NodePath("PlaytestTool")]
 
 [node name="DebugMenuButton" type="MenuButton" parent="."]
 unique_name_in_owner = true
@@ -105,10 +104,6 @@ Spells = ExtResource("3_spells")
 script = ExtResource("6_monster_tool")
 Title = "Monsters"
 PracticeTargetScene = ExtResource("10_practice_target")
-
-[node name="TrapTool" type="Node" parent="."]
-script = ExtResource("13_trap_tool")
-Title = "Traps"
 
 [node name="HeroTool" type="Node" parent="." node_paths=PackedStringArray("Items")]
 script = ExtResource("7_hero_tool")

@@ -136,6 +136,13 @@ floor on an open arena, hosting the same debug menu as the game (see
   Vector3.ZERO)` or the debug tools under `UI/HUD/DebugMenu` (`SpellCastTool.Cast`,
   `LevelTool.SetWalls`, `LevelTool.SetDark`, `MonsterTool.Count`).
 
+Rooms and trap gauntlets play in the room generation harness
+(`scenes/debug/rooms/room_generation_harness.tscn`): the same hero, HUD, debug menu, camera and
+lighting in a `DebugArena`, with one room built by the production assembler and a corridor before
+each doorway. From a script, the `Harness` node's `SelectRealm`, `SelectRecipe` (an index),
+`SelectRoom` (the `RoomType` itself) and `Regenerate` stage a room and put the hero at `Entrance`,
+facing `Inward`; there is no debug tool for staging traps.
+
 ## Visual verification: in-hand items
 
 The floating item catalog auto-frames and auto-rotates, which hides two defects that only show
@@ -168,9 +175,14 @@ headless — the headless renderer produces blank images:
 ```
 
 The optional `depth` (default 1) picks the realm from `level.tscn`'s realm list, so `5` renders a
-Sewer floor and `8` a Jungle one. Single rooms of any realm render through the room generation
-harness (`scenes/debug/rooms/room_generation_harness.tscn`): instance it in a windowed `--script`,
-call `SelectRealm`, `SelectRecipe` and `Regenerate`, hide its `UI` node and save the viewport.
+Sewer floor and `8` a Jungle one. Whole floors of any realm and floor profile also preview in the
+map generation harness (`scenes/debug/maps/map_generation_harness.tscn`). Single rooms of any realm
+render through the room generation harness (`scenes/debug/rooms/room_generation_harness.tscn`):
+instance it in a windowed `--script`, call its `Harness` node's `SelectRealm`, `SelectRecipe` and
+`Regenerate`, set `Overview` for the top-down camera, hide its `Harness` and `UI` nodes and save the
+viewport. A `--script` run lacks the `PhantomCameraManager` singleton, so the game camera never
+follows the hero there: capture the game view from a temporary scene under `scenes/debug/` that
+instances the harness instead.
 
 Then `Read` the resulting PNG to inspect it. Use this whenever a change to room layout, doorway
 placement, wall generation, or rotation needs a visual sanity check instead of (or in addition to)

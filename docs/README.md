@@ -58,7 +58,7 @@ These documents explain code that exists today. Any proposed extension or future
 | [Realm monster roster](specs/realm-monster-roster-plan.md) | Proposed classic monsters for realms 2–5 (orcs, oozes, gnomes, the unholy, thieves, graspers and a chest mimic), their gatekeepers and nests, and the flight, lob, grasp, theft, gaze, revive and other capabilities they need, in five slices |
 | [Realm monster tuning](specs/realm-monster-tuning-plan.md) | Landed: pace, tactics and attack patterns for the giant bat, nymph, chest mimic, acid blob and snake, with a per-monster speed scale and travel facing |
 | [Realm content pacing](specs/realm-content-pacing-plan.md) | Proposed: encounter packs follow floor motifs; open decisions on the Cathedral's gatekeeper, realm merchants and bridging rooms |
-| [Trap hazards and gauntlets](specs/trap-hazards-plan.md) | Wall spouts, pendulum blades, gauntlet beats, four gauntlet rooms placed before a few descents per run and the Traps debug tool landed; proposed: corridor stretches, optional spike strips |
+| [Trap hazards and gauntlets](specs/trap-hazards-plan.md) | Wall spouts, pendulum blades, gauntlet beats and three gauntlet rooms placed before a few descents per run, playable in the room harness, landed; proposed: corridor stretches, optional spike strips |
 | [Triggers: plates, switches and linked mechanisms](specs/triggers-plan.md) | Trigger core (Pulse, Hold and Latch modes) and the spike trap as a pressure plate landed; proposed: wall darts and fireballs fired by hidden plates, switches, puzzle conditions, items weighing down plates, switch-opened doors, then a quest seam |
 | [Props for the new floor plans](specs/floor-plan-props.md) | Missing mine, cathedral, cloister and chasm/lake props by priority, with mount, size and the rooms they serve |
 | [Floor generators and room groups](specs/floor-generators-plan.md) | Proposed `FloorProfile` IoC architecture, composite `RoomGroup` definitions, taxonomy alignment (`RoomPool`, `FloorAccessProfile`, `prop_groups/`), corridor loot/locks, per-profile room count and map size, and the cluster, hallway, prison, cathedral, cloister, mines, labyrinth and boss floor plans |
@@ -76,7 +76,7 @@ Completed plans are consolidated into current-system documents. The [roadmap](de
 ## Content and authoring references
 
 - [Level generation folders](../scenes/levels/README.md): generator code, room types and their content.
-- [Debug harnesses](../scenes/debug/README.md): the in-game debug menu, and room, combat and effects entry points.
+- [Debug harnesses](../scenes/debug/README.md): the in-game debug menu, and room, map, combat and effects entry points.
 - [Room assembly authoring](../scenes/levels/generators/assembly/README.md): props, groups, styles, steps and room types; harness and editor plugin.
 
 - [Gameplay item catalog](item-catalog.md) and [monster catalog](monster-catalog/README.md): references for authored gameplay content. Use the Asset Studio catalogs below for published models and previews.

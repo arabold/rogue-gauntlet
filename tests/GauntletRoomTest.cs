@@ -7,7 +7,7 @@ using Godot;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
-/// <summary>Trap gauntlet rooms, as the room assembler builds them and as the arena stages them for play.</summary>
+/// <summary>Trap gauntlet rooms, as the room assembler builds them and as the room harness stands them for play.</summary>
 [TestSuite]
 [RequireGodotRuntime]
 public partial class GauntletRoomTest
@@ -74,19 +74,25 @@ public partial class GauntletRoomTest
 		}
 	}
 
-	/// <summary>A room staged in the arena puts its entrance ahead of the hero, and its gauntlet wakes for them.</summary>
+	/// <summary>
+	/// In the room harness the hero walks from the entrance into a gauntlet room, and its gauntlet wakes for them with its
+	/// hazards ahead.
+	/// </summary>
 	[TestCase]
-	public async Task AStagedRoomWakesItsGauntletForTheHeroAtItsEntrance()
+	public async Task TheHeroWalksIntoAGauntletRoomAndItWakes()
 	{
-		var (runner, harness) = await TestFactories.LoadQuietHarness();
-		using var scope = runner;
-		var traps = TestFactories.Tool<TrapTool>(runner.Scene());
-		var room = traps.StageRoom(TestFactories.Load<RoomType>($"{GauntletRooms}/pendulum_hall.tres"));
-		AssertObject(room).IsNotNull();
-		var gauntlet = Find<TrapGauntlet>(room).Single();
+		using var runner = TestFactories.LoadScene(RoomGenerationHarnessTest.Scene);
+		var harness = await RoomGenerationHarnessTest.Settle(runner);
+		AssertBool(harness.SelectRoom(TestFactories.Load<RoomType>($"{GauntletRooms}/pendulum_hall.tres"))).IsTrue();
+		harness.Regenerate();
+		var hero = harness.Player;
+		var gauntlet = Find<TrapGauntlet>(harness.PreviewRoom).Single();
+		// One tile in: through the doorway, short of the first row.
+		hero.MovementComponent.SetInputDirection(harness.Inward);
+		await TestFactories.AwaitPhysicsUntil(runner, () => (hero.GlobalPosition - harness.Entrance).Dot(harness.Inward) > Room.TileSize, 2);
+		hero.MovementComponent.SetInputDirection(Vector3.Zero);
 		await TestFactories.AwaitPhysicsUntil(runner, () => gauntlet.IsAwake, 2);
-		harness.Player.MovementComponent.LookAtDirection.TryNormalizeHorizontal(out Vector3 ahead);
-		var nearest = gauntlet.GetChildren().OfType<Node3D>().MinBy(hazard => hazard.GlobalPosition.DistanceTo(harness.Player.GlobalPosition));
-		AssertFloat((nearest.GlobalPosition - harness.Player.GlobalPosition).Dot(ahead)).IsGreater(0);
+		var nearest = gauntlet.GetChildren().OfType<Node3D>().MinBy(hazard => hazard.GlobalPosition.DistanceTo(hero.GlobalPosition));
+		AssertFloat((nearest.GlobalPosition - hero.GlobalPosition).Dot(harness.Inward)).IsGreater(0);
 	}
 }

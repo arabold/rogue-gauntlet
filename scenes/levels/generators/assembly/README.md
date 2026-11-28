@@ -83,7 +83,7 @@ A new kind of placement is a new `FurnishingStep` subclass that composes plans f
 
 ## Preview and debug
 
-Run the [room generation harness](../../../debug/rooms/room_generation_harness.tscn) (**F6**). Pick the realm and room type (entrances and exits are listed after the ordinary types) and seed, override any axis (shape, walls, floor, columns), toggle furnishings and the walkability overlay (green reachable, blue reserved circulation and stair landings, red pocket), and rotate. When a type cannot fit, the error names the step and the last refused placement, such as `garrison.bed: blocks reserved circulation`.
+Run the [room generation harness](../../../debug/rooms/room_generation_harness.tscn) (**F6**) and walk through the room with the game's hero. Pick the realm and room type (entrances, exits and gauntlets are listed after the ordinary types) and seed, override any axis (shape, walls, floor, columns), toggle furnishings and the walkability overlay (green reachable, blue reserved circulation and stair landings, red pocket), rotate, and switch to the overview camera for the whole room from above. When a type cannot fit, the error names the step and the last refused placement, such as `garrison.bed: blocks reserved circulation`.
 
 Validate content with `RoomAssemblyTest` (every room and realm definition validates; every type keeps doorways connected, pockets bounded and props apart across seeds; stair rooms land arrivals on reachable floor).
 

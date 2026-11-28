@@ -3,8 +3,7 @@ using Godot;
 /// <summary>
 /// One kind of plate trap a floor may place in its trap slots: a concealed plate and the wall launcher across from it
 /// that the plate sets off. Generation hangs the launcher on a plain stretch of room wall and lays the plate on open
-/// floor <see cref="MinLane"/> to <see cref="MaxLane"/> in front of it, where the hero can walk around it. The debug
-/// menu stages the same profiles.
+/// floor <see cref="MinLane"/> to <see cref="MaxLane"/> in front of it, where the hero can walk around it.
 /// </summary>
 [Tool, GlobalClass]
 public partial class TriggeredTrapProfile : Resource

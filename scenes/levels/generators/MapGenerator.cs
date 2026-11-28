@@ -18,7 +18,7 @@ public partial class MapGenerator : Node3D
 	[ExportToolButton("Regenerate preview")] public Callable RegeneratePreviewButton => Callable.From(GenerateEditorPreview);
 
 	/// <summary>
-	/// Pins every floor to one plan (tests, the room harness, previews). Leave it empty in the game: each realm picks its
+	/// Pins every floor to one plan (tests, the map harness, previews). Leave it empty in the game: each realm picks its
 	/// floors' plans (<see cref="Realm.FloorPlans"/>, <see cref="Realm.BossProfile"/>, <see cref="UniqueFloorPlans"/>).
 	/// </summary>
 	[Export] public FloorProfile Profile { get; set; }

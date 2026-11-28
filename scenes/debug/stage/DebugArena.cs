@@ -5,7 +5,8 @@ using System.Linq;
 /// <summary>
 /// The root of a harness arena: a flat floor outside any generated level that the debug tools act in. Monster navigation
 /// is a clearance grid over <see cref="Bounds"/> built from the arena's static collision, rebuilt when an optional
-/// <see cref="Stage"/> changes its wall arrangement. It lights through the game's <see cref="WorldLighting"/>.
+/// <see cref="Stage"/> changes its wall arrangement or a harness changes its <see cref="Structure"/>. It lights through
+/// the game's <see cref="WorldLighting"/>.
 /// </summary>
 public partial class DebugArena : Node3D, IDebugWorld
 {
@@ -22,6 +23,18 @@ public partial class DebugArena : Node3D, IDebugWorld
 
 	/// <summary>Optional stage whose arrangements toggle walls; navigation follows each change.</summary>
 	[Export] public DebugStage Stage { get; set; }
+
+	/// <summary>
+	/// Optional node holding staged structure, such as the room harness's room, whose collision blocks navigation. A
+	/// harness that changes it calls <see cref="RebuildNavigation"/>.
+	/// </summary>
+	[Export] public Node3D Structure { get; set; }
+
+	/// <summary>
+	/// Where navigation finds floor, such as the tiles of a staged room and its corridors; null makes all of
+	/// <see cref="Bounds"/> floor. A harness that changes it calls <see cref="RebuildNavigation"/>.
+	/// </summary>
+	public IReadOnlyList<Rect2> FloorAreas { get; set; }
 
 	/// <summary>The arena's illumination, the game's own, so the arena looks and darkens like a dungeon floor.</summary>
 	[Export] public WorldLighting Lighting { get; set; }
@@ -74,11 +87,11 @@ public partial class DebugArena : Node3D, IDebugWorld
 	}
 
 	/// <summary>
-	/// Builds navigation from the arena's static bodies and its stage's walls: a ground grid, and an air grid that
-	/// solids no taller than <see cref="ClearanceGrid.AirClearanceHeight"/> do not block. Monsters in the arena read them
-	/// from the arena, so rebuilt grids reach them without being handed over.
+	/// Builds navigation from the arena's static bodies, its stage's walls and its structure: a ground grid, and an air
+	/// grid that solids no taller than <see cref="ClearanceGrid.AirClearanceHeight"/> do not block. Monsters in the arena
+	/// read them from the arena, so rebuilt grids reach them without being handed over.
 	/// </summary>
-	private void RebuildNavigation()
+	public void RebuildNavigation()
 	{
 		if (NavigationProfile == null)
 		{
@@ -86,9 +99,9 @@ public partial class DebugArena : Node3D, IDebugWorld
 		}
 
 		var shared = new ClearanceGrid(Bounds);
-		shared.AddFloor(Bounds);
-		// Only the floor, the boundaries and the stage are solid: actors, the HUD and spawns never are.
-		var solids = GetChildren().OfType<Node3D>().Where(child => child is StaticBody3D || child == Stage).ToList();
+		foreach (var area in FloorAreas ?? [Bounds]) shared.AddFloor(area);
+		// Only the floor, the boundaries, the stage and the structure are solid: actors, the HUD and spawns never are.
+		var solids = GetChildren().OfType<Node3D>().Where(child => child is StaticBody3D || child == Stage || child == Structure).ToList();
 		IEnumerable<SolidOutline> Outlines(uint layers) =>
 			solids.SelectMany(solid => CollisionOutlines.FromStaticBodies(solid, solid.GlobalTransform, layers));
 		const uint walking = CollisionOutlines.WalkingTerrainLayer;
