@@ -14,7 +14,7 @@ public class DebugFloorTravelTest
 	public async Task TheFloorDialogOpensBesideRestartAndRejectsTheCurrentFloor()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 		var scene = runner.Scene();
 		var level = scene.GetNode<Level>("Level");
 		var tool = TestFactories.Tool<LevelTool>(scene);

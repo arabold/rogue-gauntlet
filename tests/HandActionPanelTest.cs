@@ -24,7 +24,7 @@ public class HandActionPanelTest
 		using var harnessRunner = TestFactories.LoadCombatHarness();
 		var player = (await TestFactories.SettleCombatHarness(harnessRunner, 3)).Player;
 		using var runner = TestFactories.LoadScene("res://scenes/ui/hand_action_panel.tscn");
-		await runner.SimulateFrames(1, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 1);
 		var panel = (HandActionPanel)runner.Scene();
 		panel.BindPlayer(player);
 

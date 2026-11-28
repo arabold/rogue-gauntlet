@@ -341,7 +341,7 @@ public partial class SpellWandTest
 	private static async Task<EnemyBase> SpawnTarget(ISceneRunner runner, Vector3 position)
 	{
 		var target = TestFactories.SpawnCombatMonster(runner.Scene(), position, "Target");
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		TestFactories.PrepareCombatMonster(target);
 		return target;
 	}

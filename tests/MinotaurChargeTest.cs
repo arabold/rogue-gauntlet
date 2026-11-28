@@ -36,7 +36,7 @@ public partial class MinotaurChargeTest
 		// Snap the facing: a large actor would take two seconds to turn round.
 		minotaur.MovementComponent.SetLookAtDirection(player.GlobalPosition - minotaur.GlobalPosition);
 		minotaur.EnemyBehaviorComponent.SetTarget(player);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(minotaur.DefinitionValid).OverrideFailureMessage("the minotaur must pass monster validation").IsTrue();
 		return (harness, minotaur);
 	}
@@ -67,7 +67,7 @@ public partial class MinotaurChargeTest
 		var wall = new StaticBody3D { CollisionLayer = 2, Position = player.Position + new Vector3(0, 2.5f, -3) };
 		wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(14, 5, 0.4f) } });
 		runner.Scene().AddChild(wall);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		float health = player.HealthComponent.CurrentHealth;
 		AssertBool(minotaur.EnemyBehaviorComponent.TryAttack()).OverrideFailureMessage("the charge must start").IsTrue();
 		// Wait for the run to start along the locked lane, then step out of it.

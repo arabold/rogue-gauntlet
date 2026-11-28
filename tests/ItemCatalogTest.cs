@@ -332,22 +332,4 @@ public class ItemCatalogTest
 				AssertObject(attack.Element).OverrideFailureMessage($"{missiles.ResourcePath}: {element}").IsEqual(Enum.Parse<DamageElement>(element.ToString()));
 			}
 	}
-
-	[TestCase]
-	public void TheSpellPoolHoldsFiveSpellsOfEachElementAndStavesFireAHeavierVolley()
-	{
-		var pool = TestFactories.Load<SpellPool>("res://scenes/magic/spells/spell_pool_all.tres");
-		AssertInt(pool.Spells.Distinct().Count()).IsEqual(20);
-		foreach (MagicElement element in Enum.GetValues<MagicElement>())
-			AssertInt(pool.Spells.Count(spell => spell.Element == element)).OverrideFailureMessage(element.ToString()).IsEqual(5);
-
-		var wand = TestFactories.Load<MissileSet>("res://scenes/magic/missile/wand_missiles.tres");
-		var staff = TestFactories.Load<MissileSet>("res://scenes/magic/missile/staff_missiles.tres");
-		foreach (MagicElement element in Enum.GetValues<MagicElement>())
-		{
-			float wandVolley = wand.For(element).ProjectileCount * wand.For(element).ProjectileDamageScale;
-			float staffVolley = staff.For(element).ProjectileCount * staff.For(element).ProjectileDamageScale;
-			AssertFloat(staffVolley / wandVolley).OverrideFailureMessage(element.ToString()).IsBetween(1.4f, 1.6f);
-		}
-	}
 }

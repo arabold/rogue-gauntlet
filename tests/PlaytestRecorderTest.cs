@@ -26,12 +26,12 @@ public class PlaytestRecorderTest
 		uint depth;
 		using (ISceneRunner runner = TestFactories.LoadScene(MainScene))
 		{
-			await runner.SimulateFrames(5, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 5);
 			Node main = runner.Scene();
 			depth = main.GetNode<Level>("Level").Depth;
 			TestFactories.Tool<PlaytestTool>(main).Recording = true;
 			path = PlaytestRecorder.Current.OutputPath;
-			await runner.SimulateFrames(2, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 2);
 
 			var items = TestFactories.Tool<ItemSpawnTool>(main);
 			AssertBool(items.Give(items.Create(TestFactories.Load<Item>("res://scenes/items/potions/potion_healing_small.tres")), false)).IsTrue();
@@ -39,9 +39,9 @@ public class PlaytestRecorderTest
 		}
 		using (ISceneRunner runner = TestFactories.LoadScene(MainScene))
 		{
-			await runner.SimulateFrames(5, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 5);
 			PlaytestRecorder.Stop();
-			await runner.SimulateFrames(1, 20);
+			await TestFactories.AwaitPhysicsFrames(runner, 1);
 		}
 
 		try

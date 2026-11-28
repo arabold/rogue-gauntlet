@@ -15,7 +15,7 @@ public class DarkLevelTest
 	public async Task DebugDarkLevelToggleRestoresFixturesAndAmbientLight()
 	{
 		using var runner = TestFactories.LoadScene("res://scenes/main/main.tscn");
-		await runner.SimulateFrames(5, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 5);
 		var scene = runner.Scene();
 		var level = scene.GetNode<Level>("Level");
 		var environment = level.Lighting.Environment;
@@ -52,7 +52,7 @@ public class DarkLevelTest
 		level.AddWorldNode(lit);
 		level.AddWorldNode(unlit);
 		level.Discovery.RevealAll();
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		TestFactories.AssertTorchEffects(lit, false);
 		TestFactories.AssertTorchEffects(unlit, false);
 		AssertBool(fixtures.All(f => !f.Light.Visible && !f.Flame.Visible)).IsTrue();

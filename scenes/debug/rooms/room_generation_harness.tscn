@@ -23,7 +23,6 @@ Controls = NodePath("UI/Panel/Margin/Controls")
 Status = NodePath("UI/Panel/Margin/Controls/Status")
 
 [node name="Level" parent="." instance=ExtResource("level")]
-AutoGenerateOnReady = false
 
 [node name="MapGenerator" parent="Level" index="0"]
 MapWidth = 26

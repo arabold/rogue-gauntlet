@@ -47,14 +47,14 @@ public class InvisibilityTest
 	[TestCase]
 	public async Task AddedEquipmentGetsTheCurrentCloakAndDeathRestoresBeforeCorpseFade()
 	{
-		using var runner = TestFactories.LoadScene(Harness); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene(Harness); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var root = TestFactories.AddToSceneTree(new Node3D());
 		var body = new MeshInstance3D { Mesh = new BoxMesh() }; root.AddChild(body);
 		var health = new HealthComponent(); root.AddChild(health); health.Owner = root;
 		var cloak = Cloak(root, health); cloak.SetInvisible(true, true);
 		var original = new StandardMaterial3D { AlbedoColor = Colors.Green };
 		var gear = new MeshInstance3D { Mesh = new SphereMesh(), MaterialOverride = original }; root.AddChild(gear);
-		await runner.SimulateFrames(2, 20);
+		await TestFactories.AwaitPhysicsFrames(runner, 2);
 		AssertBool(gear.GetActiveMaterial(0) is ShaderMaterial).IsTrue();
 		AssertFloat(((ShaderMaterial)gear.GetActiveMaterial(0)).GetShaderParameter("amount").AsSingle()).IsEqual(1);
 		health.TakeDamage(100);
@@ -64,14 +64,14 @@ public class InvisibilityTest
 	[TestCase]
 	public async Task ReversingTheSharedCloakKeepsItsCurrentAmountAndOneInstance()
 	{
-		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn"); await runner.SimulateFrames(2, 20);
+		using var runner = TestFactories.LoadScene("res://scenes/debug/effects/actor_item_effect_preview.tscn"); await TestFactories.AwaitPhysicsFrames(runner, 2);
 		var preview = (ActorItemEffectPreview)runner.Scene(); preview.ClearEffects(); var player = preview.Stage.GetChild<Player>(0);
-		player.Invisibility.SetInvisible(true); await runner.SimulateFrames(8, 20);
-		player.Invisibility.SetInvisible(false); await runner.SimulateFrames(3, 20);
+		player.Invisibility.SetInvisible(true); await TestFactories.AwaitPhysicsSeconds(runner, .16f);
+		player.Invisibility.SetInvisible(false); await TestFactories.AwaitPhysicsFrames(runner, 3);
 		float amount = player.Invisibility.Amount;
 		player.Invisibility.SetInvisible(true);
 		AssertFloat(player.Invisibility.Amount).IsEqual(amount); AssertInt(preview.InstanceCount).IsEqual(1);
-		await runner.SimulateFrames(14, 20); AssertFloat(player.Invisibility.Amount).IsEqual(1);
+		await TestFactories.AwaitPhysicsSeconds(runner, .28f); AssertFloat(player.Invisibility.Amount).IsEqual(1);
 		player.Invisibility.SetInvisible(false, true); AssertBool(player.Invisibility.IsInvisible).IsFalse();
 	}
 	[TestCase]

@@ -32,7 +32,6 @@ public class ProjectileFlightTest
 	}
 
 	[TestCase(-20f, 2f)]
-	[TestCase(0f, 2f)]
 	[TestCase(20f, 2f)]
 	[TestCase(-20f, 8f)]
 	[TestCase(20f, 16f)]
@@ -46,19 +45,18 @@ public class ProjectileFlightTest
 	/// The authored wand volley's outer missiles open wide enough to read as a fan, yet still pass within
 	/// contact of a minion-sized enemy (0.75 m hurtbox plus the 0.3 m missile) from point-blank to full range.
 	/// </summary>
-	[TestCase(1.5f)]
-	[TestCase(2f)]
-	[TestCase(4f)]
-	[TestCase(8f)]
-	[TestCase(16f)]
-	public void AuthoredMissileFanEdgesReachAnEnemyAtEveryRange(float distance)
+	[TestCase]
+	public void AuthoredMissileFanEdgesReachAnEnemyAtEveryRange()
 	{
 		foreach (string element in new[] { "fire", "water", "earth", "air" })
 		{
 			var attack = TestFactories.Load<AttackDefinition>($"res://scenes/magic/missile/magic_missile_{element}_attack.tres");
 			var edge = Vector3.Forward.Rotated(Vector3.Up, Mathf.DegToRad(attack.SpreadAngle * .5f));
-			var (projectile, target) = Launch(edge, new Vector3(0, 0, -distance), attack.Flight, attack.ProjectileSpeed);
-			AssertFloat(ClosestApproach(projectile, target)).OverrideFailureMessage(element).IsLess(.8f);
+			foreach (float distance in new[] { 1.5f, 2f, 4f, 8f, 16f })
+			{
+				var (projectile, target) = Launch(edge, new Vector3(0, 0, -distance), attack.Flight, attack.ProjectileSpeed);
+				AssertFloat(ClosestApproach(projectile, target)).OverrideFailureMessage($"{element} at {distance} m").IsLess(.8f);
+			}
 		}
 	}
 

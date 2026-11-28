@@ -32,7 +32,7 @@ public class AcidBlobCorrosionTest
 		AssertBool(buffs.HasEquivalent(burn)).IsFalse();
 
 		AssertBool(harness.ExecuteCommand("equip", Sword)).IsTrue();
-		await runner.SimulateFrames(30, 20);
+		await TestFactories.AwaitPhysicsSeconds(runner, .6f);
 		health = blob.HealthComponent.CurrentHealth;
 		harness.Attack();
 		await TestFactories.AwaitPhysicsUntil(runner, () => blob.HealthComponent.CurrentHealth < health, 3);
