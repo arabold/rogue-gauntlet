@@ -21,17 +21,18 @@ Dungeons are generated procedurally at runtime. Individual rooms and full floor 
 
 ### Dynamic Room Assembly
 Rooms are assembled using modular strategies instead of fixed prefabs:
-- **Room Architecture:** Geometry is generated from parameterized footprints (rectangles, L-shapes, T-junctions, cross layouts) with dynamic columns, arches, and doorway sockets.
-- **Furnishing & Prop Placement:** Props and furnishings (tables, containers, light sources, obstacles) are placed based on authored room types (e.g., library, armory, crypt, laboratory).
+- **Room Architecture:** Geometry is generated from parameterized footprints (rectangles, L-, T-, U- and cross shapes) with columns, arches, and doorways the room owns.
+- **Furnishing & Prop Placement:** Props and furnishings (tables, containers, light sources, obstacles) are placed by authored room types (e.g., library, crypt, alchemist, nave, smelter).
 - **Walkability Validation:** Circulation paths and collision bounds are checked during assembly to guarantee clear paths between doorways, stairs, and interactive objects.
 
 ![Procedural Room Generation](./docs/room.png)
 
 ### Floor Layout & Progression
 The floor generator places rooms, connects them with corridors, and handles progression dependencies:
-- **Architectural Themes (Realms):** Depth ranges are mapped to distinct realm definitions that specify corridor tile sets, wall meshes, and eligible room pools (e.g., garrison stone, sewer brickwork, or overgrown ruins).
-- **Layout & Corridors:** Rooms are packed relative to entrance and exit stairs, then connected by corridors that automatically resolve wall junctions, corners, and doorway frames.
-- **Lock & Key Gating:** Validated lock-and-key pairs (prison doors, gates, chests) control access to ensure each generated floor is solvable.
+- **Realms:** Five realms of five floors each (Garrison, Prison, Sewer, Mines, Cathedral) choose their floor plans, room pools, corridor tiles, motifs and monsters; each ends on a gatekeeper floor.
+- **Floor Plans:** Weighted floor profiles lay rooms out as packed clusters, hallways, prison blocks, cathedral naves, cloisters, mines or labyrinths, then connect them with corridors that resolve wall junctions, corners, and doorway frames.
+- **Lock & Key Gating:** Validated lock-and-key pairs (locked rooms, the labyrinth's key chains) and room-owned secret doors control access while keeping each floor solvable.
+- **Traps:** Hidden pressure plates fire spikes, darts or fireballs; visible wall spouts and pendulum blades form timed gauntlet rooms.
 - **Navigation & Spawns:** A clearance grid built from the floor's collision drives size-aware monster chasing, fleeing and routing through door gates, followed by threat-budgeted monster and loot placement.
 
 ![Procedural Floor Layout Pipeline](./docs/map.png)
@@ -40,11 +41,11 @@ The floor generator places rooms, connects them with corridors, and handles prog
 
 ## Project Status
 
-The game is in active development, and the first few dungeon floors are fully playable.
+The game is in active development. All five realms generate and play; balance and pacing are tuned for the first realm.
 
 - **Working title:** *"Rogue Gauntlet"* is an unfinished working title and subject to change as the game's identity evolves.
-- **Currently playable:** Procedural room and corridor generation, real-time melee and magic combat (attacks, guard/parry, dodge), inventory, equipment, consumable food/potions/scrolls, item identification, a merchant before the first gatekeeper, fog of war, delta saves on floor arrival and exit, and permadeath.
-- **Still needed:** Gameplay balancing, expanding the monster roster and AI tactics, additional dungeon themes/biomes, and more 3D assets.
+- **Currently playable:** Procedural floors across five realms, real-time melee and magic combat (attacks, guard/parry, dodge), monsters with distinct movement and attacks, gatekeepers ending the Garrison, Prison and Sewer, traps and gauntlets, inventory, equipment, food/potions/scrolls, item identification, a merchant on the first floor of every later realm, fog of war and a floor map, delta saves on floor arrival and exit, and permadeath.
+- **Still needed:** Balance beyond the first realm, the remaining Mines and Cathedral monsters and gatekeepers, a victory at the final depth, audio, and more 3D assets.
 
 The repository is ready to clone, build, and run today.
 
@@ -76,13 +77,17 @@ This project is intended for learning best practices in Godot 4 and C# as much a
 ```
 rogue-gauntlet/
 ├── scenes/             # Godot scenes (.tscn), .tres resources, and component scripts
-│   ├── actors/         # Player and enemy scene compositions
+│   ├── player/         # Hero scene, components and classes
+│   ├── enemies/        # Monster families, actions and AI
 │   ├── attacks/        # Attack definitions, animation profiles, and hitboxes
+│   ├── magic/          # Spell definitions and effects
 │   ├── items/          # Item definitions, drop presets, and grip transforms
-│   ├── levels/         # Level generation, room types, assembly steps, and dungeon tiles
-│   └── ui/             # HUD, inventory, menus, and screen overlays
-├── scripts/            # Core engine singletons (GameSession, SignalBus, ScenePool)
-├── common/             # Shared C# infrastructure, ObservableResource, interfaces, codecs
+│   ├── levels/         # Level generation, realms, room types, assembly steps, and encounters
+│   ├── props/          # Doors, chests, traps, triggers and furnishings
+│   ├── debug/          # Combat, room and map harnesses and effect previews
+│   └── ui/             # HUD, run menu, front end, and the debug menu
+├── scripts/            # Autoloads (GameSession, SignalBus, ScenePool), save codecs, balance simulator
+├── common/             # Shared C# infrastructure, ObservableResource, interfaces
 ├── asset-studio/       # Blender character sources, item recipes, and art catalogs
 ├── assets/             # Game-ready 3D models (.glb), textures, audio, and materials
 ├── docs/               # Game design document, roadmap, specs, and system guides
@@ -115,7 +120,7 @@ See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for detailed system diagrams and en
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/andrerabold/rogue-gauntlet.git
+   git clone https://github.com/arabold/rogue-gauntlet.git
    cd rogue-gauntlet
    ```
 2. **Build the C# solution:**
@@ -127,30 +132,34 @@ See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for detailed system diagrams and en
    - Or open `res://scenes/main/main.tscn` directly with **F6** to jump straight into dungeon generation and gameplay.
 
 ### Running Tests
-Tests use **GdUnit4** and run against a real headless Godot runtime:
+Tests use **GdUnit4** and run against a real headless Godot runtime in simulated time (a fixed 60 frames per game second, as fast as the machine allows):
 ```bash
 export GODOT_BIN="/Applications/Godot_mono.app/Contents/MacOS/Godot" # Adjust to your local Godot binary path
 dotnet test "Rogue Gauntlet.csproj" --settings .runsettings
 ```
+[AGENTS.md](AGENTS.md#testing) covers the test conventions.
 
 ---
 
 ## Controls
 
-The game is playable with keyboard or gamepad:
+The game is playable with keyboard or gamepad (Xbox labels). In menus the gamepad uses `A` to accept, `B` to go back, `LB` / `RB` to switch tabs, `X` for the alternate action and `Y` to drop.
 
 | Action | Keyboard | Gamepad |
 | :--- | :--- | :--- |
-| **Move** | `W` / `A` / `S` / `D` or Arrow Keys | Left Stick |
-| **Primary Action** (Basic Attack / Wand Volley) | `J` | Right Trigger (`RT`) |
-| **Secondary Action** (Heavy Technique / Bound Spell) | `K` | Right Bumper (`RB`) |
-| **Guard & Parry** | `L` (hold to guard) | Left Trigger (`LT`) |
-| **Dodge** | `Space` | `B` Button / East Button |
-| **Interact** (Doors, Chests, Shrines) | `E` (hold to interact) | `A` Button / South Button |
-| **Item Quick Slots 1–4** | `1`, `2`, `3`, `4` | `LB` + Face Buttons |
-| **Floor Map** | Hold `Tab` | — |
-| **Rotate Camera** | `,` / `.` | Right Stick (X-Axis) |
-| **Zoom Camera** | `'` / `/` | Right Stick (Y-Axis) |
+| **Move** | `W` / `A` / `S` / `D` or Arrow Keys | Left Stick (tilt to walk) |
+| **Walk** | Hold `Shift` | — |
+| **Primary Action** (Basic Attack / Wand Volley) | `J` | `A` |
+| **Secondary Action** (Heavy Technique / Bound Spell) | `K` | `X` |
+| **Off-hand Action** (Guard & Parry / Off-hand Attack) | `L` (hold to guard) | `Y` (hold to guard) |
+| **Dodge** | `Space` | `B` |
+| **Interact** (Doors, Chests, Fountains) | `E` (hold to interact) | `RB` (hold to interact) |
+| **Item Quick Slots 1–4** | `1`, `2`, `3`, `4` | D-pad Up, Right, Down, Left |
+| **Run Menu: Gear** (equipment and pack) | `I` | `Menu` (Start) |
+| **Run Menu: System** (pause and settings) | `Esc` | `View` (Back) |
+| **Floor Map** | Hold `Tab` | Hold `LB` |
+| **Rotate Camera** | `,` / `.` | Right Stick left / right |
+| **Zoom Camera** | `'` / `/` | Right Stick up / down |
 
 ---
 

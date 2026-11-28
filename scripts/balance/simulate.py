@@ -8,7 +8,7 @@ derivation of the game's content, and reports on loot supply, traces and playtes
 
     uv run scripts/balance/simulate.py --help
 
-docs/specs/balance-model.md describes the model and every command; edit params.py to tune it.
+docs/balance-model.md describes the model and every command; edit params.py to tune it.
 """
 from __future__ import annotations
 

@@ -1,7 +1,7 @@
 """
 The game's authored content in balance-model terms: every value the model sets, paired with its target.
 `simulate.py audit` reports the pairs that differ and `simulate.py derive` writes the targets. How each kind of content
-maps to the model is described under "Game content" in docs/specs/balance-model.md.
+maps to the model is described under "Game content" in docs/balance-model.md.
 """
 from __future__ import annotations
 

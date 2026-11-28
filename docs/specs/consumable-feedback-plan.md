@@ -1,6 +1,6 @@
 # Potion and scroll activation feedback
 
-Status: **proposed extension**. Every potion family and scroll type should have recognizable feedback when its use commits. This expands the implemented [world effects](../world-effects.md) and [screen effects](../screen-effects.md); it does not claim the full catalog has effects today. Current coverage is healing/strength activation, a shared appearance-matched reading ring for every scroll, teleport departure/arrival, summoned/spawned monster arrival and some state-driven screen overlays.
+Status: not started. Every potion family and scroll type should have recognizable feedback when its use commits. This expands the implemented [world effects](../world-effects.md#item-use) and [screen effects](../screen-effects.md). Today only the healing and strength potions have activation bursts; every scroll shares the appearance-matched reading ring, teleportation and summons have their arrival veils, and status overlays follow their conditions.
 
 ## Coverage and visual language
 
@@ -31,20 +31,20 @@ Distinctness comes from shape, motion and timing as well as color. Similar funct
 | Scroll: Clarity | Silver-blue crystal lines aligning with a short clear-focus screen sweep | No continuing overlay |
 | Scroll: Vitality | Rose-gold branching life runes that bloom and settle | No automatic persistent aura |
 
-These are starting compositions to review in motion. Full-screen accents remain brief, mostly peripheral and below the HUD. Reserve the strongest screen treatment for effects whose meaning supports it. Existing near-death/blindness/poison presentation retains its authority; ordinary activation must not reset or hide it. A repeated use still gets a fresh brief confirmation while its status is already active.
+These are starting compositions to review in motion. Full-screen accents remain brief, mostly peripheral and below the HUD. Reserve the strongest screen treatment for effects whose meaning supports it. Existing near-death, darkness, blindness and poison presentation retains its authority; ordinary activation must not reset or hide it. A repeated use still gets a fresh brief confirmation while its status is already active.
 
 ## Rune identity constraint and available experiments
 
-Scroll runes are part of their randomized appearances. Each appearance now explicitly maps `GlyphId` and `GlyphMesh` to the corresponding authored effect mesh; the [rune study](../world-effects.md#scroll-reading-preview) shows the approved rotating, expanding glyph ring. Reusing a rune must read this run's resolved appearance, never a fixed rune attached to the semantic scroll effect. The selected treatment is the rotating ring with smooth fading; its ribbon, glyphs and brief accent light use the appearance’s authored luminous `GlyphColor`. No geometry extraction or inferred glyph matching is planned.
+Scroll runes are part of their randomized appearances: each appearance maps a `GlyphId` and `GlyphMesh`, which the shared [reading ring](../world-effects.md#scroll-reading-preview) shows in the appearance's `GlyphColor`. Reusing a rune must read this run's resolved appearance, never a fixed rune attached to the semantic scroll effect.
 
-Any rune-like center described in the art table above is provisional: use the assigned glyph, or replace it with a clearly different non-alphabetic motif. Do not decorate an effect with a different member of the scroll alphabet. Potion motifs likewise must not accidentally look like an unrelated scroll identity. The approved reading ring is now shared across the scroll catalog; per-type result feedback can communicate semantics independently while the paper rune varies by run.
+Any rune-like center described in the art table above is provisional: use the assigned glyph, or replace it with a clearly different non-alphabetic motif. Do not decorate an effect with a different member of the scroll alphabet. Potion motifs likewise must not accidentally look like an unrelated scroll identity. Per-type result feedback communicates semantics independently of the reading ring, whose rune varies by run.
 
 ## Current seams and decisions
 
 - `PlayerInventoryController.TryCommitItemUse` applies the action/targeted scroll, removes the item, identifies its type and emits `Inventory.ItemConsumed`. Reuse that existing local notification; do not add another committed-use event.
 - `Scroll` inherits `ConsumableItem`, so the same notification already covers potion and scroll use. `ItemUseWorldEffectDriver` currently maps `UseCue` only to a `WorldEffectDefinition`; broaden that item's presentation adapter to optional world and screen channels.
 - `ScreenEffectsLayer.Bind(player)` is the existing place that injects player context into screen drivers. It should also supply the item-use presentation adapter with its screen sink. Actor components must not find the screen layer via an autoload or node-name lookup.
-- Persistent overlays stay driven by `BuffController`/health. Their application, expiry and restoration must not become dependent on activation playback. Reusing an existing overlay as a one-shot by fading its shared intensity would let two drivers fight over it, so use separate transient instances.
+- Persistent overlays stay driven by `BuffController`, health, light and the curse flash. Their application, expiry and restoration must not become dependent on activation playback. Reusing an existing overlay as a one-shot by fading its shared intensity would let two drivers fight over it, so use separate transient instances.
 - A committed use confirms consumption. Current scroll strategies return `void` and may have no applicable world outcome; do not infer healed amounts, spawned positions or successful stat changes from presentation. Any stronger gameplay result contract belongs to its own mechanic.
 
 ## Proposed bounded contracts
@@ -72,7 +72,7 @@ Author `ConsumptionBurstsRoot` after blindness/poison and before near death, on 
 
 The reading ring is already independent of this proposed profile migration: the existing local adapter resolves the exact appearance and uses `PlayBurstConfigured` to configure a `RuneRingEffect` before host validation. A rejected visual never cancels another cue or changes gameplay.
 
-`Inventory.ItemConsumed` carries the consumable, not its chosen target or previous world position. Initial identification/enchantment/remove-curse confirmation therefore appears on the reader/screen. The shared reading ring is centered on the reader (at the destination for teleportation). Teleport departure/arrival are now emitted directly by the teleport operation, and summon arrivals by the actual spawn operation.
+`Inventory.ItemConsumed` carries the consumable, not its chosen target or previous world position. Initial identification/enchantment/remove-curse confirmation therefore appears on the reader/screen. The shared reading ring is centered on the reader (at the destination for teleportation). Teleport departure and arrival come from the teleport operation itself, and summon arrivals from the actual spawn operation.
 
 Item-local enchant/reveal accents can be added when a proper committed result context exists. Do not cache arbitrary inventory selections, search for a target model, or add a second use event just for visual decoration. Remove-curse confirmation must look the same for an unknown uncursed item and a cursed item; the existing mechanic deliberately does not reveal the target's previous curse state.
 

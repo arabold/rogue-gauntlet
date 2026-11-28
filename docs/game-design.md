@@ -1,6 +1,6 @@
 # Rogue Gauntlet — Game Design Document
 
-Status: living design draft, October 19, 2026. This document describes the intended game; it is not a claim that every feature is implemented. The [development roadmap](development-roadmap.md) separates existing foundations from upcoming work.
+Status: living design draft. This document describes the intended game; it is not a claim that every feature is implemented. The [development roadmap](development-roadmap.md) separates existing foundations from upcoming work.
 
 Use the [documentation index](README.md) for current implemented systems and proposed technical plans. Seeded generation already exists; [Randomness and Seeds](randomness-and-seeds.md) records its current behavior and limitations. This GDD owns the intended experience, not the implementation inventory.
 
@@ -52,13 +52,13 @@ With the backpack nearly full, the player chooses between carrying spare armor, 
 
 Before descending, the player uses a lamp to explore a dark branch, spending fuel in exchange for better visibility. A later encounter brings a much larger crowd, changing the immediate problem from dueling an enemy to finding space and controlling the approach. The player survives, decides whether current supplies are enough, and descends. Saving and returning preserves discoveries, carried objects, spent fuel, and purchased stock.
 
-The current full-run structure is a 25-depth descent in five realms of five floors: Garrison, Prison, Sewer, Mines and Cathedral. Each realm ends on a boss floor, and realms may share a look, so variety comes from floor plans, encounters and rare rooms more than new tilesets ([level design](level-design.md#current-generation)). Rosters beyond the first realm remain provisional; the immediate priority is making the first realm playable and enjoyable. The final objective is reaching Depth 25 to confront the guardian of the World-Anchor and sever the gravitational tether dragging civilizations into the crust, achieving run victory. Death ends the active run for good (permadeath): the run saves itself on reaching each floor and when the player leaves, never on demand, so reloading cannot undo a death. An optional return journey (an escape ascent against collapsing ruins) is reserved as an advanced post-victory challenge mode rather than a requirement for the initial game. Save/load preserves discoveries, carried inventory, spent resources, shop state, and persistent floor modifications.
+The current full-run structure is a 25-depth descent in five realms of five floors: Garrison, Prison, Sewer, Mines and Cathedral. Each realm ends on a gatekeeper floor, and realms may share a look, so variety comes from floor plans, encounters and rare rooms more than new tilesets ([level design](level-design.md#current-generation)). The Mines and Cathedral rosters remain provisional; the immediate priority is making the first realm playable and enjoyable. The final objective is reaching Depth 25 to confront the guardian of the World-Anchor and sever the gravitational tether dragging civilizations into the crust, achieving run victory. Death ends the active run for good (permadeath): the run saves itself on reaching each floor and when the player leaves, never on demand, so reloading cannot undo a death. An optional return journey (an escape ascent against collapsing ruins) is reserved as an advanced post-victory challenge mode rather than a requirement for the initial game. Save/load preserves discoveries, carried inventory, spent resources, shop state, and persistent floor modifications.
 
 Permanent power progression between runs is undecided. Do not make it a dependency of the first complete run.
 
 ## Characters and combat
 
-[Monster design and authoring](monster-authoring-design.md) defines the first-realm roster and editable Godot composition workflow. Monsters use fixed authored strength, a single melee or projectile attack, independent defensive capabilities and basic movement strategies. More advanced tactics follow first-realm playtesting.
+[Monster design and authoring](monster-authoring-design.md) defines the roster and editable Godot composition workflow. Monsters use fixed authored strength, a few authored actions, independent defensive capabilities and movement strategies. Each realm should teach at least one new way to move or attack (flight, ambushes, theft, lobbed acid), and each ends on a gatekeeper with a signature mechanic.
 
 Character classes provide distinct starting attributes, equipment, and strengths. Existing classes are Barbarian, Knight, Rogue, and Mage. Items found during a run should allow adaptation beyond the starting loadout.
 
@@ -86,23 +86,25 @@ Floors combine realm-specific authored room pools with procedural rooms and corr
 
 [Dungeon Layout, Access, and Discovery](dungeon-exploration-design.md) owns the detailed exploration concept. Doors compose opening/closing with optional locks and discovery. Predefined and generated rooms can have locked doors. Prison cells may require lockpicks, with matching keys as an authored alternative; color coding is an optional presentation feature, not a universal key rule. Initial mechanical locks protect optional content, with guaranteed matching keys reachable before their locks and pickability enabled. Successful unlocking consumes one matching key or lockpick; both stack to 20.
 
-Secrets occur at variable generated corridor or procedural-room wall segments, not predictable sockets in predefined rooms. Nearby discovery rolls every 0.5 seconds use Intelligence initially; successful discovery from an accessible side reveals a closed door; unlocking, opening, and discovering the destination remain separate actions. Traps use similar proximity discovery and remain dangerous after being found. A short yellow glow blends the original surface into the discovered trap or door, then disappears. Traps are detected from farther away to provide advance warning. Locked rooms and secrets are occasional, capped features; secrets are more common. Secrets and tools offer optional exploration choices without becoming hidden prerequisites for the required route.
+Secrets belong to the rooms that hide them: a treasury, storeroom or chapel may conceal one of its own doorways behind a wall, so a secret is never a predictable socket. Nearby discovery rolls use Intelligence; successful discovery from an accessible side reveals a closed door; unlocking, opening, and discovering the destination remain separate actions. Hidden pressure plates use similar proximity discovery, are detected from farther away to give warning, and remain dangerous after being found. A short glow blends the original surface into the discovered plate or door, then disappears. Locked rooms and secrets are occasional, capped features. Secrets and tools offer optional exploration choices without becoming hidden prerequisites for the required route.
+
+Traps come in two kinds. Hidden plates are the surprise: stepping on one raises spikes or makes a launcher across the floor fire. Visible hazards are the puzzle: wall spouts and pendulum blades move on a fixed beat, and a few descents per run lead through a gauntlet room the hero crosses by reading the rhythm. Every row has a safe window and the hero may stop between rows, so patience always crosses; a dodge buys back a mistake.
 
 Health and mana fountains are rare landmarks rather than a supply source. A run holds two or three of each, spread across its depths, so food and potions keep their value. Drinking refills the matching pool completely, once; the fountain then stands empty for the rest of the run. Drinking at a full pool is refused instead of wasting the fountain.
 
-Realm bosses initially gate descent through visible magical stair seals that lift automatically on defeat. Reaching or running around the boss does not satisfy completion. Arena lockdown and guaranteed boss-key alternatives remain separate encounter choices. Required access solutions must be reachable and cannot depend on random loot, shop stock, or an inventory-capacity failure.
+A realm's gatekeeper seals the descent until it is defeated; reaching or running around it does not satisfy completion. Today the seal is a label over the stairs; a visible magical seal that lifts on defeat is planned. Arena lockdown and guaranteed boss-key alternatives remain separate encounter choices. Required access solutions must be reachable and cannot depend on random loot, shop stock, or an inventory-capacity failure.
 
 Seeded generation recreates initial room choices, encounters, connections, access assignments, secrets, and source loot. Separate RNG streams isolate unrelated generation, gameplay and cosmetics. Save player-caused differences rather than full floor copies. Reproduction applies to the same build/content; historical seed compatibility is excluded during development. See [Randomness and Seeds](randomness-and-seeds.md) for current guarantees and limits, including supported actor reset behavior.
 
 ### Dark floors and portable lighting (planned)
 
-Darkness is a property of the generated level, determined by its existing level seed alongside the layout; it needs no separate seed. Floors before depth 4 are never dark. From depth 4 onward, the initial tuning proposal is a 20% chance per floor. Across the intended 24-depth run this averages 4.2 dark floors, aiming for roughly 3–5 per playthrough without guaranteeing that count. Revisits and save/load preserve the floor's generated darkness.
+Darkness is a property of the generated level, determined by its existing level seed alongside the layout; it needs no separate seed. Floors before depth 4 are never dark. From depth 4 onward, the initial tuning proposal is a 20% chance per floor. Across the intended 25-depth run this averages 4.4 dark floors, aiming for roughly 3–5 per playthrough without guaranteeing that count. Revisits and save/load preserve the floor's generated darkness.
 
 Dark floors extinguish fixtures and ambient light. Without a torch or lamp, the hero sees a small, softly lit area that fades to black. A torch or lamp illuminates the area ahead of the hero on any floor and opens up the view on dark floors. It occupies the off hand, displacing shields and conflicting with two-handed weapons.
 
 Fog-of-war reveal works identically on normal and dark floors. Discovering space removes its exploration cover. The equipped light or the dark-floor fade determines how much of the revealed area the player can see. Light radius, fuel pacing, and whether enemies respond to carried light remain open tuning decisions.
 
-[Level design](level-design.md) describes the current generator and its limitations; the [implementation plan](specs/level-progression-prototype-plan.md) describes remaining engineering work.
+Today only the debug darkness switch and the off-hand lights exist ([level design](level-design.md#lighting-and-atmosphere)); seeded dark floors, light supply and fuel are tracked in the [roadmap](development-roadmap.md).
 
 ## Items and their lifecycle
 
@@ -178,7 +180,7 @@ Depth drives world progression; player level should not silently rescale existin
 
 ## Shops and economy
 
-Shops give the hero a chance to recover, address a weakness or buy an interesting alternative before a dangerous stretch. A realm stands its merchants on its own floors; the first realm's [Quartermaster](shops.md) trades near the arrival on the gatekeeper's floor, the last stop before the Warden. Merchants in later realms, and how often they appear, remain open.
+Shops give the hero a chance to recover, address a weakness or buy an interesting alternative before a dangerous stretch. A realm stands its merchants on its own floors: a keeper greets the hero near the arrival on the first floor of each realm after the Garrison. Every realm after the Garrison stands the [Quartermaster](shops.md) until realm-specific merchants exist; who they are and whether a realm gets more than one remain open.
 
 Stock is a dependable core of basic supplies, a few equipment options from the local depth band across builds, and a small utility selection. It should offer useful choices without guaranteeing the ideal upgrade. Each shelf is rolled once from the run's seed and depletes for the rest of the run; reopening the trade, revisiting the floor or loading a save keeps what was bought. There is no restocking.
 
@@ -206,14 +208,14 @@ Crafting, complex survival simulation, broad tool combinations, elaborate mercha
 | --- | --- | --- |
 | Run objective, length, and victory | 25 depths across 5 realms of 5 floors; World-Anchor victory at Depth 25 | Current direction; later realm order provisional (see [Realms and Monster Design](realms-and-monster-design.md)) |
 | Death and between-run progression | Death ends the run; permanent power undecided | First complete run milestone |
-| Food contamination and detection | Per-instance creation exists; probability and detection need tuning | Three-floor balance |
+| Food contamination and detection | Per-instance creation exists; probability and detection need tuning | First-realm balance |
 | Backpack capacity and upgrades | Implemented 20-entry backpack; food/equipment individual; larger packs later | Upgrade integration |
 | Capacity accounting and stack limits | Equipped entries count; currency stays in stats; potion/scroll caps are 20; upgrade size remains open | Backpack upgrade design |
 | Crowd encounter scale and pacing | Mix tactical fights with occasional overwhelming groups; counts and performance targets open | Encounter balancing |
 | Lighting and fuel pacing | Seeded dark floors from depth 4, proposed 20% chance; either-hand lights compete with shields/two-handed weapons; light radius, fuel pacing and enemy response open | Lighting integration |
 | Armor tradeoffs and visual coverage | Small set with readable differences | Armor integration |
-| Keys and lockpicks | Implemented through [door access](door-access.md): optional mechanical locks; matching keys or deterministic timed picking; consume one key/pick on success, stack to 20, guarantee reachable matching keys. Lock counts, pick duration and rewards need tuning | Three-floor balance |
-| Merchant frequency in later realms | The first realm has one merchant, on its gatekeeper floor; later realms are open | Realm 2 content |
+| Keys and lockpicks | Implemented through [door access](door-access.md): optional mechanical locks; matching keys or deterministic timed picking; consume one key/pick on success, stack to 20, guarantee reachable matching keys. Lock counts, pick duration and rewards need tuning | First-realm balance |
+| Realm merchants | The Quartermaster stands on the first floor of each realm after the Garrison; realm-specific merchants and frequency are open | Realm 2 content |
 
 Update this document when intended behavior changes. Record implementation details in the linked feature documents and track delivery in the [roadmap](development-roadmap.md).
 

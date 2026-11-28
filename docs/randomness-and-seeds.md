@@ -12,15 +12,17 @@ A new run chooses one random 32-bit seed (short enough to read and retype); save
 
 | Domain | Purpose |
 | --- | --- |
-| Layout | Room selection, procedural construction and placement |
-| Encounters | Initial monsters, facing and encounter selection |
-| Item placement | Chests, traps and loose finds |
-| Fountains | The run's fountain schedule (from the run seed) and each floor's fountain design and position |
-| Decoration | Corridor/wall mesh variants |
+| Run schedules | From the run seed alone, so every floor of a run agrees: each realm's headlines and motifs, the floors of unique plans (the labyrinth), trap gauntlets and fountains |
+| Layout | Floor plan choice, room selection and assembly (including secret doorways), placement and corridors |
+| Encounters | Initial monsters, packs, facing and chest mimics |
+| Item placement | Chests, traps, plate traps and loose finds |
+| Fountains | Each floor's fountain design and position |
+| Decoration | Corridor and wall mesh variants |
 | Arrangements | Independent per-room furnishing choices |
-| Access | Independently derived lock/key placement, secret-pocket layout and local discovery streams |
+| Access | Lock and key placement |
 | Source loot | Rewards derived from stable source identity |
 | Identification | Per-run, per-category appearance assignment |
+| Cosmetic | Presentation only (fixtures lit, atmosphere, where a drop lands), never shifting gameplay streams |
 
 Strategies receive explicit RNG inputs and retain no shared mutable sequence. Isolation prevents accidental draw-order coupling, but intentional dependencies remain: different geometry changes valid encounter or loot positions.
 
@@ -30,14 +32,14 @@ Generated enemies, authored spawns and reward sources receive stable identities 
 
 Dynamic operations such as enchantment and rewards without a stable source use a separate saved continuation counter. It advances per RNG request, not per draw, and each request hashes the requesting floor's level seed with the counter in the `gameplay-loot` domain, so a roll during a stair fade still belongs to the floor being left. Actor combat streams are local to their explicit source/identity; navigation, physics and AI decisions are not a deterministic replay system.
 
-Secret and trap detection use local gameplay streams separate from generation and source loot. Saved discoveries persist, but future failed/successful rolls are not a replay guarantee after reload. Identification uses separate category streams and saves both appearance assignments and discoveries. Item copies and restoration preserve actual rolls without requesting randomness.
+Secret door and plate detection use local gameplay streams separate from generation and source loot. Saved discoveries persist, but future failed/successful rolls are not a replay guarantee after reload. Identification uses separate category streams and saves both appearance assignments and discoveries. Item copies and restoration preserve actual rolls without requesting randomness.
 
 ## Saved world differences
 
 Untouched floor content regenerates from its seed. Saves retain deviations rather than full floor snapshots:
 
 - Cleared enemies, destroyed nests, killed finite summon slots, gatekeeper defeat, drained fountains and sold shop offers.
-- Exact explored tiles, discovered trap identities and discovered/locked/current-open door deviations per depth; closing an explored door does not reopen it on restore.
+- Exact explored tiles, discovered plate identities and discovered/locked/current-open door deviations per depth; closing an explored door does not reopen it on restore.
 - Removed or changed baseline items, added/player-dropped items and activated reward sources.
 - Carried item identities, quantities, rolls, food state and equipment references.
 
@@ -49,4 +51,4 @@ Living enemies reset health, position and tactical state on revisit; active time
 
 When a run saves, and how death turns its save into a record of the fallen run, is in [runs, saving and permadeath](run-lifecycle.md). `SaveGame.CurrentVersion` in [SaveGame.cs](../scripts/saves/SaveGame.cs) is the sole supported-version value. Missing or mismatched versions require a new run. There are no migrations, legacy DTO adapters or fallback conversions. Rejecting an incompatible or invalid save must not overwrite it. Current-version inventory and floor restoration must still preserve supported state correctly.
 
-Verify actual regenerated layouts, encounter definitions/positions and rewards—not merely equal seeds—and save/resume/revisit after changing supported world state. Headless tests cannot certify baked navigation; actual passage remains an editor playtest. Test and command guidance belongs in [AGENTS.md](../AGENTS.md), with remaining acceptance in the [roadmap](development-roadmap.md).
+Verify actual regenerated layouts, encounter definitions and positions and rewards, not merely equal seeds, and save, resume and revisit after changing supported world state. Test and command guidance belongs in [AGENTS.md](../AGENTS.md), with remaining acceptance in the [roadmap](development-roadmap.md).
