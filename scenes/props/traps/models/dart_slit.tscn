@@ -1,20 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=5 format=3]
 
-[sub_resource type="StandardMaterial3D" id="Material_stone"]
-albedo_color = Color(0.56, 0.54, 0.5, 1)
-roughness = 0.85
-
-[sub_resource type="StandardMaterial3D" id="Material_slit"]
-albedo_color = Color(0.05, 0.045, 0.04, 1)
-roughness = 1.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_plate"]
-material = SubResource("Material_stone")
-size = Vector3(0.9, 0.62, 0.14)
-
-[sub_resource type="BoxMesh" id="BoxMesh_slit"]
-material = SubResource("Material_slit")
-size = Vector3(0.46, 0.09, 0.02)
+[ext_resource type="PackedScene" path="res://assets/custom-props/traps/dart_slit.glb" id="1_model"]
 
 [sub_resource type="ParticleProcessMaterial" id="Process_dust"]
 direction = Vector3(0, 0, 1)
@@ -41,13 +27,7 @@ size = Vector2(0.12, 0.12)
 
 [node name="DartSlit" type="Node3D"]
 
-[node name="Plate" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.07)
-mesh = SubResource("BoxMesh_plate")
-
-[node name="Slit" type="MeshInstance3D" parent="Plate"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.075)
-mesh = SubResource("BoxMesh_slit")
+[node name="Mesh" parent="." instance=ExtResource("1_model")]
 
 [node name="Muzzle" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.4)

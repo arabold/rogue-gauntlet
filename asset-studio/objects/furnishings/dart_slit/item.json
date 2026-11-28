@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "name": "Dart Slit",
+  "backend": "procedural",
+  "builder": "furnishing",
+  "color_mode": "world",
+  "topology": "closed_assembly",
+  "placement": {
+    "pivot": "authored",
+    "scale": 1
+  },
+  "budget": {
+    "triangles": 1500,
+    "materials": 2,
+    "texture_size": 1024
+  },
+  "crease": 35,
+  "materials": {
+    "iron": {
+      "crease": 40
+    },
+    "steel": {
+      "crease": 40
+    }
+  },
+  "concept": "A dart trap set into a dungeon wall at a hero's chest height: one squat rectangular stone plate, about half as wide as the large barrel is tall and two thirds as tall as it is wide, a hand's width thick, in the same pale grey stone as the dungeon floor tiles. Its front edges carry one broad clean chamfer all round; its corners stay square, with no chips, cracks or wear. Across the middle runs one long, narrow horizontal slit cut deep into the stone, a real dark opening, with the sharp iron tips of three darts just showing in its darkness. Four oversized round bolt heads pin the plate to the wall, one near each corner. Chunky, clean and plain in the pack's style and palette, readable from the game's raised camera as the place darts fly from.",
+  "design": {
+    "kind": "dart_slit"
+  },
+  "export": {
+    "glb": "res://assets/custom-props/traps/dart_slit.glb"
+  },
+  "reference": "reference.png",
+  "provenance": {
+    "kind": "studio_original",
+    "quality_notes": "Dart trap wall plate at KayKit dungeon scale: a 0.9 x 0.62 m slab of the floor tiles' pale stone_light, back on z = 0, its slit centred on the trap scene's muzzle height (1.1 m). Keeps the placeholder's measured width and height, so rooms hang it where they did. Square corners with only the front edges bevelled, no chips. No gameplay data."
+  }
+}
